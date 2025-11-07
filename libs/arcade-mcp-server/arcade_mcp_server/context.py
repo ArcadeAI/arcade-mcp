@@ -124,14 +124,26 @@ class Context(ToolContext):
         server: Any,
         session: Any | None = None,
         request_id: str | None = None,
+        authenticated_user: Any | None = None,
     ):
-        """Initialize context with server reference."""
+        """Initialize context with server reference.
+
+        Args:
+            server: The MCP server instance
+            session: Optional server session
+            request_id: Optional request ID
+            authenticated_user: Optional authenticated user from front-door auth
+        """
         super().__init__()
         self._server: weakref.ref[Any] = weakref.ref(server)
         self._session: Any | None = session
         self._tokens: list[Token] = []
         self._notification_queue: set[str] = set()
         self._request_id: str | None = request_id
+
+        # Server-level authenticated user (from front-door auth)
+        # Separate from tool-level authorization which is stored in ToolContext
+        self._authenticated_user: Any | None = authenticated_user
 
         # Namespaced adapters
         self._log = Logs(self)

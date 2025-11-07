@@ -278,6 +278,9 @@ class ServerSession:
         self._session_data: dict[str, Any] = {}
         self._request_meta: Any = None
 
+        # Current authenticated user (from front-door auth) - set per request
+        self._current_authenticated_user: Any | None = None
+
         # Request management
         self._request_manager = RequestManager(write_stream) if write_stream else None
 
@@ -361,11 +364,34 @@ class ServerSession:
                     # Cancel any pending requests
                     await self._cleanup_pending_requests()
 
-    async def _process_message(self, message: str) -> None:
-        """Process a single message."""
+    async def _process_message(self, message: str | Any) -> None:
+        """Process a single message.
+
+        Args:
+            message: Either a JSON string (legacy) or SessionMessage object (new)
+        """
         try:
-            # Parse message
-            data = json.loads(message)
+            # Handle both string (backward compat) and SessionMessage objects
+            from arcade_mcp_server.types import SessionMessage
+
+            if isinstance(message, str):
+                # Legacy: parse string as JSON
+                data = json.loads(message)
+                authenticated_user = None
+            elif isinstance(message, SessionMessage):
+                # New: extract message and auth user
+                if hasattr(message.message, "model_dump"):
+                    data = message.message.model_dump()
+                else:
+                    # Fallback if message is already a dict
+                    data = message.message if isinstance(message.message, dict) else {}
+                authenticated_user = message.authenticated_user
+            else:
+                logger.error(f"Unexpected message type: {type(message)}")
+                return
+
+            # Store authenticated user for this request
+            self._current_authenticated_user = authenticated_user
 
             # Check if it's a response to our request
             if "id" in data and "method" not in data:
@@ -390,6 +416,9 @@ class ServerSession:
                     response_data += "\n"
 
                 await self.write_stream.send(response_data)
+
+            # Clear authenticated user after request
+            self._current_authenticated_user = None
 
         except json.JSONDecodeError:
             await self._send_error_response(
@@ -640,7 +669,10 @@ class ServerSession:
     # Context management
     async def create_request_context(self) -> Context:
         """Create a context for the current request."""
-        context = Context(self.server)
+        context = Context(
+            server=self.server,
+            authenticated_user=self._current_authenticated_user,
+        )
         context.set_session(self)
         self._current_context = context
         return context

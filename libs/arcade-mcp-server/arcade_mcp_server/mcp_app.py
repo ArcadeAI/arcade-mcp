@@ -75,6 +75,8 @@ class MCPApp:
         host: str = "127.0.0.1",
         port: int = 8000,
         reload: bool = False,
+        auth: Any | None = None,
+        canonical_url: str | None = None,
         **kwargs: Any,
     ):
         """
@@ -90,6 +92,8 @@ class MCPApp:
             host: Host for transport
             port: Port for transport
             reload: Enable auto-reload for development
+            auth: Optional ServerAuthProvider for front-door authentication
+            canonical_url: Canonical URL of MCP server (required if auth is set)
             **kwargs: Additional server configuration
         """
         self._name = self._validate_name(name)
@@ -97,6 +101,8 @@ class MCPApp:
         self.title = title or name
         self.instructions = instructions
         self.log_level = log_level
+        self.auth_provider = auth
+        self.canonical_url = canonical_url
         self.server_kwargs = kwargs
         self.transport = transport
         self.host = host
@@ -400,6 +406,8 @@ class MCPApp:
             catalog=self._catalog,
             mcp_settings=self._mcp_settings,
             debug=debug,
+            auth_provider=self.auth_provider,
+            canonical_url=self.canonical_url,
             **self.server_kwargs,
         )
 

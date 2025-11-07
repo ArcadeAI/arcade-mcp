@@ -91,9 +91,16 @@ class JSONRPCError(JSONRPCMessage):
 
 @dataclass
 class SessionMessage:
-    """Wrapper for messages in transport sessions."""
+    """Wrapper for messages in transport sessions.
+
+    Carries both the MCP protocol message and optional authenticated user
+    information from front-door authentication.
+    """
 
     message: JSONRPCMessage
+    authenticated_user: Any | None = (
+        None  # AuthenticatedUser from server_auth, avoiding circular import
+    )
 
 
 # -----------------------------------------------------------------------------

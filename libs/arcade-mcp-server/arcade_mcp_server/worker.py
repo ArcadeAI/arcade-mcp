@@ -11,6 +11,7 @@ from collections.abc import AsyncGenerator, AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any
 
+import httpx
 import uvicorn
 from arcade_core.catalog import ToolCatalog
 from arcade_serve.fastapi.telemetry import OTELHandler
@@ -79,12 +80,23 @@ def create_arcade_mcp(
     mcp_settings: MCPSettings | None = None,
     debug: bool = False,
     otel_enable: bool = False,
+    auth_provider: Any | None = None,
+    canonical_url: str | None = None,
     **kwargs: Any,
 ) -> FastAPI:
     """
     Create a FastAPI app exposing Arcade Worker and MCP HTTP endpoints.
 
     MCP is always enabled in this integrated application.
+
+    Args:
+        catalog: Tool catalog for available tools
+        mcp_settings: MCP configuration settings
+        debug: Enable debug mode
+        otel_enable: Enable OpenTelemetry
+        auth_provider: Optional ServerAuthProvider for front-door authentication
+        canonical_url: Canonical URL of MCP server (required if auth_provider is set)
+        **kwargs: Additional configuration options
     """
     if mcp_settings is None:
         mcp_settings = MCPSettings.from_env()
@@ -127,6 +139,99 @@ def create_arcade_mcp(
     otel_handler.instrument_app(app)
     app.add_middleware(AddTrailingSlashToPathMiddleware)
 
+    # Add OAuth discovery endpoint if auth is enabled
+    if auth_provider and auth_provider.supports_oauth_discovery():
+        from fastapi import Response as FastAPIResponse
+        from fastapi.responses import JSONResponse
+
+        @app.get("/.well-known/oauth-protected-resource")
+        async def oauth_protected_resource():
+            """OAuth 2.0 Protected Resource Metadata (RFC 9728)"""
+            if not canonical_url:
+                return JSONResponse(
+                    {"error": "Server canonical URL not configured"},
+                    status_code=500,
+                )
+
+            metadata = auth_provider.get_resource_metadata(canonical_url)
+            return JSONResponse(
+                metadata,
+                headers={
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "GET, OPTIONS",
+                    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+                },
+            )
+
+        @app.options("/.well-known/oauth-protected-resource")
+        async def oauth_protected_resource_options():
+            """Handle CORS preflight for protected resource metadata"""
+            return FastAPIResponse(
+                status_code=204,
+                headers={
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "GET, OPTIONS",
+                    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+                    "Access-Control-Max-Age": "86400",
+                },
+            )
+
+    # Add authorization server metadata forwarding if supported
+    if auth_provider and auth_provider.supports_authorization_server_metadata_forwarding():
+        from fastapi import Response as FastAPIResponse
+        from fastapi.responses import JSONResponse
+
+        @app.get("/.well-known/oauth-authorization-server")
+        async def oauth_authorization_server_metadata():
+            """Forward authorization server metadata from external provider.
+
+            This endpoint proxies the authorization server's metadata to clients,
+            simplifying discovery by serving both resource and authorization server
+            metadata from the same domain.
+            """
+            metadata_url = auth_provider.get_authorization_server_metadata_url()
+            if not metadata_url:
+                return JSONResponse(
+                    {"error": "Authorization server metadata URL not configured"},
+                    status_code=500,
+                )
+
+            try:
+                async with httpx.AsyncClient() as client:
+                    response = await client.get(metadata_url)
+                    response.raise_for_status()
+                    metadata = response.json()
+                    return JSONResponse(
+                        metadata,
+                        headers={
+                            "Access-Control-Allow-Origin": "*",
+                            "Access-Control-Allow-Methods": "GET, OPTIONS",
+                            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+                        },
+                    )
+            except Exception as e:
+                logger.error(f"Failed to fetch authorization server metadata: {e}")
+                return JSONResponse(
+                    {
+                        "error": "server_error",
+                        "error_description": f"Failed to fetch authorization server metadata: {e}",
+                    },
+                    status_code=500,
+                )
+
+        @app.options("/.well-known/oauth-authorization-server")
+        async def oauth_authorization_server_metadata_options():
+            """Handle CORS preflight for authorization server metadata"""
+            return FastAPIResponse(
+                status_code=204,
+                headers={
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "GET, OPTIONS",
+                    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+                    "Access-Control-Max-Age": "86400",
+                },
+            )
+
     # Worker endpoints
     worker = FastAPIWorker(
         app=app,
@@ -148,8 +253,17 @@ def create_arcade_mcp(
                 return
             await session_manager.handle_request(scope, receive, send)
 
-    # Mount the actual ASGI proxy to handle all /mcp requests
-    app.mount("/mcp", _MCPASGIProxy(app), name="mcp-proxy")
+    # Create MCP proxy and wrap with auth middleware if enabled
+    mcp_proxy = _MCPASGIProxy(app)
+    if auth_provider:
+        if not canonical_url:
+            raise ValueError("canonical_url required when auth_provider is enabled")
+        from arcade_mcp_server.server_auth.middleware import MCPAuthMiddleware
+
+        mcp_proxy = MCPAuthMiddleware(mcp_proxy, auth_provider, canonical_url)
+
+    # Mount the ASGI proxy (with or without auth) to handle all /mcp requests
+    app.mount("/mcp", mcp_proxy, name="mcp-proxy")
 
     # Customize OpenAPI to include MCP documentation
     def custom_openapi() -> dict[str, Any]:

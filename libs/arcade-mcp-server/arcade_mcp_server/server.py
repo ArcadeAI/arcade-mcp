@@ -633,24 +633,38 @@ class MCPServer:
                 elif secret.key in os.environ:
                     tool_context.set_secret(secret.key, os.environ[secret.key])
 
-        # user_id selection
+        # user_id selection priority:
+        # 1. Authenticated user from front-door auth (if available)
+        # 2. Configured user_id from settings
+        # 3. Session ID for dev environments
         env = (self.settings.arcade.environment or "").lower()
-        user_id = self.settings.arcade.user_id
 
-        # If no user_id from env, try credentials file
-        if not user_id:
-            _, config_user_id = self._load_config_values()
-            user_id = config_user_id
-
-        if user_id:
-            tool_context.user_id = user_id
-            logger.debug(f"Context user_id set: {user_id}")
-        elif env in ("development", "dev", "local"):
-            tool_context.user_id = session.session_id if session else None
-            logger.debug(f"Context user_id set from session (dev env={env})")
+        # First priority: authenticated user from front-door auth
+        if (
+            session
+            and hasattr(session, "_current_authenticated_user")
+            and session._current_authenticated_user
+        ):
+            tool_context.user_id = session._current_authenticated_user.user_id
+            logger.debug(f"Context user_id set from front-door auth: {tool_context.user_id}")
         else:
-            tool_context.user_id = session.session_id if session else None
-            logger.debug("Context user_id set from session (non-dev env)")
+            # Second priority: configured user_id from settings
+            user_id = self.settings.arcade.user_id
+
+            # If no user_id from env, try credentials file
+            if not user_id:
+                _, config_user_id = self._load_config_values()
+                user_id = config_user_id
+
+            if user_id:
+                tool_context.user_id = user_id
+                logger.debug(f"Context user_id set from settings: {user_id}")
+            elif env in ("development", "dev", "local"):
+                tool_context.user_id = session.session_id if session else None
+                logger.debug(f"Context user_id set from session (dev env={env})")
+            else:
+                tool_context.user_id = session.session_id if session else None
+                logger.debug("Context user_id set from session (non-dev env)")
 
         return tool_context
 
@@ -794,27 +808,41 @@ class MCPServer:
         tool_name: str,
         session: ServerSession | None = None,
     ) -> JSONRPCResponse[CallToolResult] | None:
-        """Check transport restrictions for tools requiring auth or secrets"""
+        """Check transport restrictions for tools requiring auth or secrets.
+
+        Tools requiring authorization or secrets are blocked on unauthenticated HTTP
+        transport for security reasons. However, if the HTTP transport has front-door
+        authentication enabled (authenticated_user is present), these tools are allowed
+        since we can safely identify the end-user and handle their authorization.
+        """
         # Check transport restrictions for tools requiring auth or secrets
         if session and session.init_options:
             transport_type = session.init_options.get("transport_type")
             if transport_type != "stdio":
+                # Check if HTTP is authenticated via front-door auth
+                is_authenticated = (
+                    hasattr(session, "_current_authenticated_user")
+                    and session._current_authenticated_user is not None
+                )
+
                 requirements = tool.definition.requirements
                 if requirements and (requirements.authorization or requirements.secrets):
-                    documentation_url = "https://docs.arcade.dev/en/home/compare-server-types"
-                    tool_response = {
-                        "message": (
-                            f"Tool '{tool_name}' cannot be executed over unauthenticated HTTP transport for security reasons. "
-                            "This tool requires end-user authorization or access to sensitive secrets.\n"
-                            "For more information about server capabilities and transport options, see: "
-                            f"{documentation_url}"
-                        ),
-                        "llm_instructions": (
-                            f"Please show the following link to the end user formatted as markdown: [Compare Server Types]({documentation_url})\n"
-                            "Inform the end user that the provided link contains documentation on how to configure the server to use the correct transport."
-                        ),
-                    }
-                    return self._create_error_response(message, tool_response)
+                    # Only block if HTTP transport is NOT authenticated
+                    if not is_authenticated:
+                        documentation_url = "https://docs.arcade.dev/en/home/compare-server-types"
+                        tool_response = {
+                            "message": (
+                                f"Tool '{tool_name}' cannot be executed over unauthenticated HTTP transport for security reasons. "
+                                "This tool requires end-user authorization or access to sensitive secrets.\n"
+                                "For more information about server capabilities and transport options, see: "
+                                f"{documentation_url}"
+                            ),
+                            "llm_instructions": (
+                                f"Please show the following link to the end user formatted as markdown: [Compare Server Types]({documentation_url})\n"
+                                "Inform the end user that the provided link contains documentation on how to configure the server to use the correct transport."
+                            ),
+                        }
+                        return self._create_error_response(message, tool_response)
         return None
 
     async def _check_tool_requirements(

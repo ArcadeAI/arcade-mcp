@@ -218,7 +218,13 @@ class HTTPStreamableTransport:
         headers: dict[str, str] | None = None,
     ) -> Response:
         """Create an error response."""
-        response_headers = {"Content-Type": CONTENT_TYPE_JSON}
+        response_headers = {
+            "Content-Type": CONTENT_TYPE_JSON,
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept, Mcp-Session-Id",
+            "Access-Control-Expose-Headers": "Mcp-Session-Id",
+        }
         if headers:
             response_headers.update(headers)
 
@@ -304,6 +310,8 @@ class HTTPStreamableTransport:
             await self._handle_get_request(request, send)
         elif request.method == "DELETE":
             await self._handle_delete_request(request, send)
+        elif request.method == "OPTIONS":
+            await self._handle_options_request(request, send)
         else:
             await self._handle_unsupported_request(request, send)
 
@@ -406,13 +414,20 @@ class HTTPStreamableTransport:
             elif not await self._validate_request_headers(request, send):
                 return
 
+            # Extract authenticated user from scope (set by ASGI auth middleware)
+            authenticated_user = request.scope.get("authenticated_user")
+
             # For notifications and responses, return 202 Accepted
             if not isinstance(message, JSONRPCRequest):
                 response = self._create_json_response(None, HTTPStatus.ACCEPTED)
                 await response(scope, receive, send)
 
-                # Process the message
-                await writer.send(body_str if body_str.endswith("\n") else body_str + "\n")
+                # Process the message - send as SessionMessage object
+                session_message = SessionMessage(
+                    message=message,
+                    authenticated_user=authenticated_user,
+                )
+                await writer.send(session_message)
                 return
 
             # Handle requests
@@ -421,8 +436,12 @@ class HTTPStreamableTransport:
             request_stream_reader = self._request_streams[request_id][1]
 
             if self.is_json_response_enabled:
-                # JSON response mode
-                await writer.send(body_str if body_str.endswith("\n") else body_str + "\n")
+                # JSON response mode - send SessionMessage object
+                session_message = SessionMessage(
+                    message=message,
+                    authenticated_user=authenticated_user,
+                )
+                await writer.send(session_message)
 
                 try:
                     response_message = None
@@ -490,7 +509,12 @@ class HTTPStreamableTransport:
                 try:
                     async with anyio.create_task_group() as tg:
                         tg.start_soon(response, scope, receive, send)
-                        await writer.send(body_str if body_str.endswith("\n") else body_str + "\n")
+                        # Send SessionMessage object
+                        session_message = SessionMessage(
+                            message=message,
+                            authenticated_user=authenticated_user,
+                        )
+                        await writer.send(session_message)
                 except Exception:
                     logger.exception("SSE response error")
                     await sse_stream_writer.aclose()
@@ -626,11 +650,30 @@ class HTTPStreamableTransport:
         except Exception as e:
             logger.debug(f"Error closing streams: {e}")
 
+    async def _handle_options_request(self, request: Request, send: Send) -> None:
+        """Handle OPTIONS requests for CORS preflight."""
+        headers = {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept, Mcp-Session-Id",
+            "Access-Control-Expose-Headers": "Mcp-Session-Id, WWW-Authenticate",
+            "Access-Control-Max-Age": "86400",
+        }
+        if self.mcp_session_id:
+            headers[MCP_SESSION_ID_HEADER] = self.mcp_session_id
+
+        response = Response(
+            content="",
+            status_code=HTTPStatus.NO_CONTENT,
+            headers=headers,
+        )
+        await response(request.scope, request.receive, send)
+
     async def _handle_unsupported_request(self, request: Request, send: Send) -> None:
         """Handle unsupported HTTP methods."""
         headers = {
             "Content-Type": CONTENT_TYPE_JSON,
-            "Allow": "GET, POST, DELETE",
+            "Allow": "GET, POST, DELETE, OPTIONS",
         }
         if self.mcp_session_id:
             headers[MCP_SESSION_ID_HEADER] = self.mcp_session_id

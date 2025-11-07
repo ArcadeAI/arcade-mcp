@@ -93,6 +93,21 @@ class ServerSettings(BaseSettings):
     model_config = {"env_prefix": "MCP_SERVER_"}
 
 
+class ServerAuthSettings(BaseSettings):
+    """Server authentication settings for front-door auth."""
+
+    enabled: bool = Field(
+        default=False,
+        description="Enable front-door authentication",
+    )
+    canonical_url: str | None = Field(
+        default=None,
+        description="Canonical URL of this MCP server (e.g., https://mcp.example.com)",
+    )
+
+    model_config = {"env_prefix": "MCP_SERVER_AUTH_"}
+
+
 class MiddlewareSettings(BaseSettings):
     """Middleware-related settings."""
 
@@ -206,6 +221,10 @@ class MCPSettings(BaseSettings):
     server: ServerSettings = Field(
         default_factory=ServerSettings,
         description="Server settings",
+    )
+    server_auth: ServerAuthSettings = Field(
+        default_factory=ServerAuthSettings,
+        description="Server authentication settings",
     )
     middleware: MiddlewareSettings = Field(
         default_factory=MiddlewareSettings,
