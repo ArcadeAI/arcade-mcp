@@ -1,0 +1,169 @@
+{
+  "name": "GetCrossAppAccessConnections",
+  "fully_qualified_name": "OktaApi.GetCrossAppAccessConnections@0.1.0",
+  "description": "Retrieve Cross App Access connections for a specified app.\n\nUse this tool to obtain information about inbound and outbound Cross App Access connections linked to a specific application. It provides the necessary details about the connections associated with the app.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "application_id",
+        "required": true,
+        "description": "The unique identifier of the application for which Cross App Access connections are retrieved.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Application ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "appId"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "Specifies the pagination cursor for retrieving the next page of connection results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the pagination cursor for the next page of connection results"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "after"
+      },
+      {
+        "name": "results_per_page",
+        "required": false,
+        "description": "Number of results per page: -1 for all results, 0 for empty, or a positive integer for specific count.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the number of results to return per page. The values:\n  * -1: Return all results (up to system maximum)\n  * 0: Return an empty result set\n  * Positive integer: Return up to that many results (capped at system maximum)\n"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getAllCrossAppAccessConnections'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.apps.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/apps/{appId}/cwo/connections",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "after",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "Specifies the pagination cursor for the next page of connection results",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the pagination cursor for the next page of connection results"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "results_per_page",
+        "description": "Specifies the number of results to return per page. The values:\n  * -1: Return all results (up to system maximum)\n  * 0: Return an empty result set\n  * Positive integer: Return up to that many results (capped at system maximum)\n",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the number of results to return per page. The values:\n  * -1: Return all results (up to system maximum)\n  * 0: Return an empty result set\n  * Positive integer: Return up to that many results (capped at system maximum)\n"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "appId",
+        "tool_parameter_name": "application_id",
+        "description": "Application ID",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Application ID"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "name": "RevokeApiToken",
+  "fully_qualified_name": "OktaApi.RevokeApiToken@0.1.0",
+  "description": "Revoke an API token using its ID.\n\nUse this tool to revoke an API token by providing its unique ID. It will disable the specified token, preventing any further access or operations using that token.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "api_token_id",
+        "required": true,
+        "description": "The unique ID of the API token to revoke.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "id of the API Token"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "apiTokenId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'revokeApiToken'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.apiTokens.manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/api-tokens/{apiTokenId}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "apiTokenId",
+        "tool_parameter_name": "api_token_id",
+        "description": "id of the API Token",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "id of the API Token"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

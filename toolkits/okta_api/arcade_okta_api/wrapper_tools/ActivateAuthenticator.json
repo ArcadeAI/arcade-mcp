@@ -1,0 +1,105 @@
+{
+  "name": "ActivateAuthenticator",
+  "fully_qualified_name": "OktaApi.ActivateAuthenticator@0.1.0",
+  "description": "Activates an authenticator using its ID.\n\nUse this tool to activate a specific authenticator by providing its ID. It is useful when an authenticator needs to be enabled for user verification processes.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "authenticator_id",
+        "required": true,
+        "description": "The unique identifier for the authenticator to be activated. It must be a valid string matching the authenticator's ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of the authenticator"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "authenticatorId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'activateAuthenticator'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.authenticators.manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/authenticators/{authenticatorId}/lifecycle/activate",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "authenticatorId",
+        "tool_parameter_name": "authenticator_id",
+        "description": "`id` of the authenticator",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of the authenticator"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

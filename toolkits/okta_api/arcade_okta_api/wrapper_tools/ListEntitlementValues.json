@@ -1,0 +1,201 @@
+{
+  "name": "ListEntitlementValues",
+  "fully_qualified_name": "OktaApi.ListEntitlementValues@0.1.0",
+  "description": "Retrieve entitlement values for a specified bundle.\n\nUse this tool to get all entitlement values linked to a particular bundle entitlement. It is useful for accessing detailed governance information.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "bundle_id",
+        "required": true,
+        "description": "The ID of the bundle to retrieve entitlement values for. This is required to specify which bundle you are querying.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `id` of a bundle"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "bundleId"
+      },
+      {
+        "name": "bundle_entitlement_id",
+        "required": true,
+        "description": "The ID of the bundle entitlement for which to retrieve entitlement values.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `id` of a bundle entitlement"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "entitlementId"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "The cursor for pagination, indicating your current position in the list. Obtainable from the `Link` response header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The cursor to use for pagination. It is an opaque string that specifies your current location in the list and is obtained from the `Link` response header. See [Pagination](https://developer.okta.com/docs/api/#pagination)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "after"
+      },
+      {
+        "name": "max_results_to_return",
+        "required": false,
+        "description": "Sets the maximum number of entitlement values to return in the response. Use to limit the returned data size.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A limit on the number of objects to return"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'listBundleEntitlementValues'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.roles.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/iam/governance/bundles/{bundleId}/entitlements/{entitlementId}/values",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "after",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "The cursor to use for pagination. It is an opaque string that specifies your current location in the list and is obtained from the `Link` response header. See [Pagination](https://developer.okta.com/docs/api/#pagination).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The cursor to use for pagination. It is an opaque string that specifies your current location in the list and is obtained from the `Link` response header. See [Pagination](https://developer.okta.com/docs/api/#pagination)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "max_results_to_return",
+        "description": "A limit on the number of objects to return",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A limit on the number of objects to return"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "bundleId",
+        "tool_parameter_name": "bundle_id",
+        "description": "The `id` of a bundle",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `id` of a bundle"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "entitlementId",
+        "tool_parameter_name": "bundle_entitlement_id",
+        "description": "The `id` of a bundle entitlement",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `id` of a bundle entitlement"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

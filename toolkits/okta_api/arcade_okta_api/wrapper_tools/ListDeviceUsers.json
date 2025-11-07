@@ -1,0 +1,105 @@
+{
+  "name": "ListDeviceUsers",
+  "fully_qualified_name": "OktaApi.ListDeviceUsers@0.1.0",
+  "description": "Retrieve all users for a specific device by device ID.\n\nUse this tool to get a list of users associated with a particular device, identified by its device ID. Call this tool when you need to find out which users have associated accounts with a specific device.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "device_id",
+        "required": true,
+        "description": "The ID of the device to fetch users for. This should match the device's unique identifier in the system.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of the device"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "deviceId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'listDeviceUsers'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.devices.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/devices/{deviceId}/users",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "deviceId",
+        "tool_parameter_name": "device_id",
+        "description": "`id` of the device",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of the device"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}
