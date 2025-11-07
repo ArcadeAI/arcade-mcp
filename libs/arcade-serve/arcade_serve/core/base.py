@@ -1,3 +1,6 @@
+import atexit
+import hashlib
+import json
 import logging
 import os
 import time
@@ -32,6 +35,7 @@ class BaseWorker(Worker):
     """
 
     base_path = "/worker"  # By default, prefix all our routes with /worker
+    _cache_dir = "/tmp/arcade_worker_cache"  # noqa: S108
 
     default_components: ClassVar[tuple[type[WorkerComponent], ...]] = (
         CatalogComponent,
@@ -49,7 +53,9 @@ class BaseWorker(Worker):
         Initialize the BaseWorker with an empty ToolCatalog.
         If no secret is provided, the worker will use the ARCADE_WORKER_SECRET environment variable.
         """
-        self.catalog = ToolCatalog()
+        self._catalog_cache_path: str | None = None
+        self._catalog = ToolCatalog()
+        self._cache_enabled = os.environ.get("CACHE_WORKER_CATALOG", "false").lower() == "true"
         self.disable_auth = disable_auth
         if disable_auth:
             logger.warning(
@@ -82,11 +88,92 @@ class BaseWorker(Worker):
             "No secret provided for worker. Set the ARCADE_WORKER_SECRET environment variable."
         )
 
+    @property
+    def catalog(self) -> ToolCatalog:
+        """Get the worker's tool catalog."""
+        return self._catalog
+
+    @catalog.setter
+    def catalog(self, value: ToolCatalog) -> None:
+        """Set the worker's tool catalog and write it to cache if enabled."""
+        self._catalog = value
+
+        if not self._cache_enabled:
+            return
+
+        # Clean up old cache file if one exists
+        if self._catalog_cache_path and os.path.exists(self._catalog_cache_path):
+            try:
+                os.remove(self._catalog_cache_path)
+            except OSError as e:
+                logger.warning(f"Failed to remove old cache file {self._catalog_cache_path}: {e}")
+
+        # Compute hash of catalog contents
+        catalog_hash = self._compute_catalog_hash()
+
+        # Create cache directory if it doesn't exist
+        os.makedirs(self._cache_dir, exist_ok=True)
+
+        # Write cache file
+        cache_filename = f"catalog_{catalog_hash}.json"
+        self._catalog_cache_path = os.path.join(self._cache_dir, cache_filename)
+        self._write_catalog_cache()
+
+        # Register cleanup handler
+        atexit.register(self._cleanup_catalog_cache)
+
+    def _compute_catalog_hash(self) -> str:
+        """Compute a hash of the catalog contents for cache file naming."""
+        # Serialize all tool definitions to JSON for hashing
+        tool_definitions = [tool.definition.model_dump() for tool in self._catalog]
+        # Sort by fully_qualified_name for consistent hashing
+        tool_definitions.sort(key=lambda td: td.get("fully_qualified_name", ""))
+        catalog_json = json.dumps(tool_definitions, sort_keys=True)
+        # Use SHA256 for hash
+        hash_obj = hashlib.sha256(catalog_json.encode("utf-8"))
+        return hash_obj.hexdigest()
+
+    def _write_catalog_cache(self) -> None:
+        """Write the catalog to disk as JSON."""
+        try:
+            tool_definitions = [tool.definition.model_dump() for tool in self._catalog]
+            with open(self._catalog_cache_path, "w", encoding="utf-8") as f:
+                json.dump(tool_definitions, f, indent=2)
+            logger.debug(f"Wrote catalog cache to {self._catalog_cache_path}")
+        except OSError as e:
+            logger.warning(f"Failed to write catalog cache to {self._catalog_cache_path}: {e}")
+
+    def _cleanup_catalog_cache(self) -> None:
+        """Delete the catalog cache file on worker shutdown."""
+        if self._catalog_cache_path and os.path.exists(self._catalog_cache_path):
+            try:
+                os.remove(self._catalog_cache_path)
+                logger.debug(f"Cleaned up catalog cache file: {self._catalog_cache_path}")
+            except OSError as e:
+                logger.warning(f"Failed to clean up cache file {self._catalog_cache_path}: {e}")
+
     def get_catalog(self) -> list[ToolDefinition]:
         """
         Get the catalog as a list of ToolDefinitions.
+        Reads from cache file if caching is enabled and available, otherwise computes from in-memory catalog.
         """
-        return [tool.definition for tool in self.catalog]
+        if (
+            self._cache_enabled
+            and self._catalog_cache_path
+            and os.path.exists(self._catalog_cache_path)
+        ):
+            try:
+                with open(self._catalog_cache_path, encoding="utf-8") as f:
+                    catalog_data = json.load(f)
+                # Deserialize JSON back to ToolDefinition objects
+                return [ToolDefinition.model_validate(td) for td in catalog_data]
+            except (OSError, json.JSONDecodeError, ValueError) as e:
+                logger.warning(
+                    f"Failed to read catalog cache from {self._catalog_cache_path}: {e}. "
+                    "Falling back to in-memory catalog."
+                )
+
+        return [tool.definition for tool in self._catalog]
 
     def register_tool(self, tool: Callable, toolkit_name: str) -> None:
         """
