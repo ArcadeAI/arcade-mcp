@@ -645,7 +645,7 @@ class MCPServer:
             and hasattr(session, "_current_authenticated_user")
             and session._current_authenticated_user
         ):
-            tool_context.user_id = session._current_authenticated_user.user_id
+            tool_context.user_id = session._current_authenticated_user.email
             logger.debug(f"Context user_id set from front-door auth: {tool_context.user_id}")
         else:
             # Second priority: configured user_id from settings

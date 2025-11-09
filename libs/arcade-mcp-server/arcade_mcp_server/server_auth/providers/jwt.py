@@ -4,6 +4,7 @@ JWT-based token verification provider.
 Implements OAuth 2.1 Resource Server token validation using JWT with JWKS.
 """
 
+import os
 import time
 from typing import Any
 
@@ -161,9 +162,24 @@ class JWTVerifier(ServerAuthProvider):
             if not user_id:
                 raise InvalidTokenError("Token missing 'sub' claim")
 
+            # TODO: I think this is where I would determine if this user is allowed to access this MCP server.
+
+            email = decoded.get("email")  # Authkit doesn't include email in token i think
+            if WORKOS_API_KEY := os.getenv("WORKOS_API_KEY"):
+                async with httpx.AsyncClient() as client:
+                    workos_user = await client.get(
+                        f"https://api.workos.com/user_management/users/{user_id}",
+                        headers={
+                            "Authorization": f"Bearer {WORKOS_API_KEY}",
+                        },
+                    )
+                    workos_user.raise_for_status()
+                    workos_user_data = workos_user.json()
+                    email = workos_user_data.get("email")
+
             return AuthenticatedUser(
                 user_id=user_id,
-                email=decoded.get("email"),
+                email=email,
                 claims=decoded,
             )
 
