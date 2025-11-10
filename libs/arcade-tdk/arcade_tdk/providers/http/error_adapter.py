@@ -100,7 +100,8 @@ class BaseHTTPErrorMapper:
         """
         Determine if a 403 error is actually a rate limiting error.
 
-        Simply checks if any rate limiting headers are present.
+        Checks if rate limit quota is exhausted. Simply having rate limit headers
+        is not sufficient since some services include them in all responses.
 
         Args:
             headers: HTTP response headers
@@ -109,8 +110,10 @@ class BaseHTTPErrorMapper:
         Returns:
             True if this 403 should be treated as rate limiting
         """
-        # Check if any rate limiting headers are present
-        return any(header.lower() in [h.lower() for h in headers] for header in RATE_HEADERS)
+        # Check if rate limit is actually exhausted (remaining requests is 0)
+        headers_lower = {k.lower(): v for k, v in headers.items()}
+        remaining = headers_lower.get("x-ratelimit-remaining")
+        return remaining is not None and remaining.isdigit() and int(remaining) == 0
 
 
 class _HTTPXExceptionHandler:
