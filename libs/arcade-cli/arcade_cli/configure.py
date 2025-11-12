@@ -408,11 +408,12 @@ def configure_client(
         # Use the name of the current directory as the server name
         server_name = Path.cwd().name
 
-    if not bool(re.match(r"^[a-zA-Z0-9_-]+\.py$", entrypoint_file)):
-        raise ValueError(f"Entrypoint file '{entrypoint_file}' is not a valid Python file name")
+    if transport == "stdio":
+        if not bool(re.match(r"^[a-zA-Z0-9_-]+\.py$", entrypoint_file)):
+            raise ValueError(f"Entrypoint file '{entrypoint_file}' is not a valid Python file name")
 
-    if not (Path.cwd() / entrypoint_file).exists():
-        raise ValueError(f"Entrypoint file '{entrypoint_file}' is not in the current directory")
+        if not (Path.cwd() / entrypoint_file).exists():
+            raise ValueError(f"Entrypoint file '{entrypoint_file}' is not in the current directory")
 
     client_lower = client.lower()
 
