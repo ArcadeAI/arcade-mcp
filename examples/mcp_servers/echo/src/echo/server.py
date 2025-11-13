@@ -2,7 +2,7 @@ from typing import Annotated
 
 from arcade_mcp_server import MCPApp
 
-app = MCPApp("Echo server")
+app = MCPApp("EchoServer")
 
 
 @app.tool
