@@ -1,4 +1,5 @@
 import logging
+import re
 from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import urlparse
@@ -8,6 +9,8 @@ from arcade_core.errors import (
     UpstreamRateLimitError,
 )
 
+_NUMERIC_HEADER_PATTERN = re.compile(r"^-?\d+(?:\.\d+)?$")
+
 logger = logging.getLogger(__name__)
 
 RATE_HEADERS = ("retry-after", "x-ratelimit-reset", "x-ratelimit-reset-ms")
@@ -15,6 +18,21 @@ RATE_HEADERS = ("retry-after", "x-ratelimit-reset", "x-ratelimit-reset-ms")
 
 class BaseHTTPErrorMapper:
     """Base class for HTTP error mapping functionality."""
+
+    def _parse_numeric_header(self, value: str | None) -> float | None:
+        """Convert numeric header values to float without relying on exceptions."""
+
+        if value is None:
+            return None
+
+        stripped = value.strip()
+        if not stripped:
+            return None
+
+        if _NUMERIC_HEADER_PATTERN.fullmatch(stripped):
+            return float(stripped)
+
+        return None
 
     def _parse_retry_ms(self, headers: dict[str, str]) -> int:
         """
@@ -111,9 +129,42 @@ class BaseHTTPErrorMapper:
             True if this 403 should be treated as rate limiting
         """
         # Check if rate limit is actually exhausted (remaining requests is 0)
+        # Support common header variations used by different APIs
         headers_lower = {k.lower(): v for k, v in headers.items()}
-        remaining = headers_lower.get("x-ratelimit-remaining")
-        return remaining is not None and remaining.isdigit() and int(remaining) == 0
+        remaining_header_names = [
+            "x-ratelimit-remaining",
+            "x-rate-limit-remaining",
+            "ratelimit-remaining",
+            "x-app-rate-limit-remaining",
+        ]
+
+        # Check if remaining quota is 0
+        for header_name in remaining_header_names:
+            remaining_value = self._parse_numeric_header(headers_lower.get(header_name))
+            if remaining_value is not None and remaining_value == 0:
+                return True
+
+        # Check if retry-after is present with a meaningful value along with rate limit headers
+        # This combination often indicates rate limiting even if remaining isn't explicitly 0
+        retry_after = headers_lower.get("retry-after")
+        has_meaningful_retry_after = False
+        if retry_after:
+            retry_after_value = self._parse_numeric_header(retry_after)
+            if retry_after_value is not None:
+                has_meaningful_retry_after = retry_after_value > 0
+            else:
+                # Non-numeric retry-after values (e.g., HTTP dates) indicate rate limiting windows
+                has_meaningful_retry_after = True
+
+        has_rate_limit_headers = any(
+            header_name in headers_lower
+            for header_name in [
+                "x-ratelimit-limit",
+                "x-rate-limit-limit",
+                "ratelimit-limit",
+            ]
+        )
+        return bool(has_meaningful_retry_after and has_rate_limit_headers)
 
 
 class _HTTPXExceptionHandler:

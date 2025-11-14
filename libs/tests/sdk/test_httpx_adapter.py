@@ -393,6 +393,88 @@ class TestHTTPErrorAdapter:
         result = self.adapter._is_rate_limit_403(headers, msg)
         assert result is False
 
+    def test_is_rate_limit_403_with_x_rate_limit_remaining_variant(self):
+        """Test detecting rate limit 403 with x-rate-limit-remaining header variant."""
+        headers = {"x-rate-limit-remaining": "0"}
+        msg = "Forbidden"
+
+        result = self.adapter._is_rate_limit_403(headers, msg)
+        assert result is True
+
+    def test_is_rate_limit_403_with_ratelimit_remaining_variant(self):
+        """Test detecting rate limit 403 with ratelimit-remaining header variant."""
+        headers = {"ratelimit-remaining": "0"}
+        msg = "Forbidden"
+
+        result = self.adapter._is_rate_limit_403(headers, msg)
+        assert result is True
+
+    def test_is_rate_limit_403_with_app_rate_limit_remaining_variant(self):
+        """Test detecting rate limit 403 with x-app-rate-limit-remaining header variant."""
+        headers = {"x-app-rate-limit-remaining": "0"}
+        msg = "Forbidden"
+
+        result = self.adapter._is_rate_limit_403(headers, msg)
+        assert result is True
+
+    def test_is_rate_limit_403_with_non_digit_value(self):
+        """Test that non-digit remaining value is handled gracefully."""
+        headers = {"x-ratelimit-remaining": "invalid"}
+        msg = "Forbidden"
+
+        result = self.adapter._is_rate_limit_403(headers, msg)
+        assert result is False
+
+    def test_is_rate_limit_403_with_float_value(self):
+        """Test that float remaining value is handled (converted to int)."""
+        headers = {"x-ratelimit-remaining": "0.0"}
+        msg = "Forbidden"
+
+        result = self.adapter._is_rate_limit_403(headers, msg)
+        assert result is True
+
+    def test_is_rate_limit_403_with_retry_after_and_rate_limit_headers(self):
+        """Test detecting rate limit when retry-after is present with rate limit headers."""
+        headers = {
+            "retry-after": "60",
+            "x-ratelimit-limit": "5000",
+            "x-ratelimit-remaining": "100",  # Still has quota but retry-after suggests rate limit
+        }
+        msg = "Forbidden"
+
+        result = self.adapter._is_rate_limit_403(headers, msg)
+        assert result is True
+
+    def test_is_rate_limit_403_with_retry_after_only(self):
+        """Test that retry-after alone without rate limit headers is not treated as rate limit."""
+        headers = {"retry-after": "60"}
+        msg = "Forbidden"
+
+        result = self.adapter._is_rate_limit_403(headers, msg)
+        assert result is False
+
+    def test_is_rate_limit_403_with_rate_limit_headers_no_retry_after(self):
+        """Test that rate limit headers without retry-after and with remaining quota is not rate limit."""
+        headers = {
+            "x-ratelimit-limit": "5000",
+            "x-ratelimit-remaining": "100",
+        }
+        msg = "Forbidden"
+
+        result = self.adapter._is_rate_limit_403(headers, msg)
+        assert result is False
+
+    def test_is_rate_limit_403_with_retry_after_zero(self):
+        """Test that retry-after with value 0 is not treated as rate limiting."""
+        headers = {
+            "retry-after": "0",
+            "x-ratelimit-limit": "5000",
+        }
+        msg = "Forbidden"
+
+        result = self.adapter._is_rate_limit_403(headers, msg)
+        assert result is False
+
     def test_httpx_403_rate_limit_handling(self):
         """Test handling httpx 403 rate limit with exhausted quota."""
 
@@ -405,7 +487,7 @@ class TestHTTPErrorAdapter:
         mock_response.headers = {
             "x-ratelimit-reset": "1640995200",
             "retry-after": "120",
-            "x-ratelimit-remaining": "0"  # Quota is exhausted
+            "x-ratelimit-remaining": "0",  # Quota is exhausted
         }
 
         mock_request = Mock()
@@ -434,7 +516,7 @@ class TestHTTPErrorAdapter:
         mock_response.status_code = 403
         mock_response.headers = {
             "x-ratelimit-reset-ms": "30000",
-            "x-ratelimit-remaining": "0"  # Quota is exhausted
+            "x-ratelimit-remaining": "0",  # Quota is exhausted
         }
 
         mock_request = Mock()
