@@ -19,7 +19,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Literal
+from typing import Any, Literal, Protocol
 
 from pydantic import BaseModel, Field
 
@@ -27,6 +27,75 @@ from arcade_core.errors import ErrorKind
 
 # allow for custom tool name separator
 TOOL_NAME_SEPARATOR = os.getenv("ARCADE_TOOL_NAME_SEPARATOR", ".")
+
+
+# =====================
+# MCP Feature Protocols and No-Op Implementations
+# =====================
+# These protocols and stubs enable graceful degradation of MCP features
+# in deployed (non-local) environments where the full MCP context is not available.
+
+
+class LogsProtocol(Protocol):
+    """Protocol for logging interface."""
+
+    async def log(
+        self,
+        level: str,
+        message: str,
+        logger_name: str | None = None,
+        extra: dict[str, Any] | None = None,
+    ) -> None: ...
+
+    async def debug(self, message: str, **kwargs: Any) -> None: ...
+
+    async def info(self, message: str, **kwargs: Any) -> None: ...
+
+    async def warning(self, message: str, **kwargs: Any) -> None: ...
+
+    async def error(self, message: str, **kwargs: Any) -> None: ...
+
+
+class ProgressProtocol(Protocol):
+    """Protocol for progress reporting interface."""
+
+    async def report(
+        self, progress: float, total: float | None = None, message: str | None = None
+    ) -> None: ...
+
+
+class _NoOpLogs:
+    """No-op implementation for logging in deployed environments."""
+
+    async def log(
+        self,
+        level: str,
+        message: str,
+        logger_name: str | None = None,
+        extra: dict[str, Any] | None = None,
+    ) -> None:
+        pass
+
+    async def debug(self, message: str, **kwargs: Any) -> None:
+        pass
+
+    async def info(self, message: str, **kwargs: Any) -> None:
+        pass
+
+    async def warning(self, message: str, **kwargs: Any) -> None:
+        pass
+
+    async def error(self, message: str, **kwargs: Any) -> None:
+        pass
+
+
+class _NoOpProgress:
+    """No-op implementation for progress in deployed environments."""
+
+    async def report(
+        self, progress: float, total: float | None = None, message: str | None = None
+    ) -> None:
+        pass
 
 
 class ValueSchema(BaseModel):
@@ -389,6 +458,75 @@ class ToolContext(BaseModel):
                 return item.value
 
         raise ValueError(f"{item_name.capitalize()} '{key}' not found in context.")
+
+    # ============ MCP Feature Properties ============
+    # Non-critical features (no-op in deployed environments)
+
+    @property
+    def log(self) -> LogsProtocol:
+        """No-op logging interface (not supported in deployed environments)."""
+        return _NoOpLogs()
+
+    @property
+    def progress(self) -> ProgressProtocol:
+        """No-op progress reporting (not supported in deployed environments)."""
+        return _NoOpProgress()
+
+    # Critical features (raise error in deployed environments)
+
+    @property
+    def resources(self) -> Any:
+        """Resources are not available in deployed environments."""
+        raise RuntimeError(
+            "The resources feature is not supported for Arcade managed servers (non-local)"
+        )
+
+    @property
+    def tools(self) -> Any:
+        """Tool calling is not available in deployed environments."""
+        raise RuntimeError(
+            "The tools feature is not supported for Arcade managed servers (non-local)"
+        )
+
+    @property
+    def prompts(self) -> Any:
+        """Prompts are not available in deployed environments."""
+        raise RuntimeError(
+            "The prompts feature is not supported for Arcade managed servers (non-local)"
+        )
+
+    @property
+    def sampling(self) -> Any:
+        """Sampling is not available in deployed environments."""
+        raise RuntimeError(
+            "The sampling feature is not supported for Arcade managed servers (non-local)"
+        )
+
+    @property
+    def ui(self) -> Any:
+        """UI/elicitation is not available in deployed environments."""
+        raise RuntimeError("The ui feature is not supported for Arcade managed servers (non-local)")
+
+    @property
+    def notifications(self) -> Any:
+        """Notifications are not available in deployed environments."""
+        raise RuntimeError(
+            "The notifications feature is not supported for Arcade managed servers (non-local)"
+        )
+
+    @property
+    def request_id(self) -> Any:
+        """Request ID is not available in deployed environments."""
+        raise RuntimeError(
+            "The request_id feature is not supported for Arcade managed servers (non-local)"
+        )
+
+    @property
+    def session_id(self) -> Any:
+        """Session ID is not available in deployed environments."""
+        raise RuntimeError(
+            "The session_id feature is not supported for Arcade managed servers (non-local)"
+        )
 
 
 class ToolCallRequest(BaseModel):
