@@ -107,7 +107,8 @@ class ServerAuthProvider(ABC):
         Some providers (e.g., AuthKit) can forward the authorization server's metadata
         from the external provider's endpoint to simplify client discovery.
 
-        Returns True if the provider implements get_authorization_server_metadata_url().
+        Returns:
+            True if the provider implements get_authorization_server_metadata_url().
         """
         return False
 

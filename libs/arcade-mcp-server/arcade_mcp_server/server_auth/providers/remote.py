@@ -7,7 +7,7 @@ for integration with external identity providers.
 
 from typing import Any
 
-from arcade_mcp_server.server_auth.providers.jwt import JWTVerifier
+from arcade_mcp_server.server_auth.providers.jwt import JWTVerifier, JWTVerifyOptions
 
 
 class RemoteOAuthProvider(JWTVerifier):
@@ -39,8 +39,10 @@ class RemoteOAuthProvider(JWTVerifier):
         issuer: str,
         audience: str | None,
         authorization_server: str,
+        authorization_server_metadata_url: str | None = None,
         algorithms: list[str] | None = None,
         cache_ttl: int = 3600,
+        verify_options: JWTVerifyOptions | None = None,
     ):
         """Initialize remote OAuth provider.
 
@@ -48,17 +50,43 @@ class RemoteOAuthProvider(JWTVerifier):
             jwks_uri: URL to fetch JSON Web Key Set
             issuer: Expected token issuer (iss claim)
             audience: Expected token audience (aud claim) - MCP server's canonical URL.
-                      If None, audience validation is skipped.
+                      If None, verify_aud must be set to False in verify_options.
             authorization_server: URL of the external authorization server
+            authorization_server_metadata_url: URL of the external authorization server metadata if the provider supports metadata forwarding
             algorithms: Allowed signature algorithms (default: ["RS256"])
             cache_ttl: JWKS cache time-to-live in seconds (default: 3600)
+            verify_options: Options controlling which claims to verify. All default to True for security.
+
+                           Example for providers without audience support (e.g., AuthKit):
+                           ```python
+                           auth = RemoteOAuthProvider(
+                               jwks_uri="https://auth.example.com/.well-known/jwks.json",
+                               issuer="https://auth.example.com",
+                               audience=None,
+                               authorization_server="https://auth.example.com",
+                               verify_options=JWTVerifyOptions(verify_aud=False),
+                           )
+                           ```
         """
-        super().__init__(jwks_uri, issuer, audience, algorithms, cache_ttl)
+        super().__init__(jwks_uri, issuer, audience, algorithms, cache_ttl, verify_options)
         self.authorization_server = authorization_server
+        self.authorization_server_metadata_url = authorization_server_metadata_url
 
     def supports_oauth_discovery(self) -> bool:
         """This provider supports OAuth discovery."""
         return True
+
+    def supports_authorization_server_metadata_forwarding(self) -> bool:
+        """Whether this provider supports forwarding authorization server metadata."""
+        return self.authorization_server_metadata_url is not None
+
+    def get_authorization_server_metadata_url(self) -> str | None:
+        """Get the URL of the external authorization server metadata.
+
+        Returns:
+            URL of the external authorization server metadata, or None if not supported
+        """
+        return self.authorization_server_metadata_url
 
     def get_resource_metadata(self, canonical_url: str) -> dict[str, Any]:
         """Return RFC 9728 Protected Resource Metadata.

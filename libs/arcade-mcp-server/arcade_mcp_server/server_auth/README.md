@@ -121,6 +121,7 @@ RemoteOAuthProvider(
     issuer="https://auth.example.com",
     audience="https://mcp.example.com",
     authorization_server="https://auth.example.com",
+    authorization_server_metadata_url="https://auth.example.com/.well-known/oauth-authorization-server"
     algorithms=["RS256"],  # Optional
     cache_ttl=3600,  # Optional
 )

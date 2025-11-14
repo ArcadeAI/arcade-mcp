@@ -368,23 +368,21 @@ class ServerSession:
         """Process a single message.
 
         Args:
-            message: Either a JSON string (legacy) or SessionMessage object (new)
+            message: Either a JSON string (stdio) or SessionMessage object (http)
         """
         try:
-            # Handle both string (backward compat) and SessionMessage objects
             from arcade_mcp_server.types import SessionMessage
 
             if isinstance(message, str):
-                # Legacy: parse string as JSON
                 data = json.loads(message)
                 authenticated_user = None
             elif isinstance(message, SessionMessage):
-                # New: extract message and auth user
                 if hasattr(message.message, "model_dump"):
-                    data = message.message.model_dump()
-                    # data = message.message.model_dump(exclude_none=True, by_alias=True)
+                    # We must keep exclude_none=True to avoid Pydantic union type coersion
+                    # when reconstructing models from dict (e.g., RequestId = str | int)
+                    data = message.message.model_dump(exclude_none=True)
                 else:
-                    # Fallback if message is already a dict
+                    # TODO: When would this ever happen? Maybe we should log error and return?
                     data = message.message if isinstance(message.message, dict) else {}
                 authenticated_user = message.authenticated_user
             else:

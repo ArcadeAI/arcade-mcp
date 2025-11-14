@@ -168,8 +168,8 @@ class HTTPStreamableTransport:
         self._terminated = False
 
         # Streams for connection
-        self._read_stream_writer: MemoryObjectSendStream[str | Exception] | None = None
-        self._read_stream: MemoryObjectReceiveStream[str | Exception] | None = None
+        self._read_stream_writer: MemoryObjectSendStream[SessionMessage | Exception] | None = None
+        self._read_stream: MemoryObjectReceiveStream[SessionMessage | Exception] | None = None
         self._write_stream: MemoryObjectSendStream[str | SessionMessage] | None = None
         self._write_stream_reader: MemoryObjectReceiveStream[str | SessionMessage] | None = None
 
@@ -785,7 +785,7 @@ class HTTPStreamableTransport:
         self,
     ) -> AsyncIterator[
         tuple[
-            MemoryObjectReceiveStream[str | Exception],
+            MemoryObjectReceiveStream[SessionMessage | Exception],
             MemoryObjectSendStream[str | SessionMessage],
         ]
     ]:
@@ -797,7 +797,9 @@ class HTTPStreamableTransport:
         stream identified by `GET_STREAM_KEY`).
         """
         # Create memory streams with buffer
-        read_stream_writer, read_stream = anyio.create_memory_object_stream[str | Exception](100)
+        read_stream_writer, read_stream = anyio.create_memory_object_stream[
+            SessionMessage | Exception
+        ](100)
         write_stream, write_stream_reader = anyio.create_memory_object_stream[str | SessionMessage](
             100
         )

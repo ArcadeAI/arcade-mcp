@@ -24,7 +24,6 @@ from arcade_mcp_server.server_auth.base import (
     TokenExpiredError,
 )
 from arcade_mcp_server.server_auth.middleware import MCPAuthMiddleware
-from arcade_mcp_server.server_auth.providers.authkit import AuthKitProvider
 from arcade_mcp_server.server_auth.providers.jwt import JWTVerifier
 from arcade_mcp_server.server_auth.providers.remote import RemoteOAuthProvider
 from cryptography.hazmat.primitives import serialization
@@ -315,6 +314,7 @@ class TestRemoteOAuthProvider:
             issuer="https://auth.example.com",
             audience="https://mcp.example.com",
             authorization_server="https://auth.example.com",
+            authorization_server_metadata_url="https://auth.example.com/.well-known/oauth-authorization-server",
         )
 
         assert provider.supports_oauth_discovery() is True
@@ -326,6 +326,7 @@ class TestRemoteOAuthProvider:
             issuer="https://auth.example.com",
             audience="https://mcp.example.com",
             authorization_server="https://auth.example.com",
+            authorization_server_metadata_url="https://auth.example.com/.well-known/oauth-authorization-server",
         )
 
         metadata = provider.get_resource_metadata("https://mcp.example.com")
@@ -428,7 +429,7 @@ class TestMCPAuthMiddleware:
             await middleware(scope, receive, send)
 
             assert response_sent["status"] == 401
-            assert any(b"WWW-Authenticate" in k for k in response_sent["headers"].keys())
+            assert any(k.lower() == b"www-authenticate" for k in response_sent["headers"])
 
     @pytest.mark.asyncio
     async def test_www_authenticate_header_format(self, jwks_data):
@@ -444,6 +445,7 @@ class TestMCPAuthMiddleware:
                 issuer="https://auth.example.com",
                 audience="https://mcp.example.com",
                 authorization_server="https://auth.example.com",
+                authorization_server_metadata_url="https://auth.example.com/.well-known/oauth-authorization-server",
             )
 
             async def mock_app(scope, receive, send):
@@ -479,126 +481,3 @@ class TestMCPAuthMiddleware:
             # Should include resource_metadata URL
             assert "resource_metadata=" in www_auth
             assert "/.well-known/oauth-protected-resource" in www_auth
-
-
-# AuthKitProvider Tests
-class TestAuthKitProvider:
-    """Tests for AuthKitProvider class."""
-
-    def test_automatic_jwks_configuration(self):
-        """Test that AuthKitProvider automatically configures JWKS endpoint."""
-        provider = AuthKitProvider(
-            authkit_domain="https://test-app.authkit.app",
-            canonical_url="https://mcp.example.com",
-        )
-
-        assert provider.jwks_uri == "https://test-app.authkit.app/oauth2/jwks"
-        assert provider.issuer == "https://test-app.authkit.app"
-        assert provider.audience is None  # AuthKit doesn't use audience claim
-        assert provider.authorization_server == "https://test-app.authkit.app"
-
-    def test_supports_oauth_discovery(self):
-        """Test that AuthKitProvider supports OAuth discovery."""
-        provider = AuthKitProvider(
-            authkit_domain="https://test-app.authkit.app",
-            canonical_url="https://mcp.example.com",
-        )
-
-        assert provider.supports_oauth_discovery() is True
-
-    def test_supports_authorization_server_metadata_forwarding(self):
-        """Test that AuthKitProvider supports metadata forwarding."""
-        provider = AuthKitProvider(
-            authkit_domain="https://test-app.authkit.app",
-            canonical_url="https://mcp.example.com",
-        )
-
-        assert provider.supports_authorization_server_metadata_forwarding() is True
-
-    def test_get_authorization_server_metadata_url(self):
-        """Test getting authorization server metadata URL."""
-        provider = AuthKitProvider(
-            authkit_domain="https://test-app.authkit.app",
-            canonical_url="https://mcp.example.com",
-        )
-
-        metadata_url = provider.get_authorization_server_metadata_url()
-        assert metadata_url == "https://test-app.authkit.app/.well-known/oauth-authorization-server"
-
-    def test_url_normalization(self):
-        """Test that trailing slashes are removed from URLs."""
-        provider = AuthKitProvider(
-            authkit_domain="https://test-app.authkit.app/",  # Trailing slash
-            canonical_url="https://mcp.example.com/",  # Trailing slash
-        )
-
-        assert provider.authkit_domain == "https://test-app.authkit.app"
-        assert provider.canonical_url == "https://mcp.example.com"
-
-    def test_get_resource_metadata(self):
-        """Test getting protected resource metadata."""
-        provider = AuthKitProvider(
-            authkit_domain="https://test-app.authkit.app",
-            canonical_url="https://mcp.example.com",
-        )
-
-        metadata = provider.get_resource_metadata("https://mcp.example.com")
-
-        assert metadata["resource"] == "https://mcp.example.com"
-        assert metadata["authorization_servers"] == ["https://test-app.authkit.app"]
-
-    @pytest.mark.asyncio
-    async def test_validate_token_without_audience(self, rsa_keypair, jwks_data):
-        """Test that AuthKitProvider accepts tokens without audience claim."""
-        private_key, _ = rsa_keypair
-
-        # AuthKit tokens don't have audience claim
-        payload = {
-            "sub": "user123",
-            "email": "user@example.com",
-            "iss": "https://test-app.authkit.app",
-            # No 'aud' claim - this is normal for AuthKit
-            "exp": int(time.time()) + 3600,
-            "iat": int(time.time()),
-        }
-
-        token = jwt.encode(
-            payload,
-            private_key,
-            algorithm="RS256",
-            headers={"kid": "test-key-1"},
-        )
-
-        # Mock JWKS response
-        authkit_jwks = {
-            "keys": [
-                {
-                    **jwks_data["keys"][0],
-                    # AuthKit returns keys at /oauth2/jwks
-                }
-            ]
-        }
-
-        with patch("httpx.AsyncClient.get") as mock_get:
-            mock_response = Mock()
-            mock_response.json.return_value = authkit_jwks
-            mock_response.raise_for_status = Mock()
-            mock_get.return_value = mock_response
-
-            provider = AuthKitProvider(
-                authkit_domain="https://test-app.authkit.app",
-                canonical_url="https://mcp.example.com",
-            )
-
-            # Should validate successfully without audience claim
-            user = await provider.validate_token(token)
-
-            assert isinstance(user, AuthenticatedUser)
-            assert user.user_id == "user123"
-            assert user.email == "user@example.com"
-            assert user.claims["iss"] == "https://test-app.authkit.app"
-            assert "aud" not in user.claims  # No audience claim
-
-
-if __name__ == "__main__":
-    pytest.main([__file__, "-v"])

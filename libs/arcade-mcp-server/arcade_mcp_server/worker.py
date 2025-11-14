@@ -23,6 +23,7 @@ from starlette.types import Receive, Scope, Send
 
 from arcade_mcp_server.fastapi.middleware import AddTrailingSlashToPathMiddleware
 from arcade_mcp_server.server import MCPServer
+from arcade_mcp_server.server_auth.base import ServerAuthProvider
 from arcade_mcp_server.settings import MCPSettings
 from arcade_mcp_server.transports.http_session_manager import HTTPSessionManager
 
@@ -80,7 +81,7 @@ def create_arcade_mcp(
     mcp_settings: MCPSettings | None = None,
     debug: bool = False,
     otel_enable: bool = False,
-    auth_provider: Any | None = None,
+    auth_provider: ServerAuthProvider | None = None,
     canonical_url: str | None = None,
     **kwargs: Any,
 ) -> FastAPI:
@@ -141,11 +142,15 @@ def create_arcade_mcp(
 
     # Add OAuth discovery endpoint if auth is enabled
     if auth_provider and auth_provider.supports_oauth_discovery():
-        from fastapi import Response as FastAPIResponse
         from fastapi.responses import JSONResponse
 
-        @app.get("/.well-known/oauth-protected-resource")
-        async def oauth_protected_resource():
+        @app.get("/.well-known/oauth-protected-resource", tags=["MCP Protocol"])
+        @app.get(
+            "/.well-known/oauth-protected-resource/mcp",
+            include_in_schema=False,
+            tags=["MCP Protocol"],
+        )
+        async def oauth_protected_resource() -> JSONResponse:
             """OAuth 2.0 Protected Resource Metadata (RFC 9728)"""
             if not canonical_url:
                 return JSONResponse(
@@ -159,30 +164,21 @@ def create_arcade_mcp(
                 headers={
                     "Access-Control-Allow-Origin": "*",
                     "Access-Control-Allow-Methods": "GET, OPTIONS",
-                    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-                },
-            )
-
-        @app.options("/.well-known/oauth-protected-resource")
-        async def oauth_protected_resource_options():
-            """Handle CORS preflight for protected resource metadata"""
-            return FastAPIResponse(
-                status_code=204,
-                headers={
-                    "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Methods": "GET, OPTIONS",
-                    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-                    "Access-Control-Max-Age": "86400",
+                    "Access-Control-Allow-Headers": "Content-Type",
                 },
             )
 
     # Add authorization server metadata forwarding if supported
     if auth_provider and auth_provider.supports_authorization_server_metadata_forwarding():
-        from fastapi import Response as FastAPIResponse
         from fastapi.responses import JSONResponse
 
-        @app.get("/.well-known/oauth-authorization-server")
-        async def oauth_authorization_server_metadata():
+        @app.get("/.well-known/oauth-authorization-server", tags=["MCP Protocol"])
+        @app.get(
+            "/.well-known/oauth-authorization-server/mcp",
+            include_in_schema=False,
+            tags=["MCP Protocol"],
+        )
+        async def oauth_authorization_server_metadata() -> JSONResponse:
             """Forward authorization server metadata from external provider.
 
             This endpoint proxies the authorization server's metadata to clients,
@@ -193,9 +189,8 @@ def create_arcade_mcp(
             if not metadata_url:
                 return JSONResponse(
                     {"error": "Authorization server metadata URL not configured"},
-                    status_code=500,
+                    status_code=404,
                 )
-
             try:
                 async with httpx.AsyncClient() as client:
                     response = await client.get(metadata_url)
@@ -206,7 +201,7 @@ def create_arcade_mcp(
                         headers={
                             "Access-Control-Allow-Origin": "*",
                             "Access-Control-Allow-Methods": "GET, OPTIONS",
-                            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+                            "Access-Control-Allow-Headers": "Content-Type",
                         },
                     )
             except Exception as e:
@@ -218,19 +213,6 @@ def create_arcade_mcp(
                     },
                     status_code=500,
                 )
-
-        @app.options("/.well-known/oauth-authorization-server")
-        async def oauth_authorization_server_metadata_options():
-            """Handle CORS preflight for authorization server metadata"""
-            return FastAPIResponse(
-                status_code=204,
-                headers={
-                    "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Methods": "GET, OPTIONS",
-                    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-                    "Access-Control-Max-Age": "86400",
-                },
-            )
 
     # Worker endpoints
     worker = FastAPIWorker(
@@ -254,7 +236,7 @@ def create_arcade_mcp(
             await session_manager.handle_request(scope, receive, send)
 
     # Create MCP proxy and wrap with auth middleware if enabled
-    mcp_proxy = _MCPASGIProxy(app)
+    mcp_proxy: Any = _MCPASGIProxy(app)
     if auth_provider:
         if not canonical_url:
             raise ValueError("canonical_url required when auth_provider is enabled")

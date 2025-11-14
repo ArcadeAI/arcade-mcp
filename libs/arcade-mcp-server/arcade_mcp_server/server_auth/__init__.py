@@ -13,13 +13,13 @@ from arcade_mcp_server.server_auth.base import (
     ServerAuthProvider,
     TokenExpiredError,
 )
-from arcade_mcp_server.server_auth.providers.authkit import AuthKitProvider
+from arcade_mcp_server.server_auth.providers.jwt import JWTVerifyOptions
 
 __all__ = [
     "AuthenticatedUser",
     "AuthenticationError",
-    "AuthKitProvider",
     "InvalidTokenError",
+    "JWTVerifyOptions",
     "ServerAuthProvider",
     "TokenExpiredError",
 ]

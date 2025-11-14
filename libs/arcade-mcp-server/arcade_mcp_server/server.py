@@ -645,8 +645,10 @@ class MCPServer:
             and hasattr(session, "_current_authenticated_user")
             and session._current_authenticated_user
         ):
-            tool_context.user_id = session._current_authenticated_user.email
-            logger.debug(f"Context user_id set from front-door auth: {tool_context.user_id}")
+            tool_context.user_id = session._current_authenticated_user.user_id
+            logger.debug(
+                f"Context user_id set from Authorization Server 'sub' claim: {tool_context.user_id}"
+            )
         else:
             # Second priority: configured user_id from settings
             user_id = self.settings.arcade.user_id
@@ -826,23 +828,25 @@ class MCPServer:
                 )
 
                 requirements = tool.definition.requirements
-                if requirements and (requirements.authorization or requirements.secrets):
-                    # Only block if HTTP transport is NOT authenticated
-                    if not is_authenticated:
-                        documentation_url = "https://docs.arcade.dev/en/home/compare-server-types"
-                        tool_response = {
-                            "message": (
-                                f"Tool '{tool_name}' cannot be executed over unauthenticated HTTP transport for security reasons. "
-                                "This tool requires end-user authorization or access to sensitive secrets.\n"
-                                "For more information about server capabilities and transport options, see: "
-                                f"{documentation_url}"
-                            ),
-                            "llm_instructions": (
-                                f"Please show the following link to the end user formatted as markdown: [Compare Server Types]({documentation_url})\n"
-                                "Inform the end user that the provided link contains documentation on how to configure the server to use the correct transport."
-                            ),
-                        }
-                        return self._create_error_response(message, tool_response)
+                if (
+                    requirements
+                    and (requirements.authorization or requirements.secrets)
+                    and not is_authenticated
+                ):
+                    documentation_url = "https://docs.arcade.dev/en/home/compare-server-types"
+                    tool_response = {
+                        "message": (
+                            f"Tool '{tool_name}' cannot be executed over unauthenticated HTTP transport for security reasons. "
+                            "This tool requires end-user authorization or access to sensitive secrets.\n"
+                            "For more information about server capabilities and transport options, see: "
+                            f"{documentation_url}"
+                        ),
+                        "llm_instructions": (
+                            f"Please show the following link to the end user formatted as markdown: [Compare Server Types]({documentation_url})\n"
+                            "Inform the end user that the provided link contains documentation on how to configure the server to use the correct transport."
+                        ),
+                    }
+                    return self._create_error_response(message, tool_response)
         return None
 
     async def _check_tool_requirements(

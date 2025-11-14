@@ -9,6 +9,7 @@ from starlette.responses import Response
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from arcade_mcp_server.server_auth.base import (
+    AuthenticatedUser,
     AuthenticationError,
     InvalidTokenError,
     ServerAuthProvider,
@@ -21,7 +22,7 @@ class MCPAuthMiddleware:
 
     Validates tokens per MCP specification:
     - Checks Authorization header for Bearer token
-    - Validates token on EVERY request (no caching per MCP security requirements)
+    - Validates token on EVERY request (per MCP spec)
     - Returns 401 with WWW-Authenticate header if authentication fails
     - Stores authenticated user in scope for downstream use
 
@@ -73,14 +74,13 @@ class MCPAuthMiddleware:
             await self.app(scope, receive, send)
             return
 
-        # Allow OPTIONS requests (CORS preflight) without authentication
-        if scope.get("method") == "OPTIONS":
-            await self.app(scope, receive, send)
-            return
+        # # Allow OPTIONS requests (CORS preflight) without authentication
+        # if scope.get("method") == "OPTIONS":
+        #     await self.app(scope, receive, send)
+        #     return
 
         request = Request(scope, receive)
 
-        # Validate token on THIS request
         try:
             authenticated_user = await self._authenticate_request(request)
 
@@ -91,7 +91,6 @@ class MCPAuthMiddleware:
             await self.app(scope, receive, send)
 
         except (TokenExpiredError, InvalidTokenError) as e:
-            # Return 401 with error details
             response = self._create_401_response(
                 error="invalid_token",
                 error_description=str(e),
@@ -99,11 +98,10 @@ class MCPAuthMiddleware:
             await response(scope, receive, send)
 
         except AuthenticationError:
-            # Return 401 without error details (no token provided)
             response = self._create_401_response()
             await response(scope, receive, send)
 
-    async def _authenticate_request(self, request: Request):
+    async def _authenticate_request(self, request: Request) -> AuthenticatedUser:
         """Extract and validate Bearer token from Authorization header.
 
         Args:
@@ -127,7 +125,6 @@ class MCPAuthMiddleware:
 
         token = auth_header[7:]  # Remove "Bearer " prefix
 
-        # Validate token (this is where the magic happens)
         return await self.auth_provider.validate_token(token)
 
     def _create_401_response(

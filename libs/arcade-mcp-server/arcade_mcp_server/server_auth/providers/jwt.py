@@ -4,13 +4,13 @@ JWT-based token verification provider.
 Implements OAuth 2.1 Resource Server token validation using JWT with JWKS.
 """
 
-import os
 import time
-from typing import Any
+from typing import Any, cast
 
 import httpx
 import jwt
 from jwt.algorithms import RSAAlgorithm
+from pydantic import BaseModel, Field
 
 from arcade_mcp_server.server_auth.base import (
     AuthenticatedUser,
@@ -19,6 +19,33 @@ from arcade_mcp_server.server_auth.base import (
     ServerAuthProvider,
     TokenExpiredError,
 )
+
+
+class JWTVerifyOptions(BaseModel):
+    """Options for JWT token verification.
+
+    All validations are enabled by default for security.
+    Set to False to disable specific validations for non-compliant authorization servers.
+
+    Note: Token signature verification is always enabled and cannot be disabled.
+    """
+
+    verify_exp: bool = Field(
+        default=True,
+        description="Verify token expiration (exp claim)",
+    )
+    verify_iat: bool = Field(
+        default=True,
+        description="Verify issued-at time (iat claim)",
+    )
+    verify_aud: bool = Field(
+        default=True,
+        description="Verify audience claim (aud claim)",
+    )
+    verify_iss: bool = Field(
+        default=True,
+        description="Verify issuer claim (iss claim)",
+    )
 
 
 class JWTVerifier(ServerAuthProvider):
@@ -49,6 +76,7 @@ class JWTVerifier(ServerAuthProvider):
         audience: str | None = None,
         algorithms: list[str] | None = None,
         cache_ttl: int = 3600,
+        verify_options: JWTVerifyOptions | None = None,
     ):
         """Initialize JWT verifier.
 
@@ -56,16 +84,30 @@ class JWTVerifier(ServerAuthProvider):
             jwks_uri: URL to fetch JSON Web Key Set
             issuer: Expected token issuer (iss claim)
             audience: Expected token audience (aud claim) - should be MCP server's canonical URL.
-                      If None, audience validation is skipped (for providers like AuthKit
-                      that don't implement RFC 8707 Resource Indicators).
+                      If None, verify_aud must be set to False in verify_options.
             algorithms: Allowed signature algorithms (default: ["RS256"])
             cache_ttl: JWKS cache time-to-live in seconds (default: 3600)
+            verify_options: Options controlling which claims to verify. All default to True for security.
+                           Note: Token signature is always verified and cannot be disabled.
+
+                           Example for providers without audience support:
+                           ```python
+                           verify_options=JWTVerifyOptions(verify_aud=False)
+                           ```
+
+        Raises:
+            ValueError: If verify_aud is True (default) but audience is None
         """
         self.jwks_uri = jwks_uri
         self.issuer = issuer
         self.audience = audience
         self.algorithms = algorithms or ["RS256"]
         self._cache_ttl = cache_ttl
+        self.verify_options = verify_options or JWTVerifyOptions()
+
+        # Validate that required fields are provided when verification is enabled
+        if self.verify_options.verify_aud and self.audience is None:
+            raise ValueError("audience must be provided when verify_aud is True (default)")
 
         # Async HTTP client for JWKS fetching
         self._http_client = httpx.AsyncClient(timeout=10.0)
@@ -92,9 +134,84 @@ class JWTVerifier(ServerAuthProvider):
             response.raise_for_status()
             self._jwks_cache = response.json()
             self._cache_timestamp = current_time
-            return self._jwks_cache
         except httpx.HTTPError as e:
             raise AuthenticationError(f"Failed to fetch JWKS: {e}") from e
+        else:
+            return self._jwks_cache
+
+    def _find_signing_key(self, jwks: dict[str, Any], token: str) -> Any:
+        """Find the signing key from JWKS that matches the token's kid.
+
+        Args:
+            jwks: JSON Web Key Set
+            token: JWT token
+
+        Returns:
+            RSA signing key
+
+        Raises:
+            InvalidTokenError: If no matching key is found in JWKS
+        """
+        unverified_header = jwt.get_unverified_header(token)
+        kid = unverified_header.get("kid")
+
+        for key_data in jwks.get("keys", []):
+            if key_data.get("kid") == kid:
+                return RSAAlgorithm.from_jwk(key_data)
+
+        raise InvalidTokenError("No matching key found in JWKS")
+
+    def _decode_token(self, token: str, signing_key: Any) -> dict[str, Any]:
+        """Decode and verify the JWT token.
+
+        Args:
+            token: JWT token
+            signing_key: RSA public key for verification
+
+        Returns:
+            Decoded token claims
+
+        Raises:
+            jwt.ExpiredSignatureError: Token has expired
+            jwt.InvalidAudienceError: Token audience mismatch
+            jwt.InvalidIssuerError: Token issuer mismatch
+            jwt.InvalidTokenError: Token is invalid
+        """
+        decode_options = {
+            "verify_signature": True,  # Always verify signature
+            "verify_exp": self.verify_options.verify_exp,
+            "verify_iat": self.verify_options.verify_iat,
+            "verify_aud": self.verify_options.verify_aud,
+            "verify_iss": self.verify_options.verify_iss,
+        }
+
+        decoded = jwt.decode(
+            token,
+            signing_key,
+            algorithms=self.algorithms,
+            issuer=self.issuer,
+            options=decode_options,
+            audience=self.audience,
+        )
+
+        return cast(dict[str, Any], decoded)
+
+    def _extract_user_id(self, decoded: dict[str, Any]) -> str:
+        """Extract and validate user_id from decoded token.
+
+        Args:
+            decoded: Decoded token claims
+
+        Returns:
+            User ID from 'sub' claim
+
+        Raises:
+            InvalidTokenError: If 'sub' claim is missing
+        """
+        user_id = decoded.get("sub")
+        if not user_id:
+            raise InvalidTokenError("Token missing 'sub' claim")
+        return cast(str, user_id)
 
     async def validate_token(self, token: str) -> AuthenticatedUser:
         """Validate JWT and return authenticated user.
@@ -118,64 +235,13 @@ class JWTVerifier(ServerAuthProvider):
             AuthenticationError: Other validation errors
         """
         try:
-            # Fetch JWKS (uses cache if available)
             jwks = await self._fetch_jwks()
+            signing_key = self._find_signing_key(jwks, token)
+            decoded = self._decode_token(token, signing_key)
+            user_id = self._extract_user_id(decoded)
+            email = decoded.get("email")
 
-            # Decode header to get kid (key ID)
-            unverified_header = jwt.get_unverified_header(token)
-            kid = unverified_header.get("kid")
-
-            # Find matching public key in JWKS
-            signing_key = None
-            for key_data in jwks.get("keys", []):
-                if key_data.get("kid") == kid:
-                    signing_key = RSAAlgorithm.from_jwk(key_data)
-                    break
-
-            if not signing_key:
-                raise InvalidTokenError("No matching key found in JWKS")
-
-            # Decode and validate JWT
-            # Validates: signature, expiration, issuer, and audience (if provided)
-            decode_options = {
-                "verify_signature": True,
-                "verify_exp": True,
-                "verify_iat": True,
-                "verify_aud": self.audience is not None,  # Only verify if audience is set
-                "verify_iss": True,
-            }
-
-            decode_kwargs = {
-                "algorithms": self.algorithms,
-                "issuer": self.issuer,
-                "options": decode_options,
-            }
-
-            # Only add audience parameter if it's provided
-            if self.audience is not None:
-                decode_kwargs["audience"] = self.audience
-
-            decoded = jwt.decode(token, signing_key, **decode_kwargs)
-
-            # Extract user info from standard claims
-            user_id = decoded.get("sub")
-            if not user_id:
-                raise InvalidTokenError("Token missing 'sub' claim")
-
-            # TODO: I think this is where I would determine if this user is allowed to access this MCP server.
-
-            email = decoded.get("email")  # Authkit doesn't include email in token i think
-            if WORKOS_API_KEY := os.getenv("WORKOS_API_KEY"):
-                async with httpx.AsyncClient() as client:
-                    workos_user = await client.get(
-                        f"https://api.workos.com/user_management/users/{user_id}",
-                        headers={
-                            "Authorization": f"Bearer {WORKOS_API_KEY}",
-                        },
-                    )
-                    workos_user.raise_for_status()
-                    workos_user_data = workos_user.json()
-                    email = workos_user_data.get("email")
+            # TODO: Determine if this user is allowed to access this MCP server
 
             return AuthenticatedUser(
                 user_id=user_id,
@@ -191,6 +257,8 @@ class JWTVerifier(ServerAuthProvider):
             raise InvalidTokenError("Token issuer mismatch") from e
         except jwt.InvalidTokenError as e:
             raise InvalidTokenError(f"Invalid token: {e}") from e
+        except (InvalidTokenError, TokenExpiredError):
+            raise
         except Exception as e:
             raise AuthenticationError(f"Token validation failed: {e}") from e
 

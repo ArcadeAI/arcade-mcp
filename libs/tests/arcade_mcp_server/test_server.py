@@ -2,9 +2,11 @@
 
 import asyncio
 import contextlib
-from unittest.mock import AsyncMock, Mock
 from typing import Annotated
+from unittest.mock import AsyncMock, Mock
+
 import pytest
+from arcade_core.auth import OAuth2
 from arcade_core.catalog import MaterializedTool, ToolMeta, create_func_models
 from arcade_core.errors import ToolRuntimeError
 from arcade_core.schema import (
@@ -20,7 +22,7 @@ from arcade_core.schema import (
     ToolSecretRequirement,
     ValueSchema,
 )
-from arcade_core.auth import OAuth2
+from arcade_mcp_server import tool
 from arcade_mcp_server.middleware import Middleware
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.session import InitializationState
@@ -35,7 +37,6 @@ from arcade_mcp_server.types import (
     ListToolsResult,
     PingRequest,
 )
-from arcade_mcp_server import tool
 
 
 class TestMCPServer:
@@ -947,6 +948,7 @@ class TestMCPServer:
         # Create a mock session with HTTP transport
         session = Mock()
         session.init_options = {"transport_type": "http"}
+        session._current_authenticated_user = None
 
         message = CallToolRequest(
             jsonrpc="2.0",
@@ -957,7 +959,6 @@ class TestMCPServer:
                 "arguments": {"text": "test"},
             },
         )
-
         response = await mcp_server._handle_call_tool(message, session=session)
 
         assert isinstance(response, JSONRPCResponse)
@@ -1015,6 +1016,7 @@ class TestMCPServer:
         # Create a mock session with HTTP transport
         session = Mock()
         session.init_options = {"transport_type": "http"}
+        session._current_authenticated_user = None
 
         message = CallToolRequest(
             jsonrpc="2.0",
@@ -1068,8 +1070,13 @@ class TestMCPServer:
             ),
         )
 
-        @tool(requires_auth=OAuth2(id="test-provider", scopes=["test.scope"]), requires_secrets=["API_KEY"])
-        def combined_tool_func(text: Annotated[str, "Input text"]) -> Annotated[str, "Combined text"]:
+        @tool(
+            requires_auth=OAuth2(id="test-provider", scopes=["test.scope"]),
+            requires_secrets=["API_KEY"],
+        )
+        def combined_tool_func(
+            text: Annotated[str, "Input text"],
+        ) -> Annotated[str, "Combined text"]:
             """Combined tool function"""
             return f"Combined: {text}"
 
@@ -1088,6 +1095,7 @@ class TestMCPServer:
         # Create a mock session with HTTP transport
         session = Mock()
         session.init_options = {"transport_type": "http"}
+        session._current_authenticated_user = None
 
         message = CallToolRequest(
             jsonrpc="2.0",
@@ -1103,7 +1111,8 @@ class TestMCPServer:
         assert response.result.isError is True
         assert "HTTP transport" in response.result.structuredContent["message"]
         assert (
-            "authorization or access to sensitive secrets" in response.result.structuredContent["message"]
+            "authorization or access to sensitive secrets"
+            in response.result.structuredContent["message"]
         )
 
     @pytest.mark.asyncio
