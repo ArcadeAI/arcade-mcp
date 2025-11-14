@@ -961,20 +961,25 @@ def resolve_provider_api_key(provider: Provider, provider_api_key: str | None = 
 def require_dependency(
     package_name: str,
     command_name: str,
-    install_command: str,
+    uv_install_command: str,
+    pip_install_command: str,
 ) -> None:
     """
     Display a helpful error message if the required dependency is missing.
 
     Args:
         package_name: The name of the package to import (e.g., 'arcade_serve')
-        command_name: The command that requires the package (e.g., 'serve')
-        install_command: The command to install the package (e.g., "pip install 'arcade-mcp[evals]'")
+        command_name: The command that requires the package (e.g., 'evals')
+        uv_install_command: The uv command to install the package (e.g., "uv tool install 'arcade-mcp[evals]'")
+        pip_install_command: The pip command to install the package (e.g., "pip install 'arcade-mcp[evals]'")
     """
     try:
         importlib.import_module(package_name.replace("-", "_"))
     except ImportError:
-        handle_cli_error(
-            f"The '{package_name}' package is required to run the '{command_name}' command but is not installed. "
-            f"To install it, run the following command: {install_command}"
+        error_message = (
+            f"The '{package_name}' package is required to run the '{command_name}' command but is not installed.\n\n"
+            f"To install it:\n"
+            f"  - If using uv: {uv_install_command}\n"
+            f"  - If using pip: {pip_install_command}"
         )
+        handle_cli_error(error_message)
