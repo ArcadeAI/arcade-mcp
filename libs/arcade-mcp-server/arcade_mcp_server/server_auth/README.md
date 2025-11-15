@@ -45,7 +45,6 @@ auth = AuthKitProvider(
 app = MCPApp(
     name="my_server",
     auth=auth,
-    canonical_url="https://mcp.example.com",
 )
 ```
 
@@ -57,14 +56,13 @@ from arcade_mcp_server import MCPApp, RemoteOAuthProvider
 auth = RemoteOAuthProvider(
     jwks_uri="https://auth.example.com/.well-known/jwks.json",
     issuer="https://auth.example.com",
-    audience="https://mcp.example.com",
+    canonical_url="https://mcp.example.com",
     authorization_server="https://auth.example.com",
 )
 
 app = MCPApp(
     name="my_server",
     auth=auth,
-    canonical_url="https://mcp.example.com",
 )
 ```
 
@@ -119,9 +117,8 @@ JWTVerifier(
 RemoteOAuthProvider(
     jwks_uri="https://auth.example.com/.well-known/jwks.json",
     issuer="https://auth.example.com",
-    audience="https://mcp.example.com",
+    canonical_url="https://mcp.example.com",
     authorization_server="https://auth.example.com",
-    authorization_server_metadata_url="https://auth.example.com/.well-known/oauth-authorization-server"
     algorithms=["RS256"],  # Optional
     cache_ttl=3600,  # Optional
 )

@@ -11,7 +11,6 @@ from collections.abc import AsyncGenerator, AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any
 
-import httpx
 import uvicorn
 from arcade_core.catalog import ToolCatalog
 from arcade_serve.fastapi.telemetry import OTELHandler
@@ -96,7 +95,6 @@ def create_arcade_mcp(
         debug: Enable debug mode
         otel_enable: Enable OpenTelemetry
         auth_provider: Optional ServerAuthProvider for front-door authentication
-        canonical_url: Canonical URL of MCP server (required if auth_provider is set)
         **kwargs: Additional configuration options
     """
     if mcp_settings is None:
@@ -158,7 +156,7 @@ def create_arcade_mcp(
                     status_code=500,
                 )
 
-            metadata = auth_provider.get_resource_metadata(canonical_url)
+            metadata = auth_provider.get_resource_metadata()
             return JSONResponse(
                 metadata,
                 headers={
@@ -167,52 +165,6 @@ def create_arcade_mcp(
                     "Access-Control-Allow-Headers": "Content-Type",
                 },
             )
-
-    # Add authorization server metadata forwarding if supported
-    if auth_provider and auth_provider.supports_authorization_server_metadata_forwarding():
-        from fastapi.responses import JSONResponse
-
-        @app.get("/.well-known/oauth-authorization-server", tags=["MCP Protocol"])
-        @app.get(
-            "/.well-known/oauth-authorization-server/mcp",
-            include_in_schema=False,
-            tags=["MCP Protocol"],
-        )
-        async def oauth_authorization_server_metadata() -> JSONResponse:
-            """Forward authorization server metadata from external provider.
-
-            This endpoint proxies the authorization server's metadata to clients,
-            simplifying discovery by serving both resource and authorization server
-            metadata from the same domain.
-            """
-            metadata_url = auth_provider.get_authorization_server_metadata_url()
-            if not metadata_url:
-                return JSONResponse(
-                    {"error": "Authorization server metadata URL not configured"},
-                    status_code=404,
-                )
-            try:
-                async with httpx.AsyncClient() as client:
-                    response = await client.get(metadata_url)
-                    response.raise_for_status()
-                    metadata = response.json()
-                    return JSONResponse(
-                        metadata,
-                        headers={
-                            "Access-Control-Allow-Origin": "*",
-                            "Access-Control-Allow-Methods": "GET, OPTIONS",
-                            "Access-Control-Allow-Headers": "Content-Type",
-                        },
-                    )
-            except Exception as e:
-                logger.error(f"Failed to fetch authorization server metadata: {e}")
-                return JSONResponse(
-                    {
-                        "error": "server_error",
-                        "error_description": f"Failed to fetch authorization server metadata: {e}",
-                    },
-                    status_code=500,
-                )
 
     # Worker endpoints
     worker = FastAPIWorker(

@@ -7,8 +7,26 @@ from typing import Annotated
 import httpx
 from arcade_mcp_server import Context, MCPApp
 from arcade_mcp_server.auth import Reddit
+from arcade_mcp_server.server_auth.providers.jwt import JWTVerifyOptions
+from arcade_mcp_server.server_auth.providers.remote import RemoteOAuthProvider
 
-app = MCPApp(name="simple", version="1.0.0", log_level="DEBUG")
+auth = RemoteOAuthProvider(
+    jwks_uri="https://glowing-shine-51-staging.authkit.app/oauth2/jwks",
+    issuer="https://glowing-shine-51-staging.authkit.app",
+    canonical_url="http://127.0.0.1:8000/mcp",
+    authorization_server="https://glowing-shine-51-staging.authkit.app",
+    algorithms=["RS256"],
+    verify_options=JWTVerifyOptions(
+        verify_aud=False,
+    ),
+)
+
+app = MCPApp(
+    name="simple",
+    version="1.0.0",
+    log_level="DEBUG",
+    auth=auth,
+)
 
 
 @app.tool

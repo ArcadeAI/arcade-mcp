@@ -89,36 +89,11 @@ class ServerAuthProvider(ABC):
         """
         return False
 
-    def get_resource_metadata(self, canonical_url: str) -> dict[str, Any] | None:
+    def get_resource_metadata(self) -> dict[str, Any] | None:
         """Return OAuth Protected Resource Metadata (RFC 9728) if supported.
-
-        Args:
-            canonical_url: Canonical URL of this MCP server
 
         Returns:
             Metadata dictionary with 'resource' and 'authorization_servers' fields,
             or None if discovery is not supported.
-        """
-        return None
-
-    def supports_authorization_server_metadata_forwarding(self) -> bool:
-        """Whether this provider supports forwarding authorization server metadata.
-
-        Some providers (e.g., AuthKit) can forward the authorization server's metadata
-        from the external provider's endpoint to simplify client discovery.
-
-        Returns:
-            True if the provider implements get_authorization_server_metadata_url().
-        """
-        return False
-
-    def get_authorization_server_metadata_url(self) -> str | None:
-        """Get the URL to fetch authorization server metadata from.
-
-        This is used for providers that forward metadata from external authorization
-        servers (e.g., WorkOS AuthKit). The server will proxy this metadata to clients.
-
-        Returns:
-            URL to fetch authorization server metadata, or None if not supported
         """
         return None
