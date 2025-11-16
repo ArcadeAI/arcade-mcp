@@ -1,0 +1,169 @@
+{
+  "name": "UnassignAppTargetFromAdminRole",
+  "fully_qualified_name": "OktaApi.UnassignAppTargetFromAdminRole@0.1.0",
+  "description": "Unassign an app target from an admin role for a group.\n\nUse this tool to remove an OIN app target from an `APP_ADMIN` role assigned to a group in Okta. Note: You can't remove the last app target from a role assignment. If needed, delete the entire `APP_ADMIN` role and create a new one for all apps.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "group_id",
+        "required": true,
+        "description": "The unique identifier of the group from which the app target is unassigned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `id` of the group"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "groupId"
+      },
+      {
+        "name": "role_assignment_id",
+        "required": true,
+        "description": "The ID of the role assignment to be unassigned from the group.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `id` of the role assignment"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "roleAssignmentId"
+      },
+      {
+        "name": "app_name",
+        "required": true,
+        "description": "Name of the app definition, corresponding to the OIN catalog app key name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the app definition (the OIN catalog app key name)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "appName"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'unassignAppTargetToAdminRoleForGroup'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.roles.manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/groups/{groupId}/roles/{roleAssignmentId}/targets/catalog/apps/{appName}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "groupId",
+        "tool_parameter_name": "group_id",
+        "description": "The `id` of the group",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `id` of the group"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "roleAssignmentId",
+        "tool_parameter_name": "role_assignment_id",
+        "description": "The `id` of the role assignment",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `id` of the role assignment"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "appName",
+        "tool_parameter_name": "app_name",
+        "description": "Name of the app definition (the OIN catalog app key name)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the app definition (the OIN catalog app key name)"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

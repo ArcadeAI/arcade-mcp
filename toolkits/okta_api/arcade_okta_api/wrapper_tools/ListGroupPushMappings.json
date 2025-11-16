@@ -1,0 +1,274 @@
+{
+  "name": "ListGroupPushMappings",
+  "fully_qualified_name": "OktaApi.ListGroupPushMappings@0.1.0",
+  "description": "Retrieve a list of group push mappings for a specific app.\n\nThis tool is used to list all group push mappings for a specific app, identified by the app ID, with support for pagination if there are many mappings.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "application_id",
+        "required": true,
+        "description": "The ID of the application to filter group push mappings for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Application ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "appId"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "Specifies the pagination cursor for retrieving the next page of group push mappings.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the pagination cursor for the next page of mappings"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "after"
+      },
+      {
+        "name": "results_limit",
+        "required": false,
+        "description": "Specifies the number of group push mappings to return in the response. Useful for pagination to limit the number of items retrieved per request.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the number of results returned"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "filter_by_last_updated_date",
+        "required": false,
+        "description": "Filters mappings updated on or after the specified date and time in UTC. Use `YYYY-MM-DDTHH:mm:ssZ` format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters group push mappings by last updated date. The `lastUpdated` parameter supports the following format: `YYYY-MM-DDTHH:mm:ssZ`. This filters mappings updated on or after the specified date and time in UTC.\n\nIf you don't specify a value, all group push mappings are returned."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "lastUpdated"
+      },
+      {
+        "name": "source_group_id",
+        "required": false,
+        "description": "Filters group push mappings by source group ID. When omitted, returns all mappings.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters group push mappings by source group ID. If you don't specify a value, all group push mappings are returned."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sourceGroupId"
+      },
+      {
+        "name": "filter_by_status",
+        "required": false,
+        "description": "Filters group push mappings by status. Valid options include 'ACTIVE', 'ERROR', 'INACTIVE'. If omitted, all statuses are included.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "ACTIVE",
+            "ERROR",
+            "INACTIVE"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters group push mappings by status. If you don't specify a value, all group push mappings are returned."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'listGroupPushMappings'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.groups.read",
+          "okta.apps.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/apps/{appId}/group-push/mappings",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "after",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "Specifies the pagination cursor for the next page of mappings",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the pagination cursor for the next page of mappings"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "results_limit",
+        "description": "Specifies the number of results returned",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the number of results returned"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "lastUpdated",
+        "tool_parameter_name": "filter_by_last_updated_date",
+        "description": "Filters group push mappings by last updated date. The `lastUpdated` parameter supports the following format: `YYYY-MM-DDTHH:mm:ssZ`. This filters mappings updated on or after the specified date and time in UTC.\n\nIf you don't specify a value, all group push mappings are returned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters group push mappings by last updated date. The `lastUpdated` parameter supports the following format: `YYYY-MM-DDTHH:mm:ssZ`. This filters mappings updated on or after the specified date and time in UTC.\n\nIf you don't specify a value, all group push mappings are returned."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "sourceGroupId",
+        "tool_parameter_name": "source_group_id",
+        "description": "Filters group push mappings by source group ID. If you don't specify a value, all group push mappings are returned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters group push mappings by source group ID. If you don't specify a value, all group push mappings are returned."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "status",
+        "tool_parameter_name": "filter_by_status",
+        "description": "Filters group push mappings by status. If you don't specify a value, all group push mappings are returned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "ACTIVE",
+            "ERROR",
+            "INACTIVE"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters group push mappings by status. If you don't specify a value, all group push mappings are returned."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "appId",
+        "tool_parameter_name": "application_id",
+        "description": "Application ID",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Application ID"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

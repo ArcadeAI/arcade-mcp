@@ -1,0 +1,233 @@
+{
+  "name": "ListAuthorizationServersByTrustedType",
+  "fully_qualified_name": "OktaApi.ListAuthorizationServersByTrustedType@0.1.0",
+  "description": "List associated authorization servers by trusted type.\n\nUse this tool to retrieve all authorization servers associated with a specific trusted type for a given `authServerId`.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "authorization_server_id",
+        "required": true,
+        "description": "The unique ID of the Authorization Server to retrieve associated servers for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of the Authorization Server"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "authServerId"
+      },
+      {
+        "name": "search_name_or_audience",
+        "required": false,
+        "description": "A string to search for the name or audience of associated authorization servers.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Searches for the name or audience of the associated authorization servers"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "q"
+      },
+      {
+        "name": "page_size",
+        "required": false,
+        "description": "Specifies the number of results to return per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the number of results for a page"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "Specifies the cursor for fetching the next page of authorization servers.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the pagination cursor for the next page of the associated authorization servers"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "after"
+      },
+      {
+        "name": "search_trusted_authorization_servers",
+        "required": false,
+        "description": "Set to `true` to search for trusted authorization servers, or `false` for untrusted ones.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Searches trusted authorization servers when `true` or searches untrusted authorization servers when `false`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "trusted"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'listAssociatedServersByTrustedType'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.authorizationServers.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/authorizationServers/{authServerId}/associatedServers",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "trusted",
+        "tool_parameter_name": "search_trusted_authorization_servers",
+        "description": "Searches trusted authorization servers when `true` or searches untrusted authorization servers when `false`",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Searches trusted authorization servers when `true` or searches untrusted authorization servers when `false`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "q",
+        "tool_parameter_name": "search_name_or_audience",
+        "description": "Searches for the name or audience of the associated authorization servers",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Searches for the name or audience of the associated authorization servers"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "page_size",
+        "description": "Specifies the number of results for a page",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the number of results for a page"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "after",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "Specifies the pagination cursor for the next page of the associated authorization servers",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the pagination cursor for the next page of the associated authorization servers"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "authServerId",
+        "tool_parameter_name": "authorization_server_id",
+        "description": "`id` of the Authorization Server",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of the Authorization Server"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

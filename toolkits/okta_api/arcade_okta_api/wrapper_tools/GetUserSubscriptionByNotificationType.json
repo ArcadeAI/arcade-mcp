@@ -1,0 +1,165 @@
+{
+  "name": "GetUserSubscriptionByNotificationType",
+  "fully_qualified_name": "OktaApi.GetUserSubscriptionByNotificationType@0.1.0",
+  "description": "Retrieve a user's subscription by notification type.\n\nUse this tool to get subscription information for a specified user's notification type. It should be called when you need to access a user's subscription details for a particular notification type. Access is restricted to the specified user only.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "user_id",
+        "required": true,
+        "description": "The unique identifier for the user whose subscription details are being retrieved.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "userId"
+      },
+      {
+        "name": "notification_type",
+        "required": true,
+        "description": "Specify the type of notification to retrieve user subscription details. Valid values include: AD_AGENT, AGENT_AUTO_UPDATE_NOTIFICATION, AGENT_AUTO_UPDATE_NOTIFICATION_LDAP, APP_IMPORT, CONNECTOR_AGENT, IWA_AGENT, LDAP_AGENT, OKTA_ANNOUNCEMENT, OKTA_UPDATE, RATELIMIT_NOTIFICATION, REPORT_SUSPICIOUS_ACTIVITY, USER_DEPROVISION, USER_LOCKED_OUT.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "AD_AGENT",
+            "AGENT_AUTO_UPDATE_NOTIFICATION",
+            "AGENT_AUTO_UPDATE_NOTIFICATION_LDAP",
+            "APP_IMPORT",
+            "CONNECTOR_AGENT",
+            "IWA_AGENT",
+            "LDAP_AGENT",
+            "OKTA_ANNOUNCEMENT",
+            "OKTA_UPDATE",
+            "RATELIMIT_NOTIFICATION",
+            "REPORT_SUSPICIOUS_ACTIVITY",
+            "USER_DEPROVISION",
+            "USER_LOCKED_OUT"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "notificationType"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getSubscriptionsNotificationTypeUser'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.users.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/users/{userId}/subscriptions/{notificationType}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "userId",
+        "tool_parameter_name": "user_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "notificationType",
+        "tool_parameter_name": "notification_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "AD_AGENT",
+            "AGENT_AUTO_UPDATE_NOTIFICATION",
+            "AGENT_AUTO_UPDATE_NOTIFICATION_LDAP",
+            "APP_IMPORT",
+            "CONNECTOR_AGENT",
+            "IWA_AGENT",
+            "LDAP_AGENT",
+            "OKTA_ANNOUNCEMENT",
+            "OKTA_UPDATE",
+            "RATELIMIT_NOTIFICATION",
+            "REPORT_SUSPICIOUS_ACTIVITY",
+            "USER_DEPROVISION",
+            "USER_LOCKED_OUT"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}
