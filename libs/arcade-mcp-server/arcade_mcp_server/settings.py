@@ -104,6 +104,38 @@ class ServerAuthSettings(BaseSettings):
         default=None,
         description="Canonical URL of this MCP server (e.g., https://mcp.example.com)",
     )
+    jwks_uri: str | None = Field(
+        default=None,
+        description="URL to fetch JSON Web Key Set for JWT verification",
+    )
+    issuer: str | None = Field(
+        default=None,
+        description="Expected JWT token issuer (iss claim)",
+    )
+    authorization_server: str | None = Field(
+        default=None,
+        description="Authorization server URL for OAuth discovery (RFC 9728)",
+    )
+    algorithms: list[str] | None = Field(
+        default=None,
+        description="Allowed JWT signature algorithms (e.g., ['RS256'])",
+    )
+    verify_aud: bool = Field(default=True, description="Verify JWT audience claim")
+    verify_exp: bool = Field(default=True, description="Verify JWT expiration")
+    verify_iat: bool = Field(default=True, description="Verify JWT issued-at time")
+    verify_iss: bool = Field(default=True, description="Verify JWT issuer")
+
+    @field_validator("algorithms", mode="before")
+    @classmethod
+    def parse_algorithms_list(cls, v: Any) -> list[str] | None:
+        """Parse comma-separated algorithm string from env var."""
+        if v is None:
+            return None
+        if isinstance(v, str):
+            return [alg.strip() for alg in v.split(",") if alg.strip()]
+        if isinstance(v, list):
+            return v
+        return None
 
     model_config = {"env_prefix": "MCP_SERVER_AUTH_"}
 

@@ -9,31 +9,56 @@ Tests cover:
 - WWW-Authenticate header compliance
 """
 
-import json
+import os
 import time
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 
-import httpx
 import jwt
 import pytest
 from arcade_mcp_server.server_auth.base import (
     AuthenticatedUser,
-    AuthenticationError,
     InvalidTokenError,
-    ServerAuthProvider,
     TokenExpiredError,
 )
 from arcade_mcp_server.server_auth.middleware import MCPAuthMiddleware
 from arcade_mcp_server.server_auth.providers.jwt import JWTVerifier
 from arcade_mcp_server.server_auth.providers.remote import RemoteOAuthProvider
-from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-from starlette.requests import Request
-from starlette.responses import Response
-from starlette.types import Receive, Scope, Send
 
 
 # Test fixtures
+@pytest.fixture(autouse=True)
+def clean_auth_env():
+    """Clean server auth environment variables before each test."""
+    # Store original values
+    env_vars = [
+        "MCP_SERVER_AUTH_ENABLED",
+        "MCP_SERVER_AUTH_CANONICAL_URL",
+        "MCP_SERVER_AUTH_JWKS_URI",
+        "MCP_SERVER_AUTH_ISSUER",
+        "MCP_SERVER_AUTH_AUTHORIZATION_SERVER",
+        "MCP_SERVER_AUTH_ALGORITHMS",
+        "MCP_SERVER_AUTH_VERIFY_AUD",
+        "MCP_SERVER_AUTH_VERIFY_EXP",
+        "MCP_SERVER_AUTH_VERIFY_IAT",
+        "MCP_SERVER_AUTH_VERIFY_ISS",
+    ]
+    original_values = {var: os.environ.get(var) for var in env_vars}
+
+    # Clear all auth-related env vars
+    for var in env_vars:
+        os.environ.pop(var, None)
+
+    yield
+
+    # Restore original values
+    for var, value in original_values.items():
+        if value is not None:
+            os.environ[var] = value
+        else:
+            os.environ.pop(var, None)
+
+
 @pytest.fixture
 def rsa_keypair():
     """Generate RSA key pair for testing."""
@@ -312,9 +337,8 @@ class TestRemoteOAuthProvider:
         provider = RemoteOAuthProvider(
             jwks_uri="https://auth.example.com/.well-known/jwks.json",
             issuer="https://auth.example.com",
-            audience="https://mcp.example.com",
+            canonical_url="https://mcp.example.com",
             authorization_server="https://auth.example.com",
-            authorization_server_metadata_url="https://auth.example.com/.well-known/oauth-authorization-server",
         )
 
         assert provider.supports_oauth_discovery() is True
@@ -324,12 +348,11 @@ class TestRemoteOAuthProvider:
         provider = RemoteOAuthProvider(
             jwks_uri="https://auth.example.com/.well-known/jwks.json",
             issuer="https://auth.example.com",
-            audience="https://mcp.example.com",
+            canonical_url="https://mcp.example.com",
             authorization_server="https://auth.example.com",
-            authorization_server_metadata_url="https://auth.example.com/.well-known/oauth-authorization-server",
         )
 
-        metadata = provider.get_resource_metadata("https://mcp.example.com")
+        metadata = provider.get_resource_metadata()
 
         assert metadata["resource"] == "https://mcp.example.com"
         assert metadata["authorization_servers"] == ["https://auth.example.com"]
@@ -443,9 +466,8 @@ class TestMCPAuthMiddleware:
             provider = RemoteOAuthProvider(
                 jwks_uri="https://auth.example.com/.well-known/jwks.json",
                 issuer="https://auth.example.com",
-                audience="https://mcp.example.com",
+                canonical_url="https://mcp.example.com",
                 authorization_server="https://auth.example.com",
-                authorization_server_metadata_url="https://auth.example.com/.well-known/oauth-authorization-server",
             )
 
             async def mock_app(scope, receive, send):
@@ -481,3 +503,95 @@ class TestMCPAuthMiddleware:
             # Should include resource_metadata URL
             assert "resource_metadata=" in www_auth
             assert "/.well-known/oauth-protected-resource" in www_auth
+
+
+class TestEnvVarConfiguration:
+    """Tests for front-door auth env var configuration support."""
+
+    @pytest.mark.asyncio
+    async def test_remote_oauth_env_var_precedence(self, monkeypatch):
+        """Test that environment variables override parameters."""
+        monkeypatch.setenv("MCP_SERVER_AUTH_JWKS_URI", "https://env.example.com/jwks")
+        monkeypatch.setenv("MCP_SERVER_AUTH_ISSUER", "https://env.example.com")
+        monkeypatch.setenv("MCP_SERVER_AUTH_CANONICAL_URL", "https://env-mcp.example.com")
+        monkeypatch.setenv("MCP_SERVER_AUTH_AUTHORIZATION_SERVER", "https://env.example.com")
+
+        auth = RemoteOAuthProvider(
+            jwks_uri="https://param.example.com/jwks",
+            issuer="https://param.example.com",
+            canonical_url="https://param-mcp.example.com",
+            authorization_server="https://param.example.com",
+        )
+
+        assert auth.jwks_uri == "https://env.example.com/jwks"
+        assert auth.issuer == "https://env.example.com"
+        assert auth.canonical_url == "https://env-mcp.example.com"
+        assert auth.authorization_server == "https://env.example.com"
+
+    @pytest.mark.asyncio
+    async def test_remote_oauth_all_env_vars(self, monkeypatch):
+        """Test RemoteOAuthProvider with all env vars, no parameters."""
+        monkeypatch.setenv("MCP_SERVER_AUTH_JWKS_URI", "https://auth.example.com/jwks")
+        monkeypatch.setenv("MCP_SERVER_AUTH_ISSUER", "https://auth.example.com")
+        monkeypatch.setenv("MCP_SERVER_AUTH_CANONICAL_URL", "https://mcp.example.com")
+        monkeypatch.setenv("MCP_SERVER_AUTH_AUTHORIZATION_SERVER", "https://auth.example.com")
+        monkeypatch.setenv("MCP_SERVER_AUTH_ALGORITHMS", "RS256,RS384")
+        monkeypatch.setenv("MCP_SERVER_AUTH_VERIFY_AUD", "false")
+
+        auth = RemoteOAuthProvider()
+
+        assert auth.jwks_uri == "https://auth.example.com/jwks"
+        assert auth.canonical_url == "https://mcp.example.com"
+        assert auth.algorithms == ["RS256", "RS384"]
+        assert auth.verify_options.verify_aud is False
+
+    def test_remote_oauth_missing_required(self):
+        """Test that missing required fields raise ValueError."""
+        with pytest.raises(ValueError, match="RemoteOAuthProvider requires"):
+            RemoteOAuthProvider(
+                jwks_uri="https://auth.example.com/jwks",
+                issuer="https://auth.example.com",
+                # Missing canonical_url and authorization_server
+            )
+
+    @pytest.mark.asyncio
+    async def test_jwt_verifier_env_var_support(self, monkeypatch):
+        """Test JWTVerifier with environment variables."""
+        monkeypatch.setenv("MCP_SERVER_AUTH_JWKS_URI", "https://auth.example.com/jwks")
+        monkeypatch.setenv("MCP_SERVER_AUTH_ISSUER", "https://auth.example.com")
+        monkeypatch.setenv("MCP_SERVER_AUTH_CANONICAL_URL", "https://mcp.example.com")
+        monkeypatch.setenv("MCP_SERVER_AUTH_ALGORITHMS", "RS256,ES256")
+
+        auth = JWTVerifier()
+
+        assert auth.jwks_uri == "https://auth.example.com/jwks"
+        assert auth.issuer == "https://auth.example.com"
+        assert auth.audience == "https://mcp.example.com"
+        assert auth.algorithms == ["RS256", "ES256"]
+
+    @pytest.mark.asyncio
+    async def test_worker_no_canonical_url_for_jwt_verifier(self, monkeypatch):
+        """Test that worker doesn't require canonical_url for JWTVerifier."""
+        from arcade_core.catalog import ToolCatalog
+        from arcade_mcp_server.worker import create_arcade_mcp
+
+        monkeypatch.setenv("MCP_SERVER_AUTH_JWKS_URI", "https://auth.example.com/jwks")
+        monkeypatch.setenv("MCP_SERVER_AUTH_ISSUER", "https://auth.example.com")
+        monkeypatch.setenv("MCP_SERVER_AUTH_CANONICAL_URL", "https://mcp.example.com")
+
+        jwt_auth = JWTVerifier()
+
+        catalog = ToolCatalog()
+        # Shouldn't raise as JWTVerifier doesn't support OAuth discovery
+        app = create_arcade_mcp(catalog, auth_provider=jwt_auth)
+        assert app is not None
+
+    def test_worker_requires_canonical_url_for_remote_oauth(self):
+        """Test that RemoteOAuthProvider validation happens during init."""
+        with pytest.raises(ValueError, match="RemoteOAuthProvider requires"):
+            RemoteOAuthProvider(
+                jwks_uri="https://auth.example.com/jwks",
+                issuer="https://auth.example.com",
+                authorization_server="https://auth.example.com",
+                # Missing canonical_url
+            )

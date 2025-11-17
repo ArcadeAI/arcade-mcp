@@ -81,7 +81,6 @@ def create_arcade_mcp(
     debug: bool = False,
     otel_enable: bool = False,
     auth_provider: ServerAuthProvider | None = None,
-    canonical_url: str | None = None,
     **kwargs: Any,
 ) -> FastAPI:
     """
@@ -150,6 +149,7 @@ def create_arcade_mcp(
         )
         async def oauth_protected_resource() -> JSONResponse:
             """OAuth 2.0 Protected Resource Metadata (RFC 9728)"""
+            canonical_url = getattr(auth_provider, "canonical_url", None)
             if not canonical_url:
                 return JSONResponse(
                     {"error": "Server canonical URL not configured"},
@@ -190,9 +190,17 @@ def create_arcade_mcp(
     # Create MCP proxy and wrap with auth middleware if enabled
     mcp_proxy: Any = _MCPASGIProxy(app)
     if auth_provider:
-        if not canonical_url:
-            raise ValueError("canonical_url required when auth_provider is enabled")
         from arcade_mcp_server.server_auth.middleware import MCPAuthMiddleware
+
+        # Get canonical_url from provider if it supports OAuth discovery
+        canonical_url = None
+        if auth_provider.supports_oauth_discovery():
+            canonical_url = getattr(auth_provider, "canonical_url", None)
+            if not canonical_url:
+                raise ValueError(
+                    "RemoteOAuthProvider.canonical_url must be set via parameter or "
+                    "MCP_SERVER_AUTH_CANONICAL_URL environment variable"
+                )
 
         mcp_proxy = MCPAuthMiddleware(mcp_proxy, auth_provider, canonical_url)
 

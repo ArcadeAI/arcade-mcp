@@ -27,7 +27,6 @@ auth = JWTVerifier(
 app = MCPApp(
     name="my_server",
     auth=auth,
-    canonical_url="https://mcp.example.com",
 )
 ```
 
@@ -64,6 +63,88 @@ app = MCPApp(
     name="my_server",
     auth=auth,
 )
+```
+
+## Environment Variable Configuration
+
+All `RemoteOAuthProvider` and `JWTVerifier` parameters can be configured via environment variables. This is the **recommended approach for production deployments**.
+
+### Supported Environment Variables
+
+| Environment Variable | Type | Description | Required |
+|---------------------|------|-------------|----------|
+| `MCP_SERVER_AUTH_JWKS_URI` | string | URL to JWKS endpoint | Yes |
+| `MCP_SERVER_AUTH_ISSUER` | string | Expected token issuer | Yes |
+| `MCP_SERVER_AUTH_CANONICAL_URL` | string | MCP server canonical URL | Yes (for RemoteOAuthProvider) |
+| `MCP_SERVER_AUTH_AUTHORIZATION_SERVER` | string | Authorization server URL | Yes (for RemoteOAuthProvider) |
+| `MCP_SERVER_AUTH_ALGORITHMS` | list | Comma-separated algorithms | No (default: RS256) |
+| `MCP_SERVER_AUTH_VERIFY_AUD` | bool | Verify audience claim | No (default: true) |
+| `MCP_SERVER_AUTH_VERIFY_EXP` | bool | Verify expiration | No (default: true) |
+| `MCP_SERVER_AUTH_VERIFY_IAT` | bool | Verify issued-at | No (default: true) |
+| `MCP_SERVER_AUTH_VERIFY_ISS` | bool | Verify issuer | No (default: true) |
+
+### Precedence Rules
+
+**Environment variables take precedence over parameters:**
+
+```python
+# Parameters are ignored if env vars are set
+auth = RemoteOAuthProvider(
+    canonical_url="http://localhost:8000",  # Overridden by MCP_SERVER_AUTH_CANONICAL_URL
+)
+```
+
+### Example .env File
+
+```bash
+# Auth Provider Configuration
+MCP_SERVER_AUTH_JWKS_URI=https://auth.example.com/.well-known/jwks.json
+MCP_SERVER_AUTH_ISSUER=https://auth.example.com
+MCP_SERVER_AUTH_CANONICAL_URL=https://mcp.example.com
+MCP_SERVER_AUTH_AUTHORIZATION_SERVER=https://auth.example.com
+
+# Optional: Customize verification
+MCP_SERVER_AUTH_ALGORITHMS=RS256,RS384
+MCP_SERVER_AUTH_VERIFY_AUD=true
+```
+
+### Docker Deployment Example
+
+```dockerfile
+# Dockerfile
+FROM python:3.11-slim
+WORKDIR /app
+COPY . .
+RUN pip install -r requirements.txt
+CMD ["python", "server.py"]
+```
+
+```yaml
+# docker-compose.yml
+services:
+  mcp-server:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      MCP_SERVER_AUTH_JWKS_URI: https://auth.example.com/.well-known/jwks.json
+      MCP_SERVER_AUTH_ISSUER: https://auth.example.com
+      MCP_SERVER_AUTH_CANONICAL_URL: https://mcp.example.com
+      MCP_SERVER_AUTH_AUTHORIZATION_SERVER: https://auth.example.com
+```
+
+### Kubernetes ConfigMap Example
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mcp-server-auth
+data:
+  MCP_SERVER_AUTH_JWKS_URI: "https://auth.example.com/.well-known/jwks.json"
+  MCP_SERVER_AUTH_ISSUER: "https://auth.example.com"
+  MCP_SERVER_AUTH_CANONICAL_URL: "https://mcp.example.com"
+  MCP_SERVER_AUTH_AUTHORIZATION_SERVER: "https://auth.example.com"
 ```
 
 ## Authentication Providers
@@ -263,7 +344,7 @@ Result: `Tool cannot be executed over unauthenticated HTTP transport`
 
 ```python
 auth = AuthKitProvider(...)
-app = MCPApp(auth=auth, canonical_url="...")
+app = MCPApp(auth=auth)
 
 @app.tool(authorization=ToolAuthorization(...))
 async def github_tool(ctx) -> str:
@@ -318,7 +399,6 @@ auth = AuthKitProvider(
 app = MCPApp(
     name="my_server",
     auth=auth,
-    canonical_url="https://mcp.example.com",
 )
 ```
 

@@ -35,28 +35,37 @@ class RemoteOAuthProvider(JWTVerifier):
 
     def __init__(
         self,
-        jwks_uri: str,
-        issuer: str,
-        canonical_url: str,
-        authorization_server: str,
+        jwks_uri: str | None = None,
+        issuer: str | None = None,
+        canonical_url: str | None = None,
+        authorization_server: str | None = None,
         algorithms: list[str] | None = None,
         cache_ttl: int = 3600,
         verify_options: JWTVerifyOptions | None = None,
     ):
         """Initialize remote OAuth provider.
 
+        All parameters can be provided via environment variables (MCP_SERVER_AUTH_*).
+        Environment variables take precedence over parameters.
+
         Args:
-            jwks_uri: URL to fetch JSON Web Key Set
-            issuer: Expected token issuer (iss claim)
-            canonical_url: Canonical URL of the MCP server (used as JWT audience claim).
-                          Required for OAuth discovery (RFC 9728).
-            authorization_server: URL of the external authorization server
-            algorithms: Allowed signature algorithms (default: ["RS256"])
-            cache_ttl: JWKS cache time-to-live in seconds (default: 3600)
-            verify_options: Options controlling which claims to verify. All default to True for security.
+            jwks_uri: URL to fetch JWKS (or MCP_SERVER_AUTH_JWKS_URI)
+            issuer: Token issuer (or MCP_SERVER_AUTH_ISSUER)
+            canonical_url: MCP server canonical URL (or MCP_SERVER_AUTH_CANONICAL_URL)
+            authorization_server: Auth server URL (or MCP_SERVER_AUTH_AUTHORIZATION_SERVER)
+            algorithms: Signature algorithms (or MCP_SERVER_AUTH_ALGORITHMS comma-separated)
+            cache_ttl: JWKS cache TTL in seconds
+            verify_options: JWT verification options (or MCP_SERVER_AUTH_VERIFY_* vars)
+
+        Raises:
+            ValueError: If required fields not provided via env vars or parameters
 
         Example:
             ```python
+            # Option 1: Use environment variables
+            auth = RemoteOAuthProvider()
+
+            # Option 2: Explicit parameters
             auth = RemoteOAuthProvider(
                 jwks_uri="https://your-app.authkit.app/oauth2/jwks",
                 issuer="https://your-app.authkit.app",
@@ -69,6 +78,47 @@ class RemoteOAuthProvider(JWTVerifier):
             )
             ```
         """
+        from arcade_mcp_server.settings import MCPSettings
+
+        settings = MCPSettings.from_env()
+        auth_settings = settings.server_auth
+
+        # Environment variables take precedence
+        jwks_uri = auth_settings.jwks_uri or jwks_uri
+        issuer = auth_settings.issuer or issuer
+        canonical_url = auth_settings.canonical_url or canonical_url
+        authorization_server = auth_settings.authorization_server or authorization_server
+
+        if auth_settings.algorithms:
+            algorithms = auth_settings.algorithms
+        elif algorithms is None:
+            algorithms = ["RS256"]
+
+        if verify_options is None:
+            verify_options = JWTVerifyOptions(
+                verify_aud=auth_settings.verify_aud,
+                verify_exp=auth_settings.verify_exp,
+                verify_iat=auth_settings.verify_iat,
+                verify_iss=auth_settings.verify_iss,
+            )
+
+        # Validate required fields
+        missing = []
+        if not jwks_uri:
+            missing.append("jwks_uri (MCP_SERVER_AUTH_JWKS_URI)")
+        if not issuer:
+            missing.append("issuer (MCP_SERVER_AUTH_ISSUER)")
+        if not canonical_url:
+            missing.append("canonical_url (MCP_SERVER_AUTH_CANONICAL_URL)")
+        if not authorization_server:
+            missing.append("authorization_server (MCP_SERVER_AUTH_AUTHORIZATION_SERVER)")
+
+        if missing:
+            raise ValueError(
+                f"RemoteOAuthProvider requires: {', '.join(missing)}. "
+                f"Provide via parameters or environment variables."
+            )
+
         super().__init__(jwks_uri, issuer, canonical_url, algorithms, cache_ttl, verify_options)
         self.canonical_url = canonical_url
         self.authorization_server = authorization_server

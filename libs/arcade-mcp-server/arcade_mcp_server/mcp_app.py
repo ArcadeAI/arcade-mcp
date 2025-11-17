@@ -76,7 +76,6 @@ class MCPApp:
         port: int = 8000,
         reload: bool = False,
         auth: Any | None = None,
-        canonical_url: str | None = None,
         **kwargs: Any,
     ):
         """
@@ -93,9 +92,6 @@ class MCPApp:
             port: Port for transport
             reload: Enable auto-reload for development
             auth: Optional ServerAuthProvider for front-door authentication
-            canonical_url: Canonical URL of MCP server. If not provided and auth provider
-                          has a canonical_url attribute, it will be used from there.
-                          Required if auth is set and auth provider doesn't provide it.
             **kwargs: Additional server configuration
         """
         self._name = self._validate_name(name)
@@ -104,12 +100,6 @@ class MCPApp:
         self.instructions = instructions
         self.log_level = log_level
         self.auth_provider = auth
-
-        # If canonical_url not provided, try to get it from auth provider
-        if canonical_url is None and auth is not None:
-            canonical_url = getattr(auth, "canonical_url", None)
-
-        self.canonical_url = canonical_url
         self.server_kwargs = kwargs
         self.transport = transport
         self.host = host
@@ -414,7 +404,6 @@ class MCPApp:
             mcp_settings=self._mcp_settings,
             debug=debug,
             auth_provider=self.auth_provider,
-            canonical_url=self.canonical_url,
             **self.server_kwargs,
         )
 

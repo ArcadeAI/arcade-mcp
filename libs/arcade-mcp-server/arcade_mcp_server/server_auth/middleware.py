@@ -44,14 +44,15 @@ class MCPAuthMiddleware:
         self,
         app: ASGIApp,
         auth_provider: ServerAuthProvider,
-        canonical_url: str,
+        canonical_url: str | None,
     ):
         """Initialize auth middleware.
 
         Args:
             app: ASGI application to wrap
             auth_provider: Authentication provider for token validation
-            canonical_url: Canonical URL of this MCP server (for OAuth metadata)
+            canonical_url: Canonical URL of this MCP server (for OAuth metadata).
+                          Required only for providers that support OAuth discovery.
         """
         self.app = app
         self.auth_provider = auth_provider
@@ -149,7 +150,7 @@ class MCPAuthMiddleware:
         www_auth_parts = ["Bearer"]
 
         # Add resource metadata URL if provider supports discovery (RFC 9728)
-        if self.auth_provider.supports_oauth_discovery():
+        if self.auth_provider.supports_oauth_discovery() and self.canonical_url:
             metadata_url = f"{self.canonical_url}/.well-known/oauth-protected-resource"
             www_auth_parts.append(f'resource_metadata="{metadata_url}"')
 

@@ -343,7 +343,6 @@ class TestMCPApp:
                 mcp_settings=mcp_app._mcp_settings,
                 debug=False,
                 auth_provider=mcp_app.auth_provider,
-                canonical_url=mcp_app.canonical_url,
             )
             mock_uvicorn.run.assert_called_once_with(
                 mock_fastapi_app,
@@ -370,7 +369,6 @@ class TestMCPApp:
                 mcp_settings=mcp_app._mcp_settings,
                 debug=True,
                 auth_provider=mcp_app.auth_provider,
-                canonical_url=mcp_app.canonical_url,
             )
             mock_uvicorn.run.assert_called_once_with(
                 mock_fastapi_app,

@@ -71,45 +71,85 @@ class JWTVerifier(ServerAuthProvider):
 
     def __init__(
         self,
-        jwks_uri: str,
-        issuer: str,
+        jwks_uri: str | None = None,
+        issuer: str | None = None,
         audience: str | None = None,
         algorithms: list[str] | None = None,
         cache_ttl: int = 3600,
         verify_options: JWTVerifyOptions | None = None,
     ):
-        """Initialize JWT verifier.
+        """Initialize JWT verifier with optional env var support.
 
         Args:
-            jwks_uri: URL to fetch JSON Web Key Set
-            issuer: Expected token issuer (iss claim)
-            audience: Expected token audience (aud claim) - should be MCP server's canonical URL.
-                      If None, verify_aud must be set to False in verify_options.
-            algorithms: Allowed signature algorithms (default: ["RS256"])
-            cache_ttl: JWKS cache time-to-live in seconds (default: 3600)
-            verify_options: Options controlling which claims to verify. All default to True for security.
-                           Note: Token signature is always verified and cannot be disabled.
-
-                           Example for providers without audience support:
-                           ```python
-                           verify_options=JWTVerifyOptions(verify_aud=False)
-                           ```
+            jwks_uri: URL to fetch JWKS (or MCP_SERVER_AUTH_JWKS_URI)
+            issuer: Token issuer (or MCP_SERVER_AUTH_ISSUER)
+            audience: Token audience (or MCP_SERVER_AUTH_CANONICAL_URL)
+            algorithms: Signature algorithms (or MCP_SERVER_AUTH_ALGORITHMS)
+            cache_ttl: JWKS cache TTL
+            verify_options: JWT verification options (or MCP_SERVER_AUTH_VERIFY_*)
 
         Raises:
-            ValueError: If verify_aud is True (default) but audience is None
+            ValueError: If required fields not provided or verify_aud is True but audience is None
+
+        Example:
+            ```python
+            # Option 1: Use environment variables
+            auth = JWTVerifier()
+
+            # Option 2: Explicit parameters
+            auth = JWTVerifier(
+                jwks_uri="https://auth.example.com/jwks",
+                issuer="https://auth.example.com",
+                audience="https://mcp.example.com",
+            )
+
+            # Option 3: Disable audience verification
+            auth = JWTVerifier(
+                jwks_uri="https://auth.example.com/jwks",
+                issuer="https://auth.example.com",
+                verify_options=JWTVerifyOptions(verify_aud=False),
+            )
+            ```
         """
+        from arcade_mcp_server.settings import MCPSettings
+
+        settings = MCPSettings.from_env()
+        auth_settings = settings.server_auth
+
+        # Environment variables take precedence
+        jwks_uri = auth_settings.jwks_uri or jwks_uri
+        issuer = auth_settings.issuer or issuer
+        audience = auth_settings.canonical_url or audience
+
+        if auth_settings.algorithms:
+            algorithms = auth_settings.algorithms
+        elif algorithms is None:
+            algorithms = ["RS256"]
+
+        if verify_options is None:
+            verify_options = JWTVerifyOptions(
+                verify_aud=auth_settings.verify_aud,
+                verify_exp=auth_settings.verify_exp,
+                verify_iat=auth_settings.verify_iat,
+                verify_iss=auth_settings.verify_iss,
+            )
+
+        # Validate required fields
+        if not jwks_uri:
+            raise ValueError("jwks_uri required (parameter or MCP_SERVER_AUTH_JWKS_URI)")
+        if not issuer:
+            raise ValueError("issuer required (parameter or MCP_SERVER_AUTH_ISSUER)")
+
         self.jwks_uri = jwks_uri
         self.issuer = issuer
         self.audience = audience
-        self.algorithms = algorithms or ["RS256"]
+        self.algorithms = algorithms
         self._cache_ttl = cache_ttl
-        self.verify_options = verify_options or JWTVerifyOptions()
+        self.verify_options = verify_options
 
-        # Validate that required fields are provided when verification is enabled
         if self.verify_options.verify_aud and self.audience is None:
-            raise ValueError("audience must be provided when verify_aud is True (default)")
+            raise ValueError("audience must be provided when verify_aud is True")
 
-        # Async HTTP client for JWKS fetching
         self._http_client = httpx.AsyncClient(timeout=10.0)
         self._jwks_cache: dict[str, Any] | None = None
         self._cache_timestamp: float = 0
