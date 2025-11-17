@@ -20,6 +20,9 @@ class AuthenticatedUser:
     user_id: str
     """User identifier from token (typically 'sub' claim)"""
 
+    client_id: str | None = None
+    """OAuth client identifier from 'client_id' or 'azp' claim"""
+
     email: str | None = None
     """User email if available in token claims"""
 

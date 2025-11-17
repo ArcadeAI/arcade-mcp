@@ -14,7 +14,7 @@ auth = RemoteOAuthProvider(
     issuer="https://glowing-shine-51-staging.authkit.app",
     canonical_url="http://127.0.0.1:8000/mcp",
     authorization_server="https://glowing-shine-51-staging.authkit.app",
-    algorithms=["RS256"],
+    algorithm="RS256",
     verify_options=JWTVerifyOptions(
         verify_aud=False,
     ),

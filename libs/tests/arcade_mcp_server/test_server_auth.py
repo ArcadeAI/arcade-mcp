@@ -38,7 +38,7 @@ def clean_auth_env():
         "MCP_SERVER_AUTH_JWKS_URI",
         "MCP_SERVER_AUTH_ISSUER",
         "MCP_SERVER_AUTH_AUTHORIZATION_SERVER",
-        "MCP_SERVER_AUTH_ALGORITHMS",
+        "MCP_SERVER_AUTH_ALGORITHM",
         "MCP_SERVER_AUTH_VERIFY_AUD",
         "MCP_SERVER_AUTH_VERIFY_EXP",
         "MCP_SERVER_AUTH_VERIFY_IAT",
@@ -547,14 +547,15 @@ class TestEnvVarConfiguration:
         monkeypatch.setenv("MCP_SERVER_AUTH_ISSUER", "https://auth.example.com")
         monkeypatch.setenv("MCP_SERVER_AUTH_CANONICAL_URL", "https://mcp.example.com")
         monkeypatch.setenv("MCP_SERVER_AUTH_AUTHORIZATION_SERVER", "https://auth.example.com")
-        monkeypatch.setenv("MCP_SERVER_AUTH_ALGORITHMS", "RS256,RS384")
+        monkeypatch.setenv("MCP_SERVER_AUTH_ALGORITHM", "RS256")
         monkeypatch.setenv("MCP_SERVER_AUTH_VERIFY_AUD", "false")
 
         auth = RemoteOAuthProvider()
 
         assert auth.jwks_uri == "https://auth.example.com/jwks"
         assert auth.canonical_url == "https://mcp.example.com"
-        assert auth.algorithms == ["RS256", "RS384"]
+        assert auth.algorithm == "RS256"
+        assert auth.algorithms == ["RS256"]
         assert auth.verify_options.verify_aud is False
 
     def test_remote_oauth_missing_required(self):
@@ -572,14 +573,15 @@ class TestEnvVarConfiguration:
         monkeypatch.setenv("MCP_SERVER_AUTH_JWKS_URI", "https://auth.example.com/jwks")
         monkeypatch.setenv("MCP_SERVER_AUTH_ISSUER", "https://auth.example.com")
         monkeypatch.setenv("MCP_SERVER_AUTH_CANONICAL_URL", "https://mcp.example.com")
-        monkeypatch.setenv("MCP_SERVER_AUTH_ALGORITHMS", "RS256,ES256")
+        monkeypatch.setenv("MCP_SERVER_AUTH_ALGORITHM", "ES256")
 
         auth = JWTVerifier()
 
         assert auth.jwks_uri == "https://auth.example.com/jwks"
         assert auth.issuer == "https://auth.example.com"
         assert auth.audience == "https://mcp.example.com"
-        assert auth.algorithms == ["RS256", "ES256"]
+        assert auth.algorithm == "ES256"
+        assert auth.algorithms == ["ES256"]
 
     @pytest.mark.asyncio
     async def test_worker_no_canonical_url_for_jwt_verifier(self, monkeypatch):

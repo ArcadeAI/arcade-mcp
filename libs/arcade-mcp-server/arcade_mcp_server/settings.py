@@ -108,31 +108,50 @@ class ServerAuthSettings(BaseSettings):
         default=None,
         description="URL to fetch JSON Web Key Set for JWT verification",
     )
-    issuer: str | None = Field(
+    issuer: str | list[str] | None = Field(
         default=None,
-        description="Expected JWT token issuer (iss claim)",
+        description="Expected JWT token issuer(s). Single issuer or list of allowed issuers.",
     )
     authorization_server: str | None = Field(
         default=None,
         description="Authorization server URL for OAuth discovery (RFC 9728)",
     )
-    algorithms: list[str] | None = Field(
+    algorithm: str | None = Field(
         default=None,
-        description="Allowed JWT signature algorithms (e.g., ['RS256'])",
+        description="JWT signature algorithm (e.g., 'RS256', 'ES256', 'PS256')",
     )
     verify_aud: bool = Field(default=True, description="Verify JWT audience claim")
     verify_exp: bool = Field(default=True, description="Verify JWT expiration")
     verify_iat: bool = Field(default=True, description="Verify JWT issued-at time")
     verify_iss: bool = Field(default=True, description="Verify JWT issuer")
 
-    @field_validator("algorithms", mode="before")
+    @field_validator("issuer", mode="before")
     @classmethod
-    def parse_algorithms_list(cls, v: Any) -> list[str] | None:
-        """Parse comma-separated algorithm string from env var."""
+    def parse_issuer_list(cls, v: Any) -> str | list[str] | None:
+        """Parse issuer(s) from environment variable.
+
+        Accepts:
+        - Single issuer: "https://auth.example.com"
+        - Multiple issuers (comma-separated): "https://auth1.com,https://auth2.com"
+        - JSON array: '["https://auth1.com","https://auth2.com"]'
+        """
         if v is None:
             return None
         if isinstance(v, str):
-            return [alg.strip() for alg in v.split(",") if alg.strip()]
+            # Try JSON array format first
+            if v.strip().startswith("["):
+                try:
+                    import json
+
+                    parsed = json.loads(v)
+                    if isinstance(parsed, list):
+                        return parsed
+                except json.JSONDecodeError:
+                    pass
+            # Fall back to comma-separated
+            if "," in v:
+                return [iss.strip() for iss in v.split(",") if iss.strip()]
+            return v
         if isinstance(v, list):
             return v
         return None

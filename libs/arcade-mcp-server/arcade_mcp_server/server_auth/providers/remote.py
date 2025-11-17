@@ -27,7 +27,7 @@ class RemoteOAuthProvider(JWTVerifier):
         auth = RemoteOAuthProvider(
             jwks_uri="https://auth.example.com/.well-known/jwks.json",
             issuer="https://auth.example.com",
-            canonical_url="https://mcp.example.com",
+            canonical_url="https://mcp.example.com/mcp",
             authorization_server="https://auth.example.com",
         )
         ```
@@ -36,10 +36,10 @@ class RemoteOAuthProvider(JWTVerifier):
     def __init__(
         self,
         jwks_uri: str | None = None,
-        issuer: str | None = None,
+        issuer: str | list[str] | None = None,
         canonical_url: str | None = None,
         authorization_server: str | None = None,
-        algorithms: list[str] | None = None,
+        algorithm: str = "RS256",
         cache_ttl: int = 3600,
         verify_options: JWTVerifyOptions | None = None,
     ):
@@ -50,10 +50,10 @@ class RemoteOAuthProvider(JWTVerifier):
 
         Args:
             jwks_uri: URL to fetch JWKS (or MCP_SERVER_AUTH_JWKS_URI)
-            issuer: Token issuer (or MCP_SERVER_AUTH_ISSUER)
+            issuer: Token issuer or list of issuers (or MCP_SERVER_AUTH_ISSUER)
             canonical_url: MCP server canonical URL (or MCP_SERVER_AUTH_CANONICAL_URL)
             authorization_server: Auth server URL (or MCP_SERVER_AUTH_AUTHORIZATION_SERVER)
-            algorithms: Signature algorithms (or MCP_SERVER_AUTH_ALGORITHMS comma-separated)
+            algorithm: Signature algorithm (or MCP_SERVER_AUTH_ALGORITHM)
             cache_ttl: JWKS cache TTL in seconds
             verify_options: JWT verification options (or MCP_SERVER_AUTH_VERIFY_* vars)
 
@@ -71,10 +71,14 @@ class RemoteOAuthProvider(JWTVerifier):
                 issuer="https://your-app.authkit.app",
                 canonical_url="http://127.0.0.1:8000/mcp",
                 authorization_server="https://your-app.authkit.app",
-                algorithms=["RS256"],
-                verify_options=JWTVerifyOptions(
-                    verify_aud=False,
-                ),
+            )
+
+            # Option 3: Multiple issuers
+            auth = RemoteOAuthProvider(
+                jwks_uri="https://auth.example.com/jwks",
+                issuer=["https://auth1.example.com", "https://auth2.example.com"],
+                canonical_url="http://127.0.0.1:8000/mcp",
+                authorization_server="https://auth1.example.com",
             )
             ```
         """
@@ -89,10 +93,8 @@ class RemoteOAuthProvider(JWTVerifier):
         canonical_url = auth_settings.canonical_url or canonical_url
         authorization_server = auth_settings.authorization_server or authorization_server
 
-        if auth_settings.algorithms:
-            algorithms = auth_settings.algorithms
-        elif algorithms is None:
-            algorithms = ["RS256"]
+        if auth_settings.algorithm:
+            algorithm = auth_settings.algorithm
 
         if verify_options is None:
             verify_options = JWTVerifyOptions(
@@ -119,7 +121,7 @@ class RemoteOAuthProvider(JWTVerifier):
                 f"Provide via parameters or environment variables."
             )
 
-        super().__init__(jwks_uri, issuer, canonical_url, algorithms, cache_ttl, verify_options)
+        super().__init__(jwks_uri, issuer, canonical_url, algorithm, cache_ttl, verify_options)
         self.canonical_url = canonical_url
         self.authorization_server = authorization_server
 
