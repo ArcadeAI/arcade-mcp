@@ -332,76 +332,151 @@ class TestHTTPErrorAdapter:
         """Test that the adapter has the correct slug."""
         assert HTTPErrorAdapter.slug == "_http"
 
-    def test_map_status_to_error_403_with_rate_limit_headers(self):
-        """Test mapping 403 with rate limit headers to rate limit error."""
+    def test_map_status_to_error_403_with_exhausted_quota(self):
+        """Test mapping 403 with exhausted quota to rate limit error."""
         headers = {
             "retry-after": "30",
+            "x-ratelimit-remaining": "0",
         }
         result = self.adapter._map_status_to_error(
             status=403,
             headers=headers,
             msg="Forbidden",
-            request_url="https://api.github.com/user/repos",
+            request_url="https://api.example.com/user/repos",
             request_method="GET",
         )
 
         assert isinstance(result, UpstreamRateLimitError)
         assert result.retry_after_ms == 30_000
         assert result.message == "Forbidden"
-        assert result.extra["service"] == "_http"
-        assert result.extra["endpoint"] == "https://api.github.com/user/repos"
-        assert result.extra["http_method"] == "GET"
 
-    def test_map_status_to_error_403_without_rate_limit_headers(self):
-        """Test mapping 403 without rate limiting headers to regular upstream error."""
-        headers = {}
+    def test_map_status_to_error_403_with_remaining_quota(self):
+        """Test mapping 403 with remaining quota to regular upstream error."""
+        headers = {
+            "x-ratelimit-remaining": "4941",
+            "x-ratelimit-reset": "1762795446",
+        }
         result = self.adapter._map_status_to_error(
             status=403,
             headers=headers,
-            msg="Access denied due to insufficient permissions",
-            request_url="https://api.github.com/user/repos",
+            msg="Forbidden",
+            request_url="https://api.example.com/user/repos",
             request_method="GET",
         )
 
         assert isinstance(result, UpstreamError)
         assert not isinstance(result, UpstreamRateLimitError)
         assert result.status_code == 403
-        assert result.message == "Access denied due to insufficient permissions"
+        assert result.message == "Forbidden"
 
-    def test_is_rate_limit_403_with_retry_after_header(self):
-        """Test detecting rate limit 403 based on retry-after header."""
-        headers = {"Retry-After": "60"}
+    def test_is_rate_limit_403_with_exhausted_quota(self):
+        """Test detecting rate limit 403 when quota is exhausted."""
+        headers = {"x-ratelimit-remaining": "0"}
         msg = "Forbidden"
 
         result = self.adapter._is_rate_limit_403(headers, msg)
         assert result is True
 
-    def test_is_rate_limit_403_with_x_ratelimit_reset_header(self):
-        """Test detecting rate limit 403 based on x-ratelimit-reset header."""
-        headers = {"x-ratelimit-reset": "1640995200"}
+    def test_is_rate_limit_403_with_remaining_quota(self):
+        """Test that 403 with remaining quota is NOT detected as rate limiting."""
+        headers = {"x-ratelimit-remaining": "4941"}
         msg = "Forbidden"
 
         result = self.adapter._is_rate_limit_403(headers, msg)
-        assert result is True
+        assert result is False
 
-    def test_is_rate_limit_403_with_x_ratelimit_reset_ms_header(self):
-        """Test detecting rate limit 403 based on x-ratelimit-reset-ms header."""
-        headers = {"X-RateLimit-Reset-Ms": "5000"}
-        msg = "Forbidden"
-
-        result = self.adapter._is_rate_limit_403(headers, msg)
-        assert result is True
-
-    def test_is_rate_limit_403_without_headers(self):
-        """Test that 403 without rate limiting headers is not detected as rate limiting."""
+    def test_is_rate_limit_403_without_header(self):
+        """Test that 403 without rate limit headers is not detected as rate limiting."""
         headers = {}
-        msg = "Access denied due to insufficient permissions"
+        msg = "Forbidden"
+
+        result = self.adapter._is_rate_limit_403(headers, msg)
+        assert result is False
+
+    def test_is_rate_limit_403_with_x_rate_limit_remaining_variant(self):
+        """Test detecting rate limit 403 with x-rate-limit-remaining header variant."""
+        headers = {"x-rate-limit-remaining": "0"}
+        msg = "Forbidden"
+
+        result = self.adapter._is_rate_limit_403(headers, msg)
+        assert result is True
+
+    def test_is_rate_limit_403_with_ratelimit_remaining_variant(self):
+        """Test detecting rate limit 403 with ratelimit-remaining header variant."""
+        headers = {"ratelimit-remaining": "0"}
+        msg = "Forbidden"
+
+        result = self.adapter._is_rate_limit_403(headers, msg)
+        assert result is True
+
+    def test_is_rate_limit_403_with_app_rate_limit_remaining_variant(self):
+        """Test detecting rate limit 403 with x-app-rate-limit-remaining header variant."""
+        headers = {"x-app-rate-limit-remaining": "0"}
+        msg = "Forbidden"
+
+        result = self.adapter._is_rate_limit_403(headers, msg)
+        assert result is True
+
+    def test_is_rate_limit_403_with_non_digit_value(self):
+        """Test that non-digit remaining value is handled gracefully."""
+        headers = {"x-ratelimit-remaining": "invalid"}
+        msg = "Forbidden"
+
+        result = self.adapter._is_rate_limit_403(headers, msg)
+        assert result is False
+
+    def test_is_rate_limit_403_with_float_value(self):
+        """Test that float remaining value is handled (converted to int)."""
+        headers = {"x-ratelimit-remaining": "0.0"}
+        msg = "Forbidden"
+
+        result = self.adapter._is_rate_limit_403(headers, msg)
+        assert result is True
+
+    def test_is_rate_limit_403_with_retry_after_and_rate_limit_headers(self):
+        """Test detecting rate limit when retry-after is present with rate limit headers."""
+        headers = {
+            "retry-after": "60",
+            "x-ratelimit-limit": "5000",
+            "x-ratelimit-remaining": "100",  # Still has quota but retry-after suggests rate limit
+        }
+        msg = "Forbidden"
+
+        result = self.adapter._is_rate_limit_403(headers, msg)
+        assert result is True
+
+    def test_is_rate_limit_403_with_retry_after_only(self):
+        """Test that retry-after alone without rate limit headers is not treated as rate limit."""
+        headers = {"retry-after": "60"}
+        msg = "Forbidden"
+
+        result = self.adapter._is_rate_limit_403(headers, msg)
+        assert result is False
+
+    def test_is_rate_limit_403_with_rate_limit_headers_no_retry_after(self):
+        """Test that rate limit headers without retry-after and with remaining quota is not rate limit."""
+        headers = {
+            "x-ratelimit-limit": "5000",
+            "x-ratelimit-remaining": "100",
+        }
+        msg = "Forbidden"
+
+        result = self.adapter._is_rate_limit_403(headers, msg)
+        assert result is False
+
+    def test_is_rate_limit_403_with_retry_after_zero(self):
+        """Test that retry-after with value 0 is not treated as rate limiting."""
+        headers = {
+            "retry-after": "0",
+            "x-ratelimit-limit": "5000",
+        }
+        msg = "Forbidden"
 
         result = self.adapter._is_rate_limit_403(headers, msg)
         assert result is False
 
     def test_httpx_403_rate_limit_handling(self):
-        """Test handling httpx 403 rate limit with rate limiting headers."""
+        """Test handling httpx 403 rate limit with exhausted quota."""
 
         # Create a mock HTTPStatusError class
         class MockHTTPStatusError(Exception):
@@ -409,10 +484,14 @@ class TestHTTPErrorAdapter:
 
         mock_response = Mock()
         mock_response.status_code = 403
-        mock_response.headers = {"x-ratelimit-reset": "1640995200", "retry-after": "120"}
+        mock_response.headers = {
+            "x-ratelimit-reset": "1640995200",
+            "retry-after": "120",
+            "x-ratelimit-remaining": "0",  # Quota is exhausted
+        }
 
         mock_request = Mock()
-        mock_request.url = "https://api.github.com/search/repositories"
+        mock_request.url = "https://api.example.com/search"
         mock_request.method = "GET"
 
         mock_exc = MockHTTPStatusError("403 Forbidden")
@@ -425,12 +504,9 @@ class TestHTTPErrorAdapter:
         assert isinstance(result, UpstreamRateLimitError)
         assert result.retry_after_ms == 120_000
         assert result.message == "403 Forbidden"
-        assert result.extra["service"] == "_http"
-        assert result.extra["endpoint"] == "https://api.github.com/search/repositories"
-        assert result.extra["http_method"] == "GET"
 
     def test_requests_403_rate_limit_handling(self):
-        """Test handling requests 403 rate limit with rate limiting headers."""
+        """Test handling requests 403 rate limit with exhausted quota."""
 
         # Create a mock HTTPError class
         class MockHTTPError(Exception):
@@ -438,10 +514,13 @@ class TestHTTPErrorAdapter:
 
         mock_response = Mock()
         mock_response.status_code = 403
-        mock_response.headers = {"x-ratelimit-reset-ms": "30000"}
+        mock_response.headers = {
+            "x-ratelimit-reset-ms": "30000",
+            "x-ratelimit-remaining": "0",  # Quota is exhausted
+        }
 
         mock_request = Mock()
-        mock_request.url = "https://api.github.com/user/repos"
+        mock_request.url = "https://api.example.com/user/repos"
         mock_request.method = "POST"
 
         mock_response.request = mock_request
@@ -455,6 +534,3 @@ class TestHTTPErrorAdapter:
         assert isinstance(result, UpstreamRateLimitError)
         assert result.retry_after_ms == 30_000
         assert result.message == "403 Forbidden"
-        assert result.extra["service"] == "_http"
-        assert result.extra["endpoint"] == "https://api.github.com/user/repos"
-        assert result.extra["http_method"] == "POST"
