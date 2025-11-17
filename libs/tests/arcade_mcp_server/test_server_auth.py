@@ -13,7 +13,6 @@ import os
 import time
 from unittest.mock import Mock, patch
 
-import jwt
 import pytest
 from arcade_mcp_server.server_auth.base import (
     AuthenticatedUser,
@@ -23,7 +22,9 @@ from arcade_mcp_server.server_auth.base import (
 from arcade_mcp_server.server_auth.middleware import MCPAuthMiddleware
 from arcade_mcp_server.server_auth.providers.jwt import JWTVerifier
 from arcade_mcp_server.server_auth.providers.remote import RemoteOAuthProvider
+from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
+from jose import jwt
 
 
 # Test fixtures
@@ -69,6 +70,20 @@ def rsa_keypair():
     public_key = private_key.public_key()
 
     return private_key, public_key
+
+
+@pytest.fixture
+def serialized_private_key(rsa_keypair):
+    """Generate private key as PEM format for testing."""
+    private_key, _ = rsa_keypair
+    # Serialize private key to PEM format for python-jose
+    pem = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+
+    return pem
 
 
 @pytest.fixture
@@ -197,9 +212,8 @@ class TestJWTVerifier:
                 await verifier.validate_token(expired_jwt_token)
 
     @pytest.mark.asyncio
-    async def test_validate_wrong_audience(self, rsa_keypair, jwks_data):
+    async def test_validate_wrong_audience(self, serialized_private_key, jwks_data):
         """Test validating token with wrong audience."""
-        private_key, _ = rsa_keypair
 
         # Token with wrong audience
         payload = {
@@ -212,7 +226,7 @@ class TestJWTVerifier:
 
         token = jwt.encode(
             payload,
-            private_key,
+            serialized_private_key,
             algorithm="RS256",
             headers={"kid": "test-key-1"},
         )
@@ -233,9 +247,8 @@ class TestJWTVerifier:
                 await verifier.validate_token(token)
 
     @pytest.mark.asyncio
-    async def test_validate_wrong_issuer(self, rsa_keypair, jwks_data):
+    async def test_validate_wrong_issuer(self, serialized_private_key, jwks_data):
         """Test validating token with wrong issuer."""
-        private_key, _ = rsa_keypair
 
         # Token with wrong issuer
         payload = {
@@ -248,7 +261,7 @@ class TestJWTVerifier:
 
         token = jwt.encode(
             payload,
-            private_key,
+            serialized_private_key,
             algorithm="RS256",
             headers={"kid": "test-key-1"},
         )
@@ -269,9 +282,8 @@ class TestJWTVerifier:
                 await verifier.validate_token(token)
 
     @pytest.mark.asyncio
-    async def test_validate_missing_sub_claim(self, rsa_keypair, jwks_data):
+    async def test_validate_missing_sub_claim(self, serialized_private_key, jwks_data):
         """Test validating token without sub claim."""
-        private_key, _ = rsa_keypair
 
         # Token without sub claim
         payload = {
@@ -283,7 +295,7 @@ class TestJWTVerifier:
 
         token = jwt.encode(
             payload,
-            private_key,
+            serialized_private_key,
             algorithm="RS256",
             headers={"kid": "test-key-1"},
         )

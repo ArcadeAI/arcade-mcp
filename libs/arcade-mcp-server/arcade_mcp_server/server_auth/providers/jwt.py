@@ -8,8 +8,7 @@ import time
 from typing import Any, cast
 
 import httpx
-import jwt
-from jwt.algorithms import RSAAlgorithm
+from jose import jwk, jwt
 from pydantic import BaseModel, Field
 
 from arcade_mcp_server.server_auth.base import (
@@ -187,7 +186,7 @@ class JWTVerifier(ServerAuthProvider):
             token: JWT token
 
         Returns:
-            RSA signing key
+            RSA signing key in PEM format
 
         Raises:
             InvalidTokenError: If no matching key is found in JWKS
@@ -197,25 +196,25 @@ class JWTVerifier(ServerAuthProvider):
 
         for key_data in jwks.get("keys", []):
             if key_data.get("kid") == kid:
-                return RSAAlgorithm.from_jwk(key_data)
+                key_obj = jwk.construct(key_data, algorithm="RS256")
+                return key_obj.to_pem().decode("utf-8")
 
         raise InvalidTokenError("No matching key found in JWKS")
 
-    def _decode_token(self, token: str, signing_key: Any) -> dict[str, Any]:
+    def _decode_token(self, token: str, signing_key: str) -> dict[str, Any]:
         """Decode and verify the JWT token.
 
         Args:
             token: JWT token
-            signing_key: RSA public key for verification
+            signing_key: RSA public key in PEM format
 
         Returns:
             Decoded token claims
 
         Raises:
             jwt.ExpiredSignatureError: Token has expired
-            jwt.InvalidAudienceError: Token audience mismatch
-            jwt.InvalidIssuerError: Token issuer mismatch
-            jwt.InvalidTokenError: Token is invalid
+            jwt.JWTClaimsError: Token claims validation failed (audience/issuer mismatch)
+            jwt.JWTError: Token is invalid
         """
         decode_options = {
             "verify_signature": True,  # Always verify signature
@@ -291,11 +290,9 @@ class JWTVerifier(ServerAuthProvider):
 
         except jwt.ExpiredSignatureError as e:
             raise TokenExpiredError("Token has expired") from e
-        except jwt.InvalidAudienceError as e:
-            raise InvalidTokenError("Token audience mismatch") from e
-        except jwt.InvalidIssuerError as e:
-            raise InvalidTokenError("Token issuer mismatch") from e
-        except jwt.InvalidTokenError as e:
+        except jwt.JWTClaimsError as e:
+            raise InvalidTokenError(f"Token claims validation failed: {e}") from e
+        except jwt.JWTError as e:
             raise InvalidTokenError(f"Invalid token: {e}") from e
         except (InvalidTokenError, TokenExpiredError):
             raise
