@@ -672,7 +672,6 @@ async def test_http_mcp_concurrent_tool_execution():
 
             # Call the tool three times concurrently. Each tool call takes 1 second to execute.
             # Since the server should be able to execute the tools in parallel, the total time should be around 1 second
-            num_calls = 3
             delay_seconds = 1.0
 
             tool_requests = [
@@ -682,9 +681,24 @@ async def test_http_mcp_concurrent_tool_execution():
                         "name": "Server_SlowAsyncTool",
                         "arguments": {"delay_seconds": delay_seconds},
                     },
-                    request_id=i + 10,
-                )
-                for i in range(num_calls)
+                    request_id=10,
+                ),
+                build_jsonrpc_request(
+                    "tools/call",
+                    {
+                        "name": "Server_SlowSyncTool",
+                        "arguments": {"delay_seconds": delay_seconds},
+                    },
+                    request_id=11,
+                ),
+                build_jsonrpc_request(
+                    "tools/call",
+                    {
+                        "name": "Server_SlowSyncTool",
+                        "arguments": {"delay_seconds": delay_seconds},
+                    },
+                    request_id=12,
+                ),
             ]
 
             start_time = time.time()
@@ -735,19 +749,33 @@ async def test_http_worker_concurrent_tool_execution():
         async with httpx.AsyncClient(base_url=base_url, timeout=30.0, headers=headers) as client:
             # Call the tool three times concurrently. Each tool call takes 1 second to execute.
             # Since the server should be able to execute the tools in parallel, the total time should be around 1 second
-            num_calls = 3
             delay_seconds = 1.0
 
             tool_requests = [
                 {
-                    "execution_id": f"worker_exec_{i}",
+                    "execution_id": "worker_exec_0",
                     "tool": {
                         "toolkit": "Server",
                         "name": "SlowAsyncTool",
                     },
                     "inputs": {"delay_seconds": delay_seconds},
-                }
-                for i in range(num_calls)
+                },
+                {
+                    "execution_id": "worker_exec_1",
+                    "tool": {
+                        "toolkit": "Server",
+                        "name": "SlowSyncTool",
+                    },
+                    "inputs": {"delay_seconds": delay_seconds},
+                },
+                {
+                    "execution_id": "worker_exec_2",
+                    "tool": {
+                        "toolkit": "Server",
+                        "name": "SlowSyncTool",
+                    },
+                    "inputs": {"delay_seconds": delay_seconds},
+                },
             ]
 
             start_time = time.time()
@@ -826,21 +854,35 @@ async def test_http_mixed_route_concurrent_execution():
                         "name": "Server_SlowAsyncTool",
                         "arguments": {"delay_seconds": delay_seconds},
                     },
-                    request_id=i + 10,
-                )
-                for i in range(2)
+                    request_id=10,
+                ),
+                build_jsonrpc_request(
+                    "tools/call",
+                    {
+                        "name": "Server_SlowSyncTool",
+                        "arguments": {"delay_seconds": delay_seconds},
+                    },
+                    request_id=11,
+                ),
             ]
 
             worker_requests = [
                 {
-                    "execution_id": f"worker_exec_{i}",
+                    "execution_id": "worker_exec_0",
                     "tool": {
                         "toolkit": "Server",
                         "name": "SlowAsyncTool",
                     },
                     "inputs": {"delay_seconds": delay_seconds},
-                }
-                for i in range(2)
+                },
+                {
+                    "execution_id": "worker_exec_1",
+                    "tool": {
+                        "toolkit": "Server",
+                        "name": "SlowSyncTool",
+                    },
+                    "inputs": {"delay_seconds": delay_seconds},
+                },
             ]
 
             # Execute
