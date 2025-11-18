@@ -13,6 +13,7 @@ from scipy.optimize import linear_sum_assignment
 
 from arcade_evals.critic import NoneCritic
 from arcade_evals.errors import WeightError
+from arcade_evals.registry import CompositeMCPRegistry, MCPToolRegistry
 
 if TYPE_CHECKING:
     from arcade_core import ToolCatalog
@@ -23,15 +24,24 @@ if TYPE_CHECKING:
 @dataclass
 class ExpectedToolCall:
     """
-    Represents an expected tool call with the function itself and arguments.
+    Represents an expected tool call with the function or tool name and arguments.
 
     Attributes:
-        func: The function itself.
+        func: The function itself (for Python tools). Mutually exclusive with tool_name.
+        tool_name: The tool name (for MCP tools). Mutually exclusive with func.
         args: A dictionary containing the expected arguments for the tool.
     """
 
-    func: Callable
-    args: dict[str, Any]
+    func: Callable | None = None
+    tool_name: str | None = None
+    args: dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        """Validate that exactly one of func or tool_name is provided."""
+        if self.func is None and self.tool_name is None:
+            raise ValueError("Either 'func' or 'tool_name' must be provided")
+        if self.func is not None and self.tool_name is not None:
+            raise ValueError("Only one of 'func' or 'tool_name' should be provided")
 
 
 @dataclass
@@ -397,7 +407,8 @@ class EvalSuite:
     Attributes:
         name: The name of the evaluation suite.
         system_message: The system message to be used for all cases in this suite.
-        catalog: A ToolCatalog object containing registered tools.
+        catalog: A ToolCatalog or BaseToolRegistry object containing registered tools.
+        registry: The internal registry (auto-created from catalog).
         cases: A list of EvalCase objects representing individual test scenarios.
         rubric: The evaluation rubric for this case.
         max_concurrent: Maximum number of concurrent evaluations.
@@ -405,7 +416,7 @@ class EvalSuite:
 
     name: str
     system_message: str
-    catalog: "ToolCatalog"
+    catalog: "ToolCatalog | MCPToolRegistry | CompositeMCPRegistry"
     cases: list[EvalCase] = field(default_factory=list)
     rubric: EvalRubric = field(default_factory=EvalRubric)
     max_concurrent: int = 1
@@ -423,13 +434,36 @@ class EvalSuite:
         Returns:
             A NamedExpectedToolCall instance.
         """
+        # Check if we're using MCP registry (single or composite)
+        is_mcp = isinstance(self.catalog, (MCPToolRegistry, CompositeMCPRegistry))
+
         if isinstance(tc, tuple):
+            # Legacy tuple format (func, args) - Python tools only
             func, args = tc
+            args_with_defaults = self._fill_args_with_defaults(func, args)
+            # Type narrowing: tuples are only for Python tools
+            if is_mcp:
+                raise ValueError("Python tool callables require ToolCatalog, not MCPToolRegistry")
+            tool_name = str(self.catalog.find_tool_by_func(func).get_fully_qualified_name())  # type: ignore[union-attr]
         else:
-            func = tc.func
-            args = tc.args
-        args_with_defaults = self._fill_args_with_defaults(func, args)
-        tool_name = str(self.catalog.find_tool_by_func(func).get_fully_qualified_name())
+            # ExpectedToolCall object
+            if tc.func is not None:
+                # Python tool
+                args_with_defaults = self._fill_args_with_defaults(tc.func, tc.args)
+                if is_mcp:
+                    raise ValueError(
+                        "Python tool callables require ToolCatalog, not MCPToolRegistry"
+                    )
+                tool_name = str(self.catalog.find_tool_by_func(tc.func).get_fully_qualified_name())  # type: ignore[union-attr]
+            else:
+                # MCP tool (tool_name provided)
+                if not is_mcp:
+                    raise ValueError("tool_name can only be used with MCPToolRegistry")
+                # Type narrowing: at this point we know it's MCP
+                mcp_catalog: MCPToolRegistry = self.catalog  # type: ignore[assignment]
+                tool_name = mcp_catalog.resolve_tool_name(tc.tool_name)
+                args_with_defaults = mcp_catalog.normalize_args(tool_name, tc.args)
+
         return NamedExpectedToolCall(name=tool_name, args=args_with_defaults)
 
     def add_case(
@@ -627,7 +661,11 @@ class EvalSuite:
                 messages.extend(case.additional_messages)
                 messages.append({"role": "user", "content": case.user_message})
 
-                tools = get_formatted_tools(self.catalog, tool_format="openai")
+                # Get tools in OpenAI format (works for ToolCatalog, MCPToolRegistry, and CompositeMCPRegistry)
+                if isinstance(self.catalog, (MCPToolRegistry, CompositeMCPRegistry)):
+                    tools = self.catalog.list_tools_for_model(tool_format="openai")
+                else:
+                    tools = get_formatted_tools(self.catalog, tool_format="openai")
 
                 # Get the model response
                 response = await client.chat.completions.create(  # type: ignore[call-overload]
@@ -641,14 +679,28 @@ class EvalSuite:
                 )
 
                 # Extract and fill default arguments for actual tool calls
-                predicted_args = get_tool_args(response)
+                # For MCP tools, skip name normalization (they use underscores, not dots)
+                is_mcp = isinstance(self.catalog, (MCPToolRegistry, CompositeMCPRegistry))
+                predicted_args = get_tool_args(response, normalize_names=not is_mcp)
                 filled_actual_tool_calls = []
                 for tool_name, args in predicted_args:
-                    tool = self.catalog.get_tool_by_name(tool_name)
-                    if tool is None:
-                        raise ValueError(f"Tool '{tool_name}' not found in catalog.")
-                    func = tool.tool
-                    args_with_defaults = self._fill_args_with_defaults(func, args)
+                    # Fill in default arguments
+                    if is_mcp:
+                        # MCP tools: use registry normalization
+                        # Type narrowing: at this point catalog is MCPToolRegistry or CompositeMCPRegistry
+                        mcp_catalog: MCPToolRegistry | CompositeMCPRegistry = self.catalog  # type: ignore[assignment]
+                        args_with_defaults = mcp_catalog.normalize_args(tool_name, args)
+                    else:
+                        # Python tools: use original method
+                        # Type narrowing: at this point catalog is ToolCatalog
+                        from arcade_core import ToolCatalog
+
+                        python_catalog: ToolCatalog = self.catalog  # type: ignore[assignment]
+                        tool = python_catalog.get_tool_by_name(tool_name)
+                        if tool is None:
+                            raise ValueError(f"Tool '{tool_name}' not found in catalog.")
+                        func = tool.tool
+                        args_with_defaults = self._fill_args_with_defaults(func, args)
                     filled_actual_tool_calls.append((tool_name, args_with_defaults))
 
                 # Evaluate the case
@@ -692,12 +744,16 @@ def get_formatted_tools(catalog: "ToolCatalog", tool_format: str = "openai") -> 
         raise ValueError(f"Tool format for '{tool_format}' is not supported")
 
 
-def get_tool_args(chat_completion: Any) -> list[tuple[str, dict[str, Any]]]:
+def get_tool_args(
+    chat_completion: Any, normalize_names: bool = True
+) -> list[tuple[str, dict[str, Any]]]:
     """
     Returns the tool arguments from the chat completion object.
 
     Args:
         chat_completion: The chat completion object.
+        normalize_names: Whether to normalize tool names (convert _ to .).
+                        Set to False for MCP tools that use underscores.
 
     Returns:
         A list of tuples containing the tool name and arguments.
@@ -706,8 +762,11 @@ def get_tool_args(chat_completion: Any) -> list[tuple[str, dict[str, Any]]]:
     message = chat_completion.choices[0].message
     if message.tool_calls:
         for tool_call in message.tool_calls:
+            tool_name = tool_call.function.name
+            if normalize_names:
+                tool_name = normalize_name(tool_name)
             tool_args_list.append((
-                normalize_name(tool_call.function.name),
+                tool_name,
                 json.loads(tool_call.function.arguments),
             ))
     return tool_args_list
