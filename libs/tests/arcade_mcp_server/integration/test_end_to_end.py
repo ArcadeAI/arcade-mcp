@@ -322,7 +322,7 @@ async def test_stdio_e2e():
         assert "result" in list_tools_response
         assert "tools" in list_tools_response["result"]
         tools = list_tools_response["result"]["tools"]
-        assert len(tools) == 7
+        assert len(tools) == 9
 
         # 5. Call logging_tool
         logging_id = client.send_request(
@@ -558,7 +558,7 @@ async def test_http_e2e():
         assert "result" in list_tools_data
         assert "tools" in list_tools_data["result"]
         tools = list_tools_data["result"]["tools"]
-        assert len(tools) == 7
+        assert len(tools) == 9
 
         # 5. Call logging_tool
         logging_request = build_jsonrpc_request(
@@ -620,6 +620,248 @@ async def test_http_e2e():
         assert process.poll() is None
 
         client.close()
+
+    finally:
+        process.terminate()
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
+
+
+@pytest.mark.asyncio
+async def test_http_mcp_concurrent_tool_execution():
+    """Test that multiple tools can execute concurrently via the /mcp route."""
+    process, port = start_mcp_server("http")
+    assert port is not None
+
+    base_url = f"http://127.0.0.1:{port}"
+
+    try:
+        wait_for_http_server_ready(port, timeout=10)
+
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        }
+
+        async with httpx.AsyncClient(base_url=base_url, timeout=30.0, headers=headers) as client:
+            # Initialize the connection with the server
+            init_request = build_jsonrpc_request(
+                "initialize",
+                {
+                    "protocolVersion": "2025-06-18",
+                    "capabilities": {},
+                    "clientInfo": {"name": "test-client", "version": "1.0"},
+                },
+                request_id=1,
+            )
+
+            init_response = await client.post("/mcp", json=init_request)
+            assert init_response.status_code == 200
+            session_id = init_response.headers.get("mcp-session-id")
+            assert session_id is not None
+
+            client.headers.update({"Mcp-Session-Id": session_id})
+
+            init_notif = build_jsonrpc_request(
+                "notifications/initialized", params=None, request_id=None
+            )
+            await client.post("/mcp", json=init_notif)
+
+            # Call the tool three times concurrently. Each tool call takes 1 second to execute.
+            # Since the server should be able to execute the tools in parallel, the total time should be around 1 second
+            num_calls = 3
+            delay_seconds = 1.0
+
+            tool_requests = [
+                build_jsonrpc_request(
+                    "tools/call",
+                    {
+                        "name": "Server_SlowAsyncTool",
+                        "arguments": {"delay_seconds": delay_seconds},
+                    },
+                    request_id=i + 10,
+                )
+                for i in range(num_calls)
+            ]
+
+            start_time = time.time()
+            responses = await asyncio.gather(*[
+                client.post("/mcp", json=req) for req in tool_requests
+            ])
+            total_time = time.time() - start_time
+
+            assert all(r.status_code == 200 for r in responses), "All requests should succeed"
+
+            for idx, response in enumerate(responses):
+                data = response.json()
+                assert data["jsonrpc"] == "2.0"
+                assert data["id"] == idx + 10
+                assert "result" in data
+                assert "error" not in data
+                assert f"after {delay_seconds}s" in data["result"]["content"][0]["text"]
+
+            # If parallel, should take ~1s, not ~3s
+            max_expected_time = delay_seconds + 0.5  # Allow 0.5s overhead
+            assert total_time < max_expected_time
+
+    finally:
+        process.terminate()
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
+
+
+@pytest.mark.asyncio
+async def test_http_worker_concurrent_tool_execution():
+    """Test that multiple tools can execute concurrently via the /worker/tools/invoke route."""
+    process, port = start_mcp_server("http")
+    assert port is not None
+
+    base_url = f"http://127.0.0.1:{port}"
+
+    try:
+        wait_for_http_server_ready(port, timeout=10)
+
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        }
+
+        async with httpx.AsyncClient(base_url=base_url, timeout=30.0, headers=headers) as client:
+            # Call the tool three times concurrently. Each tool call takes 1 second to execute.
+            # Since the server should be able to execute the tools in parallel, the total time should be around 1 second
+            num_calls = 3
+            delay_seconds = 1.0
+
+            tool_requests = [
+                {
+                    "execution_id": f"worker_exec_{i}",
+                    "tool": {
+                        "toolkit": "Server",
+                        "name": "SlowAsyncTool",
+                    },
+                    "inputs": {"delay_seconds": delay_seconds},
+                }
+                for i in range(num_calls)
+            ]
+
+            start_time = time.time()
+            responses = await asyncio.gather(*[
+                client.post("/worker/tools/invoke", json=req) for req in tool_requests
+            ])
+            total_time = time.time() - start_time
+
+            assert all(r.status_code == 200 for r in responses), "All requests should succeed"
+
+            for idx, response in enumerate(responses):
+                data = response.json()
+                assert data["success"] is True
+                assert data["execution_id"] == f"worker_exec_{idx}"
+                assert data["output"]["value"] is not None
+                assert f"after {delay_seconds}s" in data["output"]["value"]
+
+            # If parallel, should take ~1s, not ~3s
+            max_expected_time = delay_seconds + 0.5  # Allow 0.5s overhead
+            assert total_time < max_expected_time
+
+    finally:
+        process.terminate()
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
+
+
+@pytest.mark.asyncio
+async def test_http_mixed_route_concurrent_execution():
+    """Test concurrent tool execution across both MCP and Worker routes simultaneously."""
+    process, port = start_mcp_server("http")
+    assert port is not None
+
+    base_url = f"http://127.0.0.1:{port}"
+
+    try:
+        wait_for_http_server_ready(port, timeout=10)
+
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        }
+
+        async with httpx.AsyncClient(base_url=base_url, timeout=30.0, headers=headers) as client:
+            # First, set up the client-server connection for the /mcp route
+            init_request = build_jsonrpc_request(
+                "initialize",
+                {
+                    "protocolVersion": "2025-06-18",
+                    "capabilities": {},
+                    "clientInfo": {"name": "test-client", "version": "1.0"},
+                },
+                request_id=1,
+            )
+            init_response = await client.post("/mcp", json=init_request)
+            session_id = init_response.headers.get("mcp-session-id")
+
+            mcp_headers = {**headers, "Mcp-Session-Id": session_id}
+
+            delay_seconds = 1.0
+
+            await client.post(
+                "/mcp",
+                json=build_jsonrpc_request("notifications/initialized", None, None),
+                headers=mcp_headers,
+            )
+
+            # Prepare the tool calls for both routes
+            mcp_requests = [
+                build_jsonrpc_request(
+                    "tools/call",
+                    {
+                        "name": "Server_SlowAsyncTool",
+                        "arguments": {"delay_seconds": delay_seconds},
+                    },
+                    request_id=i + 10,
+                )
+                for i in range(2)
+            ]
+
+            worker_requests = [
+                {
+                    "execution_id": f"worker_exec_{i}",
+                    "tool": {
+                        "toolkit": "Server",
+                        "name": "SlowAsyncTool",
+                    },
+                    "inputs": {"delay_seconds": delay_seconds},
+                }
+                for i in range(2)
+            ]
+
+            # Execute
+            start_time = time.time()
+            mcp_responses, worker_responses = await asyncio.gather(
+                asyncio.gather(*[
+                    client.post("/mcp", json=req, headers=mcp_headers) for req in mcp_requests
+                ]),
+                asyncio.gather(*[
+                    client.post("/worker/tools/invoke", json=req) for req in worker_requests
+                ]),
+            )
+            total_time = time.time() - start_time
+
+            assert all(r.status_code == 200 for r in mcp_responses)
+            assert all(r.status_code == 200 for r in worker_responses)
+
+            # Called the tools four times concurrently (2 MCP + 2 Worker). Each tool call takes 1 second to execute.
+            # Since the server should be able to execute the tools in parallel, the total time should be around 1 second
+            max_expected_time = delay_seconds + 0.5  # Allow 0.5s overhead for mixed routes
+            assert total_time < max_expected_time
 
     finally:
         process.terminate()
