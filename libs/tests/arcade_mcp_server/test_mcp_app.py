@@ -348,7 +348,6 @@ class TestMCPApp:
                 host="127.0.0.1",
                 port=8000,
                 log_level="info",
-                timeout_graceful_shutdown=100,
             )
 
         # Test with DEBUG log level
@@ -372,7 +371,6 @@ class TestMCPApp:
                 host="192.168.1.1",
                 port=9000,
                 log_level="debug",
-                timeout_graceful_shutdown=100,
             )
 
     def test_run_with_reload_spawns_child_process(self, mcp_app: MCPApp):

@@ -416,7 +416,6 @@ class MCPApp:
                 host=host,
                 port=port,
                 log_level=log_level,
-                timeout_graceful_shutdown=100,
             )
         )
 
