@@ -136,6 +136,8 @@ omit = [
     "*/test_*",
     "*/__pycache__/*",
 ]
+parallel = true
+patch = ["subprocess"]
 
 [tool.coverage.report]
 exclude_lines = [
