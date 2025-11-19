@@ -7,14 +7,15 @@ MCP Server endpoints over HTTP/SSE. MCP is always enabled in this integrated mod
 
 import asyncio
 import logging
+import os
 from collections.abc import AsyncGenerator, AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any
 
 import uvicorn
 from arcade_core.catalog import ToolCatalog
+from arcade_serve.fastapi import FastAPIWorker, TaskTrackerMiddleware
 from arcade_serve.fastapi.telemetry import OTELHandler
-from arcade_serve.fastapi.worker import FastAPIWorker
 from fastapi import FastAPI
 from loguru import logger
 from starlette.responses import Response
@@ -22,6 +23,7 @@ from starlette.types import Receive, Scope, Send
 
 from arcade_mcp_server.fastapi.middleware import AddTrailingSlashToPathMiddleware
 from arcade_mcp_server.server import MCPServer
+from arcade_mcp_server.server_utils import CustomUvicornServer
 from arcade_mcp_server.settings import MCPSettings
 from arcade_mcp_server.transports.http_session_manager import HTTPSessionManager
 
@@ -125,6 +127,15 @@ def create_arcade_mcp(
         lifespan=lifespan,
     )
     otel_handler.instrument_app(app)
+
+    task_tracker = TaskTrackerMiddleware(app)
+    app.state.task_tracker = task_tracker
+
+    # Since this middleware tracks all HTTP requests, it must be added first
+    @app.middleware("http")
+    async def track_tasks_middleware(request, call_next):
+        return await task_tracker.dispatch(request, call_next)
+
     app.add_middleware(AddTrailingSlashToPathMiddleware)
 
     # Worker endpoints
@@ -267,6 +278,29 @@ def create_arcade_mcp_factory() -> FastAPI:
     )
 
 
+async def _serve_with_force_quit(
+    app: FastAPI,
+    host: str,
+    port: int,
+    log_level: str,
+    timeout_graceful_shutdown: int = 100,
+) -> None:
+    """Serve the app with force quit capability."""
+    config = uvicorn.Config(
+        app=app,
+        host=host,
+        port=port,
+        log_level=log_level,
+        lifespan="on",
+        timeout_graceful_shutdown=timeout_graceful_shutdown,
+    )
+
+    task_tracker = app.state.task_tracker
+    server = CustomUvicornServer(config, task_tracker)
+
+    await server.serve()
+
+
 def run_arcade_mcp(
     catalog: ToolCatalog,
     host: str = "127.0.0.1",
@@ -286,8 +320,6 @@ def run_arcade_mcp(
     This is used for module execution (`arcade mcp` and `python -m arcade_mcp_server`) only.
     MCPApp has its own reload mechanism.
     """
-    import os
-
     log_level = "debug" if debug else "info"
 
     if reload:
@@ -327,11 +359,12 @@ def run_arcade_mcp(
             **kwargs,
         )
 
-        uvicorn.run(
-            app,
-            host=host,
-            port=port,
-            log_level=log_level,
-            reload=reload,
-            lifespan="on",
+        asyncio.run(
+            _serve_with_force_quit(
+                app=app,
+                host=host,
+                port=port,
+                log_level=log_level,
+                timeout_graceful_shutdown=100,
+            )
         )

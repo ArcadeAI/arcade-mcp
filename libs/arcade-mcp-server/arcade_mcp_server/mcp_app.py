@@ -15,7 +15,6 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any, Callable, Literal, ParamSpec, TypeVar, cast
 
-import uvicorn
 from arcade_core.catalog import MaterializedTool, ToolCatalog, ToolDefinitionError
 from arcade_tdk.auth import ToolAuthorization
 from arcade_tdk.error_adapters import ErrorAdapter
@@ -29,7 +28,7 @@ from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.settings import MCPSettings, ServerSettings
 from arcade_mcp_server.types import Prompt, PromptMessage, Resource
 from arcade_mcp_server.usage import ServerTracker
-from arcade_mcp_server.worker import create_arcade_mcp
+from arcade_mcp_server.worker import _serve_with_force_quit, create_arcade_mcp
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -410,13 +409,15 @@ class MCPApp:
             port=port,
             tool_count=len(self._catalog),
         )
-        uvicorn.run(
-            app,
-            host=host,
-            port=port,
-            log_level=log_level,
-            reload=False,  # MCPApp handles its own reload via parent/child process pattern
-            lifespan="on",
+
+        asyncio.run(
+            _serve_with_force_quit(
+                app=app,
+                host=host,
+                port=port,
+                log_level=log_level,
+                timeout_graceful_shutdown=100,
+            )
         )
 
     @staticmethod
