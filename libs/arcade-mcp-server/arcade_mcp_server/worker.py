@@ -8,8 +8,9 @@ MCP Server endpoints over HTTP/SSE. MCP is always enabled in this integrated mod
 import asyncio
 import logging
 import os
-from collections.abc import AsyncGenerator, AsyncIterator
+from collections.abc import AsyncGenerator, AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
+from types import FrameType
 from typing import Any
 
 import uvicorn
@@ -18,14 +19,41 @@ from arcade_serve.fastapi import FastAPIWorker, TaskTrackerMiddleware
 from arcade_serve.fastapi.telemetry import OTELHandler
 from fastapi import FastAPI
 from loguru import logger
+from starlette.requests import Request
 from starlette.responses import Response
 from starlette.types import Receive, Scope, Send
 
 from arcade_mcp_server.fastapi.middleware import AddTrailingSlashToPathMiddleware
 from arcade_mcp_server.server import MCPServer
-from arcade_mcp_server.server_utils import CustomUvicornServer
 from arcade_mcp_server.settings import MCPSettings
 from arcade_mcp_server.transports.http_session_manager import HTTPSessionManager
+
+
+class CustomUvicornServer(uvicorn.Server):
+    """Uvicorn server with force quit support on double SIGINT/SIGTERM."""
+
+    def __init__(self, config: uvicorn.Config, task_tracker: TaskTrackerMiddleware):
+        super().__init__(config)
+        self.task_tracker = task_tracker
+        self._signal_count = 0
+
+    def handle_exit(self, sig: int, frame: FrameType | None) -> None:
+        """
+        Handle termination signals with force quit on second signal.
+
+        First signal (SIGINT/SIGTERM): Graceful shutdown
+        Second signal: Force quit with os._exit(1)
+        """
+        self._signal_count += 1
+
+        if self._signal_count == 1:
+            logger.info("Shutting down gracefully. Press Ctrl+C again to force quit.")
+            self.should_exit = True
+        else:
+            logger.warning("Force quit triggered - cancelling all active requests")
+            cancelled = self.task_tracker.cancel_all_tasks()
+            logger.info(f"Cancelled {cancelled} active request(s)")
+            os._exit(1)
 
 
 @asynccontextmanager
@@ -133,7 +161,9 @@ def create_arcade_mcp(
 
     # Since this middleware tracks all HTTP requests, it must be added first
     @app.middleware("http")
-    async def track_tasks_middleware(request, call_next):
+    async def track_tasks_middleware(
+        request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         return await task_tracker.dispatch(request, call_next)
 
     app.add_middleware(AddTrailingSlashToPathMiddleware)
@@ -278,14 +308,14 @@ def create_arcade_mcp_factory() -> FastAPI:
     )
 
 
-async def _serve_with_force_quit(
+async def serve_with_force_quit(
     app: FastAPI,
     host: str,
     port: int,
     log_level: str,
     timeout_graceful_shutdown: int = 100,
 ) -> None:
-    """Serve the app with force quit capability."""
+    """Serve the FastAPI app with force quit capability."""
     config = uvicorn.Config(
         app=app,
         host=host,
@@ -360,7 +390,7 @@ def run_arcade_mcp(
         )
 
         asyncio.run(
-            _serve_with_force_quit(
+            serve_with_force_quit(
                 app=app,
                 host=host,
                 port=port,

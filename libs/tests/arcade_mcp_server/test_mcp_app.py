@@ -329,7 +329,7 @@ class TestMCPApp:
         """Test _create_and_run_server method with mocked dependencies."""
         with (
             patch("arcade_mcp_server.mcp_app.create_arcade_mcp") as mock_create,
-            patch("arcade_mcp_server.mcp_app._serve_with_force_quit") as mock_serve,
+            patch("arcade_mcp_server.mcp_app.serve_with_force_quit") as mock_serve,
         ):
             mock_fastapi_app = Mock()
             mock_create.return_value = mock_fastapi_app
@@ -354,7 +354,7 @@ class TestMCPApp:
         # Test with DEBUG log level
         with (
             patch("arcade_mcp_server.mcp_app.create_arcade_mcp") as mock_create,
-            patch("arcade_mcp_server.mcp_app._serve_with_force_quit") as mock_serve,
+            patch("arcade_mcp_server.mcp_app.serve_with_force_quit") as mock_serve,
         ):
             mock_fastapi_app = Mock()
             mock_create.return_value = mock_fastapi_app

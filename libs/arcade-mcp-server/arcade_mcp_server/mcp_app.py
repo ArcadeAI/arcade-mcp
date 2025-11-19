@@ -28,7 +28,7 @@ from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.settings import MCPSettings, ServerSettings
 from arcade_mcp_server.types import Prompt, PromptMessage, Resource
 from arcade_mcp_server.usage import ServerTracker
-from arcade_mcp_server.worker import _serve_with_force_quit, create_arcade_mcp
+from arcade_mcp_server.worker import create_arcade_mcp, serve_with_force_quit
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -411,7 +411,7 @@ class MCPApp:
         )
 
         asyncio.run(
-            _serve_with_force_quit(
+            serve_with_force_quit(
                 app=app,
                 host=host,
                 port=port,
