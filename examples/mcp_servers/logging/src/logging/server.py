@@ -3,7 +3,7 @@ from typing import Annotated
 from arcade_mcp_server import Context, MCPApp
 from loguru import logger
 
-app = MCPApp("Logging server")
+app = MCPApp("LoggingServer")
 
 
 @app.tool

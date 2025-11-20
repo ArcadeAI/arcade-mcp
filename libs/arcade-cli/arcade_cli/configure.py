@@ -5,6 +5,7 @@ import os
 import platform
 import re
 import shutil
+import subprocess
 from pathlib import Path
 
 import typer
@@ -12,6 +13,44 @@ from dotenv import dotenv_values
 from rich.console import Console
 
 console = Console()
+
+
+def is_wsl() -> bool:
+    """Check if running in Windows Subsystem for Linux."""
+    # Check for WSL environment variable
+    if os.environ.get("WSL_DISTRO_NAME"):
+        return True
+
+    # Check /proc/version for WSL indicators
+    try:
+        with open("/proc/version") as f:
+            version_info = f.read().lower()
+            return "microsoft" in version_info or "wsl" in version_info
+    except (FileNotFoundError, PermissionError):
+        return False
+
+
+def get_windows_username() -> str | None:
+    """Get the Windows username when running in WSL."""
+    try:
+        # Try to get username from Windows environment via cmd.exe
+        # Note: cmd.exe is safe to use here as it's a Windows system binary available in WSL
+        result = subprocess.run(
+            ["cmd.exe", "/c", "echo", "%USERNAME%"],  # noqa: S607
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if result.returncode == 0:
+            username = result.stdout.strip()
+            # Remove any carriage returns
+            username = username.replace("\r", "")
+            if username and username != "%USERNAME%":
+                return username
+    except (subprocess.SubprocessError, FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+
+    return None
 
 
 def get_claude_config_path() -> Path:
@@ -28,6 +67,20 @@ def get_claude_config_path() -> Path:
     elif system == "Windows":
         return Path(os.environ["APPDATA"]) / "Claude" / "claude_desktop_config.json"
     else:  # Linux
+        # Check if we're in WSL - if so, use Windows path
+        if is_wsl():
+            username = get_windows_username()
+            if username:
+                # Use the Windows AppData path accessible via WSL mount
+                return Path(
+                    f"/mnt/c/Users/{username}/AppData/Roaming/Claude/claude_desktop_config.json"
+                )
+            else:
+                console.print(
+                    "[yellow]Warning: Running in WSL but couldn't determine Windows username. "
+                    "Using Linux path instead. Claude Desktop may not detect this configuration.[/yellow]"
+                )
+
         return Path.home() / ".config" / "Claude" / "claude_desktop_config.json"
 
 
@@ -39,6 +92,18 @@ def get_cursor_config_path() -> Path:
     elif system == "Windows":
         return Path(os.environ["APPDATA"]) / "Cursor" / "mcp.json"
     else:  # Linux
+        # Check if we're in WSL - if so, use Windows path
+        if is_wsl():
+            username = get_windows_username()
+            if username:
+                # Use the Windows AppData path accessible via WSL mount
+                return Path(f"/mnt/c/Users/{username}/AppData/Roaming/Cursor/mcp.json")
+            else:
+                console.print(
+                    "[yellow]Warning: Running in WSL but couldn't determine Windows username. "
+                    "Using Linux path instead. Cursor may not detect this configuration.[/yellow]"
+                )
+
         return Path.home() / ".config" / "Cursor" / "mcp.json"
 
 
@@ -51,6 +116,18 @@ def get_vscode_config_path() -> Path:
     elif system == "Windows":
         return Path(os.environ["APPDATA"]) / "Code" / "User" / "mcp.json"
     else:  # Linux
+        # Check if we're in WSL - if so, use Windows path
+        if is_wsl():
+            username = get_windows_username()
+            if username:
+                # Use the Windows AppData path accessible via WSL mount
+                return Path(f"/mnt/c/Users/{username}/AppData/Roaming/Code/User/mcp.json")
+            else:
+                console.print(
+                    "[yellow]Warning: Running in WSL but couldn't determine Windows username. "
+                    "Using Linux path instead. VS Code may not detect this configuration.[/yellow]"
+                )
+
         return Path.home() / ".config" / "Code" / "User" / "mcp.json"
 
 
@@ -331,11 +408,12 @@ def configure_client(
         # Use the name of the current directory as the server name
         server_name = Path.cwd().name
 
-    if not bool(re.match(r"^[a-zA-Z0-9_-]+\.py$", entrypoint_file)):
-        raise ValueError(f"Entrypoint file '{entrypoint_file}' is not a valid Python file name")
+    if transport == "stdio":
+        if not bool(re.match(r"^[a-zA-Z0-9_-]+\.py$", entrypoint_file)):
+            raise ValueError(f"Entrypoint file '{entrypoint_file}' is not a valid Python file name")
 
-    if not (Path.cwd() / entrypoint_file).exists():
-        raise ValueError(f"Entrypoint file '{entrypoint_file}' is not in the current directory")
+        if not (Path.cwd() / entrypoint_file).exists():
+            raise ValueError(f"Entrypoint file '{entrypoint_file}' is not in the current directory")
 
     client_lower = client.lower()
 
