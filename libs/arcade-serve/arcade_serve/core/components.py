@@ -96,6 +96,4 @@ class HealthCheckComponent(WorkerComponent):
         """
         Handle the request to check the health of the worker.
         """
-        tracer = trace.get_tracer(__name__)
-        with tracer.start_as_current_span("HealthCheck"):
-            return self.worker.health_check()
+        return self.worker.health_check()
