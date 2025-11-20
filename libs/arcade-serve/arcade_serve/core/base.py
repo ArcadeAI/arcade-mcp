@@ -133,6 +133,12 @@ class BaseWorker(Worker):
 
         tracer = trace.get_tracer(__name__)
         with tracer.start_as_current_span("RunTool"):
+            current_span = trace.get_current_span()
+            current_span.set_attribute("tool_name", str(tool_fqname.name))
+            current_span.set_attribute("toolkit_version", str(tool_fqname.toolkit_version))
+            current_span.set_attribute("toolkit_name", str(tool_fqname.toolkit_name))
+            current_span.set_attribute("environment", self.environment)
+
             output = await ToolExecutor.run(
                 func=materialized_tool.tool,
                 definition=materialized_tool.definition,
