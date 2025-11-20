@@ -59,7 +59,7 @@ class ToolExecutor:
             if asyncio.iscoroutinefunction(func):
                 results = await func(**func_args)
             else:
-                results = func(**func_args)
+                results = await asyncio.to_thread(func, **func_args)
 
             # serialize the output model
             output = await ToolExecutor._serialize_output(output_model, results)
