@@ -50,9 +50,20 @@ class CustomUvicornServer(uvicorn.Server):
             logger.info("Shutting down gracefully. Press Ctrl+C again to force quit.")
             self.should_exit = True
         else:
+            logger.warning("Force quit triggered - exiting immediately")
+            os._exit(1)
+
+    async def _wait_tasks_to_complete(self) -> None:
+        try:
+            # Let Uvicorn's normal wait process run
+            await super()._wait_tasks_to_complete()
+        except asyncio.CancelledError:
+            # If we're cancelled (graceful shutdown time expired), then
+            # we need to cancel the active HTTP request tasks that we are tracking
             logger.warning("Force quit triggered - cancelling all active requests")
             cancelled = self.task_tracker.cancel_all_tasks()
             logger.info(f"Cancelled {cancelled} active request(s)")
+            self.force_exit = True
             os._exit(1)
 
 
@@ -356,6 +367,11 @@ def run_arcade_mcp(
     log_level = "debug" if debug else "info"
 
     if reload:
+        # TODO: This reload path uses uvicorn.run(), which bypasses serve_with_force_quit().
+        # This means that the server will not be able to force quit when there are active
+        # tool executions or active connections with MCP clients. For this reason, prefer
+        # to use MCPApp.run() for reload mode.
+
         # Set env vars for the app factory to read later
         os.environ["ARCADE_MCP_DEBUG"] = str(debug)
         os.environ["ARCADE_MCP_OTEL_ENABLE"] = str(otel_enable)
