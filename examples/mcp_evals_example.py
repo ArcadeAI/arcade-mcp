@@ -1,15 +1,28 @@
 """
 Example: Evaluating MCP Server Tools with arcade-evals
 
-This example demonstrates how to evaluate tools from an MCP server
-without requiring Python callables.
+Shows TWO approaches:
+1. Manual tool definitions (no MCP server required)
+2. Automatic loading from running MCP server
+
+Both approaches work the same way after loading.
 """
 
-from arcade_evals import BinaryCritic, EvalSuite, ExpectedToolCall, MCPToolRegistry
+from arcade_evals import (
+    BinaryCritic,
+    EvalSuite,
+    ExpectedToolCall,
+    MCPToolRegistry,
+)
 
-# Step 1: Define MCP tool descriptors
-# These would typically come from an MCP server's tools/list response
-mcp_tools = [
+# ============================================================================
+# TWO WAYS TO GET TOOLS
+# ============================================================================
+
+# ──────────────────────────────────────────────────────────────────────────
+# OPTION 1: Manual Definitions (NO MCP server needed) ✅ Simpler for demos
+# ──────────────────────────────────────────────────────────────────────────
+manual_tools = [
     {
         "name": "calculator_add",
         "description": "Add two numbers together",
@@ -43,8 +56,30 @@ mcp_tools = [
     },
 ]
 
-# Step 2: Create an MCP tool registry
-registry = MCPToolRegistry(mcp_tools)
+# ──────────────────────────────────────────────────────────────────────────
+# OPTION 2: Automatic Loading (MCP server required) ⚡ Always up-to-date
+# ──────────────────────────────────────────────────────────────────────────
+
+# Example 1: Load from GitHub MCP server (stdio)
+# automatic_tools = load_from_stdio(["npx", "-y", "@modelcontextprotocol/server-github"])
+
+# Example 2: Load from your own MCP server (stdio)
+# automatic_tools = load_from_stdio(["python", "my_server.py", "stdio"])
+
+# Example 3: Load from HTTP MCP server
+# from arcade_evals import load_from_http
+# automatic_tools = load_from_http("http://localhost:8000")
+
+# ============================================================================
+
+# For this example, use manual tools (works immediately, no server needed)
+tools_to_use = manual_tools
+
+# To test with real GitHub MCP server, uncomment:
+# tools_to_use = load_from_stdio(["npx", "-y", "@modelcontextprotocol/server-github"])
+
+# Step 2: Create an MCP tool registry (same for both approaches!)
+registry = MCPToolRegistry(tools_to_use)
 
 # Step 3: Create an evaluation suite using the MCP registry
 suite = EvalSuite(

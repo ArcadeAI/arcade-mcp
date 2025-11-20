@@ -12,8 +12,12 @@ from arcade_evals import (
     ExpectedToolCall,
 )
 
+# To load tools automatically from running servers, uncomment:
+# github_tools = load_from_stdio(["npx", "-y", "@modelcontextprotocol/server-github"])
+# slack_tools = load_from_stdio(["npx", "-y", "@modelcontextprotocol/server-slack"])
+
 # Step 1: Define tool descriptors from multiple MCP servers
-# In practice, these would come from different MCP server tools/list responses
+# (or use load_from_stdio/load_from_http to load automatically)
 
 calculator_tools = [
     {
