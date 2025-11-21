@@ -66,9 +66,15 @@ class CallToolComponent(WorkerComponent):
         Handle the request to call (invoke) a tool.
         """
         tracer = trace.get_tracer(__name__)
-        with tracer.start_as_current_span("CallTool"):
+        with tracer.start_as_current_span("CallTool") as current_span:
             call_tool_request_data = request.body_json
             call_tool_request = ToolCallRequest.model_validate(call_tool_request_data)
+
+            current_span.set_attribute("tool_name", str(call_tool_request.tool.name))
+            current_span.set_attribute("toolkit_version", str(call_tool_request.tool.version))
+            current_span.set_attribute("toolkit_name", str(call_tool_request.tool.toolkit))
+            current_span.set_attribute("environment", self.worker.environment)
+
             return await self.worker.call_tool(call_tool_request)
 
 
