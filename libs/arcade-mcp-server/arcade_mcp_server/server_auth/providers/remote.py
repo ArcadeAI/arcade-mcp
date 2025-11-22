@@ -1,61 +1,48 @@
 """
 Remote OAuth provider with discovery metadata support.
 
-Extends JWTVerifier to support OAuth 2.0 Protected Resource Metadata (RFC 9728)
-for integration with external identity providers.
+Supports OAuth 2.0 Protected Resource Metadata (RFC 9728) with one or more
+authorization servers for integration with external identity providers.
 """
 
 from typing import Any
 
-from arcade_mcp_server.server_auth.providers.jwt import JWTVerifier, JWTVerifyOptions
+from arcade_mcp_server.server_auth.base import (
+    AuthenticatedUser,
+    AuthenticationError,
+    AuthorizationServerConfig,
+    InvalidTokenError,
+    ServerAuthProvider,
+    TokenExpiredError,
+)
+from arcade_mcp_server.server_auth.providers.jwt import JWTVerifier
+from arcade_mcp_server.settings import MCPSettings
 
 
-class RemoteOAuthProvider(JWTVerifier):
-    """OAuth provider with discovery metadata pointing to external auth server.
+class RemoteOAuthProvider(ServerAuthProvider):
+    """OAuth provider with discovery metadata supporting one or more authorization servers.
 
-    Use this when integrating with external identity providers that support
-    Dynamic Client Registration (DCR), such as WorkOS, Descope, or other
-    modern OAuth providers.
+    This Resource Server implementation validates JWT tokens from one or more
+    authorization servers and provides OAuth 2.0 Protected Resource Metadata
+    for discovery.
 
-    This provider:
-    1. Validates JWT tokens (inherits from JWTVerifier)
-    2. Provides OAuth Protected Resource Metadata for MCP client discovery
-    3. Points clients to the external authorization server for token acquisition
-
-    Example:
-        ```python
-        auth = RemoteOAuthProvider(
-            jwks_uri="https://auth.example.com/.well-known/jwks.json",
-            issuer="https://auth.example.com",
-            canonical_url="https://mcp.example.com/mcp",
-            authorization_server="https://auth.example.com",
-        )
-        ```
     """
 
     def __init__(
         self,
-        jwks_uri: str | None = None,
-        issuer: str | list[str] | None = None,
+        authorization_servers: list[AuthorizationServerConfig] | None = None,
         canonical_url: str | None = None,
-        authorization_server: str | None = None,
-        algorithm: str = "RS256",
         cache_ttl: int = 3600,
-        verify_options: JWTVerifyOptions | None = None,
     ):
         """Initialize remote OAuth provider.
 
-        All parameters can be provided via environment variables (MCP_SERVER_AUTH_*).
+        Supports environment variable configuration via MCP_SERVER_AUTH_* variables.
         Environment variables take precedence over parameters.
 
         Args:
-            jwks_uri: URL to fetch JWKS (or MCP_SERVER_AUTH_JWKS_URI)
-            issuer: Token issuer or list of issuers (or MCP_SERVER_AUTH_ISSUER)
+            authorization_servers: List of authorization server configurations
             canonical_url: MCP server canonical URL (or MCP_SERVER_AUTH_CANONICAL_URL)
-            authorization_server: Auth server URL (or MCP_SERVER_AUTH_AUTHORIZATION_SERVER)
-            algorithm: Signature algorithm (or MCP_SERVER_AUTH_ALGORITHM)
             cache_ttl: JWKS cache TTL in seconds
-            verify_options: JWT verification options (or MCP_SERVER_AUTH_VERIFY_* vars)
 
         Raises:
             ValueError: If required fields not provided via env vars or parameters
@@ -63,67 +50,120 @@ class RemoteOAuthProvider(JWTVerifier):
         Example:
             ```python
             # Option 1: Use environment variables
+            # Set MCP_SERVER_AUTH_CANONICAL_URL and MCP_SERVER_AUTH_AUTHORIZATION_SERVERS
             auth = RemoteOAuthProvider()
 
-            # Option 2: Explicit parameters
+            # Option 2: Single Auth Server
             auth = RemoteOAuthProvider(
-                jwks_uri="https://your-app.authkit.app/oauth2/jwks",
-                issuer="https://your-app.authkit.app",
-                canonical_url="http://127.0.0.1:8000/mcp",
-                authorization_server="https://your-app.authkit.app",
+                canonical_url="https://mcp.example.com",
+                authorization_servers=[
+                    AuthorizationServerConfig(
+                        authorization_server_url="https://auth.example.com",
+                        issuer="https://auth.example.com",
+                        jwks_uri="https://auth.example.com/jwks",
+                    )
+                ],
             )
 
-            # Option 3: Multiple issuers
+            # Option 3: Multiple Auth Servers
             auth = RemoteOAuthProvider(
-                jwks_uri="https://auth.example.com/jwks",
-                issuer=["https://auth1.example.com", "https://auth2.example.com"],
-                canonical_url="http://127.0.0.1:8000/mcp",
-                authorization_server="https://auth1.example.com",
+                canonical_url="https://mcp.example.com",
+                authorization_servers=[
+                    AuthorizationServerConfig(
+                        authorization_server_url="https://workos.authkit.app",
+                        issuer="https://workos.authkit.app",
+                        jwks_uri="https://workos.authkit.app/oauth2/jwks",
+                        verify_options=JWTVerifyOptions(verify_aud=False),
+                    ),
+                    AuthorizationServerConfig(
+                        authorization_server_url="https://github.com/login/oauth",
+                        issuer="https://github.com",
+                        jwks_uri="https://token.actions.githubusercontent.com/.well-known/jwks",
+                    ),
+                ],
             )
             ```
         """
-        from arcade_mcp_server.settings import MCPSettings
-
         settings = MCPSettings.from_env()
         auth_settings = settings.server_auth
 
+        self.cache_ttl = cache_ttl
+
         # Environment variables take precedence
-        jwks_uri = auth_settings.jwks_uri or jwks_uri
-        issuer = auth_settings.issuer or issuer
-        canonical_url = auth_settings.canonical_url or canonical_url
-        authorization_server = auth_settings.authorization_server or authorization_server
+        if auth_settings.canonical_url is not None:
+            self.canonical_url = auth_settings.canonical_url
+        elif canonical_url is not None:
+            self.canonical_url = canonical_url
+        else:
+            raise ValueError("canonical_url must be provided")
 
-        if auth_settings.algorithm:
-            algorithm = auth_settings.algorithm
-
-        if verify_options is None:
-            verify_options = JWTVerifyOptions(
-                verify_aud=auth_settings.verify_aud,
-                verify_exp=auth_settings.verify_exp,
-                verify_iat=auth_settings.verify_iat,
-                verify_iss=auth_settings.verify_iss,
-            )
-
-        # Validate required fields
-        missing = []
-        if not jwks_uri:
-            missing.append("jwks_uri (MCP_SERVER_AUTH_JWKS_URI)")
-        if not issuer:
-            missing.append("issuer (MCP_SERVER_AUTH_ISSUER)")
-        if not canonical_url:
-            missing.append("canonical_url (MCP_SERVER_AUTH_CANONICAL_URL)")
-        if not authorization_server:
-            missing.append("authorization_server (MCP_SERVER_AUTH_AUTHORIZATION_SERVER)")
-
-        if missing:
+        if auth_settings.authorization_servers:
+            # Build from settings (JSON array only)
+            configs = auth_settings.to_authorization_server_configs()
+        elif authorization_servers is not None:
+            configs = authorization_servers
+        else:
             raise ValueError(
-                f"RemoteOAuthProvider requires: {', '.join(missing)}. "
-                f"Provide via parameters or environment variables."
+                "'authorization_servers' required (parameter or MCP_SERVER_AUTH_AUTHORIZATION_SERVERS environment variable)"
             )
 
-        super().__init__(jwks_uri, issuer, canonical_url, algorithm, cache_ttl, verify_options)
-        self.canonical_url = canonical_url
-        self.authorization_server = authorization_server
+        self._verifiers = self._create_verifiers(configs)
+
+    def _create_verifiers(self, configs: list[AuthorizationServerConfig]) -> dict[str, JWTVerifier]:
+        """Create JWTVerifier instances, keyed by authorization server URL.
+
+        Args:
+            configs: List of authorization server configurations
+
+        Returns:
+            Dictionary mapping authorization_server_url to its JWTVerifier instance
+        """
+        verifiers = {}
+
+        for config in configs:
+            verifiers[config.authorization_server_url] = JWTVerifier(
+                jwks_uri=config.jwks_uri,
+                issuer=config.issuer,
+                audience=self.canonical_url,
+                algorithm=config.algorithm,
+                cache_ttl=self.cache_ttl,
+                verify_options=config.verify_options,
+            )
+
+        return verifiers
+
+    async def validate_token(self, token: str) -> AuthenticatedUser:
+        """Validate token against each configured authorization server.
+
+        Tries each verifier until one succeeds. If all fail, then raises InvalidTokenError.
+
+        Error handling strategy:
+        - TokenExpiredError: Raise immediately. If any verifier raises this, the token
+          is expired for all authorization servers (expiration is universal). No point
+          trying other verifiers.
+        - InvalidTokenError/AuthenticationError: Continue to next verifier. These errors
+          indicate wrong issuer, audience, or signature - another AS might accept the token.
+
+        Args:
+            token: JWT Bearer token
+
+        Returns:
+            AuthenticatedUser with user_id, client_id, and claims
+
+        Raises:
+            TokenExpiredError: Token has expired
+            InvalidTokenError: Token signature, algorithm, audience, or issuer is invalid
+            AuthenticationError: Other validation errors
+        """
+        for verifier in self._verifiers.values():
+            try:
+                return await verifier.validate_token(token)
+            except TokenExpiredError:
+                raise
+            except (InvalidTokenError, AuthenticationError):
+                continue
+
+        raise InvalidTokenError("Token validation failed for all configured authorization servers")
 
     def supports_oauth_discovery(self) -> bool:
         """This provider supports OAuth discovery."""
@@ -141,5 +181,5 @@ class RemoteOAuthProvider(JWTVerifier):
         """
         return {
             "resource": self.canonical_url,
-            "authorization_servers": [self.authorization_server],
+            "authorization_servers": list(self._verifiers.keys()),
         }

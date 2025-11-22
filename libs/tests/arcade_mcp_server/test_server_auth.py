@@ -38,6 +38,7 @@ def clean_auth_env():
         "MCP_SERVER_AUTH_JWKS_URI",
         "MCP_SERVER_AUTH_ISSUER",
         "MCP_SERVER_AUTH_AUTHORIZATION_SERVER",
+        "MCP_SERVER_AUTH_AUTHORIZATION_SERVERS",
         "MCP_SERVER_AUTH_ALGORITHM",
         "MCP_SERVER_AUTH_VERIFY_AUD",
         "MCP_SERVER_AUTH_VERIFY_EXP",
@@ -339,6 +340,193 @@ class TestJWTVerifier:
             await verifier.validate_token(valid_jwt_token)
             assert mock_get.call_count == 1  # Still 1, not 2
 
+    @pytest.mark.asyncio
+    async def test_validate_multiple_audiences_single_token_aud(
+        self, serialized_private_key, jwks_data
+    ):
+        """Test verifier with multiple audiences accepts token with matching single aud."""
+        # Token with single audience that matches one of verifier's accepted audiences
+        payload = {
+            "sub": "user123",
+            "iss": "https://auth.example.com",
+            "aud": "https://old-mcp.example.com",  # Matches first audience
+            "exp": int(time.time()) + 3600,
+            "iat": int(time.time()),
+        }
+
+        token = jwt.encode(
+            payload,
+            serialized_private_key,
+            algorithm="RS256",
+            headers={"kid": "test-key-1"},
+        )
+
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            verifier = JWTVerifier(
+                jwks_uri="https://auth.example.com/.well-known/jwks.json",
+                issuer="https://auth.example.com",
+                audience=["https://old-mcp.example.com", "https://new-mcp.example.com"],
+            )
+
+            user = await verifier.validate_token(token)
+            assert user.user_id == "user123"
+
+    @pytest.mark.asyncio
+    async def test_validate_multiple_audiences_list_token_aud(
+        self, serialized_private_key, jwks_data
+    ):
+        """Test verifier with multiple audiences accepts token with list aud."""
+        # Token with list of audiences where one matches verifier's accepted audiences
+        payload = {
+            "sub": "user123",
+            "iss": "https://auth.example.com",
+            "aud": ["https://api1.com", "https://new-mcp.example.com"],  # Second matches
+            "exp": int(time.time()) + 3600,
+            "iat": int(time.time()),
+        }
+
+        token = jwt.encode(
+            payload,
+            serialized_private_key,
+            algorithm="RS256",
+            headers={"kid": "test-key-1"},
+        )
+
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            verifier = JWTVerifier(
+                jwks_uri="https://auth.example.com/.well-known/jwks.json",
+                issuer="https://auth.example.com",
+                audience=["https://old-mcp.example.com", "https://new-mcp.example.com"],
+            )
+
+            user = await verifier.validate_token(token)
+            assert user.user_id == "user123"
+
+    @pytest.mark.asyncio
+    async def test_validate_multiple_audiences_no_match(self, serialized_private_key, jwks_data):
+        """Test verifier with multiple audiences rejects token with non-matching aud."""
+        # Token with audience that doesn't match any of verifier's accepted audiences
+        payload = {
+            "sub": "user123",
+            "iss": "https://auth.example.com",
+            "aud": "https://different-server.com",  # Doesn't match
+            "exp": int(time.time()) + 3600,
+            "iat": int(time.time()),
+        }
+
+        token = jwt.encode(
+            payload,
+            serialized_private_key,
+            algorithm="RS256",
+            headers={"kid": "test-key-1"},
+        )
+
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            verifier = JWTVerifier(
+                jwks_uri="https://auth.example.com/.well-known/jwks.json",
+                issuer="https://auth.example.com",
+                audience=["https://old-mcp.example.com", "https://new-mcp.example.com"],
+            )
+
+            with pytest.raises(InvalidTokenError, match="audience"):
+                await verifier.validate_token(token)
+
+    @pytest.mark.asyncio
+    async def test_validate_single_audience_with_list_token_aud(
+        self, serialized_private_key, jwks_data
+    ):
+        """Test verifier with single audience accepts token with list aud containing match."""
+        # Token with list of audiences where one matches verifier's single audience
+        payload = {
+            "sub": "user123",
+            "iss": "https://auth.example.com",
+            "aud": ["https://api1.com", "https://mcp.example.com", "https://api2.com"],
+            "exp": int(time.time()) + 3600,
+            "iat": int(time.time()),
+        }
+
+        token = jwt.encode(
+            payload,
+            serialized_private_key,
+            algorithm="RS256",
+            headers={"kid": "test-key-1"},
+        )
+
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            verifier = JWTVerifier(
+                jwks_uri="https://auth.example.com/.well-known/jwks.json",
+                issuer="https://auth.example.com",
+                audience="https://mcp.example.com",  # Single audience
+            )
+
+            user = await verifier.validate_token(token)
+            assert user.user_id == "user123"
+
+    @pytest.mark.asyncio
+    async def test_validate_multiple_issuers_efficient(self, serialized_private_key, jwks_data):
+        """Test that multi-issuer validation is efficient (single decode)."""
+        # Token from second issuer in list
+        payload = {
+            "sub": "user123",
+            "iss": "https://auth2.example.com",  # Second in list
+            "aud": "https://mcp.example.com",
+            "exp": int(time.time()) + 3600,
+            "iat": int(time.time()),
+        }
+
+        token = jwt.encode(
+            payload,
+            serialized_private_key,
+            algorithm="RS256",
+            headers={"kid": "test-key-1"},
+        )
+
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            # Patch jwt.decode to count calls
+            with patch(
+                "arcade_mcp_server.server_auth.providers.jwt.jwt.decode", wraps=jwt.decode
+            ) as mock_decode:
+                verifier = JWTVerifier(
+                    jwks_uri="https://auth.example.com/.well-known/jwks.json",
+                    issuer=[
+                        "https://auth1.example.com",
+                        "https://auth2.example.com",
+                        "https://auth3.example.com",
+                    ],
+                    audience="https://mcp.example.com",
+                )
+
+                user = await verifier.validate_token(token)
+                assert user.user_id == "user123"
+
+                # Should only decode once (efficient), not 3 times (sequential)
+                assert mock_decode.call_count == 1
+
 
 # RemoteOAuthProvider Tests
 class TestRemoteOAuthProvider:
@@ -346,22 +534,34 @@ class TestRemoteOAuthProvider:
 
     def test_supports_oauth_discovery(self):
         """Test that RemoteOAuthProvider supports OAuth discovery."""
+        from arcade_mcp_server.server_auth.base import AuthorizationServerConfig
+
         provider = RemoteOAuthProvider(
-            jwks_uri="https://auth.example.com/.well-known/jwks.json",
-            issuer="https://auth.example.com",
             canonical_url="https://mcp.example.com",
-            authorization_server="https://auth.example.com",
+            authorization_servers=[
+                AuthorizationServerConfig(
+                    authorization_server_url="https://auth.example.com",
+                    issuer="https://auth.example.com",
+                    jwks_uri="https://auth.example.com/.well-known/jwks.json",
+                )
+            ],
         )
 
         assert provider.supports_oauth_discovery() is True
 
     def test_get_resource_metadata(self):
         """Test getting OAuth Protected Resource Metadata."""
+        from arcade_mcp_server.server_auth.base import AuthorizationServerConfig
+
         provider = RemoteOAuthProvider(
-            jwks_uri="https://auth.example.com/.well-known/jwks.json",
-            issuer="https://auth.example.com",
             canonical_url="https://mcp.example.com",
-            authorization_server="https://auth.example.com",
+            authorization_servers=[
+                AuthorizationServerConfig(
+                    authorization_server_url="https://auth.example.com",
+                    issuer="https://auth.example.com",
+                    jwks_uri="https://auth.example.com/.well-known/jwks.json",
+                )
+            ],
         )
 
         metadata = provider.get_resource_metadata()
@@ -475,11 +675,17 @@ class TestMCPAuthMiddleware:
             mock_response.raise_for_status = Mock()
             mock_get.return_value = mock_response
 
+            from arcade_mcp_server.server_auth.base import AuthorizationServerConfig
+
             provider = RemoteOAuthProvider(
-                jwks_uri="https://auth.example.com/.well-known/jwks.json",
-                issuer="https://auth.example.com",
                 canonical_url="https://mcp.example.com",
-                authorization_server="https://auth.example.com",
+                authorization_servers=[
+                    AuthorizationServerConfig(
+                        authorization_server_url="https://auth.example.com",
+                        issuer="https://auth.example.com",
+                        jwks_uri="https://auth.example.com/.well-known/jwks.json",
+                    )
+                ],
             )
 
             async def mock_app(scope, receive, send):
@@ -523,77 +729,72 @@ class TestEnvVarConfiguration:
     @pytest.mark.asyncio
     async def test_remote_oauth_env_var_precedence(self, monkeypatch):
         """Test that environment variables override parameters."""
-        monkeypatch.setenv("MCP_SERVER_AUTH_JWKS_URI", "https://env.example.com/jwks")
-        monkeypatch.setenv("MCP_SERVER_AUTH_ISSUER", "https://env.example.com")
-        monkeypatch.setenv("MCP_SERVER_AUTH_CANONICAL_URL", "https://env-mcp.example.com")
-        monkeypatch.setenv("MCP_SERVER_AUTH_AUTHORIZATION_SERVER", "https://env.example.com")
+        from arcade_mcp_server.server_auth.base import AuthorizationServerConfig
 
-        auth = RemoteOAuthProvider(
-            jwks_uri="https://param.example.com/jwks",
-            issuer="https://param.example.com",
-            canonical_url="https://param-mcp.example.com",
-            authorization_server="https://param.example.com",
+        monkeypatch.setenv("MCP_SERVER_AUTH_CANONICAL_URL", "https://env-mcp.example.com")
+        monkeypatch.setenv(
+            "MCP_SERVER_AUTH_AUTHORIZATION_SERVERS",
+            '[{"authorization_server_url":"https://env.example.com","issuer":"https://env.example.com","jwks_uri":"https://env.example.com/jwks"}]',
         )
 
-        assert auth.jwks_uri == "https://env.example.com/jwks"
-        assert auth.issuer == "https://env.example.com"
+        auth = RemoteOAuthProvider(
+            canonical_url="https://param-mcp.example.com",
+            authorization_servers=[
+                AuthorizationServerConfig(
+                    authorization_server_url="https://param.example.com",
+                    issuer="https://param.example.com",
+                    jwks_uri="https://param.example.com/jwks",
+                )
+            ],
+        )
+
         assert auth.canonical_url == "https://env-mcp.example.com"
-        assert auth.authorization_server == "https://env.example.com"
+        metadata = auth.get_resource_metadata()
+        assert metadata["authorization_servers"] == ["https://env.example.com"]
 
     @pytest.mark.asyncio
     async def test_remote_oauth_all_env_vars(self, monkeypatch):
         """Test RemoteOAuthProvider with all env vars, no parameters."""
-        monkeypatch.setenv("MCP_SERVER_AUTH_JWKS_URI", "https://auth.example.com/jwks")
-        monkeypatch.setenv("MCP_SERVER_AUTH_ISSUER", "https://auth.example.com")
         monkeypatch.setenv("MCP_SERVER_AUTH_CANONICAL_URL", "https://mcp.example.com")
-        monkeypatch.setenv("MCP_SERVER_AUTH_AUTHORIZATION_SERVER", "https://auth.example.com")
-        monkeypatch.setenv("MCP_SERVER_AUTH_ALGORITHM", "RS256")
-        monkeypatch.setenv("MCP_SERVER_AUTH_VERIFY_AUD", "false")
+        monkeypatch.setenv(
+            "MCP_SERVER_AUTH_AUTHORIZATION_SERVERS",
+            '[{"authorization_server_url":"https://auth.example.com","issuer":"https://auth.example.com","jwks_uri":"https://auth.example.com/jwks","algorithm":"RS256","verify_aud":false}]',
+        )
 
         auth = RemoteOAuthProvider()
 
-        assert auth.jwks_uri == "https://auth.example.com/jwks"
         assert auth.canonical_url == "https://mcp.example.com"
-        assert auth.algorithm == "RS256"
-        assert auth.algorithms == ["RS256"]
-        assert auth.verify_options.verify_aud is False
+        metadata = auth.get_resource_metadata()
+        assert metadata["authorization_servers"] == ["https://auth.example.com"]
 
     def test_remote_oauth_missing_required(self):
         """Test that missing required fields raise ValueError."""
-        with pytest.raises(ValueError, match="RemoteOAuthProvider requires"):
+        from arcade_mcp_server.server_auth.base import AuthorizationServerConfig
+
+        with pytest.raises(ValueError, match="canonical_url must be provided"):
             RemoteOAuthProvider(
-                jwks_uri="https://auth.example.com/jwks",
-                issuer="https://auth.example.com",
-                # Missing canonical_url and authorization_server
+                authorization_servers=[
+                    AuthorizationServerConfig(
+                        authorization_server_url="https://auth.example.com",
+                        issuer="https://auth.example.com",
+                        jwks_uri="https://auth.example.com/jwks",
+                    )
+                ],
+                # Missing canonical_url
             )
 
     @pytest.mark.asyncio
-    async def test_jwt_verifier_env_var_support(self, monkeypatch):
-        """Test JWTVerifier with environment variables."""
-        monkeypatch.setenv("MCP_SERVER_AUTH_JWKS_URI", "https://auth.example.com/jwks")
-        monkeypatch.setenv("MCP_SERVER_AUTH_ISSUER", "https://auth.example.com")
-        monkeypatch.setenv("MCP_SERVER_AUTH_CANONICAL_URL", "https://mcp.example.com")
-        monkeypatch.setenv("MCP_SERVER_AUTH_ALGORITHM", "ES256")
-
-        auth = JWTVerifier()
-
-        assert auth.jwks_uri == "https://auth.example.com/jwks"
-        assert auth.issuer == "https://auth.example.com"
-        assert auth.audience == "https://mcp.example.com"
-        assert auth.algorithm == "ES256"
-        assert auth.algorithms == ["ES256"]
-
-    @pytest.mark.asyncio
-    async def test_worker_no_canonical_url_for_jwt_verifier(self, monkeypatch):
+    async def test_worker_no_canonical_url_for_jwt_verifier(self):
         """Test that worker doesn't require canonical_url for JWTVerifier."""
         from arcade_core.catalog import ToolCatalog
         from arcade_mcp_server.worker import create_arcade_mcp
 
-        monkeypatch.setenv("MCP_SERVER_AUTH_JWKS_URI", "https://auth.example.com/jwks")
-        monkeypatch.setenv("MCP_SERVER_AUTH_ISSUER", "https://auth.example.com")
-        monkeypatch.setenv("MCP_SERVER_AUTH_CANONICAL_URL", "https://mcp.example.com")
-
-        jwt_auth = JWTVerifier()
+        # JWTVerifier uses explicit parameters (no env vars)
+        jwt_auth = JWTVerifier(
+            jwks_uri="https://auth.example.com/jwks",
+            issuer="https://auth.example.com",
+            audience="https://mcp.example.com",
+        )
 
         catalog = ToolCatalog()
         # Shouldn't raise as JWTVerifier doesn't support OAuth discovery
@@ -602,10 +803,237 @@ class TestEnvVarConfiguration:
 
     def test_worker_requires_canonical_url_for_remote_oauth(self):
         """Test that RemoteOAuthProvider validation happens during init."""
-        with pytest.raises(ValueError, match="RemoteOAuthProvider requires"):
+        from arcade_mcp_server.server_auth.base import AuthorizationServerConfig
+
+        with pytest.raises(ValueError, match="canonical_url must be provided"):
             RemoteOAuthProvider(
-                jwks_uri="https://auth.example.com/jwks",
-                issuer="https://auth.example.com",
-                authorization_server="https://auth.example.com",
+                authorization_servers=[
+                    AuthorizationServerConfig(
+                        authorization_server_url="https://auth.example.com",
+                        issuer="https://auth.example.com",
+                        jwks_uri="https://auth.example.com/jwks",
+                    )
+                ],
                 # Missing canonical_url
             )
+
+
+class TestMultipleAuthorizationServers:
+    """Tests for multiple authorization server support."""
+
+    @pytest.mark.asyncio
+    async def test_remote_oauth_provider_multiple_as_shared_jwks(self, jwks_data, valid_jwt_token):
+        """Test multiple AS URLs with same JWKS (regional endpoints)."""
+        from arcade_mcp_server.server_auth.base import AuthorizationServerConfig
+        from arcade_mcp_server.server_auth.providers.remote import RemoteOAuthProvider
+
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            auth = RemoteOAuthProvider(
+                canonical_url="https://mcp.example.com",
+                authorization_servers=[
+                    AuthorizationServerConfig(
+                        authorization_server_url="https://auth-us.example.com",
+                        issuer="https://auth.example.com",
+                        jwks_uri="https://auth.example.com/jwks",
+                    ),
+                    AuthorizationServerConfig(
+                        authorization_server_url="https://auth-eu.example.com",
+                        issuer="https://auth.example.com",
+                        jwks_uri="https://auth.example.com/jwks",
+                    ),
+                ],
+            )
+
+            # Verify metadata returns all AS URLs
+            metadata = auth.get_resource_metadata()
+            assert metadata["resource"] == "https://mcp.example.com"
+            assert metadata["authorization_servers"] == [
+                "https://auth-us.example.com",
+                "https://auth-eu.example.com",
+            ]
+
+            # Verify token validation works
+            user = await auth.validate_token(valid_jwt_token)
+            assert user.user_id == "user123"
+            assert user.email == "user@example.com"
+
+    @pytest.mark.asyncio
+    async def test_remote_oauth_provider_multiple_as_different_jwks(self, rsa_keypair, jwks_data):
+        """Test multiple AS with different JWKS (multi-IdP)."""
+        from arcade_mcp_server.server_auth.base import AuthorizationServerConfig
+        from arcade_mcp_server.server_auth.providers.remote import RemoteOAuthProvider
+
+        private_key, _ = rsa_keypair
+
+        # Create token from first issuer
+        payload1 = {
+            "sub": "user123",
+            "email": "user@workos.com",
+            "iss": "https://workos.authkit.app",
+            "aud": "https://mcp.example.com",
+            "exp": int(time.time()) + 3600,
+            "iat": int(time.time()),
+        }
+        token1 = jwt.encode(
+            payload1,
+            private_key,
+            algorithm="RS256",
+            headers={"kid": "test-key-1"},
+        )
+
+        # Create token from second issuer
+        payload2 = {
+            "sub": "user456",
+            "email": "user@github.com",
+            "iss": "https://github.com",
+            "aud": "https://mcp.example.com",
+            "exp": int(time.time()) + 3600,
+            "iat": int(time.time()),
+        }
+        token2 = jwt.encode(
+            payload2,
+            private_key,
+            algorithm="RS256",
+            headers={"kid": "test-key-1"},
+        )
+
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            auth = RemoteOAuthProvider(
+                canonical_url="https://mcp.example.com",
+                authorization_servers=[
+                    AuthorizationServerConfig(
+                        authorization_server_url="https://workos.authkit.app",
+                        issuer="https://workos.authkit.app",
+                        jwks_uri="https://workos.authkit.app/oauth2/jwks",
+                    ),
+                    AuthorizationServerConfig(
+                        authorization_server_url="https://github.com/login/oauth",
+                        issuer="https://github.com",
+                        jwks_uri="https://token.actions.githubusercontent.com/.well-known/jwks",
+                    ),
+                ],
+            )
+
+            # Verify metadata returns all AS URLs
+            metadata = auth.get_resource_metadata()
+            assert metadata["authorization_servers"] == [
+                "https://workos.authkit.app",
+                "https://github.com/login/oauth",
+            ]
+
+            # Verify tokens from both issuers work
+            user1 = await auth.validate_token(token1)
+            assert user1.user_id == "user123"
+            assert user1.email == "user@workos.com"
+
+            user2 = await auth.validate_token(token2)
+            assert user2.user_id == "user456"
+            assert user2.email == "user@github.com"
+
+    @pytest.mark.asyncio
+    async def test_remote_oauth_provider_rejects_unconfigured_as(self, rsa_keypair, jwks_data):
+        """Test that tokens from unlisted AS are rejected."""
+        from arcade_mcp_server.server_auth.base import InvalidTokenError
+        from arcade_mcp_server.server_auth.providers.remote import RemoteOAuthProvider
+
+        private_key, _ = rsa_keypair
+
+        # Create token from unauthorized issuer
+        payload = {
+            "sub": "user123",
+            "email": "user@evil.com",
+            "iss": "https://evil.com",  # Not in configured list
+            "aud": "https://mcp.example.com",
+            "exp": int(time.time()) + 3600,
+            "iat": int(time.time()),
+        }
+        token = jwt.encode(
+            payload,
+            private_key,
+            algorithm="RS256",
+            headers={"kid": "test-key-1"},
+        )
+
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            from arcade_mcp_server.server_auth.base import AuthorizationServerConfig
+
+            auth = RemoteOAuthProvider(
+                canonical_url="https://mcp.example.com",
+                authorization_servers=[
+                    AuthorizationServerConfig(
+                        authorization_server_url="https://auth.example.com",
+                        issuer="https://auth.example.com",
+                        jwks_uri="https://auth.example.com/jwks",
+                    )
+                ],
+            )
+
+            # Should reject token from unauthorized issuer
+            with pytest.raises(
+                InvalidTokenError,
+                match="Token validation failed for all configured authorization servers",
+            ):
+                await auth.validate_token(token)
+
+    def test_authorization_servers_env_var_parsing_json(self, monkeypatch):
+        """Test parsing JSON array of AS configs from env var."""
+        from arcade_mcp_server.server_auth.providers.remote import RemoteOAuthProvider
+
+        monkeypatch.setenv("MCP_SERVER_AUTH_CANONICAL_URL", "https://mcp.example.com")
+        monkeypatch.setenv(
+            "MCP_SERVER_AUTH_AUTHORIZATION_SERVERS",
+            '[{"authorization_server_url": "https://auth1.com", "issuer": "https://auth1.com", "jwks_uri": "https://auth1.com/jwks"}]',
+        )
+
+        auth = RemoteOAuthProvider()
+
+        metadata = auth.get_resource_metadata()
+        assert metadata["authorization_servers"] == ["https://auth1.com"]
+
+    def test_resource_metadata_multiple_as(self):
+        """Test that resource metadata returns all AS URLs."""
+        from arcade_mcp_server.server_auth.base import AuthorizationServerConfig
+        from arcade_mcp_server.server_auth.providers.remote import RemoteOAuthProvider
+
+        auth = RemoteOAuthProvider(
+            canonical_url="https://mcp.example.com",
+            authorization_servers=[
+                AuthorizationServerConfig(
+                    authorization_server_url="https://auth1.example.com",
+                    issuer="https://auth1.example.com",
+                    jwks_uri="https://auth1.example.com/jwks",
+                ),
+                AuthorizationServerConfig(
+                    authorization_server_url="https://auth2.example.com",
+                    issuer="https://auth2.example.com",
+                    jwks_uri="https://auth2.example.com/jwks",
+                ),
+                AuthorizationServerConfig(
+                    authorization_server_url="https://auth3.example.com",
+                    issuer="https://auth3.example.com",
+                    jwks_uri="https://auth3.example.com/jwks",
+                ),
+            ],
+        )
+
+        metadata = auth.get_resource_metadata()
+        assert metadata["resource"] == "https://mcp.example.com"
+        assert len(metadata["authorization_servers"]) == 3
+        assert "https://auth1.example.com" in metadata["authorization_servers"]
+        assert "https://auth2.example.com" in metadata["authorization_servers"]
+        assert "https://auth3.example.com" in metadata["authorization_servers"]

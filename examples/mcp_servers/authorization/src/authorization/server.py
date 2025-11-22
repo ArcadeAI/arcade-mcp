@@ -6,19 +6,41 @@ from typing import Annotated
 import httpx
 from arcade_mcp_server import Context, MCPApp
 from arcade_mcp_server.auth import Reddit
-from arcade_mcp_server.server_auth.providers.jwt import JWTVerifyOptions
+from arcade_mcp_server.server_auth.base import AuthorizationServerConfig, JWTVerifyOptions
 from arcade_mcp_server.server_auth.providers.remote import RemoteOAuthProvider
 
+# Single authorization server example
 auth = RemoteOAuthProvider(
-    jwks_uri="https://glowing-shine-51-staging.authkit.app/oauth2/jwks",
-    issuer="https://glowing-shine-51-staging.authkit.app",
     canonical_url="http://127.0.0.1:8000/mcp",
-    authorization_server="https://glowing-shine-51-staging.authkit.app",
-    algorithm="RS256",
-    verify_options=JWTVerifyOptions(
-        verify_aud=False,
-    ),
+    authorization_servers=[
+        AuthorizationServerConfig(
+            authorization_server_url="https://glowing-shine-51-staging.authkit.app",
+            issuer="https://glowing-shine-51-staging.authkit.app",
+            jwks_uri="https://glowing-shine-51-staging.authkit.app/oauth2/jwks",
+            algorithm="RS256",
+            verify_options=JWTVerifyOptions(
+                verify_aud=False,
+            ),
+        )
+    ],
 )
+
+# Multiple authorization servers with different keys (e.g., multi-IdP)
+# auth = RemoteOAuthProvider(
+#     canonical_url="http://127.0.0.1:8000/mcp",
+#     authorization_servers=[
+#         AuthorizationServerConfig(
+#             authorization_server_url="https://workos.authkit.app",
+#             issuer="https://workos.authkit.app",
+#             jwks_uri="https://workos.authkit.app/oauth2/jwks",
+#         ),
+#         AuthorizationServerConfig(
+#             authorization_server_url="https://github.com/login/oauth",
+#             issuer="https://github.com",
+#             jwks_uri="https://token.actions.githubusercontent.com/.well-known/jwks",
+#         ),
+#     ],
+# )
 
 app = MCPApp(name="authorization", version="1.0.0", log_level="DEBUG", auth=auth)
 

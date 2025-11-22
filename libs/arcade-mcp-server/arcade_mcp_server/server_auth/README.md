@@ -51,12 +51,17 @@ app = MCPApp(
 
 ```python
 from arcade_mcp_server import MCPApp, RemoteOAuthProvider
+from arcade_mcp_server.server_auth.base import AuthorizationServerConfig
 
 auth = RemoteOAuthProvider(
-    jwks_uri="https://auth.example.com/.well-known/jwks.json",
-    issuer="https://auth.example.com",
     canonical_url="https://mcp.example.com",
-    authorization_server="https://auth.example.com",
+    configs=[
+        AuthorizationServerConfig(
+            authorization_server_url="https://auth.example.com",
+            issuer="https://auth.example.com",
+            jwks_uri="https://auth.example.com/.well-known/jwks.json",
+        )
+    ],
 )
 
 app = MCPApp(
@@ -65,23 +70,95 @@ app = MCPApp(
 )
 ```
 
+### Multiple Authorization Servers
+
+MCP servers can accept tokens from multiple authorization servers, supporting scenarios like regional endpoints, multiple identity providers, or migrating between auth systems.
+
+#### Regional Endpoints (Shared Keys)
+
+When multiple authorization servers share the same issuer and keys (e.g., regional endpoints for better latency):
+
+```python
+from arcade_mcp_server import MCPApp, RemoteOAuthProvider
+from arcade_mcp_server.server_auth.base import AuthorizationServerConfig
+
+auth = RemoteOAuthProvider(
+    canonical_url="https://mcp.example.com",
+    configs=[
+        AuthorizationServerConfig(
+            authorization_server_url="https://auth-us.example.com",
+            issuer="https://auth.example.com",
+            jwks_uri="https://auth.example.com/jwks",
+        ),
+        AuthorizationServerConfig(
+            authorization_server_url="https://auth-eu.example.com",
+            issuer="https://auth.example.com",
+            jwks_uri="https://auth.example.com/jwks",
+        ),
+        AuthorizationServerConfig(
+            authorization_server_url="https://auth-asia.example.com",
+            issuer="https://auth.example.com",
+            jwks_uri="https://auth.example.com/jwks",
+        ),
+    ],
+)
+
+app = MCPApp(name="my_server", auth=auth)
+```
+
+Clients will see all three authorization server URLs in discovery metadata and can choose the nearest one for optimal performance.
+
+#### Multiple Identity Providers (Different Keys)
+
+When supporting multiple identity providers with different issuers and keys (e.g., WorkOS + GitHub):
+
+```python
+from arcade_mcp_server import MCPApp, RemoteOAuthProvider
+from arcade_mcp_server.server_auth.base import AuthorizationServerConfig, JWTVerifyOptions
+
+auth = RemoteOAuthProvider(
+    canonical_url="https://mcp.example.com",
+    configs=[
+        AuthorizationServerConfig(
+            authorization_server_url="https://workos.authkit.app",
+            issuer="https://workos.authkit.app",
+            jwks_uri="https://workos.authkit.app/oauth2/jwks",
+        ),
+        AuthorizationServerConfig(
+            authorization_server_url="https://github.com/login/oauth",
+            issuer="https://github.com",
+            jwks_uri="https://token.actions.githubusercontent.com/.well-known/jwks",
+            verify_options=JWTVerifyOptions(verify_aud=False),  # GitHub doesn't support audience claim
+        ),
+    ],
+)
+
+app = MCPApp(name="my_server", auth=auth)
+```
+
+The MCP server will accept tokens from either WorkOS or GitHub. Clients discover both options and can choose which authorization server to use based on user preference or available credentials.
+
+**Note:** The MCP server (Resource Server) doesn't need to know whether authorization servers support Dynamic Client Registration (DCR) or not. That's the authorization server's concern. The MCP server simply validates tokens and advertises the AS URLs.
+
 ## Environment Variable Configuration
 
-All `RemoteOAuthProvider` and `JWTVerifier` parameters can be configured via environment variables. This is the **recommended approach for production deployments**.
+`RemoteOAuthProvider` supports environment variable configuration for production deployments. This is the **recommended approach for production**.
+
+**Note:** `JWTVerifier` does not support environment variables and requires explicit parameters.
 
 ### Supported Environment Variables
 
 | Environment Variable | Type | Description | Required |
 |---------------------|------|-------------|----------|
-| `MCP_SERVER_AUTH_JWKS_URI` | string | URL to JWKS endpoint | Yes |
-| `MCP_SERVER_AUTH_ISSUER` | string | Expected token issuer | Yes |
-| `MCP_SERVER_AUTH_CANONICAL_URL` | string | MCP server canonical URL | Yes (for RemoteOAuthProvider) |
-| `MCP_SERVER_AUTH_AUTHORIZATION_SERVER` | string | Authorization server URL | Yes (for RemoteOAuthProvider) |
-| `MCP_SERVER_AUTH_ALGORITHMS` | list | Comma-separated algorithms | No (default: RS256) |
-| `MCP_SERVER_AUTH_VERIFY_AUD` | bool | Verify audience claim | No (default: true) |
-| `MCP_SERVER_AUTH_VERIFY_EXP` | bool | Verify expiration | No (default: true) |
-| `MCP_SERVER_AUTH_VERIFY_IAT` | bool | Verify issued-at | No (default: true) |
-| `MCP_SERVER_AUTH_VERIFY_ISS` | bool | Verify issuer | No (default: true) |
+| `MCP_SERVER_AUTH_CANONICAL_URL` | string | MCP server canonical URL | Yes |
+| `MCP_SERVER_AUTH_AUTHORIZATION_SERVERS` | JSON array | Authorization server configurations | Yes |
+
+The `MCP_SERVER_AUTH_AUTHORIZATION_SERVERS` must be a JSON array of configuration objects. Each object should include:
+- `authorization_server_url`: Authorization server URL
+- `issuer`: Expected token issuer
+- `jwks_uri`: JWKS endpoint URL
+- `algorithm`: (Optional) JWT algorithm, defaults to RS256
+- `verify_aud`, `verify_exp`, `verify_iat`, `verify_iss`: (Optional) Verification flags, all default to true
 
 ### Precedence Rules
 
@@ -96,16 +173,58 @@ auth = RemoteOAuthProvider(
 
 ### Example .env File
 
+#### Single Authorization Server
+
 ```bash
 # Auth Provider Configuration
-MCP_SERVER_AUTH_JWKS_URI=https://auth.example.com/.well-known/jwks.json
-MCP_SERVER_AUTH_ISSUER=https://auth.example.com
 MCP_SERVER_AUTH_CANONICAL_URL=https://mcp.example.com
-MCP_SERVER_AUTH_AUTHORIZATION_SERVER=https://auth.example.com
+MCP_SERVER_AUTH_AUTHORIZATION_SERVERS='[
+  {
+    "authorization_server_url": "https://auth.example.com",
+    "issuer": "https://auth.example.com",
+    "jwks_uri": "https://auth.example.com/.well-known/jwks.json",
+    "algorithm": "RS256"
+  }
+]'
+```
 
-# Optional: Customize verification
-MCP_SERVER_AUTH_ALGORITHMS=RS256,RS384
-MCP_SERVER_AUTH_VERIFY_AUD=true
+#### Multiple Authorization Servers (Shared Keys)
+
+```bash
+# Regional endpoints with shared keys
+MCP_SERVER_AUTH_CANONICAL_URL=https://mcp.example.com
+MCP_SERVER_AUTH_AUTHORIZATION_SERVERS='[
+  {
+    "authorization_server_url": "https://auth-us.example.com",
+    "issuer": "https://auth.example.com",
+    "jwks_uri": "https://auth.example.com/.well-known/jwks.json"
+  },
+  {
+    "authorization_server_url": "https://auth-eu.example.com",
+    "issuer": "https://auth.example.com",
+    "jwks_uri": "https://auth.example.com/.well-known/jwks.json"
+  }
+]'
+```
+
+#### Multiple Authorization Servers (Different Keys)
+
+```bash
+# Multi-IdP configuration
+MCP_SERVER_AUTH_CANONICAL_URL=https://mcp.example.com
+MCP_SERVER_AUTH_AUTHORIZATION_SERVERS='[
+  {
+    "authorization_server_url": "https://workos.authkit.app",
+    "issuer": "https://workos.authkit.app",
+    "jwks_uri": "https://workos.authkit.app/oauth2/jwks"
+  },
+  {
+    "authorization_server_url": "https://github.com/login/oauth",
+    "issuer": "https://github.com",
+    "jwks_uri": "https://token.actions.githubusercontent.com/.well-known/jwks",
+    "verify_aud": false
+  }
+]'
 ```
 
 ### Docker Deployment Example
@@ -127,10 +246,8 @@ services:
     ports:
       - "8000:8000"
     environment:
-      MCP_SERVER_AUTH_JWKS_URI: https://auth.example.com/.well-known/jwks.json
-      MCP_SERVER_AUTH_ISSUER: https://auth.example.com
       MCP_SERVER_AUTH_CANONICAL_URL: https://mcp.example.com
-      MCP_SERVER_AUTH_AUTHORIZATION_SERVER: https://auth.example.com
+      MCP_SERVER_AUTH_AUTHORIZATION_SERVERS: '[{"authorization_server_url":"https://auth.example.com","issuer":"https://auth.example.com","jwks_uri":"https://auth.example.com/.well-known/jwks.json"}]'
 ```
 
 ### Kubernetes ConfigMap Example
@@ -141,10 +258,8 @@ kind: ConfigMap
 metadata:
   name: mcp-server-auth
 data:
-  MCP_SERVER_AUTH_JWKS_URI: "https://auth.example.com/.well-known/jwks.json"
-  MCP_SERVER_AUTH_ISSUER: "https://auth.example.com"
   MCP_SERVER_AUTH_CANONICAL_URL: "https://mcp.example.com"
-  MCP_SERVER_AUTH_AUTHORIZATION_SERVER: "https://auth.example.com"
+  MCP_SERVER_AUTH_AUTHORIZATION_SERVERS: '[{"authorization_server_url":"https://auth.example.com","issuer":"https://auth.example.com","jwks_uri":"https://auth.example.com/.well-known/jwks.json"}]'
 ```
 
 ## Authentication Providers
@@ -163,46 +278,64 @@ data:
 **Does NOT provide:**
 - OAuth discovery endpoints
 - MCP client auto-discovery
+- Environment variable configuration (use RemoteOAuthProvider for production)
 
-**Configuration:**
+**Configuration (explicit parameters only):**
 
 ```python
 JWTVerifier(
     jwks_uri="https://auth.example.com/.well-known/jwks.json",
     issuer="https://auth.example.com",
     audience="https://mcp.example.com",
-    algorithms=["RS256"],  # Optional, defaults to ["RS256"]
+    algorithm="RS256",  # Optional, defaults to RS256
     cache_ttl=3600,  # Optional, JWKS cache TTL in seconds
 )
 ```
 
+**Note:** All parameters are required and must be provided explicitly. JWTVerifier does not support environment variable configuration. For production deployments with environment variables, use `RemoteOAuthProvider`.
+
 ### RemoteOAuthProvider
 
-**Use when:** Integrating with external identity providers that support Dynamic Client Registration.
+**Use when:** Integrating with external OAuth 2.1 authorization servers (with or without Dynamic Client Registration).
 
 **Features:**
 - Everything in JWTVerifier
 - OAuth 2.0 Protected Resource Metadata (RFC 9728)
-- Points clients to external authorization server
+- Points clients to one or more authorization servers
 - Enables MCP client auto-discovery
+- Supports multiple authorization servers (regional endpoints, multi-IdP)
 
-**Providers with DCR support:**
-- WorkOS (use AuthKitProvider instead)
+**Compatible with:**
+- WorkOS AuthKit (use AuthKitProvider for simpler setup)
 - Descope
-- Auth0 (with proper configuration)
-- Custom OAuth servers with DCR
+- Auth0
+- GitHub OAuth
+- Google OAuth
+- Microsoft Azure AD
+- Any OAuth 2.1 compliant authorization server
+
+**Note:** The MCP server (Resource Server) doesn't need to know whether authorization servers support Dynamic Client Registration (DCR). It simply validates tokens and advertises the AS URLs. Clients discover DCR support directly from the authorization server metadata.
 
 **Configuration:**
 
 ```python
+from arcade_mcp_server.server_auth.base import AuthorizationServerConfig
+
+# Single authorization server
 RemoteOAuthProvider(
-    jwks_uri="https://auth.example.com/.well-known/jwks.json",
-    issuer="https://auth.example.com",
     canonical_url="https://mcp.example.com",
-    authorization_server="https://auth.example.com",
-    algorithms=["RS256"],  # Optional
+    configs=[
+        AuthorizationServerConfig(
+            authorization_server_url="https://auth.example.com",
+            issuer="https://auth.example.com",
+            jwks_uri="https://auth.example.com/.well-known/jwks.json",
+            algorithm="RS256",  # Optional, defaults to RS256
+        )
+    ],
     cache_ttl=3600,  # Optional
 )
+
+# Multiple authorization servers (see "Multiple Authorization Servers" section above)
 ```
 
 ### AuthKitProvider
@@ -309,9 +442,15 @@ Every token is validated for:
 
 1. **Signature** - Verified against JWKS public keys
 2. **Expiration** - `exp` claim checked
-3. **Issuer** - `iss` claim must match expected authorization server
+3. **Issuer** - `iss` claim must match one of the configured authorization servers
 4. **Audience** - `aud` claim must match this MCP server's canonical URL
 5. **Subject** - `sub` claim must exist (becomes user_id)
+
+When multiple authorization servers are configured:
+- Token issuer is checked against the list of authorized issuers
+- Tokens from unauthorized issuers are rejected immediately
+- Each configured AS can have its own JWKS URI and algorithm
+- JWKS fetches are deduplicated when multiple AS share the same keys
 
 ### No Session-Based Auth
 
@@ -404,14 +543,17 @@ app = MCPApp(
 
 ### Settings-Based Configuration
 
-Configure via MCPSettings:
+Environment variables are automatically loaded into `MCPSettings.server_auth`. The settings are used by `RemoteOAuthProvider` when initialized without parameters:
 
 ```python
-from arcade_mcp_server import MCPSettings
+# Set environment variables first
+# export MCP_SERVER_AUTH_CANONICAL_URL="https://mcp.example.com"
+# export MCP_SERVER_AUTH_AUTHORIZATION_SERVERS='[...]'
 
-settings = MCPSettings()
-settings.server_auth.enabled = True
-settings.server_auth.canonical_url = "https://mcp.example.com"
+from arcade_mcp_server import RemoteOAuthProvider
+
+# Automatically reads from environment variables
+auth = RemoteOAuthProvider()
 ```
 
 ## Testing
@@ -543,13 +685,10 @@ Front-door auth → Provides user_id → Tool auth uses user_id → Arcade Engin
 
 The following features are planned but not yet implemented:
 
-- **OAuth Proxy** - Support for providers without DCR (GitHub, Google, Azure)
 - **Opaque Token Support** - Token introspection via RFC 7662
 - **Scope-Based Authorization** - Fine-grained access control
-- **Environment-Based Config** - Configure providers via env vars
 - **Per-User Rate Limiting** - Rate limits based on authenticated user
 - **Audit Logging** - Detailed logging of authenticated requests
-- **Multi-Auth Server Support** - Multiple authorization servers per resource
 
 ## References
 

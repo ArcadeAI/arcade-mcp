@@ -8,6 +8,35 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
 
+from pydantic import BaseModel, Field
+
+
+class JWTVerifyOptions(BaseModel):
+    """Options for JWT token verification.
+
+    All validations are enabled by default for security.
+    Set to False to disable specific validations for non-compliant authorization servers.
+
+    Note: Token signature verification is always enabled and cannot be disabled.
+    """
+
+    verify_exp: bool = Field(
+        default=True,
+        description="Verify token expiration (exp claim)",
+    )
+    verify_iat: bool = Field(
+        default=True,
+        description="Verify issued-at time (iat claim)",
+    )
+    verify_aud: bool = Field(
+        default=True,
+        description="Verify audience claim (aud claim)",
+    )
+    verify_iss: bool = Field(
+        default=True,
+        description="Verify issuer claim (iss claim)",
+    )
+
 
 @dataclass
 class AuthenticatedUser:
@@ -28,6 +57,31 @@ class AuthenticatedUser:
 
     claims: dict[str, Any] = field(default_factory=dict)
     """All claims from the validated token for advanced use cases"""
+
+
+@dataclass
+class AuthorizationServerConfig:
+    """Configuration for a single authorization server.
+
+    Each authorization server that can issue valid tokens for this
+    MCP server needs its own config specifying how to verify tokens
+    from that server.
+    """
+
+    authorization_server_url: str
+    """Authorization server URL for client discovery (RFC 9728)"""
+
+    issuer: str
+    """Expected issuer claim in JWT tokens from this server"""
+
+    jwks_uri: str
+    """JWKS endpoint to fetch public keys for token verification"""
+
+    algorithm: str = "RS256"
+    """JWT signature algorithm (RS256, ES256, PS256, etc.)"""
+
+    verify_options: JWTVerifyOptions = field(default_factory=JWTVerifyOptions)
+    """Token verification options for this AS"""
 
 
 class AuthenticationError(Exception):

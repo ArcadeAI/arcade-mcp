@@ -9,15 +9,17 @@ on HTTP requests before processing MCP protocol messages.
 from arcade_mcp_server.server_auth.base import (
     AuthenticatedUser,
     AuthenticationError,
+    AuthorizationServerConfig,
     InvalidTokenError,
+    JWTVerifyOptions,
     ServerAuthProvider,
     TokenExpiredError,
 )
-from arcade_mcp_server.server_auth.providers.jwt import JWTVerifyOptions
 
 __all__ = [
     "AuthenticatedUser",
     "AuthenticationError",
+    "AuthorizationServerConfig",
     "InvalidTokenError",
     "JWTVerifyOptions",
     "ServerAuthProvider",

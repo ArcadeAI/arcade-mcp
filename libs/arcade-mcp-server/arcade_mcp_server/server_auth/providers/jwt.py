@@ -9,180 +9,110 @@ from typing import Any, cast
 
 import httpx
 from jose import jwk, jwt
-from pydantic import BaseModel, Field
 
 from arcade_mcp_server.server_auth.base import (
     AuthenticatedUser,
     AuthenticationError,
     InvalidTokenError,
+    JWTVerifyOptions,
     ServerAuthProvider,
     TokenExpiredError,
 )
-from arcade_mcp_server.settings import MCPSettings
 
-
-class JWTVerifyOptions(BaseModel):
-    """Options for JWT token verification.
-
-    All validations are enabled by default for security.
-    Set to False to disable specific validations for non-compliant authorization servers.
-
-    Note: Token signature verification is always enabled and cannot be disabled.
-    """
-
-    verify_exp: bool = Field(
-        default=True,
-        description="Verify token expiration (exp claim)",
-    )
-    verify_iat: bool = Field(
-        default=True,
-        description="Verify issued-at time (iat claim)",
-    )
-    verify_aud: bool = Field(
-        default=True,
-        description="Verify audience claim (aud claim)",
-    )
-    verify_iss: bool = Field(
-        default=True,
-        description="Verify issuer claim (iss claim)",
-    )
-
-
-# Supported asymmetric JWT signature algorithms
-# Note: Only asymmetric algorithms supported - JWKS requires public key cryptography
-# Symmetric algorithms (HS256/384/512) use shared secrets, not JWKS
+# Note: Only asymmetric algorithms supported
 SUPPORTED_ALGORITHMS = {
     "RS256",
     "RS384",
-    "RS512",  # RSA
+    "RS512",
     "ES256",
     "ES384",
-    "ES512",  # ECDSA (Elliptic Curve)
+    "ES512",
     "PS256",
     "PS384",
-    "PS512",  # RSA-PSS
+    "PS512",
 }
 
 
 class JWTVerifier(ServerAuthProvider):
-    """JWT-based token verification with JWKS key fetching.
-
-    This provider validates JWT access tokens by:
-    1. Fetching public keys from a JWKS endpoint
-    2. Verifying the token signature using the appropriate key
-    3. Validating standard claims (exp, iss, aud)
-    4. Extracting user information from claims
-
-    The JWKS is cached to avoid fetching on every request, with a configurable TTL.
-
-    Example:
-        ```python
-        auth = JWTVerifier(
-            jwks_uri="https://auth.example.com/.well-known/jwks.json",
-            issuer="https://auth.example.com",
-            audience="https://mcp.example.com/mcp",
-        )
-        ```
-    """
-
     def __init__(
         self,
-        jwks_uri: str | None = None,
-        issuer: str | list[str] | None = None,
-        audience: str | None = None,
+        jwks_uri: str,
+        issuer: str | list[str],
+        audience: str | list[str],
         algorithm: str = "RS256",
         cache_ttl: int = 3600,
         verify_options: JWTVerifyOptions | None = None,
     ):
-        """Initialize JWT verifier with optional env var support.
+        """Initialize JWT verifier
+
+        This provider is for simple, explicit token validation.
 
         Args:
-            jwks_uri: URL to fetch JWKS (or MCP_SERVER_AUTH_JWKS_URI)
-            issuer: Token issuer or list of issuers (or MCP_SERVER_AUTH_ISSUER)
-            audience: Token audience (or MCP_SERVER_AUTH_CANONICAL_URL)
-            algorithm: Signature algorithm (or MCP_SERVER_AUTH_ALGORITHM). Default RS256.
+            jwks_uri: URL to fetch JWKS
+            issuer: Token issuer or list of allowed issuers
+            audience: Token audience or list of allowed audiences (typically your MCP server's canonical URL)
+            algorithm: Signature algorithm. Default RS256.
             cache_ttl: JWKS cache TTL in seconds
-            verify_options: JWT verification options (or MCP_SERVER_AUTH_VERIFY_*)
+            verify_options: JWT verification options
 
         Raises:
             ValueError: If required fields not provided, algorithm unsupported, or verify_aud is True but audience is None
 
         Example:
             ```python
-            # Option 1: Use environment variables
-            auth = JWTVerifier()
-
-            # Option 2: Explicit parameters
             auth = JWTVerifier(
                 jwks_uri="https://auth.example.com/jwks",
                 issuer="https://auth.example.com",
                 audience="https://mcp.example.com/mcp",
             )
 
-            # Option 3: Multiple issuers
+            # Multiple issuers
             auth = JWTVerifier(
                 jwks_uri="https://auth.example.com/jwks",
                 issuer=["https://auth1.example.com", "https://auth2.example.com"],
                 audience="https://mcp.example.com/mcp",
             )
 
-            # Option 4: Different algorithm
+            # Multiple audiences (e.g., URL migration)
             auth = JWTVerifier(
                 jwks_uri="https://auth.example.com/jwks",
                 issuer="https://auth.example.com",
+                audience=["https://old-mcp.example.com/mcp", "https://new-mcp.example.com/mcp"],
+            )
+
+            # Different algorithm
+            auth = JWTVerifier(
+                jwks_uri="https://auth.example.com/jwks",
+                issuer="https://auth.example.com",
+                audience="https://mcp.example.com/mcp",
                 algorithm="ES256",
             )
             ```
         """
-        settings = MCPSettings.from_env()
-        auth_settings = settings.server_auth
 
-        # Environment variables take precedence
-        jwks_uri = auth_settings.jwks_uri or jwks_uri
-        issuer = auth_settings.issuer or issuer
-        audience = auth_settings.canonical_url or audience
-
-        if auth_settings.algorithm:
-            algorithm = auth_settings.algorithm
-
-        if verify_options is None:
-            verify_options = JWTVerifyOptions(
-                verify_aud=auth_settings.verify_aud,
-                verify_exp=auth_settings.verify_exp,
-                verify_iat=auth_settings.verify_iat,
-                verify_iss=auth_settings.verify_iss,
-            )
-
-        # Validate required fields
-        if not jwks_uri:
-            raise ValueError("jwks_uri required (parameter or MCP_SERVER_AUTH_JWKS_URI)")
-        if not issuer:
-            raise ValueError("issuer required (parameter or MCP_SERVER_AUTH_ISSUER)")
-
-        # Validate algorithm is supported and asymmetric
+        # Validate algorithm is supported
         if algorithm not in SUPPORTED_ALGORITHMS:
             raise ValueError(
                 f"Unsupported algorithm '{algorithm}'. "
                 f"Supported asymmetric algorithms: {', '.join(sorted(SUPPORTED_ALGORITHMS))}"
             )
 
+        if verify_options is None:
+            verify_options = JWTVerifyOptions()
+
         self.jwks_uri = jwks_uri
         self.issuer = issuer
         self.audience = audience
         self.algorithm = algorithm
-        self.algorithms = [algorithm]  # Keep as list for jwt.decode compatibility
-        self._cache_ttl = cache_ttl
         self.verify_options = verify_options
 
-        if self.verify_options.verify_aud and self.audience is None:
-            raise ValueError("audience must be provided when verify_aud is True")
-
+        self._cache_ttl = cache_ttl
         self._http_client = httpx.AsyncClient(timeout=10.0)
         self._jwks_cache: dict[str, Any] | None = None
         self._cache_timestamp: float = 0
 
     async def _fetch_jwks(self) -> dict[str, Any]:
-        """Fetch JWKS asynchronously with caching.
+        """Fetch JWKS with caching.
 
         Returns:
             JWKS dictionary containing public keys
@@ -209,9 +139,6 @@ class JWTVerifier(ServerAuthProvider):
     def _find_signing_key(self, jwks: dict[str, Any], token: str) -> Any:
         """Find the signing key from JWKS that matches the token's kid.
 
-        Security: Validates that token algorithm and key algorithm match the
-        configured algorithm to prevent algorithm confusion attacks.
-
         Args:
             jwks: JSON Web Key Set
             token: JWT token
@@ -237,21 +164,19 @@ class JWTVerifier(ServerAuthProvider):
             if key_data.get("kid") == kid:
                 key_alg = key_data.get("alg")
 
-                # Validate key algorithm matches configuration
                 if key_alg and key_alg != self.algorithm:
                     raise InvalidTokenError(
                         f"Key algorithm '{key_alg}' doesn't match "
                         f"configured algorithm '{self.algorithm}'"
                     )
 
-                # Use configured algorithm (don't trust the key)
                 key_obj = jwk.construct(key_data, algorithm=self.algorithm)
                 return key_obj.to_pem().decode("utf-8")
 
         raise InvalidTokenError("No matching key found in JWKS")
 
     def _decode_token(self, token: str, signing_key: str) -> dict[str, Any]:
-        """Decode and verify the JWT token.
+        """Decode and verify the provided JWT token.
 
         Args:
             token: JWT token
@@ -269,46 +194,50 @@ class JWTVerifier(ServerAuthProvider):
             "verify_signature": True,  # Always verify signature
             "verify_exp": self.verify_options.verify_exp,
             "verify_iat": self.verify_options.verify_iat,
-            "verify_aud": self.verify_options.verify_aud,
-            "verify_iss": self.verify_options.verify_iss,
+            "verify_aud": False,  # We'll validate manually for multi-audience support
+            "verify_iss": False,  # We'll validate manually for better multi-issuer handling
         }
 
-        # Handle multi-issuer by trying each one
-        if isinstance(self.issuer, list):
-            last_error = None
-            for iss in self.issuer:
-                try:
-                    return cast(
-                        dict[str, Any],
-                        jwt.decode(
-                            token,
-                            signing_key,
-                            algorithms=self.algorithms,
-                            issuer=iss,
-                            options=decode_options,
-                            audience=self.audience,
-                        ),
-                    )
-                except jwt.JWTClaimsError as e:
-                    last_error = e
-                    continue
-            # No issuer matched
-            raise InvalidTokenError(
-                f"Token issuer not in allowed issuers: {self.issuer}"
-            ) from last_error
-
-        # Single issuer - let library handle validation
-        return cast(
+        # Decode token once without aud/iss validation
+        decoded = cast(
             dict[str, Any],
             jwt.decode(
                 token,
                 signing_key,
-                algorithms=self.algorithms,
-                issuer=self.issuer,
+                algorithms=[self.algorithm],
                 options=decode_options,
-                audience=self.audience,
             ),
         )
+
+        # Manually validate issuer
+        if self.verify_options.verify_iss:
+            token_iss = decoded.get("iss")
+            if isinstance(self.issuer, list):
+                if token_iss not in self.issuer:
+                    raise InvalidTokenError(
+                        f"Token issuer '{token_iss}' not in allowed issuers: {self.issuer}"
+                    )
+            else:
+                if token_iss != self.issuer:
+                    raise InvalidTokenError(
+                        f"Token issuer '{token_iss}' doesn't match expected '{self.issuer}'"
+                    )
+
+        # Manually validate audience
+        if self.verify_options.verify_aud:
+            token_aud = decoded.get("aud")
+            token_audiences = [token_aud] if isinstance(token_aud, str) else (token_aud or [])
+            expected_audiences = (
+                [self.audience] if isinstance(self.audience, str) else self.audience
+            )
+
+            # Token is valid if any of its aud values match any of our expected values
+            if not (set(token_audiences) & set(expected_audiences)):
+                raise InvalidTokenError(
+                    f"Token audience {token_aud} doesn't match expected {self.audience}"
+                )
+
+        return decoded
 
     def _extract_user_id(self, decoded: dict[str, Any]) -> str:
         """Extract and validate user_id from decoded token.
@@ -328,14 +257,7 @@ class JWTVerifier(ServerAuthProvider):
         return cast(str, user_id)
 
     def _extract_client_id(self, decoded: dict[str, Any]) -> str | None:
-        """Extract client ID from decoded token per OAuth 2.0 spec.
-
-        OAuth 2.0 clients can be identified through several claims:
-        1. client_id - Standard OAuth 2.0 client identifier
-        2. azp (Authorized Party) - OIDC claim for the party to which token was issued
-
-        Note: We do NOT fall back to 'sub' as it represents the end user,
-        not the client application. Conflating these violates the OAuth model.
+        """Extract client ID from decoded token.
 
         Args:
             decoded: Decoded token claims
@@ -353,12 +275,15 @@ class JWTVerifier(ServerAuthProvider):
         """Validate JWT and return authenticated user.
 
         Validates:
-        - Token signature using JWKS public key (MANDATORY)
-        - Expiration (exp claim) (MANDATORY)
-        - Issued-at time (iat claim) (MANDATORY)
-        - Issuer (iss claim) matches configured issuer(s) (MANDATORY)
-        - Audience (aud claim) if configured (CONDITIONAL)
-        - Subject (sub claim) exists (MANDATORY)
+        - Token signature using JWKS public key (ALWAYS)
+        - Subject (sub claim) exists (ALWAYS)
+        - Expiration (exp claim) (if verify_options.verify_exp is True, default True)
+        - Issued-at time (iat claim) (if verify_options.verify_iat is True, default True)
+        - Issuer (iss claim) matches configured issuer(s) (if verify_options.verify_iss is True, default True)
+        - Audience (aud claim) matches configured audience(s) (if verify_options.verify_aud is True, default True)
+
+        Note: All verify_options default to True, so by default all validations are enabled
+        for max security.
 
         Args:
             token: JWT Bearer token
@@ -378,8 +303,6 @@ class JWTVerifier(ServerAuthProvider):
             user_id = self._extract_user_id(decoded)
             client_id = self._extract_client_id(decoded)
             email = decoded.get("email")
-
-            # TODO: Determine if this user is allowed to access this MCP server
 
             return AuthenticatedUser(
                 user_id=user_id,

@@ -94,67 +94,64 @@ class ServerSettings(BaseSettings):
 
 
 class ServerAuthSettings(BaseSettings):
-    """Server authentication settings for front-door auth."""
+    """Settings for RemoteOAuthProvider configuration via environment variables."""
 
-    enabled: bool = Field(
-        default=False,
-        description="Enable front-door authentication",
-    )
     canonical_url: str | None = Field(
         default=None,
         description="Canonical URL of this MCP server (e.g., https://mcp.example.com)",
     )
-    jwks_uri: str | None = Field(
+    authorization_servers: list[dict[str, Any]] | None = Field(
         default=None,
-        description="URL to fetch JSON Web Key Set for JWT verification",
+        description="JSON array of authorization server configs. "
+        'Example: \'[{"authorization_server_url":"...","issuer":"...","jwks_uri":"...","algorithm":"RS256"}]\'',
     )
-    issuer: str | list[str] | None = Field(
-        default=None,
-        description="Expected JWT token issuer(s). Single issuer or list of allowed issuers.",
-    )
-    authorization_server: str | None = Field(
-        default=None,
-        description="Authorization server URL for OAuth discovery (RFC 9728)",
-    )
-    algorithm: str | None = Field(
-        default=None,
-        description="JWT signature algorithm (e.g., 'RS256', 'ES256', 'PS256')",
-    )
-    verify_aud: bool = Field(default=True, description="Verify JWT audience claim")
-    verify_exp: bool = Field(default=True, description="Verify JWT expiration")
-    verify_iat: bool = Field(default=True, description="Verify JWT issued-at time")
-    verify_iss: bool = Field(default=True, description="Verify JWT issuer")
 
-    @field_validator("issuer", mode="before")
+    @field_validator("authorization_servers", mode="before")
     @classmethod
-    def parse_issuer_list(cls, v: Any) -> str | list[str] | None:
-        """Parse issuer(s) from environment variable.
-
-        Accepts:
-        - Single issuer: "https://auth.example.com"
-        - Multiple issuers (comma-separated): "https://auth1.com,https://auth2.com"
-        - JSON array: '["https://auth1.com","https://auth2.com"]'
-        """
+    def parse_authorization_servers(cls, v: Any) -> list[dict[str, Any]] | None:
+        """Parse JSON array from environment variable."""
         if v is None:
             return None
         if isinstance(v, str):
-            # Try JSON array format first
-            if v.strip().startswith("["):
-                try:
-                    import json
+            import json
 
-                    parsed = json.loads(v)
-                    if isinstance(parsed, list):
-                        return parsed
-                except json.JSONDecodeError:
-                    pass
-            # Fall back to comma-separated
-            if "," in v:
-                return [iss.strip() for iss in v.split(",") if iss.strip()]
-            return v
+            try:
+                parsed = json.loads(v)
+                if not isinstance(parsed, list):
+                    raise TypeError("authorization_servers must be a JSON array")
+            except json.JSONDecodeError as e:
+                raise ValueError(f"Invalid JSON in authorization_servers: {e}") from e
+            else:
+                return parsed
         if isinstance(v, list):
             return v
         return None
+
+    def to_authorization_server_configs(self) -> list[Any]:
+        """Convert settings to list of AuthorizationServerConfig objects."""
+        if not self.authorization_servers:
+            return []
+
+        from arcade_mcp_server.server_auth.base import (
+            AuthorizationServerConfig,
+            JWTVerifyOptions,
+        )
+
+        return [
+            AuthorizationServerConfig(
+                authorization_server_url=config["authorization_server_url"],
+                issuer=config["issuer"],
+                jwks_uri=config["jwks_uri"],
+                algorithm=config.get("algorithm", "RS256"),
+                verify_options=JWTVerifyOptions(
+                    verify_aud=config.get("verify_aud", True),
+                    verify_exp=config.get("verify_exp", True),
+                    verify_iat=config.get("verify_iat", True),
+                    verify_iss=config.get("verify_iss", True),
+                ),
+            )
+            for config in self.authorization_servers
+        ]
 
     model_config = {"env_prefix": "MCP_SERVER_AUTH_"}
 

@@ -26,6 +26,7 @@ from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.server_auth.base import (
     AuthenticatedUser,
     AuthenticationError,
+    AuthorizationServerConfig,
     InvalidTokenError,
     ServerAuthProvider,
     TokenExpiredError,
@@ -38,6 +39,7 @@ from arcade_mcp_server.worker import create_arcade_mcp, run_arcade_mcp
 __all__ = [
     "AuthenticatedUser",
     "AuthenticationError",
+    "AuthorizationServerConfig",
     "Context",
     "InvalidTokenError",
     "JWTVerifier",
