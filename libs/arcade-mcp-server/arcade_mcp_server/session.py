@@ -416,9 +416,6 @@ class ServerSession:
 
                 await self.write_stream.send(response_data)
 
-            # Clear authenticated user after request
-            self._current_authenticated_user = None
-
         except json.JSONDecodeError:
             await self._send_error_response(
                 None,
@@ -431,6 +428,9 @@ class ServerSession:
                 -32603,
                 f"Internal error: {e!s}",
             )
+        finally:
+            # Authenticated user must be cleared & re-validated on every request
+            self._current_authenticated_user = None
 
     async def _send_error_response(
         self,

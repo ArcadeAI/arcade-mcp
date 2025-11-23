@@ -20,7 +20,6 @@ from arcade_core.catalog import MaterializedTool, ToolCatalog, ToolDefinitionErr
 from arcade_tdk.auth import ToolAuthorization
 from arcade_tdk.error_adapters import ErrorAdapter
 from arcade_tdk.tool import tool as tool_decorator
-from dotenv import load_dotenv
 from loguru import logger
 from watchfiles import watch
 
@@ -126,7 +125,6 @@ class MCPApp:
         # Store the actual instructions that ended up in ServerSettings
         self.instructions = self._mcp_settings.server.instructions
 
-        self._load_env()
         if not logger._core.handlers:  # type: ignore[attr-defined]
             self._setup_logging(transport == "stdio")
 
@@ -195,13 +193,6 @@ class MCPApp:
     def resources(self) -> _ResourcesAPI:
         """Runtime resources API: add/remove/list."""
         return _ResourcesAPI(self)
-
-    def _load_env(self) -> None:
-        """Load .env file from the current directory."""
-        env_path = Path.cwd() / ".env"
-        if env_path.exists():
-            load_dotenv(env_path, override=False)
-            logger.info(f"Loaded environment from {env_path}")
 
     def _setup_logging(self, stdio_mode: bool = False) -> None:
         logger.remove()

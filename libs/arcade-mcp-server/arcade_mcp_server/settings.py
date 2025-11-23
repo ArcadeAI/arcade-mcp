@@ -5,6 +5,7 @@ Provides Pydantic-based settings with validation and environment variable suppor
 """
 
 import os
+from pathlib import Path
 from typing import Any
 
 from pydantic import Field, field_validator
@@ -144,10 +145,10 @@ class ServerAuthSettings(BaseSettings):
                 jwks_uri=config["jwks_uri"],
                 algorithm=config.get("algorithm", "RS256"),
                 verify_options=JWTVerifyOptions(
-                    verify_aud=config.get("verify_aud", True),
-                    verify_exp=config.get("verify_exp", True),
-                    verify_iat=config.get("verify_iat", True),
-                    verify_iss=config.get("verify_iss", True),
+                    verify_aud=config.get("verify_options", {}).get("verify_aud", True),
+                    verify_exp=config.get("verify_options", {}).get("verify_exp", True),
+                    verify_iat=config.get("verify_options", {}).get("verify_iat", True),
+                    verify_iss=config.get("verify_options", {}).get("verify_iss", True),
                 ),
             )
             for config in self.authorization_servers
@@ -303,7 +304,20 @@ class MCPSettings(BaseSettings):
 
     @classmethod
     def from_env(cls) -> "MCPSettings":
-        """Create settings from environment variables."""
+        """Create settings from environment variables.
+
+        Automatically loads .env file from current directory if it exists,
+        then creates settings from the combined environment.
+
+        The .env file is loaded with override=False, meaning existing
+        environment variables take precedence. Multiple calls are safe
+        """
+        from dotenv import load_dotenv
+
+        env_path = Path.cwd() / ".env"
+        if env_path.exists():
+            load_dotenv(env_path, override=False)
+
         return cls()
 
     def tool_secrets(self) -> dict[str, Any]:

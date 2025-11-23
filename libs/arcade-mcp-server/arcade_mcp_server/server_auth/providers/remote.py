@@ -85,21 +85,20 @@ class RemoteOAuthProvider(ServerAuthProvider):
             ```
         """
         settings = MCPSettings.from_env()
-        auth_settings = settings.server_auth
 
         self.cache_ttl = cache_ttl
 
         # Environment variables take precedence
-        if auth_settings.canonical_url is not None:
-            self.canonical_url = auth_settings.canonical_url
+        if settings.server_auth.canonical_url is not None:
+            self.canonical_url = settings.server_auth.canonical_url
         elif canonical_url is not None:
             self.canonical_url = canonical_url
         else:
             raise ValueError("canonical_url must be provided")
 
-        if auth_settings.authorization_servers:
+        if settings.server_auth.authorization_servers:
             # Build from settings (JSON array only)
-            configs = auth_settings.to_authorization_server_configs()
+            configs = settings.server_auth.to_authorization_server_configs()
         elif authorization_servers is not None:
             configs = authorization_servers
         else:

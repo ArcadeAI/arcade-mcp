@@ -30,9 +30,9 @@ auth = RemoteOAuthProvider(
 #     canonical_url="http://127.0.0.1:8000/mcp",
 #     authorization_servers=[
 #         AuthorizationServerConfig(
-#             authorization_server_url="https://workos.authkit.app",
-#             issuer="https://workos.authkit.app",
-#             jwks_uri="https://workos.authkit.app/oauth2/jwks",
+#             authorization_server_url="https://your-workos.authkit.app",
+#             issuer="https://your-workos.authkit.app",
+#             jwks_uri="https://your-workos.authkit.app/oauth2/jwks",
 #         ),
 #         AuthorizationServerConfig(
 #             authorization_server_url="https://github.com/login/oauth",
@@ -41,6 +41,23 @@ auth = RemoteOAuthProvider(
 #         ),
 #     ],
 # )
+
+# Authoriation via env vars (place in your .env file)
+# ```bash
+# MCP_SERVER_AUTH_CANONICAL_URL=http://127.0.0.1:8000/mcp
+# MCP_SERVER_AUTH_AUTHORIZATION_SERVERS='[
+#   {
+#     "authorization_server_url": "https://your-workos.authkit.app",
+#     "issuer": "https://your-workos.authkit.app",
+#     "jwks_uri": "https://your-workos.authkit.app/oauth2/jwks",
+#     "algorithm": "RS256",
+#     "verify_options": {
+#       "verify_aud": false
+#     }
+#   }
+# ]'
+# ```
+# auth = RemoteOAuthProvider()
 
 app = MCPApp(name="authorization", version="1.0.0", log_level="DEBUG", auth=auth)
 
