@@ -142,8 +142,8 @@ class ArcadeSettings(BaseSettings):
         description="Disable authentication",
     )
     server_secret: str | None = Field(
-        default="dev",
-        description="Server secret",
+        default=None,
+        description="Server secret for worker endpoints (required to enable worker routes)",
         validation_alias="ARCADE_WORKER_SECRET",
     )
     environment: str = Field(

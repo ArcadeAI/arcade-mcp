@@ -44,12 +44,17 @@ def mock_router():
 
 @pytest.fixture
 def base_worker(mock_router):
+    # Save original value
+    original_secret = os.environ.get("ARCADE_WORKER_SECRET")
     # Set env var temporarily for testing secret loading
     os.environ["ARCADE_WORKER_SECRET"] = "test_secret_env"  # noqa: S105
     worker = BaseWorker()
     worker.register_routes(mock_router)  # Register routes using the mock router
-    # Clean up env var
-    del os.environ["ARCADE_WORKER_SECRET"]
+    # Restore original value
+    if original_secret is not None:
+        os.environ["ARCADE_WORKER_SECRET"] = original_secret
+    else:
+        del os.environ["ARCADE_WORKER_SECRET"]
     return worker
 
 
@@ -68,19 +73,31 @@ def test_base_worker_init_with_secret():
 
 
 def test_base_worker_init_with_env_secret():
+    original_secret = os.environ.get("ARCADE_WORKER_SECRET")
     os.environ["ARCADE_WORKER_SECRET"] = "env_secret_value"  # noqa: S105
     worker = BaseWorker()
     assert worker.secret == "env_secret_value"  # noqa: S105
     assert not worker.disable_auth
-    del os.environ["ARCADE_WORKER_SECRET"]
+
+    # Restore secret to original if it was set
+    if original_secret is not None:
+        os.environ["ARCADE_WORKER_SECRET"] = original_secret
+    else:
+        del os.environ["ARCADE_WORKER_SECRET"]
 
 
 def test_base_worker_init_no_secret_raises_error():
-    # Ensure env var is not set
+    # Ensure secret is not set
+    original_secret = os.environ.get("ARCADE_WORKER_SECRET")
     if "ARCADE_WORKER_SECRET" in os.environ:
         del os.environ["ARCADE_WORKER_SECRET"]
+
     with pytest.raises(ValueError, match="No secret provided for worker"):
         BaseWorker()
+
+    # Restore secret if it was set
+    if original_secret is not None:
+        os.environ["ARCADE_WORKER_SECRET"] = original_secret
 
 
 def test_base_worker_init_disable_auth():
