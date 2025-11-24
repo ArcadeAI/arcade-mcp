@@ -1,8 +1,4 @@
-"""
-ASGI middleware for front-door authentication.
-
-Validates Bearer tokens on every HTTP request before passing to MCP protocol handler.
-"""
+"""ASGI middleware for front-door authentication."""
 
 from starlette.requests import Request
 from starlette.responses import Response
@@ -22,9 +18,9 @@ class MCPAuthMiddleware:
 
     Validates tokens per MCP specification:
     - Checks Authorization header for Bearer token
-    - Validates token on EVERY request (per MCP spec)
+    - Validates token on every request
     - Returns 401 with WWW-Authenticate header if authentication fails
-    - Stores authenticated user in scope for downstream use
+    - Stores authenticated user in scope for downstream use to lift tool-auth and tool-secrets restrictions
 
     The WWW-Authenticate header includes:
     - resource_metadata URL for OAuth discovery (if provider supports it)
@@ -46,7 +42,7 @@ class MCPAuthMiddleware:
         auth_provider: ServerAuthProvider,
         canonical_url: str | None,
     ):
-        """Initialize auth middleware.
+        """Initialize the server-level auth middleware.
 
         Args:
             app: ASGI application to wrap
@@ -68,27 +64,19 @@ class MCPAuthMiddleware:
         4. Pass to wrapped app
 
         For non-HTTP requests, pass through without auth.
-        OPTIONS requests (CORS preflight) pass through without auth.
         """
         # Only process HTTP requests
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
 
-        # # Allow OPTIONS requests (CORS preflight) without authentication
-        # if scope.get("method") == "OPTIONS":
-        #     await self.app(scope, receive, send)
-        #     return
-
         request = Request(scope, receive)
 
         try:
             authenticated_user = await self._authenticate_request(request)
 
-            # Store in scope for downstream use
+            # Store in scope for downstream usage & continue to app execution
             scope["authenticated_user"] = authenticated_user
-
-            # Continue to app
             await self.app(scope, receive, send)
 
         except (TokenExpiredError, InvalidTokenError) as e:
@@ -122,9 +110,10 @@ class MCPAuthMiddleware:
             raise AuthenticationError("No Authorization header")
 
         if not auth_header.startswith("Bearer "):
-            raise AuthenticationError("Invalid Authorization header format")
+            raise AuthenticationError("Invalid Authorization header format.")
 
-        token = auth_header[7:]  # Remove "Bearer " prefix
+        # Remove "Bearer " prefix
+        token = auth_header[7:]
 
         return await self.auth_provider.validate_token(token)
 
@@ -144,9 +133,8 @@ class MCPAuthMiddleware:
             error_description: Human-readable error description
 
         Returns:
-            Response with 401 status and WWW-Authenticate header
+            Response with 401 status with WWW-Authenticate header
         """
-        # Build WWW-Authenticate header per RFC 6750 and RFC 9728
         www_auth_parts = ["Bearer"]
 
         # Add resource metadata URL if provider supports discovery (RFC 9728)

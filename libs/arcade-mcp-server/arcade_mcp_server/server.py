@@ -619,7 +619,7 @@ class MCPServer:
                 error={"code": -32603, "message": "Internal error listing tools"},
             )
 
-    async def _create_tool_context(
+    def _create_tool_context(
         self, tool: MaterializedTool, session: ServerSession | None = None
     ) -> ToolContext:
         """Create a tool context from a tool definition and session"""
@@ -633,10 +633,25 @@ class MCPServer:
                 elif secret.key in os.environ:
                     tool_context.set_secret(secret.key, os.environ[secret.key])
 
-        # user_id selection priority:
-        # 1. Authenticated user from front-door auth (if available)
-        # 2. Configured user_id from settings
-        # 3. Session ID for dev environments
+        tool_context.user_id = self._select_user_id(session)
+
+        return tool_context
+
+    def _select_user_id(self, session: ServerSession | None = None) -> str | None:
+        """Select the user_id for the tool's context.
+
+        User ID selection priority:
+        - Authenticated user from front-door auth
+        - Configured user_id from settings
+        - Configured user_id from credentials file
+        - Use session ID if no other user_id is available
+
+        Args:
+            session: Server session
+
+        Returns:
+            User ID for the context
+        """
         env = (self.settings.arcade.environment or "").lower()
 
         # First priority: authenticated user from front-door auth
@@ -645,30 +660,27 @@ class MCPServer:
             and hasattr(session, "_current_authenticated_user")
             and session._current_authenticated_user
         ):
-            tool_context.user_id = session._current_authenticated_user.user_id
-            logger.debug(
-                f"Context user_id set from Authorization Server 'sub' claim: {tool_context.user_id}"
-            )
+            user_id = session._current_authenticated_user.user_id
+            logger.debug(f"Context user_id set from Authorization Server 'sub' claim: {user_id}")
+            return cast(str, user_id)
+
+        # Second priority: configured user_id from settings
+        if user_id := self.settings.arcade.user_id:
+            logger.debug(f"Context user_id set from settings: {user_id}")
+            return user_id
+
+        # Third priority: configured user_id from credentials file
+        _, config_user_id = self._load_config_values()
+        if config_user_id:
+            logger.debug(f"Context user_id set from credentials file: {config_user_id}")
+
+        # Fourth priority: use session ID if no other user_id is available
+        if env in ("development", "dev", "local"):
+            logger.debug(f"Context user_id set from session (dev env={env})")
         else:
-            # Second priority: configured user_id from settings
-            user_id = self.settings.arcade.user_id
+            logger.debug("Context user_id set from session (non-dev env)")
 
-            # If no user_id from env, try credentials file
-            if not user_id:
-                _, config_user_id = self._load_config_values()
-                user_id = config_user_id
-
-            if user_id:
-                tool_context.user_id = user_id
-                logger.debug(f"Context user_id set from settings: {user_id}")
-            elif env in ("development", "dev", "local"):
-                tool_context.user_id = session.session_id if session else None
-                logger.debug(f"Context user_id set from session (dev env={env})")
-            else:
-                tool_context.user_id = session.session_id if session else None
-                logger.debug("Context user_id set from session (non-dev env)")
-
-        return tool_context
+        return session.session_id if session else None
 
     async def _handle_call_tool(
         self,
@@ -684,7 +696,7 @@ class MCPServer:
             tool = await self._tool_manager.get_tool(tool_name)
 
             # Create tool context
-            tool_context = await self._create_tool_context(tool, session)
+            tool_context = self._create_tool_context(tool, session)
 
             # Check restrictions for unauthenticated HTTP transport
             if transport_restriction_response := self._check_transport_restrictions(
@@ -821,7 +833,6 @@ class MCPServer:
         if session and session.init_options:
             transport_type = session.init_options.get("transport_type")
             if transport_type != "stdio":
-                # Check if HTTP is authenticated via front-door auth
                 is_authenticated = (
                     hasattr(session, "_current_authenticated_user")
                     and session._current_authenticated_user is not None

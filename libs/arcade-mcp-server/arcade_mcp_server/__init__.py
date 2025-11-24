@@ -23,33 +23,14 @@ from arcade_tdk import tool
 from arcade_mcp_server.context import Context
 from arcade_mcp_server.mcp_app import MCPApp
 from arcade_mcp_server.server import MCPServer
-from arcade_mcp_server.server_auth.base import (
-    AuthenticatedUser,
-    AuthenticationError,
-    AuthorizationServerConfig,
-    InvalidTokenError,
-    ServerAuthProvider,
-    TokenExpiredError,
-)
-from arcade_mcp_server.server_auth.providers.jwt import JWTVerifier, JWTVerifyOptions
-from arcade_mcp_server.server_auth.providers.remote import RemoteOAuthProvider
 from arcade_mcp_server.settings import MCPSettings
 from arcade_mcp_server.worker import create_arcade_mcp, run_arcade_mcp
 
 __all__ = [
-    "AuthenticatedUser",
-    "AuthenticationError",
-    "AuthorizationServerConfig",
     "Context",
-    "InvalidTokenError",
-    "JWTVerifier",
-    "JWTVerifyOptions",
     "MCPApp",
     "MCPServer",
     "MCPSettings",
-    "RemoteOAuthProvider",
-    "ServerAuthProvider",
-    "TokenExpiredError",
     "create_arcade_mcp",
     "run_arcade_mcp",
     "tool",

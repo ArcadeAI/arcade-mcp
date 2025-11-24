@@ -37,6 +37,7 @@ from arcade_mcp_server.types import (
     ProgressNotificationParams,
     PromptListChangedNotification,
     ResourceListChangedNotification,
+    SessionMessage,
     ToolListChangedNotification,
 )
 
@@ -278,7 +279,7 @@ class ServerSession:
         self._session_data: dict[str, Any] = {}
         self._request_meta: Any = None
 
-        # Current authenticated user (from front-door auth) - set per request
+        # Current authenticated user (from front-door auth) that is set and cleared on every request
         self._current_authenticated_user: Any | None = None
 
         # Request management
@@ -371,25 +372,18 @@ class ServerSession:
             message: Either a JSON string (stdio) or SessionMessage object (http)
         """
         try:
-            from arcade_mcp_server.types import SessionMessage
-
             if isinstance(message, str):
                 data = json.loads(message)
                 authenticated_user = None
             elif isinstance(message, SessionMessage):
-                if hasattr(message.message, "model_dump"):
-                    # We must keep exclude_none=True to avoid Pydantic union type coersion
-                    # when reconstructing models from dict (e.g., RequestId = str | int)
-                    data = message.message.model_dump(exclude_none=True)
-                else:
-                    # TODO: When would this ever happen? Maybe we should log error and return?
-                    data = message.message if isinstance(message.message, dict) else {}
+                # We must keep exclude_none=True to avoid Pydantic union type coersion
+                # when reconstructing models from dict (e.g., RequestId = str | int)
+                data = message.message.model_dump(exclude_none=True)
                 authenticated_user = message.authenticated_user
             else:
                 logger.error(f"Unexpected message type: {type(message)}")
                 return
 
-            # Store authenticated user for this request
             self._current_authenticated_user = authenticated_user
 
             # Check if it's a response to our request
@@ -429,7 +423,7 @@ class ServerSession:
                 f"Internal error: {e!s}",
             )
         finally:
-            # Authenticated user must be cleared & re-validated on every request
+            # Authenticated user is always cleared & re-validated on every request
             self._current_authenticated_user = None
 
     async def _send_error_response(

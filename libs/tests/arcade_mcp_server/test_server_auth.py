@@ -14,14 +14,13 @@ import time
 from unittest.mock import Mock, patch
 
 import pytest
+from arcade_mcp_server.server_auth import JWTVerifier, RemoteOAuthProvider
 from arcade_mcp_server.server_auth.base import (
     AuthenticatedUser,
     InvalidTokenError,
     TokenExpiredError,
 )
 from arcade_mcp_server.server_auth.middleware import MCPAuthMiddleware
-from arcade_mcp_server.server_auth.providers.jwt import JWTVerifier
-from arcade_mcp_server.server_auth.providers.remote import RemoteOAuthProvider
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from jose import jwt
@@ -534,7 +533,7 @@ class TestRemoteOAuthProvider:
 
     def test_supports_oauth_discovery(self):
         """Test that RemoteOAuthProvider supports OAuth discovery."""
-        from arcade_mcp_server.server_auth.base import AuthorizationServerConfig
+        from arcade_mcp_server.server_auth import AuthorizationServerConfig
 
         provider = RemoteOAuthProvider(
             canonical_url="https://mcp.example.com",
@@ -551,7 +550,7 @@ class TestRemoteOAuthProvider:
 
     def test_get_resource_metadata(self):
         """Test getting OAuth Protected Resource Metadata."""
-        from arcade_mcp_server.server_auth.base import AuthorizationServerConfig
+        from arcade_mcp_server.server_auth import AuthorizationServerConfig
 
         provider = RemoteOAuthProvider(
             canonical_url="https://mcp.example.com",
@@ -675,7 +674,7 @@ class TestMCPAuthMiddleware:
             mock_response.raise_for_status = Mock()
             mock_get.return_value = mock_response
 
-            from arcade_mcp_server.server_auth.base import AuthorizationServerConfig
+            from arcade_mcp_server.server_auth import AuthorizationServerConfig
 
             provider = RemoteOAuthProvider(
                 canonical_url="https://mcp.example.com",
@@ -729,7 +728,7 @@ class TestEnvVarConfiguration:
     @pytest.mark.asyncio
     async def test_remote_oauth_env_var_precedence(self, monkeypatch):
         """Test that environment variables override parameters."""
-        from arcade_mcp_server.server_auth.base import AuthorizationServerConfig
+        from arcade_mcp_server.server_auth import AuthorizationServerConfig
 
         monkeypatch.setenv("MCP_SERVER_AUTH_CANONICAL_URL", "https://env-mcp.example.com")
         monkeypatch.setenv(
@@ -769,9 +768,9 @@ class TestEnvVarConfiguration:
 
     def test_remote_oauth_missing_required(self):
         """Test that missing required fields raise ValueError."""
-        from arcade_mcp_server.server_auth.base import AuthorizationServerConfig
+        from arcade_mcp_server.server_auth import AuthorizationServerConfig
 
-        with pytest.raises(ValueError, match="canonical_url must be provided"):
+        with pytest.raises(ValueError, match="'canonical_url' required"):
             RemoteOAuthProvider(
                 authorization_servers=[
                     AuthorizationServerConfig(
@@ -798,14 +797,14 @@ class TestEnvVarConfiguration:
 
         catalog = ToolCatalog()
         # Shouldn't raise as JWTVerifier doesn't support OAuth discovery
-        app = create_arcade_mcp(catalog, auth_provider=jwt_auth)
+        app = create_arcade_mcp(catalog, server_auth_provider=jwt_auth)
         assert app is not None
 
     def test_worker_requires_canonical_url_for_remote_oauth(self):
         """Test that RemoteOAuthProvider validation happens during init."""
-        from arcade_mcp_server.server_auth.base import AuthorizationServerConfig
+        from arcade_mcp_server.server_auth import AuthorizationServerConfig
 
-        with pytest.raises(ValueError, match="canonical_url must be provided"):
+        with pytest.raises(ValueError, match="'canonical_url' required"):
             RemoteOAuthProvider(
                 authorization_servers=[
                     AuthorizationServerConfig(
@@ -824,8 +823,7 @@ class TestMultipleAuthorizationServers:
     @pytest.mark.asyncio
     async def test_remote_oauth_provider_multiple_as_shared_jwks(self, jwks_data, valid_jwt_token):
         """Test multiple AS URLs with same JWKS (regional endpoints)."""
-        from arcade_mcp_server.server_auth.base import AuthorizationServerConfig
-        from arcade_mcp_server.server_auth.providers.remote import RemoteOAuthProvider
+        from arcade_mcp_server.server_auth import AuthorizationServerConfig, RemoteOAuthProvider
 
         with patch("httpx.AsyncClient.get") as mock_get:
             mock_response = Mock()
@@ -865,8 +863,7 @@ class TestMultipleAuthorizationServers:
     @pytest.mark.asyncio
     async def test_remote_oauth_provider_multiple_as_different_jwks(self, rsa_keypair, jwks_data):
         """Test multiple AS with different JWKS (multi-IdP)."""
-        from arcade_mcp_server.server_auth.base import AuthorizationServerConfig
-        from arcade_mcp_server.server_auth.providers.remote import RemoteOAuthProvider
+        from arcade_mcp_server.server_auth import AuthorizationServerConfig, RemoteOAuthProvider
 
         private_key, _ = rsa_keypair
 
@@ -943,8 +940,8 @@ class TestMultipleAuthorizationServers:
     @pytest.mark.asyncio
     async def test_remote_oauth_provider_rejects_unconfigured_as(self, rsa_keypair, jwks_data):
         """Test that tokens from unlisted AS are rejected."""
+        from arcade_mcp_server.server_auth import RemoteOAuthProvider
         from arcade_mcp_server.server_auth.base import InvalidTokenError
-        from arcade_mcp_server.server_auth.providers.remote import RemoteOAuthProvider
 
         private_key, _ = rsa_keypair
 
@@ -970,7 +967,7 @@ class TestMultipleAuthorizationServers:
             mock_response.raise_for_status = Mock()
             mock_get.return_value = mock_response
 
-            from arcade_mcp_server.server_auth.base import AuthorizationServerConfig
+            from arcade_mcp_server.server_auth import AuthorizationServerConfig
 
             auth = RemoteOAuthProvider(
                 canonical_url="https://mcp.example.com",
@@ -992,7 +989,7 @@ class TestMultipleAuthorizationServers:
 
     def test_authorization_servers_env_var_parsing_json(self, monkeypatch):
         """Test parsing JSON array of AS configs from env var."""
-        from arcade_mcp_server.server_auth.providers.remote import RemoteOAuthProvider
+        from arcade_mcp_server.server_auth import RemoteOAuthProvider
 
         monkeypatch.setenv("MCP_SERVER_AUTH_CANONICAL_URL", "https://mcp.example.com")
         monkeypatch.setenv(
@@ -1007,8 +1004,7 @@ class TestMultipleAuthorizationServers:
 
     def test_resource_metadata_multiple_as(self):
         """Test that resource metadata returns all AS URLs."""
-        from arcade_mcp_server.server_auth.base import AuthorizationServerConfig
-        from arcade_mcp_server.server_auth.providers.remote import RemoteOAuthProvider
+        from arcade_mcp_server.server_auth import AuthorizationServerConfig, RemoteOAuthProvider
 
         auth = RemoteOAuthProvider(
             canonical_url="https://mcp.example.com",

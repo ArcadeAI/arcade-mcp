@@ -24,6 +24,7 @@ from watchfiles import watch
 
 from arcade_mcp_server.exceptions import ServerError
 from arcade_mcp_server.server import MCPServer
+from arcade_mcp_server.server_auth.base import ServerAuthProvider
 from arcade_mcp_server.settings import MCPSettings, ServerSettings
 from arcade_mcp_server.types import Prompt, PromptMessage, Resource
 from arcade_mcp_server.usage import ServerTracker
@@ -73,7 +74,7 @@ class MCPApp:
         host: str = "127.0.0.1",
         port: int = 8000,
         reload: bool = False,
-        auth: Any | None = None,
+        auth: ServerAuthProvider | None = None,
         **kwargs: Any,
     ):
         """
@@ -89,7 +90,7 @@ class MCPApp:
             host: Host for transport
             port: Port for transport
             reload: Enable auto-reload for development
-            auth: Optional ServerAuthProvider for front-door authentication
+            auth: Front-door server-auth provider
             **kwargs: Additional server configuration
         """
         self._name = self._validate_name(name)
@@ -97,7 +98,7 @@ class MCPApp:
         self.title = title or name
         self.instructions = instructions
         self.log_level = log_level
-        self.auth_provider = auth
+        self.server_auth_provider = auth
         self.server_kwargs = kwargs
         self.transport = transport
         self.host = host
@@ -393,7 +394,7 @@ class MCPApp:
             catalog=self._catalog,
             mcp_settings=self._mcp_settings,
             debug=debug,
-            auth_provider=self.auth_provider,
+            server_auth_provider=self.server_auth_provider,
             **self.server_kwargs,
         )
 

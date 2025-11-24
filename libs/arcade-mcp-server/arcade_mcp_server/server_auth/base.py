@@ -1,8 +1,4 @@
-"""
-Base classes for server-level authentication providers.
-
-Defines the interface for authentication providers and authenticated user data structures.
-"""
+"""Base classes for server-level authentication providers."""
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -15,9 +11,10 @@ class JWTVerifyOptions(BaseModel):
     """Options for JWT token verification.
 
     All validations are enabled by default for security.
-    Set to False to disable specific validations for non-compliant authorization servers.
+    Set to False to disable specific validations for authorization servers that are not compliant with MCP.
 
     Note: Token signature verification is always enabled and cannot be disabled.
+    Additionally, the subject (sub claim) must always be present in the token.
     """
 
     verify_exp: bool = Field(
@@ -110,7 +107,7 @@ class ServerAuthProvider(ABC):
     - Token signature verification
     - Expiration checking
     - Issuer validation
-    - Audience validation (critical for security)
+    - Audience validation
 
     Tokens are validated on EVERY request - no caching is permitted per MCP spec.
     """

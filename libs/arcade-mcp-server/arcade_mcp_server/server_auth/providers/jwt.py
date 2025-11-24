@@ -89,8 +89,6 @@ class JWTVerifier(ServerAuthProvider):
             )
             ```
         """
-
-        # Validate algorithm is supported
         if algorithm not in SUPPORTED_ALGORITHMS:
             raise ValueError(
                 f"Unsupported algorithm '{algorithm}'. "
@@ -122,7 +120,7 @@ class JWTVerifier(ServerAuthProvider):
         """
         current_time = time.time()
 
-        # Return cached JWKS if still valid
+        # Use cached JWKS if it's still valid
         if self._jwks_cache and (current_time - self._cache_timestamp) < self._cache_ttl:
             return self._jwks_cache
 
@@ -191,10 +189,10 @@ class JWTVerifier(ServerAuthProvider):
             jwt.JWTError: Token is invalid
         """
         decode_options = {
-            "verify_signature": True,  # Always verify signature
+            "verify_signature": True,  # We always verify signature. Impossible to disable.
             "verify_exp": self.verify_options.verify_exp,
             "verify_iat": self.verify_options.verify_iat,
-            "verify_aud": False,  # We'll validate manually for multi-audience support
+            "verify_aud": False,  # We'll validate manually so that we can support multi-audience
             "verify_iss": False,  # We'll validate manually for better multi-issuer handling
         }
 
@@ -209,7 +207,7 @@ class JWTVerifier(ServerAuthProvider):
             ),
         )
 
-        # Manually validate issuer
+        # Manually validate issuer (if flag is enabled)
         if self.verify_options.verify_iss:
             token_iss = decoded.get("iss")
             if isinstance(self.issuer, list):
@@ -223,7 +221,7 @@ class JWTVerifier(ServerAuthProvider):
                         f"Token issuer '{token_iss}' doesn't match expected '{self.issuer}'"
                     )
 
-        # Manually validate audience
+        # Manually validate audience (if flag is enabled)
         if self.verify_options.verify_aud:
             token_aud = decoded.get("aud")
             token_audiences = [token_aud] if isinstance(token_aud, str) else (token_aud or [])
@@ -275,8 +273,8 @@ class JWTVerifier(ServerAuthProvider):
         """Validate JWT and return authenticated user.
 
         Validates:
-        - Token signature using JWKS public key (ALWAYS)
-        - Subject (sub claim) exists (ALWAYS)
+        - Token signature using JWKS public key
+        - Subject (sub claim) exists
         - Expiration (exp claim) (if verify_options.verify_exp is True, default True)
         - Issued-at time (iat claim) (if verify_options.verify_iat is True, default True)
         - Issuer (iss claim) matches configured issuer(s) (if verify_options.verify_iss is True, default True)

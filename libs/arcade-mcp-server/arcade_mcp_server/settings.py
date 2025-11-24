@@ -99,12 +99,12 @@ class ServerAuthSettings(BaseSettings):
 
     canonical_url: str | None = Field(
         default=None,
-        description="Canonical URL of this MCP server (e.g., https://mcp.example.com)",
+        description="Canonical URL of this MCP server (e.g., https://mcp.example.com/mcp)",
     )
     authorization_servers: list[dict[str, Any]] | None = Field(
         default=None,
         description="JSON array of authorization server configs. "
-        'Example: \'[{"authorization_server_url":"...","issuer":"...","jwks_uri":"...","algorithm":"RS256"}]\'',
+        'Example: \'[{"authorization_server_url":"https://auth.example.com","issuer":"https://auth.example.com","jwks_uri":"https://auth.example.com/oauth2/jwks","algorithm":"RS256"}]\'',
     )
 
     @field_validator("authorization_servers", mode="before")
@@ -133,7 +133,7 @@ class ServerAuthSettings(BaseSettings):
         if not self.authorization_servers:
             return []
 
-        from arcade_mcp_server.server_auth.base import (
+        from arcade_mcp_server.server_auth import (
             AuthorizationServerConfig,
             JWTVerifyOptions,
         )

@@ -342,7 +342,7 @@ class TestMCPApp:
                 catalog=mcp_app._catalog,
                 mcp_settings=mcp_app._mcp_settings,
                 debug=False,
-                auth_provider=mcp_app.auth_provider,
+                server_auth_provider=mcp_app.server_auth_provider,
             )
             mock_serve.assert_called_once_with(
                 app=mock_fastapi_app,
@@ -366,7 +366,7 @@ class TestMCPApp:
                 catalog=mcp_app._catalog,
                 mcp_settings=mcp_app._mcp_settings,
                 debug=True,
-                auth_provider=mcp_app.auth_provider,
+                server_auth_provider=mcp_app.server_auth_provider,
             )
             mock_serve.assert_called_once_with(
                 app=mock_fastapi_app,

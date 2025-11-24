@@ -1,9 +1,4 @@
-"""
-Remote OAuth provider with discovery metadata support.
-
-Supports OAuth 2.0 Protected Resource Metadata (RFC 9728) with one or more
-authorization servers for integration with external identity providers.
-"""
+"""Remote OAuth provider with discovery metadata support for one or more authorization servers."""
 
 from typing import Any
 
@@ -25,7 +20,6 @@ class RemoteOAuthProvider(ServerAuthProvider):
     This Resource Server implementation validates JWT tokens from one or more
     authorization servers and provides OAuth 2.0 Protected Resource Metadata
     for discovery.
-
     """
 
     def __init__(
@@ -50,7 +44,7 @@ class RemoteOAuthProvider(ServerAuthProvider):
         Example:
             ```python
             # Option 1: Use environment variables
-            # Set MCP_SERVER_AUTH_CANONICAL_URL and MCP_SERVER_AUTH_AUTHORIZATION_SERVERS
+            # Set MCP_SERVER_AUTH_CANONICAL_URL and MCP_SERVER_AUTH_AUTHORIZATION_SERVERS env vars
             auth = RemoteOAuthProvider()
 
             # Option 2: Single Auth Server
@@ -88,16 +82,17 @@ class RemoteOAuthProvider(ServerAuthProvider):
 
         self.cache_ttl = cache_ttl
 
-        # Environment variables take precedence
+        # Environment variables (loaded into settings) take precedence
         if settings.server_auth.canonical_url is not None:
             self.canonical_url = settings.server_auth.canonical_url
         elif canonical_url is not None:
             self.canonical_url = canonical_url
         else:
-            raise ValueError("canonical_url must be provided")
+            raise ValueError(
+                "'canonical_url' required (parameter or MCP_SERVER_AUTH_CANONICAL_URL environment variable)"
+            )
 
         if settings.server_auth.authorization_servers:
-            # Build from settings (JSON array only)
             configs = settings.server_auth.to_authorization_server_configs()
         elif authorization_servers is not None:
             configs = authorization_servers
@@ -109,13 +104,13 @@ class RemoteOAuthProvider(ServerAuthProvider):
         self._verifiers = self._create_verifiers(configs)
 
     def _create_verifiers(self, configs: list[AuthorizationServerConfig]) -> dict[str, JWTVerifier]:
-        """Create JWTVerifier instances, keyed by authorization server URL.
+        """Create a mapping of authorization server URLs to their JWTVerifier instances.
 
         Args:
             configs: List of authorization server configurations
 
         Returns:
-            Dictionary mapping authorization_server_url to its JWTVerifier instance
+            Dictionary that maps authorization_server_url to its JWTVerifier instance
         """
         verifiers = {}
 
@@ -132,7 +127,7 @@ class RemoteOAuthProvider(ServerAuthProvider):
         return verifiers
 
     async def validate_token(self, token: str) -> AuthenticatedUser:
-        """Validate token against each configured authorization server.
+        """Validate the given token against each configured authorization server.
 
         Tries each verifier until one succeeds. If all fail, then raises InvalidTokenError.
 
@@ -140,8 +135,9 @@ class RemoteOAuthProvider(ServerAuthProvider):
         - TokenExpiredError: Raise immediately. If any verifier raises this, the token
           is expired for all authorization servers (expiration is universal). No point
           trying other verifiers.
-        - InvalidTokenError/AuthenticationError: Continue to next verifier. These errors
-          indicate wrong issuer, audience, or signature - another AS might accept the token.
+        - InvalidTokenError/AuthenticationError: Continue to next verifier b/c another
+          Auth Server might accept the token. These errors indicate wrong issuer, audience,
+          or signature mismatch.
 
         Args:
             token: JWT Bearer token
