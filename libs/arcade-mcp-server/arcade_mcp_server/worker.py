@@ -123,15 +123,14 @@ def create_arcade_mcp(
     **kwargs: Any,
 ) -> FastAPI:
     """
-    Create a FastAPI app exposing Arcade Worker and MCP HTTP endpoints.
+    Create a FastAPI app exposing MCP HTTP endpoints
+    and Arcade Worker endpoints if a secret is provided.
 
     MCP is always enabled in this integrated application.
     """
     if mcp_settings is None:
         mcp_settings = MCPSettings.from_env()
     secret = mcp_settings.arcade.server_secret
-    if secret is None:
-        secret = "dev"  # noqa: S105
 
     otel_handler = OTELHandler(
         enable=otel_enable,
@@ -180,13 +179,15 @@ def create_arcade_mcp(
     app.add_middleware(AddTrailingSlashToPathMiddleware)
 
     # Worker endpoints
-    worker = FastAPIWorker(
-        app=app,
-        secret=secret,
-        disable_auth=mcp_settings.arcade.auth_disabled,
-        otel_meter=otel_handler.get_meter(),
-    )
-    worker.catalog = catalog
+    if secret is not None:
+        worker = FastAPIWorker(
+            app=app,
+            secret=secret,
+            disable_auth=mcp_settings.arcade.auth_disabled,
+            otel_meter=otel_handler.get_meter(),
+        )
+        worker.catalog = catalog
+        logger.info("Worker routes enabled at /worker/* (ARCADE_WORKER_SECRET is set)")
 
     class _MCPASGIProxy:
         def __init__(self, parent_app: FastAPI):
