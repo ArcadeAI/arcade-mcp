@@ -17,7 +17,7 @@ import arcade_tdk.providers.graphql as graphql_provider  # noqa: E402
 from arcade_tdk.providers.graphql import GraphQLErrorAdapter  # noqa: E402
 from arcade_tdk.providers.http import HTTPErrorAdapter  # noqa: E402
 
-tool_module = importlib.import_module("arcade_tdk.tool")  # noqa: E402
+tool_module = importlib.import_module("arcade_tdk.tool")
 
 
 class DummyAdapter:
