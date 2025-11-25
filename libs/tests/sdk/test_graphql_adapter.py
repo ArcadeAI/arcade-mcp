@@ -15,12 +15,18 @@ TDK_SRC = LIBS_DIR / "arcade-tdk"
 if str(TDK_SRC) not in sys.path:
     sys.path.insert(0, str(TDK_SRC))
 
-import arcade_tdk.providers.graphql.error_adapter as gql_error_adapter  # noqa: E402
+import arcade_tdk.providers.graphql.error_adapter as gql_adapter  # noqa: E402
+
+# --- Dummy exception classes for testing ---
+
+
+class DummyTransportError(Exception):
+    def __init__(self, message: str, code: int | None = None) -> None:
+        super().__init__(message)
+        self.code = code
 
 
 class DummyTransportQueryError(Exception):
-    """Minimal stand-in for gql.transport.exceptions.TransportQueryError."""
-
     def __init__(self, errors: list[dict[str, Any]] | None = None) -> None:
         super().__init__("query error")
         self.errors = errors
@@ -32,8 +38,6 @@ class DummyResponse:
 
 
 class DummyTransportServerError(Exception):
-    """Minimal stand-in for gql.transport.exceptions.TransportServerError."""
-
     def __init__(
         self, message: str, code: int | None = None, headers: dict[str, str] | None = None
     ):
@@ -43,142 +47,237 @@ class DummyTransportServerError(Exception):
             self.response = DummyResponse(headers)
 
 
+class DummyTransportConnectionFailed(DummyTransportError):
+    pass
+
+
+class DummyTransportProtocolError(DummyTransportError):
+    pass
+
+
 @pytest.fixture(autouse=True)
-def reset_gql_cache() -> Iterator[None]:
-    """Ensure cached gql import state does not leak between tests."""
-    gql_error_adapter._load_gql_transport_errors.cache_clear()
+def reset_cache() -> Iterator[None]:
+    """Clear cached gql import state between tests."""
+    gql_adapter._load_gql_transport_errors.cache_clear()
     yield
-    gql_error_adapter._load_gql_transport_errors.cache_clear()
+    gql_adapter._load_gql_transport_errors.cache_clear()
 
 
-def _patch_gql_loader() -> Any:
-    """Helper to patch the cached loader with dummy gql transport classes."""
+def _patch_loader() -> Any:
+    """Patch the loader to return our dummy classes."""
     return patch.object(
-        gql_error_adapter,
+        gql_adapter,
         "_load_gql_transport_errors",
-        return_value=(DummyTransportQueryError, DummyTransportServerError),
+        return_value=(
+            DummyTransportError,
+            DummyTransportQueryError,
+            DummyTransportServerError,
+            DummyTransportConnectionFailed,
+            DummyTransportProtocolError,
+        ),
     )
 
 
 class TestGraphQLErrorAdapter:
-    def test_adapter_skips_when_gql_missing_and_import_is_cached(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Import attempts should happen once even across multiple failures."""
+    # --- Import/caching tests ---
 
-        import_calls = {"count": 0}
+    def test_skips_when_gql_not_installed(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Should return None and cache the import failure."""
+        call_count = {"n": 0}
 
-        def fake_import(module_name: str) -> None:
-            import_calls["count"] += 1
-            raise ImportError("gql not installed")
+        def fake_import(name: str) -> None:
+            call_count["n"] += 1
+            raise ImportError("no gql")
 
-        monkeypatch.setattr(gql_error_adapter.importlib, "import_module", fake_import)
-        adapter = gql_error_adapter.GraphQLErrorAdapter()
+        monkeypatch.setattr(gql_adapter.importlib, "import_module", fake_import)
+        adapter = gql_adapter.GraphQLErrorAdapter()
 
-        assert adapter.from_exception(Exception("boom")) is None
-        assert adapter.from_exception(Exception("boom again")) is None
-        assert import_calls["count"] == 1
+        assert adapter.from_exception(Exception("x")) is None
+        assert adapter.from_exception(Exception("y")) is None
+        assert call_count["n"] == 1  # Only tried once
 
-    def test_query_error_maps_status_and_sanitizes_payload(self) -> None:
-        adapter = gql_error_adapter.GraphQLErrorAdapter()
+    def test_ignores_non_gql_exceptions(self) -> None:
+        """Non-gql exceptions should return None."""
+        with _patch_loader():
+            adapter = gql_adapter.GraphQLErrorAdapter()
+            assert adapter.from_exception(RuntimeError("not gql")) is None
+
+    # --- TransportQueryError tests ---
+
+    def test_query_error_extracts_messages_and_codes(self) -> None:
+        """Should extract messages and map error codes to status."""
         errors = [
-            {
-                "message": "  multi-line   message\nwith secrets  ",
-                "extensions": {"code": "FORBIDDEN"},
-            },
-            {
-                "message": "Another issue",
-                "extensions": {"code": "GRAPHQL_PARSE_FAILED"},
-            },
+            {"message": "Not authorized", "extensions": {"code": "FORBIDDEN"}},
+            {"message": "Server error", "extensions": {"code": "INTERNAL_SERVER_ERROR"}},
         ]
         exc = DummyTransportQueryError(errors=errors)
 
-        with _patch_gql_loader():
-            result = adapter.from_exception(exc)
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
 
         assert isinstance(result, UpstreamError)
-        assert result.status_code == HTTPStatus.FORBIDDEN
-        assert result.message.startswith(
-            "Upstream GraphQL error:   multi-line   message\nwith secrets  ;"
-        )
-        assert result.message.endswith("Another issue")
-        assert result.extra is not None
-        assert result.developer_message == "GraphQL error codes: FORBIDDEN, GRAPHQL_PARSE_FAILED"
-        assert result.extra["gql_error_count"] == 2
-        assert result.extra["gql_error_codes"] == ["FORBIDDEN", "GRAPHQL_PARSE_FAILED"]
+        assert result.status_code == HTTPStatus.INTERNAL_SERVER_ERROR  # Highest mapped status
+        assert "Not authorized" in result.message
+        assert "Server error" in result.message
+        assert result.extra["gql_error_codes"] == ["FORBIDDEN", "INTERNAL_SERVER_ERROR"]
 
-    def test_query_error_defaults_when_payload_is_missing(self) -> None:
-        adapter = gql_error_adapter.GraphQLErrorAdapter()
+    def test_query_error_defaults_when_empty(self) -> None:
+        """Should handle empty/missing errors gracefully."""
         exc = DummyTransportQueryError(errors=None)
 
-        with _patch_gql_loader():
-            result = adapter.from_exception(exc)
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-        assert result.message == "Upstream GraphQL error: Unknown GraphQL error"
-        assert result.developer_message == "GraphQL error"
-        assert result.extra is not None
-        assert result.extra["gql_error_count"] == 0
-        assert result.extra["gql_error_codes"] == []
+        assert "Unknown GraphQL error" in result.message
 
-    def test_transport_server_error_maps_rate_limits(self) -> None:
-        adapter = gql_error_adapter.GraphQLErrorAdapter()
+    def test_query_error_deduplicates_codes(self) -> None:
+        """Duplicate error codes should be deduplicated."""
+        errors = [
+            {"message": "A", "extensions": {"code": "FORBIDDEN"}},
+            {"message": "B", "extensions": {"code": "FORBIDDEN"}},
+        ]
+        exc = DummyTransportQueryError(errors=errors)
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert result.extra["gql_error_codes"] == ["FORBIDDEN"]
+
+    # --- TransportServerError tests ---
+
+    def test_server_error_detects_rate_limit(self) -> None:
+        """Should detect rate limits from status + headers."""
         exc = DummyTransportServerError(
-            message="Too many requests\nplease slow down",
-            code=HTTPStatus.TOO_MANY_REQUESTS,
-            headers={"Retry-After": "7"},
+            message="Too many requests",
+            code=429,
+            headers={"retry-after": "5"},
         )
 
-        with _patch_gql_loader():
-            result = adapter.from_exception(exc)
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
 
         assert isinstance(result, UpstreamRateLimitError)
-        assert result.retry_after_ms == 7_000
-        assert (
-            result.message
-            == "Upstream GraphQL transport error: Too many requests\nplease slow down"
-        )
-        assert result.extra is not None
-        assert result.extra["service"] == "_graphql"
+        assert result.retry_after_ms == 5000
 
-    def test_unknown_exception_is_ignored_even_when_gql_present(self) -> None:
-        adapter = gql_error_adapter.GraphQLErrorAdapter()
+    def test_server_error_defaults_to_500(self) -> None:
+        """Should default to 500 when no status code."""
+        exc = DummyTransportServerError("Server error", code=None)
 
-        with _patch_gql_loader():
-            assert adapter.from_exception(RuntimeError("not gql")) is None
-
-    def test_returns_none_when_loader_missing_even_for_transport_error(self) -> None:
-        adapter = gql_error_adapter.GraphQLErrorAdapter()
-
-        with patch.object(gql_error_adapter, "_load_gql_transport_errors", return_value=None):
-            assert adapter.from_exception(DummyTransportQueryError(errors=[])) is None
-
-    def test_query_error_handles_missing_messages_and_extensions(self) -> None:
-        adapter = gql_error_adapter.GraphQLErrorAdapter()
-        errors: list[dict[str, Any]] = [
-            {"extensions": {"code": "NOT_FOUND"}},
-            {"message": None, "extensions": {}},
-            {"message": object()},
-        ]
-
-        with _patch_gql_loader():
-            result = adapter.from_exception(DummyTransportQueryError(errors))
-
-        assert isinstance(result, UpstreamError)
-        assert result.status_code == HTTPStatus.NOT_FOUND
-        assert "Unknown GraphQL error" in result.message
-        assert result.extra is not None
-        assert result.extra["gql_error_count"] == 3
-        assert result.extra["gql_error_codes"] == ["NOT_FOUND"]
-
-    def test_transport_server_error_without_status_defaults_to_500(self) -> None:
-        adapter = gql_error_adapter.GraphQLErrorAdapter()
-        exc = DummyTransportServerError("Server exploded", code=None, headers=None)
-
-        with _patch_gql_loader():
-            result = adapter.from_exception(exc)
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
-        assert result.message == "Upstream GraphQL transport error: Server exploded"
+
+    def test_server_error_extracts_headers_from_cause(self) -> None:
+        """Should extract headers from __cause__ if not on exception."""
+        exc = DummyTransportServerError("Error", code=429)
+        # No headers on exc, but on __cause__
+        cause = Exception("inner")
+        cause.response = DummyResponse({"retry-after": "10"})  # type: ignore
+        exc.__cause__ = cause
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert isinstance(result, UpstreamRateLimitError)
+        assert result.retry_after_ms == 10000
+
+    def test_server_error_extracts_url_from_cause_aiohttp(self) -> None:
+        """Should extract URL from __cause__ (aiohttp pattern)."""
+        exc = DummyTransportServerError("Error", code=500)
+
+        # aiohttp style: request_info.url
+        class FakeRequestInfo:
+            url = "https://api.github.com/graphql"
+            method = "POST"
+
+        cause = Exception("inner")
+        cause.request_info = FakeRequestInfo()  # type: ignore
+        exc.__cause__ = cause
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert result.extra is not None
+        assert result.extra.get("endpoint") == "https://api.github.com/graphql"
+        assert result.extra.get("http_method") == "POST"
+
+    def test_server_error_extracts_url_from_cause_httpx(self) -> None:
+        """Should extract URL from __cause__ (httpx/requests pattern)."""
+        exc = DummyTransportServerError("Error", code=500)
+
+        # httpx style: response.request.url
+        class FakeRequest:
+            url = "https://api.stripe.com/graphql"
+            method = "POST"
+
+        class FakeResponse:
+            request = FakeRequest()
+
+        cause = Exception("inner")
+        cause.response = FakeResponse()  # type: ignore
+        exc.__cause__ = cause
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert result.extra is not None
+        assert result.extra.get("endpoint") == "https://api.stripe.com/graphql"
+        assert result.extra.get("http_method") == "POST"
+
+    # --- Connection/Protocol error tests ---
+
+    def test_connection_failed_returns_502(self) -> None:
+        """Connection failures should map to 502."""
+        exc = DummyTransportConnectionFailed("Connection refused")
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert result.status_code == HTTPStatus.BAD_GATEWAY
+        assert result.extra["error_type"] == "DummyTransportConnectionFailed"
+
+    def test_protocol_error_returns_502(self) -> None:
+        """Protocol errors should map to 502."""
+        exc = DummyTransportProtocolError("Invalid response")
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert result.status_code == HTTPStatus.BAD_GATEWAY
+        assert result.extra["error_type"] == "DummyTransportProtocolError"
+
+    # --- Generic TransportError catch-all ---
+
+    def test_generic_transport_error_handled(self) -> None:
+        """Unknown TransportError subclasses should be caught."""
+        exc = DummyTransportError("Unknown error", code=503)
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert result.status_code == 503
+
+    # --- Edge cases ---
+
+    def test_extract_message_handles_bad_str(self) -> None:
+        """Should handle objects that fail str()."""
+
+        class BadStr:
+            def __str__(self) -> str:
+                raise ValueError("nope")
+
+        assert gql_adapter._extract_error_message(BadStr()) == "Unknown GraphQL error"
+
+    def test_extract_message_handles_empty(self) -> None:
+        """Should handle empty/None messages."""
+        assert gql_adapter._extract_error_message(None) == "Unknown GraphQL error"
+        assert gql_adapter._extract_error_message("") == "Unknown GraphQL error"

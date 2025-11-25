@@ -25,34 +25,33 @@ _GQL_CODE_TO_STATUS = {
 
 
 @lru_cache(maxsize=1)
-def _load_gql_transport_errors() -> tuple[type[Any], type[Any]] | None:
-    """
-    Import gql transport exceptions lazily and cache the result to avoid
-    repeatedly attempting the import in environments where gql is missing.
-    """
+def _load_gql_transport_errors() -> (
+    tuple[type[Any], type[Any], type[Any], type[Any], type[Any]] | None
+):
+    """Import gql transport exceptions lazily and cache the result."""
     try:
         module = importlib.import_module("gql.transport.exceptions")
-        TransportQueryError = module.TransportQueryError
-        TransportServerError = module.TransportServerError
     except ImportError:
-        logger.debug(
-            "'gql' transport exceptions could not be imported; GraphQL adapter disabled",
-            exc_info=True,
-        )
+        logger.debug("gql not installed; GraphQL adapter disabled")
         return None
-
-    return (TransportQueryError, TransportServerError)
+    else:
+        return (
+            module.TransportError,
+            module.TransportQueryError,
+            module.TransportServerError,
+            module.TransportConnectionFailed,
+            module.TransportProtocolError,
+        )
 
 
 def _extract_error_message(message: Any) -> str:
-    """Return the raw GraphQL error message or a fallback when missing."""
+    """Return the error message or a fallback."""
     if not message:
         return "Unknown GraphQL error"
     try:
-        coerced = str(message)
+        return str(message) or "Unknown GraphQL error"
     except Exception:
         return "Unknown GraphQL error"
-    return coerced or "Unknown GraphQL error"
 
 
 class GraphQLErrorAdapter(BaseHTTPErrorMapper):
@@ -61,104 +60,127 @@ class GraphQLErrorAdapter(BaseHTTPErrorMapper):
     slug = "_graphql"
 
     def from_exception(self, exc: Exception) -> ToolRuntimeError | None:
-        """
-        Translate a GraphQL client exception into a ToolRuntimeError.
-        """
-        gql_exceptions = _load_gql_transport_errors()
-        if not gql_exceptions:
+        """Translate a gql exception into a ToolRuntimeError."""
+        gql_types = _load_gql_transport_errors()
+        if not gql_types:
             return None
 
-        TransportQueryError, TransportServerError = gql_exceptions
+        (
+            TransportError,
+            TransportQueryError,
+            TransportServerError,
+            TransportConnectionFailed,
+            TransportProtocolError,
+        ) = gql_types
 
-        # Handle GraphQL Query Errors (HTTP 200 OK but contains 'errors' list)
+        # GraphQL errors in response (HTTP 200 with errors array)
         if isinstance(exc, TransportQueryError):
             return self._handle_query_error(exc)
 
-        # Handle Transport Server Errors (HTTP 500s, 400s from the transport layer)
+        # HTTP-level errors (4xx, 5xx) - these can have rate limit headers
         if isinstance(exc, TransportServerError):
-            return self._handle_server_error(exc)
+            return self._handle_transport_error(exc)
+
+        # Network/protocol errors - simple 502
+        if isinstance(exc, (TransportConnectionFailed, TransportProtocolError)):
+            return UpstreamError(
+                message=f"Upstream GraphQL error: {type(exc).__name__}",
+                status_code=HTTPStatus.BAD_GATEWAY.value,
+                developer_message=str(exc),
+                extra={"service": self.slug, "error_type": type(exc).__name__},
+            )
+
+        # Catch-all for unknown TransportError subclasses
+        if isinstance(exc, TransportError):
+            return self._handle_transport_error(exc)
 
         return None
 
     def _handle_query_error(self, exc: Any) -> UpstreamError:
-        """Handle TransportQueryError by inspecting error codes."""
-        # exc.errors is typically a list of dicts: [{'message': '...', 'extensions': {...}}]
-        errors_list = exc.errors if exc.errors else []
-        logger.debug("GraphQL TransportQueryError payload: %s", errors_list)
-        messages = [_extract_error_message(e.get("message")) for e in errors_list] or [
-            "Unknown GraphQL error"
-        ]
-        joined_message = "; ".join(messages)
+        """Handle TransportQueryError (GraphQL errors in response body)."""
+        errors_list = exc.errors or []
+        logger.debug("GraphQL query errors: %s", errors_list)
 
-        # Extract potential error codes and determine appropriate status code
-        error_codes: list[str] = []
-        status_code = HTTPStatus.UNPROCESSABLE_ENTITY.value  # Default to Unprocessable Entity
+        messages = [_extract_error_message(e.get("message")) for e in errors_list]
+        joined = "; ".join(messages) if messages else "Unknown GraphQL error"
+
+        # Extract error codes and map to HTTP status
+        codes: list[str] = []
+        status = HTTPStatus.UNPROCESSABLE_ENTITY.value
 
         for e in errors_list:
-            extensions = e.get("extensions")
-            if not isinstance(extensions, dict):
-                continue
+            ext = e.get("extensions") if isinstance(e, dict) else None
+            code = ext.get("code") if isinstance(ext, dict) else None
+            if isinstance(code, str):
+                codes.append(code)
+                mapped = _GQL_CODE_TO_STATUS.get(code)
+                if mapped and mapped > status:
+                    status = mapped
 
-            code = extensions.get("code")
-            if not isinstance(code, str):
-                continue
-
-            error_codes.append(code)
-            mapped_status = _GQL_CODE_TO_STATUS.get(code)
-
-            if mapped_status and (
-                status_code == HTTPStatus.UNPROCESSABLE_ENTITY.value or mapped_status > status_code
-            ):
-                status_code = mapped_status
-
-        developer_message = "GraphQL error"
-        if error_codes:
-            developer_message = f"GraphQL error codes: {', '.join(sorted(set(error_codes)))}"
+        unique_codes = sorted(set(codes))
 
         return UpstreamError(
-            message=f"Upstream GraphQL error: {joined_message}",
-            status_code=status_code,
-            developer_message=developer_message,
+            message=f"Upstream GraphQL error: {joined}",
+            status_code=status,
+            developer_message=f"GraphQL error codes: {', '.join(unique_codes)}"
+            if unique_codes
+            else "GraphQL error",
             extra={
                 "service": self.slug,
                 "error_type": "TransportQueryError",
-                "gql_error_count": len(errors_list),
-                "gql_error_codes": error_codes,
+                "gql_error_codes": unique_codes,
             },
         )
 
-    def _handle_server_error(self, exc: Any) -> UpstreamError:
-        """Handle TransportServerError."""
-        # Try to inspect the underlying exception for headers (aiohttp, requests, httpx)
-        status = (
-            exc.code
-            if hasattr(exc, "code") and isinstance(exc.code, int)
-            else HTTPStatus.INTERNAL_SERVER_ERROR.value
-        )
+    def _handle_transport_error(self, exc: Any) -> UpstreamError:
+        """Handle TransportServerError and other transport errors."""
+        status = getattr(exc, "code", None)
+        if not isinstance(status, int):
+            status = HTTPStatus.INTERNAL_SERVER_ERROR.value
 
-        # Try to find headers if available on the exception or its cause
-        headers = {}
-        if hasattr(exc, "response") and hasattr(exc.response, "headers"):
-            # Ensure headers are lowercase for case-insensitive lookup in base class
-            headers = {k.lower(): v for k, v in exc.response.headers.items()}
+        # Extract headers for rate limit detection (check exc and __cause__)
+        headers = self._get_headers(exc) or self._get_headers(exc.__cause__)
 
-        logger.debug(
-            "GraphQL TransportServerError details: exc=%r code=%s header_keys=%s",
-            exc,
-            getattr(exc, "code", None),
-            list(headers.keys()),
-        )
+        # Extract URL from __cause__ (aiohttp/httpx/requests store it there)
+        url, method = self._get_request_info(exc.__cause__)
 
         return self._map_status_to_error(
             status=status,
-            headers=headers,
-            msg=f"Upstream GraphQL transport error: {_extract_error_message(str(exc))}",
+            headers=headers or {},
+            msg=f"Upstream GraphQL error: {_extract_error_message(str(exc))}",
+            request_url=url,
+            request_method=method,
         )
+
+    def _get_headers(self, obj: Any) -> dict[str, str] | None:
+        """Extract headers from an object if available."""
+        if obj and hasattr(obj, "response") and hasattr(obj.response, "headers"):
+            return {k.lower(): v for k, v in obj.response.headers.items()}
+        return None
+
+    def _get_request_info(self, cause: Any) -> tuple[str | None, str | None]:
+        """Extract URL and method from the __cause__ exception."""
+        if not cause:
+            return None, None
+
+        # aiohttp: request_info.url
+        if hasattr(cause, "request_info"):
+            ri = cause.request_info
+            url = getattr(ri, "url", None) or getattr(ri, "real_url", None)
+            return (str(url), getattr(ri, "method", None)) if url else (None, None)
+
+        # httpx/requests: response.request.url
+        if hasattr(cause, "response") and hasattr(cause.response, "request"):
+            req = cause.response.request
+            url = getattr(req, "url", None)
+            return (str(url), getattr(req, "method", None)) if url else (None, None)
+
+        return None, None
 
     def _build_extra_metadata(
         self, request_url: str | None = None, request_method: str | None = None
     ) -> dict[str, str]:
-        """Override to ensure correct service slug is used."""
+        """Override to use GraphQL service slug."""
         extra = super()._build_extra_metadata(request_url, request_method)
         extra["service"] = self.slug
         return extra
