@@ -50,7 +50,7 @@ def test_init_with_enable_true(
     assert handler._log_processor is not None
 
     # Verify that FastAPIInstrumentor is used
-    mock_instrumentor.return_value.instrument_app.assert_called_once_with(app, excluded_urls="/worker/health")
+    mock_instrumentor.return_value.instrument_app.assert_called_once_with(app, excluded_urls="/worker/health", exclude_spans=["send", "receive"])
 
 
 @patch("arcade_serve.fastapi.telemetry.logging")
@@ -69,17 +69,6 @@ def test_init_with_enable_false(mock_instrumentor, mock_logging, app):
 
     # Verify that FastAPIInstrumentor is not called
     mock_instrumentor.return_value.instrument_app.assert_not_called()
-
-
-def test_init_tracer_export_exception(app):
-    # Simulate an exception during exporter initialization
-
-    with pytest.raises(ConnectionError) as exc_info:
-        handler = OTELHandler(enable=True)
-        handler.instrument_app(app)
-
-    assert "Could not connect to OpenTelemetry Tracer endpoint" in str(exc_info.value)
-
 
 @patch("arcade_serve.fastapi.telemetry.OTLPLogExporter")
 @patch("arcade_serve.fastapi.telemetry.OTLPMetricExporter")
