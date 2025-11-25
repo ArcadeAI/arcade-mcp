@@ -39,7 +39,7 @@ def test_init_with_enable_true(
 
     # Verify that the resource is set correctly
     assert handler.resource.attributes["service.name"] == "worker"
-    assert "deployment.environment" in handler.resource.attributes
+    assert "deployment.environment.name" in handler.resource.attributes
 
     # Verify that initialization methods are called
     assert handler._tracer_provider is not None
