@@ -14,9 +14,11 @@ from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
-from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.semconv._incubating.attributes import deployment_attributes
+from opentelemetry.semconv.attributes import service_attributes
 
 
 class ShutdownError(Exception):
@@ -42,7 +44,10 @@ class OTELHandler:
                 "🔎 Initializing OpenTelemetry. Use environment variables to configure the connection"
             )
             self.resource = Resource(
-                attributes={SERVICE_NAME: "arcade-worker", "environment": self.environment}
+                attributes={
+                    service_attributes.SERVICE_NAME: "worker",
+                    deployment_attributes.DEPLOYMENT_ENVIRONMENT_NAME: self.environment,
+                }
             )
 
             self._init_tracer()
