@@ -18,6 +18,7 @@ import anyio
 
 from arcade_mcp_server.context import Context
 from arcade_mcp_server.exceptions import RequestError, SessionError
+from arcade_mcp_server.server_auth.base import AuthenticatedUser
 from arcade_mcp_server.types import (
     CancelledNotification,
     CancelledParams,
@@ -280,7 +281,7 @@ class ServerSession:
         self._request_meta: Any = None
 
         # Current authenticated user (from front-door auth) that is set and cleared on every request
-        self._current_authenticated_user: Any | None = None
+        self._current_authenticated_user: AuthenticatedUser | None = None
 
         # Request management
         self._request_manager = RequestManager(write_stream) if write_stream else None

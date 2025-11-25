@@ -37,6 +37,7 @@ from arcade_core.schema import (
     ToolContext,
 )
 
+from arcade_mcp_server.server_auth.base import AuthenticatedUser
 from arcade_mcp_server.types import (
     AudioContent,
     CallToolParams,
@@ -124,7 +125,7 @@ class Context(ToolContext):
         server: Any,
         session: Any | None = None,
         request_id: str | None = None,
-        authenticated_user: Any | None = None,
+        authenticated_user: AuthenticatedUser | None = None,
     ):
         """Initialize context with server reference."""
         super().__init__()
@@ -135,7 +136,7 @@ class Context(ToolContext):
         self._request_id: str | None = request_id
 
         # Authenticated user from front-door auth (if the server is protected)
-        self._authenticated_user: Any | None = authenticated_user
+        self._authenticated_user: AuthenticatedUser | None = authenticated_user
 
         # Namespaced adapters
         self._log = Logs(self)

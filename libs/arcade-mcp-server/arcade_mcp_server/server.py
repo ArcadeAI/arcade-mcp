@@ -665,9 +665,9 @@ class MCPServer:
             return cast(str, user_id)
 
         # Second priority: configured user_id from settings
-        if user_id := self.settings.arcade.user_id:
-            logger.debug(f"Context user_id set from settings: {user_id}")
-            return user_id
+        if (settings_user_id := self.settings.arcade.user_id) is not None:
+            logger.debug(f"Context user_id set from settings: {settings_user_id}")
+            return settings_user_id
 
         # Third priority: configured user_id from credentials file
         _, config_user_id = self._load_config_values()
