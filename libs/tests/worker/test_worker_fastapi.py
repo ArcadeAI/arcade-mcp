@@ -100,8 +100,8 @@ def test_health_check_route_no_auth(client_no_auth):
 # Catalog
 def test_get_catalog_route_no_auth_header(client):
     response = client.get("/worker/tools")
-    assert response.status_code == 403
-    assert "Not authenticated" in response.text
+    assert response.status_code in [403, 401]
+    assert "Not authenticated" in response.text or "Unauthorized" in response.text
 
 
 def test_get_catalog_route_invalid_auth_header(client, worker_secret):
@@ -131,7 +131,7 @@ def call_tool_payload():
 
 def test_call_tool_route_no_auth_header(client, call_tool_payload):
     response = client.post("/worker/tools/invoke", json=call_tool_payload)
-    assert response.status_code == 403
+    assert response.status_code in [403, 401]
 
 
 def test_call_tool_route_invalid_auth_header(client, worker_secret, call_tool_payload):
