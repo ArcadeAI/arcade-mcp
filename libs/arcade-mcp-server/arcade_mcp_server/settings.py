@@ -94,8 +94,8 @@ class ServerSettings(BaseSettings):
     model_config = {"env_prefix": "MCP_SERVER_"}
 
 
-class ServerAuthSettings(BaseSettings):
-    """Settings for RemoteOAuthProvider configuration via environment variables."""
+class ResourceServerSettings(BaseSettings):
+    """Settings for ResourceServer configuration via environment variables."""
 
     canonical_url: str | None = Field(
         default=None,
@@ -103,7 +103,7 @@ class ServerAuthSettings(BaseSettings):
     )
     authorization_servers: list[dict[str, Any]] | None = Field(
         default=None,
-        description="JSON array of authorization server configs. "
+        description="JSON array of authorization server entries."
         'Example: \'[{"authorization_server_url":"https://auth.example.com","issuer":"https://auth.example.com","jwks_uri":"https://auth.example.com/oauth2/jwks","algorithm":"RS256"}]\'',
     )
 
@@ -128,33 +128,33 @@ class ServerAuthSettings(BaseSettings):
             return v
         return None
 
-    def to_authorization_server_configs(self) -> list[Any]:
-        """Convert settings to list of AuthorizationServerConfig objects."""
+    def to_authorization_server_entries(self) -> list[Any]:
+        """Convert settings to list of AuthorizationServerEntry objects."""
         if not self.authorization_servers:
             return []
 
-        from arcade_mcp_server.server_auth import (
-            AuthorizationServerConfig,
-            JWTVerifyOptions,
+        from arcade_mcp_server.resource_server import (
+            AccessTokenValidationOptions,
+            AuthorizationServerEntry,
         )
 
         return [
-            AuthorizationServerConfig(
+            AuthorizationServerEntry(
                 authorization_server_url=config["authorization_server_url"],
                 issuer=config["issuer"],
                 jwks_uri=config["jwks_uri"],
                 algorithm=config.get("algorithm", "RS256"),
-                verify_options=JWTVerifyOptions(
-                    verify_aud=config.get("verify_options", {}).get("verify_aud", True),
-                    verify_exp=config.get("verify_options", {}).get("verify_exp", True),
-                    verify_iat=config.get("verify_options", {}).get("verify_iat", True),
-                    verify_iss=config.get("verify_options", {}).get("verify_iss", True),
+                validation_options=AccessTokenValidationOptions(
+                    verify_aud=config.get("validation_options", {}).get("verify_aud", True),
+                    verify_exp=config.get("validation_options", {}).get("verify_exp", True),
+                    verify_iat=config.get("validation_options", {}).get("verify_iat", True),
+                    verify_iss=config.get("validation_options", {}).get("verify_iss", True),
                 ),
             )
             for config in self.authorization_servers
         ]
 
-    model_config = {"env_prefix": "MCP_SERVER_AUTH_"}
+    model_config = {"env_prefix": "MCP_RESOURCE_SERVER_"}
 
 
 class MiddlewareSettings(BaseSettings):
@@ -271,8 +271,8 @@ class MCPSettings(BaseSettings):
         default_factory=ServerSettings,
         description="Server settings",
     )
-    server_auth: ServerAuthSettings = Field(
-        default_factory=ServerAuthSettings,
+    resource_server: ResourceServerSettings = Field(
+        default_factory=ResourceServerSettings,
         description="Server authentication settings",
     )
     middleware: MiddlewareSettings = Field(

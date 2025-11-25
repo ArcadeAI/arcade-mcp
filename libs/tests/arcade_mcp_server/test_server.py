@@ -948,7 +948,7 @@ class TestMCPServer:
         # Create a mock session with HTTP transport
         session = Mock()
         session.init_options = {"transport_type": "http"}
-        session._current_authenticated_user = None
+        session._current_resource_owner = None
 
         message = CallToolRequest(
             jsonrpc="2.0",
@@ -1016,7 +1016,7 @@ class TestMCPServer:
         # Create a mock session with HTTP transport
         session = Mock()
         session.init_options = {"transport_type": "http"}
-        session._current_authenticated_user = None
+        session._current_resource_owner = None
 
         message = CallToolRequest(
             jsonrpc="2.0",
@@ -1095,7 +1095,7 @@ class TestMCPServer:
         # Create a mock session with HTTP transport
         session = Mock()
         session.init_options = {"transport_type": "http"}
-        session._current_authenticated_user = None
+        session._current_resource_owner = None
 
         message = CallToolRequest(
             jsonrpc="2.0",

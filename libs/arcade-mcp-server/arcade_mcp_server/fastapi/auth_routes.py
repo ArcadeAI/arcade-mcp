@@ -1,4 +1,4 @@
-"""FastAPI routes for MCP server authorization endpoints.
+"""FastAPI routes for MCP Resource Server authorization endpoints.
 
 The routes defined here enable MCP clients to discover authorization servers
 associated with this MCP server.
@@ -7,17 +7,17 @@ associated with this MCP server.
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from arcade_mcp_server.server_auth.base import ServerAuthProvider
+from arcade_mcp_server.resource_server.base import ResourceServerValidator
 
 
 def create_auth_router(
-    server_auth_provider: ServerAuthProvider,
+    resource_server_validator: ResourceServerValidator,
     canonical_url: str | None,
 ) -> APIRouter:
     """Create FastAPI router with OAuth discovery endpoints.
 
     Args:
-        server_auth_provider: The server auth provider instance
+        resource_server_validator: The resource server validator instance
         canonical_url: Canonical URL of the MCP server
 
     Returns:
@@ -35,7 +35,7 @@ def create_auth_router(
                 status_code=500,
             )
 
-        metadata = server_auth_provider.get_resource_metadata()
+        metadata = resource_server_validator.get_resource_metadata()
         return JSONResponse(
             metadata,
             headers={

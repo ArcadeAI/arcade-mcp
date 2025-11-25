@@ -5,7 +5,7 @@ from typing import Any, Generic, Literal, TypeAlias, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from arcade_mcp_server.server_auth.base import AuthenticatedUser
+from arcade_mcp_server.resource_server.base import ResourceOwner
 
 # -----------------------------------------------------------------------------
 # JSON-RPC constants
@@ -100,7 +100,7 @@ class SessionMessage:
     """
 
     message: JSONRPCMessage
-    authenticated_user: AuthenticatedUser | None = None
+    resource_owner: ResourceOwner | None = None
 
 
 # -----------------------------------------------------------------------------

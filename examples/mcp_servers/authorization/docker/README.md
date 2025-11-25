@@ -48,7 +48,7 @@ The server will run internally on port 8001 but be accessible externally on port
 You can customize the ports by editing `docker/docker-compose.yml` and changing:
 - The port mapping (e.g., "8080:8001")
 - The `ARCADE_SERVER_PORT` environment variable (internal port)
-- The `MCP_SERVER_AUTH_CANONICAL_URL` (external URL)
+- The `MCP_RESOURCE_SERVER_CANONICAL_URL` (external URL)
 ## Building the Image
 
 ```bash

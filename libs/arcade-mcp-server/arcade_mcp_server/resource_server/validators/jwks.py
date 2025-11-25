@@ -1,5 +1,5 @@
 """
-JWT-based token verification provider.
+JWKS-based token validator for MCP Resource Servers.
 
 Implements OAuth 2.1 Resource Server token validation using JWT with JWKS.
 """
@@ -10,12 +10,12 @@ from typing import Any, cast
 import httpx
 from jose import jwk, jwt
 
-from arcade_mcp_server.server_auth.base import (
-    AuthenticatedUser,
+from arcade_mcp_server.resource_server.base import (
+    AccessTokenValidationOptions,
     AuthenticationError,
     InvalidTokenError,
-    JWTVerifyOptions,
-    ServerAuthProvider,
+    ResourceOwner,
+    ResourceServerValidator,
     TokenExpiredError,
 )
 
@@ -33,7 +33,14 @@ SUPPORTED_ALGORITHMS = {
 }
 
 
-class JWTVerifier(ServerAuthProvider):
+class JWKSTokenValidator(ResourceServerValidator):
+    """JWKS-based JWT token validator for simple, explicit token validation.
+
+    This validator fetches public keys from a JWKS endpoint and validates
+    JWT access tokens against them. Use this when you need direct control
+    over token validation without OAuth discovery support.
+    """
+
     def __init__(
         self,
         jwks_uri: str,
@@ -41,11 +48,9 @@ class JWTVerifier(ServerAuthProvider):
         audience: str | list[str],
         algorithm: str = "RS256",
         cache_ttl: int = 3600,
-        verify_options: JWTVerifyOptions | None = None,
+        validation_options: AccessTokenValidationOptions | None = None,
     ):
-        """Initialize JWT verifier
-
-        This provider is for simple, explicit token validation.
+        """Initialize JWKS token validator.
 
         Args:
             jwks_uri: URL to fetch JWKS
@@ -53,35 +58,35 @@ class JWTVerifier(ServerAuthProvider):
             audience: Token audience or list of allowed audiences (typically your MCP server's canonical URL)
             algorithm: Signature algorithm. Default RS256.
             cache_ttl: JWKS cache TTL in seconds
-            verify_options: JWT verification options
+            validation_options: Access token validation options
 
         Raises:
-            ValueError: If required fields not provided, algorithm unsupported, or verify_aud is True but audience is None
+            ValueError: If required fields not provided or algorithm unsupported
 
         Example:
             ```python
-            auth = JWTVerifier(
+            validator = JWKSTokenValidator(
                 jwks_uri="https://auth.example.com/jwks",
                 issuer="https://auth.example.com",
                 audience="https://mcp.example.com/mcp",
             )
 
             # Multiple issuers
-            auth = JWTVerifier(
+            validator = JWKSTokenValidator(
                 jwks_uri="https://auth.example.com/jwks",
                 issuer=["https://auth1.example.com", "https://auth2.example.com"],
                 audience="https://mcp.example.com/mcp",
             )
 
             # Multiple audiences (e.g., URL migration)
-            auth = JWTVerifier(
+            validator = JWKSTokenValidator(
                 jwks_uri="https://auth.example.com/jwks",
                 issuer="https://auth.example.com",
                 audience=["https://old-mcp.example.com/mcp", "https://new-mcp.example.com/mcp"],
             )
 
             # Different algorithm
-            auth = JWTVerifier(
+            validator = JWKSTokenValidator(
                 jwks_uri="https://auth.example.com/jwks",
                 issuer="https://auth.example.com",
                 audience="https://mcp.example.com/mcp",
@@ -95,14 +100,14 @@ class JWTVerifier(ServerAuthProvider):
                 f"Supported asymmetric algorithms: {', '.join(sorted(SUPPORTED_ALGORITHMS))}"
             )
 
-        if verify_options is None:
-            verify_options = JWTVerifyOptions()
+        if validation_options is None:
+            validation_options = AccessTokenValidationOptions()
 
         self.jwks_uri = jwks_uri
         self.issuer = issuer
         self.audience = audience
         self.algorithm = algorithm
-        self.verify_options = verify_options
+        self.validation_options = validation_options
 
         self._cache_ttl = cache_ttl
         self._http_client = httpx.AsyncClient(timeout=10.0)
@@ -190,8 +195,8 @@ class JWTVerifier(ServerAuthProvider):
         """
         decode_options = {
             "verify_signature": True,  # We always verify signature. Impossible to disable.
-            "verify_exp": self.verify_options.verify_exp,
-            "verify_iat": self.verify_options.verify_iat,
+            "verify_exp": self.validation_options.verify_exp,
+            "verify_iat": self.validation_options.verify_iat,
             "verify_aud": False,  # We'll validate manually so that we can support multi-audience
             "verify_iss": False,  # We'll validate manually for better multi-issuer handling
         }
@@ -208,7 +213,7 @@ class JWTVerifier(ServerAuthProvider):
         )
 
         # Manually validate issuer (if flag is enabled)
-        if self.verify_options.verify_iss:
+        if self.validation_options.verify_iss:
             token_iss = decoded.get("iss")
             if isinstance(self.issuer, list):
                 if token_iss not in self.issuer:
@@ -222,7 +227,7 @@ class JWTVerifier(ServerAuthProvider):
                     )
 
         # Manually validate audience (if flag is enabled)
-        if self.verify_options.verify_aud:
+        if self.validation_options.verify_aud:
             token_aud = decoded.get("aud")
             token_audiences = [token_aud] if isinstance(token_aud, str) else (token_aud or [])
             expected_audiences = (
@@ -269,25 +274,25 @@ class JWTVerifier(ServerAuthProvider):
 
         return client_id
 
-    async def validate_token(self, token: str) -> AuthenticatedUser:
-        """Validate JWT and return authenticated user.
+    async def validate_token(self, token: str) -> ResourceOwner:
+        """Validate JWT and return authenticated resource owner.
 
         Validates:
         - Token signature using JWKS public key
         - Subject (sub claim) exists
-        - Expiration (exp claim) (if verify_options.verify_exp is True, default True)
-        - Issued-at time (iat claim) (if verify_options.verify_iat is True, default True)
-        - Issuer (iss claim) matches configured issuer(s) (if verify_options.verify_iss is True, default True)
-        - Audience (aud claim) matches configured audience(s) (if verify_options.verify_aud is True, default True)
+        - Expiration (exp claim) (if validation_options.verify_exp is True, default True)
+        - Issued-at time (iat claim) (if validation_options.verify_iat is True, default True)
+        - Issuer (iss claim) matches configured issuer(s) (if validation_options.verify_iss is True, default True)
+        - Audience (aud claim) matches configured audience(s) (if validation_options.verify_aud is True, default True)
 
-        Note: All verify_options default to True, so by default all validations are enabled
-        for max security.
+        Note: All validation_options default to True, so by default all validations
+        are enabled for max security.
 
         Args:
             token: JWT Bearer token
 
         Returns:
-            AuthenticatedUser with user_id, client_id, and claims
+            ResourceOwner with user_id, client_id, and claims
 
         Raises:
             TokenExpiredError: Token has expired
@@ -302,7 +307,7 @@ class JWTVerifier(ServerAuthProvider):
             client_id = self._extract_client_id(decoded)
             email = decoded.get("email")
 
-            return AuthenticatedUser(
+            return ResourceOwner(
                 user_id=user_id,
                 client_id=client_id,
                 email=email,

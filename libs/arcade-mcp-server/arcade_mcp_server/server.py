@@ -654,13 +654,13 @@ class MCPServer:
         """
         env = (self.settings.arcade.environment or "").lower()
 
-        # First priority: authenticated user from front-door auth
+        # First priority: resource owner from front-door auth
         if (
             session
-            and hasattr(session, "_current_authenticated_user")
-            and session._current_authenticated_user
+            and hasattr(session, "_current_resource_owner")
+            and session._current_resource_owner
         ):
-            user_id = session._current_authenticated_user.user_id
+            user_id = session._current_resource_owner.user_id
             logger.debug(f"Context user_id set from Authorization Server 'sub' claim: {user_id}")
             return cast(str, user_id)
 
@@ -826,7 +826,7 @@ class MCPServer:
 
         Tools requiring authorization or secrets are blocked on unauthenticated HTTP
         transport for security reasons. However, if the HTTP transport has front-door
-        authentication enabled (authenticated_user is present), these tools are allowed
+        authentication enabled (resource_owner is present), these tools are allowed
         since we can safely identify the end-user and handle their authorization.
         """
         # Check transport restrictions for tools requiring auth or secrets
@@ -834,8 +834,8 @@ class MCPServer:
             transport_type = session.init_options.get("transport_type")
             if transport_type != "stdio":
                 is_authenticated = (
-                    hasattr(session, "_current_authenticated_user")
-                    and session._current_authenticated_user is not None
+                    hasattr(session, "_current_resource_owner")
+                    and session._current_resource_owner is not None
                 )
 
                 requirements = tool.definition.requirements

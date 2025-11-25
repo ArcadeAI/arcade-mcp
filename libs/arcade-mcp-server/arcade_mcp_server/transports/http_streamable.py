@@ -412,8 +412,8 @@ class HTTPStreamableTransport:
             elif not await self._validate_request_headers(request, send):
                 return
 
-            # Extract authenticated user from scope (set by ASGI MCP auth middleware)
-            authenticated_user = request.scope.get("authenticated_user")
+            # Extract resource owner from scope (set by ASGI Resource Server middleware)
+            resource_owner = request.scope.get("resource_owner")
 
             # For notifications and responses, return 202 Accepted
             if not isinstance(message, JSONRPCRequest):
@@ -423,7 +423,7 @@ class HTTPStreamableTransport:
                 # Process the message
                 session_message = SessionMessage(
                     message=message,
-                    authenticated_user=authenticated_user,
+                    resource_owner=resource_owner,
                 )
                 await writer.send(session_message)
                 return
@@ -436,7 +436,7 @@ class HTTPStreamableTransport:
             if self.is_json_response_enabled:
                 session_message = SessionMessage(
                     message=message,
-                    authenticated_user=authenticated_user,
+                    resource_owner=resource_owner,
                 )
                 await writer.send(session_message)
 
@@ -509,7 +509,7 @@ class HTTPStreamableTransport:
                         # Send SessionMessage object
                         session_message = SessionMessage(
                             message=message,
-                            authenticated_user=authenticated_user,
+                            resource_owner=resource_owner,
                         )
                         await writer.send(session_message)
                 except Exception:

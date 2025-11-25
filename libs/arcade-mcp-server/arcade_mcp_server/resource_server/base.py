@@ -1,4 +1,4 @@
-"""Base classes for server-level authentication providers."""
+"""Base classes for MCP Resource Server authentication."""
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -7,11 +7,12 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 
-class JWTVerifyOptions(BaseModel):
-    """Options for JWT token verification.
+class AccessTokenValidationOptions(BaseModel):
+    """Options for access token validation.
 
     All validations are enabled by default for security.
-    Set to False to disable specific validations for authorization servers that are not compliant with MCP.
+    Set to False to disable specific validations for authorization servers
+    that are not compliant with MCP.
 
     Note: Token signature verification is always enabled and cannot be disabled.
     Additionally, the subject (sub claim) must always be present in the token.
@@ -36,11 +37,12 @@ class JWTVerifyOptions(BaseModel):
 
 
 @dataclass
-class AuthenticatedUser:
+class ResourceOwner:
     """User information extracted from validated access token.
 
-    This represents the authenticated end-user making requests to the MCP server.
-    The user_id typically comes from the 'sub' (subject) claim in JWT tokens.
+    This represents the authenticated resource owner (end-user) making requests
+    to the MCP server. The user_id typically comes from the 'sub' (subject) claim
+    in JWT tokens.
     """
 
     user_id: str
@@ -57,12 +59,12 @@ class AuthenticatedUser:
 
 
 @dataclass
-class AuthorizationServerConfig:
-    """Configuration for a single authorization server.
+class AuthorizationServerEntry:
+    """Configuration entry for a single authorization server.
 
     Each authorization server that can issue valid tokens for this
-    MCP server needs its own config specifying how to verify tokens
-    from that server.
+    MCP server (Resource Server) needs its own entry specifying how to
+    verify tokens from that server.
     """
 
     authorization_server_url: str
@@ -77,8 +79,10 @@ class AuthorizationServerConfig:
     algorithm: str = "RS256"
     """JWT signature algorithm (RS256, ES256, PS256, etc.)"""
 
-    verify_options: JWTVerifyOptions = field(default_factory=JWTVerifyOptions)
-    """Token verification options for this AS"""
+    validation_options: AccessTokenValidationOptions = field(
+        default_factory=AccessTokenValidationOptions
+    )
+    """Token validation options for this authorization server"""
 
 
 class AuthenticationError(Exception):
@@ -99,22 +103,23 @@ class InvalidTokenError(AuthenticationError):
     pass
 
 
-class ServerAuthProvider(ABC):
-    """Base class for front-door authentication providers.
+class ResourceServerValidator(ABC):
+    """Base class for MCP Resource Server token validation.
 
-    Implementations must validate Bearer tokens according to OAuth 2.1 Resource Server
-    requirements, including:
+    An MCP server acts as an OAuth 2.1 Resource Server, validating Bearer tokens
+    on every HTTP request. Implementations must validate tokens according to
+    OAuth 2.1 Resource Server requirements, including:
     - Token signature verification
     - Expiration checking
     - Issuer validation
     - Audience validation
 
-    Tokens are validated on EVERY request - no caching is permitted per MCP spec.
+    Tokens are validated on every request - no caching is permitted per MCP spec.
     """
 
     @abstractmethod
-    async def validate_token(self, token: str) -> AuthenticatedUser:
-        """Validate bearer token and return authenticated user info.
+    async def validate_token(self, token: str) -> ResourceOwner:
+        """Validate bearer token and return authenticated resource owner info.
 
         Must validate:
         - Token signature
@@ -126,7 +131,7 @@ class ServerAuthProvider(ABC):
             token: Bearer token from Authorization header
 
         Returns:
-            AuthenticatedUser with user_id and claims
+            ResourceOwner with user_id and claims
 
         Raises:
             TokenExpiredError: Token has expired
@@ -136,9 +141,9 @@ class ServerAuthProvider(ABC):
         pass
 
     def supports_oauth_discovery(self) -> bool:
-        """Whether this provider supports OAuth discovery endpoints.
+        """Whether this validator supports OAuth discovery endpoints.
 
-        Returns True if the provider can serve OAuth 2.0 Protected Resource Metadata
+        Returns True if the validator can serve OAuth 2.0 Protected Resource Metadata
         (RFC 9728) to enable MCP clients to discover authorization servers.
         """
         return False

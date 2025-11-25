@@ -25,9 +25,9 @@ from starlette.types import Receive, Scope, Send
 
 from arcade_mcp_server.fastapi.auth_routes import create_auth_router
 from arcade_mcp_server.fastapi.middleware import AddTrailingSlashToPathMiddleware
+from arcade_mcp_server.resource_server.base import ResourceServerValidator
+from arcade_mcp_server.resource_server.middleware import ResourceServerMiddleware
 from arcade_mcp_server.server import MCPServer
-from arcade_mcp_server.server_auth.base import ServerAuthProvider
-from arcade_mcp_server.server_auth.middleware import MCPAuthMiddleware
 from arcade_mcp_server.settings import MCPSettings
 from arcade_mcp_server.transports.http_session_manager import HTTPSessionManager
 
@@ -123,7 +123,7 @@ def create_arcade_mcp(
     mcp_settings: MCPSettings | None = None,
     debug: bool = False,
     otel_enable: bool = False,
-    server_auth_provider: ServerAuthProvider | None = None,
+    resource_server_validator: ResourceServerValidator | None = None,
     **kwargs: Any,
 ) -> FastAPI:
     """
@@ -136,7 +136,7 @@ def create_arcade_mcp(
         mcp_settings: MCP configuration settings
         debug: Enable debug mode
         otel_enable: Enable OpenTelemetry
-        server_auth_provider: Front-door server-auth provider
+        resource_server_validator: Resource Server validator for front-door authentication
         **kwargs: Additional configuration options
     """
     if mcp_settings is None:
@@ -192,15 +192,15 @@ def create_arcade_mcp(
     app.add_middleware(AddTrailingSlashToPathMiddleware)
 
     # Add OAuth discovery endpoint if auth is enabled
-    if server_auth_provider and server_auth_provider.supports_oauth_discovery():
-        canonical_url = getattr(server_auth_provider, "canonical_url", None)
+    if resource_server_validator and resource_server_validator.supports_oauth_discovery():
+        canonical_url = getattr(resource_server_validator, "canonical_url", None)
         if not canonical_url:
             raise ValueError(
                 "canonical_url must be set via parameter or "
-                "MCP_SERVER_AUTH_CANONICAL_URL environment variable"
+                "MCP_RESOURCE_SERVER_CANONICAL_URL environment variable"
             )
 
-        auth_router = create_auth_router(server_auth_provider, canonical_url)
+        auth_router = create_auth_router(resource_server_validator, canonical_url)
         app.include_router(auth_router)
 
     # Worker endpoints
@@ -226,18 +226,18 @@ def create_arcade_mcp(
 
     # Create MCP proxy and wrap with auth middleware if enabled
     mcp_proxy: Any = _MCPASGIProxy(app)
-    if server_auth_provider:
-        # Get canonical_url from provider if it supports OAuth discovery
+    if resource_server_validator:
+        # Get canonical_url from validator if it supports OAuth discovery
         canonical_url = None
-        if server_auth_provider.supports_oauth_discovery():
-            canonical_url = getattr(server_auth_provider, "canonical_url", None)
+        if resource_server_validator.supports_oauth_discovery():
+            canonical_url = getattr(resource_server_validator, "canonical_url", None)
             if not canonical_url:
                 raise ValueError(
                     "canonical_url must be set via parameter or "
-                    "MCP_SERVER_AUTH_CANONICAL_URL environment variable"
+                    "MCP_RESOURCE_SERVER_CANONICAL_URL environment variable"
                 )
 
-        mcp_proxy = MCPAuthMiddleware(mcp_proxy, server_auth_provider, canonical_url)
+        mcp_proxy = ResourceServerMiddleware(mcp_proxy, resource_server_validator, canonical_url)
 
     # Mount the ASGI proxy to handle all /mcp requests
     app.mount("/mcp", mcp_proxy, name="mcp-proxy")

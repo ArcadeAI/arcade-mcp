@@ -18,7 +18,7 @@ import anyio
 
 from arcade_mcp_server.context import Context
 from arcade_mcp_server.exceptions import RequestError, SessionError
-from arcade_mcp_server.server_auth.base import AuthenticatedUser
+from arcade_mcp_server.resource_server.base import ResourceOwner
 from arcade_mcp_server.types import (
     CancelledNotification,
     CancelledParams,
@@ -280,8 +280,8 @@ class ServerSession:
         self._session_data: dict[str, Any] = {}
         self._request_meta: Any = None
 
-        # Current authenticated user (from front-door auth) that is set and cleared on every request
-        self._current_authenticated_user: AuthenticatedUser | None = None
+        # Current resource owner (from front-door auth) that is set and cleared on every request
+        self._current_resource_owner: ResourceOwner | None = None
 
         # Request management
         self._request_manager = RequestManager(write_stream) if write_stream else None
@@ -375,17 +375,17 @@ class ServerSession:
         try:
             if isinstance(message, str):
                 data = json.loads(message)
-                authenticated_user = None
+                resource_owner = None
             elif isinstance(message, SessionMessage):
                 # We must keep exclude_none=True to avoid Pydantic union type coersion
                 # when reconstructing models from dict (e.g., RequestId = str | int)
                 data = message.message.model_dump(exclude_none=True)
-                authenticated_user = message.authenticated_user
+                resource_owner = message.resource_owner
             else:
                 logger.error(f"Unexpected message type: {type(message)}")
                 return
 
-            self._current_authenticated_user = authenticated_user
+            self._current_resource_owner = resource_owner
 
             # Check if it's a response to our request
             if "id" in data and "method" not in data:
@@ -424,8 +424,8 @@ class ServerSession:
                 f"Internal error: {e!s}",
             )
         finally:
-            # Authenticated user is always cleared & re-validated on every request
-            self._current_authenticated_user = None
+            # Resource owner is always cleared & re-validated on every request
+            self._current_resource_owner = None
 
     async def _send_error_response(
         self,
@@ -665,7 +665,7 @@ class ServerSession:
         """Create a context for the current request."""
         context = Context(
             server=self.server,
-            authenticated_user=self._current_authenticated_user,
+            resource_owner=self._current_resource_owner,
         )
         context.set_session(self)
         self._current_context = context

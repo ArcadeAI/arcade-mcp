@@ -6,22 +6,22 @@ from typing import Annotated
 import httpx
 from arcade_mcp_server import Context, MCPApp
 from arcade_mcp_server.auth import Reddit
-from arcade_mcp_server.server_auth import (
-    AuthorizationServerConfig,
-    JWTVerifyOptions,
-    RemoteOAuthProvider,
+from arcade_mcp_server.resource_server import (
+    AccessTokenValidationOptions,
+    AuthorizationServerEntry,
+    ResourceServer,
 )
 
 # Option 1: Single authorization server example
-auth = RemoteOAuthProvider(
+resource_server = ResourceServer(
     canonical_url="http://127.0.0.1:8000/mcp",
     authorization_servers=[
-        AuthorizationServerConfig(
+        AuthorizationServerEntry(
             authorization_server_url="https://your-workos.authkit.app",
             issuer="https://your-workos.authkit.app",
             jwks_uri="https://your-workos.authkit.app/oauth2/jwks",
             algorithm="RS256",
-            verify_options=JWTVerifyOptions(
+            validation_options=AccessTokenValidationOptions(
                 verify_aud=False,
             ),
         )
@@ -29,15 +29,15 @@ auth = RemoteOAuthProvider(
 )
 
 # Option 2: Multiple authorization servers with different keys (e.g., multi-IdP)
-# auth = RemoteOAuthProvider(
+# resource_server = ResourceServer(
 #     canonical_url="http://127.0.0.1:8000/mcp",
 #     authorization_servers=[
-#         AuthorizationServerConfig(
+#         AuthorizationServerEntry(
 #             authorization_server_url="https://your-workos.authkit.app",
 #             issuer="https://your-workos.authkit.app",
 #             jwks_uri="https://your-workos.authkit.app/oauth2/jwks",
 #         ),
-#         AuthorizationServerConfig(
+#         AuthorizationServerEntry(
 #             authorization_server_url="https://github.com/login/oauth",
 #             issuer="https://github.com",
 #             jwks_uri="https://token.actions.githubusercontent.com/.well-known/jwks",
@@ -47,22 +47,22 @@ auth = RemoteOAuthProvider(
 
 # Option 3: Authoriation via env vars (place in your .env file)
 # ```bash
-# MCP_SERVER_AUTH_CANONICAL_URL=http://127.0.0.1:8000/mcp
-# MCP_SERVER_AUTH_AUTHORIZATION_SERVERS='[
+# MCP_RESOURCE_SERVER_CANONICAL_URL=http://127.0.0.1:8000/mcp
+# MCP_RESOURCE_SERVER_AUTHORIZATION_SERVERS='[
 #   {
 #     "authorization_server_url": "https://your-workos.authkit.app",
 #     "issuer": "https://your-workos.authkit.app",
 #     "jwks_uri": "https://your-workos.authkit.app/oauth2/jwks",
 #     "algorithm": "RS256",
-#     "verify_options": {
+#     "validation_options": {
 #       "verify_aud": false
 #     }
 #   }
 # ]'
 # ```
-# auth = RemoteOAuthProvider()
+# resource_server = ResourceServer()
 
-app = MCPApp(name="authorization", version="1.0.0", log_level="DEBUG", auth=auth)
+app = MCPApp(name="authorization", version="1.0.0", log_level="DEBUG", auth=resource_server)
 
 
 @app.tool

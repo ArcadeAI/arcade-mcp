@@ -1,29 +1,30 @@
-"""ASGI middleware for front-door authentication."""
+"""ASGI middleware for MCP Resource Server authentication."""
 
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-from arcade_mcp_server.server_auth.base import (
-    AuthenticatedUser,
+from arcade_mcp_server.resource_server.base import (
     AuthenticationError,
     InvalidTokenError,
-    ServerAuthProvider,
+    ResourceOwner,
+    ResourceServerValidator,
     TokenExpiredError,
 )
 
 
-class MCPAuthMiddleware:
+class ResourceServerMiddleware:
     """ASGI middleware that validates Bearer tokens on every HTTP request.
 
     Validates tokens per MCP specification:
     - Checks Authorization header for Bearer token
     - Validates token on every request
     - Returns 401 with WWW-Authenticate header if authentication fails
-    - Stores authenticated user in scope for downstream use to lift tool-auth and tool-secrets restrictions
+    - Stores authenticated resource owner in scope for downstream use to lift
+      tool-auth and tool-secrets restrictions
 
     The WWW-Authenticate header includes:
-    - resource_metadata URL for OAuth discovery (if provider supports it)
+    - resource_metadata URL for OAuth discovery (if validator supports it)
     - error and error_description for token validation failures (RFC 6750)
 
     Example:
@@ -31,27 +32,27 @@ class MCPAuthMiddleware:
         from starlette.applications import Starlette
 
         app = Starlette()
-        auth_provider = JWTVerifier(...)
-        app = MCPAuthMiddleware(app, auth_provider, "https://mcp.example.com")
+        validator = JWKSTokenValidator(...)
+        app = ResourceServerMiddleware(app, validator, "https://mcp.example.com")
         ```
     """
 
     def __init__(
         self,
         app: ASGIApp,
-        auth_provider: ServerAuthProvider,
+        validator: ResourceServerValidator,
         canonical_url: str | None,
     ):
-        """Initialize the server-level auth middleware.
+        """Initialize the Resource Server middleware.
 
         Args:
             app: ASGI application to wrap
-            auth_provider: Authentication provider for token validation
+            validator: Token validator for access token validation
             canonical_url: Canonical URL of this MCP server (for OAuth metadata).
-                          Required only for providers that support OAuth discovery.
+                          Required only for validators that support OAuth discovery.
         """
         self.app = app
-        self.auth_provider = auth_provider
+        self.validator = validator
         self.canonical_url = canonical_url
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
@@ -60,7 +61,7 @@ class MCPAuthMiddleware:
         For HTTP requests:
         1. Extract Bearer token from Authorization header
         2. Validate token (on EVERY request - no caching)
-        3. Store authenticated user in scope
+        3. Store authenticated resource owner in scope
         4. Pass to wrapped app
 
         For non-HTTP requests, pass through without auth.
@@ -73,10 +74,10 @@ class MCPAuthMiddleware:
         request = Request(scope, receive)
 
         try:
-            authenticated_user = await self._authenticate_request(request)
+            resource_owner = await self._authenticate_request(request)
 
             # Store in scope for downstream usage & continue to app execution
-            scope["authenticated_user"] = authenticated_user
+            scope["resource_owner"] = resource_owner
             await self.app(scope, receive, send)
 
         except (TokenExpiredError, InvalidTokenError) as e:
@@ -90,14 +91,14 @@ class MCPAuthMiddleware:
             response = self._create_401_response()
             await response(scope, receive, send)
 
-    async def _authenticate_request(self, request: Request) -> AuthenticatedUser:
+    async def _authenticate_request(self, request: Request) -> ResourceOwner:
         """Extract and validate Bearer token from Authorization header.
 
         Args:
             request: Starlette request object
 
         Returns:
-            AuthenticatedUser from validated token
+            ResourceOwner from validated token
 
         Raises:
             AuthenticationError: No token or invalid format
@@ -115,7 +116,7 @@ class MCPAuthMiddleware:
         # Remove "Bearer " prefix
         token = auth_header[7:]
 
-        return await self.auth_provider.validate_token(token)
+        return await self.validator.validate_token(token)
 
     def _create_401_response(
         self,
@@ -137,8 +138,8 @@ class MCPAuthMiddleware:
         """
         www_auth_parts = ["Bearer"]
 
-        # Add resource metadata URL if provider supports discovery (RFC 9728)
-        if self.auth_provider.supports_oauth_discovery() and self.canonical_url:
+        # Add resource metadata URL if validator supports discovery (RFC 9728)
+        if self.validator.supports_oauth_discovery() and self.canonical_url:
             metadata_url = f"{self.canonical_url}/.well-known/oauth-protected-resource"
             www_auth_parts.append(f'resource_metadata="{metadata_url}"')
 
