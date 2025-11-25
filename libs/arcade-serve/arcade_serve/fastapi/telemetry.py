@@ -46,7 +46,7 @@ class OTELHandler:
             self.resource = Resource(
                 attributes={
                     service_attributes.SERVICE_NAME: "worker",
-                    deployment_attributes.DEPLOYMENT_ENVIRONMENT: self.environment,
+                    deployment_attributes.DEPLOYMENT_ENVIRONMENT_NAME: self.environment,
                 }
             )
 
