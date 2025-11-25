@@ -50,7 +50,7 @@ def test_init_with_enable_true(
     assert handler._log_processor is not None
 
     # Verify that FastAPIInstrumentor is used
-    mock_instrumentor.return_value.instrument_app.assert_called_once_with(app)
+    mock_instrumentor.return_value.instrument_app.assert_called_once_with(app, excluded_urls="/worker/health")
 
 
 @patch("arcade_serve.fastapi.telemetry.logging")

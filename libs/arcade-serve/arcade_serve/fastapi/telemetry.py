@@ -20,6 +20,8 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.semconv._incubating.attributes import deployment_attributes
 from opentelemetry.semconv.attributes import service_attributes
 
+EXCLUDED_URLS = "/worker/health"
+
 
 class ShutdownError(Exception):
     pass
@@ -53,7 +55,7 @@ class OTELHandler:
             self._init_tracer()
             self._init_metrics()
             self._init_logging(self.log_level)
-            FastAPIInstrumentor().instrument_app(app)
+            FastAPIInstrumentor().instrument_app(app, excluded_urls=EXCLUDED_URLS)
 
     def _init_tracer(self) -> None:
         self._tracer_provider = TracerProvider(resource=self.resource)
