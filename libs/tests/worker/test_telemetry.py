@@ -38,8 +38,8 @@ def test_init_with_enable_true(
     handler.instrument_app(app)
 
     # Verify that the resource is set correctly
-    assert handler.resource.attributes["service.name"] == "arcade-worker"
-    assert "environment" in handler.resource.attributes
+    assert handler.resource.attributes["service.name"] == "worker"
+    assert "deployment.environment.name" in handler.resource.attributes
 
     # Verify that initialization methods are called
     assert handler._tracer_provider is not None
