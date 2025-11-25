@@ -383,6 +383,7 @@ def start_server_process(entrypoint: str, debug: bool = False) -> tuple[subproce
         "ARCADE_SERVER_PORT": str(port),
         "ARCADE_SERVER_TRANSPORT": "http",
         "ARCADE_AUTH_DISABLED": "true",
+        "ARCADE_WORKER_SECRET": "temp-validation-secret",
     }
 
     cmd = [sys.executable, entrypoint]
