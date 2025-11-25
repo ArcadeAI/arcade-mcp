@@ -20,7 +20,7 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.semconv._incubating.attributes import deployment_attributes
 from opentelemetry.semconv.attributes import service_attributes
 
-EXCLUDED_URLS = ["/worker/health"]
+EXCLUDED_URLS = "/worker/health"
 
 
 class ShutdownError(Exception):
