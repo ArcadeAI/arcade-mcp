@@ -13,6 +13,7 @@ Functions:
 import json
 import os
 import subprocess
+from contextlib import suppress
 from typing import Any
 
 # Protocol version for MCP handshake
@@ -101,11 +102,11 @@ def load_from_stdio(
                 tools_list: list[dict[str, Any]] = response["result"]["tools"]
                 return tools_list
     finally:
-        try:
+        # OSError: process already dead; TimeoutExpired: process didn't stop in time
+        # Both are fine - we're just doing best-effort cleanup
+        with suppress(OSError, subprocess.TimeoutExpired):
             process.terminate()
             process.wait(timeout=timeout)
-        except Exception:
-            pass
 
     return []
 
@@ -244,8 +245,9 @@ def load_from_http(
             # Fallback to SSE if server requires it
             if e.response.status_code == 406 and "text/event-stream" in e.response.text:
                 return load_from_http(url=url, timeout=timeout, headers=headers, use_sse=True)
-        except Exception:
-            pass
+        except (httpx.TimeoutException, httpx.ConnectError, json.JSONDecodeError):
+            # Timeout/unreachable/invalid response - return empty list (graceful degradation)
+            return []
 
     return []
 
