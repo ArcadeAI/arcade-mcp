@@ -6,7 +6,7 @@ const arcade = new Arcade()
 
 // Get Arcade Gmail Toolkit
 // Toolkit names can be found in the Arcade dashboard via Tools > view > Toolkit or via the CLI `arcade workers list`
-const gmailToolkit = await arcade.tools.list({ toolkit: "Gmail", limit: 30 })
+const gmailToolkit = await arcade.tools.list({ toolkit: "Gmail", limit: 1 })
 
 /**
  * Mastra requires tools to be defined using Zod, a TypeScript-first schema validation library
@@ -25,7 +25,7 @@ const gmailToolkit = await arcade.tools.list({ toolkit: "Gmail", limit: 30 })
  *
  * Learn more: https://docs.arcade.dev/home/use-tools/get-tool-definitions#get-zod-tool-definitions
  */
-export const gmailTools = toZodToolSet({
+export const mastraGmailTools = toZodToolSet({
     tools: gmailToolkit.items,
     client: arcade,
     userId: "<YOUR_USER_ID>", // Your app's internal ID for the user (an email, UUID, etc). It's used internally to identify your user in Arcade
