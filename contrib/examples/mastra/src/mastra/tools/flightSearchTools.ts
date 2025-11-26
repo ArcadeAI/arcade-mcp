@@ -25,9 +25,20 @@ const flightToolkit = await arcade.tools.list({ toolkit: "GoogleFlights", limit:
  *
  * Learn more: https://docs.arcade.dev/home/use-tools/get-tool-definitions#get-zod-tool-definitions
  */
-export const flightTools = toZodToolSet({
+const baseFlightTools = toZodToolSet({
     tools: flightToolkit.items,
     client: arcade,
     userId: "<YOUR_USER_ID>", // Your app's internal ID for the user (an email, UUID, etc). It's used internally to identify your user in Arcade
     executeFactory: executeOrAuthorizeZodTool, // Checks if tool is authorized and executes it, or returns authorization URL if needed
 })
+
+// Add id property to each tool that copies the name
+export const flightTools = Object.fromEntries(
+    Object.entries(baseFlightTools).map(([key, tool]) => [
+        key,
+        {
+            ...tool,
+            id: tool.name,
+        },
+    ])
+)

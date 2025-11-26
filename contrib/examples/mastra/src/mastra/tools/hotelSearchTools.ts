@@ -25,9 +25,20 @@ const hotelToolkit = await arcade.tools.list({ toolkit: "GoogleHotels", limit: 3
  *
  * Learn more: https://docs.arcade.dev/home/use-tools/get-tool-definitions#get-zod-tool-definitions
  */
-export const hotelTools = toZodToolSet({
+const baseHotelTools = toZodToolSet({
     tools: hotelToolkit.items,
     client: arcade,
     userId: "<YOUR_USER_ID>", // Your app's internal ID for the user (an email, UUID, etc). It's used internally to identify your user in Arcade
     executeFactory: executeOrAuthorizeZodTool, // Checks if tool is authorized and executes it, or returns authorization URL if needed
 })
+
+// Add id property to each tool that copies the name
+export const hotelTools = Object.fromEntries(
+    Object.entries(baseHotelTools).map(([key, tool]) => [
+        key,
+        {
+            ...tool,
+            id: tool.name,
+        },
+    ])
+)
