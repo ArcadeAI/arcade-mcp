@@ -6,7 +6,7 @@ const arcade = new Arcade()
 
 // Get Arcade GoogleFlights Toolkit
 // Toolkit names can be found in the Arcade dashboard via Tools > view > Toolkit or via the CLI `arcade workers list`
-const flightToolkit = await arcade.tools.list({ toolkit: "GoogleFlights", limit: 99 })
+const flightToolkit = await arcade.tools.list({ toolkit: "GoogleFlights", limit: 30 })
 
 /**
  * Mastra requires tools to be defined using Zod, a TypeScript-first schema validation library

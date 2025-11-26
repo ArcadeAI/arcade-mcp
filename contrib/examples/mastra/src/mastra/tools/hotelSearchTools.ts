@@ -6,7 +6,7 @@ const arcade = new Arcade()
 
 // Get Arcade GoogleHotels Toolkit
 // Toolkit names can be found in the Arcade dashboard via Tools > view > Toolkit or via the CLI `arcade workers list`
-const hotelToolkit = await arcade.tools.list({ toolkit: "GoogleHotels", limit: 99 })
+const hotelToolkit = await arcade.tools.list({ toolkit: "GoogleHotels", limit: 30 })
 
 /**
  * Mastra requires tools to be defined using Zod, a TypeScript-first schema validation library

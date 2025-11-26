@@ -19,9 +19,6 @@
 
 # Arcade - Mastra Integration
 
-> [!CAUTION]
-> The mastra example is not yet working with Mastra 1.0
-
 This example demonstrates how to integrate [Arcade](https://docs.arcade.dev) with [Mastra](https://mastra.ai/en/docs) to create powerful AI agents. Arcade provides access to a wide range of tools including Gmail, Slack, LinkedIn, and more, while Mastra provides a robust framework for building AI agents with TypeScript.
 
 For a list of all available tools and authentication options, see the [Arcade Integrations](https://docs.arcade.dev/toolkits) documentation. You can also build custom tools with the [Tool SDK](https://github.com/ArcadeAI/arcade-mcp) as described in our [documentation](https://docs.arcade.dev/home/build-tools/create-a-toolkit).
