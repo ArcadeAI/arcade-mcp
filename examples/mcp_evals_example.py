@@ -60,23 +60,48 @@ manual_tools = [
 # OPTION 2: Automatic Loading (MCP server required) ⚡ Always up-to-date
 # ──────────────────────────────────────────────────────────────────────────
 
-# Example 1: Load from GitHub MCP server (stdio)
-# automatic_tools = load_from_stdio(["npx", "-y", "@modelcontextprotocol/server-github"])
-
-# Example 2: Load from your own MCP server (stdio)
+# Example 1: Load from your own MCP server (stdio)
+# from arcade_evals import load_from_stdio
 # automatic_tools = load_from_stdio(["python", "my_server.py", "stdio"])
 
-# Example 3: Load from HTTP MCP server
+# Example 2: Load via stdio with custom env vars
+# from arcade_evals import load_from_stdio
+# automatic_tools = load_from_stdio(
+#     ["npx", "-y", "@your/mcp-server"],
+#     env={"API_KEY": "..."}
+# )
+
+# Example 3: Load from Arcade MCP server via stdio
+# from arcade_evals import load_stdio_arcade
+# automatic_tools = load_stdio_arcade(
+#     ["python", "server.py", "stdio"],
+#     arcade_api_key="arc_...",
+#     arcade_user_id="user@example.com",
+#     tool_secrets={"MY_SECRET": "secret_value"}
+# )
+
+# Example 4: Load from HTTP MCP server with headers
 # from arcade_evals import load_from_http
-# automatic_tools = load_from_http("http://localhost:8000")
+# automatic_tools = load_from_http(
+#     "http://localhost:8000",
+#     headers={"Authorization": "Bearer your_token"}
+# )
+
+# Example 5: Load from Arcade Cloud MCP gateway
+# from arcade_evals import load_arcade_cloud
+# automatic_tools = load_arcade_cloud(
+#     gateway_slug="your-gateway-slug",
+#     arcade_api_key="arc_your_api_key",
+#     arcade_user_id="user@example.com"
+# )
 
 # ============================================================================
 
 # For this example, use manual tools (works immediately, no server needed)
 tools_to_use = manual_tools
 
-# To test with real GitHub MCP server, uncomment:
-# tools_to_use = load_from_stdio(["npx", "-y", "@modelcontextprotocol/server-github"])
+# To test with your own MCP server, uncomment:
+# tools_to_use = load_from_stdio(["python", "my_server.py", "stdio"])
 
 # Step 2: Create an MCP tool registry (same for both approaches!)
 registry = MCPToolRegistry(tools_to_use)
