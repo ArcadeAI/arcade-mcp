@@ -329,7 +329,7 @@ class TestMCPApp:
         """Test _create_and_run_server method with mocked dependencies."""
         with (
             patch("arcade_mcp_server.mcp_app.create_arcade_mcp") as mock_create,
-            patch("arcade_mcp_server.mcp_app.uvicorn") as mock_uvicorn,
+            patch("arcade_mcp_server.mcp_app.serve_with_force_quit") as mock_serve,
         ):
             mock_fastapi_app = Mock()
             mock_create.return_value = mock_fastapi_app
@@ -343,19 +343,17 @@ class TestMCPApp:
                 mcp_settings=mcp_app._mcp_settings,
                 debug=False,
             )
-            mock_uvicorn.run.assert_called_once_with(
-                mock_fastapi_app,
+            mock_serve.assert_called_once_with(
+                app=mock_fastapi_app,
                 host="127.0.0.1",
                 port=8000,
                 log_level="info",
-                reload=False,
-                lifespan="on",
             )
 
         # Test with DEBUG log level
         with (
             patch("arcade_mcp_server.mcp_app.create_arcade_mcp") as mock_create,
-            patch("arcade_mcp_server.mcp_app.uvicorn") as mock_uvicorn,
+            patch("arcade_mcp_server.mcp_app.serve_with_force_quit") as mock_serve,
         ):
             mock_fastapi_app = Mock()
             mock_create.return_value = mock_fastapi_app
@@ -368,13 +366,11 @@ class TestMCPApp:
                 mcp_settings=mcp_app._mcp_settings,
                 debug=True,
             )
-            mock_uvicorn.run.assert_called_once_with(
-                mock_fastapi_app,
+            mock_serve.assert_called_once_with(
+                app=mock_fastapi_app,
                 host="192.168.1.1",
                 port=9000,
                 log_level="debug",
-                reload=False,
-                lifespan="on",
             )
 
     def test_run_with_reload_spawns_child_process(self, mcp_app: MCPApp):
