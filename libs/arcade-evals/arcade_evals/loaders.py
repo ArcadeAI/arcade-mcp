@@ -256,7 +256,12 @@ def load_from_http(
                     return _load_with_session(url=url, headers=request_headers, timeout=timeout)
                 except Exception:
                     return []
-        except (httpx.TimeoutException, httpx.ConnectError, json.JSONDecodeError):
+        except (
+            httpx.TimeoutException,
+            httpx.ConnectError,
+            json.JSONDecodeError,
+            httpx.UnsupportedProtocol,
+        ):
             # Timeout/unreachable/invalid response - return empty list (graceful degradation)
             return []
 
