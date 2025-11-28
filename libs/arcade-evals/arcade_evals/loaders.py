@@ -237,6 +237,7 @@ def load_from_http(
                 timeout=timeout,
             )
             response.raise_for_status()
+            print(response)
             data = response.json()
             if "result" in data and "tools" in data["result"]:
                 result_tools: list[dict[str, Any]] = data["result"]["tools"]
@@ -245,6 +246,17 @@ def load_from_http(
             # Fallback to SSE if server requires it
             if e.response.status_code == 406 and "text/event-stream" in e.response.text:
                 return load_from_http(url=url, timeout=timeout, headers=headers, use_sse=True)
+            # Some MCP servers (e.g., gateways) require an initialize/session handshake
+            # before handling tools/list. If we received an auth/Bad Request style error
+            # and do not yet have a session header, try the session handshake flow.
+            if (
+                e.response.status_code in (400, 401, 403)
+                and "Mcp-Session-Id" not in request_headers
+            ):
+                try:
+                    return _load_with_session(url=url, headers=request_headers, timeout=timeout)
+                except Exception:
+                    return []
         except (httpx.TimeoutException, httpx.ConnectError, json.JSONDecodeError):
             # Timeout/unreachable/invalid response - return empty list (graceful degradation)
             return []
