@@ -32,6 +32,7 @@ from arcade_cli.utils import (
     Provider,
     compute_base_url,
     compute_login_url,
+    filter_failed_evaluations,
     get_eval_files,
     handle_cli_error,
     load_eval_suites,
@@ -373,6 +374,18 @@ def evals(
         "-k",
         help="The model provider API key. If not provided, will look for the appropriate environment variable based on the provider (e.g., OPENAI_API_KEY for openai provider), first in the current environment, then in the current working directory's .env file.",
     ),
+    failed_only: bool = typer.Option(
+        False,
+        "--failed-only",
+        "-f",
+        help="Show only failed evaluations",
+    ),
+    output: Optional[str] = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Write results to a file (plain text format)",
+    ),
     debug: bool = typer.Option(False, "--debug", help="Show debug information"),
 ) -> None:
     """
@@ -458,7 +471,19 @@ def evals(
 
         # TODO error handling on each eval
         all_evaluations.extend(results)
-        display_eval_results(all_evaluations, show_details=show_details)
+
+        # Filter to show only failed evaluations if requested
+        original_counts = None
+        if failed_only:
+            all_evaluations, original_counts = filter_failed_evaluations(all_evaluations)
+
+        display_eval_results(
+            all_evaluations,
+            show_details=show_details,
+            output_file=output,
+            failed_only=failed_only,
+            original_counts=original_counts,
+        )
 
     try:
         asyncio.run(run_evaluations())
