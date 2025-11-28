@@ -1,66 +1,250 @@
 """Base registry interface for tool evaluation."""
 
+import copy
 import inspect
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal, TypedDict
 
 if TYPE_CHECKING:
     from arcade_core import ToolCatalog
     from arcade_core.converters.openai import OpenAIToolList
 
 
-def _convert_to_strict_mode_schema(parameters: dict[str, Any]) -> dict[str, Any]:
+# ----------------------------------------------------------------------------
+# OpenAI Strict Mode Type Definitions
+# These types ensure compliance with OpenAI's function calling strict mode.
+# Reference: https://platform.openai.com/docs/guides/structured-outputs
+#
+# OpenAI Strict Mode Requirements:
+# 1. additionalProperties: false - REQUIRED at ALL object levels
+# 2. properties: {} - REQUIRED for all object types (even if empty)
+# 3. required: [] - REQUIRED for all object types (must list ALL properties)
+# 4. Optional params: Use type union with null (e.g., ["string", "null"])
+# 5. Unsupported keywords: minimum, maximum, pattern, format, nullable
+# ----------------------------------------------------------------------------
+
+
+class StrictModePropertySchema(TypedDict, total=False):
+    """
+    Schema for a property in OpenAI strict mode.
+
+    All nested object properties must also comply with strict mode requirements.
+    """
+
+    type: str | list[str]
+    """JSON Schema type. For optional params, use ["type", "null"]."""
+
+    description: str
+    """Description of the property."""
+
+    enum: list[Any]
+    """Allowed values for enum properties."""
+
+    items: "StrictModePropertySchema"
+    """Schema for array items when type is 'array'."""
+
+    properties: dict[str, "StrictModePropertySchema"]
+    """Nested properties when type is 'object'. Required for strict mode."""
+
+    required: list[str]
+    """Required fields. In strict mode, ALL properties must be listed here."""
+
+    additionalProperties: Literal[False]
+    """Must be False for strict mode compliance."""
+
+
+class StrictModeParametersSchema(TypedDict):
+    """
+    Root parameters schema for OpenAI strict mode function calling.
+
+    This is the schema passed to function.parameters in OpenAI's API.
+    ALL fields are required for strict mode compliance.
+    """
+
+    type: Literal["object"]
+    """Must be 'object' for function parameters."""
+
+    properties: dict[str, StrictModePropertySchema]
+    """Parameter definitions. Required even if empty ({})."""
+
+    required: list[str]
+    """All property names. In strict mode, ALL properties must be listed."""
+
+    additionalProperties: Literal[False]
+    """Must be False for strict mode compliance."""
+
+
+class StrictModeFunctionSchema(TypedDict, total=False):
+    """Schema for a function in OpenAI strict mode."""
+
+    name: str
+    """The name of the function to call."""
+
+    description: str
+    """Description of what the function does."""
+
+    parameters: StrictModeParametersSchema
+    """The function parameters schema."""
+
+    strict: Literal[True]
+    """Must be True for strict mode."""
+
+
+class StrictModeToolSchema(TypedDict):
+    """
+    Complete tool schema for OpenAI strict mode function calling.
+
+    This is what gets passed to the `tools` parameter in OpenAI's API.
+    """
+
+    type: Literal["function"]
+    """Must be 'function'."""
+
+    function: StrictModeFunctionSchema
+    """The function definition."""
+
+
+# Type alias for list of tools
+StrictModeToolList = list[StrictModeToolSchema]
+
+
+# Maximum recursion depth to prevent infinite loops in circular schema references
+_MAX_SCHEMA_DEPTH = 50
+
+
+class SchemaConversionError(Exception):
+    """Raised when schema conversion fails."""
+
+    pass
+
+
+def _convert_to_strict_mode_schema(
+    parameters: dict[str, Any],
+) -> StrictModeParametersSchema:
     """
     Convert a JSON schema to OpenAI strict mode format.
 
     OpenAI's strict mode requires:
-    1. additionalProperties: false
-    2. Optional parameters must have type ["original_type", "null"]
-    3. All parameters (including optional) must be in required array
+    1. additionalProperties: false - at ALL levels of nested objects
+    2. properties: {} - REQUIRED for all object types (even if empty)
+    3. required: [] - REQUIRED, must list ALL properties
+    4. Optional parameters must have type ["original_type", "null"]
+    5. Unsupported: minimum, maximum, pattern, format, nullable keywords
 
     Args:
         parameters: The input JSON schema (MCP inputSchema).
 
     Returns:
-        Schema compatible with OpenAI strict mode.
+        StrictModeParametersSchema compatible with OpenAI strict mode.
+
+    Raises:
+        SchemaConversionError: If schema exceeds maximum nesting depth (circular reference protection).
+
+    Example:
+        >>> input_schema = {"type": "object", "properties": {"name": {"type": "string"}}}
+        >>> result = _convert_to_strict_mode_schema(input_schema)
+        >>> result["additionalProperties"]
+        False
+        >>> result["required"]
+        ['name']
     """
-    # Make a copy to avoid mutating the original
-    result = parameters.copy()
+    # Deep copy to avoid mutating the original
+    result = copy.deepcopy(parameters)
 
-    # Ensure additionalProperties is false (required for strict mode)
-    if "additionalProperties" not in result:
-        result["additionalProperties"] = False
+    # Apply strict mode recursively with depth tracking
+    strict_schema = _apply_strict_mode_recursive(result, depth=0)
 
-    properties = result.get("properties", {})
-    required = result.get("required", [])
+    # Ensure root schema has all required fields for StrictModeParametersSchema
+    return StrictModeParametersSchema(
+        type="object",
+        properties=strict_schema.get("properties", {}),
+        required=strict_schema.get("required", []),
+        additionalProperties=False,
+    )
 
-    if not properties:
-        return result
 
-    new_properties = {}
-    new_required = list(required)  # Start with existing required params
+def _apply_strict_mode_recursive(schema: dict[str, Any], depth: int = 0) -> dict[str, Any]:
+    """
+    Recursively apply OpenAI strict mode requirements to a schema.
 
-    for param_name, param_schema in properties.items():
-        new_param_schema = param_schema.copy() if isinstance(param_schema, dict) else param_schema
+    Args:
+        schema: A JSON schema (can be root or nested).
+        depth: Current recursion depth (for infinite loop protection).
 
-        # If parameter is optional (not in required array or has default)
-        if param_name not in required or "default" in param_schema:
-            # Add null to type for strict mode
-            param_type = (
-                new_param_schema.get("type") if isinstance(new_param_schema, dict) else None
-            )
-            if param_type and isinstance(param_type, str):
-                new_param_schema["type"] = [param_type, "null"]
+    Returns:
+        Schema with strict mode applied at all levels.
 
-            # In strict mode, all params must be in required (including optional ones)
-            if param_name not in new_required:
-                new_required.append(param_name)
+    Raises:
+        SchemaConversionError: If maximum depth is exceeded.
+    """
+    # Infinite loop protection
+    if depth > _MAX_SCHEMA_DEPTH:
+        raise SchemaConversionError(
+            f"Schema nesting exceeds maximum depth of {_MAX_SCHEMA_DEPTH}. "
+            "This may indicate a circular reference in the schema."
+        )
 
-        new_properties[param_name] = new_param_schema
+    schema_type = schema.get("type")
 
-    result["properties"] = new_properties
-    result["required"] = new_required
-    return result
+    # Handle object schemas
+    if schema_type == "object":
+        # Ensure additionalProperties is false (required for strict mode)
+        schema["additionalProperties"] = False
+
+        # Ensure properties exists (required for strict mode)
+        if "properties" not in schema:
+            schema["properties"] = {}
+
+        properties = schema.get("properties", {})
+        required = set(schema.get("required", []))
+
+        new_properties = {}
+        all_param_names = []
+
+        for param_name, param_schema in properties.items():
+            if not isinstance(param_schema, dict):
+                new_properties[param_name] = param_schema
+                all_param_names.append(param_name)
+                continue
+
+            # Recursively process nested schemas with incremented depth
+            processed_schema = _apply_strict_mode_recursive(param_schema, depth=depth + 1)
+
+            # If parameter is optional (not in required array), add null to type
+            if param_name not in required:
+                param_type = processed_schema.get("type")
+                if param_type is not None:
+                    if isinstance(param_type, str):
+                        # Convert single type to union with null
+                        processed_schema["type"] = [param_type, "null"]
+                    elif isinstance(param_type, list) and "null" not in param_type:
+                        # Add null to existing type array
+                        processed_schema["type"] = [*param_type, "null"]
+
+            new_properties[param_name] = processed_schema
+            all_param_names.append(param_name)
+
+        schema["properties"] = new_properties
+        # In strict mode, required must always be present (even if empty)
+        schema["required"] = all_param_names
+
+    # Handle array schemas - process items recursively
+    elif schema_type == "array":
+        items = schema.get("items")
+        if isinstance(items, dict):
+            schema["items"] = _apply_strict_mode_recursive(items, depth=depth + 1)
+
+    # Handle anyOf, oneOf, allOf - process each option recursively
+    for combiner in ("anyOf", "oneOf", "allOf"):
+        if combiner in schema:
+            schema[combiner] = [
+                _apply_strict_mode_recursive(option, depth=depth + 1)
+                if isinstance(option, dict)
+                else option
+                for option in schema[combiner]
+            ]
+
+    return schema
 
 
 class BaseToolRegistry(ABC):
