@@ -576,6 +576,124 @@ class TestTypeValidation:
 # ----------------------------------------------------------------------------
 
 
+class TestStrictModeConfiguration:
+    """Test the strict_mode configuration option."""
+
+    def test_mcp_registry_strict_mode_default_true(self) -> None:
+        """Test that strict_mode defaults to True."""
+        registry = MCPToolRegistry([])
+        assert registry.strict_mode is True
+
+    def test_mcp_registry_strict_mode_false(self) -> None:
+        """Test creating registry with strict_mode=False."""
+        tool = {
+            "name": "test",
+            "description": "Test",
+            "inputSchema": {
+                "type": "object",
+                "properties": {"x": {"type": "integer", "minimum": 0}},
+                "required": [],
+            },
+        }
+        registry = MCPToolRegistry([tool], strict_mode=False)
+        assert registry.strict_mode is False
+
+        tools = registry.list_tools_for_model("openai")
+
+        # Without strict mode, schema should be unchanged
+        assert "strict" not in tools[0]["function"]
+        assert "minimum" in tools[0]["function"]["parameters"]["properties"]["x"]
+        assert "additionalProperties" not in tools[0]["function"]["parameters"]
+
+    def test_mcp_registry_strict_mode_true(self) -> None:
+        """Test creating registry with strict_mode=True."""
+        tool = {
+            "name": "test",
+            "description": "Test",
+            "inputSchema": {
+                "type": "object",
+                "properties": {"x": {"type": "integer", "minimum": 0}},
+                "required": [],
+            },
+        }
+        registry = MCPToolRegistry([tool], strict_mode=True)
+
+        tools = registry.list_tools_for_model("openai")
+
+        # With strict mode, schema should be converted
+        assert tools[0]["function"]["strict"] is True
+        assert "minimum" not in tools[0]["function"]["parameters"]["properties"]["x"]
+        assert tools[0]["function"]["parameters"]["additionalProperties"] is False
+
+    def test_mcp_registry_strict_mode_setter(self) -> None:
+        """Test changing strict_mode after creation."""
+        tool = {
+            "name": "test",
+            "description": "Test",
+            "inputSchema": {"type": "object", "properties": {}},
+        }
+        registry = MCPToolRegistry([tool], strict_mode=False)
+        assert registry.strict_mode is False
+
+        registry.strict_mode = True
+        assert registry.strict_mode is True
+
+        tools = registry.list_tools_for_model("openai")
+        assert tools[0]["function"]["strict"] is True
+
+    def test_composite_registry_strict_mode_default_true(self) -> None:
+        """Test that CompositeMCPRegistry strict_mode defaults to True."""
+        from arcade_evals.registry import CompositeMCPRegistry
+
+        composite = CompositeMCPRegistry(tool_lists={"server": []})
+        assert composite.strict_mode is True
+
+    def test_composite_registry_strict_mode_propagates_to_tool_lists(self) -> None:
+        """Test that strict_mode is propagated to registries created from tool_lists."""
+        from arcade_evals.registry import CompositeMCPRegistry
+
+        tool = {
+            "name": "test",
+            "description": "Test",
+            "inputSchema": {
+                "type": "object",
+                "properties": {"x": {"type": "integer", "minimum": 0}},
+                "required": [],
+            },
+        }
+
+        # With strict_mode=False
+        composite = CompositeMCPRegistry(tool_lists={"server": [tool]}, strict_mode=False)
+
+        tools = composite.list_tools_for_model("openai")
+        assert "strict" not in tools[0]["function"]
+        assert "minimum" in tools[0]["function"]["parameters"]["properties"]["x"]
+
+    def test_composite_registry_respects_existing_registry_strict_mode(self) -> None:
+        """Test that pre-existing registries keep their own strict_mode setting."""
+        from arcade_evals.registry import CompositeMCPRegistry
+
+        tool = {
+            "name": "test",
+            "description": "Test",
+            "inputSchema": {
+                "type": "object",
+                "properties": {"x": {"type": "integer", "minimum": 0}},
+                "required": [],
+            },
+        }
+
+        # Create registry with strict_mode=False
+        registry = MCPToolRegistry([tool], strict_mode=False)
+
+        # Pass to composite with strict_mode=True (should not affect pre-existing registry)
+        composite = CompositeMCPRegistry(registries={"server": registry}, strict_mode=True)
+
+        tools = composite.list_tools_for_model("openai")
+        # The registry's strict_mode=False should be respected
+        assert "strict" not in tools[0]["function"]
+
+
 class TestInfiniteLoopProtection:
     """Test that deeply nested or circular schemas are handled safely."""
 

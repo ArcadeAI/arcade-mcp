@@ -104,7 +104,15 @@ tools_to_use = manual_tools
 # tools_to_use = load_from_stdio(["python", "my_server.py", "stdio"])
 
 # Step 2: Create an MCP tool registry (same for both approaches!)
+# By default, strict_mode=True which converts schemas to OpenAI strict mode format:
+#   - additionalProperties: false at all levels
+#   - All properties added to required array
+#   - Optional params get nullable types (e.g., ["string", "null"])
+#   - Unsupported keywords stripped (minimum, maximum, pattern, format, etc.)
 registry = MCPToolRegistry(tools_to_use)
+
+# To disable strict mode and use original schemas:
+# registry = MCPToolRegistry(tools_to_use, strict_mode=False)
 
 # Step 3: Create an evaluation suite using the MCP registry
 suite = EvalSuite(
