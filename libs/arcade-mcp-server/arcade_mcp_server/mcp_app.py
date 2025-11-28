@@ -19,11 +19,11 @@ from arcade_core.catalog import MaterializedTool, ToolCatalog, ToolDefinitionErr
 from arcade_tdk.auth import ToolAuthorization
 from arcade_tdk.error_adapters import ErrorAdapter
 from arcade_tdk.tool import tool as tool_decorator
-from dotenv import load_dotenv
 from loguru import logger
 from watchfiles import watch
 
 from arcade_mcp_server.exceptions import ServerError
+from arcade_mcp_server.resource_server.base import ResourceServerValidator
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.settings import MCPSettings, ServerSettings
 from arcade_mcp_server.types import Prompt, PromptMessage, Resource
@@ -74,6 +74,7 @@ class MCPApp:
         host: str = "127.0.0.1",
         port: int = 8000,
         reload: bool = False,
+        auth: ResourceServerValidator | None = None,
         **kwargs: Any,
     ):
         """
@@ -89,6 +90,7 @@ class MCPApp:
             host: Host for transport
             port: Port for transport
             reload: Enable auto-reload for development
+            auth: Resource Server validator for front-door authentication
             **kwargs: Additional server configuration
         """
         self._name = self._validate_name(name)
@@ -96,6 +98,7 @@ class MCPApp:
         self.title = title or name
         self.instructions = instructions
         self.log_level = log_level
+        self.resource_server_validator = auth
         self.server_kwargs = kwargs
         self.transport = transport
         self.host = host
@@ -122,7 +125,6 @@ class MCPApp:
         # Store the actual instructions that ended up in ServerSettings
         self.instructions = self._mcp_settings.server.instructions
 
-        self._load_env()
         if not logger._core.handlers:  # type: ignore[attr-defined]
             self._setup_logging(transport == "stdio")
 
@@ -191,13 +193,6 @@ class MCPApp:
     def resources(self) -> _ResourcesAPI:
         """Runtime resources API: add/remove/list."""
         return _ResourcesAPI(self)
-
-    def _load_env(self) -> None:
-        """Load .env file from the current directory."""
-        env_path = Path.cwd() / ".env"
-        if env_path.exists():
-            load_dotenv(env_path, override=False)
-            logger.info(f"Loaded environment from {env_path}")
 
     def _setup_logging(self, stdio_mode: bool = False) -> None:
         logger.remove()
@@ -399,6 +394,7 @@ class MCPApp:
             catalog=self._catalog,
             mcp_settings=self._mcp_settings,
             debug=debug,
+            resource_server_validator=self.resource_server_validator,
             **self.server_kwargs,
         )
 
