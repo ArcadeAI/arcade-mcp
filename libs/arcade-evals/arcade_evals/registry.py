@@ -111,6 +111,25 @@ StrictModeToolList = list[StrictModeToolSchema]
 # Maximum recursion depth to prevent infinite loops in circular schema references
 _MAX_SCHEMA_DEPTH = 50
 
+# Keywords not supported by OpenAI strict mode that should be stripped
+_UNSUPPORTED_STRICT_MODE_KEYWORDS = frozenset({
+    "minimum",
+    "maximum",
+    "exclusiveMinimum",
+    "exclusiveMaximum",
+    "minLength",
+    "maxLength",
+    "pattern",
+    "format",
+    "default",
+    "nullable",
+    "minItems",
+    "maxItems",
+    "uniqueItems",
+    "minProperties",
+    "maxProperties",
+})
+
 
 class SchemaConversionError(Exception):
     """Raised when schema conversion fails."""
@@ -183,6 +202,10 @@ def _apply_strict_mode_recursive(schema: dict[str, Any], depth: int = 0) -> dict
             f"Schema nesting exceeds maximum depth of {_MAX_SCHEMA_DEPTH}. "
             "This may indicate a circular reference in the schema."
         )
+
+    # Strip unsupported keywords that OpenAI strict mode doesn't allow
+    for keyword in _UNSUPPORTED_STRICT_MODE_KEYWORDS:
+        schema.pop(keyword, None)
 
     schema_type = schema.get("type")
 
@@ -411,18 +434,41 @@ class MCPToolRegistry(BaseToolRegistry):
     or loaded from an MCP server.
     """
 
-    def __init__(self, tools: list[dict[str, Any]] | None = None):
+    def __init__(
+        self,
+        tools: list[dict[str, Any]] | None = None,
+        *,
+        strict_mode: bool = True,
+    ):
         """
         Initialize with MCP tool descriptors.
 
         Args:
             tools: List of MCP tool descriptors (from tools/list response).
                    Each descriptor should have 'name', 'description', and 'inputSchema'.
+            strict_mode: Whether to use OpenAI strict mode for tool schemas.
+                        When True (default), applies strict mode transformations:
+                        - additionalProperties: false at all levels
+                        - All properties in required array
+                        - Optional params get null type union
+                        - Unsupported keywords stripped (minimum, maximum, pattern, etc.)
+                        When False, uses the original schema as-is.
         """
         self._tools: dict[str, dict[str, Any]] = {}
+        self._strict_mode = strict_mode
         if tools:
             for tool in tools:
                 self.add_tool(tool)
+
+    @property
+    def strict_mode(self) -> bool:
+        """Whether strict mode is enabled for this registry."""
+        return self._strict_mode
+
+    @strict_mode.setter
+    def strict_mode(self, value: bool) -> None:
+        """Set whether strict mode is enabled."""
+        self._strict_mode = value
 
     def add_tool(self, tool_descriptor: dict[str, Any]) -> None:
         """
@@ -439,32 +485,40 @@ class MCPToolRegistry(BaseToolRegistry):
 
     def list_tools_for_model(self, tool_format: str = "openai") -> "OpenAIToolList":
         """
-        Convert MCP tools to OpenAI format with strict mode enabled.
+        Convert MCP tools to OpenAI format.
 
         Args:
             tool_format: Format to convert to (only "openai" supported).
 
         Returns:
             List of tools in OpenAI function calling format.
+            If strict_mode is enabled, schemas are converted to strict mode format.
         """
         if tool_format != "openai":
             raise ValueError(f"Tool format '{tool_format}' is not supported")
 
         openai_tools: list[Any] = []
         for tool in self._tools.values():
-            # Get the input schema and convert to strict mode format
+            # Get the input schema
             parameters = tool.get("inputSchema", {"type": "object", "properties": {}})
-            strict_parameters = _convert_to_strict_mode_schema(parameters)
 
-            openai_tool = {
+            # Apply strict mode conversion if enabled
+            if self._strict_mode:
+                parameters = _convert_to_strict_mode_schema(parameters)
+
+            openai_tool: dict[str, Any] = {
                 "type": "function",
                 "function": {
                     "name": tool["name"],
                     "description": tool.get("description", ""),
-                    "parameters": strict_parameters,
-                    "strict": True,  # Enable strict mode for reliable tool calling
+                    "parameters": parameters,
                 },
             }
+
+            # Only add strict flag when strict mode is enabled
+            if self._strict_mode:
+                openai_tool["function"]["strict"] = True
+
             openai_tools.append(openai_tool)
 
         return openai_tools
@@ -539,19 +593,29 @@ class CompositeMCPRegistry(BaseToolRegistry):
         self,
         registries: dict[str, MCPToolRegistry] | None = None,
         tool_lists: dict[str, list[dict[str, Any]]] | None = None,
+        *,
+        strict_mode: bool = True,
     ):
         """
         Initialize with multiple MCP registries or tool descriptor lists.
 
         Args:
             registries: Dict mapping server names to MCPToolRegistry instances.
+                        Note: If provided, those registries keep their own strict_mode setting.
             tool_lists: Dict mapping server names to lists of MCP tool descriptors.
-                        If provided, MCPToolRegistry instances will be created for each.
+                        If provided, MCPToolRegistry instances will be created with the
+                        strict_mode setting from this composite registry.
+            strict_mode: Whether to use OpenAI strict mode for tool schemas.
+                        Only applies to registries created from tool_lists.
+                        Pre-existing registries keep their own strict_mode setting.
+                        Default is True.
 
         At least one of registries or tool_lists must be provided.
         """
         self._registries: dict[str, MCPToolRegistry] = {}
-        self._tool_map: dict[str, tuple[str, MCPToolRegistry]] = {}
+        # Maps tool identifiers to (server_name, registry, original_tool_name)
+        self._tool_map: dict[str, tuple[str, MCPToolRegistry, str]] = {}
+        self._strict_mode = strict_mode
 
         if registries:
             self._registries.update(registries)
@@ -560,7 +624,7 @@ class CompositeMCPRegistry(BaseToolRegistry):
             for server_name, tools in tool_lists.items():
                 if server_name in self._registries:
                     raise ValueError(f"Duplicate server name: {server_name}")
-                self._registries[server_name] = MCPToolRegistry(tools)
+                self._registries[server_name] = MCPToolRegistry(tools, strict_mode=strict_mode)
 
         if not self._registries:
             raise ValueError("At least one registry or tool list must be provided")
@@ -568,6 +632,11 @@ class CompositeMCPRegistry(BaseToolRegistry):
         # Build the tool lookup map
         for server_name, registry in self._registries.items():
             self._add_tools_to_map(server_name, registry)
+
+    @property
+    def strict_mode(self) -> bool:
+        """Whether strict mode is enabled for this composite registry."""
+        return self._strict_mode
 
     def _add_tools_to_map(self, server_name: str, registry: MCPToolRegistry) -> None:
         """
@@ -579,21 +648,20 @@ class CompositeMCPRegistry(BaseToolRegistry):
         """
         for tool_name in registry._tools:
             # Store with namespace prefix (using underscore for OpenAI compatibility)
+            # We store (server_name, registry, original_tool_name) to avoid underscore splitting issues
             namespaced_name = f"{server_name}_{tool_name}"
-            self._tool_map[namespaced_name] = (server_name, registry)
+            self._tool_map[namespaced_name] = (server_name, registry, tool_name)
 
             # Also support dot notation for backward compatibility
             namespaced_name_dot = f"{server_name}.{tool_name}"
-            self._tool_map[namespaced_name_dot] = (server_name, registry)
+            self._tool_map[namespaced_name_dot] = (server_name, registry, tool_name)
 
             # Also allow short name if unique
             if tool_name not in self._tool_map:
-                self._tool_map[tool_name] = (server_name, registry)
-            elif not tool_name.startswith(f"{server_name}_") and not tool_name.startswith(
-                f"{server_name}."
-            ):
+                self._tool_map[tool_name] = (server_name, registry, tool_name)
+            elif self._tool_map[tool_name][0] != "__ambiguous__":
                 # Mark as ambiguous (multiple servers have this tool)
-                self._tool_map[tool_name] = ("__ambiguous__", registry)
+                self._tool_map[tool_name] = ("__ambiguous__", registry, tool_name)
 
     def add_registry(self, server_name: str, registry: MCPToolRegistry) -> None:
         """
@@ -662,19 +730,14 @@ class CompositeMCPRegistry(BaseToolRegistry):
 
         # Check if already namespaced
         if identifier in self._tool_map:
-            server_name, _ = self._tool_map[identifier]
+            server_name, _, original_tool_name = self._tool_map[identifier]
             if server_name == "__ambiguous__":
                 raise ValueError(
                     f"Tool name '{identifier}' is ambiguous (exists in multiple servers). "
                     f"Use 'server_tool' or 'server.tool' format."
                 )
-            # If it's a short name, return the namespaced version with underscore
-            if "." not in identifier and "_" not in identifier:
-                return f"{server_name}_{identifier}"
-            # Convert dot notation to underscore for OpenAI compatibility
-            if "." in identifier:
-                return identifier.replace(".", "_")
-            return identifier
+            # Always return the canonical underscore format
+            return f"{server_name}_{original_tool_name}"
 
         raise ValueError(f"Tool '{identifier}' not found in any registry")
 
@@ -691,12 +754,9 @@ class CompositeMCPRegistry(BaseToolRegistry):
         """
         # Resolve to get the correct registry
         resolved_name = self.resolve_tool_name(tool_name)
-        server_name, registry = self._tool_map[resolved_name]
+        server_name, registry, original_tool_name = self._tool_map[resolved_name]
 
-        # Get the original tool name without namespace (underscore format)
-        original_name = resolved_name.split("_", 1)[1] if "_" in resolved_name else resolved_name
-
-        return registry.normalize_args(original_name, args)
+        return registry.normalize_args(original_tool_name, args)
 
     def get_tool_schema(self, tool_name: str) -> dict[str, Any] | None:
         """
@@ -710,12 +770,8 @@ class CompositeMCPRegistry(BaseToolRegistry):
         """
         try:
             resolved_name = self.resolve_tool_name(tool_name)
-            server_name, registry = self._tool_map[resolved_name]
-            # Get the original tool name without namespace (underscore format)
-            original_name = (
-                resolved_name.split("_", 1)[1] if "_" in resolved_name else resolved_name
-            )
-            return registry.get_tool_schema(original_name)
+            server_name, registry, original_tool_name = self._tool_map[resolved_name]
+            return registry.get_tool_schema(original_tool_name)
         except ValueError:
             return None
 

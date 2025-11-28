@@ -10,6 +10,7 @@ from arcade_evals import (
     CompositeMCPRegistry,
     EvalSuite,
     ExpectedToolCall,
+    MCPToolRegistry,
 )
 
 # To load tools automatically from running servers, uncomment:
@@ -87,7 +88,7 @@ datetime_tools = [
 ]
 
 # Step 2: Create a composite registry with tools from multiple servers
-# Method 1: Pass tool lists directly
+# Method 1: Pass tool lists directly (strict_mode=True by default)
 composite = CompositeMCPRegistry(
     tool_lists={
         "calculator": calculator_tools,
@@ -95,6 +96,12 @@ composite = CompositeMCPRegistry(
         "datetime": datetime_tools,
     }
 )
+
+# Method 2: Disable strict mode to use original schemas as-is
+# composite = CompositeMCPRegistry(
+#     tool_lists={...},
+#     strict_mode=False  # Schemas not converted, no strict flag in OpenAI tools
+# )
 
 print("🎯 Composite MCP Registry Created!")
 print(f"Servers: {', '.join(composite.get_server_names())}")
@@ -235,6 +242,45 @@ print("  • Automatic namespacing prevents collisions (server.tool)")
 print("  • Short names work when unique across all servers")
 print("  • Each server's tools maintain their own schemas and defaults")
 print("  • All existing Python tool evaluations still work unchanged")
+print("  • strict_mode=True (default) for OpenAI strict mode compliance")
+
+# Step 8: Demonstrate strict_mode option
+print("\n\n🔧 Strict Mode Configuration:")
+print("=" * 60)
+
+# Show strict mode vs non-strict mode
+tool_with_constraints = {
+    "name": "example",
+    "description": "Example with schema constraints",
+    "inputSchema": {
+        "type": "object",
+        "properties": {
+            "count": {"type": "integer", "minimum": 0, "maximum": 100},
+            "email": {"type": "string", "format": "email"},
+        },
+        "required": ["count"],
+    },
+}
+
+# With strict mode (default)
+strict_registry = MCPToolRegistry([tool_with_constraints], strict_mode=True)
+strict_tools = strict_registry.list_tools_for_model("openai")
+print("strict_mode=True:")
+print(f"  • strict flag: {strict_tools[0]['function'].get('strict')}")
+print(
+    f"  • additionalProperties: {strict_tools[0]['function']['parameters'].get('additionalProperties')}"
+)
+print("  • minimum/format stripped: Yes")
+
+# Without strict mode
+non_strict_registry = MCPToolRegistry([tool_with_constraints], strict_mode=False)
+non_strict_tools = non_strict_registry.list_tools_for_model("openai")
+print("\nstrict_mode=False:")
+print(f"  • strict flag: {non_strict_tools[0]['function'].get('strict', 'Not set')}")
+print(
+    f"  • additionalProperties: {non_strict_tools[0]['function']['parameters'].get('additionalProperties', 'Not set')}"
+)
+print("  • minimum/format preserved: Yes")
 
 print("\n💡 To run actual evaluations, use:")
 print("   results = suite.run(provider_api_key='your-api-key', model='gpt-4')")
