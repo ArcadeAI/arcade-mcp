@@ -237,7 +237,6 @@ def load_from_http(
                 timeout=timeout,
             )
             response.raise_for_status()
-            print(response)
             data = response.json()
             if "result" in data and "tools" in data["result"]:
                 result_tools: list[dict[str, Any]] = data["result"]["tools"]
