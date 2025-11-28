@@ -10,6 +10,7 @@ from arcade_tdk.errors import (
     FatalToolError,
     ToolRuntimeError,
 )
+from arcade_tdk.providers.graphql import GraphQLErrorAdapter
 from arcade_tdk.providers.http import HTTPErrorAdapter
 from arcade_tdk.utils import snake_to_pascal_case
 
@@ -51,6 +52,9 @@ def _build_adapter_chain(
     # Add the adapter that is mapped to the tool's auth provider if it exists
     if auth_adapter := get_adapter_for_auth_provider(auth_provider):
         adapter_chain.append(auth_adapter)
+
+    # Always add GraphQL adapter (it will no-op if gql is not installed)
+    adapter_chain.append(GraphQLErrorAdapter())
 
     # Always add HTTP adapter as the final adapter fallback
     adapter_chain.append(HTTPErrorAdapter())

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade-mcp-server"
-version = "1.7.3"
+version = "1.9.1"
 description = "Model Context Protocol (MCP) server framework for Arcade.dev"
 readme = "README.md"
 authors = [{ name = "Arcade.dev" }]

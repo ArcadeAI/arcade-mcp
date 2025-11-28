@@ -7,16 +7,19 @@ MCP Server endpoints over HTTP/SSE. MCP is always enabled in this integrated mod
 
 import asyncio
 import logging
-from collections.abc import AsyncGenerator, AsyncIterator
+import os
+from collections.abc import AsyncGenerator, AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
+from types import FrameType
 from typing import Any
 
 import uvicorn
 from arcade_core.catalog import ToolCatalog
+from arcade_serve.fastapi import FastAPIWorker, TaskTrackerMiddleware
 from arcade_serve.fastapi.telemetry import OTELHandler
-from arcade_serve.fastapi.worker import FastAPIWorker
 from fastapi import FastAPI
 from loguru import logger
+from starlette.requests import Request
 from starlette.responses import Response
 from starlette.types import Receive, Scope, Send
 
@@ -24,6 +27,44 @@ from arcade_mcp_server.fastapi.middleware import AddTrailingSlashToPathMiddlewar
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.settings import MCPSettings
 from arcade_mcp_server.transports.http_session_manager import HTTPSessionManager
+
+
+class CustomUvicornServer(uvicorn.Server):
+    """Uvicorn server with force quit support on double SIGINT/SIGTERM."""
+
+    def __init__(self, config: uvicorn.Config, task_tracker: TaskTrackerMiddleware):
+        super().__init__(config)
+        self.task_tracker = task_tracker
+        self._signal_count = 0
+
+    def handle_exit(self, sig: int, frame: FrameType | None) -> None:
+        """
+        Handle termination signals with force quit on second signal.
+
+        First signal (SIGINT/SIGTERM): Graceful shutdown
+        Second signal: Force quit with os._exit(1)
+        """
+        self._signal_count += 1
+
+        if self._signal_count == 1:
+            logger.info("Shutting down gracefully. Press Ctrl+C again to force quit.")
+            self.should_exit = True
+        else:
+            logger.warning("Force quit triggered - exiting immediately")
+            os._exit(1)
+
+    async def _wait_tasks_to_complete(self) -> None:
+        try:
+            # Let Uvicorn's normal wait process run
+            await super()._wait_tasks_to_complete()
+        except asyncio.CancelledError:
+            # If we're cancelled (graceful shutdown time expired), then
+            # we need to cancel the active HTTP request tasks that we are tracking
+            logger.warning("Force quit triggered - cancelling all active requests")
+            cancelled = self.task_tracker.cancel_all_tasks()
+            logger.info(f"Cancelled {cancelled} active request(s)")
+            self.force_exit = True
+            os._exit(1)
 
 
 @asynccontextmanager
@@ -82,15 +123,14 @@ def create_arcade_mcp(
     **kwargs: Any,
 ) -> FastAPI:
     """
-    Create a FastAPI app exposing Arcade Worker and MCP HTTP endpoints.
+    Create a FastAPI app exposing MCP HTTP endpoints
+    and Arcade Worker endpoints if a secret is provided.
 
     MCP is always enabled in this integrated application.
     """
     if mcp_settings is None:
         mcp_settings = MCPSettings.from_env()
     secret = mcp_settings.arcade.server_secret
-    if secret is None:
-        secret = "dev"  # noqa: S105
 
     otel_handler = OTELHandler(
         enable=otel_enable,
@@ -125,16 +165,29 @@ def create_arcade_mcp(
         lifespan=lifespan,
     )
     otel_handler.instrument_app(app)
+
+    task_tracker = TaskTrackerMiddleware(app)
+    app.state.task_tracker = task_tracker
+
+    # Since this middleware tracks all HTTP requests, it must be added first
+    @app.middleware("http")
+    async def track_tasks_middleware(
+        request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
+        return await task_tracker.dispatch(request, call_next)
+
     app.add_middleware(AddTrailingSlashToPathMiddleware)
 
     # Worker endpoints
-    worker = FastAPIWorker(
-        app=app,
-        secret=secret,
-        disable_auth=mcp_settings.arcade.auth_disabled,
-        otel_meter=otel_handler.get_meter(),
-    )
-    worker.catalog = catalog
+    if secret is not None:
+        worker = FastAPIWorker(
+            app=app,
+            secret=secret,
+            disable_auth=mcp_settings.arcade.auth_disabled,
+            otel_meter=otel_handler.get_meter(),
+        )
+        worker.catalog = catalog
+        logger.info("Worker routes enabled at /worker/* (ARCADE_WORKER_SECRET is set)")
 
     class _MCPASGIProxy:
         def __init__(self, parent_app: FastAPI):
@@ -267,6 +320,32 @@ def create_arcade_mcp_factory() -> FastAPI:
     )
 
 
+async def serve_with_force_quit(
+    app: FastAPI,
+    host: str,
+    port: int,
+    log_level: str,
+) -> None:
+    """Serve the FastAPI app with force quit capability."""
+    timeout_graceful_shutdown = int(
+        os.environ.get("ARCADE_UVICORN_TIMEOUT_GRACEFUL_SHUTDOWN", "15")
+    )
+
+    config = uvicorn.Config(
+        app=app,
+        host=host,
+        port=port,
+        log_level=log_level,
+        lifespan="on",
+        timeout_graceful_shutdown=timeout_graceful_shutdown,
+    )
+
+    task_tracker = app.state.task_tracker
+    server = CustomUvicornServer(config, task_tracker)
+
+    await server.serve()
+
+
 def run_arcade_mcp(
     catalog: ToolCatalog,
     host: str = "127.0.0.1",
@@ -286,11 +365,14 @@ def run_arcade_mcp(
     This is used for module execution (`arcade mcp` and `python -m arcade_mcp_server`) only.
     MCPApp has its own reload mechanism.
     """
-    import os
-
     log_level = "debug" if debug else "info"
 
     if reload:
+        # TODO: This reload path uses uvicorn.run(), which bypasses serve_with_force_quit().
+        # This means that the server will not be able to force quit when there are active
+        # tool executions or active connections with MCP clients. For this reason, prefer
+        # to use MCPApp.run() for reload mode.
+
         # Set env vars for the app factory to read later
         os.environ["ARCADE_MCP_DEBUG"] = str(debug)
         os.environ["ARCADE_MCP_OTEL_ENABLE"] = str(otel_enable)
@@ -327,11 +409,11 @@ def run_arcade_mcp(
             **kwargs,
         )
 
-        uvicorn.run(
-            app,
-            host=host,
-            port=port,
-            log_level=log_level,
-            reload=reload,
-            lifespan="on",
+        asyncio.run(
+            serve_with_force_quit(
+                app=app,
+                host=host,
+                port=port,
+                log_level=log_level,
+            )
         )
