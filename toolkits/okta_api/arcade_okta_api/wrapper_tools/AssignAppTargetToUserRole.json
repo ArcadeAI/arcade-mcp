@@ -1,0 +1,201 @@
+{
+  "name": "AssignAppTargetToUserRole",
+  "fully_qualified_name": "OktaApi.AssignAppTargetToUserRole@0.1.0",
+  "description": "Assign an app target to a user's admin role.\n\nThis tool assigns a specific app instance target to a user's `APP_ADMIN` role, thereby reducing the role's scope to the specified target. It should be used when limiting a user's app management permissions to particular app instances.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "user_id",
+        "required": true,
+        "description": "ID of an existing Okta user to which the app instance target is assigned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of an existing Okta user"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "userId"
+      },
+      {
+        "name": "role_assignment_id",
+        "required": true,
+        "description": "The ID of the role assignment for the user to which the app target will be assigned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `id` of the role assignment"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "roleAssignmentId"
+      },
+      {
+        "name": "app_name",
+        "required": true,
+        "description": "The name of the app definition in the OIN catalog key name format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the app definition (the OIN catalog app key name)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "appName"
+      },
+      {
+        "name": "application_id",
+        "required": true,
+        "description": "The unique identifier for a specific application. Used to narrow the user's admin role to this app instance.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Application ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "appId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'assignAppInstanceTargetToAppAdminRoleForUser'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.roles.manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/users/{userId}/roles/{roleAssignmentId}/targets/catalog/apps/{appName}/{appId}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "userId",
+        "tool_parameter_name": "user_id",
+        "description": "ID of an existing Okta user",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of an existing Okta user"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "roleAssignmentId",
+        "tool_parameter_name": "role_assignment_id",
+        "description": "The `id` of the role assignment",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `id` of the role assignment"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "appName",
+        "tool_parameter_name": "app_name",
+        "description": "Name of the app definition (the OIN catalog app key name)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the app definition (the OIN catalog app key name)"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "appId",
+        "tool_parameter_name": "application_id",
+        "description": "Application ID",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Application ID"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

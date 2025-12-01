@@ -1,0 +1,303 @@
+{
+  "name": "ListSystemLogEvents",
+  "fully_qualified_name": "OktaApi.ListSystemLogEvents@0.1.0",
+  "description": "Fetches recent Okta System Log events.\n\nUse this tool to retrieve Okta System Log events for monitoring and auditing purposes. It returns up to 100 events by default, with options to paginate or modify the limit.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "start_time_filter",
+        "required": false,
+        "description": "Filters events to those published after this time. Use ISO 8601 format, e.g., '2023-01-01T00:00:00Z'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters the lower time bound of the log events `published` property for bounded queries or persistence time for polling queries"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "since"
+      },
+      {
+        "name": "upper_time_bound_for_events",
+        "required": false,
+        "description": "Specifies the upper time boundary for filtering Okta log events, using the 'published' property.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters the upper time bound of the log events `published` property for bounded queries or persistence time for polling queries."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "until"
+      },
+      {
+        "name": "pagination_after_cursor",
+        "required": false,
+        "description": "Retrieves the next page of log events using the token provided in the HTTP header ('rel=next').",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Retrieves the next page of results. Okta returns a link in the HTTP Header (`rel=next`) that includes the after query parameter"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "after"
+      },
+      {
+        "name": "filter_expression",
+        "required": false,
+        "description": "Filter the System Log events using a specific filter expression. All operators, except brackets, are supported. Refer to Okta's Filter and Operator documentation for detailed usage.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter expression that filters the results. All operators except [ ] are supported. See [Filter](https://developer.okta.com/docs/api/#filter) and [Operators](https://developer.okta.com/docs/api/#operators)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter"
+      },
+      {
+        "name": "keyword_filter",
+        "required": false,
+        "description": "Filters log events by one or more case-insensitive keywords.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters log events results by one or more case insensitive keywords."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "q"
+      },
+      {
+        "name": "result_limit",
+        "required": false,
+        "description": "Sets the number of results to be returned in the response. Default is 100; adjust to increase or decrease.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sets the number of results that are returned in the response"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "event_sort_order",
+        "required": false,
+        "description": "Specifies the sort order for returned events based on the `published` property. Choose either 'ASCENDING' or 'DESCENDING'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "ASCENDING",
+            "DESCENDING"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The order of the returned events that are sorted by the `published` property"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sortOrder"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'listLogEvents'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.logs.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/logs",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "since",
+        "tool_parameter_name": "start_time_filter",
+        "description": "Filters the lower time bound of the log events `published` property for bounded queries or persistence time for polling queries",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters the lower time bound of the log events `published` property for bounded queries or persistence time for polling queries"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "until",
+        "tool_parameter_name": "upper_time_bound_for_events",
+        "description": "Filters the upper time bound of the log events `published` property for bounded queries or persistence time for polling queries.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters the upper time bound of the log events `published` property for bounded queries or persistence time for polling queries."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "after",
+        "tool_parameter_name": "pagination_after_cursor",
+        "description": "Retrieves the next page of results. Okta returns a link in the HTTP Header (`rel=next`) that includes the after query parameter",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Retrieves the next page of results. Okta returns a link in the HTTP Header (`rel=next`) that includes the after query parameter"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter",
+        "tool_parameter_name": "filter_expression",
+        "description": "Filter expression that filters the results. All operators except [ ] are supported. See [Filter](https://developer.okta.com/docs/api/#filter) and [Operators](https://developer.okta.com/docs/api/#operators).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter expression that filters the results. All operators except [ ] are supported. See [Filter](https://developer.okta.com/docs/api/#filter) and [Operators](https://developer.okta.com/docs/api/#operators)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "q",
+        "tool_parameter_name": "keyword_filter",
+        "description": "Filters log events results by one or more case insensitive keywords.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters log events results by one or more case insensitive keywords."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "result_limit",
+        "description": "Sets the number of results that are returned in the response",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sets the number of results that are returned in the response"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "sortOrder",
+        "tool_parameter_name": "event_sort_order",
+        "description": "The order of the returned events that are sorted by the `published` property",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "ASCENDING",
+            "DESCENDING"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The order of the returned events that are sorted by the `published` property"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

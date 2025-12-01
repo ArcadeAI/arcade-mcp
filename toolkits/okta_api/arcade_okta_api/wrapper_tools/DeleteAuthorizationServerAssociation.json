@@ -1,0 +1,137 @@
+{
+  "name": "DeleteAuthorizationServerAssociation",
+  "fully_qualified_name": "OktaApi.DeleteAuthorizationServerAssociation@0.1.0",
+  "description": "Deletes an associated Authorization Server for an ID pair.\n\nThis tool deletes an association between a specified Authorization Server and an associated server, using their IDs. Call this tool when you need to remove such an association.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "authorization_server_id",
+        "required": true,
+        "description": "The ID of the primary Authorization Server to remove the association from.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of the Authorization Server"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "authServerId"
+      },
+      {
+        "name": "associated_server_id",
+        "required": true,
+        "description": "The `id` of the associated Authorization Server to be deleted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of the associated Authorization Server"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "associatedServerId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'deleteAssociatedServer'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.authorizationServers.manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/authorizationServers/{authServerId}/associatedServers/{associatedServerId}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "authServerId",
+        "tool_parameter_name": "authorization_server_id",
+        "description": "`id` of the Authorization Server",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of the Authorization Server"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "associatedServerId",
+        "tool_parameter_name": "associated_server_id",
+        "description": "`id` of the associated Authorization Server",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of the associated Authorization Server"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

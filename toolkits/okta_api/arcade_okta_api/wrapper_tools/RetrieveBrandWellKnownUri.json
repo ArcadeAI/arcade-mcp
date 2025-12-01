@@ -1,0 +1,145 @@
+{
+  "name": "RetrieveBrandWellKnownUri",
+  "fully_qualified_name": "OktaApi.RetrieveBrandWellKnownUri@0.1.0",
+  "description": "Retrieve customized content for a brand's well-known URI.\n\nThis tool retrieves the customized content of a specific well-known URI for a given brand and URI path. It should be used when you need information on the customized settings or configurations associated with a brand's specific URI.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "brand_id",
+        "required": true,
+        "description": "The unique identifier of the brand for which the well-known URI content is being retrieved.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the brand"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "brandId"
+      },
+      {
+        "name": "well_known_uri_path",
+        "required": true,
+        "description": "The specific path of the well-known URI. Expected values are 'apple-app-site-association', 'assetlinks.json', or 'webauthn'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "apple-app-site-association",
+            "assetlinks.json",
+            "webauthn"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The path of the well-known URI"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "path"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getBrandWellKnownURI'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.brands.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/brands/{brandId}/well-known-uris/{path}/customized",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "brandId",
+        "tool_parameter_name": "brand_id",
+        "description": "The ID of the brand",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the brand"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "path",
+        "tool_parameter_name": "well_known_uri_path",
+        "description": "The path of the well-known URI",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "apple-app-site-association",
+            "assetlinks.json",
+            "webauthn"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The path of the well-known URI"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}
