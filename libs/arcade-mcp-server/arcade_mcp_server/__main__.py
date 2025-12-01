@@ -107,8 +107,6 @@ def initialize_tool_catalog(
         sys.exit(1)
 
     logger.info(f"Total tools loaded: {total_tools}")
-    for tool in catalog:
-        logger.info(f"\t- {tool.definition.fully_qualified_name}")
     return catalog
 
 
