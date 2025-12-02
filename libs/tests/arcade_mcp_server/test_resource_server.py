@@ -827,8 +827,8 @@ class TestMultipleAuthorizationServers:
 
         payload2 = {
             "sub": "user456",
-            "email": "user@github.com",
-            "iss": "https://github.com",
+            "email": "user@keycloak.com",
+            "iss": "http://localhost:8080/realms/mcp-test",
             "aud": "https://mcp.example.com",
             "exp": int(time.time()) + 3600,
             "iat": int(time.time()),
@@ -855,9 +855,10 @@ class TestMultipleAuthorizationServers:
                         jwks_uri="https://workos.authkit.app/oauth2/jwks",
                     ),
                     AuthorizationServerEntry(
-                        authorization_server_url="https://github.com/login/oauth",
-                        issuer="https://github.com",
-                        jwks_uri="https://token.actions.githubusercontent.com/.well-known/jwks",
+                        authorization_server_url="http://localhost:8080/realms/mcp-test",
+                        issuer="http://localhost:8080/realms/mcp-test",
+                        jwks_uri="http://localhost:8080/realms/mcp-test/protocol/openid-connect/certs",
+                        algorithm="RS256",
                     ),
                 ],
             )
@@ -866,7 +867,7 @@ class TestMultipleAuthorizationServers:
             metadata = resource_server.get_resource_metadata()
             assert metadata["authorization_servers"] == [
                 "https://workos.authkit.app",
-                "https://github.com/login/oauth",
+                "http://localhost:8080/realms/mcp-test",
             ]
 
             # Verify tokens from both Auth Servers work
@@ -876,7 +877,7 @@ class TestMultipleAuthorizationServers:
 
             user2 = await resource_server.validate_token(token2)
             assert user2.user_id == "user456"
-            assert user2.email == "user@github.com"
+            assert user2.email == "user@keycloak.com"
 
     @pytest.mark.asyncio
     async def test_resource_server_rejects_unconfigured_as(self, rsa_keypair, jwks_data):

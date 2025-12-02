@@ -17,13 +17,11 @@ resource_server = ResourceServer(
     canonical_url="http://127.0.0.1:8000/mcp",
     authorization_servers=[
         AuthorizationServerEntry(
-            authorization_server_url="https://your-workos.authkit.app",
-            issuer="https://your-workos.authkit.app",
-            jwks_uri="https://your-workos.authkit.app/oauth2/jwks",
+            authorization_server_url="http://localhost:8080/realms/mcp-test",
+            issuer="http://localhost:8080/realms/mcp-test",
+            jwks_uri="http://localhost:8080/realms/mcp-test/protocol/openid-connect/certs",
             algorithm="RS256",
-            validation_options=AccessTokenValidationOptions(
-                verify_aud=False,
-            ),
+            validation_options=AccessTokenValidationOptions(verify_aud=False),
         )
     ],
 )
@@ -32,16 +30,18 @@ resource_server = ResourceServer(
 # resource_server = ResourceServer(
 #     canonical_url="http://127.0.0.1:8000/mcp",
 #     authorization_servers=[
-#         AuthorizationServerEntry(
+#         AuthorizationServerEntry( # WorkOS Authkit example configuration
 #             authorization_server_url="https://your-workos.authkit.app",
 #             issuer="https://your-workos.authkit.app",
 #             jwks_uri="https://your-workos.authkit.app/oauth2/jwks",
 #         ),
-#         AuthorizationServerEntry(
-#             authorization_server_url="https://github.com/login/oauth",
-#             issuer="https://github.com",
-#             jwks_uri="https://token.actions.githubusercontent.com/.well-known/jwks",
-#         ),
+#         AuthorizationServerEntry( # Keycloak example configuration
+#             authorization_server_url="http://localhost:8080/realms/mcp-test",
+#             issuer="http://localhost:8080/realms/mcp-test",
+#             jwks_uri="http://localhost:8080/realms/mcp-test/protocol/openid-connect/certs",
+#             algorithm="RS256",
+#             validation_options=AccessTokenValidationOptions(verify_aud=False),
+#         )
 #     ],
 # )
 

@@ -77,7 +77,10 @@ MCP_RESOURCE_SERVER_AUTHORIZATION_SERVERS='[
     "authorization_server_url": "https://auth.example.com",
     "issuer": "https://auth.example.com",
     "jwks_uri": "https://auth.example.com/.well-known/jwks.json",
-    "algorithm": "RS256"
+    "algorithm": "RS256",
+    "validation_options": {
+      "verify_aud": false
+    }
   }
 ]'
 ```
@@ -91,12 +94,18 @@ MCP_RESOURCE_SERVER_AUTHORIZATION_SERVERS='[
   {
     "authorization_server_url": "https://auth-us.example.com",
     "issuer": "https://auth.example.com",
-    "jwks_uri": "https://auth.example.com/.well-known/jwks.json"
+    "jwks_uri": "https://auth.example.com/.well-known/jwks.json",
+    "validation_options": {
+      "verify_aud": false
+    }
   },
   {
     "authorization_server_url": "https://auth-eu.example.com",
     "issuer": "https://auth.example.com",
-    "jwks_uri": "https://auth.example.com/.well-known/jwks.json"
+    "jwks_uri": "https://auth.example.com/.well-known/jwks.json",
+    "validation_options": {
+      "verify_aud": false
+    }
   }
 ]'
 ```
@@ -110,12 +119,15 @@ MCP_RESOURCE_SERVER_AUTHORIZATION_SERVERS='[
   {
     "authorization_server_url": "https://workos.authkit.app",
     "issuer": "https://workos.authkit.app",
-    "jwks_uri": "https://workos.authkit.app/oauth2/jwks"
+    "jwks_uri": "https://workos.authkit.app/oauth2/jwks",
+    "validation_options": {
+      "verify_aud": false
+    }
   },
   {
-    "authorization_server_url": "https://github.com/login/oauth",
-    "issuer": "https://github.com",
-    "jwks_uri": "https://token.actions.githubusercontent.com/.well-known/jwks",
+    "authorization_server_url": "http://localhost:8080/realms/mcp-test",
+    "issuer": "http://localhost:8080/realms/mcp-test",
+    "jwks_uri": "http://localhost:8080/realms/mcp-test/protocol/openid-connect/certs",
     "validation_options": {
       "verify_aud": false
     }
