@@ -173,8 +173,8 @@ def test_client_disconnect_returns_499(client_no_auth, call_tool_payload):
     # Mock request.body() to raise ClientDisconnect
     with patch("starlette.requests.Request.body", new_callable=AsyncMock) as mock_body:
         mock_body.side_effect = ClientDisconnect()
-        
+
         response = client_no_auth.post("/worker/tools/invoke", json=call_tool_payload)
-        
+
         # Verify that we get a 499 status code
         assert response.status_code == 499

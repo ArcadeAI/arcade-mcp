@@ -104,7 +104,7 @@ class FastAPIRouter(Router):
                 # Client disconnected while reading request body (often due to large payloads)
                 # Return HTTP 499 (Client Closed Request)
                 return Response(status_code=499)
-            
+
             body_json = json.loads(body_str) if body_str else {}
             request_data = RequestData(
                 path=request.url.path,
