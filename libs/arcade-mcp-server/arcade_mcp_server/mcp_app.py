@@ -304,6 +304,18 @@ class MCPApp:
         logger.info(f"Starting {self._name} v{self.version} with {len(self._catalog)} tools")
 
         if transport in ["http", "streamable-http", "streamable"]:
+            logger.info(
+                f"Resource Server authentication enabled: {isinstance(self.resource_server_validator, ResourceServerValidator)}"
+            )
+            if (
+                isinstance(self.resource_server_validator, ResourceServerValidator)
+                and self.resource_server_validator.supports_oauth_discovery()
+            ):
+                metadata = self.resource_server_validator.get_resource_metadata()
+                if metadata:
+                    auth_servers = metadata.get("authorization_servers", [])
+                    logger.info(f"Accepted authorization server(s): {', '.join(auth_servers)}")
+
             if reload:
                 self._run_with_reload(host, port)
             else:
