@@ -76,7 +76,14 @@ class AsyncRegistry(Generic[K, V]):
     async def get(self, key: K) -> V:
         async with await self._lock.read():
             if key not in self._items:
-                raise KeyError(f"{self.component.title()} '{key}' not found")
+                raise KeyError(
+                    f"✗ {self.component.title()} not found: '{key}'\n\n"
+                    f"  The requested {self.component} does not exist in the registry.\n\n"
+                    f"To fix:\n"
+                    f"  1. Verify the {self.component} name is correct\n"
+                    f"  2. Check if the {self.component} was registered\n"
+                    f"  3. List available {self.component}s to see what's available"
+                )
             return self._items[key]
 
     async def keys(self) -> list[K]:
@@ -99,7 +106,14 @@ class AsyncRegistry(Generic[K, V]):
     async def remove(self, key: K) -> V:
         async with await self._lock.write():
             if key not in self._items:
-                raise KeyError(f"{self.component.title()} '{key}' not found")
+                raise KeyError(
+                    f"✗ {self.component.title()} not found: '{key}'\n\n"
+                    f"  The requested {self.component} does not exist in the registry.\n\n"
+                    f"To fix:\n"
+                    f"  1. Verify the {self.component} name is correct\n"
+                    f"  2. Check if the {self.component} was registered\n"
+                    f"  3. List available {self.component}s to see what's available"
+                )
             old = self._items.pop(key)
             self._version += 1
             version = self._version

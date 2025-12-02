@@ -288,12 +288,32 @@ def create_arcade_mcp_factory() -> FastAPI:
         )
     except ToolkitLoadError as exc:
         logger.error(str(exc))
-        raise RuntimeError(f"Failed to discover tools: {exc}") from exc
+        raise RuntimeError(
+            f"✗ Tool discovery failed\n\n"
+            f"  Error: {exc}\n\n"
+            f"To fix:\n"
+            f"  1. Check that the toolkit package is installed correctly\n"
+            f"  2. Verify there are no import errors in your toolkit files\n"
+            f"  3. Ensure all dependencies are installed\n\n"
+            f"For more details, check the error message above."
+        ) from exc
 
     total_tools = len(catalog)
     if total_tools == 0:
         logger.error("No tools found. Create Python files with @tool decorated functions.")
-        raise RuntimeError("No tools found")
+        raise RuntimeError(
+            "✗ No tools found\n\n"
+            "  The server cannot start without any tools.\n\n"
+            "To fix:\n"
+            "  1. Create Python files with @tool decorated functions\n"
+            "  2. Ensure ARCADE_MCP_TOOL_PACKAGE points to your tools package\n"
+            "  3. Or set ARCADE_MCP_DISCOVER_INSTALLED=true to discover installed toolkits\n\n"
+            "Example tool:\n"
+            "  from arcade.sdk import tool\n\n"
+            "  @tool\n"
+            "  def hello() -> str:\n"
+            "      return 'Hello, world!'"
+        )
 
     logger.info(f"Total tools loaded: {total_tools}")
     if otel_enable:

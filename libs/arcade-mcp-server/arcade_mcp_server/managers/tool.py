@@ -71,7 +71,14 @@ class ToolManager(ComponentManager[Key, ManagedTool]):
             # Fallback: resolve sanitized name
             key = self._sanitized_to_key.get(name)
             if key is None:
-                raise NotFoundError(f"Tool {name} not found")
+                raise NotFoundError(
+                    f"✗ Tool not found: '{name}'\n\n"
+                    f"  The requested tool does not exist in the catalog.\n\n"
+                    f"To fix:\n"
+                    f"  1. List available tools with tools/list\n"
+                    f"  2. Check for typos in the tool name\n"
+                    f"  3. Ensure the tool package is loaded correctly"
+                )
             rec = await self.registry.get(key)
             return rec["materialized"]
 
@@ -93,7 +100,14 @@ class ToolManager(ComponentManager[Key, ManagedTool]):
         try:
             rec = await self.registry.remove(key)
         except KeyError as _e:
-            raise NotFoundError(f"Tool {name} not found")
+            raise NotFoundError(
+                f"✗ Cannot remove tool: '{name}'\n\n"
+                f"  Tool not found in the registry.\n\n"
+                f"To fix:\n"
+                f"  1. Verify the tool name is correct\n"
+                f"  2. Check if the tool was already removed\n"
+                f"  3. List available tools with tools/list"
+            )
         # Clean mapping if present
         sanitized = self._sanitize_name(key)
         if sanitized in self._sanitized_to_key:

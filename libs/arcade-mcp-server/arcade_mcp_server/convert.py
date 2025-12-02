@@ -117,7 +117,17 @@ def convert_to_mcp_content(value: Any) -> list[MCPContent]:
         try:
             return [TextContent(type="text", text=json.dumps(value, ensure_ascii=False))]
         except Exception as exc:
-            raise ValueError("Failed to serialize value to JSON for MCP content") from exc
+            raise ValueError(
+                f"✗ JSON serialization failed\n\n"
+                f"  Cannot convert value to JSON for MCP content.\n"
+                f"  Error: {exc}\n\n"
+                f"Possible causes:\n"
+                f"  1. Value contains non-serializable types (functions, classes, etc.)\n"
+                f"  2. Circular references in data structure\n"
+                f"  3. Custom objects without proper serialization\n\n"
+                f"To fix:\n"
+                f"  Convert to JSON-serializable types (dict, list, str, int, float, bool, None)"
+            ) from exc
 
     if isinstance(value, (bytes, bytearray, memoryview)):
         # Encode bytes as base64 text so it can be transmitted safely

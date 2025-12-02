@@ -85,8 +85,10 @@ class HTTPSessionManager:
         async with self._run_lock:
             if self._has_started:
                 raise RuntimeError(
-                    "HTTPSessionManager.run() can only be called once per instance. "
-                    "Create a new instance if you need to run again."
+                    "✗ Session manager already running\n\n"
+                    "  HTTPSessionManager.run() can only be called once per instance.\n\n"
+                    "To fix:\n"
+                    "  Create a new HTTPSessionManager instance if you need to run again."
                 )
             self._has_started = True
 
@@ -115,7 +117,12 @@ class HTTPSessionManager:
             send: ASGI send function
         """
         if self._task_group is None:
-            raise RuntimeError("Task group is not initialized. Make sure to use run().")
+            raise RuntimeError(
+                "✗ Session manager not started\n\n"
+                "  Task group is not initialized.\n\n"
+                "To fix:\n"
+                "  Call HTTPSessionManager.run() before attempting to handle requests."
+            )
 
         if self.stateless:
             await self._handle_stateless_request(scope, receive, send)
@@ -166,7 +173,11 @@ class HTTPSessionManager:
                     logger.exception("Stateless session crashed")
 
         if self._task_group is None:
-            raise RuntimeError("Task group not initialized")
+            raise RuntimeError(
+                "✗ Task group not initialized\n\n"
+                "  Cannot start stateless server without task group.\n\n"
+                "This is an internal error - the session manager was not properly initialized."
+            )
         await self._task_group.start(run_stateless_server)
 
         # Handle the HTTP request
@@ -204,7 +215,11 @@ class HTTPSessionManager:
                 )
 
                 if http_transport.mcp_session_id is None:
-                    raise RuntimeError("MCP session ID not set")
+                    raise RuntimeError(
+                        "✗ MCP session ID not set\n\n"
+                        "  Transport was created without a session ID.\n\n"
+                        "This is an internal error - check that the session ID header is being sent correctly."
+                    )
                 self._server_instances[http_transport.mcp_session_id] = http_transport
                 logger.info(f"Created new transport with session ID: {new_session_id}")
 
@@ -250,7 +265,11 @@ class HTTPSessionManager:
                                 del self._server_instances[http_transport.mcp_session_id]
 
                 if self._task_group is None:
-                    raise RuntimeError("Task group not initialized")
+                    raise RuntimeError(
+                        "✗ Task group not initialized\n\n"
+                        "  Cannot start server without task group.\n\n"
+                        "This is an internal error - the session manager was not properly initialized."
+                    )
                 await self._task_group.start(run_server)
 
                 # Handle the HTTP request

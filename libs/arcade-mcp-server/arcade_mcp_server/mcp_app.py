@@ -145,24 +145,55 @@ class MCPApp:
             ValueError: If the name doesn't follow the required pattern
         """
         if not isinstance(name, str):
-            raise TypeError("MCPApp's name must be a string")
+            raise TypeError(
+                "✗ Invalid app name type\n\n"
+                "  Expected: string\n"
+                f"  Got: {type(name).__name__}\n\n"
+                "To fix:\n"
+                "  MCPApp(name='my_app_name')  # Use a string"
+            )
 
         if not name:
-            raise ValueError("MCPApp's name cannot be empty")
+            raise ValueError(
+                "✗ Empty app name\n\n"
+                "  The app name cannot be empty.\n\n"
+                "To fix:\n"
+                "  MCPApp(name='my_app_name')  # Provide a valid name"
+            )
 
         if not re.match(r"^[a-zA-Z0-9_]+$", name):
             raise ValueError(
-                "MCPApp's name must contain only alphanumeric characters and underscores"
+                f"✗ Invalid app name: '{name}'\n\n"
+                f"  App names must contain only alphanumeric characters and underscores.\n\n"
+                f"Valid examples:\n"
+                f"  - my_app\n"
+                f"  - MyApp\n"
+                f"  - app123\n\n"
+                f"Invalid characters found in: '{name}'"
             )
 
         if name.startswith("_"):
-            raise ValueError("MCPApp's name cannot start with an underscore")
+            raise ValueError(
+                f"✗ Invalid app name: '{name}'\n\n"
+                f"  App names cannot start with an underscore.\n\n"
+                f"To fix, remove the leading underscore:\n"
+                f"  '{name[1:]}'"
+            )
 
         if "__" in name:
-            raise ValueError("MCPApp's name cannot have consecutive underscores")
+            raise ValueError(
+                f"✗ Invalid app name: '{name}'\n\n"
+                f"  App names cannot have consecutive underscores.\n\n"
+                f"To fix:\n"
+                f"  Use single underscores: '{name.replace('__', '_')}'"
+            )
 
         if not re.match(r".*[a-zA-Z0-9]$", name):
-            raise ValueError("MCPApp's name must end with an alphanumeric character")
+            raise ValueError(
+                f"✗ Invalid app name: '{name}'\n\n"
+                f"  App names must end with an alphanumeric character.\n\n"
+                f"To fix, remove trailing underscores or special characters."
+            )
 
         return name
 
@@ -331,7 +362,13 @@ class MCPApp:
                 )
             )
         else:
-            raise ServerError(f"Invalid transport: {transport}")
+            raise ServerError(
+                f"✗ Invalid transport: '{transport}'\n\n"
+                f"  Valid transports: 'stdio', 'http'\n\n"
+                f"To fix:\n"
+                f"  app.run(transport='stdio')  # For stdio transport\n"
+                f"  app.run(transport='http')   # For HTTP transport"
+            )
 
     def _run_with_reload(self, host: str, port: int) -> None:
         """
@@ -471,22 +508,50 @@ class _ToolsAPI:
     async def add(self, tool: MaterializedTool) -> None:
         """Add or update a tool at runtime if server is bound; otherwise queue via app.add_tool decorator."""
         if self._app.server is None:
-            raise ServerError("No server bound to app. Set app.server to use runtime tools API.")
+            raise ServerError(
+                "✗ Server not initialized\n\n"
+                "  No server bound to MCPApp.\n\n"
+                "To fix:\n"
+                "  1. Ensure app.run() has been called\n"
+                "  2. Or manually set app.server before using runtime APIs\n\n"
+                "Runtime tool operations require an active server instance."
+            )
         await self._app.server.tools.add_tool(tool)
 
     async def update(self, tool: MaterializedTool) -> None:
         if self._app.server is None:
-            raise ServerError("No server bound to app. Set app.server to use runtime tools API.")
+            raise ServerError(
+                "✗ Server not initialized\n\n"
+                "  No server bound to MCPApp.\n\n"
+                "To fix:\n"
+                "  1. Ensure app.run() has been called\n"
+                "  2. Or manually set app.server before using runtime APIs\n\n"
+                "Runtime tool operations require an active server instance."
+            )
         await self._app.server.tools.update_tool(tool)
 
     async def remove(self, name: str) -> MaterializedTool:
         if self._app.server is None:
-            raise ServerError("No server bound to app. Set app.server to use runtime tools API.")
+            raise ServerError(
+                "✗ Server not initialized\n\n"
+                "  No server bound to MCPApp.\n\n"
+                "To fix:\n"
+                "  1. Ensure app.run() has been called\n"
+                "  2. Or manually set app.server before using runtime APIs\n\n"
+                "Runtime tool operations require an active server instance."
+            )
         return await self._app.server.tools.remove_tool(name)
 
     async def list(self) -> list[Any]:
         if self._app.server is None:
-            raise ServerError("No server bound to app. Set app.server to use runtime tools API.")
+            raise ServerError(
+                "✗ Server not initialized\n\n"
+                "  No server bound to MCPApp.\n\n"
+                "To fix:\n"
+                "  1. Ensure app.run() has been called\n"
+                "  2. Or manually set app.server before using runtime APIs\n\n"
+                "Runtime tool operations require an active server instance."
+            )
         return await self._app.server.tools.list_tools()
 
 
@@ -500,17 +565,38 @@ class _PromptsAPI:
         self, prompt: Prompt, handler: Callable[[dict[str, str]], list[PromptMessage]] | None = None
     ) -> None:
         if self._app.server is None:
-            raise ServerError("No server bound to app. Set app.server to use runtime prompts API.")
+            raise ServerError(
+                "✗ Server not initialized\n\n"
+                "  No server bound to MCPApp.\n\n"
+                "To fix:\n"
+                "  1. Ensure app.run() has been called\n"
+                "  2. Or manually set app.server before using runtime APIs\n\n"
+                "Runtime prompt operations require an active server instance."
+            )
         await self._app.server.prompts.add_prompt(prompt, handler)
 
     async def remove(self, name: str) -> Prompt:
         if self._app.server is None:
-            raise ServerError("No server bound to app. Set app.server to use runtime prompts API.")
+            raise ServerError(
+                "✗ Server not initialized\n\n"
+                "  No server bound to MCPApp.\n\n"
+                "To fix:\n"
+                "  1. Ensure app.run() has been called\n"
+                "  2. Or manually set app.server before using runtime APIs\n\n"
+                "Runtime prompt operations require an active server instance."
+            )
         return await self._app.server.prompts.remove_prompt(name)
 
     async def list(self) -> list[Prompt]:
         if self._app.server is None:
-            raise ServerError("No server bound to app. Set app.server to use runtime prompts API.")
+            raise ServerError(
+                "✗ Server not initialized\n\n"
+                "  No server bound to MCPApp.\n\n"
+                "To fix:\n"
+                "  1. Ensure app.run() has been called\n"
+                "  2. Or manually set app.server before using runtime APIs\n\n"
+                "Runtime prompt operations require an active server instance."
+            )
         return await self._app.server.prompts.list_prompts()
 
 
@@ -523,20 +609,35 @@ class _ResourcesAPI:
     async def add(self, resource: Resource, handler: Callable[[str], Any] | None = None) -> None:
         if self._app.server is None:
             raise ServerError(
-                "No server bound to app. Set app.server to use runtime resources API."
+                "✗ Server not initialized\n\n"
+                "  No server bound to MCPApp.\n\n"
+                "To fix:\n"
+                "  1. Ensure app.run() has been called\n"
+                "  2. Or manually set app.server before using runtime APIs\n\n"
+                "Runtime resource operations require an active server instance."
             )
         await self._app.server.resources.add_resource(resource, handler)
 
     async def remove(self, uri: str) -> Resource:
         if self._app.server is None:
             raise ServerError(
-                "No server bound to app. Set app.server to use runtime resources API."
+                "✗ Server not initialized\n\n"
+                "  No server bound to MCPApp.\n\n"
+                "To fix:\n"
+                "  1. Ensure app.run() has been called\n"
+                "  2. Or manually set app.server before using runtime APIs\n\n"
+                "Runtime resource operations require an active server instance."
             )
         return await self._app.server.resources.remove_resource(uri)
 
     async def list(self) -> list[Resource]:
         if self._app.server is None:
             raise ServerError(
-                "No server bound to app. Set app.server to use runtime resources API."
+                "✗ Server not initialized\n\n"
+                "  No server bound to MCPApp.\n\n"
+                "To fix:\n"
+                "  1. Ensure app.run() has been called\n"
+                "  2. Or manually set app.server before using runtime APIs\n\n"
+                "Runtime resource operations require an active server instance."
             )
         return await self._app.server.resources.list_resources()

@@ -831,13 +831,16 @@ class MCPServer:
             # First check if Arcade API key is configured
             if not self.arcade:
                 tool_response = {
-                    "message": f"Tool '{tool_name}' cannot be executed because it requires authorization but no Arcade API key is configured.",
+                    "message": f"✗ Missing Arcade API key\n\n  Tool '{tool_name}' requires authorization but no API key is configured.",
                     "llm_instructions": (
                         f"The MCP server cannot execute the '{tool_name}' tool because it requires authorization "
-                        "but the Arcade API key is not configured. The developer needs to: "
-                        "1) Run 'arcade login' to authenticate, or "
-                        "2) Set the ARCADE_API_KEY environment variable with a valid API key, or "
-                        "Once the API key is configured, restart the MCP server for the changes to take effect."
+                        "but the Arcade API key is not configured.\n\n"
+                        "To fix, tell the developer to either:\n"
+                        "  1. Run the CLI command:\n"
+                        "     arcade login\n\n"
+                        "  2. Set environment variable:\n"
+                        "     export ARCADE_API_KEY=your_api_key_here\n\n"
+                        "Then restart the MCP server for changes to take effect."
                     ),
                 }
                 return self._create_error_response(message, tool_response)
@@ -847,8 +850,13 @@ class MCPServer:
                 auth_result = await self._check_authorization(tool, tool_context.user_id)
                 if auth_result.status != "completed":
                     tool_response = {
-                        "message": "The tool was not executed because it requires authorization. This is not an error, but the end user must click the link to complete the OAuth2 flow before the tool can be executed.",
-                        "llm_instructions": f"Please show the following link to the end user formatted as markdown: {auth_result.url} \nInform the end user that the tool requires their authorization to be completed before the tool can be executed.",
+                        "message": f"→ Authorization required\n\n  Tool '{tool_name}' needs user permission to access their account.",
+                        "llm_instructions": (
+                            f"The '{tool_name}' tool requires user authorization before it can execute.\n\n"
+                            f"To authorize, show this link to the user:\n"
+                            f"{auth_result.url}\n\n"
+                            f"Once the user completes the OAuth2 flow, the tool can be executed."
+                        ),
                         "authorization_url": auth_result.url,
                     }
                     return self._create_error_response(message, tool_response)
@@ -862,8 +870,15 @@ class MCPServer:
             except ToolRuntimeError as e:
                 # Handle any other authorization errors
                 tool_response = {
-                    "message": f"Tool '{tool_name}' cannot be executed due to an authorization error: {e}",
-                    "llm_instructions": f"The '{tool_name}' tool failed authorization. Error: {e}",
+                    "message": f"✗ Authorization failed for '{tool_name}'\n\n  Error: {e}",
+                    "llm_instructions": (
+                        f"The '{tool_name}' tool failed to authorize. Error: {e}\n\n"
+                        f"Possible fixes:\n"
+                        f"  1. The user may need to re-authenticate their account\n"
+                        f"  2. The authorization token may have expired - try again\n"
+                        f"  3. Check if the Arcade API key is valid\n\n"
+                        f"If the problem persists, contact support."
+                    ),
                 }
                 return self._create_error_response(message, tool_response)
 
@@ -876,15 +891,22 @@ class MCPServer:
                 except ValueError:
                     missing_secrets.append(secret_requirement.key)
             if missing_secrets:
-                missing_secrets_str = ", ".join(missing_secrets)
+                missing_secrets_str = "', '".join(missing_secrets)
+                # Format example .env entries
+                env_examples = "\n     ".join([f"{key}=your_value_here" for key in missing_secrets])
+                export_examples = "\n     ".join([f"export {key}=your_value_here" for key in missing_secrets])
+                
                 tool_response = {
-                    "message": f"Tool '{tool_name}' cannot be executed because it requires the following secrets that are not available: {missing_secrets_str}",
+                    "message": f"✗ Missing secret{'s' if len(missing_secrets) > 1 else ''}: '{missing_secrets_str}'\n\n  Tool '{tool_name}' requires {'these secrets' if len(missing_secrets) > 1 else 'this secret'} but {'they are' if len(missing_secrets) > 1 else 'it is'} not configured.",
                     "llm_instructions": (
-                        f"The MCP server is missing required secrets for the '{tool_name}' tool. "
-                        f"The developer needs to provide these secrets by either: "
-                        f"1) Adding them to a .env file in the server's working directory (e.g., {missing_secrets[0]}=your_secret_value), "
-                        f"2) Setting them as environment variables before starting the server (e.g., export {missing_secrets[0]}=your_secret_value). "
-                        "Once the secrets are configured, restart the MCP server for the changes to take effect."
+                        f"The MCP server cannot execute the '{tool_name}' tool because "
+                        f"{'these required secrets are' if len(missing_secrets) > 1 else 'this required secret is'} missing: {missing_secrets_str}\n\n"
+                        f"To fix, tell the developer to either:\n"
+                        f"  1. Add to .env file in the server's working directory:\n"
+                        f"     {env_examples}\n\n"
+                        f"  2. Set as environment variable{'s' if len(missing_secrets) > 1 else ''}:\n"
+                        f"     {export_examples}\n\n"
+                        f"Then restart the MCP server for changes to take effect."
                     ),
                 }
                 return self._create_error_response(message, tool_response)
@@ -903,8 +925,10 @@ class MCPServer:
         """
         if not self.arcade:
             raise ToolRuntimeError(
-                "Authorization check called without Arcade API key configured. "
-                "This should be checked by the caller."
+                "✗ Internal error: Authorization check without API key\n\n"
+                "  This is a programming error - authorization check was called "
+                "without verifying that an Arcade API key is configured.\n\n"
+                "This should not happen. Please report this issue."
             )
 
         req = tool.definition.requirements.authorization
@@ -939,7 +963,15 @@ class MCPServer:
             )
         except ArcadeError as e:
             logger.exception("Error authorizing tool")
-            raise ToolRuntimeError(f"Authorization failed: {e}") from e
+            raise ToolRuntimeError(
+                f"✗ Authorization request failed\n\n"
+                f"  Error communicating with authorization service: {e}\n\n"
+                f"Possible causes:\n"
+                f"  1. Network connectivity issues\n"
+                f"  2. Arcade API service unavailable\n"
+                f"  3. Invalid API key or credentials\n\n"
+                f"Check your internet connection and Arcade API key configuration."
+            ) from e
         else:
             return response
 

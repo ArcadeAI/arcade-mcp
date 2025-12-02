@@ -62,7 +62,14 @@ class ResourceManager(ComponentManager[str, Resource]):
         try:
             _ = await self.registry.get(uri)
         except KeyError as _e:
-            raise NotFoundError(f"Resource '{uri}' not found")
+            raise NotFoundError(
+                f"✗ Resource not found: '{uri}'\n\n"
+                f"  The requested resource does not exist.\n\n"
+                f"To fix:\n"
+                f"  1. List available resources with resources/list\n"
+                f"  2. Check for typos in the resource URI\n"
+                f"  3. Verify the resource was registered with the server"
+            )
 
         return [TextResourceContents(uri=uri, text="")]  # static placeholder
 
@@ -77,7 +84,14 @@ class ResourceManager(ComponentManager[str, Resource]):
         try:
             removed = await self.registry.remove(uri)
         except KeyError as _e:
-            raise NotFoundError(f"Resource '{uri}' not found")
+            raise NotFoundError(
+                f"✗ Resource not found: '{uri}'\n\n"
+                f"  The requested resource does not exist.\n\n"
+                f"To fix:\n"
+                f"  1. List available resources with resources/list\n"
+                f"  2. Check for typos in the resource URI\n"
+                f"  3. Verify the resource was registered with the server"
+            )
         self._resource_handlers.pop(uri, None)
         return removed
 
@@ -87,7 +101,14 @@ class ResourceManager(ComponentManager[str, Resource]):
         try:
             await self.registry.remove(uri)
         except KeyError:
-            raise NotFoundError(f"Resource '{uri}' not found")
+            raise NotFoundError(
+                f"✗ Resource not found: '{uri}'\n\n"
+                f"  The requested resource does not exist.\n\n"
+                f"To fix:\n"
+                f"  1. List available resources with resources/list\n"
+                f"  2. Check for typos in the resource URI\n"
+                f"  3. Verify the resource was registered with the server"
+            )
         await self.registry.upsert(resource.uri, resource)
         if handler:
             self._resource_handlers[resource.uri] = handler
@@ -98,5 +119,12 @@ class ResourceManager(ComponentManager[str, Resource]):
 
     async def remove_template(self, uri_template: str) -> ResourceTemplate:
         if uri_template not in self._templates:
-            raise NotFoundError(f"Resource template '{uri_template}' not found")
+            raise NotFoundError(
+                f"✗ Resource template not found: '{uri_template}'\n\n"
+                f"  The requested resource template does not exist.\n\n"
+                f"To fix:\n"
+                f"  1. List available resource templates with resources/templates/list\n"
+                f"  2. Check for typos in the template URI\n"
+                f"  3. Verify the template was registered with the server"
+            )
         return self._templates.pop(uri_template)

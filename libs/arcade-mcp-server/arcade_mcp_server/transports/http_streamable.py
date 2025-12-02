@@ -155,7 +155,12 @@ class HTTPStreamableTransport:
             event_store: Optional event store for resumability
         """
         if mcp_session_id and not SESSION_ID_PATTERN.fullmatch(mcp_session_id):
-            raise ValueError("Session ID must only contain visible ASCII characters")
+            raise ValueError(
+                f"✗ Invalid session ID: '{mcp_session_id}'\n\n"
+                f"  Session IDs must contain only visible ASCII characters.\n\n"
+                f"Valid characters: a-z, A-Z, 0-9, and standard punctuation\n"
+                f"Invalid: control characters, extended Unicode, etc."
+            )
 
         self.mcp_session_id = mcp_session_id
         self.session = session
@@ -187,14 +192,32 @@ class HTTPStreamableTransport:
             try:
                 maybe = json.loads(obj)
             except Exception as exc:  # parse error - treat as invalid request
-                raise ValueError(f"Invalid JSON: {exc}")
+                raise ValueError(
+                    f"✗ Invalid JSON in request\n\n"
+                    f"  Parse error: {exc}\n\n"
+                    f"To fix:\n"
+                    f"  1. Ensure the request body is valid JSON\n"
+                    f"  2. Check for trailing commas or syntax errors\n"
+                    f"  3. Verify Content-Type is application/json"
+                )
             if not isinstance(maybe, dict):
-                raise TypeError("JSON must be an object")
+                raise TypeError(
+                    f"✗ Invalid JSON structure\n\n"
+                    f"  Expected: JSON object {{}}\n"
+                    f"  Got: {type(maybe).__name__}\n\n"
+                    f"MCP protocol requires request body to be a JSON object."
+                )
             parsed = maybe
         elif isinstance(obj, dict):
             parsed = obj
         else:
-            raise TypeError("Unsupported message type")
+            raise TypeError(
+                f"✗ Unsupported message type\n\n"
+                f"  Expected: str (JSON) or dict\n"
+                f"  Got: {type(obj).__name__}\n\n"
+                f"To fix:\n"
+                f"  Provide message as either a JSON string or a dictionary."
+            )
 
         try:
             return TypeAdapter(MCPMessage).validate_python(parsed)
@@ -330,7 +353,14 @@ class HTTPStreamableTransport:
         """Handle POST requests containing JSON-RPC messages."""
         writer = self._read_stream_writer
         if writer is None:
-            raise ValueError("No read stream writer available. Ensure connect() is called first.")
+            raise ValueError(
+                "✗ Transport not initialized for POST\n\n"
+                "  No read stream writer available.\n\n"
+                "To fix:\n"
+                "  1. Ensure the GET request (SSE connection) is established first\n"
+                "  2. Then send POST requests with JSON-RPC messages\n\n"
+                "The MCP HTTP protocol requires GET before POST."
+            )
 
         try:
             # Check Accept headers
@@ -512,7 +542,12 @@ class HTTPStreamableTransport:
         """Handle GET request to establish SSE."""
         writer = self._read_stream_writer
         if writer is None:
-            raise ValueError("No read stream writer available. Ensure connect() is called first.")
+            raise ValueError(
+                "✗ Transport not initialized for GET\n\n"
+                "  No read stream writer available.\n\n"
+                "To fix:\n"
+                "  Ensure connect() is called before attempting to establish SSE connection."
+            )
 
         # Validate Accept header
         _, has_sse = self._check_accept_headers(request)

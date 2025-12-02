@@ -91,7 +91,16 @@ class RequestManager:
             ProtocolError: If response is an error
         """
         if self._closed.is_set():
-            raise SessionError("Session closed")
+            raise SessionError(
+                "✗ Session closed\n\n"
+                "  Cannot perform operations on a closed session.\n\n"
+                "Possible causes:\n"
+                "  1. Session was explicitly closed\n"
+                "  2. Client disconnected\n"
+                "  3. Session timed out\n\n"
+                "To fix:\n"
+                "  Establish a new session connection"
+            )
         request_id = str(uuid.uuid4())
 
         # Create request
@@ -105,7 +114,16 @@ class RequestManager:
         future: asyncio.Future[Any] = asyncio.Future()
         async with self._lock:
             if self._closed.is_set():
-                raise SessionError("Session closed")
+                raise SessionError(
+                "✗ Session closed\n\n"
+                "  Cannot perform operations on a closed session.\n\n"
+                "Possible causes:\n"
+                "  1. Session was explicitly closed\n"
+                "  2. Client disconnected\n"
+                "  3. Session timed out\n\n"
+                "To fix:\n"
+                "  Establish a new session connection"
+            )
             self._pending_requests[request_id] = future
 
         try:
@@ -342,7 +360,15 @@ class ServerSession:
         to allow server-initiated requests to be handled while tools execute.
         """
         if not self.read_stream:
-            raise SessionError("No read stream available")
+            raise SessionError(
+                "✗ No read stream available\n\n"
+                "  Cannot read messages without an active read stream.\n\n"
+                "Possible causes:\n"
+                "  1. Session not fully initialized\n"
+                "  2. Transport connection not established\n"
+                "  3. Read stream was closed\n\n"
+                "This is usually an internal error - check server logs for details."
+            )
 
         async with anyio.create_task_group() as tg:
             try:
@@ -354,7 +380,12 @@ class ServerSession:
                 pass
             except Exception as e:
                 await self.server.logger.exception("Session error")
-                raise SessionError(f"Session error: {e}") from e
+                raise SessionError(
+                    f"✗ Session error\n\n"
+                    f"  Error: {e}\n\n"
+                    f"This indicates an issue with the MCP session handling.\n"
+                    f"Check server logs for more details."
+                ) from e
             finally:
                 # Cleanup
                 if self._request_manager:
@@ -514,7 +545,15 @@ class ServerSession:
             Sampling result
         """
         if not self._request_manager:
-            raise SessionError("Cannot send requests without request manager")
+            raise SessionError(
+                "✗ Request manager not available\n\n"
+                "  Cannot send requests without an initialized request manager.\n\n"
+                "Possible causes:\n"
+                "  1. Session not fully initialized\n"
+                "  2. Client does not support server-initiated requests\n"
+                "  3. Request manager setup failed\n\n"
+                "This operation requires bidirectional communication support."
+            )
 
         params = {
             "messages": messages,
@@ -554,7 +593,15 @@ class ServerSession:
             Roots list result
         """
         if not self._request_manager:
-            raise SessionError("Cannot send requests without request manager")
+            raise SessionError(
+                "✗ Request manager not available\n\n"
+                "  Cannot send requests without an initialized request manager.\n\n"
+                "Possible causes:\n"
+                "  1. Session not fully initialized\n"
+                "  2. Client does not support server-initiated requests\n"
+                "  3. Request manager setup failed\n\n"
+                "This operation requires bidirectional communication support."
+            )
 
         result = await self._request_manager.send_request(
             "roots/list",
@@ -582,7 +629,15 @@ class ServerSession:
             Completion result
         """
         if not self._request_manager:
-            raise SessionError("Cannot send requests without request manager")
+            raise SessionError(
+                "✗ Request manager not available\n\n"
+                "  Cannot send requests without an initialized request manager.\n\n"
+                "Possible causes:\n"
+                "  1. Session not fully initialized\n"
+                "  2. Client does not support server-initiated requests\n"
+                "  3. Request manager setup failed\n\n"
+                "This operation requires bidirectional communication support."
+            )
 
         result = await self._request_manager.send_request(
             "completion/complete",
@@ -610,7 +665,15 @@ class ServerSession:
             Elicitation result
         """
         if not self._request_manager:
-            raise SessionError("Cannot send requests without request manager")
+            raise SessionError(
+                "✗ Request manager not available\n\n"
+                "  Cannot send requests without an initialized request manager.\n\n"
+                "Possible causes:\n"
+                "  1. Session not fully initialized\n"
+                "  2. Client does not support server-initiated requests\n"
+                "  3. Request manager setup failed\n\n"
+                "This operation requires bidirectional communication support."
+            )
 
         params: dict[str, Any] = {
             "message": message,

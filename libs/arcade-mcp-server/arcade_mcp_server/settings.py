@@ -120,7 +120,14 @@ class MiddlewareSettings(BaseSettings):
         valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
         v = v.upper()
         if v not in valid_levels:
-            raise ValueError(f"Invalid log level: {v}. Must be one of {valid_levels}")
+            raise ValueError(
+                f"✗ Invalid log level: '{v}'\n\n"
+                f"  Valid options: {', '.join(valid_levels)}\n\n"
+                f"To fix, set MCP_MIDDLEWARE_LOG_LEVEL to one of the valid options:\n"
+                f"  export MCP_MIDDLEWARE_LOG_LEVEL=INFO\n\n"
+                f"Or in .env file:\n"
+                f"  MCP_MIDDLEWARE_LOG_LEVEL=INFO"
+            )
         return v
 
     model_config = {"env_prefix": "MCP_MIDDLEWARE_"}

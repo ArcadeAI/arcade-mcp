@@ -57,7 +57,12 @@ class LifespanManager:
     async def startup(self) -> LifespanResult:
         """Run startup phase of lifespan."""
         if self._started:
-            raise LifespanError("Lifespan already started")
+            raise LifespanError(
+                "✗ Lifespan already started\n\n"
+                "  Cannot start lifespan multiple times.\n\n"
+                "To fix:\n"
+                "  Create a new Lifespan instance if you need to restart"
+            )
 
         self._started = True
 
@@ -72,10 +77,19 @@ class LifespanManager:
             try:
                 await self._stack
             except Exception as e:
-                raise LifespanError(f"Lifespan startup failed: {e}") from e
+                raise LifespanError(
+                    f"✗ Lifespan startup failed\n\n"
+                    f"  Error: {e}\n\n"
+                    f"The server could not complete initialization.\n"
+                    f"Check the error message above for details."
+                ) from e
 
         if self._context is None:
-            raise LifespanError("Lifespan startup failed")
+            raise LifespanError(
+                "✗ Lifespan startup failed\n\n"
+                "  The server initialization did not complete successfully.\n\n"
+                "Check server logs for details about what went wrong."
+            )
         return self._context
 
     async def shutdown(self) -> None:

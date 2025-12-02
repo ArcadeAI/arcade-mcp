@@ -57,7 +57,15 @@ class StdioReadStream:
             raise StopAsyncIteration
         except Exception as e:
             logger.exception("Error reading from stdin")
-            raise TransportError(f"Read error: {e}") from e
+            raise TransportError(
+                f"✗ Stdio read error\n\n"
+                f"  Failed to read from stdin: {e}\n\n"
+                f"Possible causes:\n"
+                f"  1. The client disconnected unexpectedly\n"
+                f"  2. Stdin stream was closed\n"
+                f"  3. Invalid data received\n\n"
+                f"This usually happens when the MCP client terminates."
+            ) from e
         if line is None or not self._running:
             raise StopAsyncIteration
         return line
@@ -169,7 +177,13 @@ class StdioTransport:
         # Check if already have a session
         sessions = await self.list_sessions()
         if sessions:
-            raise TransportError("Stdio transport only supports one session")
+            raise TransportError(
+                "✗ Multiple sessions not supported\n\n"
+                "  Stdio transport can only handle one session at a time.\n\n"
+                "To fix:\n"
+                "  1. Close the existing session before starting a new one\n"
+                "  2. Or use HTTP transport for multiple concurrent sessions"
+            )
 
         # Create session
         session_id = str(uuid.uuid4())

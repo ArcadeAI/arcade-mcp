@@ -50,7 +50,12 @@ class PromptHandler:
         if self.prompt.arguments:
             for arg in self.prompt.arguments:
                 if arg.required and arg.name not in args:
-                    raise PromptError(f"Required argument '{arg.name}' not provided")
+                    raise PromptError(
+                        f"✗ Missing required argument: '{arg.name}'\n\n"
+                        f"  Prompt requires this argument but it was not provided.\n\n"
+                        f"To fix:\n"
+                        f"  Provide the '{arg.name}' argument when calling the prompt"
+                    )
 
         result = self.handler(args)
         if hasattr(result, "__await__"):
@@ -77,7 +82,14 @@ class PromptManager(ComponentManager[str, PromptHandler]):
         try:
             handler = await self.registry.get(name)
         except KeyError:
-            raise NotFoundError(f"Prompt '{name}' not found")
+            raise NotFoundError(
+                f"✗ Prompt not found: '{name}'\n\n"
+                f"  The requested prompt does not exist.\n\n"
+                f"To fix:\n"
+                f"  1. List available prompts with prompts/list\n"
+                f"  2. Check for typos in the prompt name\n"
+                f"  3. Verify the prompt was registered with the server"
+            )
 
         try:
             messages = await handler.get_messages(arguments)
@@ -88,7 +100,15 @@ class PromptManager(ComponentManager[str, PromptHandler]):
         except Exception as e:
             if isinstance(e, PromptError):
                 raise
-            raise PromptError(f"Error generating prompt: {e}") from e
+            raise PromptError(
+                f"✗ Prompt generation failed\n\n"
+                f"  Error: {e}\n\n"
+                f"Possible causes:\n"
+                f"  1. Invalid arguments provided to the prompt\n"
+                f"  2. Error in prompt template rendering\n"
+                f"  3. Missing required dependencies\n\n"
+                f"Check the error message above for details."
+            ) from e
 
     async def add_prompt(
         self,
@@ -102,7 +122,14 @@ class PromptManager(ComponentManager[str, PromptHandler]):
         try:
             handler = await self.registry.remove(name)
         except KeyError:
-            raise NotFoundError(f"Prompt '{name}' not found")
+            raise NotFoundError(
+                f"✗ Prompt not found: '{name}'\n\n"
+                f"  The requested prompt does not exist.\n\n"
+                f"To fix:\n"
+                f"  1. List available prompts with prompts/list\n"
+                f"  2. Check for typos in the prompt name\n"
+                f"  3. Verify the prompt was registered with the server"
+            )
         return handler.prompt
 
     async def update_prompt(
@@ -115,7 +142,14 @@ class PromptManager(ComponentManager[str, PromptHandler]):
         try:
             _ = await self.registry.get(name)
         except KeyError:
-            raise NotFoundError(f"Prompt '{name}' not found")
+            raise NotFoundError(
+                f"✗ Prompt not found: '{name}'\n\n"
+                f"  The requested prompt does not exist.\n\n"
+                f"To fix:\n"
+                f"  1. List available prompts with prompts/list\n"
+                f"  2. Check for typos in the prompt name\n"
+                f"  3. Verify the prompt was registered with the server"
+            )
 
         prompt_handler = PromptHandler(prompt, handler)
         await self.registry.upsert(prompt.name, prompt_handler)

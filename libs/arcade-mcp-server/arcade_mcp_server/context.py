@@ -72,7 +72,14 @@ class _ContextComponent:
     def _require_session(self) -> Any:
         session = self._ctx._session
         if session is None:
-            raise ValueError("Session not available")
+            raise ValueError(
+                "✗ Session not available\n\n"
+                "  This operation requires an active MCP session.\n\n"
+                "Possible causes:\n"
+                "  1. Context is being used outside of a request handler\n"
+                "  2. Session has not been initialized yet\n"
+                "  3. Session was closed prematurely"
+            )
         return session
 
 
@@ -148,7 +155,14 @@ class Context(ToolContext):
         """Get the server instance."""
         server = self._server()
         if server is None:
-            raise RuntimeError("Server instance is no longer available")
+            raise RuntimeError(
+                "✗ Server instance no longer available\n\n"
+                "  The MCP server has been garbage collected or shut down.\n\n"
+                "Possible causes:\n"
+                "  1. Server was stopped while request was in progress\n"
+                "  2. Context is being used after server shutdown\n"
+                "  3. Server reference was lost"
+            )
         return server
 
     def set_session(self, session: Any) -> None:
@@ -327,7 +341,15 @@ class Context(ToolContext):
         elif isinstance(prefs, list):
             return ModelPreferences(hints=[ModelHint(name=h) for h in prefs])
         else:
-            raise ValueError(f"Invalid model preferences type: {type(prefs)}")
+            raise ValueError(
+                f"✗ Invalid model preferences type\n\n"
+                f"  Expected: ModelPreferences, str, or list[str]\n"
+                f"  Got: {type(prefs).__name__}\n\n"
+                f"Valid examples:\n"
+                f"  - 'gpt-4'\n"
+                f"  - ['gpt-4', 'claude-3']\n"
+                f"  - ModelPreferences(hints=[ModelHint(name='gpt-4')])"
+            )
 
     def _try_flush_notifications(self) -> None:
         """Try to flush notifications if in async context."""
@@ -464,14 +486,26 @@ class Resources(_ContextComponent):
 
     async def read(self, uri: str) -> list[ResourceContents]:
         if self._ctx.server is None:
-            raise ValueError("Context is not available outside of a request")
+            raise ValueError(
+                "✗ Context not available\n\n"
+                "  Cannot access resources outside of a request context.\n\n"
+                "To fix:\n"
+                "  Only call context.resources.read() from within a tool or request handler."
+            )
         result = await self._ctx.server._mcp_read_resource(uri)
         return cast(list[ResourceContents], result)
 
     async def get(self, uri: str) -> ResourceContents:
         contents = await self.read(uri)
         if not contents:
-            raise ValueError(f"Resource not found: {uri}")
+            raise ValueError(
+                f"✗ Resource not found: '{uri}'\n\n"
+                f"  The requested resource does not exist or is not accessible.\n\n"
+                f"To fix:\n"
+                f"  1. Check that the URI is correct\n"
+                f"  2. List available resources with context.resources.list()\n"
+                f"  3. Verify the resource has been registered with the server"
+            )
         return contents[0]
 
     async def list_roots(self) -> list[Root]:
@@ -545,7 +579,16 @@ class Sampling(_ContextComponent):
         model_preferences: ModelPreferences | str | list[str] | None = None,
     ) -> TextContent | ImageContent | AudioContent | CreateMessageResult:
         if self._ctx._session is None:
-            raise ValueError("Session not available")
+            raise ValueError(
+                "✗ Session not available for sampling\n\n"
+                "  Cannot create messages without an active MCP session.\n\n"
+                "Possible causes:\n"
+                "  1. Context is being used outside of a request handler\n"
+                "  2. Session has not been initialized\n"
+                "  3. Session was closed\n\n"
+                "To fix:\n"
+                "  Only call context.sampling.create_message() from within a tool or request handler."
+            )
 
         # Convert messages to proper format
         if isinstance(messages, str):
@@ -569,16 +612,34 @@ class Sampling(_ContextComponent):
 
         # Check client capabilities
         if not self._ctx._check_client_capability(ClientCapabilities(sampling={})):
-            raise ValueError("Client does not support sampling")
+            raise ValueError(
+                "✗ Sampling not supported\n\n"
+                "  The connected MCP client does not support sampling (LLM message creation).\n\n"
+                "To fix:\n"
+                "  1. Use a client that supports the sampling capability\n"
+                "  2. Or avoid calling context.sampling.create_message() in your tools\n\n"
+                "Clients with sampling support: Claude Desktop, some custom clients"
+            )
 
-        result = await self._ctx._session.create_message(
-            messages=sampling_messages,
-            system_prompt=system_prompt,
-            include_context=include_context,
-            temperature=temperature,
-            max_tokens=max_tokens or 512,
-            model_preferences=parsed_prefs,
-        )
+        try:
+            result = await self._ctx._session.create_message(
+                messages=sampling_messages,
+                system_prompt=system_prompt,
+                include_context=include_context,
+                temperature=temperature,
+                max_tokens=max_tokens or 512,
+                model_preferences=parsed_prefs,
+            )
+        except Exception as e:
+            # Wrap with more helpful error if it's a generic error
+            if "Session not available" in str(e):
+                raise ValueError(
+                    "✗ Session not available for sampling\n\n"
+                    "  Cannot create messages without an active MCP session.\n\n"
+                    "To fix:\n"
+                    "  Only call context.sampling.create_message() from within a tool or request handler."
+                ) from e
+            raise
 
         return result.content if hasattr(result, "content") else result  # type: ignore[no-any-return]
 
@@ -590,24 +651,54 @@ class UI(_ContextComponent):
     def _validate_elicitation_schema(self, schema: dict[str, Any]) -> None:
         """Validate that the schema conforms to MCP elicitation restrictions."""
         if not isinstance(schema, dict):
-            raise TypeError("Schema must be a dictionary")
+            raise TypeError(
+                f"✗ Invalid elicitation schema type\n\n"
+                f"  Expected: dictionary\n"
+                f"  Got: {type(schema).__name__}\n\n"
+                f"Example:\n"
+                f"  schema = {{'type': 'object', 'properties': {{'name': {{'type': 'string'}}}}}}"
+            )
 
         if schema.get("type") != "object":
-            raise ValueError("Schema must have type 'object'")
+            raise ValueError(
+                f"✗ Invalid schema type: '{schema.get('type')}'\n\n"
+                f"  Elicitation schemas must have type 'object'.\n\n"
+                f"To fix:\n"
+                f"  schema = {{'type': 'object', 'properties': {{...}}}}"
+            )
 
         properties = schema.get("properties", {})
         if not isinstance(properties, dict):
-            raise TypeError("Schema properties must be a dictionary")
+            raise TypeError(
+                f"✗ Invalid schema properties type\n\n"
+                f"  Expected: dictionary\n"
+                f"  Got: {type(properties).__name__}\n\n"
+                f"Example:\n"
+                f"  'properties': {{'name': {{'type': 'string'}}, 'age': {{'type': 'number'}}}}"
+            )
 
         # Validate each property
         for prop_name, prop_schema in properties.items():
             if not isinstance(prop_schema, dict):
-                raise TypeError(f"Property '{prop_name}' schema must be a dictionary")
+                raise TypeError(
+                    f"✗ Invalid schema for property '{prop_name}'\n\n"
+                    f"  Expected: dictionary\n"
+                    f"  Got: {type(prop_schema).__name__}\n\n"
+                    f"Example:\n"
+                    f"  '{prop_name}': {{'type': 'string', 'description': '...'}}"
+                )
 
             prop_type = prop_schema.get("type")
             if prop_type not in ["string", "number", "integer", "boolean"]:
                 raise ValueError(
-                    f"Property '{prop_name}' has unsupported type '{prop_type}'. Only primitive types are allowed."
+                    f"✗ Unsupported type for property '{prop_name}': '{prop_type}'\n\n"
+                    f"  MCP elicitation only supports primitive types.\n\n"
+                    f"Allowed types:\n"
+                    f"  - string\n"
+                    f"  - number\n"
+                    f"  - integer\n"
+                    f"  - boolean\n\n"
+                    f"Not allowed: object, array, null"
                 )
 
             # Validate string formats
@@ -615,14 +706,27 @@ class UI(_ContextComponent):
                 allowed_formats = ["email", "uri", "date", "date-time"]
                 if prop_schema["format"] not in allowed_formats:
                     raise ValueError(
-                        f"Property '{prop_name}' has unsupported format '{prop_schema['format']}'. Allowed: {allowed_formats}"
+                        f"✗ Unsupported format for property '{prop_name}': '{prop_schema['format']}'\n\n"
+                        f"Allowed formats for strings:\n"
+                        f"  - email\n"
+                        f"  - uri\n"
+                        f"  - date\n"
+                        f"  - date-time\n\n"
+                        f"To fix: Use one of the allowed formats or remove the 'format' field."
                     )
 
     async def elicit(
         self, message: str, schema: dict[str, Any] | None = None, timeout: float = 300.0
     ) -> ElicitResult:
         if self._ctx._session is None:
-            raise ValueError("Session not available")
+            raise ValueError(
+                "✗ Session not available for elicitation\n\n"
+                "  Cannot elicit user input without an active MCP session.\n\n"
+                "Possible causes:\n"
+                "  1. Context is being used outside of a request handler\n"
+                "  2. Session has not been initialized\n"
+                "  3. Session was closed"
+            )
         if schema is None:
             schema = {"type": "object", "properties": {}}
 
