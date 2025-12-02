@@ -664,7 +664,20 @@ class MCPServer:
         This provides early feedback about configuration issues without
         preventing server startup. Warnings are logged for each tool that
         declares secret requirements that are not currently available.
+        
+        Note: This check is only performed when worker routes are disabled.
+        When worker routes are enabled (ARCADE_WORKER_SECRET is set), secrets
+        are sent with the tool execution information, so local secret checking
+        is not necessary.
         """
+        # Skip secret checking when worker routes are enabled
+        if self.settings.arcade.server_secret:
+            logger.debug(
+                "Skipping secret validation check - worker routes are enabled "
+                "(secrets will be sent with tool execution information)"
+            )
+            return
+        
         try:
             # Get all tools from the manager
             tools_list = await self._tool_manager.list_tools()

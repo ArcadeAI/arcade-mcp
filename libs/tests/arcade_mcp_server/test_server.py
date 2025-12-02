@@ -1220,7 +1220,7 @@ class TestStartupWarnings:
 
         # Create tool catalog
         catalog = ToolCatalog()
-        catalog.add_tool(tool_with_secrets, toolkit="TestToolkit")
+        catalog.add_tool(tool_with_secrets, "TestToolkit")
 
         # Create server (secrets are NOT in environment)
         server = MCPServer(
@@ -1263,7 +1263,7 @@ class TestStartupWarnings:
 
         # Create tool catalog
         catalog = ToolCatalog()
-        catalog.add_tool(tool_with_secrets, toolkit="TestToolkit")
+        catalog.add_tool(tool_with_secrets, "TestToolkit")
 
         # Create server with fresh settings that will pick up the env vars
         from arcade_mcp_server.settings import MCPSettings
@@ -1305,7 +1305,7 @@ class TestStartupWarnings:
 
         # Create tool catalog
         catalog = ToolCatalog()
-        catalog.add_tool(tool_with_secrets, toolkit="TestToolkit")
+        catalog.add_tool(tool_with_secrets, "TestToolkit")
 
         # Create server with fresh settings
         from arcade_mcp_server.settings import MCPSettings
@@ -1351,7 +1351,7 @@ class TestStartupWarnings:
 
         # Create tool catalog
         catalog = ToolCatalog()
-        catalog.add_tool(tool_without_secrets, toolkit="TestToolkit")
+        catalog.add_tool(tool_without_secrets, "TestToolkit")
 
         server = MCPServer(
             catalog=catalog,
@@ -1385,7 +1385,7 @@ class TestStartupWarnings:
 
         # Create tool catalog
         catalog = ToolCatalog()
-        catalog.add_tool(tool_with_missing_secret, toolkit="TestToolkit")
+        catalog.add_tool(tool_with_missing_secret, "TestToolkit")
 
         server = MCPServer(
             catalog=catalog,
@@ -1401,5 +1401,51 @@ class TestStartupWarnings:
         # Should still be able to list tools
         tools = await server._tool_manager.list_tools()
         assert len(tools) > 0
+
+        await server.stop()
+
+    @pytest.mark.asyncio
+    async def test_no_warnings_when_worker_routes_enabled(self, caplog, monkeypatch):
+        """Test that no secret warnings are logged when worker routes are enabled."""
+        import logging
+        from arcade_core.catalog import ToolCatalog
+        from arcade_mcp_server.settings import MCPSettings
+
+        # Set worker secret in environment (enables worker routes)
+        monkeypatch.setenv("ARCADE_WORKER_SECRET", "test-worker-secret")
+
+        # Create a tool with secret requirements
+        @tool(requires_secrets=["API_KEY", "DATABASE_URL"])
+        def tool_with_secrets(
+            text: Annotated[str, "Input text"]
+        ) -> Annotated[str, "Output text"]:
+            """A tool that requires secrets."""
+            return f"Processed: {text}"
+
+        # Create tool catalog
+        catalog = ToolCatalog()
+        catalog.add_tool(tool_with_secrets, "TestToolkit")
+
+        # Create settings from environment (will pick up ARCADE_WORKER_SECRET)
+        settings = MCPSettings.from_env()
+
+        server = MCPServer(
+            catalog=catalog,
+            name="Test Server",
+            version="1.0.0",
+            settings=settings,
+        )
+
+        # Start server and capture logs
+        with caplog.at_level(logging.DEBUG):
+            await server.start()
+
+        # Check that NO warnings were logged about missing secrets
+        log_messages = [record.message for record in caplog.records]
+        assert not any("⚠ Tool" in msg and "API_KEY" in msg for msg in log_messages)
+        
+        # Should see debug message about skipping validation
+        debug_messages = [record.message for record in caplog.records if record.levelname == "DEBUG"]
+        assert any("Skipping secret validation check" in msg for msg in debug_messages)
 
         await server.stop()
