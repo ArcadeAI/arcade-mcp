@@ -307,6 +307,10 @@ class MCPServer:
             await self._tool_manager.load_from_catalog(self._initial_catalog)
         except Exception:
             logger.exception("Failed to load tools from initial catalog")
+        
+        # Check for missing secrets and log warnings
+        await self._check_and_warn_missing_secrets()
+        
         await self._resource_manager.start()
         await self._prompt_manager.start()
         await self.lifespan_manager.startup()
@@ -653,6 +657,69 @@ class MCPServer:
             logger.debug("Context user_id set from session (non-dev env)")
 
         return tool_context
+
+    async def _check_and_warn_missing_secrets(self) -> None:
+        """Check all tools for missing secrets and log warnings.
+        
+        This provides early feedback about configuration issues without
+        preventing server startup. Warnings are logged for each tool that
+        declares secret requirements that are not currently available.
+        """
+        try:
+            # Get all tools from the manager
+            tools_list = await self._tool_manager.list_tools()
+            
+            if not tools_list:
+                return
+            
+            # Collect all missing secrets
+            warnings_logged = False
+            
+            for tool_dto in tools_list:
+                # Get the materialized tool to access requirements
+                try:
+                    tool = await self._tool_manager.get_tool(tool_dto.name)
+                except Exception:
+                    # Skip if we can't get the tool
+                    continue
+                
+                # Check if tool has secret requirements
+                if not (tool.definition.requirements and tool.definition.requirements.secrets):
+                    continue
+                
+                # Check each secret requirement
+                missing_secrets = []
+                for secret_requirement in tool.definition.requirements.secrets:
+                    secret_key = secret_requirement.key
+                    
+                    # Check if secret is available in settings or environment
+                    if (
+                        secret_key not in self.settings.tool_secrets()
+                        and secret_key not in os.environ
+                    ):
+                        missing_secrets.append(secret_key)
+                
+                # Log warning if any secrets are missing
+                if missing_secrets:
+                    warnings_logged = True
+                    tool_name = tool.definition.fully_qualified_name
+                    
+                    # Format the warning message
+                    secrets_str = ", ".join(f"'{s}'" for s in missing_secrets)
+                    logger.warning(
+                        f"⚠ Tool '{tool_name}' declares secret(s) {secrets_str} which are not set"
+                    )
+                    logger.warning(
+                        f"  Tool will return an error if called. Set {missing_secrets[0]} to enable."
+                    )
+            
+            if warnings_logged:
+                logger.info(
+                    "Server started with missing secrets. Tools requiring these secrets will fail if called."
+                )
+        except Exception:
+            # Don't let warnings prevent server startup
+            logger.debug("Error checking for missing secrets", exc_info=True)
 
     async def _handle_call_tool(
         self,

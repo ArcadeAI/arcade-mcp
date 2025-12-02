@@ -1199,3 +1199,207 @@ class TestMCPServer:
         assert isinstance(response, JSONRPCResponse)
         assert isinstance(response.result, CallToolResult)
         assert response.result.isError is False
+
+
+class TestStartupWarnings:
+    """Test startup warnings for missing secrets."""
+
+    @pytest.mark.asyncio
+    async def test_startup_warnings_for_missing_secrets(self, mcp_settings, caplog):
+        """Test that startup warnings are logged for tools with missing secrets."""
+        import logging
+        from arcade_core.catalog import ToolCatalog
+
+        # Create a tool with secret requirements
+        @tool(requires_secrets=["API_KEY", "DATABASE_URL"])
+        def tool_with_secrets(
+            text: Annotated[str, "Input text"]
+        ) -> Annotated[str, "Output text"]:
+            """A tool that requires secrets."""
+            return f"Processed: {text}"
+
+        # Create tool catalog
+        catalog = ToolCatalog()
+        catalog.add_tool(tool_with_secrets, toolkit="TestToolkit")
+
+        # Create server (secrets are NOT in environment)
+        server = MCPServer(
+            catalog=catalog,
+            name="Test Server",
+            version="1.0.0",
+            settings=mcp_settings,
+        )
+
+        # Start server and capture logs
+        with caplog.at_level(logging.WARNING):
+            await server.start()
+
+        # Check that warnings were logged
+        log_messages = [record.message for record in caplog.records]
+        
+        # Should have warning for missing secrets
+        assert any("⚠ Tool" in msg and "API_KEY" in msg for msg in log_messages)
+        assert any("Tool will return an error if called" in msg for msg in log_messages)
+
+        await server.stop()
+
+    @pytest.mark.asyncio
+    async def test_startup_no_warnings_when_secrets_provided(self, mcp_settings, caplog, monkeypatch):
+        """Test that no warnings are logged when all secrets are provided."""
+        import logging
+        from arcade_core.catalog import ToolCatalog
+
+        # Set the required secrets in environment
+        monkeypatch.setenv("API_KEY", "test-api-key")
+        monkeypatch.setenv("DATABASE_URL", "test-db-url")
+
+        # Create a tool with secret requirements
+        @tool(requires_secrets=["API_KEY", "DATABASE_URL"])
+        def tool_with_secrets(
+            text: Annotated[str, "Input text"]
+        ) -> Annotated[str, "Output text"]:
+            """A tool that requires secrets."""
+            return f"Processed: {text}"
+
+        # Create tool catalog
+        catalog = ToolCatalog()
+        catalog.add_tool(tool_with_secrets, toolkit="TestToolkit")
+
+        # Create server with fresh settings that will pick up the env vars
+        from arcade_mcp_server.settings import MCPSettings
+        fresh_settings = MCPSettings.from_env()
+
+        server = MCPServer(
+            catalog=catalog,
+            name="Test Server",
+            version="1.0.0",
+            settings=fresh_settings,
+        )
+
+        # Start server and capture logs
+        with caplog.at_level(logging.WARNING):
+            await server.start()
+
+        # Check that NO warnings were logged for missing secrets
+        log_messages = [record.message for record in caplog.records]
+        assert not any("⚠ Tool" in msg and "API_KEY" in msg for msg in log_messages)
+
+        await server.stop()
+
+    @pytest.mark.asyncio
+    async def test_startup_warnings_for_partial_missing_secrets(self, mcp_settings, caplog, monkeypatch):
+        """Test warnings when only some secrets are missing."""
+        import logging
+        from arcade_core.catalog import ToolCatalog
+
+        # Set only one of the required secrets
+        monkeypatch.setenv("API_KEY", "test-api-key")
+
+        # Create a tool with multiple secret requirements
+        @tool(requires_secrets=["API_KEY", "DATABASE_URL", "SECRET_TOKEN"])
+        def tool_with_secrets(
+            text: Annotated[str, "Input text"]
+        ) -> Annotated[str, "Output text"]:
+            """A tool that requires multiple secrets."""
+            return f"Processed: {text}"
+
+        # Create tool catalog
+        catalog = ToolCatalog()
+        catalog.add_tool(tool_with_secrets, toolkit="TestToolkit")
+
+        # Create server with fresh settings
+        from arcade_mcp_server.settings import MCPSettings
+        fresh_settings = MCPSettings.from_env()
+
+        server = MCPServer(
+            catalog=catalog,
+            name="Test Server",
+            version="1.0.0",
+            settings=fresh_settings,
+        )
+
+        # Start server and capture logs
+        with caplog.at_level(logging.WARNING):
+            await server.start()
+
+        # Check warnings - should warn about missing secrets (not API_KEY which is provided)
+        log_messages = [record.message for record in caplog.records]
+        
+        # Should NOT warn about API_KEY (it's provided)
+        secret_warning_msgs = [msg for msg in log_messages if "⚠ Tool" in msg]
+        
+        # Should have warnings for missing secrets
+        assert len(secret_warning_msgs) > 0
+        # Verify missing secrets are mentioned
+        assert any("DATABASE_URL" in msg or "SECRET_TOKEN" in msg for msg in secret_warning_msgs)
+
+        await server.stop()
+
+    @pytest.mark.asyncio
+    async def test_startup_no_warnings_for_tools_without_secrets(self, mcp_settings, caplog):
+        """Test that tools without secret requirements don't generate warnings."""
+        import logging
+        from arcade_core.catalog import ToolCatalog
+
+        # Create a tool without secret requirements
+        @tool
+        def tool_without_secrets(
+            text: Annotated[str, "Input text"]
+        ) -> Annotated[str, "Output text"]:
+            """A tool that doesn't require secrets."""
+            return f"Processed: {text}"
+
+        # Create tool catalog
+        catalog = ToolCatalog()
+        catalog.add_tool(tool_without_secrets, toolkit="TestToolkit")
+
+        server = MCPServer(
+            catalog=catalog,
+            name="Test Server",
+            version="1.0.0",
+            settings=mcp_settings,
+        )
+
+        # Start server and capture logs
+        with caplog.at_level(logging.WARNING):
+            await server.start()
+
+        # Check that NO warnings were logged
+        log_messages = [record.message for record in caplog.records]
+        assert not any("⚠ Tool" in msg for msg in log_messages)
+
+        await server.stop()
+
+    @pytest.mark.asyncio
+    async def test_server_starts_despite_missing_secrets(self, mcp_settings):
+        """Test that server starts successfully even with missing secrets."""
+        from arcade_core.catalog import ToolCatalog
+
+        # Create a tool with secret requirements
+        @tool(requires_secrets=["MISSING_SECRET"])
+        def tool_with_missing_secret(
+            text: Annotated[str, "Input text"]
+        ) -> Annotated[str, "Output text"]:
+            """A tool that requires a missing secret."""
+            return f"Processed: {text}"
+
+        # Create tool catalog
+        catalog = ToolCatalog()
+        catalog.add_tool(tool_with_missing_secret, toolkit="TestToolkit")
+
+        server = MCPServer(
+            catalog=catalog,
+            name="Test Server",
+            version="1.0.0",
+            settings=mcp_settings,
+        )
+
+        # Server should start successfully despite missing secrets
+        await server.start()
+        assert server._started is True
+
+        # Should still be able to list tools
+        tools = await server._tool_manager.list_tools()
+        assert len(tools) > 0
+
+        await server.stop()
