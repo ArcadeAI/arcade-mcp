@@ -329,6 +329,7 @@ class MCPApp:
                 host=None,
                 port=None,
                 tool_count=len(self._catalog),
+                resource_server_validator=self.resource_server_validator,
             )
             asyncio.run(
                 run_stdio_server(
@@ -416,6 +417,7 @@ class MCPApp:
             host=host,
             port=port,
             tool_count=len(self._catalog),
+            resource_server_validator=self.resource_server_validator,
         )
 
         asyncio.run(
