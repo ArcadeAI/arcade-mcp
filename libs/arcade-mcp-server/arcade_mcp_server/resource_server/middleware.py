@@ -33,7 +33,7 @@ class ResourceServerMiddleware:
 
         app = Starlette()
         validator = JWKSTokenValidator(...)
-        app = ResourceServerMiddleware(app, validator, "https://mcp.example.com")
+        app = ResourceServerMiddleware(app, validator, "https://mcp.example.com/mcp")
         ```
     """
 

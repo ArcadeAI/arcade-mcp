@@ -101,7 +101,7 @@ def valid_jwt_token(rsa_keypair):
         "sub": "user123",
         "email": "user@example.com",
         "iss": "https://auth.example.com",
-        "aud": "https://mcp.example.com",
+        "aud": "https://mcp.example.com/mcp",
         "exp": int(time.time()) + 3600,
         "iat": int(time.time()),
     }
@@ -125,7 +125,7 @@ def expired_jwt_token(rsa_keypair):
         "sub": "user123",
         "email": "user@example.com",
         "iss": "https://auth.example.com",
-        "aud": "https://mcp.example.com",
+        "aud": "https://mcp.example.com/mcp",
         "exp": int(time.time()) - 3600,
         "iat": int(time.time()) - 7200,
     }
@@ -155,7 +155,7 @@ class TestJWKSTokenValidator:
             validator = JWKSTokenValidator(
                 jwks_uri="https://auth.example.com/.well-known/jwks.json",
                 issuer="https://auth.example.com",
-                audience="https://mcp.example.com",
+                audience="https://mcp.example.com/mcp",
             )
 
             user = await validator.validate_token(valid_jwt_token)
@@ -177,7 +177,7 @@ class TestJWKSTokenValidator:
             validator = JWKSTokenValidator(
                 jwks_uri="https://auth.example.com/.well-known/jwks.json",
                 issuer="https://auth.example.com",
-                audience="https://mcp.example.com",
+                audience="https://mcp.example.com/mcp",
             )
 
             with pytest.raises(TokenExpiredError):
@@ -210,7 +210,7 @@ class TestJWKSTokenValidator:
             validator = JWKSTokenValidator(
                 jwks_uri="https://auth.example.com/.well-known/jwks.json",
                 issuer="https://auth.example.com",
-                audience="https://mcp.example.com",
+                audience="https://mcp.example.com/mcp",
             )
 
             with pytest.raises(InvalidTokenError, match="audience"):
@@ -222,7 +222,7 @@ class TestJWKSTokenValidator:
         payload = {
             "sub": "user123",
             "iss": "https://wrong-issuer.com",  # Wrong issuer
-            "aud": "https://mcp.example.com",
+            "aud": "https://mcp.example.com/mcp",
             "exp": int(time.time()) + 3600,
             "iat": int(time.time()),
         }
@@ -243,7 +243,7 @@ class TestJWKSTokenValidator:
             validator = JWKSTokenValidator(
                 jwks_uri="https://auth.example.com/.well-known/jwks.json",
                 issuer="https://auth.example.com",
-                audience="https://mcp.example.com",
+                audience="https://mcp.example.com/mcp",
             )
 
             with pytest.raises(InvalidTokenError, match="issuer"):
@@ -254,7 +254,7 @@ class TestJWKSTokenValidator:
         """Test validating token without sub claim."""
         payload = {
             "iss": "https://auth.example.com",
-            "aud": "https://mcp.example.com",
+            "aud": "https://mcp.example.com/mcp",
             "exp": int(time.time()) + 3600,
             "iat": int(time.time()),
         }
@@ -275,7 +275,7 @@ class TestJWKSTokenValidator:
             validator = JWKSTokenValidator(
                 jwks_uri="https://auth.example.com/.well-known/jwks.json",
                 issuer="https://auth.example.com",
-                audience="https://mcp.example.com",
+                audience="https://mcp.example.com/mcp",
             )
 
             with pytest.raises(InvalidTokenError, match="sub"):
@@ -293,7 +293,7 @@ class TestJWKSTokenValidator:
             validator = JWKSTokenValidator(
                 jwks_uri="https://auth.example.com/.well-known/jwks.json",
                 issuer="https://auth.example.com",
-                audience="https://mcp.example.com",
+                audience="https://mcp.example.com/mcp",
                 cache_ttl=3600,
             )
 
@@ -419,7 +419,7 @@ class TestJWKSTokenValidator:
         payload = {
             "sub": "user123",
             "iss": "https://auth.example.com",
-            "aud": ["https://api1.com", "https://mcp.example.com", "https://api2.com"],
+            "aud": ["https://api1.com", "https://mcp.example.com/mcp", "https://api2.com"],
             "exp": int(time.time()) + 3600,
             "iat": int(time.time()),
         }
@@ -440,7 +440,7 @@ class TestJWKSTokenValidator:
             validator = JWKSTokenValidator(
                 jwks_uri="https://auth.example.com/.well-known/jwks.json",
                 issuer="https://auth.example.com",
-                audience="https://mcp.example.com",  # Single audience
+                audience="https://mcp.example.com/mcp",  # Single audience
             )
 
             user = await validator.validate_token(token)
@@ -453,7 +453,7 @@ class TestJWKSTokenValidator:
         payload = {
             "sub": "user123",
             "iss": "https://auth2.example.com",  # Second in list
-            "aud": "https://mcp.example.com",
+            "aud": "https://mcp.example.com/mcp",
             "exp": int(time.time()) + 3600,
             "iat": int(time.time()),
         }
@@ -482,7 +482,7 @@ class TestJWKSTokenValidator:
                         "https://auth2.example.com",
                         "https://auth3.example.com",
                     ],
-                    audience="https://mcp.example.com",
+                    audience="https://mcp.example.com/mcp",
                 )
 
                 user = await validator.validate_token(token)
@@ -499,7 +499,7 @@ class TestResourceServer:
     def test_supports_oauth_discovery(self):
         """Test that ResourceServer supports OAuth discovery."""
         resource_server = ResourceServer(
-            canonical_url="https://mcp.example.com",
+            canonical_url="https://mcp.example.com/mcp",
             authorization_servers=[
                 AuthorizationServerEntry(
                     authorization_server_url="https://auth.example.com",
@@ -514,7 +514,7 @@ class TestResourceServer:
     def test_get_resource_metadata(self):
         """Test getting OAuth Protected Resource Metadata."""
         resource_server = ResourceServer(
-            canonical_url="https://mcp.example.com",
+            canonical_url="https://mcp.example.com/mcp",
             authorization_servers=[
                 AuthorizationServerEntry(
                     authorization_server_url="https://auth.example.com",
@@ -526,7 +526,7 @@ class TestResourceServer:
 
         metadata = resource_server.get_resource_metadata()
 
-        assert metadata["resource"] == "https://mcp.example.com"
+        assert metadata["resource"] == "https://mcp.example.com/mcp"
         assert metadata["authorization_servers"] == ["https://auth.example.com"]
 
 
@@ -546,7 +546,7 @@ class TestResourceServerMiddleware:
             validator = JWKSTokenValidator(
                 jwks_uri="https://auth.example.com/.well-known/jwks.json",
                 issuer="https://auth.example.com",
-                audience="https://mcp.example.com",
+                audience="https://mcp.example.com/mcp",
             )
 
             # Mock app
@@ -561,7 +561,7 @@ class TestResourceServerMiddleware:
             middleware = ResourceServerMiddleware(
                 mock_app,
                 validator,
-                "https://mcp.example.com",
+                "https://mcp.example.com/mcp",
             )
 
             # Create mock request
@@ -592,7 +592,7 @@ class TestResourceServerMiddleware:
             validator = JWKSTokenValidator(
                 jwks_uri="https://auth.example.com/.well-known/jwks.json",
                 issuer="https://auth.example.com",
-                audience="https://mcp.example.com",
+                audience="https://mcp.example.com/mcp",
             )
 
             async def mock_app(scope, receive, send):
@@ -601,7 +601,7 @@ class TestResourceServerMiddleware:
             middleware = ResourceServerMiddleware(
                 mock_app,
                 validator,
-                "https://mcp.example.com",
+                "https://mcp.example.com/mcp",
             )
 
             # mock request w/o auth header
@@ -636,7 +636,7 @@ class TestResourceServerMiddleware:
             mock_get.return_value = mock_response
 
             resource_server = ResourceServer(
-                canonical_url="https://mcp.example.com",
+                canonical_url="https://mcp.example.com/mcp",
                 authorization_servers=[
                     AuthorizationServerEntry(
                         authorization_server_url="https://auth.example.com",
@@ -652,7 +652,7 @@ class TestResourceServerMiddleware:
             middleware = ResourceServerMiddleware(
                 mock_app,
                 resource_server,
-                "https://mcp.example.com",
+                "https://mcp.example.com/mcp",
             )
 
             scope = {
@@ -709,7 +709,7 @@ class TestEnvVarConfiguration:
     @pytest.mark.asyncio
     async def test_resource_server_all_env_vars(self, monkeypatch):
         """Test ResourceServer with all env vars, no parameters."""
-        monkeypatch.setenv("MCP_RESOURCE_SERVER_CANONICAL_URL", "https://mcp.example.com")
+        monkeypatch.setenv("MCP_RESOURCE_SERVER_CANONICAL_URL", "https://mcp.example.com/mcp")
         monkeypatch.setenv(
             "MCP_RESOURCE_SERVER_AUTHORIZATION_SERVERS",
             '[{"authorization_server_url":"https://auth.example.com","issuer":"https://auth.example.com","jwks_uri":"https://auth.example.com/jwks","algorithm":"RS256","validation_options":{"verify_aud":false}}]',
@@ -717,7 +717,7 @@ class TestEnvVarConfiguration:
 
         resource_server = ResourceServer()
 
-        assert resource_server.canonical_url == "https://mcp.example.com"
+        assert resource_server.canonical_url == "https://mcp.example.com/mcp"
         metadata = resource_server.get_resource_metadata()
         assert metadata["authorization_servers"] == ["https://auth.example.com"]
 
@@ -741,7 +741,7 @@ class TestEnvVarConfiguration:
         jwt_validator = JWKSTokenValidator(
             jwks_uri="https://auth.example.com/jwks",
             issuer="https://auth.example.com",
-            audience="https://mcp.example.com",
+            audience="https://mcp.example.com/mcp",
         )
 
         catalog = ToolCatalog()
@@ -777,7 +777,7 @@ class TestMultipleAuthorizationServers:
             mock_get.return_value = mock_response
 
             resource_server = ResourceServer(
-                canonical_url="https://mcp.example.com",
+                canonical_url="https://mcp.example.com/mcp",
                 authorization_servers=[
                     AuthorizationServerEntry(
                         authorization_server_url="https://auth-us.example.com",
@@ -794,7 +794,7 @@ class TestMultipleAuthorizationServers:
 
             # Verify that metadata returns all Auth Server URLs
             metadata = resource_server.get_resource_metadata()
-            assert metadata["resource"] == "https://mcp.example.com"
+            assert metadata["resource"] == "https://mcp.example.com/mcp"
             assert metadata["authorization_servers"] == [
                 "https://auth-us.example.com",
                 "https://auth-eu.example.com",
@@ -814,7 +814,7 @@ class TestMultipleAuthorizationServers:
             "sub": "user123",
             "email": "user@workos.com",
             "iss": "https://workos.authkit.app",
-            "aud": "https://mcp.example.com",
+            "aud": "https://mcp.example.com/mcp",
             "exp": int(time.time()) + 3600,
             "iat": int(time.time()),
         }
@@ -829,7 +829,7 @@ class TestMultipleAuthorizationServers:
             "sub": "user456",
             "email": "user@keycloak.com",
             "iss": "http://localhost:8080/realms/mcp-test",
-            "aud": "https://mcp.example.com",
+            "aud": "https://mcp.example.com/mcp",
             "exp": int(time.time()) + 3600,
             "iat": int(time.time()),
         }
@@ -847,7 +847,7 @@ class TestMultipleAuthorizationServers:
             mock_get.return_value = mock_response
 
             resource_server = ResourceServer(
-                canonical_url="https://mcp.example.com",
+                canonical_url="https://mcp.example.com/mcp",
                 authorization_servers=[
                     AuthorizationServerEntry(
                         authorization_server_url="https://workos.authkit.app",
@@ -888,7 +888,7 @@ class TestMultipleAuthorizationServers:
             "sub": "user123",
             "email": "user@evil.com",
             "iss": "https://evil.com",  # Not in configured list (unauthorized issuer)
-            "aud": "https://mcp.example.com",
+            "aud": "https://mcp.example.com/mcp",
             "exp": int(time.time()) + 3600,
             "iat": int(time.time()),
         }
@@ -906,7 +906,7 @@ class TestMultipleAuthorizationServers:
             mock_get.return_value = mock_response
 
             resource_server = ResourceServer(
-                canonical_url="https://mcp.example.com",
+                canonical_url="https://mcp.example.com/mcp",
                 authorization_servers=[
                     AuthorizationServerEntry(
                         authorization_server_url="https://auth.example.com",
@@ -925,7 +925,7 @@ class TestMultipleAuthorizationServers:
 
     def test_authorization_servers_env_var_parsing_json(self, monkeypatch):
         """Test parsing JSON array of AS configs from env var."""
-        monkeypatch.setenv("MCP_RESOURCE_SERVER_CANONICAL_URL", "https://mcp.example.com")
+        monkeypatch.setenv("MCP_RESOURCE_SERVER_CANONICAL_URL", "https://mcp.example.com/mcp")
         monkeypatch.setenv(
             "MCP_RESOURCE_SERVER_AUTHORIZATION_SERVERS",
             '[{"authorization_server_url": "https://auth1.com", "issuer": "https://auth1.com", "jwks_uri": "https://auth1.com/jwks"}]',
@@ -939,7 +939,7 @@ class TestMultipleAuthorizationServers:
     def test_resource_metadata_multiple_as(self):
         """Test that resource metadata returns all AS URLs."""
         resource_server = ResourceServer(
-            canonical_url="https://mcp.example.com",
+            canonical_url="https://mcp.example.com/mcp",
             authorization_servers=[
                 AuthorizationServerEntry(
                     authorization_server_url="https://auth1.example.com",
@@ -960,7 +960,7 @@ class TestMultipleAuthorizationServers:
         )
 
         metadata = resource_server.get_resource_metadata()
-        assert metadata["resource"] == "https://mcp.example.com"
+        assert metadata["resource"] == "https://mcp.example.com/mcp"
         assert len(metadata["authorization_servers"]) == 3
         assert "https://auth1.example.com" in metadata["authorization_servers"]
         assert "https://auth2.example.com" in metadata["authorization_servers"]

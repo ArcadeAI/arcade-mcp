@@ -58,7 +58,7 @@ class ResourceServer(ResourceServerValidator):
 
             # Option 2: Single Authorization Server
             resource_server = ResourceServer(
-                canonical_url="https://mcp.example.com",
+                canonical_url="https://mcp.example.com/mcp",
                 authorization_servers=[
                     AuthorizationServerEntry(
                         authorization_server_url="https://auth.example.com",
@@ -70,7 +70,7 @@ class ResourceServer(ResourceServerValidator):
 
             # Option 3: Multiple Authorization Servers
             resource_server = ResourceServer(
-                canonical_url="https://mcp.example.com",
+                canonical_url="https://mcp.example.com/mcp",
                 authorization_servers=[
                     AuthorizationServerEntry(
                         authorization_server_url="https://workos.authkit.app",

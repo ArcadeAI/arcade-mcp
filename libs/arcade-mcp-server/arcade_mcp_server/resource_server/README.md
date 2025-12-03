@@ -71,7 +71,7 @@ app = MCPApp(name="Protected", auth=resource_server)
 
 ```bash
 # Resource Server Configuration
-MCP_RESOURCE_SERVER_CANONICAL_URL=https://mcp.example.com
+MCP_RESOURCE_SERVER_CANONICAL_URL=https://mcp.example.com/mcp
 MCP_RESOURCE_SERVER_AUTHORIZATION_SERVERS='[
   {
     "authorization_server_url": "https://auth.example.com",
@@ -89,7 +89,7 @@ MCP_RESOURCE_SERVER_AUTHORIZATION_SERVERS='[
 
 ```bash
 # Regional endpoints with shared keys
-MCP_RESOURCE_SERVER_CANONICAL_URL=https://mcp.example.com
+MCP_RESOURCE_SERVER_CANONICAL_URL=https://mcp.example.com/mcp
 MCP_RESOURCE_SERVER_AUTHORIZATION_SERVERS='[
   {
     "authorization_server_url": "https://auth-us.example.com",
@@ -114,7 +114,7 @@ MCP_RESOURCE_SERVER_AUTHORIZATION_SERVERS='[
 
 ```bash
 # Multi-IdP configuration
-MCP_RESOURCE_SERVER_CANONICAL_URL=https://mcp.example.com
+MCP_RESOURCE_SERVER_CANONICAL_URL=https://mcp.example.com/mcp
 MCP_RESOURCE_SERVER_AUTHORIZATION_SERVERS='[
   {
     "authorization_server_url": "https://workos.authkit.app",

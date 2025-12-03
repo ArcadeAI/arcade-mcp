@@ -28,11 +28,15 @@ from arcade_mcp_server.worker import create_arcade_mcp, run_arcade_mcp
 
 __all__ = [
     "Context",
+    # FastAPI-like interface
     "MCPApp",
+    # MCP Server implementation
     "MCPServer",
     "MCPSettings",
+    # Integrated Factory and Runner
     "create_arcade_mcp",
     "run_arcade_mcp",
+    # Re-exported from TDK functionality
     "tool",
 ]
 
