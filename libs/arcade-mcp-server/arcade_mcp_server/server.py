@@ -673,6 +673,7 @@ class MCPServer:
         _, config_user_id = self._load_config_values()
         if config_user_id:
             logger.debug(f"Context user_id set from credentials file: {config_user_id}")
+            return config_user_id
 
         # Fourth priority: use session ID if no other user_id is available
         if env in ("development", "dev", "local"):
