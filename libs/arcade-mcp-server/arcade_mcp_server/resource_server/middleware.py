@@ -136,7 +136,7 @@ class ResourceServerMiddleware:
         Returns:
             Response with 401 status with WWW-Authenticate header
         """
-        www_auth_parts = ["Bearer"]
+        www_auth_parts = []
 
         # Add resource metadata URL if validator supports discovery (RFC 9728)
         if self.validator.supports_oauth_discovery() and self.canonical_url:
@@ -149,7 +149,7 @@ class ResourceServerMiddleware:
         if error_description:
             www_auth_parts.append(f'error_description="{error_description}"')
 
-        www_auth_value = ", ".join(www_auth_parts)
+        www_auth_value = "Bearer " + ", ".join(www_auth_parts)
 
         return Response(
             content="Unauthorized",
