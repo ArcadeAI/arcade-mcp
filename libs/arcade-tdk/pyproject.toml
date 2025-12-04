@@ -1,6 +1,6 @@
 [project]
 name = "arcade-tdk"
-version = "3.1.0"
+version = "3.2.0"
 description = "Arcade TDK - Toolkit Development Kit for building Arcade tools"
 readme = "README.md"
 license = {text = "MIT"}
