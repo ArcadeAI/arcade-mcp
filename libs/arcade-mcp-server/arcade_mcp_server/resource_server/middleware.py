@@ -1,5 +1,7 @@
 """ASGI middleware for MCP Resource Server authentication."""
 
+from urllib.parse import urlparse, urlunparse
+
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.types import ASGIApp, Receive, Scope, Send
@@ -59,10 +61,11 @@ class ResourceServerMiddleware:
         """Process ASGI request with authentication.
 
         For HTTP requests:
-        1. Extract Bearer token from Authorization header
-        2. Validate token (on EVERY request - no caching)
-        3. Store authenticated resource owner in scope
-        4. Pass to wrapped app
+        1. Allow CORS preflight OPTIONS requests to pass through
+        2. Extract Bearer token from Authorization header
+        3. Validate token (on EVERY request - no caching)
+        4. Store authenticated resource owner in scope
+        5. Pass to wrapped app
 
         For non-HTTP requests, pass through without auth.
         """
@@ -72,6 +75,14 @@ class ResourceServerMiddleware:
             return
 
         request = Request(scope, receive)
+
+        # Allow CORS preflight requests to pass through without authentication.
+        # Browsers send OPTIONS requests without Authorization headers to check
+        # if the cross-origin request is allowed before sending the actual request.
+        if request.method == "OPTIONS":
+            response = self._create_cors_preflight_response()
+            await response(scope, receive, send)
+            return
 
         try:
             resource_owner = await self._authenticate_request(request)
@@ -118,6 +129,41 @@ class ResourceServerMiddleware:
 
         return await self.validator.validate_token(token)
 
+    def _build_metadata_url(self) -> str:
+        """Build the OAuth Protected Resource Metadata URL per RFC 9728.
+
+        For example, for a canonical_url of "https://example.com/mcp" the metadata URL is:
+        "https://example.com/.well-known/oauth-protected-resource/mcp"
+
+        Returns:
+            Metadata URL
+        """
+        if not self.canonical_url:
+            return ""
+
+        parsed = urlparse(self.canonical_url)
+        # Insert well-known path after host, with resource path as suffix
+        well_known_path = f"/.well-known/oauth-protected-resource{parsed.path}"
+        return urlunparse((parsed.scheme, parsed.netloc, well_known_path, "", "", ""))
+
+    def _create_cors_preflight_response(self) -> Response:
+        """Create a CORS preflight response for OPTIONS requests.
+
+        Returns:
+            Response with 204 status and CORS headers
+        """
+        return Response(
+            content=None,
+            status_code=204,
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type, Authorization, Mcp-Session-Id, Accept",
+                "Access-Control-Expose-Headers": "WWW-Authenticate, Mcp-Session-Id",
+                "Access-Control-Max-Age": "86400",  # 24 hr
+            },
+        )
+
     def _create_401_response(
         self,
         error: str | None = None,
@@ -140,7 +186,7 @@ class ResourceServerMiddleware:
 
         # Add resource metadata URL if validator supports discovery (RFC 9728)
         if self.validator.supports_oauth_discovery() and self.canonical_url:
-            metadata_url = f"{self.canonical_url}/.well-known/oauth-protected-resource"
+            metadata_url = self._build_metadata_url()
             www_auth_parts.append(f'resource_metadata="{metadata_url}"')
 
         # Add error details if token validation failed (RFC 6750)
@@ -157,8 +203,8 @@ class ResourceServerMiddleware:
             headers={
                 "WWW-Authenticate": www_auth_value,
                 "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, POST, DELETE",
-                "Access-Control-Allow-Headers": "Content-Type, Authorization, Mcp-Session-Id",
+                "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type, Authorization, Mcp-Session-Id, Accept",
                 "Access-Control-Expose-Headers": "WWW-Authenticate, Mcp-Session-Id",
             },
         )

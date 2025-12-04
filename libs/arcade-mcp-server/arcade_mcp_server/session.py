@@ -280,9 +280,6 @@ class ServerSession:
         self._session_data: dict[str, Any] = {}
         self._request_meta: Any = None
 
-        # Current resource owner (from front-door auth) that is set and cleared on every request
-        self._current_resource_owner: ResourceOwner | None = None
-
         # Request management
         self._request_manager = RequestManager(write_stream) if write_stream else None
 
@@ -385,8 +382,6 @@ class ServerSession:
                 logger.error(f"Unexpected message type: {type(message)}")
                 return
 
-            self._current_resource_owner = resource_owner
-
             # Check if it's a response to our request
             if "id" in data and "method" not in data:
                 if self._request_manager:
@@ -397,7 +392,7 @@ class ServerSession:
                 return
 
             # Otherwise, process as incoming request
-            response = await self.server.handle_message(data, self)
+            response = await self.server.handle_message(data, self, resource_owner=resource_owner)
 
             # Send response if any
             if response and self.write_stream:
@@ -423,9 +418,6 @@ class ServerSession:
                 -32603,
                 f"Internal error: {e!s}",
             )
-        finally:
-            # Resource owner is always cleared & re-validated on every request
-            self._current_resource_owner = None
 
     async def _send_error_response(
         self,
@@ -661,11 +653,15 @@ class ServerSession:
         self._request_meta = None
 
     # Context management
-    async def create_request_context(self) -> Context:
-        """Create a context for the current request."""
+    async def create_request_context(self, resource_owner: ResourceOwner | None = None) -> Context:
+        """Create a context for the current request.
+
+        Args:
+            resource_owner: The authenticated resource owner from front-door auth.
+        """
         context = Context(
             server=self.server,
-            resource_owner=self._current_resource_owner,
+            resource_owner=resource_owner,
         )
         context.set_session(self)
         self._current_context = context

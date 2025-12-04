@@ -38,6 +38,7 @@ from arcade_mcp_server.middleware import (
     Middleware,
     MiddlewareContext,
 )
+from arcade_mcp_server.resource_server.base import ResourceOwner
 from arcade_mcp_server.session import InitializationState, NotificationManager, ServerSession
 from arcade_mcp_server.settings import MCPSettings, ServerSettings
 from arcade_mcp_server.types import (
@@ -398,6 +399,7 @@ class MCPServer:
         self,
         message: Any,
         session: ServerSession | None = None,
+        resource_owner: ResourceOwner | None = None,
     ) -> MCPMessage | None:
         """
         Handle an incoming message.
@@ -405,6 +407,7 @@ class MCPServer:
         Args:
             message: Message to handle
             session: Server session
+            resource_owner: Authenticated resource owner from front-door auth
 
         Returns:
             Response message or None
@@ -466,9 +469,13 @@ class MCPServer:
 
             # Create request context
             context = (
-                await session.create_request_context()
+                await session.create_request_context(resource_owner=resource_owner)
                 if session
-                else Context(self, request_id=str(msg_id) if msg_id else None)
+                else Context(
+                    self,
+                    request_id=str(msg_id) if msg_id else None,
+                    resource_owner=resource_owner,
+                )
             )
 
             # Set as current model context
@@ -654,13 +661,10 @@ class MCPServer:
         """
         env = (self.settings.arcade.environment or "").lower()
 
-        # First priority: resource owner from front-door auth
-        if (
-            session
-            and hasattr(session, "_current_resource_owner")
-            and session._current_resource_owner
-        ):
-            user_id = session._current_resource_owner.user_id
+        # First priority: resource owner from front-door auth (from current model context)
+        mctx = get_current_model_context()
+        if mctx is not None and hasattr(mctx, "_resource_owner") and mctx._resource_owner:
+            user_id = mctx._resource_owner.user_id
             logger.debug(f"Context user_id set from Authorization Server 'sub' claim: {user_id}")
             return cast(str, user_id)
 
@@ -834,9 +838,12 @@ class MCPServer:
         if session and session.init_options:
             transport_type = session.init_options.get("transport_type")
             if transport_type != "stdio":
+                # Get resource_owner from current model context (set during handle_message)
+                mctx = get_current_model_context()
                 is_authenticated = (
-                    hasattr(session, "_current_resource_owner")
-                    and session._current_resource_owner is not None
+                    mctx is not None
+                    and hasattr(mctx, "_resource_owner")
+                    and mctx._resource_owner is not None
                 )
 
                 requirements = tool.definition.requirements
