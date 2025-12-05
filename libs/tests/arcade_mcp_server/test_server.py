@@ -1210,8 +1210,6 @@ class TestMissingSecretsWarnings:
         """Test that missing secrets trigger warnings during server startup."""
         import logging
 
-        from arcade_core.schema import ToolSecretRequirement
-
         # Create tool definition with secret requirements
         tool_def = ToolDefinition(
             name="fetch_data",
