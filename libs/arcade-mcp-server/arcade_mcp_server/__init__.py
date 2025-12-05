@@ -36,7 +36,7 @@ __all__ = [
     # Integrated Factory and Runner
     "create_arcade_mcp",
     "run_arcade_mcp",
-    # Re-exported TDK functionality
+    # Re-exported from TDK functionality
     "tool",
 ]
 

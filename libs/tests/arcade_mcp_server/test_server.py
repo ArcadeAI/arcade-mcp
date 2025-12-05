@@ -958,7 +958,6 @@ class TestMCPServer:
                 "arguments": {"text": "test"},
             },
         )
-
         response = await mcp_server._handle_call_tool(message, session=session)
 
         assert isinstance(response, JSONRPCResponse)
