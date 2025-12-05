@@ -618,18 +618,23 @@ def oauth_callback_server(state: str) -> Generator[OAuthCallbackServer, None, No
     Context manager for the OAuth callback server.
 
     Ensures the server is properly shut down even if an error occurs.
+    Waits for the callback to be received before exiting.
 
     Usage:
         with oauth_callback_server(state) as server:
             # server is running and waiting for callback
             ...
+        # After the with block, the server has received the callback
     """
     server = OAuthCallbackServer(state)
     server_thread = threading.Thread(target=server.run_server)
     server_thread.start()
     try:
         yield server
+        # Wait for the callback to be received (server shuts itself down after handling)
+        server_thread.join()
     finally:
+        # Clean up if interrupted or if something went wrong
         if server_thread.is_alive():
             server.shutdown_server()
             server_thread.join(timeout=2)

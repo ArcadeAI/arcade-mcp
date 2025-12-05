@@ -14,6 +14,7 @@ from textwrap import dedent
 from typing import Any, Callable, Union, cast
 from urllib.parse import urlencode, urlparse
 
+import httpx
 import idna
 from arcade_core import ToolCatalog, Toolkit
 from arcade_core.config_model import Config
@@ -331,18 +332,8 @@ def get_tools_from_engine(
     force_no_tls: bool = False,
     toolkit: str | None = None,
 ) -> list[ToolDefinition]:
-    config = validate_and_get_config()
     base_url = compute_base_url(force_tls, force_no_tls, host, port)
-
-    # Get API key/token for authentication
-    if config.is_legacy_format():
-        api_key = config.api.key if config.api else None
-    else:
-        from arcade_cli.authn import get_valid_access_token
-
-        api_key = get_valid_access_token(base_url)
-
-    client = Arcade(api_key=api_key, base_url=base_url)
+    client = get_arcade_client(base_url)
 
     tools = []
     try:
@@ -557,6 +548,96 @@ def get_org_scoped_url(base_url: str, path: str) -> str:
     project_id = config.context.project_id
 
     return f"{base_url}/v1/orgs/{org_id}/projects/{project_id}{path}"
+
+
+class OrgScopedTransport(httpx.BaseTransport):
+    """
+    Custom httpx transport that rewrites URLs to include org/project scope.
+
+    This wraps an existing transport and modifies request URLs from:
+        /v1/endpoint -> /v1/orgs/{org_id}/projects/{project_id}/endpoint
+
+    This allows the Arcade client to work with org-scoped APIs without
+    modifications to the client library itself.
+    """
+
+    def __init__(
+        self,
+        wrapped_transport: httpx.BaseTransport,
+        org_id: str,
+        project_id: str,
+    ) -> None:
+        self.wrapped = wrapped_transport
+        self.org_id = org_id
+        self.project_id = project_id
+
+    def handle_request(self, request: httpx.Request) -> httpx.Response:
+        # Check if this is a /v1/ path that needs rewriting
+        path = request.url.path
+        if path.startswith("/v1/") and "/v1/orgs/" not in path:
+            # Rewrite /v1/endpoint to /v1/orgs/{org_id}/projects/{project_id}/endpoint
+            new_path = path.replace(
+                "/v1/", f"/v1/orgs/{self.org_id}/projects/{self.project_id}/", 1
+            )
+            new_url = request.url.copy_with(path=new_path)
+            # Create a new request with the modified URL
+            request = httpx.Request(
+                method=request.method,
+                url=new_url,
+                headers=request.headers,
+                content=request.content,
+                extensions=request.extensions,
+            )
+        return self.wrapped.handle_request(request)
+
+    def close(self) -> None:
+        self.wrapped.close()
+
+
+def get_arcade_client(base_url: str) -> Arcade:
+    """
+    Create an Arcade client with proper authentication and org-scoped URL rewriting.
+
+    Handles both legacy API key auth and new OAuth token auth. For OAuth auth,
+    requests are automatically rewritten to include org/project scope in URLs.
+
+    Args:
+        base_url: Base URL of the Arcade Engine
+
+    Returns:
+        Configured Arcade client
+
+    Example:
+        client = get_arcade_client("https://api.arcade.dev")
+        servers = client.workers.list()  # Automatically uses org-scoped URLs
+    """
+    config = validate_and_get_config()
+
+    if config.is_legacy_format():
+        # Legacy mode: API key carries org/project context
+        api_key = config.api.key if config.api else None
+        return Arcade(api_key=api_key, base_url=base_url)
+
+    # OAuth mode: need to rewrite URLs to include org/project scope
+    from arcade_cli.authn import get_valid_access_token
+
+    access_token = get_valid_access_token(base_url)
+
+    # Get org/project context for URL rewriting
+    if not config.context or not config.context.org_id or not config.context.project_id:
+        handle_cli_error("No active organization/project set. Please run `arcade login` first.")
+        raise AssertionError("unreachable")  # handle_cli_error raises CLIError
+
+    org_id = config.context.org_id
+    project_id = config.context.project_id
+
+    # Create custom httpx client with org-scoped transport
+    # This wraps the default transport to rewrite URLs
+    default_transport = httpx.HTTPTransport()
+    org_scoped_transport = OrgScopedTransport(default_transport, org_id, project_id)
+    http_client = httpx.Client(transport=org_scoped_transport)
+
+    return Arcade(api_key=access_token, base_url=base_url, http_client=http_client)
 
 
 def log_engine_health(client: Arcade) -> None:

@@ -27,19 +27,9 @@ app = TrackedTyper(
     pretty_exceptions_short=True,
 )
 
-state = {
-    "coordinator_url": compute_base_url(
-        host=PROD_COORDINATOR_HOST,
-        port=None,
-        force_tls=False,
-        force_no_tls=False,
-        default_port=None,
-    )
-}
 
-
-@app.callback()
-def main(
+@app.command("list", help="List organizations you belong to")
+def org_list(
     host: str = typer.Option(
         PROD_COORDINATOR_HOST,
         "--host",
@@ -62,20 +52,6 @@ def main(
         "--no-tls",
         help="Whether to disable TLS for the connection to Arcade Coordinator.",
     ),
-) -> None:
-    """
-    Manage organizations in Arcade.
-
-    Usage:
-        arcade org list
-        arcade org set <org_id>
-    """
-    coordinator_url = compute_base_url(force_tls, force_no_tls, host, port, default_port=None)
-    state["coordinator_url"] = coordinator_url
-
-
-@app.command("list", help="List organizations you belong to")
-def org_list(
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """List all organizations the current user belongs to."""
@@ -84,7 +60,7 @@ def org_list(
     from rich.table import Table
 
     try:
-        coordinator_url = state["coordinator_url"]
+        coordinator_url = compute_base_url(force_tls, force_no_tls, host, port, default_port=None)
         orgs = fetch_organizations(coordinator_url)
 
         if not orgs:
@@ -95,19 +71,19 @@ def org_list(
         config = Config.load_from_file()
         active_org_id = config.get_active_org_id()
 
-        table = Table(title="Organizations")
+        table = Table()
         table.add_column("Name", style="cyan")
         table.add_column("ID", style="dim")
         table.add_column("Default", style="green")
         table.add_column("Active", style="bold yellow")
 
         for org in orgs:
-            is_active = "→" if org.org_id == active_org_id else ""
+            is_active = "✓" if org.org_id == active_org_id else ""
             is_default = "✓" if org.is_default else ""
             table.add_row(org.name, org.org_id, is_default, is_active)
 
         console.print(table)
-        console.print("\nUse 'arcade org set <org_id>' to switch organizations.", style="dim")
+        console.print("\nUse 'arcade org set <org_id>' to switch organizations.\n")
 
     except ValueError as e:
         handle_cli_error(str(e))
@@ -118,6 +94,28 @@ def org_list(
 @app.command("set", help="Set the active organization")
 def org_set(
     org_id: str = typer.Argument(..., help="Organization ID to set as active"),
+    host: str = typer.Option(
+        PROD_COORDINATOR_HOST,
+        "--host",
+        "-h",
+        help="The Arcade Coordinator host.",
+    ),
+    port: int = typer.Option(
+        None,
+        "--port",
+        "-p",
+        help="The port of the Arcade Coordinator host.",
+    ),
+    force_tls: bool = typer.Option(
+        False,
+        "--tls",
+        help="Whether to force TLS for the connection to Arcade Coordinator.",
+    ),
+    force_no_tls: bool = typer.Option(
+        False,
+        "--no-tls",
+        help="Whether to disable TLS for the connection to Arcade Coordinator.",
+    ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """Set the active organization and reset project to its default."""
@@ -125,7 +123,7 @@ def org_set(
     from arcade_core.config_model import Config, ContextConfig
 
     try:
-        coordinator_url = state["coordinator_url"]
+        coordinator_url = compute_base_url(force_tls, force_no_tls, host, port, default_port=None)
 
         # Verify org exists and user has access
         orgs = fetch_organizations(coordinator_url)

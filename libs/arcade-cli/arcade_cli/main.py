@@ -11,7 +11,6 @@ from typing import Optional
 import click
 import typer
 from arcade_core.constants import CREDENTIALS_FILE_PATH
-from arcadepy import Arcade
 from rich.console import Console
 from rich.text import Text
 from tqdm import tqdm
@@ -40,13 +39,13 @@ from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
     Provider,
     compute_base_url,
+    get_arcade_client,
     get_eval_files,
     handle_cli_error,
     load_eval_suites,
     log_engine_health,
     require_dependency,
     resolve_provider_api_key,
-    validate_and_get_config,
     version_callback,
 )
 
@@ -130,14 +129,14 @@ def login(
         save_credentials_from_whoami(result.tokens, result.whoami)
 
         # Success message
-        console.print(f"\n✅ Successfully logged in as {result.email}!", style="bold green")
+        console.print(f"\n✅ Logged in as {result.email}.", style="bold green")
         if result.selected_org and result.selected_project:
             console.print(
-                f"   Active project: {result.selected_org.name} / {result.selected_project.name}",
+                f"\n   Active project: {result.selected_org.name} / {result.selected_project.name}",
                 style="dim",
             )
         console.print(
-            "\n   Run 'arcade org list' or 'arcade project list' to see available options.",
+            "   Run 'arcade org list' or 'arcade project list' to see available options.",
             style="dim",
         )
 
@@ -820,17 +819,7 @@ def dashboard(
         dashboard_url = f"{base_url}/dashboard"
 
         # Try to hit /health endpoint on engine and warn if it is down
-        config = validate_and_get_config()
-
-        # Get API key or access token for health check
-        if config.is_legacy_format():
-            api_key = config.api.key if config.api else None
-        else:
-            from arcade_cli.authn import get_valid_access_token
-
-            api_key = get_valid_access_token(base_url)
-
-        with Arcade(api_key=api_key, base_url=base_url) as client:
+        with get_arcade_client(base_url) as client:
             log_engine_health(client)
 
         # Open the dashboard in a browser

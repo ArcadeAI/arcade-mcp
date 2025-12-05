@@ -23,19 +23,9 @@ app = TrackedTyper(
     pretty_exceptions_short=True,
 )
 
-state = {
-    "coordinator_url": compute_base_url(
-        host=PROD_COORDINATOR_HOST,
-        port=None,
-        force_tls=False,
-        force_no_tls=False,
-        default_port=None,
-    )
-}
 
-
-@app.callback()
-def main(
+@app.command("list", help="List projects in the active organization")
+def project_list(
     host: str = typer.Option(
         PROD_COORDINATOR_HOST,
         "--host",
@@ -58,20 +48,6 @@ def main(
         "--no-tls",
         help="Whether to disable TLS for the connection to Arcade Coordinator.",
     ),
-) -> None:
-    """
-    Manage projects in Arcade.
-
-    Usage:
-        arcade project list
-        arcade project set <project_id>
-    """
-    coordinator_url = compute_base_url(force_tls, force_no_tls, host, port, default_port=None)
-    state["coordinator_url"] = coordinator_url
-
-
-@app.command("list", help="List projects in the active organization")
-def project_list(
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """List all projects in the current active organization."""
@@ -85,7 +61,7 @@ def project_list(
             console.print("No active organization set. Run 'arcade login' first.", style="bold red")
             return
 
-        coordinator_url = state["coordinator_url"]
+        coordinator_url = compute_base_url(force_tls, force_no_tls, host, port, default_port=None)
         projects = fetch_projects(coordinator_url, config.context.org_id)
 
         if not projects:
@@ -97,19 +73,24 @@ def project_list(
 
         active_project_id = config.get_active_project_id()
 
-        table = Table(title=f"Projects in {config.context.org_name}")
+        console.print(
+            f"\nActive organization: {config.context.org_name}\n"
+            "Use 'arcade org list' and 'arcade org set <org_id>' to switch organizations.\n",
+        )
+
+        table = Table()
         table.add_column("Name", style="cyan")
         table.add_column("ID", style="dim")
         table.add_column("Default", style="green")
         table.add_column("Active", style="bold yellow")
 
         for project in projects:
-            is_active = "→" if project.project_id == active_project_id else ""
+            is_active = "✓" if project.project_id == active_project_id else ""
             is_default = "✓" if project.is_default else ""
             table.add_row(project.name, project.project_id, is_default, is_active)
 
         console.print(table)
-        console.print("\nUse 'arcade project set <project_id>' to switch projects.", style="dim")
+        console.print("\nUse 'arcade project set <project_id>' to switch projects.\n")
 
     except ValueError as e:
         handle_cli_error(str(e))
@@ -120,6 +101,28 @@ def project_list(
 @app.command("set", help="Set the active project")
 def project_set(
     project_id: str = typer.Argument(..., help="Project ID to set as active"),
+    host: str = typer.Option(
+        PROD_COORDINATOR_HOST,
+        "--host",
+        "-h",
+        help="The Arcade Coordinator host.",
+    ),
+    port: int = typer.Option(
+        None,
+        "--port",
+        "-p",
+        help="The port of the Arcade Coordinator host.",
+    ),
+    force_tls: bool = typer.Option(
+        False,
+        "--tls",
+        help="Whether to force TLS for the connection to Arcade Coordinator.",
+    ),
+    force_no_tls: bool = typer.Option(
+        False,
+        "--no-tls",
+        help="Whether to disable TLS for the connection to Arcade Coordinator.",
+    ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """Set the active project within the current organization."""
@@ -132,7 +135,7 @@ def project_set(
             console.print("No active organization set. Run 'arcade login' first.", style="bold red")
             return
 
-        coordinator_url = state["coordinator_url"]
+        coordinator_url = compute_base_url(force_tls, force_no_tls, host, port, default_port=None)
 
         # Verify project exists in current org
         projects = fetch_projects(coordinator_url, config.context.org_id)
