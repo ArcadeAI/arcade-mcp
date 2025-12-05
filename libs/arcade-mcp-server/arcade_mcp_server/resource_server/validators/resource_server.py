@@ -114,6 +114,20 @@ class ResourceServer(ResourceServerValidator):
 
         self._validators = self._create_validators(configs)
 
+        self._resource_metadata = self._build_resource_metadata()
+
+    def _build_resource_metadata(self) -> dict[str, Any]:
+        """Build RFC 9728 Protected Resource Metadata
+
+        Returns:
+            Dictionary containing resource metadata per RFC 9728
+        """
+        return {
+            "resource": self.canonical_url,
+            "authorization_servers": list(self._validators.keys()),
+            "bearer_methods_supported": ["header"],
+        }
+
     def _create_validators(
         self, entries: list[AuthorizationServerEntry]
     ) -> dict[str, JWKSTokenValidator]:
@@ -183,11 +197,9 @@ class ResourceServer(ResourceServerValidator):
         This metadata tells MCP clients:
         1. What resource this server protects (canonical URL)
         2. Which authorization server(s) can issue tokens for this resource
+        3. Supported bearer token methods
 
         Returns:
             Dictionary containing resource metadata per RFC 9728
         """
-        return {
-            "resource": self.canonical_url,
-            "authorization_servers": list(self._validators.keys()),
-        }
+        return self._resource_metadata

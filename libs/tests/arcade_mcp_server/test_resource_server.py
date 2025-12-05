@@ -528,6 +528,7 @@ class TestResourceServer:
 
         assert metadata["resource"] == "https://mcp.example.com/mcp"
         assert metadata["authorization_servers"] == ["https://auth.example.com"]
+        assert metadata["bearer_methods_supported"] == ["header"]
 
 
 # ResourceServerMiddleware Tests
