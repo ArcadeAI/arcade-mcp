@@ -20,7 +20,6 @@ Usage:
 """
 
 import asyncio
-import logging
 import os
 import sys
 from pathlib import Path
@@ -32,21 +31,9 @@ from arcade_core.toolkit import ToolkitLoadError
 from dotenv import load_dotenv
 from loguru import logger
 
+from arcade_mcp_server.logging_utils import intercept_standard_logging
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.settings import MCPSettings
-
-
-# Logging setup with Loguru
-class LoguruInterceptHandler(logging.Handler):
-    """Intercept standard logging and route to Loguru."""
-
-    def emit(self, record: logging.LogRecord) -> None:
-        try:
-            level = logger.level(record.levelname).name
-        except ValueError:
-            level = str(record.levelno)
-
-        logger.opt(exception=record.exc_info).log(level, record.getMessage())
 
 
 def setup_logging(level: str = "INFO", stdio_mode: bool = False) -> None:
@@ -74,7 +61,7 @@ def setup_logging(level: str = "INFO", stdio_mode: bool = False) -> None:
     )
 
     # Intercept standard logging
-    logging.basicConfig(handlers=[LoguruInterceptHandler()], level=0, force=True)
+    intercept_standard_logging()
 
 
 def initialize_tool_catalog(

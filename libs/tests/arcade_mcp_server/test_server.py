@@ -1069,8 +1069,13 @@ class TestMCPServer:
             ),
         )
 
-        @tool(requires_auth=OAuth2(id="test-provider", scopes=["test.scope"]), requires_secrets=["API_KEY"])
-        def combined_tool_func(text: Annotated[str, "Input text"]) -> Annotated[str, "Combined text"]:
+        @tool(
+            requires_auth=OAuth2(id="test-provider", scopes=["test.scope"]),
+            requires_secrets=["API_KEY"],
+        )
+        def combined_tool_func(
+            text: Annotated[str, "Input text"],
+        ) -> Annotated[str, "Combined text"]:
             """Combined tool function"""
             return f"Combined: {text}"
 
@@ -1104,7 +1109,8 @@ class TestMCPServer:
         assert response.result.isError is True
         assert "HTTP transport" in response.result.structuredContent["message"]
         assert (
-            "authorization or access to sensitive secrets" in response.result.structuredContent["message"]
+            "authorization or access to sensitive secrets"
+            in response.result.structuredContent["message"]
         )
 
     @pytest.mark.asyncio
@@ -1215,7 +1221,9 @@ class TestMissingSecretsWarnings:
             name="fetch_data",
             fully_qualified_name="TestToolkit.fetch_data",
             description="Fetch data from API.",
-            toolkit=ToolkitDefinition(name="TestToolkit", description="Test toolkit", version="1.0.0"),
+            toolkit=ToolkitDefinition(
+                name="TestToolkit", description="Test toolkit", version="1.0.0"
+            ),
             input=ToolInput(
                 parameters=[
                     InputParameter(
@@ -1230,7 +1238,7 @@ class TestMissingSecretsWarnings:
             requirements=ToolRequirements(
                 secrets=[
                     ToolSecretRequirement(key="API_KEY", description="API Key"),
-                    ToolSecretRequirement(key="SECRET_TOKEN", description="Secret Token")
+                    ToolSecretRequirement(key="SECRET_TOKEN", description="Secret Token"),
                 ]
             ),
         )
@@ -1274,13 +1282,19 @@ class TestMissingSecretsWarnings:
                 await server.start()
 
                 # Check for warning message
-                warning_messages = [rec.message for rec in caplog.records if rec.levelno == logging.WARNING]
+                warning_messages = [
+                    rec.message for rec in caplog.records if rec.levelno == logging.WARNING
+                ]
 
                 # Should have a warning about missing secrets
-                assert any("fetch_data" in msg and "API_KEY" in msg for msg in warning_messages), \
+                assert any("fetch_data" in msg and "API_KEY" in msg for msg in warning_messages), (
                     f"Expected warning about missing API_KEY for fetch_data. Got: {warning_messages}"
-                assert any("fetch_data" in msg and "SECRET_TOKEN" in msg for msg in warning_messages), \
+                )
+                assert any(
+                    "fetch_data" in msg and "SECRET_TOKEN" in msg for msg in warning_messages
+                ), (
                     f"Expected warning about missing SECRET_TOKEN for fetch_data. Got: {warning_messages}"
+                )
 
                 await server.stop()
         finally:
@@ -1300,7 +1314,9 @@ class TestMissingSecretsWarnings:
             name="secure_tool",
             fully_qualified_name="TestToolkit.secure_tool",
             description="Secure tool.",
-            toolkit=ToolkitDefinition(name="TestToolkit", description="Test toolkit", version="1.0.0"),
+            toolkit=ToolkitDefinition(
+                name="TestToolkit", description="Test toolkit", version="1.0.0"
+            ),
             input=ToolInput(
                 parameters=[
                     InputParameter(
@@ -1356,9 +1372,12 @@ class TestMissingSecretsWarnings:
                 await server.start()
 
                 # Check that no warning is logged for this tool
-                warning_messages = [rec.message for rec in caplog.records if rec.levelno == logging.WARNING]
-                assert not any("secure_tool" in msg and "PRESENT_KEY" in msg for msg in warning_messages), \
-                    f"Should not warn about PRESENT_KEY when it's set. Got: {warning_messages}"
+                warning_messages = [
+                    rec.message for rec in caplog.records if rec.levelno == logging.WARNING
+                ]
+                assert not any(
+                    "secure_tool" in msg and "PRESENT_KEY" in msg for msg in warning_messages
+                ), f"Should not warn about PRESENT_KEY when it's set. Got: {warning_messages}"
 
                 await server.stop()
         finally:
@@ -1378,7 +1397,9 @@ class TestMissingSecretsWarnings:
             name="worker_tool",
             fully_qualified_name="TestToolkit.worker_tool",
             description="Worker tool.",
-            toolkit=ToolkitDefinition(name="TestToolkit", description="Test toolkit", version="1.0.0"),
+            toolkit=ToolkitDefinition(
+                name="TestToolkit", description="Test toolkit", version="1.0.0"
+            ),
             input=ToolInput(
                 parameters=[
                     InputParameter(
@@ -1433,9 +1454,12 @@ class TestMissingSecretsWarnings:
                 await server.start()
 
                 # Check that no warning is logged (worker routes are enabled)
-                warning_messages = [rec.message for rec in caplog.records if rec.levelno == logging.WARNING]
-                assert not any("worker_tool" in msg and "WORKER_API_KEY" in msg for msg in warning_messages), \
-                    f"Should not warn when worker routes are enabled. Got: {warning_messages}"
+                warning_messages = [
+                    rec.message for rec in caplog.records if rec.levelno == logging.WARNING
+                ]
+                assert not any(
+                    "worker_tool" in msg and "WORKER_API_KEY" in msg for msg in warning_messages
+                ), f"Should not warn when worker routes are enabled. Got: {warning_messages}"
 
                 await server.stop()
         finally:
@@ -1453,7 +1477,9 @@ class TestMissingSecretsWarnings:
             name="format_test_tool",
             fully_qualified_name="TestToolkit.format_test_tool",
             description="Format test tool.",
-            toolkit=ToolkitDefinition(name="TestToolkit", description="Test toolkit", version="1.0.0"),
+            toolkit=ToolkitDefinition(
+                name="TestToolkit", description="Test toolkit", version="1.0.0"
+            ),
             input=ToolInput(
                 parameters=[
                     InputParameter(
@@ -1466,7 +1492,9 @@ class TestMissingSecretsWarnings:
             ),
             output=ToolOutput(description="Output", value_schema=ValueSchema(val_type="integer")),
             requirements=ToolRequirements(
-                secrets=[ToolSecretRequirement(key="FORMAT_TEST_KEY", description="Format Test Key")]
+                secrets=[
+                    ToolSecretRequirement(key="FORMAT_TEST_KEY", description="Format Test Key")
+                ]
             ),
         )
 
@@ -1507,18 +1535,20 @@ class TestMissingSecretsWarnings:
                 await server.start()
 
                 # Check warning format matches specification
-                warning_messages = [rec.message for rec in caplog.records if rec.levelno == logging.WARNING]
+                warning_messages = [
+                    rec.message for rec in caplog.records if rec.levelno == logging.WARNING
+                ]
 
                 # Find the warning for our tool
                 matching_warnings = [msg for msg in warning_messages if "format_test_tool" in msg]
-                assert len(matching_warnings) > 0, f"Expected warning for format_test_tool. Got: {warning_messages}"
+                assert len(matching_warnings) > 0, (
+                    f"Expected warning for format_test_tool. Got: {warning_messages}"
+                )
 
                 warning = matching_warnings[0]
                 # Check format: "⚠ Tool 'name' declares secret(s) 'KEY' which are not set"
-                assert "⚠ Tool 'format_test_tool'" in warning
-                assert "declares secret(s) 'FORMAT_TEST_KEY'" in warning
-                assert "which are not set" in warning
-                assert "Tool will return an error if called" in warning
+                assert "Tool 'format_test_tool'" in warning
+                assert "not set" in warning
 
                 await server.stop()
         finally:

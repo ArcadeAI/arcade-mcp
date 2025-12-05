@@ -689,8 +689,7 @@ class MCPServer:
                     secret_list = "', '".join(missing_secrets)
                     tool_name = tool.definition.name
                     logger.warning(
-                        f"⚠ Tool '{tool_name}' declares secret(s) '{secret_list}' which are not set\n"
-                        f"  Tool will return an error if called. Set {missing_secrets[0]} to enable."
+                        f"Tool '{tool_name}' declares secret(s) '{secret_list}' which is/are not set. It will return an error if called."
                     )
 
     async def _handle_call_tool(
