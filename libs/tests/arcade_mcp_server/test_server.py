@@ -1477,8 +1477,6 @@ class TestMissingSecretsWarnings:
             return x * 2
 
         # Add tool to catalog
-        from arcade_core.catalog import MaterializedTool, ToolMeta, create_func_models
-
         input_model, output_model = create_func_models(format_test_tool)
         meta = ToolMeta(module=format_test_tool.__module__, toolkit="TestToolkit")
         materialized = MaterializedTool(
