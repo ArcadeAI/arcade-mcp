@@ -1323,7 +1323,6 @@ class TestMissingSecretsWarnings:
             return f"Processed {data}"
 
         # Add tool to catalog
-        from arcade_core.catalog import MaterializedTool, ToolMeta, create_func_models
 
         input_model, output_model = create_func_models(secure_tool)
         meta = ToolMeta(module=secure_tool.__module__, toolkit="TestToolkit")
