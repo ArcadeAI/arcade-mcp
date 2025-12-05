@@ -1,0 +1,7 @@
+---
+description: Guidelines for library versioning
+alwaysApply: true
+---
+
+- ALWAYS increase the version of a library in pyproject.toml when files are updated
+- Increase the minimum required version of dependencies if there is a breaking change between dependencies
