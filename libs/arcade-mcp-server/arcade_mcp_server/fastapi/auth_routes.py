@@ -51,6 +51,17 @@ def create_auth_router(
             )
 
         metadata = resource_server_validator.get_resource_metadata()
+        if metadata is None:
+            return JSONResponse(
+                {"error": "Resource metadata not available"},
+                status_code=500,
+                headers={
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "GET, OPTIONS",
+                    "Access-Control-Allow-Headers": "Content-Type",
+                },
+            )
+
         return JSONResponse(
             metadata,
             headers={
