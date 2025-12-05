@@ -1401,7 +1401,6 @@ class TestMissingSecretsWarnings:
             return f"Result: {param}"
 
         # Add tool to catalog
-        from arcade_core.catalog import MaterializedTool, ToolMeta, create_func_models
 
         input_model, output_model = create_func_models(worker_tool)
         meta = ToolMeta(module=worker_tool.__module__, toolkit="TestToolkit")
