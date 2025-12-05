@@ -78,6 +78,15 @@ class Dropbox(OAuth2):
         super().__init__(id=id, scopes=scopes)
 
 
+class Figma(OAuth2):
+    """Marks a tool as requiring Figma authorization."""
+
+    provider_id: str = "figma"
+
+    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
+        super().__init__(id=id, scopes=scopes)
+
+
 class GitHub(OAuth2):
     """Marks a tool as requiring GitHub App authorization."""
 
