@@ -1241,7 +1241,6 @@ class TestMissingSecretsWarnings:
             return f"Data for {query}"
 
         # Add tool to catalog
-        from arcade_core.catalog import MaterializedTool, ToolMeta, create_func_models
 
         input_model, output_model = create_func_models(fetch_data)
         meta = ToolMeta(module=fetch_data.__module__, toolkit="TestToolkit")
