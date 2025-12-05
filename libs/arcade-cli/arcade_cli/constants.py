@@ -1,8 +1,9 @@
-PROD_CLOUD_HOST = "cloud.arcade.dev"
+PROD_COORDINATOR_HOST = "cloud.arcade.dev"
 PROD_ENGINE_HOST = "api.arcade.dev"
 LOCALHOST = "localhost"
 LOCAL_AUTH_CALLBACK_PORT = 9905
 
+# DEPRECATED: Remove this once legacy login flow has been removed
 _style_block = b"""
 <link rel="icon" href="https://cdn.arcade.dev/favicons/favicon.ico" sizes="any">
 <link rel="apple-touch-icon" href="https://cdn.arcade.dev/favicons/apple-touch-icon.png">

@@ -18,6 +18,8 @@ from arcade_cli.constants import (
 from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
     compute_base_url,
+    get_auth_headers,
+    get_org_scoped_url,
     handle_cli_error,
     validate_and_get_config,
 )
@@ -150,6 +152,20 @@ def main(
     state["engine_url"] = engine_url
 
 
+def _get_arcade_client(base_url: str) -> Arcade:
+    """Get an Arcade client with proper authentication."""
+    config = validate_and_get_config()
+
+    if config.is_legacy_format():
+        api_key = config.api.key if config.api else None
+    else:
+        from arcade_cli.authn import get_valid_access_token
+
+        api_key = get_valid_access_token(base_url)
+
+    return Arcade(api_key=api_key, base_url=base_url)
+
+
 @app.command("list", help="List all servers")
 def list_servers(
     debug: bool = typer.Option(
@@ -159,9 +175,8 @@ def list_servers(
         help="Show debug information",
     ),
 ) -> None:
-    config = validate_and_get_config()
     base_url = state["engine_url"]
-    client = Arcade(api_key=config.api.key, base_url=base_url)
+    client = _get_arcade_client(base_url)
     try:
         servers = client.workers.list(limit=100)
         _print_servers_table(servers.items)
@@ -179,9 +194,8 @@ def get_server(
         help="Show debug information",
     ),
 ) -> None:
-    config = validate_and_get_config()
     base_url = state["engine_url"]
-    client = Arcade(api_key=config.api.key, base_url=base_url)
+    client = _get_arcade_client(base_url)
     try:
         server = client.workers.get(server_name)
         server_health = client.workers.health(server_name)
@@ -200,9 +214,8 @@ def enable_server(
         help="Show debug information",
     ),
 ) -> None:
-    config = validate_and_get_config()
     engine_url = state["engine_url"]
-    arcade = Arcade(api_key=config.api.key, base_url=engine_url)
+    arcade = _get_arcade_client(engine_url)
     try:
         arcade.workers.update(server_name, enabled=True)
     except Exception as e:
@@ -219,9 +232,8 @@ def disable_server(
         help="Show debug information",
     ),
 ) -> None:
-    config = validate_and_get_config()
     engine_url = state["engine_url"]
-    arcade = Arcade(api_key=config.api.key, base_url=engine_url)
+    arcade = _get_arcade_client(engine_url)
     try:
         arcade.workers.update(server_name, enabled=False)
     except Exception as e:
@@ -238,11 +250,10 @@ def delete_server(
         help="Show debug information",
     ),
 ) -> None:
-    config = validate_and_get_config()
     engine_url = state["engine_url"]
 
     try:
-        arcade = Arcade(api_key=config.api.key, base_url=engine_url)
+        arcade = _get_arcade_client(engine_url)
         arcade.workers.delete(server_name)
         console.print(f"✓ Server '{server_name}' deleted successfully", style="green")
     except NotFoundError as e:
@@ -287,8 +298,8 @@ def get_server_logs(
         help="Show debug information",
     ),
 ) -> None:
-    config = validate_and_get_config()
-    headers = {"Authorization": f"Bearer {config.api.key}", "Content-Type": "application/json"}
+    auth_headers = get_auth_headers(state["engine_url"])
+    headers = {**auth_headers, "Content-Type": "application/json"}
 
     # Set defaults based on whether we're following or not
     if since is None:
@@ -307,14 +318,16 @@ def get_server_logs(
     except ValueError as e:
         handle_cli_error(f"Invalid time format: {e}", debug=debug)
 
+    base_url = state["engine_url"]
+
     if follow:
         # Use the streaming endpoint
-        engine_url = state["engine_url"] + f"/v1/deployments/{server_name}/logs/stream"
-        asyncio.run(_stream_deployment_logs(engine_url, headers, since_dt, until_dt, debug=debug))
+        logs_url = get_org_scoped_url(base_url, f"/deployments/{server_name}/logs/stream")
+        asyncio.run(_stream_deployment_logs(logs_url, headers, since_dt, until_dt, debug=debug))
     else:
         # Use the non-streaming endpoint
-        engine_url = state["engine_url"] + f"/v1/deployments/{server_name}/logs"
-        _display_deployment_logs(engine_url, headers, since_dt, until_dt, debug=debug)
+        logs_url = get_org_scoped_url(base_url, f"/deployments/{server_name}/logs")
+        _display_deployment_logs(logs_url, headers, since_dt, until_dt, debug=debug)
 
 
 def _display_deployment_logs(
