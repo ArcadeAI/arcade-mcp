@@ -764,8 +764,9 @@ class TestMCPServer:
         assert isinstance(result, JSONRPCResponse)
         assert isinstance(result.result, CallToolResult)
         assert result.result.isError is True
-        assert "requires the following secrets" in result.result.structuredContent["message"]
+        assert "Missing secret" in result.result.structuredContent["message"]
         assert "API_KEY, DATABASE_URL" in result.result.structuredContent["message"]
+        assert ".env file" in result.result.structuredContent["message"]
         assert ".env file" in result.result.structuredContent["llm_instructions"]
 
     @pytest.mark.asyncio
