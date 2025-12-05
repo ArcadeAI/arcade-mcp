@@ -1,6 +1,6 @@
 [project]
 name = "arcade-mcp"
-version = "1.5.6"
+version = "1.5.7"
 description = "Arcade.dev - Tool Calling platform for Agents"
 readme = "README.md"
 license = {file = "LICENSE"}
