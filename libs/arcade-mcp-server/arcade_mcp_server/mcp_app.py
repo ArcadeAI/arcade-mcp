@@ -23,6 +23,7 @@ from loguru import logger
 from watchfiles import watch
 
 from arcade_mcp_server.exceptions import ServerError
+from arcade_mcp_server.logging_utils import intercept_standard_logging
 from arcade_mcp_server.resource_server.base import ResourceServerValidator
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.settings import MCPSettings, ServerSettings
@@ -211,6 +212,9 @@ class MCPApp:
             colorize=(not stdio_mode),
             diagnose=(self.log_level == "DEBUG"),
         )
+
+        # Intercept standard logging and route through Loguru
+        intercept_standard_logging()
 
     def add_tool(
         self,

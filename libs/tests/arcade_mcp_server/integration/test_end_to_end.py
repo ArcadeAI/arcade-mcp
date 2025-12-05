@@ -64,6 +64,7 @@ def start_mcp_server(
             "ARCADE_SERVER_PORT": str(port),
             "ARCADE_SERVER_TRANSPORT": "http",
             "ARCADE_AUTH_DISABLED": "true",
+            "ARCADE_WORKER_SECRET": "test-secret-e2e",
         }
 
         cmd = ["uv", "run", entrypoint_path, "http"]

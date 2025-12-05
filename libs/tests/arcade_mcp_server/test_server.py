@@ -998,7 +998,7 @@ class TestMCPServer:
         @tool(requires_secrets=["SECRET_KEY"])
         def secret_tool_func(text: Annotated[str, "Input text"]) -> Annotated[str, "Secret text"]:
             """Secret tool function"""
-            return f"Secret"
+            return "Secret"
 
         input_model, output_model = create_func_models(secret_tool_func)
         meta = ToolMeta(module=secret_tool_func.__module__, toolkit="TestToolkit")
@@ -1205,3 +1205,352 @@ class TestMCPServer:
         assert isinstance(response, JSONRPCResponse)
         assert isinstance(response.result, CallToolResult)
         assert response.result.isError is False
+
+
+class TestMissingSecretsWarnings:
+    """Test startup warnings for missing tool secrets."""
+
+    @pytest.mark.asyncio
+    async def test_warns_missing_secrets_on_startup(self, tool_catalog, mcp_settings, caplog):
+        """Test that missing secrets trigger warnings during server startup."""
+        import logging
+
+        # Create tool definition with secret requirements
+        tool_def = ToolDefinition(
+            name="fetch_data",
+            fully_qualified_name="TestToolkit.fetch_data",
+            description="Fetch data from API.",
+            toolkit=ToolkitDefinition(
+                name="TestToolkit", description="Test toolkit", version="1.0.0"
+            ),
+            input=ToolInput(
+                parameters=[
+                    InputParameter(
+                        name="query",
+                        required=True,
+                        description="Search query",
+                        value_schema=ValueSchema(val_type="string"),
+                    )
+                ]
+            ),
+            output=ToolOutput(description="Result", value_schema=ValueSchema(val_type="string")),
+            requirements=ToolRequirements(
+                secrets=[
+                    ToolSecretRequirement(key="API_KEY", description="API Key"),
+                    ToolSecretRequirement(key="SECRET_TOKEN", description="Secret Token"),
+                ]
+            ),
+        )
+
+        @tool
+        def fetch_data(query: Annotated[str, "Search query"]) -> Annotated[str, "Result"]:
+            """Fetch data from API."""
+            return f"Data for {query}"
+
+        # Add tool to catalog
+
+        input_model, output_model = create_func_models(fetch_data)
+        meta = ToolMeta(module=fetch_data.__module__, toolkit="TestToolkit")
+        materialized = MaterializedTool(
+            tool=fetch_data,
+            definition=tool_def,
+            meta=meta,
+            input_model=input_model,
+            output_model=output_model,
+        )
+        tool_catalog._tools[tool_def.get_fully_qualified_name()] = materialized
+
+        # Clear any existing secrets from environment
+        import os
+
+        old_api_key = os.environ.pop("API_KEY", None)
+        old_secret_token = os.environ.pop("SECRET_TOKEN", None)
+
+        try:
+            # Ensure worker routes are disabled (no ARCADE_WORKER_SECRET)
+            mcp_settings.arcade.server_secret = None
+
+            # Create and start server
+            with caplog.at_level(logging.WARNING):
+                server = MCPServer(
+                    catalog=tool_catalog,
+                    name="Test Server",
+                    version="1.0.0",
+                    settings=mcp_settings,
+                )
+                await server.start()
+
+                # Check for warning message
+                warning_messages = [
+                    rec.message for rec in caplog.records if rec.levelno == logging.WARNING
+                ]
+
+                # Should have a warning about missing secrets
+                assert any("fetch_data" in msg and "API_KEY" in msg for msg in warning_messages), (
+                    f"Expected warning about missing API_KEY for fetch_data. Got: {warning_messages}"
+                )
+                assert any(
+                    "fetch_data" in msg and "SECRET_TOKEN" in msg for msg in warning_messages
+                ), (
+                    f"Expected warning about missing SECRET_TOKEN for fetch_data. Got: {warning_messages}"
+                )
+
+                await server.stop()
+        finally:
+            # Restore environment
+            if old_api_key is not None:
+                os.environ["API_KEY"] = old_api_key
+            if old_secret_token is not None:
+                os.environ["SECRET_TOKEN"] = old_secret_token
+
+    @pytest.mark.asyncio
+    async def test_no_warning_when_secrets_present(self, tool_catalog, mcp_settings, caplog):
+        """Test that no warnings are shown when secrets are available."""
+        import logging
+
+        # Create tool definition with secret requirements
+        tool_def = ToolDefinition(
+            name="secure_tool",
+            fully_qualified_name="TestToolkit.secure_tool",
+            description="Secure tool.",
+            toolkit=ToolkitDefinition(
+                name="TestToolkit", description="Test toolkit", version="1.0.0"
+            ),
+            input=ToolInput(
+                parameters=[
+                    InputParameter(
+                        name="data",
+                        required=True,
+                        description="Data",
+                        value_schema=ValueSchema(val_type="string"),
+                    )
+                ]
+            ),
+            output=ToolOutput(description="Result", value_schema=ValueSchema(val_type="string")),
+            requirements=ToolRequirements(
+                secrets=[ToolSecretRequirement(key="PRESENT_KEY", description="Present Key")]
+            ),
+        )
+
+        @tool
+        def secure_tool(data: Annotated[str, "Data"]) -> Annotated[str, "Result"]:
+            """Secure tool."""
+            return f"Processed {data}"
+
+        # Add tool to catalog
+
+        input_model, output_model = create_func_models(secure_tool)
+        meta = ToolMeta(module=secure_tool.__module__, toolkit="TestToolkit")
+        materialized = MaterializedTool(
+            tool=secure_tool,
+            definition=tool_def,
+            meta=meta,
+            input_model=input_model,
+            output_model=output_model,
+        )
+        tool_catalog._tools[tool_def.get_fully_qualified_name()] = materialized
+
+        # Set the secret in environment
+        import os
+
+        old_value = os.environ.get("PRESENT_KEY")
+        os.environ["PRESENT_KEY"] = "test-value"
+
+        try:
+            # Ensure worker routes are disabled
+            mcp_settings.arcade.server_secret = None
+
+            # Create and start server
+            with caplog.at_level(logging.WARNING):
+                server = MCPServer(
+                    catalog=tool_catalog,
+                    name="Test Server",
+                    version="1.0.0",
+                    settings=mcp_settings,
+                )
+                await server.start()
+
+                # Check that no warning is logged for this tool
+                warning_messages = [
+                    rec.message for rec in caplog.records if rec.levelno == logging.WARNING
+                ]
+                assert not any(
+                    "secure_tool" in msg and "PRESENT_KEY" in msg for msg in warning_messages
+                ), f"Should not warn about PRESENT_KEY when it's set. Got: {warning_messages}"
+
+                await server.stop()
+        finally:
+            # Restore environment
+            if old_value is not None:
+                os.environ["PRESENT_KEY"] = old_value
+            else:
+                os.environ.pop("PRESENT_KEY", None)
+
+    @pytest.mark.asyncio
+    async def test_no_warning_when_worker_routes_enabled(self, tool_catalog, mcp_settings, caplog):
+        """Test that warnings are skipped when worker routes are enabled."""
+        import logging
+
+        # Create tool definition with secret requirements
+        tool_def = ToolDefinition(
+            name="worker_tool",
+            fully_qualified_name="TestToolkit.worker_tool",
+            description="Worker tool.",
+            toolkit=ToolkitDefinition(
+                name="TestToolkit", description="Test toolkit", version="1.0.0"
+            ),
+            input=ToolInput(
+                parameters=[
+                    InputParameter(
+                        name="param",
+                        required=True,
+                        description="Param",
+                        value_schema=ValueSchema(val_type="string"),
+                    )
+                ]
+            ),
+            output=ToolOutput(description="Result", value_schema=ValueSchema(val_type="string")),
+            requirements=ToolRequirements(
+                secrets=[ToolSecretRequirement(key="WORKER_API_KEY", description="Worker API Key")]
+            ),
+        )
+
+        @tool
+        def worker_tool(param: Annotated[str, "Param"]) -> Annotated[str, "Result"]:
+            """Worker tool."""
+            return f"Result: {param}"
+
+        # Add tool to catalog
+
+        input_model, output_model = create_func_models(worker_tool)
+        meta = ToolMeta(module=worker_tool.__module__, toolkit="TestToolkit")
+        materialized = MaterializedTool(
+            tool=worker_tool,
+            definition=tool_def,
+            meta=meta,
+            input_model=input_model,
+            output_model=output_model,
+        )
+        tool_catalog._tools[tool_def.get_fully_qualified_name()] = materialized
+
+        # Clear the secret from environment
+        import os
+
+        old_value = os.environ.pop("WORKER_API_KEY", None)
+
+        try:
+            # Enable worker routes by setting ARCADE_WORKER_SECRET
+            mcp_settings.arcade.server_secret = "test-worker-secret"
+
+            # Create and start server
+            with caplog.at_level(logging.WARNING):
+                server = MCPServer(
+                    catalog=tool_catalog,
+                    name="Test Server",
+                    version="1.0.0",
+                    settings=mcp_settings,
+                )
+                await server.start()
+
+                # Check that no warning is logged (worker routes are enabled)
+                warning_messages = [
+                    rec.message for rec in caplog.records if rec.levelno == logging.WARNING
+                ]
+                assert not any(
+                    "worker_tool" in msg and "WORKER_API_KEY" in msg for msg in warning_messages
+                ), f"Should not warn when worker routes are enabled. Got: {warning_messages}"
+
+                await server.stop()
+        finally:
+            # Restore environment
+            if old_value is not None:
+                os.environ["WORKER_API_KEY"] = old_value
+
+    @pytest.mark.asyncio
+    async def test_warning_format(self, tool_catalog, mcp_settings, caplog):
+        """Test that warnings use the expected format."""
+        import logging
+
+        # Create tool definition with secret requirement
+        tool_def = ToolDefinition(
+            name="format_test_tool",
+            fully_qualified_name="TestToolkit.format_test_tool",
+            description="Format test tool.",
+            toolkit=ToolkitDefinition(
+                name="TestToolkit", description="Test toolkit", version="1.0.0"
+            ),
+            input=ToolInput(
+                parameters=[
+                    InputParameter(
+                        name="x",
+                        required=True,
+                        description="Input",
+                        value_schema=ValueSchema(val_type="integer"),
+                    )
+                ]
+            ),
+            output=ToolOutput(description="Output", value_schema=ValueSchema(val_type="integer")),
+            requirements=ToolRequirements(
+                secrets=[
+                    ToolSecretRequirement(key="FORMAT_TEST_KEY", description="Format Test Key")
+                ]
+            ),
+        )
+
+        @tool
+        def format_test_tool(x: Annotated[int, "Input"]) -> Annotated[int, "Output"]:
+            """Format test tool."""
+            return x * 2
+
+        # Add tool to catalog
+        input_model, output_model = create_func_models(format_test_tool)
+        meta = ToolMeta(module=format_test_tool.__module__, toolkit="TestToolkit")
+        materialized = MaterializedTool(
+            tool=format_test_tool,
+            definition=tool_def,
+            meta=meta,
+            input_model=input_model,
+            output_model=output_model,
+        )
+        tool_catalog._tools[tool_def.get_fully_qualified_name()] = materialized
+
+        # Clear the secret from environment
+        import os
+
+        old_value = os.environ.pop("FORMAT_TEST_KEY", None)
+
+        try:
+            # Ensure worker routes are disabled
+            mcp_settings.arcade.server_secret = None
+
+            # Create and start server
+            with caplog.at_level(logging.WARNING):
+                server = MCPServer(
+                    catalog=tool_catalog,
+                    name="Test Server",
+                    version="1.0.0",
+                    settings=mcp_settings,
+                )
+                await server.start()
+
+                # Check warning format matches specification
+                warning_messages = [
+                    rec.message for rec in caplog.records if rec.levelno == logging.WARNING
+                ]
+
+                # Find the warning for our tool
+                matching_warnings = [msg for msg in warning_messages if "format_test_tool" in msg]
+                assert len(matching_warnings) > 0, (
+                    f"Expected warning for format_test_tool. Got: {warning_messages}"
+                )
+
+                warning = matching_warnings[0]
+                # Check format: "⚠ Tool 'name' declares secret(s) 'KEY' which are not set"
+                assert "Tool 'format_test_tool'" in warning
+                assert "not set" in warning
+
+                await server.stop()
+        finally:
+            # Restore environment
+            if old_value is not None:
+                os.environ["FORMAT_TEST_KEY"] = old_value

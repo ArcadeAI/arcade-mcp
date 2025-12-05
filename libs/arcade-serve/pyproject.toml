@@ -1,6 +1,6 @@
 [project]
 name = "arcade-serve"
-version = "3.1.0"
+version = "3.1.4"
 description = "Arcade Serve - Serving infrastructure for Arcade tools and workers"
 readme = "README.md"
 license = {text = "MIT"}
