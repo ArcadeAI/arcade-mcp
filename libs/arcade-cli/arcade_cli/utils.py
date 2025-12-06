@@ -499,6 +499,11 @@ def get_auth_headers(coordinator_url: str | None = None) -> dict[str, str]:
         if not config.api or not config.api.key:
             handle_cli_error("API key not found. Please run `arcade login`.")
             raise AssertionError("unreachable")  # handle_cli_error raises CLIError
+        console.print(
+            "⚠️  Your credentials use an older format. "
+            "Run 'arcade logout' then 'arcade login' to update.",
+            style="bold yellow",
+        )
         return {"Authorization": f"Bearer {config.api.key}"}
 
     # New OAuth auth with automatic token refresh
@@ -616,6 +621,11 @@ def get_arcade_client(base_url: str) -> Arcade:
     if config.is_legacy_format():
         # Legacy mode: API key carries org/project context
         api_key = config.api.key if config.api else None
+        console.print(
+            "⚠️  Your credentials use an older format. "
+            "Run 'arcade logout' then 'arcade login' to update.",
+            style="bold yellow",
+        )
         return Arcade(api_key=api_key, base_url=base_url)
 
     # OAuth mode: need to rewrite URLs to include org/project scope
