@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 from arcade_cli.secret import (
-    _delete_secret_from_engine,
+    _delete_secret,
     _get_secrets_from_engine,
     _remove_inline_comment,
     _upsert_secret_to_engine,
@@ -221,7 +221,7 @@ class TestGetSecretsFromEngine:
 
 
 class TestDeleteSecretFromEngine:
-    """Tests for _delete_secret_from_engine function."""
+    """Tests for _delete_secret function."""
 
     @patch("arcade_cli.secret.httpx.delete")
     def test_delete_secret_success(self, mock_delete):
@@ -230,7 +230,7 @@ class TestDeleteSecretFromEngine:
         mock_response.raise_for_status.return_value = None
         mock_delete.return_value = mock_response
 
-        _delete_secret_from_engine("https://api.example.com", "test-api-key", "secret-id-123")
+        _delete_secret("https://api.example.com", "test-api-key", "secret-id-123")
 
         mock_delete.assert_called_once_with(
             "https://api.example.com/v1/admin/secrets/secret-id-123",
@@ -248,4 +248,4 @@ class TestDeleteSecretFromEngine:
         mock_delete.return_value = mock_response
 
         with pytest.raises(httpx.HTTPStatusError):
-            _delete_secret_from_engine("https://api.example.com", "test-api-key", "secret-id-123")
+            _delete_secret("https://api.example.com", "test-api-key", "secret-id-123")

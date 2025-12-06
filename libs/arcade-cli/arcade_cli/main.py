@@ -132,11 +132,11 @@ def login(
         console.print(f"\n✅ Logged in as {result.email}.", style="bold green")
         if result.selected_org and result.selected_project:
             console.print(
-                f"\n   Active project: {result.selected_org.name} / {result.selected_project.name}",
+                f"\nActive project: {result.selected_org.name} / {result.selected_project.name}",
                 style="dim",
             )
         console.print(
-            "   Run 'arcade org list' or 'arcade project list' to see available options.",
+            "Run 'arcade org list' or 'arcade project list' to see available options.",
             style="dim",
         )
 

@@ -670,7 +670,6 @@ def perform_oauth_login(
             on_status(msg)
 
     # Step 1: Fetch OAuth config
-    status("Fetching authentication configuration...")
     try:
         cli_config = fetch_cli_config(coordinator_url)
     except Exception as e:
@@ -704,12 +703,10 @@ def perform_oauth_login(
         raise OAuthLoginError("No authorization code received")
 
     # Step 6: Exchange code for tokens
-    status("Exchanging authorization code for tokens...")
     code = server.result["code"]
     tokens = exchange_code_for_tokens(oauth_client, code, redirect_uri, code_verifier)
 
     # Step 7: Fetch user info
-    status("Fetching user information...")
     whoami = fetch_whoami(coordinator_url, tokens.access_token)
 
     # Validate org/project exist
