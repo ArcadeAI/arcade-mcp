@@ -9,7 +9,8 @@ from arcade_cli.constants import (
 from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
     compute_base_url,
-    validate_and_get_config,
+    get_auth_headers,
+    get_org_scoped_url,
 )
 
 console = Console()
@@ -96,8 +97,6 @@ def set_secret(
     if from_env and key_value_pairs:
         raise typer.BadParameter("Cannot use both KEY=VALUE pairs and --from-env at the same time.")
 
-    config = validate_and_get_config()
-
     if from_env:
         secrets = load_env_file(env_file)
     else:
@@ -116,11 +115,9 @@ def set_secret(
             value = value  # keep the value as is, including the whitespace
             secrets[key] = value
 
-    engine_url = state["engine_url"]
-
     for secret_key, secret_value in secrets.items():
         try:
-            _upsert_secret_to_engine(engine_url, config.api.key, secret_key, secret_value)
+            _upsert_secret(secret_key, secret_value)
         except Exception as e:
             console.print(f"Error setting secret '{secret_key}': {e}", style="bold red")
             continue
@@ -129,13 +126,10 @@ def set_secret(
         )
 
 
-@app.command("list", help="List all tool secrets in Arcade Cloud")
+@app.command("list", help="List all tool secrets in Arcade")
 def list_secrets() -> None:
     """List all secrets (keys only, values are masked)."""
-    config = validate_and_get_config()
-    engine_url = state["engine_url"]
-
-    secrets = _get_secrets_from_engine(engine_url, config.api.key)
+    secrets = _get_secrets()
     print_secret_table(secrets)
 
 
@@ -147,9 +141,7 @@ def unset_secret(
     ),
 ) -> None:
     """Delete tool secrets."""
-    config = validate_and_get_config()
-    engine_url = state["engine_url"]
-    secrets = _get_secrets_from_engine(engine_url, config.api.key)
+    secrets = _get_secrets()
 
     key_to_id = {secret["key"]: secret["id"] for secret in secrets}
 
@@ -160,7 +152,7 @@ def unset_secret(
             continue
 
         try:
-            _delete_secret_from_engine(engine_url, config.api.key, secret_id)
+            _delete_secret(secret_id)
             console.print(f"Secret '{key}' deleted successfully")
         except Exception:
             console.print(
@@ -258,29 +250,30 @@ def _remove_inline_comment(value: str) -> str:
         return value
 
 
-def _upsert_secret_to_engine(
-    engine_url: str, api_key: str, secret_id: str, secret_value: str
-) -> None:
+def _upsert_secret(secret_key: str, secret_value: str) -> None:
+    """Upsert a secret to the engine."""
+    engine_url = state["engine_url"]
+    url = get_org_scoped_url(engine_url, f"/secrets/{secret_key}")
     response = httpx.put(
-        f"{engine_url}/v1/admin/secrets/{secret_id}",
-        headers={"Authorization": f"Bearer {api_key}"},
+        url,
+        headers=get_auth_headers(engine_url),
         json={"description": "Secret set via CLI", "value": secret_value},
     )
     response.raise_for_status()
 
 
-def _get_secrets_from_engine(engine_url: str, api_key: str) -> list[dict]:
-    response = httpx.get(
-        f"{engine_url}/v1/admin/secrets",
-        headers={"Authorization": f"Bearer {api_key}"},
-    )
+def _get_secrets() -> list[dict]:
+    """Get all secrets from the engine."""
+    engine_url = state["engine_url"]
+    url = get_org_scoped_url(engine_url, "/secrets")
+    response = httpx.get(url, headers=get_auth_headers(engine_url))
     response.raise_for_status()
     return response.json()["items"]  # type: ignore[no-any-return]
 
 
-def _delete_secret_from_engine(engine_url: str, api_key: str, secret_id: str) -> None:
-    response = httpx.delete(
-        f"{engine_url}/v1/admin/secrets/{secret_id}",
-        headers={"Authorization": f"Bearer {api_key}"},
-    )
+def _delete_secret(secret_id: str) -> None:
+    """Delete a secret from the engine."""
+    engine_url = state["engine_url"]
+    url = get_org_scoped_url(engine_url, f"/secrets/{secret_id}")
+    response = httpx.delete(url, headers=get_auth_headers(engine_url))
     response.raise_for_status()

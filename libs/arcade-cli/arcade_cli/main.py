@@ -11,19 +11,27 @@ from typing import Optional
 import click
 import typer
 from arcade_core.constants import CREDENTIALS_FILE_PATH
-from arcadepy import Arcade
 from rich.console import Console
 from rich.text import Text
 from tqdm import tqdm
 
-from arcade_cli.authn import LocalAuthCallbackServer, check_existing_login
+from arcade_cli.authn import (
+    LocalAuthCallbackServer,
+    OAuthLoginError,
+    build_coordinator_url,
+    check_existing_login,
+    perform_oauth_login,
+    save_credentials_from_whoami,
+)
 from arcade_cli.constants import (
-    PROD_CLOUD_HOST,
+    PROD_COORDINATOR_HOST,
     PROD_ENGINE_HOST,
 )
 from arcade_cli.display import (
     display_eval_results,
 )
+from arcade_cli.org import app as org_app
+from arcade_cli.project import app as project_app
 from arcade_cli.secret import app as secret_app
 from arcade_cli.server import app as server_app
 from arcade_cli.show import show_logic
@@ -31,14 +39,13 @@ from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
     Provider,
     compute_base_url,
-    compute_login_url,
+    get_arcade_client,
     get_eval_files,
     handle_cli_error,
     load_eval_suites,
     log_engine_health,
     require_dependency,
     resolve_provider_api_key,
-    validate_and_get_config,
     version_callback,
 )
 
@@ -74,55 +81,94 @@ cli.add_typer(
 console = Console()
 
 
-@cli.command(help="Log in to Arcade Cloud", rich_help_panel="User")
+@cli.command(help="Log in to Arcade", rich_help_panel="User")
 def login(
     host: str = typer.Option(
-        PROD_CLOUD_HOST,
+        PROD_COORDINATOR_HOST,
         "-h",
         "--host",
-        help="The Arcade Cloud host to log in to.",
+        help="The Arcade Coordinator host to log in to.",
     ),
     port: Optional[int] = typer.Option(
         None,
         "-p",
         "--port",
-        help="The port of the Arcade Cloud host (if running locally).",
-    ),
-    callback_host: str = typer.Option(
-        None,
-        "--callback-host",
-        help="The host to use to complete the auth flow - this should be the same as the host that the CLI is running on. Include the port if needed.",
+        help="The port of the Arcade Coordinator host (if running locally).",
     ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
+    legacy: bool = typer.Option(
+        False,
+        "--legacy",
+        help="Use legacy API key login flow (deprecated).",
+        hidden=True,
+    ),
 ) -> None:
     """
-    Logs the user into Arcade Cloud.
+    Logs the user into Arcade using OAuth.
     """
-
     if check_existing_login():
         console.print("\nTo log out and delete your locally-stored credentials, use ", end="")
         console.print("arcade logout", style="bold green", end="")
         console.print(".\n")
         return
 
-    # Start the HTTP server in a new thread
+    coordinator_url = build_coordinator_url(host, port)
+
+    # Legacy flow (deprecated, hidden option for backwards compatibility)
+    if legacy:
+        _login_legacy(host, port, debug)
+        return
+
+    try:
+        result = perform_oauth_login(
+            coordinator_url,
+            on_status=lambda msg: console.print(msg, style="dim"),
+        )
+
+        # Save credentials
+        save_credentials_from_whoami(result.tokens, result.whoami)
+
+        # Success message
+        console.print(f"\n✅ Logged in as {result.email}.", style="bold green")
+        if result.selected_org and result.selected_project:
+            console.print(
+                f"\nActive project: {result.selected_org.name} / {result.selected_project.name}",
+                style="dim",
+            )
+        console.print(
+            "Run 'arcade org list' or 'arcade project list' to see available options.",
+            style="dim",
+        )
+
+    except OAuthLoginError as e:
+        if debug:
+            console.print(f"Debug: {e.__cause__}", style="dim")
+        handle_cli_error(str(e), should_exit=False)
+    except KeyboardInterrupt:
+        console.print("\nLogin cancelled.", style="yellow")
+    except Exception as e:
+        handle_cli_error("Login failed", e, debug)
+
+
+def _login_legacy(host: str, port: Optional[int], debug: bool) -> None:
+    """Legacy API key login flow (deprecated)."""
+    from arcade_cli.utils import compute_login_url
+
     state = str(uuid.uuid4())
     auth_server = LocalAuthCallbackServer(state)
     server_thread = threading.Thread(target=auth_server.run_server)
     server_thread.start()
 
     try:
-        # Open the browser for user login
-        login_url = compute_login_url(host, state, port, callback_host)
+        login_url = compute_login_url(host, state, port, None)
 
-        console.print("Opening a browser to log you in...")
+        console.print("Opening a browser to log you in (legacy mode)...")
         if not webbrowser.open(login_url):
             console.print(
                 f"If a browser doesn't open automatically, copy this URL and paste it into your browser: {login_url}",
                 style="dim",
             )
 
-        # Wait for the server thread to finish
         server_thread.join()
     except KeyboardInterrupt:
         auth_server.shutdown_server()
@@ -130,15 +176,15 @@ def login(
         handle_cli_error("Login failed", e, debug)
     finally:
         if server_thread.is_alive():
-            server_thread.join()  # Ensure the server thread completes and cleans up
+            server_thread.join()
 
 
-@cli.command(help="Log out of Arcade Cloud", rich_help_panel="User")
+@cli.command(help="Log out of Arcade", rich_help_panel="User")
 def logout(
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
-    Logs the user out of Arcade Cloud.
+    Logs the user out of Arcade.
     """
     try:
         # If the credentials file exists, delete it
@@ -149,6 +195,67 @@ def logout(
             console.print("You're not logged in.", style="bold red")
     except Exception as e:
         handle_cli_error("Logout failed", e, debug)
+
+
+@cli.command(help="Show current login status and active context", rich_help_panel="User")
+def whoami(
+    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
+) -> None:
+    """
+    Display the current logged-in user and active organization/project.
+    """
+    from arcade_core.config_model import Config
+
+    try:
+        config = Config.load_from_file()
+    except FileNotFoundError:
+        console.print("Not logged in. Run 'arcade login' to authenticate.", style="bold red")
+        return
+    except Exception as e:
+        handle_cli_error("Failed to read credentials", e, debug)
+        return
+
+    if config.is_legacy_format():
+        email = config.user.email if config.user else "unknown"
+        console.print(f"Logged in as: {email}", style="bold green")
+        console.print(
+            "\n⚠️  Your credentials use an older format. "
+            "Run 'arcade logout' then 'arcade login' to update.",
+            style="bold yellow",
+        )
+        return
+
+    if not config.auth:
+        console.print("Not logged in. Run 'arcade login' to authenticate.", style="bold red")
+        return
+
+    email = config.user.email if config.user else "unknown"
+    console.print(f"Logged in as: {email}", style="bold green")
+
+    if config.context:
+        console.print(f"\nActive organization: {config.context.org_name}", style="bold")
+        console.print(f"   ID: {config.context.org_id}", style="dim")
+        console.print(f"\nActive project: {config.context.project_name}", style="bold")
+        console.print(f"   ID: {config.context.project_id}", style="dim")
+    else:
+        console.print("\nNo active organization/project set.", style="yellow")
+
+    console.print("\nRun 'arcade org list' or 'arcade project list' to see options.", style="dim")
+
+
+cli.add_typer(
+    org_app,
+    name="org",
+    help="Manage organizations (list, set active)",
+    rich_help_panel="User",
+)
+
+cli.add_typer(
+    project_app,
+    name="project",
+    help="Manage projects (list, set active)",
+    rich_help_panel="User",
+)
 
 
 @cli.command(
@@ -712,8 +819,7 @@ def dashboard(
         dashboard_url = f"{base_url}/dashboard"
 
         # Try to hit /health endpoint on engine and warn if it is down
-        config = validate_and_get_config()
-        with Arcade(api_key=config.api.key, base_url=base_url) as client:
+        with get_arcade_client(base_url) as client:
             log_engine_health(client)
 
         # Open the dashboard in a browser

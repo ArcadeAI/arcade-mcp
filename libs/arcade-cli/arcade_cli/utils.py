@@ -14,6 +14,7 @@ from textwrap import dedent
 from typing import Any, Callable, Union, cast
 from urllib.parse import urlencode, urlparse
 
+import httpx
 import idna
 from arcade_core import ToolCatalog, Toolkit
 from arcade_core.config_model import Config
@@ -203,9 +204,10 @@ def compute_base_url(
     force_no_tls: bool,
     host: str,
     port: int | None,
+    default_port: int | None = 9099,
 ) -> str:
     """
-    Compute the base URL for the Arcade Engine from the provided overrides.
+    Compute the base URL for an Arcade service from the provided overrides.
 
     Treats 127.0.0.1 and 0.0.0.0 as aliases for localhost.
 
@@ -217,8 +219,8 @@ def compute_base_url(
     hostnames with underscores.
 
     This property exists to provide a consistent and correctly formatted URL for
-    connecting to the Arcade Engine, taking into account various configuration
-    options and edge cases. It ensures that:
+    connecting to Arcade services (Engine, Coordinator), taking into account various
+    configuration options and edge cases. It ensures that:
 
     1. The correct protocol (http/https) is used based on the TLS setting.
     2. IPv4 and IPv6 addresses are properly formatted.
@@ -228,10 +230,16 @@ def compute_base_url(
     6. Hostnames with underscores (common in development environments) are supported.
     7. Pre-existing port specifications in the host are respected.
 
-    The resulting URL is always suffixed with api_version to specify the API version.
+    Args:
+        force_tls: Force HTTPS protocol.
+        force_no_tls: Force HTTP protocol (takes precedence over force_tls).
+        host: The hostname or IP address.
+        port: The port number (optional).
+        default_port: The default port for localhost if none specified.
+            Use 9099 for Engine, None for Coordinator (standard HTTPS).
 
     Returns:
-        str: The fully constructed URL for the Arcade Engine.
+        str: The fully constructed URL for the Arcade service.
     """
     # "Use 127.0.0.1" and "0.0.0.0" as aliases for "localhost"
     host = LOCALHOST if host in ["127.0.0.1", "0.0.0.0"] else host  # noqa: S104
@@ -244,9 +252,9 @@ def compute_base_url(
     else:
         is_tls = host != LOCALHOST
 
-    # "localhost" defaults to dev port if not specified
-    if host == LOCALHOST and port is None:
-        port = 9099
+    # "localhost" defaults to dev port if not specified and a default is provided
+    if host == LOCALHOST and port is None and default_port is not None:
+        port = default_port
 
     protocol = "https" if is_tls else "http"
 
@@ -324,9 +332,8 @@ def get_tools_from_engine(
     force_no_tls: bool = False,
     toolkit: str | None = None,
 ) -> list[ToolDefinition]:
-    config = validate_and_get_config()
     base_url = compute_base_url(force_tls, force_no_tls, host, port)
-    client = Arcade(api_key=config.api.key, base_url=base_url)
+    client = get_arcade_client(base_url)
 
     tools = []
     try:
@@ -422,23 +429,225 @@ def validate_and_get_config(
     validate_user: bool = True,
 ) -> Config:
     """
-    Validates the configuration, user, and returns the Config object
-    """
+    Validates the configuration, user, and returns the Config object.
 
+    Supports both new OAuth-based auth and legacy API key auth.
+    """
     try:
         from arcade_core.config import config
     except Exception as e:
         handle_cli_error("Not logged in", e, debug=False)
 
-    if validate_api and (not config.api or not config.api.key):
-        handle_cli_error(
-            "API configuration not found or key is missing. Please run `arcade login`."
-        )
+    # Check for legacy format (deprecated, removing soon)
+    if config.is_legacy_format():
+        if validate_api and (not config.api or not config.api.key):
+            handle_cli_error(
+                "API configuration not found or key is missing. Please run `arcade login`."
+            )
+        if validate_user and (not config.user or not config.user.email):
+            handle_cli_error("User email not found in configuration. Please run `arcade login`.")
+        return config
+
+    # New OAuth format
+    if validate_api and not config.auth:
+        handle_cli_error("Authentication not configured. Please run `arcade login`.")
 
     if validate_user and (not config.user or not config.user.email):
         handle_cli_error("User email not found in configuration. Please run `arcade login`.")
 
     return config
+
+
+def get_org_project_context() -> tuple[str, str]:
+    """
+    Get the active org_id and project_id from config.
+
+    Returns:
+        Tuple of (org_id, project_id)
+
+    Raises:
+        CLIError if no active org/project context is set.
+    """
+    config = validate_and_get_config()
+
+    if not config.context or not config.context.org_id or not config.context.project_id:
+        handle_cli_error("No active organization/project set. Please run `arcade login` first.")
+        raise AssertionError("unreachable")  # handle_cli_error raises CLIError
+
+    return config.context.org_id, config.context.project_id
+
+
+def get_auth_headers(coordinator_url: str | None = None) -> dict[str, str]:
+    """
+    Get authorization headers for API calls.
+
+    Handles both new OAuth tokens (with automatic refresh) and legacy API keys.
+
+    Args:
+        coordinator_url: Coordinator URL for token refresh (optional for legacy)
+
+    Returns:
+        Dictionary with Authorization header
+    """
+    from arcade_cli.authn import get_valid_access_token
+    from arcade_cli.constants import PROD_COORDINATOR_HOST
+
+    config = validate_and_get_config()
+
+    if config.is_legacy_format():
+        # Legacy API key auth
+        if not config.api or not config.api.key:
+            handle_cli_error("API key not found. Please run `arcade login`.")
+            raise AssertionError("unreachable")  # handle_cli_error raises CLIError
+        console.print(
+            "⚠️  Your credentials use an older format. "
+            "Run 'arcade logout' then 'arcade login' to update.",
+            style="bold yellow",
+        )
+        return {"Authorization": f"Bearer {config.api.key}"}
+
+    # New OAuth auth with automatic token refresh
+    if coordinator_url is None:
+        coordinator_url = f"https://{PROD_COORDINATOR_HOST}"
+
+    try:
+        access_token = get_valid_access_token(coordinator_url)
+    except ValueError as e:
+        handle_cli_error(str(e))
+        raise AssertionError("unreachable")  # handle_cli_error raises CLIError
+
+    return {"Authorization": f"Bearer {access_token}"}
+
+
+def get_org_scoped_url(base_url: str, path: str) -> str:
+    """
+    Build an org-scoped URL using the active context.
+
+    Args:
+        base_url: Base URL of the API (e.g., https://api.arcade.dev)
+        path: Path suffix after the org/project prefix (e.g., "/secrets/KEY")
+
+    Returns:
+        Full URL with org/project path prefix
+
+    Raises:
+        CLIError if no active context is set
+
+    Example:
+        get_org_scoped_url("https://api.arcade.dev", "/secrets/MY_KEY")
+        # Returns: "https://api.arcade.dev/v1/orgs/ORG_ID/projects/PROJECT_ID/secrets/MY_KEY"
+    """
+    config = validate_and_get_config()
+
+    if config.is_legacy_format():
+        # Legacy mode: use paths without org/project scoping
+        # (The API key carries the org/project context)
+        return f"{base_url}/v1{path}"
+
+    # New OAuth mode: use org-scoped paths
+    if not config.context:
+        handle_cli_error("No active organization/project. Please run `arcade login` first.")
+        raise AssertionError("unreachable")  # handle_cli_error raises CLIError
+
+    org_id = config.context.org_id
+    project_id = config.context.project_id
+
+    return f"{base_url}/v1/orgs/{org_id}/projects/{project_id}{path}"
+
+
+class OrgScopedTransport(httpx.BaseTransport):
+    """
+    Custom httpx transport that rewrites URLs to include org/project scope.
+
+    This wraps an existing transport and modifies request URLs from:
+        /v1/endpoint -> /v1/orgs/{org_id}/projects/{project_id}/endpoint
+
+    This allows the Arcade client to work with org-scoped APIs without
+    modifications to the client library itself.
+    """
+
+    def __init__(
+        self,
+        wrapped_transport: httpx.BaseTransport,
+        org_id: str,
+        project_id: str,
+    ) -> None:
+        self.wrapped = wrapped_transport
+        self.org_id = org_id
+        self.project_id = project_id
+
+    def handle_request(self, request: httpx.Request) -> httpx.Response:
+        # Check if this is a /v1/ path that needs rewriting
+        path = request.url.path
+        if path.startswith("/v1/") and "/v1/orgs/" not in path:
+            # Rewrite /v1/endpoint to /v1/orgs/{org_id}/projects/{project_id}/endpoint
+            new_path = path.replace(
+                "/v1/", f"/v1/orgs/{self.org_id}/projects/{self.project_id}/", 1
+            )
+            new_url = request.url.copy_with(path=new_path)
+            # Create a new request with the modified URL
+            request = httpx.Request(
+                method=request.method,
+                url=new_url,
+                headers=request.headers,
+                content=request.content,
+                extensions=request.extensions,
+            )
+        return self.wrapped.handle_request(request)
+
+    def close(self) -> None:
+        self.wrapped.close()
+
+
+def get_arcade_client(base_url: str) -> Arcade:
+    """
+    Create an Arcade client with proper authentication and org-scoped URL rewriting.
+
+    Handles both legacy API key auth and new OAuth token auth. For OAuth auth,
+    requests are automatically rewritten to include org/project scope in URLs.
+
+    Args:
+        base_url: Base URL of the Arcade Engine
+
+    Returns:
+        Configured Arcade client
+
+    Example:
+        client = get_arcade_client("https://api.arcade.dev")
+        servers = client.workers.list()  # Automatically uses org-scoped URLs
+    """
+    config = validate_and_get_config()
+
+    if config.is_legacy_format():
+        # Legacy mode: API key carries org/project context
+        api_key = config.api.key if config.api else None
+        console.print(
+            "⚠️  Your credentials use an older format. "
+            "Run 'arcade logout' then 'arcade login' to update.",
+            style="bold yellow",
+        )
+        return Arcade(api_key=api_key, base_url=base_url)
+
+    # OAuth mode: need to rewrite URLs to include org/project scope
+    from arcade_cli.authn import get_valid_access_token
+
+    access_token = get_valid_access_token(base_url)
+
+    # Get org/project context for URL rewriting
+    if not config.context or not config.context.org_id or not config.context.project_id:
+        handle_cli_error("No active organization/project set. Please run `arcade login` first.")
+        raise AssertionError("unreachable")  # handle_cli_error raises CLIError
+
+    org_id = config.context.org_id
+    project_id = config.context.project_id
+
+    # Create custom httpx client with org-scoped transport
+    # This wraps the default transport to rewrite URLs
+    default_transport = httpx.HTTPTransport()
+    org_scoped_transport = OrgScopedTransport(default_transport, org_id, project_id)
+    http_client = httpx.Client(transport=org_scoped_transport)
+
+    return Arcade(api_key=access_token, base_url=base_url, http_client=http_client)
 
 
 def log_engine_health(client: Arcade) -> None:

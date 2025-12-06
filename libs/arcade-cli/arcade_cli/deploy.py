@@ -23,7 +23,12 @@ from rich.text import Text
 from typing_extensions import Literal
 
 from arcade_cli.secret import load_env_file
-from arcade_cli.utils import compute_base_url, validate_and_get_config
+from arcade_cli.utils import (
+    compute_base_url,
+    get_auth_headers,
+    get_org_scoped_url,
+    validate_and_get_config,
+)
 
 console = Console()
 
@@ -89,7 +94,7 @@ class UpdateDeploymentRequest(BaseModel):
 # Deployment Status Functions
 
 
-def get_deployment_status(engine_url: str, api_key: str, server_name: str) -> str:
+def _get_deployment_status(engine_url: str, server_name: str) -> str:
     """
     Get the status of a deployment.
 
@@ -101,12 +106,9 @@ def get_deployment_status(engine_url: str, api_key: str, server_name: str) -> st
         The status of the deployment.
         Possible values are: "pending", "updating", "unknown", "running", "failed".
     """
-    client = httpx.Client(
-        base_url=engine_url,
-        headers={"Authorization": f"Bearer {api_key}"},
-        timeout=360,
-    )
-    response = client.get(f"/v1/deployments/{server_name}/status")
+    url = get_org_scoped_url(engine_url, f"/deployments/{server_name}/status")
+    client = httpx.Client(headers=get_auth_headers(engine_url), timeout=360)
+    response = client.get(url)
     response.raise_for_status()
     status = cast(str, response.json().get("status", "unknown"))
     return status
@@ -114,7 +116,6 @@ def get_deployment_status(engine_url: str, api_key: str, server_name: str) -> st
 
 async def _poll_deployment_status(
     engine_url: str,
-    api_key: str,
     server_name: str,
     state: dict,
     debug: bool = False,
@@ -122,7 +123,7 @@ async def _poll_deployment_status(
     """Poll deployment status until it's running or error."""
     while state["status"] in ["pending", "unknown", "updating"]:
         try:
-            status = get_deployment_status(engine_url, api_key, server_name)
+            status = _get_deployment_status(engine_url, server_name)
             state["status"] = status
             if status in ["running", "failed"]:
                 break
@@ -134,21 +135,20 @@ async def _poll_deployment_status(
 
 async def _stream_deployment_logs_to_deque(
     engine_url: str,
-    api_key: str,
     server_name: str,
     log_deque: deque,
     state: dict,
     debug: bool = False,
 ) -> None:
     """Stream deployment logs into a deque with retry logic."""
-    stream_url = f"{engine_url}/v1/deployments/{server_name}/logs/stream"
-    headers = {"Authorization": f"Bearer {api_key}"}
+    stream_url = get_org_scoped_url(engine_url, f"/deployments/{server_name}/logs/stream")
 
     while state["status"] in ["pending", "unknown", "updating"]:
         try:
+            auth_headers = get_auth_headers(engine_url)
             async with (
                 httpx.AsyncClient(timeout=None) as client,  # noqa: S113 - expected indefinite log stream
-                client.stream("GET", stream_url, headers=headers) as response,
+                client.stream("GET", stream_url, headers=auth_headers) as response,
             ):
                 response.raise_for_status()
                 async for line in response.aiter_lines():
@@ -169,7 +169,6 @@ async def _stream_deployment_logs_to_deque(
 
 async def _monitor_deployment_with_logs(
     engine_url: str,
-    api_key: str,
     server_name: str,
     debug: bool = False,
     is_update: bool = False,
@@ -179,7 +178,6 @@ async def _monitor_deployment_with_logs(
 
     Args:
         engine_url: The base URL of the Arcade Engine
-        api_key: The API key for authentication
         server_name: The name of the server to monitor
         debug: Whether to show debug information
         is_update: If True, wait for status to be 'updating' before streaming logs or 'failed' before exiting
@@ -199,7 +197,7 @@ async def _monitor_deployment_with_logs(
     ]
 
     status_task = asyncio.create_task(
-        _poll_deployment_status(engine_url, api_key, server_name, state, debug)
+        _poll_deployment_status(engine_url, server_name, state, debug)
     )
 
     # Don't stream logs until the deployment is 'updating' or 'failed' otherwise we will get logs from the previous deployment
@@ -209,7 +207,7 @@ async def _monitor_deployment_with_logs(
 
     # Start log streaming task
     logs_task = asyncio.create_task(
-        _stream_deployment_logs_to_deque(engine_url, api_key, server_name, log_deque, state, debug)
+        _stream_deployment_logs_to_deque(engine_url, server_name, log_deque, state, debug)
     )
 
     # Live display with spinner and logs
@@ -281,10 +279,11 @@ async def _monitor_deployment_with_logs(
 # Create Deployment Functions
 
 
-def server_already_exists(engine_url: str, api_key: str, server_name: str) -> bool:
+def server_already_exists(engine_url: str, server_name: str) -> bool:
     """Check if a server already exists in the Arcade Engine."""
-    client = httpx.Client(base_url=engine_url, headers={"Authorization": f"Bearer {api_key}"})
-    response = client.get(f"/v1/workers/{server_name}")
+    url = get_org_scoped_url(engine_url, f"/workers/{server_name}")
+    client = httpx.Client(headers=get_auth_headers(engine_url))
+    response = client.get(url)
     if response.status_code == 404:
         return False
 
@@ -294,11 +293,14 @@ def server_already_exists(engine_url: str, api_key: str, server_name: str) -> bo
 
 
 def update_deployment(
-    engine_url: str, api_key: str, server_name: str, update_deployment_request: dict
+    engine_url: str,
+    server_name: str,
+    update_deployment_request: dict,
 ) -> None:
     """Update a deployment in the Arcade Engine."""
-    client = httpx.Client(base_url=engine_url, headers={"Authorization": f"Bearer {api_key}"})
-    response = client.put(f"/v1/deployments/{server_name}", json=update_deployment_request)
+    url = get_org_scoped_url(engine_url, f"/deployments/{server_name}")
+    client = httpx.Client(headers=get_auth_headers(engine_url))
+    response = client.put(url, json=update_deployment_request)
     response.raise_for_status()
 
 
@@ -590,21 +592,22 @@ def verify_server_and_get_metadata(
 
 
 def upsert_secrets_to_engine(
-    engine_url: str, api_key: str, secrets: set[str], debug: bool = False
+    engine_url: str,
+    secrets: set[str],
+    debug: bool = False,
 ) -> None:
     """
     Upsert secrets to the Arcade Engine.
 
     Args:
         engine_url: The base URL of the Arcade Engine
-        api_key: The API key for authentication
         secrets: Set of secret keys to upsert
         debug: Whether to show debug information
     """
     if not secrets:
         return
 
-    client = httpx.Client(base_url=engine_url, headers={"Authorization": f"Bearer {api_key}"})
+    client = httpx.Client(headers=get_auth_headers(engine_url))
 
     for secret_key in sorted(secrets):
         secret_value = os.getenv(secret_key)
@@ -623,8 +626,9 @@ def upsert_secrets_to_engine(
 
         try:
             # Upsert secret to engine
+            url = get_org_scoped_url(engine_url, f"/secrets/{secret_key}")
             response = client.put(
-                f"/v1/admin/secrets/{secret_key}",
+                url,
                 json={"description": "Secret set via CLI", "value": secret_value},
                 timeout=30,
             )
@@ -644,14 +648,15 @@ def upsert_secrets_to_engine(
 
 
 def deploy_server_to_engine(
-    engine_url: str, api_key: str, deployment_request: dict, debug: bool = False
+    engine_url: str,
+    deployment_request: dict,
+    debug: bool = False,
 ) -> dict:
     """
     Deploy the server to Arcade Engine.
 
     Args:
         engine_url: The base URL of the Arcade Engine
-        api_key: The API key for authentication
         deployment_request: The deployment request payload
         debug: Whether to show debug information
 
@@ -662,14 +667,11 @@ def deploy_server_to_engine(
         httpx.HTTPStatusError: If the deployment request fails
         httpx.ConnectError: If connection to the engine fails
     """
-    client = httpx.Client(
-        base_url=engine_url,
-        headers={"Authorization": f"Bearer {api_key}"},
-        timeout=360,
-    )
+    url = get_org_scoped_url(engine_url, "/deployments")
+    client = httpx.Client(headers=get_auth_headers(engine_url), timeout=360)
 
     try:
-        response = client.post("/v1/deployments", json=deployment_request)
+        response = client.post(url, json=deployment_request)
         response.raise_for_status()
         return cast(dict, response.json())
     except httpx.ConnectError as e:
@@ -793,7 +795,7 @@ def deploy_server_logic(
         secrets_to_upsert = set(load_env_file(str(env_path)).keys())
         if secrets_to_upsert:
             console.print(f"✓ Found {len(secrets_to_upsert)} secret(s) in .env file", style="green")
-            upsert_secrets_to_engine(engine_url, config.api.key, secrets_to_upsert, debug)
+            upsert_secrets_to_engine(engine_url, secrets_to_upsert, debug)
         else:
             console.print("[!] No secrets found in .env file", style="yellow")
     elif secrets == "auto":
@@ -803,9 +805,7 @@ def deploy_server_logic(
                 f"\nUploading {len(required_secrets_from_validation)} required secret(s) to Arcade...",
                 style="dim",
             )
-            upsert_secrets_to_engine(
-                engine_url, config.api.key, required_secrets_from_validation, debug
-            )
+            upsert_secrets_to_engine(engine_url, required_secrets_from_validation, debug)
         else:
             console.print("\n✓ No required secrets found", style="green")
 
@@ -830,26 +830,26 @@ def deploy_server_logic(
         )
         deployment_toolkits = DeploymentToolkits(bundles=[toolkit_bundle])
 
-        if server_already_exists(engine_url, config.api.key, server_name):
+        if server_already_exists(engine_url, server_name):
             is_update = True
             update_request = UpdateDeploymentRequest(
                 description="MCP Server deployed via CLI",
                 toolkits=deployment_toolkits,
             )
-            update_deployment(engine_url, config.api.key, server_name, update_request.model_dump())
+            update_deployment(engine_url, server_name, update_request.model_dump())
         else:
             create_request = CreateDeploymentRequest(
                 name=server_name,
                 description="MCP Server deployed via CLI",
                 toolkits=deployment_toolkits,
             )
-            deploy_server_to_engine(engine_url, config.api.key, create_request.model_dump(), debug)
+            deploy_server_to_engine(engine_url, create_request.model_dump(), debug)
     except Exception as e:
         raise ValueError(f"Deployment failed: {e}") from e
 
     # Step 8: Monitor deployment with live status and logs
     final_status, all_logs = asyncio.run(
-        _monitor_deployment_with_logs(engine_url, config.api.key, server_name, debug, is_update)
+        _monitor_deployment_with_logs(engine_url, server_name, debug, is_update)
     )
 
     if final_status == "running":

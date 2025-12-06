@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -12,7 +13,7 @@ class BaseConfig(BaseModel):
 
 class ApiConfig(BaseConfig):
     """
-    Arcade API configuration.
+    Legacy Arcade API configuration (deprecated).
     """
 
     key: str
@@ -22,6 +23,25 @@ class ApiConfig(BaseConfig):
     version: str = "v1"
     """
     Arcade API version.
+    """
+
+
+class AuthConfig(BaseConfig):
+    """
+    OAuth authentication configuration.
+    """
+
+    access_token: str
+    """
+    OAuth access token (JWT).
+    """
+    refresh_token: str
+    """
+    OAuth refresh token for obtaining new access tokens.
+    """
+    expires_at: datetime
+    """
+    When the access token expires.
     """
 
 
@@ -36,22 +56,110 @@ class UserConfig(BaseConfig):
     """
 
 
-class Config(BaseConfig):
+class ContextConfig(BaseConfig):
     """
-    Configuration for Arcade.
+    Active organization and project context.
     """
 
-    api: ApiConfig
+    org_id: str
     """
-    Arcade API configuration.
+    Active organization ID.
     """
+    org_name: str
+    """
+    Active organization name.
+    """
+    project_id: str
+    """
+    Active project ID.
+    """
+    project_name: str
+    """
+    Active project name.
+    """
+
+
+class Config(BaseConfig):
+    """
+    Configuration for Arcade CLI.
+
+    Supports both new OAuth-based auth (auth + context) and legacy API key auth.
+    """
+
+    # New OAuth-based authentication
+    auth: AuthConfig | None = None
+    """
+    OAuth authentication configuration.
+    """
+
+    # Active org/project context
+    context: ContextConfig | None = None
+    """
+    Active organization and project context.
+    """
+
+    # User info
     user: UserConfig | None = None
     """
     Arcade user configuration.
     """
 
+    # Legacy API key (deprecated, kept for backwards compatibility detection)
+    api: ApiConfig | None = None
+    """
+    Legacy Arcade API configuration (deprecated).
+    """
+
     def __init__(self, **data: Any):
         super().__init__(**data)
+
+    def is_legacy_format(self) -> bool:
+        """
+        Check if this config uses the legacy API key format.
+        """
+        return self.api is not None and self.auth is None
+
+    def is_authenticated(self) -> bool:
+        """
+        Check if the user is authenticated (has valid auth config).
+        """
+        return self.auth is not None
+
+    def is_token_expired(self) -> bool:
+        """
+        Check if the access token is expired or will expire within 5 minutes.
+        """
+        if not self.auth:
+            return True
+        # Consider expired if less than 5 minutes remaining
+        buffer_seconds = 300
+        return datetime.now() >= self.auth.expires_at.replace(tzinfo=None) - __import__(
+            "datetime"
+        ).timedelta(seconds=buffer_seconds)
+
+    def get_access_token(self) -> str | None:
+        """
+        Get the current access token if available.
+        """
+        if self.auth:
+            return self.auth.access_token
+        return None
+
+    def get_active_org_id(self) -> str | None:
+        """
+        Get the active organization ID.
+        """
+        if self.context:
+            return self.context.org_id
+        return None
+
+    def get_active_project_id(self) -> str | None:
+        """
+        Get the active project ID.
+        """
+        if self.context:
+            return self.context.project_id
+        return None
 
     @classmethod
     def get_config_dir_path(cls) -> Path:
@@ -82,16 +190,11 @@ class Config(BaseConfig):
         """
         Load the configuration from the YAML file in the configuration directory.
 
-        If no configuration file exists, this method will create a new one with default values.
-        The default configuration includes:
-        - An empty API configuration
-        - A default Engine configuration (host: "api.arcade.dev", port: None, tls: True)
-        - No user configuration
-
         Returns:
-            Config: The loaded or newly created configuration.
+            Config: The loaded configuration.
 
         Raises:
+            FileNotFoundError: If no configuration file exists.
             ValueError: If the existing configuration file is invalid.
         """
         cls.ensure_config_dir_exists()
@@ -108,13 +211,13 @@ class Config(BaseConfig):
 
         if config_data is None:
             raise ValueError(
-                "Invalid credentials.yaml file. Please ensure it is a valid YAML file or"
+                "Invalid credentials.yaml file. Please ensure it is a valid YAML file or "
                 "run `arcade logout`, then `arcade login` to start from a clean slate."
             )
 
         if "cloud" not in config_data:
             raise ValueError(
-                "Invalid credentials.yaml file. Expected a 'cloud' key."
+                "Invalid credentials.yaml file. Expected a 'cloud' key. "
                 "Run `arcade logout`, then `arcade login` to start from a clean slate."
             )
 
@@ -123,7 +226,6 @@ class Config(BaseConfig):
         except ValidationError as e:
             # Get only the errors with {type:missing} and combine them
             # into a nicely-formatted string message.
-            # Any other errors without {type:missing} should just be str()ed
             missing_field_errors = [
                 ".".join(map(str, error["loc"]))
                 for error in e.errors()
@@ -145,7 +247,15 @@ class Config(BaseConfig):
     def save_to_file(self) -> None:
         """
         Save the configuration to the YAML file in the configuration directory.
+
+        Sets file permissions to 600 (owner read/write only) for security.
         """
         Config.ensure_config_dir_exists()
         config_file_path = Config.get_config_file_path()
-        config_file_path.write_text(yaml.dump(self.model_dump()))
+
+        # Convert to dict, excluding None values for cleaner output
+        data = {"cloud": self.model_dump(exclude_none=True, mode="json")}
+        config_file_path.write_text(yaml.dump(data, default_flow_style=False))
+
+        # Set restrictive permissions (owner read/write only)
+        config_file_path.chmod(0o600)
