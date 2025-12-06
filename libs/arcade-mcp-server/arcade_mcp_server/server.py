@@ -430,7 +430,7 @@ class MCPServer:
                         "  1. Ensure request has 'method' field\n"
                         "  2. Verify JSON structure is correct\n"
                         "  3. Check JSON-RPC 2.0 specification\n\n"
-                        "  Expected format: {\"jsonrpc\": \"2.0\", \"method\": \"...\", \"params\": {...}, \"id\": ...}"
+                        '  Expected format: {"jsonrpc": "2.0", "method": "...", "params": {...}, "id": ...}'
                     ),
                 },
             )
@@ -946,7 +946,9 @@ class MCPServer:
             # First check if Arcade API key is configured
             if not self.arcade:
                 user_message = "✗ Missing Arcade API key\n\n"
-                user_message += f"  Tool '{tool_name}' requires authorization but no API key is configured.\n\n"
+                user_message += (
+                    f"  Tool '{tool_name}' requires authorization but no API key is configured.\n\n"
+                )
                 user_message += "  To fix, either:\n"
                 user_message += "  1. Run arcade login:     arcade login\n"
                 user_message += "  2. Set environment var:  export ARCADE_API_KEY=your_key_here\n"
@@ -971,7 +973,9 @@ class MCPServer:
                 auth_result = await self._check_authorization(tool, tool_context.user_id)
                 if auth_result.status != "completed":
                     user_message = "⚠ Authorization required\n\n"
-                    user_message += f"  Tool '{tool_name}' needs your permission to access your account.\n\n"
+                    user_message += (
+                        f"  Tool '{tool_name}' needs your permission to access your account.\n\n"
+                    )
                     user_message += "  To authorize:\n"
                     user_message += f"  1. Click this link: {auth_result.url}\n"
                     user_message += "  2. Grant the requested permissions\n"
