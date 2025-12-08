@@ -9,6 +9,7 @@ from typing import Optional
 import click
 import typer
 from arcade_core.constants import CREDENTIALS_FILE_PATH
+from arcadepy import Arcade
 from rich.console import Console
 from rich.text import Text
 from tqdm import tqdm
@@ -37,7 +38,6 @@ from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
     Provider,
     compute_base_url,
-    get_arcade_client,
     get_eval_files,
     handle_cli_error,
     load_eval_suites,
@@ -767,7 +767,7 @@ def dashboard(
         dashboard_url = f"{base_url}/dashboard"
 
         # Try to hit /health endpoint on engine and warn if it is down
-        with get_arcade_client(base_url) as client:
+        with Arcade(api_key="", base_url=base_url) as client:
             log_engine_health(client)
 
         # Open the dashboard in a browser
