@@ -23,9 +23,19 @@ app = TrackedTyper(
     pretty_exceptions_short=True,
 )
 
+state = {
+    "coordinator_url": compute_base_url(
+        force_tls=False,
+        force_no_tls=False,
+        host=PROD_COORDINATOR_HOST,
+        port=None,
+        default_port=None,
+    )
+}
 
-@app.command("list", help="List projects in the active organization")
-def project_list(
+
+@app.callback()
+def main(
     host: str = typer.Option(
         PROD_COORDINATOR_HOST,
         "--host",
@@ -48,6 +58,14 @@ def project_list(
         "--no-tls",
         help="Whether to disable TLS for the connection to Arcade Coordinator.",
     ),
+) -> None:
+    """Configure Coordinator connection options for project commands."""
+    coordinator_url = compute_base_url(force_tls, force_no_tls, host, port, default_port=None)
+    state["coordinator_url"] = coordinator_url
+
+
+@app.command("list", help="List projects in the active organization")
+def project_list(
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """List all projects in the current active organization."""
@@ -61,7 +79,7 @@ def project_list(
             console.print("No active organization set. Run 'arcade login' first.", style="bold red")
             return
 
-        coordinator_url = compute_base_url(force_tls, force_no_tls, host, port, default_port=None)
+        coordinator_url = state["coordinator_url"]
         projects = fetch_projects(coordinator_url, config.context.org_id)
 
         if not projects:
@@ -101,28 +119,6 @@ def project_list(
 @app.command("set", help="Set the active project")
 def project_set(
     project_id: str = typer.Argument(..., help="Project ID to set as active"),
-    host: str = typer.Option(
-        PROD_COORDINATOR_HOST,
-        "--host",
-        "-h",
-        help="The Arcade Coordinator host.",
-    ),
-    port: int = typer.Option(
-        None,
-        "--port",
-        "-p",
-        help="The port of the Arcade Coordinator host.",
-    ),
-    force_tls: bool = typer.Option(
-        False,
-        "--tls",
-        help="Whether to force TLS for the connection to Arcade Coordinator.",
-    ),
-    force_no_tls: bool = typer.Option(
-        False,
-        "--no-tls",
-        help="Whether to disable TLS for the connection to Arcade Coordinator.",
-    ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """Set the active project within the current organization."""
@@ -135,7 +131,7 @@ def project_set(
             console.print("No active organization set. Run 'arcade login' first.", style="bold red")
             return
 
-        coordinator_url = compute_base_url(force_tls, force_no_tls, host, port, default_port=None)
+        coordinator_url = state["coordinator_url"]
 
         # Verify project exists in current org
         projects = fetch_projects(coordinator_url, config.context.org_id)

@@ -27,9 +27,19 @@ app = TrackedTyper(
     pretty_exceptions_short=True,
 )
 
+state = {
+    "coordinator_url": compute_base_url(
+        force_tls=False,
+        force_no_tls=False,
+        host=PROD_COORDINATOR_HOST,
+        port=None,
+        default_port=None,
+    )
+}
 
-@app.command("list", help="List organizations you belong to")
-def org_list(
+
+@app.callback()
+def main(
     host: str = typer.Option(
         PROD_COORDINATOR_HOST,
         "--host",
@@ -52,6 +62,14 @@ def org_list(
         "--no-tls",
         help="Whether to disable TLS for the connection to Arcade Coordinator.",
     ),
+) -> None:
+    """Configure Coordinator connection options for organization commands."""
+    coordinator_url = compute_base_url(force_tls, force_no_tls, host, port, default_port=None)
+    state["coordinator_url"] = coordinator_url
+
+
+@app.command("list", help="List organizations you belong to")
+def org_list(
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """List all organizations the current user belongs to."""
@@ -60,7 +78,7 @@ def org_list(
     from rich.table import Table
 
     try:
-        coordinator_url = compute_base_url(force_tls, force_no_tls, host, port, default_port=None)
+        coordinator_url = state["coordinator_url"]
         orgs = fetch_organizations(coordinator_url)
 
         if not orgs:
@@ -94,28 +112,6 @@ def org_list(
 @app.command("set", help="Set the active organization")
 def org_set(
     org_id: str = typer.Argument(..., help="Organization ID to set as active"),
-    host: str = typer.Option(
-        PROD_COORDINATOR_HOST,
-        "--host",
-        "-h",
-        help="The Arcade Coordinator host.",
-    ),
-    port: int = typer.Option(
-        None,
-        "--port",
-        "-p",
-        help="The port of the Arcade Coordinator host.",
-    ),
-    force_tls: bool = typer.Option(
-        False,
-        "--tls",
-        help="Whether to force TLS for the connection to Arcade Coordinator.",
-    ),
-    force_no_tls: bool = typer.Option(
-        False,
-        "--no-tls",
-        help="Whether to disable TLS for the connection to Arcade Coordinator.",
-    ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """Set the active organization and reset project to its default."""
@@ -123,7 +119,7 @@ def org_set(
     from arcade_core.config_model import Config, ContextConfig
 
     try:
-        coordinator_url = compute_base_url(force_tls, force_no_tls, host, port, default_port=None)
+        coordinator_url = state["coordinator_url"]
 
         # Verify org exists and user has access
         orgs = fetch_organizations(coordinator_url)
