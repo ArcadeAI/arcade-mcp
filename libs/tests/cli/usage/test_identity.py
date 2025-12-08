@@ -253,6 +253,30 @@ class TestGetPrincipalId:
 
         assert principal_id is None
 
+    @patch("httpx.get")
+    def test_returns_account_id_from_oauth_whoami(
+        self, mock_get: MagicMock, identity: UsageIdentity, temp_config_path: Path
+    ) -> None:
+        """Test that get_principal_id returns account_id using OAuth access token."""
+        credentials_file = temp_config_path / "credentials.yaml"
+        credentials_file.write_text(
+            yaml.dump({"cloud": {"auth": {"access_token": "oauth-token", "refresh_token": "x"}}})
+        )
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"data": {"account_id": "acct-123"}}
+        mock_get.return_value = mock_response
+
+        principal_id = identity.get_principal_id()
+
+        assert principal_id == "acct-123"
+        mock_get.assert_called_once_with(
+            "https://api.arcade.dev/api/v1/auth/whoami",
+            headers={"accept": "application/json", "Authorization": "Bearer oauth-token"},
+            timeout=2.0,
+        )
+
 
 class TestShouldAlias:
     """Tests for should_alias() method."""
