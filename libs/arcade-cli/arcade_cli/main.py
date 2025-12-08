@@ -2,8 +2,6 @@ import asyncio
 import os
 import subprocess
 import sys
-import threading
-import uuid
 import webbrowser
 from pathlib import Path
 from typing import Optional
@@ -16,8 +14,8 @@ from rich.text import Text
 from tqdm import tqdm
 
 from arcade_cli.authn import (
-    LocalAuthCallbackServer,
     OAuthLoginError,
+    _credentials_file_contains_legacy,
     build_coordinator_url,
     check_existing_login,
     perform_oauth_login,
@@ -96,12 +94,6 @@ def login(
         help="The port of the Arcade Coordinator host (if running locally).",
     ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
-    legacy: bool = typer.Option(
-        False,
-        "--legacy",
-        help="Use legacy API key login flow (deprecated).",
-        hidden=True,
-    ),
 ) -> None:
     """
     Logs the user into Arcade using OAuth.
@@ -113,11 +105,6 @@ def login(
         return
 
     coordinator_url = build_coordinator_url(host, port)
-
-    # Legacy flow (deprecated, hidden option for backwards compatibility)
-    if legacy:
-        _login_legacy(host, port, debug)
-        return
 
     try:
         result = perform_oauth_login(
@@ -148,35 +135,6 @@ def login(
         console.print("\nLogin cancelled.", style="yellow")
     except Exception as e:
         handle_cli_error("Login failed", e, debug)
-
-
-def _login_legacy(host: str, port: Optional[int], debug: bool) -> None:
-    """Legacy API key login flow (deprecated)."""
-    from arcade_cli.utils import compute_login_url
-
-    state = str(uuid.uuid4())
-    auth_server = LocalAuthCallbackServer(state)
-    server_thread = threading.Thread(target=auth_server.run_server)
-    server_thread.start()
-
-    try:
-        login_url = compute_login_url(host, state, port, None)
-
-        console.print("Opening a browser to log you in (legacy mode)...")
-        if not webbrowser.open(login_url):
-            console.print(
-                f"If a browser doesn't open automatically, copy this URL and paste it into your browser: {login_url}",
-                style="dim",
-            )
-
-        server_thread.join()
-    except KeyboardInterrupt:
-        auth_server.shutdown_server()
-    except Exception as e:
-        handle_cli_error("Login failed", e, debug)
-    finally:
-        if server_thread.is_alive():
-            server_thread.join()
 
 
 @cli.command(help="Log out of Arcade", rich_help_panel="User")
@@ -213,16 +171,6 @@ def whoami(
         return
     except Exception as e:
         handle_cli_error("Failed to read credentials", e, debug)
-        return
-
-    if config.is_legacy_format():
-        email = config.user.email if config.user else "unknown"
-        console.print(f"Logged in as: {email}", style="bold green")
-        console.print(
-            "\n⚠️  Your credentials use an older format. "
-            "Run 'arcade logout' then 'arcade login' to update.",
-            style="bold yellow",
-        )
         return
 
     if not config.auth:
@@ -858,6 +806,23 @@ def main_callback(
     }
     if ctx.invoked_subcommand in public_commands:
         return
+
+    if _credentials_file_contains_legacy():
+        console.print(
+            "\nYour credentials are from an older CLI version and are no longer supported.",
+            style="bold yellow",
+        )
+        console.print(
+            "Run `arcade logout` to remove the old credentials, "
+            "then run `arcade login` to sign back in.",
+            style="bold yellow",
+        )
+        console.print(
+            "\nNote: `arcade logout` will delete your API key from ~/.arcade/credentials.yaml. "
+            "If you need to preserve it, copy it before logging out.",
+            style="bold yellow",
+        )
+        handle_cli_error("Legacy credentials detected. Please re-authenticate.")
 
     if not check_existing_login(suppress_message=True):
         handle_cli_error("Not logged in to Arcade CLI. Use `arcade login` to log in.")

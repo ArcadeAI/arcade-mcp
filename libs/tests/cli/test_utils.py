@@ -1,5 +1,5 @@
 import pytest
-from arcade_cli.utils import Provider, compute_base_url, compute_login_url, resolve_provider_api_key
+from arcade_cli.utils import Provider, compute_base_url, resolve_provider_api_key
 
 DEFAULT_CLOUD_HOST = "cloud.arcade.dev"
 DEFAULT_ENGINE_HOST = "api.arcade.dev"
@@ -197,48 +197,6 @@ def test_compute_base_url(inputs: dict, expected_output: str):
 
 @pytest.mark.parametrize(
     "inputs, expected_output",
-    [
-        pytest.param(
-            {"host_input": DEFAULT_CLOUD_HOST, "port_input": DEFAULT_PORT, "state": "123"},
-            "https://cloud.arcade.dev/api/v1/auth/cli_login?callback_uri=http%3A%2F%2Flocalhost%3A9905%2Fcallback&state=123",
-            id="default",
-        ),
-        pytest.param(
-            {"host_input": "localhost", "port_input": 9099, "state": "123"},
-            "http://localhost:9099/api/v1/auth/cli_login?callback_uri=http%3A%2F%2Flocalhost%3A9905%2Fcallback&state=123",
-            id="localhost with custom port",
-        ),
-        pytest.param(
-            {"host_input": "localhost", "port_input": DEFAULT_PORT, "state": "123"},
-            "http://localhost:8000/api/v1/auth/cli_login?callback_uri=http%3A%2F%2Flocalhost%3A9905%2Fcallback&state=123",
-            id="localhost",
-        ),
-        pytest.param(
-            {"host_input": DEFAULT_CLOUD_HOST, "port_input": 8000, "state": "123"},
-            "https://cloud.arcade.dev/api/v1/auth/cli_login?callback_uri=http%3A%2F%2Flocalhost%3A9905%2Fcallback&state=123",
-            id="cloud host with an ignored custom port",
-        ),
-        pytest.param(
-            {
-                "host_input": DEFAULT_CLOUD_HOST,
-                "port_input": DEFAULT_PORT,
-                "state": "123",
-                "callback_host": "other-host.com/123",
-            },
-            "https://cloud.arcade.dev/api/v1/auth/cli_login?callback_uri=http%3A%2F%2Fother-host.com%2F123%2Fcallback&state=123",
-            id="cloud host with a custom callback host",
-        ),
-    ],
-)
-def test_compute_login_url(inputs: dict, expected_output: str):
-    callback_host = inputs.get("callback_host")
-    login_url = compute_login_url(
-        inputs["host_input"], inputs["state"], inputs["port_input"], callback_host
-    )
-
-    assert login_url == expected_output
-
-
 def test_resolve_provider_api_key(monkeypatch):
     resolved_api_key = resolve_provider_api_key(Provider.OPENAI, "123")
     assert resolved_api_key == "123"

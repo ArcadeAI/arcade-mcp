@@ -11,21 +11,6 @@ class BaseConfig(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
 
-class ApiConfig(BaseConfig):
-    """
-    Legacy Arcade API configuration (deprecated).
-    """
-
-    key: str
-    """
-    Arcade API key.
-    """
-    version: str = "v1"
-    """
-    Arcade API version.
-    """
-
-
 class AuthConfig(BaseConfig):
     """
     OAuth authentication configuration.
@@ -82,11 +67,8 @@ class ContextConfig(BaseConfig):
 class Config(BaseConfig):
     """
     Configuration for Arcade CLI.
-
-    Supports both new OAuth-based auth (auth + context) and legacy API key auth.
     """
 
-    # New OAuth-based authentication
     auth: AuthConfig | None = None
     """
     OAuth authentication configuration.
@@ -104,20 +86,8 @@ class Config(BaseConfig):
     Arcade user configuration.
     """
 
-    # Legacy API key (deprecated, kept for backwards compatibility detection)
-    api: ApiConfig | None = None
-    """
-    Legacy Arcade API configuration (deprecated).
-    """
-
     def __init__(self, **data: Any):
         super().__init__(**data)
-
-    def is_legacy_format(self) -> bool:
-        """
-        Check if this config uses the legacy API key format.
-        """
-        return self.api is not None and self.auth is None
 
     def is_authenticated(self) -> bool:
         """

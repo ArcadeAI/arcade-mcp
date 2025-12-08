@@ -215,26 +215,26 @@ class MCPServer:
         self._handlers = self._register_handlers()
 
     def _load_config_values(self) -> tuple[str | None, str | None]:
-        """Load API key and user_id from credentials file.
+        """Load access token and user_id from credentials file.
 
         Returns:
-            Tuple of (api_key, user_id) from credentials file, or (None, None) if not available
+            Tuple of (access_token, user_id) from credentials file, or (None, None) if not available
         """
         try:
             from arcade_core.config import config
 
-            api_key = config.api.key if config.api else None
+            access_token = config.auth.access_token if config.auth else None
             user_id = config.user.email if config.user else None
 
-            if api_key or user_id:
+            if access_token or user_id:
                 config_path = config.get_config_file_path()
-                if api_key:
-                    logger.info(f"Loaded Arcade API key from {config_path}")
+                if access_token:
+                    logger.info(f"Loaded Arcade access token from {config_path}")
                 if user_id:
                     logger.debug(f"Loaded user_id '{user_id}' from {config_path}")
-                return api_key, user_id
+                return access_token, user_id
             else:
-                logger.debug("No API key or user_id found in credentials file")
+                logger.debug("No access token or user_id found in credentials file")
                 return None, None
         except Exception as e:
             logger.debug(f"Could not load values from credentials file: {e}")
@@ -259,7 +259,7 @@ class MCPServer:
             self.arcade = AsyncArcade(api_key=final_api_key, base_url=api_url)
         else:
             logger.warning(
-                "Arcade API key not configured. Tools requiring auth will return a login instruction."
+                "Arcade access token not configured. Tools requiring auth will return a login instruction."
             )
 
     def _init_middleware(self, custom_middleware: list[Middleware] | None) -> None:

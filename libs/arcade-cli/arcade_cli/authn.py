@@ -500,12 +500,6 @@ def get_valid_access_token(coordinator_url: str = f"https://{PROD_COORDINATOR_HO
     except FileNotFoundError:
         raise ValueError("Not logged in. Please run 'arcade login' first.")
 
-    if config.is_legacy_format():
-        raise ValueError(
-            "Your credentials are from an older CLI version. "
-            "Please run 'arcade logout' then 'arcade login' to update."
-        )
-
     if not config.auth:
         raise ValueError("Not logged in. Please run 'arcade login' first.")
 
@@ -547,12 +541,6 @@ def get_active_context() -> tuple[str, str]:
         config = Config.load_from_file()
     except FileNotFoundError:
         raise ValueError("Not logged in. Please run 'arcade login' first.")
-
-    if config.is_legacy_format():
-        raise ValueError(
-            "Your credentials are from an older CLI version. "
-            "Please run 'arcade logout' then 'arcade login' to update."
-        )
 
     if not config.context:
         raise ValueError("No active organization/project. Please run 'arcade login' first.")
@@ -725,102 +713,17 @@ def perform_oauth_login(
     return OAuthLoginResult(tokens=tokens, whoami=whoami)
 
 
-# =============================================================================
-# Legacy support (for backwards compatibility during transition)
-# =============================================================================
-
-
-class LoginCallbackHandler(BaseHTTPRequestHandler):
-    """Legacy callback handler for API key-based login (deprecated)."""
-
-    def __init__(self, *args, state: str, **kwargs):  # type: ignore[no-untyped-def]
-        self.state = state
-        super().__init__(*args, **kwargs)
-
-    def log_message(self, format: str, *args: Any) -> None:  # noqa: A002
-        pass
-
-    def _parse_login_response(self) -> tuple[str, str, str] | None:
-        query_string = self.path.split("?", 1)[-1]
-        params = parse_qs(query_string)
-        returned_state = params.get("state", [None])[0]
-
-        if returned_state != self.state:
-            console.print(
-                "❌ Login failed: Invalid login attempt. Please try again.", style="bold red"
-            )
-            return None
-
-        api_key = params.get("api_key", [None])[0] or ""
-        email = params.get("email", [None])[0] or ""
-        warning = params.get("warning", [None])[0] or ""
-
-        return api_key, email, warning
-
-    def _handle_login_response(self) -> bool:
-        result = self._parse_login_response()
-        if result is None:
-            return False
-        api_key, email, warning = result
-
-        if warning:
-            console.print(warning, style="bold yellow")
-
-        if not api_key or not email:
-            console.print(
-                "❌ Login failed: No credentials received. Please try again.", style="bold red"
-            )
-            return False
-
-        if not os.path.exists(ARCADE_CONFIG_PATH):
-            os.makedirs(ARCADE_CONFIG_PATH, exist_ok=True)
-
-        new_config = {"cloud": {"api": {"key": api_key}, "user": {"email": email}}}
-        with open(CREDENTIALS_FILE_PATH, "w") as f:
-            yaml.dump(new_config, f)
-
-        console.print(
-            f"""✅ Hi there, {email}!
-
-Your Arcade API key is: {api_key}
-Stored in: {CREDENTIALS_FILE_PATH}""",
-            style="bold green",
-        )
-        return True
-
-    def do_GET(self) -> None:
-        success = self._handle_login_response()
-        if success:
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.end_headers()
-            self.wfile.write(_render_template("cli_login_success.jinja"))
-        else:
-            self.send_response(400)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.end_headers()
-            self.wfile.write(_render_template("cli_login_failed.jinja"))
-
-        threading.Thread(target=self.server.shutdown).start()
-
-
-class LocalAuthCallbackServer:
-    """Legacy callback server for API key-based login (deprecated)."""
-
-    def __init__(self, state: str, port: int = 9905):
-        self.state = state
-        self.port = port
-        self.httpd: HTTPServer | None = None
-
-    def run_server(self) -> None:
-        server_address = ("", self.port)
-        handler = lambda *args, **kwargs: LoginCallbackHandler(*args, state=self.state, **kwargs)
-        self.httpd = HTTPServer(server_address, handler)
-        self.httpd.serve_forever()
-
-    def shutdown_server(self) -> None:
-        if self.httpd:
-            self.httpd.shutdown()
+def _credentials_file_contains_legacy() -> bool:
+    """
+    Detect legacy (API key) credentials in the credentials file.
+    """
+    try:
+        with open(CREDENTIALS_FILE_PATH) as f:
+            data = yaml.safe_load(f) or {}
+            cloud = data.get("cloud", {})
+            return isinstance(cloud, dict) and "api" in cloud
+    except Exception:
+        return False
 
 
 def check_existing_login(suppress_message: bool = False) -> bool:
@@ -840,10 +743,10 @@ def check_existing_login(suppress_message: bool = False) -> bool:
         with open(CREDENTIALS_FILE_PATH) as f:
             config_data: dict[str, Any] = yaml.safe_load(f)
 
-        cloud_config = config_data.get("cloud", {})
+        cloud_config = config_data.get("cloud", {}) if isinstance(config_data, dict) else {}
 
-        # Check for new OAuth format
-        if "auth" in cloud_config and cloud_config["auth"].get("access_token"):
+        auth = cloud_config.get("auth", {})
+        if auth.get("access_token"):
             email = cloud_config.get("user", {}).get("email", "unknown")
             context = cloud_config.get("context", {})
             org_name = context.get("org_name", "unknown")
@@ -852,20 +755,6 @@ def check_existing_login(suppress_message: bool = False) -> bool:
             if not suppress_message:
                 console.print(f"You're already logged in as {email}.", style="bold green")
                 console.print(f"Active: {org_name} / {project_name}", style="dim")
-            return True
-
-        # Check for legacy API key format
-        api_key = cloud_config.get("api", {}).get("key")
-        email = cloud_config.get("user", {}).get("email")
-
-        if api_key and email:
-            if not suppress_message:
-                console.print(f"You're already logged in as {email}.", style="bold green")
-                console.print(
-                    "\n⚠️  Your credentials use an older format. "
-                    "Run 'arcade logout' then 'arcade login' to update.",
-                    style="bold yellow",
-                )
             return True
 
     except yaml.YAMLError:
