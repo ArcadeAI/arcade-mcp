@@ -453,8 +453,7 @@ def save_credentials_from_whoami(
         whoami: Response from /whoami endpoint with user and orgs/projects
     """
     # Ensure config directory exists
-    if not os.path.exists(ARCADE_CONFIG_PATH):
-        os.makedirs(ARCADE_CONFIG_PATH, exist_ok=True)
+    os.makedirs(ARCADE_CONFIG_PATH, exist_ok=True)
 
     expires_at = datetime.now() + timedelta(seconds=tokens.expires_in)
 
