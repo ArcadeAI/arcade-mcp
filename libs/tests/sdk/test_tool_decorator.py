@@ -3,7 +3,7 @@ import asyncio
 import pytest
 from arcade_core.auth import AuthProviderType, Google
 from arcade_tdk import tool
-from arcade_tdk.auth import OAuth2
+from arcade_tdk.auth import OAuth2, PagerDuty
 
 
 def test_sync_function():
@@ -49,6 +49,13 @@ async def test_async_function():
             {"id": "my_google_provider123", "scopes": ["test_scope", "another.scope"]},
             "google",
             "my_google_provider123",
+        ),
+        (PagerDuty, {"scopes": ["test_scope", "another.scope"]}, "pagerduty", None),
+        (
+            PagerDuty,
+            {"id": "my_pagerduty_provider123", "scopes": ["test_scope", "another.scope"]},
+            "pagerduty",
+            "my_pagerduty_provider123",
         ),
     ],
 )
@@ -96,6 +103,21 @@ def test_tool_decorator_with_auth_success(
         ),
         (
             Google,
+            {
+                "provider_id": "my_example_provider_id_123",
+                "id": "my_example_id_123",
+                "scopes": ["test_scope", "another.scope"],
+            },
+        ),
+        (
+            PagerDuty,
+            {
+                "provider_id": "my_example_provider_id_123",
+                "scopes": ["test_scope", "another.scope"],
+            },
+        ),
+        (
+            PagerDuty,
             {
                 "provider_id": "my_example_provider_id_123",
                 "id": "my_example_id_123",

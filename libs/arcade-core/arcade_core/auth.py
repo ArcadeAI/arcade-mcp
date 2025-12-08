@@ -150,6 +150,15 @@ class Notion(OAuth2):
         super().__init__(id=id, scopes=scopes)
 
 
+class PagerDuty(OAuth2):
+    """Marks a tool as requiring PagerDuty authorization."""
+
+    provider_id: str = "pagerduty"
+
+    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
+        super().__init__(id=id, scopes=scopes)
+
+
 class Reddit(OAuth2):
     """Marks a tool as requiring Reddit authorization."""
 

@@ -19,7 +19,7 @@ from arcade_core.schema import (
 from arcade_core.utils import snake_to_pascal_case
 from arcade_tdk import tool
 from arcade_tdk.annotations import Inferrable
-from arcade_tdk.auth import Figma, GitHub, Google, OAuth2, Slack, X
+from arcade_tdk.auth import Figma, GitHub, Google, OAuth2, PagerDuty, Slack, X
 
 
 ### Tests on @tool decorator
@@ -156,6 +156,17 @@ def func_with_slack_user_auth_requirement():
     ),
 )
 def func_with_x_requirement():
+    pass
+
+
+@tool(
+    desc="A function that requires PagerDuty authorization",
+    requires_auth=PagerDuty(
+        id="my_pagerduty_provider123",
+        scopes=["read", "write"],
+    ),
+)
+def func_with_pagerduty_auth_requirement():
     pass
 
 
@@ -506,6 +517,22 @@ def func_with_complex_return() -> dict[str, str]:
                     )
                 )
             },
+        ),
+        pytest.param(
+            func_with_pagerduty_auth_requirement,
+            {
+                "requirements": ToolRequirements(
+                    authorization=ToolAuthRequirement(
+                        provider_id="pagerduty",
+                        provider_type="oauth2",
+                        id="my_pagerduty_provider123",
+                        oauth2=OAuth2Requirement(
+                            scopes=["read", "write"],
+                        ),
+                    )
+                )
+            },
+            id="func_with_pagerduty_auth_requirement",
         ),
         # Tests on input params
         pytest.param(
