@@ -195,8 +195,6 @@ def test_compute_base_url(inputs: dict, expected_output: str):
     assert base_url == expected_output
 
 
-@pytest.mark.parametrize(
-    "inputs, expected_output",
 def test_resolve_provider_api_key(monkeypatch):
     resolved_api_key = resolve_provider_api_key(Provider.OPENAI, "123")
     assert resolved_api_key == "123"
