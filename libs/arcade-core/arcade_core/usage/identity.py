@@ -148,12 +148,17 @@ class UsageIdentity:
 
             cloud_config = config.get("cloud", {}) if isinstance(config, dict) else {}
 
+            # Determine coordinator/authority URL for auth calls
+            coordinator_url = cloud_config.get("coordinator_url") or "https://cloud.arcade.dev"
+            whoami_url = f"{coordinator_url}/api/v1/auth/whoami"
+            validate_url = f"{coordinator_url}/api/v1/auth/validate"
+
             # OAuth credentials: use access_token to call /whoami
             auth_config = cloud_config.get("auth", {}) if isinstance(cloud_config, dict) else {}
             access_token = auth_config.get("access_token")
             if access_token:
                 response = httpx.get(
-                    "https://api.arcade.dev/api/v1/auth/whoami",
+                    whoami_url,
                     headers={
                         "accept": "application/json",
                         "Authorization": f"Bearer {access_token}",
@@ -172,7 +177,7 @@ class UsageIdentity:
             )
             if api_key:
                 response = httpx.get(
-                    "https://cloud.arcade.dev/api/v1/auth/validate",
+                    validate_url,
                     headers={"accept": "application/json", "Authorization": f"Bearer {api_key}"},
                     timeout=TIMEOUT_ARCADE_API,
                 )
