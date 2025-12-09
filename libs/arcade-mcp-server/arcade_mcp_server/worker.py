@@ -382,7 +382,6 @@ def serve_with_force_quit() -> None:
 
 
 def run_arcade_mcp(
-    catalog: ToolCatalog,
     host: str = "127.0.0.1",
     port: int = 8000,
     reload: bool = False,
@@ -465,5 +464,5 @@ def run_arcade_mcp(
             log_level=log_level,
             reload=reload,
             lifespan="on",
-            workers=12,
+            workers=1,
         )

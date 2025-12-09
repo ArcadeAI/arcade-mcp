@@ -328,7 +328,6 @@ Auto-discovery looks for Python files with @tool decorated functions in:
             from arcade_mcp_server.worker import run_arcade_mcp
 
             run_arcade_mcp(
-                catalog=catalog,
                 host=args.host,
                 port=args.port,
                 reload=args.reload,
