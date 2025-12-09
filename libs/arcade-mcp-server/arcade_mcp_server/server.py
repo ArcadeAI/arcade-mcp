@@ -234,7 +234,9 @@ class MCPServer:
                     logger.debug(f"Loaded user_id '{user_id}' from {config_path}")
                 return access_token, user_id
             else:
-                logger.debug("No access token or user_id found in credentials file")
+                logger.debug(
+                    "No access token or user_id found in credentials file. If this is unexpected, run 'arcade login' to authenticate."
+                )
                 return None, None
         except Exception as e:
             logger.debug(f"Could not load values from credentials file: {e}")
