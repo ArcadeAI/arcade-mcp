@@ -1,4 +1,5 @@
 from typing import Annotated
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from arcade_core.schema import ToolCallRequest, ToolContext, ToolReference
@@ -6,6 +7,7 @@ from arcade_serve.fastapi.worker import FastAPIWorker
 from arcade_tdk import tool
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from starlette.requests import ClientDisconnect
 
 
 @tool()
@@ -164,3 +166,15 @@ def test_call_tool_route_tool_not_found(client_no_auth, call_tool_payload):
         # Ideally, this might be a 404 or 400, but BaseWorker.call_tool raises ValueError
         # which isn't automatically mapped to a 4xx by FastAPI unless handled explicitly.
         # TODO fix this.
+
+
+def test_client_disconnect_returns_499(client_no_auth, call_tool_payload):
+    """Test that ClientDisconnect during body read returns HTTP 499."""
+    # Mock request.body() to raise ClientDisconnect
+    with patch("starlette.requests.Request.body", new_callable=AsyncMock) as mock_body:
+        mock_body.side_effect = ClientDisconnect()
+
+        response = client_no_auth.post("/worker/tools/invoke", json=call_tool_payload)
+
+        # Verify that we get a 499 status code
+        assert response.status_code == 499
