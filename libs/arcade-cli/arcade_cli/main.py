@@ -113,7 +113,7 @@ def login(
         )
 
         # Save credentials
-        save_credentials_from_whoami(result.tokens, result.whoami)
+        save_credentials_from_whoami(result.tokens, result.whoami, coordinator_url)
 
         # Success message
         console.print(f"\n✅ Logged in as {result.email}.", style="bold green")

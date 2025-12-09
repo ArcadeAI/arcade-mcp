@@ -107,7 +107,7 @@ def _get_deployment_status(engine_url: str, server_name: str) -> str:
         Possible values are: "pending", "updating", "unknown", "running", "failed".
     """
     url = get_org_scoped_url(engine_url, f"/deployments/{server_name}/status")
-    client = httpx.Client(headers=get_auth_headers(engine_url), timeout=360)
+    client = httpx.Client(headers=get_auth_headers(), timeout=360)
     response = client.get(url)
     response.raise_for_status()
     status = cast(str, response.json().get("status", "unknown"))
@@ -145,7 +145,7 @@ async def _stream_deployment_logs_to_deque(
 
     while state["status"] in ["pending", "unknown", "updating"]:
         try:
-            auth_headers = get_auth_headers(engine_url)
+            auth_headers = get_auth_headers()
             async with (
                 httpx.AsyncClient(timeout=None) as client,  # noqa: S113 - expected indefinite log stream
                 client.stream("GET", stream_url, headers=auth_headers) as response,
@@ -282,7 +282,7 @@ async def _monitor_deployment_with_logs(
 def server_already_exists(engine_url: str, server_name: str) -> bool:
     """Check if a server already exists in the Arcade Engine."""
     url = get_org_scoped_url(engine_url, f"/workers/{server_name}")
-    client = httpx.Client(headers=get_auth_headers(engine_url))
+    client = httpx.Client(headers=get_auth_headers())
     response = client.get(url)
     if response.status_code == 404:
         return False
@@ -299,7 +299,7 @@ def update_deployment(
 ) -> None:
     """Update a deployment in the Arcade Engine."""
     url = get_org_scoped_url(engine_url, f"/deployments/{server_name}")
-    client = httpx.Client(headers=get_auth_headers(engine_url))
+    client = httpx.Client(headers=get_auth_headers())
     response = client.put(url, json=update_deployment_request)
     response.raise_for_status()
 
@@ -607,7 +607,7 @@ def upsert_secrets_to_engine(
     if not secrets:
         return
 
-    client = httpx.Client(headers=get_auth_headers(engine_url))
+    client = httpx.Client(headers=get_auth_headers())
 
     for secret_key in sorted(secrets):
         secret_value = os.getenv(secret_key)
@@ -668,7 +668,7 @@ def deploy_server_to_engine(
         httpx.ConnectError: If connection to the engine fails
     """
     url = get_org_scoped_url(engine_url, "/deployments")
-    client = httpx.Client(headers=get_auth_headers(engine_url), timeout=360)
+    client = httpx.Client(headers=get_auth_headers(), timeout=360)
 
     try:
         response = client.post(url, json=deployment_request)

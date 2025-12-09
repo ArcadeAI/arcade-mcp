@@ -441,6 +441,7 @@ class OAuthCallbackServer:
 def save_credentials_from_whoami(
     tokens: TokenResponse,
     whoami: WhoAmIResponse,
+    coordinator_url: str,
 ) -> None:
     """
     Save OAuth credentials to the config file using WhoAmI response.
@@ -470,6 +471,7 @@ def save_credentials_from_whoami(
         )
 
     config = Config(
+        coordinator_url=coordinator_url,
         auth=AuthConfig(
             access_token=tokens.access_token,
             refresh_token=tokens.refresh_token,
@@ -482,7 +484,7 @@ def save_credentials_from_whoami(
     config.save_to_file()
 
 
-def get_valid_access_token(coordinator_url: str = f"https://{PROD_COORDINATOR_HOST}") -> str:
+def get_valid_access_token(coordinator_url: str | None = None) -> str:
     """
     Get a valid access token, refreshing if necessary.
 
@@ -500,13 +502,19 @@ def get_valid_access_token(coordinator_url: str = f"https://{PROD_COORDINATOR_HO
     except FileNotFoundError:
         raise ValueError("Not logged in. Please run 'arcade login' first.")
 
+    resolved_coordinator_url = (
+        coordinator_url
+        or (config.coordinator_url if config.coordinator_url else None)
+        or f"https://{PROD_COORDINATOR_HOST}"
+    )
+
     if not config.auth:
         raise ValueError("Not logged in. Please run 'arcade login' first.")
 
     # Check if token needs refresh
     if config.is_token_expired():
         # Fetch CLI config to get authority URL
-        cli_config = fetch_cli_config(coordinator_url)
+        cli_config = fetch_cli_config(resolved_coordinator_url)
 
         try:
             new_tokens = refresh_access_token(cli_config, config.auth.refresh_token)
@@ -517,6 +525,7 @@ def get_valid_access_token(coordinator_url: str = f"https://{PROD_COORDINATOR_HO
 
         # Update stored credentials
         expires_at = datetime.now() + timedelta(seconds=new_tokens.expires_in)
+        config.coordinator_url = resolved_coordinator_url
         config.auth.access_token = new_tokens.access_token
         config.auth.refresh_token = new_tokens.refresh_token
         config.auth.expires_at = expires_at

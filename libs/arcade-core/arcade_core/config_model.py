@@ -69,6 +69,11 @@ class Config(BaseConfig):
     Configuration for Arcade CLI.
     """
 
+    coordinator_url: str | None = None
+    """
+    Base URL of the Arcade Coordinator used for authentication flows.
+    """
+
     auth: AuthConfig | None = None
     """
     OAuth authentication configuration.

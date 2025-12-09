@@ -444,12 +444,15 @@ def get_auth_headers(coordinator_url: str | None = None) -> dict[str, str]:
     from arcade_cli.authn import get_valid_access_token
     from arcade_cli.constants import PROD_COORDINATOR_HOST
 
-    validate_and_get_config()
-    if coordinator_url is None:
-        coordinator_url = f"https://{PROD_COORDINATOR_HOST}"
+    config = validate_and_get_config()
+    resolved_coordinator_url = (
+        coordinator_url
+        or (getattr(config, "coordinator_url", None) or None)
+        or f"https://{PROD_COORDINATOR_HOST}"
+    )
 
     try:
-        access_token = get_valid_access_token(coordinator_url)
+        access_token = get_valid_access_token(resolved_coordinator_url)
     except ValueError as e:
         handle_cli_error(str(e))
         raise AssertionError("unreachable")  # handle_cli_error raises CLIError
@@ -551,7 +554,7 @@ def get_arcade_client(base_url: str) -> Arcade:
     # OAuth mode: need to rewrite URLs to include org/project scope
     from arcade_cli.authn import get_valid_access_token
 
-    access_token = get_valid_access_token(base_url)
+    access_token = get_valid_access_token()
 
     # Get org/project context for URL rewriting
     if not config.context or not config.context.org_id or not config.context.project_id:

@@ -284,7 +284,7 @@ def get_server_logs(
         help="Show debug information",
     ),
 ) -> None:
-    auth_headers = get_auth_headers(state["engine_url"])
+    auth_headers = get_auth_headers()
     headers = {**auth_headers, "Content-Type": "application/json"}
 
     # Set defaults based on whether we're following or not
