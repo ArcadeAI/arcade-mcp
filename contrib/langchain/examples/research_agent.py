@@ -147,20 +147,18 @@ def run_agent(manager: ToolManager, agent, user_id: str, query: str) -> None:
         "configurable": {
             "thread_id": "research-session",
             "user_id": user_id,
-        }
+        },
+        "recursion_limit": 50,
     }
     
     print(f"\n{'─' * 60}")
     print(f"📝 Query: {query}")
     print(f"{'─' * 60}\n")
     
-    doc_url = None
-    
     try:
-        # Use stream to show progress, with recursion_limit for deep agents
         for chunk in agent.stream(
             {"messages": [{"role": "user", "content": query}]},
-            config={**config, "recursion_limit": 50},
+            config=config,
             stream_mode="values",
         ):
             messages = chunk.get("messages", [])
@@ -169,60 +167,28 @@ def run_agent(manager: ToolManager, agent, user_id: str, query: str) -> None:
                 
             last_msg = messages[-1]
             
-            # Show tool execution
             if last_msg.type == "tool":
                 tool_name = getattr(last_msg, "name", "unknown")
-                content = str(last_msg.content) if hasattr(last_msg, "content") else ""
                 
-                # Skip internal task tools
+                # Skip internal planning tools
                 if tool_name in ("task", "delegate", "plan"):
-                    print(f"   📋 Planning: {content[:100]}...")
                     continue
                 
-                print(f"   🔧 Tool: {tool_name}")
-                
-                # Extract and show document URLs
-                if "documentUrl" in content or "docs.google.com" in content:
-                    try:
-                        import json
-                        # Handle both dict string and actual dict
-                        if isinstance(content, str):
-                            data = json.loads(content.replace("'", '"'))
-                        else:
-                            data = content
-                        if "documentUrl" in data:
-                            doc_url = data["documentUrl"]
-                            print(f"   📄 Document: {doc_url}")
-                    except:
-                        print(f"   📄 Result: {content[:200]}")
-                elif "error" in content.lower():
-                    print(f"   ⚠️  {content[:200]}")
-                else:
-                    preview = content[:150] + "..." if len(content) > 150 else content
-                    print(f"   ✓ {preview}")
-                print()
+                # Simple status indicator
+                content = str(getattr(last_msg, "content", ""))
+                status = "⚠️" if "error" in content.lower() else "✓"
+                print(f"   {status} {tool_name}")
             
-            # Show final AI response (not tool calls)
-            elif last_msg.type == "ai":
-                if hasattr(last_msg, "content") and last_msg.content:
-                    if not getattr(last_msg, "tool_calls", None):
-                        print(f"🤖 Agent: {last_msg.content}\n")
-        
-        # Summary
-        if doc_url:
-            print(f"{'─' * 60}")
-            print(f"✅ Report created: {doc_url}")
-            print(f"{'─' * 60}\n")
+            elif last_msg.type == "ai" and not getattr(last_msg, "tool_calls", None):
+                content = getattr(last_msg, "content", "")
+                if content:
+                    print(f"\n🤖 Agent: {content}\n")
                     
     except Exception as e:
-        error_str = str(e)
-        if "authorization" in error_str.lower():
-            print(f"\n🔐 Authorization needed: {error_str[:200]}")
-            print("   Please complete OAuth authorization and retry.\n")
+        if "authorization" in str(e).lower():
+            print(f"\n🔐 Authorization needed. Please complete OAuth and retry.\n")
         else:
             print(f"\n❌ Error: {e}\n")
-            import traceback
-            traceback.print_exc()
 
 
 def interactive_mode(manager: ToolManager, agent, user_id: str, recipient_email: str) -> None:
