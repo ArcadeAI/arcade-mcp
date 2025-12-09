@@ -4,6 +4,8 @@ from typing import Any, Callable
 from fastapi import Depends, FastAPI, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from opentelemetry.metrics import Meter
+from starlette.requests import ClientDisconnect
+from starlette.responses import Response
 from starlette.routing import Mount
 
 from arcade_serve.core.base import (
@@ -96,7 +98,13 @@ class FastAPIRouter(Router):
             if use_auth_for_route
             else None,
         ) -> Any:
-            body_str = await request.body()
+            try:
+                body_str = await request.body()
+            except ClientDisconnect:
+                # Client disconnected while reading request body (often due to large payloads)
+                # Return HTTP 499 (Client Closed Request)
+                return Response(status_code=499)
+
             body_json = json.loads(body_str) if body_str else {}
             request_data = RequestData(
                 path=request.url.path,
