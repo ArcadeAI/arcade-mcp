@@ -309,6 +309,10 @@ class MCPServer:
             await self._tool_manager.load_from_catalog(self._initial_catalog)
         except Exception:
             logger.exception("Failed to load tools from initial catalog")
+
+        # Check for missing secrets and log warnings (only when worker routes are disabled)
+        await self._check_and_warn_missing_secrets()
+
         await self._resource_manager.start()
         await self._prompt_manager.start()
         await self.lifespan_manager.startup()
@@ -655,6 +659,40 @@ class MCPServer:
             logger.debug("Context user_id set from session (non-dev env)")
 
         return tool_context
+
+    async def _check_and_warn_missing_secrets(self) -> None:
+        """
+        Check for missing tool secrets and log warnings.
+
+        This method is called during server startup to provide early feedback
+        about missing configuration. It only runs when worker routes are disabled
+        (when ARCADE_WORKER_SECRET is not set), as worker routes receive secrets
+        with tool execution information.
+        """
+        # Skip validation if worker routes are enabled
+        if self.settings.arcade.server_secret:
+            logger.debug("Skipping secret validation check - worker routes are enabled")
+            return
+
+        # Get all available secrets from settings and environment
+        available_secrets = set(self.settings.tool_secrets().keys()) | set(os.environ.keys())
+
+        # Check each tool for missing secrets
+        managed_tools = await self._tool_manager.registry.list()
+        for managed_tool in managed_tools:
+            tool = managed_tool["materialized"]
+            if tool.definition.requirements and tool.definition.requirements.secrets:
+                missing_secrets = []
+                for secret_requirement in tool.definition.requirements.secrets:
+                    if secret_requirement.key not in available_secrets:
+                        missing_secrets.append(secret_requirement.key)
+
+                if missing_secrets:
+                    secret_list = "', '".join(missing_secrets)
+                    tool_name = tool.definition.name
+                    logger.warning(
+                        f"Tool '{tool_name}' declares secret(s) '{secret_list}' which is/are not set. It will return an error if called."
+                    )
 
     async def _handle_call_tool(
         self,
