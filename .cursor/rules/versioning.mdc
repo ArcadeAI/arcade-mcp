@@ -1,0 +1,25 @@
+---
+description: Guidelines for library versioning
+alwaysApply: true
+---
+
+# Versioning
+This repository contains 5 libraries: arcade-core, arcade-tdk, arcade-serve, arcade-mcp-server, and arcade-mcp (CLI)
+
+## Dependency graph recap:
+1. arcade-core
+    - The base library
+2. arcade-tdk
+    - Depends on: arcade-core
+3. arcade-serve
+    - Depends on: arcade-core
+4. arcade-mcp-server
+    - Depends on: arcade-core, arcade-serve, arcade-tdk
+5. arcade-mcp
+    - Depends on: arcade-mcp-server, arcade-core
+    - Dev/optional deps: arcade-serve, arcade-tdk
+
+## Rules
+- ALWAYS use semver (semantic versioning)
+- ALWAYS increase the version of a library in pyproject.toml when a library's code is modified.
+- ALWAYS increase the minimum required version of dependencies if there is a breaking change between dependencies
