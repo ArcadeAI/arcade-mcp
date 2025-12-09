@@ -435,7 +435,8 @@ def evals(
     require_dependency(
         package_name="arcade_evals",
         command_name="evals",
-        install_command=r"pip install 'arcade-mcp\[evals]'",
+        uv_install_command=r"uv tool install 'arcade-mcp[evals]'",
+        pip_install_command=r"pip install 'arcade-mcp[evals]'",
     )
     # Although Evals does not depend on the TDK, some evaluations import the
     # ToolCatalog class from the TDK instead of from arcade_core, so we require
@@ -443,7 +444,8 @@ def evals(
     require_dependency(
         package_name="arcade_tdk",
         command_name="evals",
-        install_command=r"pip install arcade-tdk",
+        uv_install_command=r"uv pip install arcade-tdk",
+        pip_install_command=r"pip install arcade-tdk",
     )
 
     models_list = models.split(",")  # Use 'models_list' to avoid shadowing
