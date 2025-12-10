@@ -462,7 +462,18 @@ class MCPServer:
         ):
             return JSONRPCError(
                 id="null",
-                error={"code": -32600, "message": "Invalid request"},
+                error={
+                    "code": -32600,
+                    "message": (
+                        "✗ Invalid request\n\n"
+                        "  The request is not a valid JSON-RPC message.\n\n"
+                        "  To fix:\n"
+                        "  1. Ensure request has 'method' field\n"
+                        "  2. Verify JSON structure is correct\n"
+                        "  3. Check JSON-RPC 2.0 specification\n\n"
+                        '  Expected format: {"jsonrpc": "2.0", "method": "...", "params": {...}, "id": ...}'
+                    ),
+                },
             )
 
         method = message["method"]
@@ -489,7 +500,15 @@ class MCPServer:
                 id=str(msg_id or "null"),
                 error={
                     "code": -32600,
-                    "message": "Request not allowed before initialization",
+                    "message": (
+                        "✗ Not initialized\n\n"
+                        "  This request cannot be processed before the session is initialized.\n\n"
+                        "  To fix:\n"
+                        "  1. Send an 'initialize' request first\n"
+                        "  2. Wait for initialization to complete\n"
+                        "  3. Send 'notifications/initialized' notification\n\n"
+                        "  Only 'initialize' and 'ping' methods are allowed before initialization."
+                    ),
                 },
             )
 
@@ -498,7 +517,20 @@ class MCPServer:
         if not handler:
             return JSONRPCError(
                 id=str(msg_id or "null"),
-                error={"code": -32601, "message": f"Method not found: {method}"},
+                error={
+                    "code": -32601,
+                    "message": (
+                        f"✗ Method not found: {method}\n\n"
+                        f"  The requested method is not supported by this server.\n\n"
+                        f"  Supported methods:\n"
+                        f"    - initialize, ping\n"
+                        f"    - tools/list, tools/call\n"
+                        f"    - resources/list, resources/read, resources/templates/list\n"
+                        f"    - prompts/list, prompts/get\n"
+                        f"    - logging/setLevel\n\n"
+                        f"  Check the MCP specification for valid method names."
+                    ),
+                },
             )
 
         # Create context and apply middleware
@@ -555,7 +587,19 @@ class MCPServer:
             logger.exception("Error handling message")
             return JSONRPCError(
                 id=str(msg_id or "null"),
-                error={"code": -32603, "message": "Internal error"},
+                error={
+                    "code": -32603,
+                    "message": (
+                        "✗ Internal server error\n\n"
+                        "  An unexpected error occurred while processing the request.\n\n"
+                        "  To troubleshoot:\n"
+                        "  1. Check server logs for detailed error information\n"
+                        "  2. Verify the request parameters are valid\n"
+                        "  3. Try the request again\n"
+                        "  4. Contact support if the issue persists\n\n"
+                        "  The error has been logged for investigation."
+                    ),
+                },
             )
 
     def _parse_message(self, message: dict[str, Any], method: str) -> Any:
@@ -661,7 +705,18 @@ class MCPServer:
             logger.exception("Error listing tools")
             return JSONRPCError(
                 id=message.id,
-                error={"code": -32603, "message": "Internal error listing tools"},
+                error={
+                    "code": -32603,
+                    "message": (
+                        "✗ Failed to list tools\n\n"
+                        "  An error occurred while retrieving the tool list.\n\n"
+                        "  To troubleshoot:\n"
+                        "  1. Check server logs for details\n"
+                        "  2. Verify toolkits are properly loaded\n"
+                        "  3. Restart the server if needed\n\n"
+                        "  The error has been logged."
+                    ),
+                },
             )
 
     async def _create_tool_context(
@@ -827,7 +882,14 @@ class MCPServer:
                 )
         except NotFoundError:
             # Match test expectation: return a normal response with isError=True
-            error_message = f"Unknown tool: {tool_name}"
+            error_message = f"✗ Unknown tool: {tool_name}\n\n"
+            error_message += "  The requested tool does not exist or is not loaded.\n\n"
+            error_message += "  To fix:\n"
+            error_message += "  1. Check the tool name is correct\n"
+            error_message += "  2. List available tools with tools/list\n"
+            error_message += "  3. Ensure the server is properly installed\n\n"
+            error_message += "  Available tools can be found by calling the tools/list method."
+
             content = convert_to_mcp_content(error_message)
 
             # structuredContent should be the error as a JSON object
@@ -847,7 +909,19 @@ class MCPServer:
             self._tracker.track_tool_call(False, "internal error calling tool")
             return JSONRPCError(
                 id=message.id,
-                error={"code": -32603, "message": "Internal error calling tool"},
+                error={
+                    "code": -32603,
+                    "message": (
+                        "✗ Tool execution failed\n\n"
+                        "  An unexpected error occurred while executing the tool.\n\n"
+                        "  To troubleshoot:\n"
+                        "  1. Check server logs for detailed error information\n"
+                        "  2. Verify all required parameters are provided\n"
+                        "  3. Ensure required secrets/authorization are configured\n"
+                        "  4. Try the tool again\n\n"
+                        "  The error has been logged."
+                    ),
+                },
             )
 
     def _create_error_response(
@@ -881,13 +955,16 @@ class MCPServer:
                 requirements = tool.definition.requirements
                 if requirements and (requirements.authorization or requirements.secrets):
                     documentation_url = "https://docs.arcade.dev/en/home/compare-server-types"
+                    user_message = "✗ Unsupported transport\n\n"
+                    user_message += f"  Tool '{tool_name}' cannot run over HTTP transport for security reasons.\n"
+                    user_message += f"  This tool requires {'authorization' if requirements.authorization else 'secrets'}.\n\n"
+                    user_message += "  To fix:\n"
+                    user_message += "  1. Use STDIO transport instead of HTTP\n"
+                    user_message += f"  2. See documentation: {documentation_url}\n\n"
+                    user_message += "  HTTP transport doesn't support tools needing user authorization or secrets."
+
                     tool_response = {
-                        "message": (
-                            f"Tool '{tool_name}' cannot be executed over unauthenticated HTTP transport for security reasons. "
-                            "This tool requires end-user authorization or access to sensitive secrets.\n"
-                            "For more information about server capabilities and transport options, see: "
-                            f"{documentation_url}"
-                        ),
+                        "message": user_message,
                         "llm_instructions": (
                             f"Please show the following link to the end user formatted as markdown: [Compare Server Types]({documentation_url})\n"
                             "Inform the end user that the provided link contains documentation on how to configure the server to use the correct transport."
@@ -909,13 +986,24 @@ class MCPServer:
         if tool.definition.requirements and tool.definition.requirements.authorization:
             # First check if Arcade API key is configured
             if not self.arcade:
+                user_message = "✗ Missing Arcade API key\n\n"
+                user_message += (
+                    f"  Tool '{tool_name}' requires authorization but no API key is configured.\n\n"
+                )
+                user_message += "  To fix, either:\n"
+                user_message += "  1. Run arcade login:     arcade login\n"
+                user_message += "  2. Set environment var:  export ARCADE_API_KEY=your_key_here\n"
+                user_message += "  3. Add to .env file:     ARCADE_API_KEY=your_key_here\n\n"
+                user_message += "  Then restart the server."
+
                 tool_response = {
-                    "message": f"Tool '{tool_name}' cannot be executed because it requires authorization but no Arcade API key is configured.",
+                    "message": user_message,
                     "llm_instructions": (
                         f"The MCP server cannot execute the '{tool_name}' tool because it requires authorization "
                         "but the Arcade API key is not configured. The developer needs to: "
                         "1) Run 'arcade login' to authenticate, or "
                         "2) Set the ARCADE_API_KEY environment variable with a valid API key, or "
+                        "3) Add ARCADE_API_KEY to the .env file. "
                         "Once the API key is configured, restart the MCP server for the changes to take effect."
                     ),
                 }
@@ -925,8 +1013,18 @@ class MCPServer:
             try:
                 auth_result = await self._check_authorization(tool, tool_context.user_id)
                 if auth_result.status != "completed":
+                    user_message = "⚠ Authorization required\n\n"
+                    user_message += (
+                        f"  Tool '{tool_name}' needs your permission to access your account.\n\n"
+                    )
+                    user_message += "  To authorize:\n"
+                    user_message += f"  1. Click this link: {auth_result.url}\n"
+                    user_message += "  2. Grant the requested permissions\n"
+                    user_message += "  3. Return here and try again\n\n"
+                    user_message += "  This is a one-time setup for this tool."
+
                     tool_response = {
-                        "message": "The tool was not executed because it requires authorization. This is not an error, but the end user must click the link to complete the OAuth2 flow before the tool can be executed.",
+                        "message": user_message,
                         "llm_instructions": f"Please show the following link to the end user formatted as markdown: {auth_result.url} \nInform the end user that the tool requires their authorization to be completed before the tool can be executed.",
                         "authorization_url": auth_result.url,
                     }
@@ -940,9 +1038,18 @@ class MCPServer:
                 )
             except ToolRuntimeError as e:
                 # Handle any other authorization errors
+                user_message = "✗ Authorization error\n\n"
+                user_message += f"  Tool '{tool_name}' failed to authorize.\n\n"
+                user_message += f"  Error: {e}\n\n"
+                user_message += "  To fix:\n"
+                user_message += "  1. Check your API key is valid\n"
+                user_message += "  2. Verify you have necessary permissions\n"
+                user_message += "  3. Try running: arcade login\n\n"
+                user_message += "  Then restart the server."
+
                 tool_response = {
-                    "message": f"Tool '{tool_name}' cannot be executed due to an authorization error: {e}",
-                    "llm_instructions": f"The '{tool_name}' tool failed authorization. Error: {e}",
+                    "message": user_message,
+                    "llm_instructions": f"The '{tool_name}' tool failed authorization. Error: {e}. The developer should check their API key and permissions.",
                 }
                 return self._create_error_response(message, tool_response)
 
@@ -956,13 +1063,28 @@ class MCPServer:
                     missing_secrets.append(secret_requirement.key)
             if missing_secrets:
                 missing_secrets_str = ", ".join(missing_secrets)
+
+                # Create actionable error message
+                fix_instructions = "\n\n  To fix, either:\n"
+                fix_instructions += "  1. Add to .env file:\n"
+                for secret in missing_secrets:
+                    fix_instructions += f"       {secret}=your_value_here\n"
+                fix_instructions += "  2. Set environment variable:\n"
+                for secret in missing_secrets:
+                    fix_instructions += f"       export {secret}=your_value_here\n"
+                fix_instructions += "\n  Then restart the server."
+
+                user_message = f"✗ Missing {'secret' if len(missing_secrets) == 1 else 'secrets'}: {missing_secrets_str}\n\n"
+                user_message += f"  Tool '{tool_name}' requires {'this secret' if len(missing_secrets) == 1 else 'these secrets'} but {'it is' if len(missing_secrets) == 1 else 'they are'} not configured."
+                user_message += fix_instructions
+
                 tool_response = {
-                    "message": f"Tool '{tool_name}' cannot be executed because it requires the following secrets that are not available: {missing_secrets_str}",
+                    "message": user_message,
                     "llm_instructions": (
                         f"The MCP server is missing required secrets for the '{tool_name}' tool. "
-                        f"The developer needs to provide these secrets by either: "
-                        f"1) Adding them to a .env file in the server's working directory (e.g., {missing_secrets[0]}=your_secret_value), "
-                        f"2) Setting them as environment variables before starting the server (e.g., export {missing_secrets[0]}=your_secret_value). "
+                        f"The developer needs to provide {'this secret' if len(missing_secrets) == 1 else 'these secrets'} by either: "
+                        f"1) Adding {'it' if len(missing_secrets) == 1 else 'them'} to a .env file in the server's working directory (e.g., {missing_secrets[0]}=your_secret_value), or "
+                        f"2) Setting {'it' if len(missing_secrets) == 1 else 'them'} as environment variable{'s' if len(missing_secrets) > 1 else ''} before starting the server (e.g., export {missing_secrets[0]}=your_secret_value). "
                         "Once the secrets are configured, restart the MCP server for the changes to take effect."
                     ),
                 }
@@ -1035,7 +1157,18 @@ class MCPServer:
             logger.exception("Error listing resources")
             return JSONRPCError(
                 id=message.id,
-                error={"code": -32603, "message": "Internal error listing resources"},
+                error={
+                    "code": -32603,
+                    "message": (
+                        "✗ Failed to list resources\n\n"
+                        "  An error occurred while retrieving the resource list.\n\n"
+                        "  To troubleshoot:\n"
+                        "  1. Check server logs for details\n"
+                        "  2. Verify resource providers are properly configured\n"
+                        "  3. Restart the server if needed\n\n"
+                        "  The error has been logged."
+                    ),
+                },
             )
 
     async def _handle_list_resource_templates(
@@ -1054,7 +1187,18 @@ class MCPServer:
             logger.exception("Error listing resource templates")
             return JSONRPCError(
                 id=message.id,
-                error={"code": -32603, "message": "Internal error listing resource templates"},
+                error={
+                    "code": -32603,
+                    "message": (
+                        "✗ Failed to list resource templates\n\n"
+                        "  An error occurred while retrieving resource templates.\n\n"
+                        "  To troubleshoot:\n"
+                        "  1. Check server logs for details\n"
+                        "  2. Verify resource templates are properly configured\n"
+                        "  3. Restart the server if needed\n\n"
+                        "  The error has been logged."
+                    ),
+                },
             )
 
     async def _handle_read_resource(
@@ -1076,13 +1220,36 @@ class MCPServer:
         except NotFoundError:
             return JSONRPCError(
                 id=message.id,
-                error={"code": -32002, "message": f"Resource not found: {message.params.uri}"},
+                error={
+                    "code": -32002,
+                    "message": (
+                        f"✗ Resource not found: {message.params.uri}\n\n"
+                        f"  The requested resource does not exist.\n\n"
+                        f"  To fix:\n"
+                        f"  1. Check the resource URI is correct\n"
+                        f"  2. List available resources with resources/list\n"
+                        f"  3. Verify the resource provider is loaded\n\n"
+                        f"  Resource URIs are case-sensitive."
+                    ),
+                },
             )
         except Exception:
             logger.exception(f"Error reading resource: {message.params.uri}")
             return JSONRPCError(
                 id=message.id,
-                error={"code": -32603, "message": "Internal error reading resource"},
+                error={
+                    "code": -32603,
+                    "message": (
+                        f"✗ Failed to read resource\n\n"
+                        f"  An error occurred while reading: {message.params.uri}\n\n"
+                        f"  To troubleshoot:\n"
+                        f"  1. Check server logs for details\n"
+                        f"  2. Verify you have access to the resource\n"
+                        f"  3. Ensure the resource is not corrupted\n"
+                        f"  4. Try again or contact support\n\n"
+                        f"  The error has been logged."
+                    ),
+                },
             )
 
     async def _handle_list_prompts(
@@ -1098,7 +1265,18 @@ class MCPServer:
             logger.exception("Error listing prompts")
             return JSONRPCError(
                 id=message.id,
-                error={"code": -32603, "message": "Internal error listing prompts"},
+                error={
+                    "code": -32603,
+                    "message": (
+                        "✗ Failed to list prompts\n\n"
+                        "  An error occurred while retrieving the prompt list.\n\n"
+                        "  To troubleshoot:\n"
+                        "  1. Check server logs for details\n"
+                        "  2. Verify prompt providers are properly configured\n"
+                        "  3. Restart the server if needed\n\n"
+                        "  The error has been logged."
+                    ),
+                },
             )
 
     async def _handle_get_prompt(
@@ -1116,13 +1294,36 @@ class MCPServer:
         except NotFoundError:
             return JSONRPCError(
                 id=message.id,
-                error={"code": -32002, "message": f"Prompt not found: {message.params.name}"},
+                error={
+                    "code": -32002,
+                    "message": (
+                        f"✗ Prompt not found: {message.params.name}\n\n"
+                        f"  The requested prompt does not exist.\n\n"
+                        f"  To fix:\n"
+                        f"  1. Check the prompt name is correct\n"
+                        f"  2. List available prompts with prompts/list\n"
+                        f"  3. Verify the prompt provider is loaded\n\n"
+                        f"  Prompt names are case-sensitive."
+                    ),
+                },
             )
         except Exception:
             logger.exception(f"Error getting prompt: {message.params.name}")
             return JSONRPCError(
                 id=message.id,
-                error={"code": -32603, "message": "Internal error getting prompt"},
+                error={
+                    "code": -32603,
+                    "message": (
+                        f"✗ Failed to get prompt\n\n"
+                        f"  An error occurred while retrieving prompt: {message.params.name}\n\n"
+                        f"  To troubleshoot:\n"
+                        f"  1. Check server logs for details\n"
+                        f"  2. Verify the prompt arguments are valid\n"
+                        f"  3. Ensure the prompt is properly configured\n"
+                        f"  4. Try again or contact support\n\n"
+                        f"  The error has been logged."
+                    ),
+                },
             )
 
     async def _handle_set_log_level(

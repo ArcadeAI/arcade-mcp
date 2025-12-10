@@ -414,14 +414,7 @@ class MCPApp:
             tool_count=len(self._catalog),
         )
 
-        asyncio.run(
-            serve_with_force_quit(
-                app=app,
-                host=host,
-                port=port,
-                log_level=log_level,
-            )
-        )
+        asyncio.run(serve_with_force_quit(app=app, host=host, port=port, log_level=log_level))
 
     @staticmethod
     def _get_configuration_overrides(

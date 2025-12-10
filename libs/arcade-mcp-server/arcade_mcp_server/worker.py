@@ -347,10 +347,10 @@ async def serve_with_force_quit(
 
 
 def run_arcade_mcp(
-    catalog: ToolCatalog,
     host: str = "127.0.0.1",
     port: int = 8000,
     reload: bool = False,
+    workers: int = 1,
     debug: bool = False,
     otel_enable: bool = False,
     tool_package: str | None = None,
@@ -364,33 +364,55 @@ def run_arcade_mcp(
 
     This is used for module execution (`arcade mcp` and `python -m arcade_mcp_server`) only.
     MCPApp has its own reload mechanism.
+
+    Args:
+        workers: Number of uvicorn worker processes. When workers > 1, force-quit
+            capability is disabled (standard uvicorn signal handling is used).
+            Cannot be combined with reload=True.
+
+    Raises:
+        ValueError: If both reload=True and workers > 1 are specified, as uvicorn
+            does not support multiple workers in reload mode.
     """
+    if reload and workers > 1:
+        raise ValueError(
+            "Cannot use reload=True with workers > 1. "
+            "Uvicorn does not support multiple workers in reload mode."
+        )
+
     log_level = "debug" if debug else "info"
 
-    if reload:
-        # TODO: This reload path uses uvicorn.run(), which bypasses serve_with_force_quit().
-        # This means that the server will not be able to force quit when there are active
-        # tool executions or active connections with MCP clients. For this reason, prefer
-        # to use MCPApp.run() for reload mode.
+    # Set env vars for the app factory to read
+    os.environ["ARCADE_MCP_DEBUG"] = str(debug)
+    os.environ["ARCADE_MCP_OTEL_ENABLE"] = str(otel_enable)
+    if tool_package:
+        os.environ["ARCADE_MCP_TOOL_PACKAGE"] = tool_package
+    os.environ["ARCADE_MCP_DISCOVER_INSTALLED"] = str(discover_installed)
+    os.environ["ARCADE_MCP_SHOW_PACKAGES"] = str(show_packages)
 
-        # Set env vars for the app factory to read later
-        os.environ["ARCADE_MCP_DEBUG"] = str(debug)
-        os.environ["ARCADE_MCP_OTEL_ENABLE"] = str(otel_enable)
-        if tool_package:
-            os.environ["ARCADE_MCP_TOOL_PACKAGE"] = tool_package
-        os.environ["ARCADE_MCP_DISCOVER_INSTALLED"] = str(discover_installed)
-        os.environ["ARCADE_MCP_SHOW_PACKAGES"] = str(show_packages)
-        if mcp_settings:
-            os.environ["ARCADE_MCP_SERVER_NAME"] = mcp_settings.server.name
-            os.environ["ARCADE_MCP_SERVER_VERSION"] = mcp_settings.server.version
-            if mcp_settings.server.title:
-                os.environ["ARCADE_MCP_SERVER_TITLE"] = mcp_settings.server.title
-            if mcp_settings.server.instructions:
-                os.environ["ARCADE_MCP_SERVER_INSTRUCTIONS"] = mcp_settings.server.instructions
+    # Handle server name/version from mcp_settings or kwargs
+    server_name = kwargs.get("name")
+    server_version = kwargs.get("version")
+    if mcp_settings:
+        os.environ["ARCADE_MCP_SERVER_NAME"] = mcp_settings.server.name
+        os.environ["ARCADE_MCP_SERVER_VERSION"] = mcp_settings.server.version
+        if mcp_settings.server.title:
+            os.environ["ARCADE_MCP_SERVER_TITLE"] = mcp_settings.server.title
+        if mcp_settings.server.instructions:
+            os.environ["ARCADE_MCP_SERVER_INSTRUCTIONS"] = mcp_settings.server.instructions
+    else:
+        if server_name:
+            os.environ["ARCADE_MCP_SERVER_NAME"] = server_name
+        if server_version:
+            os.environ["ARCADE_MCP_SERVER_VERSION"] = server_version
 
-        # import string is required for reload mode
-        app_import_string = "arcade_mcp_server.worker:create_arcade_mcp_factory"
+    app_import_string = "arcade_mcp_server.worker:create_arcade_mcp_factory"
 
+    if reload or workers > 1:
+        # Reload mode and multi-worker mode (mutually exclusive, validated above)
+        # use uvicorn.run() which bypasses serve_with_force_quit(). This means the
+        # server will not be able to force quit when there are active tool executions
+        # or active connections with MCP clients. For reload mode, prefer MCPApp.run().
         uvicorn.run(
             app_import_string,
             factory=True,
@@ -399,16 +421,12 @@ def run_arcade_mcp(
             log_level=log_level,
             reload=reload,
             lifespan="on",
+            workers=workers,
         )
     else:
-        app = create_arcade_mcp(
-            catalog=catalog,
-            mcp_settings=mcp_settings,
-            debug=debug,
-            otel_enable=otel_enable,
-            **kwargs,
-        )
-
+        # Single-worker production mode uses serve_with_force_quit() for graceful
+        # shutdown with force-quit capability on second SIGINT/SIGTERM
+        app = create_arcade_mcp_factory()
         asyncio.run(
             serve_with_force_quit(
                 app=app,
