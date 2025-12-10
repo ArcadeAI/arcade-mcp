@@ -424,14 +424,7 @@ class MCPApp:
             resource_server_validator=self.resource_server_validator,
         )
 
-        asyncio.run(
-            serve_with_force_quit(
-                app=app,
-                host=host,
-                port=port,
-                log_level=log_level,
-            )
-        )
+        asyncio.run(serve_with_force_quit(app=app, host=host, port=port, log_level=log_level))
 
     @staticmethod
     def _get_configuration_overrides(

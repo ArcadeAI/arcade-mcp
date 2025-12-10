@@ -1,6 +1,6 @@
 [project]
 name = "arcade-tdk"
-version = "3.2.1"
+version = "3.2.2"
 description = "Arcade TDK - Toolkit Development Kit for building Arcade tools"
 readme = "README.md"
 license = {text = "MIT"}
@@ -19,7 +19,7 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-    "arcade-core>=3.3.5,<4.0.0",
+    "arcade-core>=3.4.0,<4.0.0",
     "pydantic>=2.7.0",
 ]
 

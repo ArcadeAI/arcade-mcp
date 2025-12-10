@@ -416,7 +416,15 @@ class ServerSession:
             await self._send_error_response(
                 None,
                 -32603,
-                f"Internal error: {e!s}",
+                (
+                    f"✗ Internal server error\n\n"
+                    f"  An unexpected error occurred: {e!s}\n\n"
+                    f"  To troubleshoot:\n"
+                    f"  1. Check server logs for detailed information\n"
+                    f"  2. Verify the message format is correct\n"
+                    f"  3. Try the request again\n\n"
+                    f"  The error has been logged."
+                ),
             )
 
     async def _send_error_response(
