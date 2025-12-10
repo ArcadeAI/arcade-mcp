@@ -320,6 +320,32 @@ def create_arcade_mcp_factory() -> FastAPI:
     )
 
 
+async def serve_with_force_quit(
+    app: FastAPI,
+    host: str,
+    port: int,
+    log_level: str,
+) -> None:
+    """Serve the FastAPI app with force quit capability."""
+    timeout_graceful_shutdown = int(
+        os.environ.get("ARCADE_UVICORN_TIMEOUT_GRACEFUL_SHUTDOWN", "15")
+    )
+
+    config = uvicorn.Config(
+        app=app,
+        host=host,
+        port=port,
+        log_level=log_level,
+        lifespan="on",
+        timeout_graceful_shutdown=timeout_graceful_shutdown,
+    )
+
+    task_tracker = app.state.task_tracker
+    server = CustomUvicornServer(config, task_tracker)
+
+    await server.serve()
+
+
 def run_arcade_mcp(
     host: str = "127.0.0.1",
     port: int = 8000,
@@ -379,6 +405,7 @@ def run_arcade_mcp(
             log_level=log_level,
             reload=reload,
             lifespan="on",
+            workers=1,
         )
     else:
         uvicorn.run(
