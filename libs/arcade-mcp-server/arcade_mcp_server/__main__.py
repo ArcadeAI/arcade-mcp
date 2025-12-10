@@ -277,6 +277,12 @@ Auto-discovery looks for Python files with @tool decorated functions in:
         "--cwd",
         help="Directory to change to before running (for tool discovery)",
     )
+    parser.add_argument(
+        "--workers",
+        default=1,
+        type=int,
+        help=argparse.SUPPRESS,
+    )
 
     args = parser.parse_args()
 
@@ -299,6 +305,10 @@ Auto-discovery looks for Python files with @tool decorated functions in:
     # Setup logging
     log_level = "DEBUG" if args.debug else "INFO"
     setup_logging(level=log_level, stdio_mode=(args.transport == "stdio"))
+
+    if args.workers > 1 and args.transport == "stdio":
+        logger.error("Cannot use --workers > 1 with stdio transport. Using --workers=1.")
+        sys.exit(1)
 
     # Build kwargs for server
     server_kwargs = {}
@@ -335,6 +345,7 @@ Auto-discovery looks for Python files with @tool decorated functions in:
                 tool_package=args.tool_package,
                 discover_installed=args.discover_installed,
                 show_packages=args.show_packages,
+                workers=args.workers,
                 **server_kwargs,
             )
     except (KeyboardInterrupt, asyncio.CancelledError):
