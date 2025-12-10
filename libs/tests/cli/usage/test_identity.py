@@ -272,7 +272,7 @@ class TestGetPrincipalId:
 
         assert principal_id == "acct-123"
         mock_get.assert_called_once_with(
-            "https://api.arcade.dev/api/v1/auth/whoami",
+            "https://cloud.arcade.dev/api/v1/auth/whoami",
             headers={"accept": "application/json", "Authorization": "Bearer oauth-token"},
             timeout=2.0,
         )
