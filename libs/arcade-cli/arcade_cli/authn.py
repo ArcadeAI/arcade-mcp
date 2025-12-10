@@ -23,12 +23,16 @@ import httpx
 import yaml
 from arcade_core.config_model import AuthConfig, Config, ContextConfig, UserConfig
 from arcade_core.constants import ARCADE_CONFIG_PATH, CREDENTIALS_FILE_PATH
+from arcade_mcp_server.auth_tokens import (
+    CLIConfig,
+    TokenResponse,
+    fetch_cli_config,
+    get_valid_access_token,
+)
 from authlib.integrations.httpx_client import OAuth2Client
 from jinja2 import Environment, FileSystemLoader
 from pydantic import AliasChoices, BaseModel, Field
 from rich.console import Console
-
-from arcade_cli.constants import PROD_COORDINATOR_HOST
 
 # Set up Jinja2 templates
 _TEMPLATES_DIR = Path(__file__).parent / "templates"
@@ -46,42 +50,6 @@ console = Console()
 # OAuth constants
 DEFAULT_SCOPES = "openid offline_access"
 LOCAL_CALLBACK_PORT = 9905
-
-
-class CLIConfig(BaseModel):
-    """OAuth configuration returned by the Coordinator."""
-
-    client_id: str
-    authorization_endpoint: str
-    token_endpoint: str
-
-
-class TokenResponse(BaseModel):
-    """OAuth token response."""
-
-    access_token: str
-    refresh_token: str
-    expires_in: int
-    token_type: str
-
-
-def fetch_cli_config(coordinator_url: str) -> CLIConfig:
-    """
-    Fetch OAuth configuration from the Coordinator.
-
-    Args:
-        coordinator_url: Base URL of the Coordinator (e.g., https://api.arcade.dev)
-
-    Returns:
-        CLIConfig with client_id and OAuth endpoints
-
-    Raises:
-        httpx.HTTPError: If the request fails
-    """
-    url = f"{coordinator_url}/api/v1/auth/cli_config"
-    response = httpx.get(url, timeout=30)
-    response.raise_for_status()
-    return CLIConfig.model_validate(response.json())
 
 
 def create_oauth_client(cli_config: CLIConfig) -> OAuth2Client:  # type: ignore[no-any-unimported]
@@ -161,35 +129,6 @@ def exchange_code_for_tokens(  # type: ignore[no-any-unimported]
     return TokenResponse(
         access_token=token["access_token"],
         refresh_token=token["refresh_token"],
-        expires_in=token["expires_in"],
-        token_type=token["token_type"],
-    )
-
-
-def refresh_access_token(
-    cli_config: CLIConfig,
-    refresh_token: str,
-) -> TokenResponse:
-    """
-    Refresh the access token using authlib.
-
-    Args:
-        cli_config: OAuth configuration from Coordinator
-        refresh_token: Current refresh token
-
-    Returns:
-        TokenResponse with new access and refresh tokens
-    """
-    client = create_oauth_client(cli_config)
-
-    token = client.refresh_token(
-        cli_config.token_endpoint,
-        refresh_token=refresh_token,
-    )
-
-    return TokenResponse(
-        access_token=token["access_token"],
-        refresh_token=token.get("refresh_token", refresh_token),
         expires_in=token["expires_in"],
         token_type=token["token_type"],
     )
@@ -482,58 +421,6 @@ def save_credentials_from_whoami(
     )
 
     config.save_to_file()
-
-
-def get_valid_access_token(coordinator_url: str | None = None) -> str:
-    """
-    Get a valid access token, refreshing if necessary.
-
-    Args:
-        coordinator_url: Base URL of the Coordinator
-
-    Returns:
-        Valid access token
-
-    Raises:
-        ValueError: If not logged in or token refresh fails
-    """
-    try:
-        config = Config.load_from_file()
-    except FileNotFoundError:
-        raise ValueError("Not logged in. Please run 'arcade login' first.")
-
-    resolved_coordinator_url = (
-        coordinator_url
-        or (config.coordinator_url if config.coordinator_url else None)
-        or f"https://{PROD_COORDINATOR_HOST}"
-    )
-
-    if not config.auth:
-        raise ValueError("Not logged in. Please run 'arcade login' first.")
-
-    # Check if token needs refresh
-    if config.is_token_expired():
-        # Fetch CLI config to get authority URL
-        cli_config = fetch_cli_config(resolved_coordinator_url)
-
-        try:
-            new_tokens = refresh_access_token(cli_config, config.auth.refresh_token)
-        except httpx.HTTPError as e:
-            raise ValueError(
-                f"Failed to refresh token: {e}. Please run 'arcade login' to re-authenticate."
-            )
-
-        # Update stored credentials
-        expires_at = datetime.now() + timedelta(seconds=new_tokens.expires_in)
-        config.coordinator_url = resolved_coordinator_url
-        config.auth.access_token = new_tokens.access_token
-        config.auth.refresh_token = new_tokens.refresh_token
-        config.auth.expires_at = expires_at
-        config.save_to_file()
-
-        return new_tokens.access_token
-
-    return config.auth.access_token
 
 
 def get_active_context() -> tuple[str, str]:
