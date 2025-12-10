@@ -846,7 +846,7 @@ class MCPServer:
             error_message += "  To fix:\n"
             error_message += "  1. Check the tool name is correct\n"
             error_message += "  2. List available tools with tools/list\n"
-            error_message += "  3. Ensure the toolkit is properly installed\n\n"
+            error_message += "  3. Ensure the server is properly installed\n\n"
             error_message += "  Available tools can be found by calling the tools/list method."
 
             content = convert_to_mcp_content(error_message)
