@@ -307,7 +307,7 @@ Auto-discovery looks for Python files with @tool decorated functions in:
     setup_logging(level=log_level, stdio_mode=(args.transport == "stdio"))
 
     if args.workers > 1 and args.transport == "stdio":
-        logger.error("Cannot use --workers > 1 with stdio transport. Using --workers=1.")
+        logger.error("Cannot use --workers > 1 with stdio transport")
         sys.exit(1)
 
     # Build kwargs for server
