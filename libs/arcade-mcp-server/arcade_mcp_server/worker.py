@@ -350,6 +350,7 @@ def run_arcade_mcp(
     host: str = "127.0.0.1",
     port: int = 8000,
     reload: bool = False,
+    workers: int = 1,
     debug: bool = False,
     otel_enable: bool = False,
     tool_package: str | None = None,
@@ -363,6 +364,10 @@ def run_arcade_mcp(
 
     This is used for module execution (`arcade mcp` and `python -m arcade_mcp_server`) only.
     MCPApp has its own reload mechanism.
+
+    Args:
+        workers: Number of uvicorn worker processes. When workers > 1, force-quit
+            capability is disabled (standard uvicorn signal handling is used).
     """
     log_level = "debug" if debug else "info"
 
@@ -392,11 +397,11 @@ def run_arcade_mcp(
 
     app_import_string = "arcade_mcp_server.worker:create_arcade_mcp_factory"
 
-    if reload:
-        # This means that the server will not be able to force quit when there are active
-        # tool executions or active connections with MCP clients. For this reason, prefer
-        # to use MCPApp.run() for reload mode.
-
+    if reload or workers > 1:
+        # Reload mode and multi-worker mode use uvicorn.run() which bypasses
+        # serve_with_force_quit(). This means the server will not be able to force
+        # quit when there are active tool executions or active connections with MCP
+        # clients. For reload mode, prefer to use MCPApp.run() instead.
         uvicorn.run(
             app_import_string,
             factory=True,
@@ -405,14 +410,17 @@ def run_arcade_mcp(
             log_level=log_level,
             reload=reload,
             lifespan="on",
-            workers=1,
+            workers=workers,
         )
     else:
-        uvicorn.run(
-            app_import_string,
-            factory=True,
-            host=host,
-            port=port,
-            log_level=log_level,
-            lifespan="on",
+        # Single-worker production mode uses serve_with_force_quit() for graceful
+        # shutdown with force-quit capability on second SIGINT/SIGTERM
+        app = create_arcade_mcp_factory()
+        asyncio.run(
+            serve_with_force_quit(
+                app=app,
+                host=host,
+                port=port,
+                log_level=log_level,
+            )
         )
