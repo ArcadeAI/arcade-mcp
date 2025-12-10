@@ -320,67 +320,6 @@ def create_arcade_mcp_factory() -> FastAPI:
     )
 
 
-def serve_with_force_quit() -> None:
-    """Serve the FastAPI app with force quit capability."""
-
-    import os
-
-    from arcade_core.discovery import discover_tools
-    from arcade_core.toolkit import ToolkitLoadError
-
-    # Read configuration from env vars that were set before running the server
-    debug = os.environ.get("ARCADE_MCP_DEBUG", "false").lower() == "true"
-    otel_enable = os.environ.get("ARCADE_MCP_OTEL_ENABLE", "false").lower() == "true"
-    tool_package = os.environ.get("ARCADE_MCP_TOOL_PACKAGE")
-    discover_installed = os.environ.get("ARCADE_MCP_DISCOVER_INSTALLED", "false").lower() == "true"
-    show_packages = os.environ.get("ARCADE_MCP_SHOW_PACKAGES", "false").lower() == "true"
-    server_name = os.environ.get("ARCADE_MCP_SERVER_NAME")
-    server_version = os.environ.get("ARCADE_MCP_SERVER_VERSION")
-    server_title = os.environ.get("ARCADE_MCP_SERVER_TITLE")
-    server_instructions = os.environ.get("ARCADE_MCP_SERVER_INSTRUCTIONS")
-
-    from arcade_mcp_server.settings import ServerSettings
-
-    mcp_settings = MCPSettings.from_env()
-    if server_name or server_version or server_title or server_instructions:
-        # Override server settings if any were provided via env vars
-        mcp_settings.server = ServerSettings(
-            name=server_name or mcp_settings.server.name,
-            version=server_version or mcp_settings.server.version,
-            title=server_title or mcp_settings.server.title,
-            instructions=server_instructions or mcp_settings.server.instructions,
-        )
-
-    # Rediscover tools since there have been changes
-    try:
-        catalog = discover_tools(
-            tool_package=tool_package,
-            show_packages=show_packages,
-            discover_installed=discover_installed,
-            server_name=server_name,
-            server_version=server_version,
-        )
-    except ToolkitLoadError as exc:
-        logger.error(str(exc))
-        raise RuntimeError(f"Failed to discover tools: {exc}") from exc
-
-    total_tools = len(catalog)
-    if total_tools == 0:
-        logger.error("No tools found. Create Python files with @tool decorated functions.")
-        raise RuntimeError("No tools found")
-
-    logger.info(f"Total tools loaded: {total_tools}")
-    if otel_enable:
-        logger.info("OpenTelemetry is enabled")
-
-    return create_arcade_mcp(
-        catalog=catalog,
-        mcp_settings=mcp_settings,
-        debug=debug,
-        otel_enable=otel_enable,
-    )
-
-
 def run_arcade_mcp(
     host: str = "127.0.0.1",
     port: int = 8000,
@@ -401,30 +340,36 @@ def run_arcade_mcp(
     """
     log_level = "debug" if debug else "info"
 
+    # Set env vars for the app factory to read
+    os.environ["ARCADE_MCP_DEBUG"] = str(debug)
+    os.environ["ARCADE_MCP_OTEL_ENABLE"] = str(otel_enable)
+    if tool_package:
+        os.environ["ARCADE_MCP_TOOL_PACKAGE"] = tool_package
+    os.environ["ARCADE_MCP_DISCOVER_INSTALLED"] = str(discover_installed)
+    os.environ["ARCADE_MCP_SHOW_PACKAGES"] = str(show_packages)
+
+    # Handle server name/version from mcp_settings or kwargs
+    server_name = kwargs.get("name")
+    server_version = kwargs.get("version")
+    if mcp_settings:
+        os.environ["ARCADE_MCP_SERVER_NAME"] = mcp_settings.server.name
+        os.environ["ARCADE_MCP_SERVER_VERSION"] = mcp_settings.server.version
+        if mcp_settings.server.title:
+            os.environ["ARCADE_MCP_SERVER_TITLE"] = mcp_settings.server.title
+        if mcp_settings.server.instructions:
+            os.environ["ARCADE_MCP_SERVER_INSTRUCTIONS"] = mcp_settings.server.instructions
+    else:
+        if server_name:
+            os.environ["ARCADE_MCP_SERVER_NAME"] = server_name
+        if server_version:
+            os.environ["ARCADE_MCP_SERVER_VERSION"] = server_version
+
+    app_import_string = "arcade_mcp_server.worker:create_arcade_mcp_factory"
+
     if reload:
-        print("reload")
-        # TODO: This reload path uses uvicorn.run(), which bypasses serve_with_force_quit().
         # This means that the server will not be able to force quit when there are active
         # tool executions or active connections with MCP clients. For this reason, prefer
         # to use MCPApp.run() for reload mode.
-
-        # Set env vars for the app factory to read later
-        os.environ["ARCADE_MCP_DEBUG"] = str(debug)
-        os.environ["ARCADE_MCP_OTEL_ENABLE"] = str(otel_enable)
-        if tool_package:
-            os.environ["ARCADE_MCP_TOOL_PACKAGE"] = tool_package
-        os.environ["ARCADE_MCP_DISCOVER_INSTALLED"] = str(discover_installed)
-        os.environ["ARCADE_MCP_SHOW_PACKAGES"] = str(show_packages)
-        if mcp_settings:
-            os.environ["ARCADE_MCP_SERVER_NAME"] = mcp_settings.server.name
-            os.environ["ARCADE_MCP_SERVER_VERSION"] = mcp_settings.server.version
-            if mcp_settings.server.title:
-                os.environ["ARCADE_MCP_SERVER_TITLE"] = mcp_settings.server.title
-            if mcp_settings.server.instructions:
-                os.environ["ARCADE_MCP_SERVER_INSTRUCTIONS"] = mcp_settings.server.instructions
-
-        # import string is required for reload mode
-        app_import_string = "arcade_mcp_server.worker:create_arcade_mcp_factory"
 
         uvicorn.run(
             app_import_string,
@@ -436,33 +381,11 @@ def run_arcade_mcp(
             lifespan="on",
         )
     else:
-        os.environ["ARCADE_MCP_DEBUG"] = str(debug)
-        os.environ["ARCADE_MCP_OTEL_ENABLE"] = str(otel_enable)
-        if tool_package:
-            os.environ["ARCADE_MCP_TOOL_PACKAGE"] = tool_package
-        os.environ["ARCADE_MCP_DISCOVER_INSTALLED"] = str(discover_installed)
-        os.environ["ARCADE_MCP_SHOW_PACKAGES"] = str(show_packages)
-        if mcp_settings:
-            os.environ["ARCADE_MCP_SERVER_NAME"] = mcp_settings.server.name
-            os.environ["ARCADE_MCP_SERVER_VERSION"] = mcp_settings.server.version
-            if mcp_settings.server.title:
-                os.environ["ARCADE_MCP_SERVER_TITLE"] = mcp_settings.server.title
-            if mcp_settings.server.instructions:
-                os.environ["ARCADE_MCP_SERVER_INSTRUCTIONS"] = mcp_settings.server.instructions
-            if mcp_settings.arcade:
-                os.environ["ARCADE_WORKER_SECRET"] = mcp_settings.arcade.server_secret
-
-        print("not reload")
-
-        app_import_string = "arcade_mcp_server.worker:serve_with_force_quit"
-
         uvicorn.run(
-            "arcade_mcp_server.worker:serve_with_force_quit",
+            app_import_string,
             factory=True,
             host=host,
             port=port,
             log_level=log_level,
-            reload=reload,
             lifespan="on",
-            workers=1,
         )

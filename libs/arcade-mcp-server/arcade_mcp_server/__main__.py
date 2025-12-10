@@ -307,18 +307,17 @@ Auto-discovery looks for Python files with @tool decorated functions in:
     if args.version:
         server_kwargs["version"] = args.version
 
-    # Discover tools
-    catalog = initialize_tool_catalog(
-        tool_package=args.tool_package,
-        show_packages=args.show_packages,
-        discover_installed=args.discover_installed,
-        server_name=server_kwargs.get("name"),
-        server_version=server_kwargs.get("version"),
-    )
-
     # Run appropriate server
     try:
         if args.transport == "stdio":
+            # Discover tools only for stdio mode (HTTP mode handles its own discovery)
+            catalog = initialize_tool_catalog(
+                tool_package=args.tool_package,
+                show_packages=args.show_packages,
+                discover_installed=args.discover_installed,
+                server_name=server_kwargs.get("name"),
+                server_version=server_kwargs.get("version"),
+            )
             logger.info("Starting MCP server with stdio transport")
             asyncio.run(
                 run_stdio_server(catalog, debug=args.debug, env_file=args.env_file, **server_kwargs)
