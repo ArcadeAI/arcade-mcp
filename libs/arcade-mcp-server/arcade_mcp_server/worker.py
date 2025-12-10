@@ -368,7 +368,18 @@ def run_arcade_mcp(
     Args:
         workers: Number of uvicorn worker processes. When workers > 1, force-quit
             capability is disabled (standard uvicorn signal handling is used).
+            Cannot be combined with reload=True.
+
+    Raises:
+        ValueError: If both reload=True and workers > 1 are specified, as uvicorn
+            does not support multiple workers in reload mode.
     """
+    if reload and workers > 1:
+        raise ValueError(
+            "Cannot use reload=True with workers > 1. "
+            "Uvicorn does not support multiple workers in reload mode."
+        )
+
     log_level = "debug" if debug else "info"
 
     # Set env vars for the app factory to read
@@ -398,10 +409,10 @@ def run_arcade_mcp(
     app_import_string = "arcade_mcp_server.worker:create_arcade_mcp_factory"
 
     if reload or workers > 1:
-        # Reload mode and multi-worker mode use uvicorn.run() which bypasses
-        # serve_with_force_quit(). This means the server will not be able to force
-        # quit when there are active tool executions or active connections with MCP
-        # clients. For reload mode, prefer to use MCPApp.run() instead.
+        # Reload mode and multi-worker mode (mutually exclusive, validated above)
+        # use uvicorn.run() which bypasses serve_with_force_quit(). This means the
+        # server will not be able to force quit when there are active tool executions
+        # or active connections with MCP clients. For reload mode, prefer MCPApp.run().
         uvicorn.run(
             app_import_string,
             factory=True,
