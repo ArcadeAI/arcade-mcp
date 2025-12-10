@@ -8,7 +8,7 @@ from typing import Optional
 
 import click
 import typer
-from arcade_core.constants import CREDENTIALS_FILE_PATH
+from arcade_core.constants import CREDENTIALS_FILE_PATH, PROD_COORDINATOR_HOST, PROD_ENGINE_HOST
 from arcadepy import Arcade
 from rich.console import Console
 from rich.text import Text
@@ -21,10 +21,6 @@ from arcade_cli.authn import (
     check_existing_login,
     perform_oauth_login,
     save_credentials_from_whoami,
-)
-from arcade_cli.constants import (
-    PROD_COORDINATOR_HOST,
-    PROD_ENGINE_HOST,
 )
 from arcade_cli.display import (
     display_eval_results,

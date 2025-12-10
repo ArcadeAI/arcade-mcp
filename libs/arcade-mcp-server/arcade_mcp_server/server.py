@@ -19,14 +19,15 @@ import logging
 import os
 from typing import Any, Callable, cast
 
+from arcade_core.auth_tokens import get_valid_access_token
 from arcade_core.catalog import MaterializedTool, ToolCatalog
 from arcade_core.executor import ToolExecutor
+from arcade_core.network.org_transport import build_org_scoped_async_http_client
 from arcade_core.schema import ToolAuthorizationContext, ToolContext
 from arcade_core.schema import ToolAuthRequirement as CoreToolAuthRequirement
 from arcadepy import ArcadeError, AsyncArcade
 from arcadepy.types.auth_authorize_params import AuthRequirement, AuthRequirementOauth2
 
-from arcade_mcp_server.auth_tokens import get_valid_access_token
 from arcade_mcp_server.context import Context, get_current_model_context, set_current_model_context
 from arcade_mcp_server.convert import convert_content_to_structured_content, convert_to_mcp_content
 from arcade_mcp_server.exceptions import NotFoundError, ToolRuntimeError
@@ -39,7 +40,6 @@ from arcade_mcp_server.middleware import (
     Middleware,
     MiddlewareContext,
 )
-from arcade_mcp_server.org_transport import build_org_scoped_async_http_client
 from arcade_mcp_server.session import InitializationState, NotificationManager, ServerSession
 from arcade_mcp_server.settings import MCPSettings, ServerSettings
 from arcade_mcp_server.types import (

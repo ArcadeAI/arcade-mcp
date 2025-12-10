@@ -21,14 +21,14 @@ from urllib.parse import parse_qs
 
 import httpx
 import yaml
-from arcade_core.config_model import AuthConfig, Config, ContextConfig, UserConfig
-from arcade_core.constants import ARCADE_CONFIG_PATH, CREDENTIALS_FILE_PATH
-from arcade_mcp_server.auth_tokens import (
+from arcade_core.auth_tokens import (
     CLIConfig,
     TokenResponse,
     fetch_cli_config,
     get_valid_access_token,
 )
+from arcade_core.config_model import AuthConfig, Config, ContextConfig, UserConfig
+from arcade_core.constants import ARCADE_CONFIG_PATH, CREDENTIALS_FILE_PATH
 from authlib.integrations.httpx_client import OAuth2Client
 from jinja2 import Environment, FileSystemLoader
 from pydantic import AliasChoices, BaseModel, Field

@@ -7,9 +7,10 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 
 import httpx
-from arcade_cli.constants import PROD_COORDINATOR_HOST
-from arcade_core.config_model import Config
 from pydantic import BaseModel
+
+from arcade_core.config_model import Config
+from arcade_core.constants import PROD_COORDINATOR_HOST
 
 
 class CLIConfig(BaseModel):

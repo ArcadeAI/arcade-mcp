@@ -1,3 +1,7 @@
-PROD_COORDINATOR_HOST = "cloud.arcade.dev"
-PROD_ENGINE_HOST = "api.arcade.dev"
-LOCALHOST = "localhost"
+from arcade_core.constants import LOCALHOST, PROD_COORDINATOR_HOST, PROD_ENGINE_HOST
+
+__all__ = [
+    "LOCALHOST",
+    "PROD_COORDINATOR_HOST",
+    "PROD_ENGINE_HOST",
+]

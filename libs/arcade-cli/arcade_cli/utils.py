@@ -17,6 +17,7 @@ from urllib.parse import urlparse
 import idna
 from arcade_core import ToolCatalog, Toolkit
 from arcade_core.config_model import Config
+from arcade_core.constants import LOCALHOST
 from arcade_core.discovery import (
     analyze_files_for_tools,
     build_minimal_toolkit,
@@ -24,8 +25,8 @@ from arcade_core.discovery import (
     find_candidate_tool_files,
 )
 from arcade_core.errors import ToolkitLoadError
+from arcade_core.network.org_transport import build_org_scoped_http_client
 from arcade_core.schema import ToolDefinition
-from arcade_mcp_server.org_transport import build_org_scoped_http_client
 from arcadepy import (
     NOT_GIVEN,
     APIConnectionError,
@@ -48,8 +49,6 @@ from rich.markup import escape
 from rich.text import Text
 from typer.core import TyperGroup
 from typer.models import Context
-
-from arcade_cli.constants import LOCALHOST
 
 console = Console()
 
@@ -441,8 +440,9 @@ def get_auth_headers(coordinator_url: str | None = None) -> dict[str, str]:
     Returns:
         Dictionary with Authorization header
     """
+    from arcade_core.constants import PROD_COORDINATOR_HOST
+
     from arcade_cli.authn import get_valid_access_token
-    from arcade_cli.constants import PROD_COORDINATOR_HOST
 
     config = validate_and_get_config()
     resolved_coordinator_url = (

@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -108,9 +108,9 @@ class Config(BaseConfig):
             return True
         # Consider expired if less than 5 minutes remaining
         buffer_seconds = 300
-        return datetime.now() >= self.auth.expires_at.replace(tzinfo=None) - __import__(
-            "datetime"
-        ).timedelta(seconds=buffer_seconds)
+        return datetime.now() >= self.auth.expires_at.replace(tzinfo=None) - timedelta(
+            seconds=buffer_seconds
+        )
 
     def get_access_token(self) -> str | None:
         """

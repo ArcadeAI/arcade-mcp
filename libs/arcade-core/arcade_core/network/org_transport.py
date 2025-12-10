@@ -1,11 +1,5 @@
 """
 Shared HTTP transport helpers for org-scoped Arcade API access.
-
-These utilities wrap an underlying httpx transport to rewrite requests from:
-    /v1/<endpoint> -> /v1/orgs/{org_id}/projects/{project_id}/<endpoint>
-
-They are used by both the CLI (sync Arcade client) and the MCP server
-(async Arcade client) to keep URL rewriting logic centralized.
 """
 
 from __future__ import annotations
