@@ -12,7 +12,7 @@ from arcade_mcp_server.resource_server import (
 )
 
 # Option 1: Single authorization server with custom audience
-# Use expected_audiences when your auth server returns a different aud claim
+# Use expected_audiences when your auth server returns a non-standard audience (aud) claim
 # (e.g., client_id instead of canonical_url)
 resource_server_auth = ResourceServerAuth(
     canonical_url="http://127.0.0.1:8000/mcp",
