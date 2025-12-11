@@ -5,6 +5,8 @@ from typing import Any, Generic, Literal, TypeAlias, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from arcade_mcp_server.resource_server.base import ResourceOwner
+
 # -----------------------------------------------------------------------------
 # JSON-RPC constants
 # -----------------------------------------------------------------------------
@@ -91,9 +93,14 @@ class JSONRPCError(JSONRPCMessage):
 
 @dataclass
 class SessionMessage:
-    """Wrapper for messages in transport sessions."""
+    """Wrapper for messages in transport sessions.
+
+    Carries both the MCP protocol message and optional authenticated user
+    information from front-door authentication.
+    """
 
     message: JSONRPCMessage
+    resource_owner: ResourceOwner | None = None
 
 
 # -----------------------------------------------------------------------------
@@ -660,7 +667,13 @@ MCPMessage = (
     JSONRPCRequest
     | JSONRPCResponse[Any]
     | JSONRPCError
+    | InitializedNotification
     | CancelledNotification
     | ProgressNotification
     | LoggingMessageNotification
+    | ResourceListChangedNotification
+    | ResourceUpdatedNotification
+    | PromptListChangedNotification
+    | ToolListChangedNotification
+    | RootsListChangedNotification
 )

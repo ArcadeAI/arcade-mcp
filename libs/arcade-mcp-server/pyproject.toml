@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade-mcp-server"
-version = "1.11.2"
+version = "1.12.0"
 description = "Model Context Protocol (MCP) server framework for Arcade.dev"
 readme = "README.md"
 authors = [{ name = "Arcade.dev" }]
@@ -34,6 +34,8 @@ dependencies = [
     "anyio>=4.0.0",
     "python-dotenv>=1.0.0",
     "pydantic-settings>=2.10.1",
+    "python-jose[cryptography]>=3.3.0,<4.0.0",
+    "httpx>=0.27.0,<1.0.0",
 ]
 
 [project.optional-dependencies]

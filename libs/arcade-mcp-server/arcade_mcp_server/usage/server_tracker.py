@@ -2,6 +2,7 @@ import platform
 import sys
 import time
 from importlib import metadata
+from typing import Any
 
 from arcade_core.usage import UsageIdentity, UsageService, is_tracking_enabled
 from arcade_core.usage.constants import (
@@ -20,6 +21,7 @@ from arcade_mcp_server.usage.constants import (
     PROP_IS_EXECUTION_SUCCESS,
     PROP_MCP_SERVER_VERSION,
     PROP_PORT,
+    PROP_RESOURCE_SERVER_TYPE,
     PROP_TOOL_COUNT,
     PROP_TRANSPORT,
 )
@@ -62,12 +64,27 @@ class ServerTracker:
         """Get the distinct_id based on developer's authentication state"""
         return self.identity.get_distinct_id()
 
+    def _get_resource_server_type(self, resource_server_validator: Any) -> str:
+        """Get the class name of the resource server validator.
+
+        Args:
+            resource_server_validator: The resource server validator instance or None
+
+        Returns:
+            The class name of the validator, or "none" if no validator
+        """
+        if resource_server_validator is None:
+            return "none"
+
+        return str(resource_server_validator.__class__.__name__)
+
     def track_server_start(
         self,
         transport: str,
         host: str | None,
         port: int | None,
         tool_count: int,
+        resource_server_validator: Any = None,
     ) -> None:
         """Track MCP server start event.
 
@@ -76,6 +93,7 @@ class ServerTracker:
             host: The host address (None for stdio)
             port: The port number (None for stdio)
             tool_count: The number of tools available at server start
+            resource_server_validator: The resource server validator instance (None if no auth)
         """
         if not is_tracking_enabled():
             return
@@ -92,6 +110,7 @@ class ServerTracker:
         properties: dict[str, str | int | float] = {
             PROP_TRANSPORT: transport,
             PROP_TOOL_COUNT: tool_count,
+            PROP_RESOURCE_SERVER_TYPE: self._get_resource_server_type(resource_server_validator),
             PROP_MCP_SERVER_VERSION: self.mcp_server_version,
             PROP_RUNTIME_LANGUAGE: "python",
             PROP_RUNTIME_VERSION: self.runtime_version,

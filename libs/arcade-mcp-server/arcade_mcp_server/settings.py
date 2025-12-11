@@ -5,6 +5,7 @@ Provides Pydantic-based settings with validation and environment variable suppor
 """
 
 import os
+from pathlib import Path
 from typing import Any
 
 from pydantic import Field, field_validator
@@ -91,6 +92,71 @@ class ServerSettings(BaseSettings):
     )
 
     model_config = {"env_prefix": "MCP_SERVER_"}
+
+
+class ResourceServerSettings(BaseSettings):
+    """Settings for ResourceServer configuration via environment variables."""
+
+    canonical_url: str | None = Field(
+        default=None,
+        description="Canonical URL of this MCP server (e.g., https://mcp.example.com/mcp)",
+    )
+    authorization_servers: list[dict[str, Any]] | None = Field(
+        default=None,
+        description="JSON array of authorization server entries."
+        'Example: \'[{"authorization_server_url":"https://auth.example.com","issuer":"https://auth.example.com","jwks_uri":"https://auth.example.com/oauth2/jwks","algorithm":"RS256"}]\'',
+    )
+
+    @field_validator("authorization_servers", mode="before")
+    @classmethod
+    def parse_authorization_servers(cls, v: Any) -> list[dict[str, Any]] | None:
+        """Parse JSON array from environment variable."""
+        if v is None:
+            return None
+        if isinstance(v, str):
+            import json
+
+            try:
+                parsed = json.loads(v)
+                if not isinstance(parsed, list):
+                    raise TypeError("authorization_servers must be a JSON array")
+            except json.JSONDecodeError as e:
+                raise ValueError(f"Invalid JSON in authorization_servers: {e}") from e
+            else:
+                return parsed
+        if isinstance(v, list):
+            return v
+        return None
+
+    def to_authorization_server_entries(self) -> list[Any]:
+        """Convert settings to list of AuthorizationServerEntry objects."""
+        if not self.authorization_servers:
+            return []
+
+        from arcade_mcp_server.resource_server import (
+            AccessTokenValidationOptions,
+            AuthorizationServerEntry,
+        )
+
+        return [
+            AuthorizationServerEntry(
+                authorization_server_url=config["authorization_server_url"],
+                issuer=config["issuer"],
+                jwks_uri=config["jwks_uri"],
+                algorithm=config.get("algorithm", "RS256"),
+                expected_audiences=config.get("expected_audiences"),
+                validation_options=AccessTokenValidationOptions(
+                    verify_exp=config.get("validation_options", {}).get("verify_exp", True),
+                    verify_iat=config.get("validation_options", {}).get("verify_iat", True),
+                    verify_iss=config.get("validation_options", {}).get("verify_iss", True),
+                    verify_nbf=config.get("validation_options", {}).get("verify_nbf", True),
+                    leeway=config.get("validation_options", {}).get("leeway", 0),
+                ),
+            )
+            for config in self.authorization_servers
+        ]
+
+    model_config = {"env_prefix": "MCP_RESOURCE_SERVER_"}
 
 
 class MiddlewareSettings(BaseSettings):
@@ -207,6 +273,10 @@ class MCPSettings(BaseSettings):
         default_factory=ServerSettings,
         description="Server settings",
     )
+    resource_server: ResourceServerSettings = Field(
+        default_factory=ResourceServerSettings,
+        description="Server authentication settings",
+    )
     middleware: MiddlewareSettings = Field(
         default_factory=MiddlewareSettings,
         description="Middleware settings",
@@ -236,7 +306,20 @@ class MCPSettings(BaseSettings):
 
     @classmethod
     def from_env(cls) -> "MCPSettings":
-        """Create settings from environment variables."""
+        """Create settings from environment variables.
+
+        Automatically loads .env file from current directory if it exists,
+        then creates settings from the combined environment.
+
+        The .env file is loaded with override=False, meaning existing
+        environment variables take precedence. Multiple calls are safe
+        """
+        from dotenv import load_dotenv
+
+        env_path = Path.cwd() / ".env"
+        if env_path.exists():
+            load_dotenv(env_path, override=False)
+
         return cls()
 
     def tool_secrets(self) -> dict[str, Any]:

@@ -168,8 +168,8 @@ class HTTPStreamableTransport:
         self._terminated = False
 
         # Streams for connection
-        self._read_stream_writer: MemoryObjectSendStream[str | Exception] | None = None
-        self._read_stream: MemoryObjectReceiveStream[str | Exception] | None = None
+        self._read_stream_writer: MemoryObjectSendStream[SessionMessage | Exception] | None = None
+        self._read_stream: MemoryObjectReceiveStream[SessionMessage | Exception] | None = None
         self._write_stream: MemoryObjectSendStream[str | SessionMessage] | None = None
         self._write_stream_reader: MemoryObjectReceiveStream[str | SessionMessage] | None = None
 
@@ -218,7 +218,13 @@ class HTTPStreamableTransport:
         headers: dict[str, str] | None = None,
     ) -> Response:
         """Create an error response."""
-        response_headers = {"Content-Type": CONTENT_TYPE_JSON}
+        response_headers = {
+            "Content-Type": CONTENT_TYPE_JSON,
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, DELETE",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept, Mcp-Session-Id",
+            "Access-Control-Expose-Headers": "Mcp-Session-Id",
+        }
         if headers:
             response_headers.update(headers)
 
@@ -406,13 +412,20 @@ class HTTPStreamableTransport:
             elif not await self._validate_request_headers(request, send):
                 return
 
+            # Extract resource owner from scope (set by ASGI Resource Server middleware)
+            resource_owner = request.scope.get("resource_owner")
+
             # For notifications and responses, return 202 Accepted
             if not isinstance(message, JSONRPCRequest):
                 response = self._create_json_response(None, HTTPStatus.ACCEPTED)
                 await response(scope, receive, send)
 
                 # Process the message
-                await writer.send(body_str if body_str.endswith("\n") else body_str + "\n")
+                session_message = SessionMessage(
+                    message=message,
+                    resource_owner=resource_owner,
+                )
+                await writer.send(session_message)
                 return
 
             # Handle requests
@@ -421,8 +434,11 @@ class HTTPStreamableTransport:
             request_stream_reader = self._request_streams[request_id][1]
 
             if self.is_json_response_enabled:
-                # JSON response mode
-                await writer.send(body_str if body_str.endswith("\n") else body_str + "\n")
+                session_message = SessionMessage(
+                    message=message,
+                    resource_owner=resource_owner,
+                )
+                await writer.send(session_message)
 
                 try:
                     response_message = None
@@ -490,7 +506,12 @@ class HTTPStreamableTransport:
                 try:
                     async with anyio.create_task_group() as tg:
                         tg.start_soon(response, scope, receive, send)
-                        await writer.send(body_str if body_str.endswith("\n") else body_str + "\n")
+                        # Send SessionMessage object
+                        session_message = SessionMessage(
+                            message=message,
+                            resource_owner=resource_owner,
+                        )
+                        await writer.send(session_message)
                 except Exception:
                     logger.exception("SSE response error")
                     await sse_stream_writer.aclose()
@@ -742,7 +763,7 @@ class HTTPStreamableTransport:
         self,
     ) -> AsyncIterator[
         tuple[
-            MemoryObjectReceiveStream[str | Exception],
+            MemoryObjectReceiveStream[SessionMessage | Exception],
             MemoryObjectSendStream[str | SessionMessage],
         ]
     ]:
@@ -754,7 +775,9 @@ class HTTPStreamableTransport:
         stream identified by `GET_STREAM_KEY`).
         """
         # Create memory streams with buffer
-        read_stream_writer, read_stream = anyio.create_memory_object_stream[str | Exception](100)
+        read_stream_writer, read_stream = anyio.create_memory_object_stream[
+            SessionMessage | Exception
+        ](100)
         write_stream, write_stream_reader = anyio.create_memory_object_stream[str | SessionMessage](
             100
         )
