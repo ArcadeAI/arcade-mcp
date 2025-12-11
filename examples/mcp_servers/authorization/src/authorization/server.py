@@ -8,13 +8,13 @@ from arcade_mcp_server import Context, MCPApp
 from arcade_mcp_server.auth import Reddit
 from arcade_mcp_server.resource_server import (
     AuthorizationServerEntry,
-    ResourceServer,
+    ResourceServerAuth,
 )
 
 # Option 1: Single authorization server with custom audience
 # Use expected_audiences when your auth server returns a different aud claim
 # (e.g., client_id instead of canonical_url)
-resource_server = ResourceServer(
+resource_server_auth = ResourceServerAuth(
     canonical_url="http://127.0.0.1:8000/mcp",
     authorization_servers=[
         AuthorizationServerEntry(  # WorkOS Authkit example configuration
@@ -27,7 +27,7 @@ resource_server = ResourceServer(
 )
 
 # Option 2: Multiple authorization servers with different keys (e.g., multi-IdP)
-# resource_server = ResourceServer(
+# resource_server_auth = ResourceServerAuth(
 #     canonical_url="http://127.0.0.1:8000/mcp",
 #     authorization_servers=[
 #         AuthorizationServerEntry(  # WorkOS Authkit example configuration
@@ -59,9 +59,9 @@ resource_server = ResourceServer(
 #   }
 # ]'
 # ```
-# resource_server = ResourceServer()
+# resource_server_auth = ResourceServerAuth()
 
-app = MCPApp(name="authorization", version="1.0.0", log_level="DEBUG", auth=resource_server)
+app = MCPApp(name="authorization", version="1.0.0", log_level="DEBUG", auth=resource_server_auth)
 
 
 @app.tool

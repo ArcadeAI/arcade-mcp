@@ -12,12 +12,12 @@ from arcade_mcp_server.resource_server.base import (
 )
 from arcade_mcp_server.resource_server.validators import (
     JWKSTokenValidator,
-    ResourceServer,
+    ResourceServerAuth,
 )
 
 __all__ = [
     "AccessTokenValidationOptions",
     "AuthorizationServerEntry",
     "JWKSTokenValidator",
-    "ResourceServer",
+    "ResourceServerAuth",
 ]

@@ -1,11 +1,11 @@
-"""ResourceServer implementation with OAuth discovery metadata support.
+"""ResourceServerAuth implementation with OAuth discovery metadata support.
 
-This module provides the base ResourceServer class that validates JWT tokens
+This module provides the base ResourceServerAuth class that validates JWT tokens
 from one or more authorization servers and provides OAuth 2.0 Protected Resource
 Metadata (RFC 9728) for discovery.
 
 Vendor specific implementations (WorkOS, Auth0, Descope, etc.) should inherit
-from ResourceServer.
+from ResourceServerAuth.
 """
 
 from typing import Any
@@ -22,7 +22,7 @@ from arcade_mcp_server.resource_server.validators.jwks import JWKSTokenValidator
 from arcade_mcp_server.settings import MCPSettings
 
 
-class ResourceServer(ResourceServerValidator):
+class ResourceServerAuth(ResourceServerValidator):
     """OAuth 2.1 Resource Server with discovery metadata support.
 
     This class implements the MCP server's role as an OAuth 2.1 Resource Server,
@@ -54,10 +54,10 @@ class ResourceServer(ResourceServerValidator):
             ```python
             # Option 1: Use environment variables
             # Set MCP_RESOURCE_SERVER_CANONICAL_URL and MCP_RESOURCE_SERVER_AUTHORIZATION_SERVERS env vars
-            resource_server = ResourceServer()
+            resource_server_auth = ResourceServerAuth()
 
             # Option 2: Single Authorization Server (aud claim matches canonical_url)
-            resource_server = ResourceServer(
+            resource_server_auth = ResourceServerAuth(
                 canonical_url="https://mcp.example.com/mcp",
                 authorization_servers=[
                     AuthorizationServerEntry(
@@ -69,7 +69,7 @@ class ResourceServer(ResourceServerValidator):
             )
 
             # Option 3: Custom audience (when auth server returns different aud claim)
-            resource_server = ResourceServer(
+            resource_server_auth = ResourceServerAuth(
                 canonical_url="https://mcp.example.com/mcp",
                 authorization_servers=[
                     AuthorizationServerEntry(

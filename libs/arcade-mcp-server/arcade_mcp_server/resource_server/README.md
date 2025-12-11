@@ -17,7 +17,7 @@ MCP servers can accept tokens from one or more authorization servers. Accepting 
 
 ## Environment Variable Configuration
 
-`ResourceServer` supports environment variable configuration for production deployments. This is the **recommended approach for production**.
+`ResourceServerAuth` supports environment variable configuration for production deployments. This is the **recommended approach for production**.
 
 **Note:** `JWKSTokenValidator` does not support environment variables and requires explicit programmatic parameters to its initializer
 
@@ -44,11 +44,11 @@ The `MCP_RESOURCE_SERVER_AUTHORIZATION_SERVERS` must be a JSON array of entry ob
 from arcade_mcp_server import MCPApp
 from arcade_mcp_server.resource_server import (
     AuthorizationServerEntry,
-    ResourceServer,
+    ResourceServerAuth,
 )
 
 # Explicit parameters override env vars (if both are provided)
-resource_server = ResourceServer(
+resource_server_auth = ResourceServerAuth(
     canonical_url="http://127.0.0.1:8000/mcp",  # used even if env var is set
     authorization_servers=[  # used even if env var is set
         AuthorizationServerEntry(
@@ -61,10 +61,10 @@ resource_server = ResourceServer(
         )
     ],
 )
-app = MCPApp(name="Protected", auth=resource_server)
+app = MCPApp(name="Protected", auth=resource_server_auth)
 
 # If no parameters provided, env vars are used as fallback
-resource_server = ResourceServer()  # Uses MCP_RESOURCE_SERVER_* env vars
+resource_server_auth = ResourceServerAuth()  # Uses MCP_RESOURCE_SERVER_* env vars
 ```
 
 ### Example .env File
@@ -150,12 +150,12 @@ MCP_RESOURCE_SERVER_AUTHORIZATION_SERVERS='[
 
 ## Vendor-Specific Implementations
 
-The `ResourceServer` class is designed to be subclassed for vendor-specific implementations:
+The `ResourceServerAuth` class is designed to be subclassed for vendor-specific implementations:
 
 ```python
 # Your vendor-specific implementations
-class ArcadeResourceServer(ResourceServer): ...
-class WorkOSResourceServer(ResourceServer): ...
-class Auth0ResourceServer(ResourceServer): ...
-class DescopeResourceServer(ResourceServer): ...
+class ArcadeResourceServerAuth(ResourceServerAuth): ...
+class WorkOSResourceServerAuth(ResourceServerAuth): ...
+class Auth0ResourceServerAuth(ResourceServerAuth): ...
+class DescopeResourceServerAuth(ResourceServerAuth): ...
 ```

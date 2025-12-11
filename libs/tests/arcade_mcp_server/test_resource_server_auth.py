@@ -8,7 +8,7 @@ from arcade_mcp_server.resource_server import (
     AccessTokenValidationOptions,
     AuthorizationServerEntry,
     JWKSTokenValidator,
-    ResourceServer,
+    ResourceServerAuth,
 )
 from arcade_mcp_server.resource_server.base import (
     InvalidTokenError,
@@ -600,13 +600,13 @@ class TestJWKSTokenValidator:
             assert user.user_id == "user123"
 
 
-# ResourceServer Tests
-class TestResourceServer:
-    """Tests for ResourceServer class."""
+# ResourceServerAuth Tests
+class TestResourceServerAuth:
+    """Tests for ResourceServerAuth class."""
 
     def test_supports_oauth_discovery(self):
-        """Test that ResourceServer supports OAuth discovery."""
-        resource_server = ResourceServer(
+        """Test that ResourceServerAuth supports OAuth discovery."""
+        resource_server_auth = ResourceServerAuth(
             canonical_url="https://mcp.example.com/mcp",
             authorization_servers=[
                 AuthorizationServerEntry(
@@ -617,11 +617,11 @@ class TestResourceServer:
             ],
         )
 
-        assert resource_server.supports_oauth_discovery() is True
+        assert resource_server_auth.supports_oauth_discovery() is True
 
     def test_get_resource_metadata(self):
         """Test getting OAuth Protected Resource Metadata."""
-        resource_server = ResourceServer(
+        resource_server_auth = ResourceServerAuth(
             canonical_url="https://mcp.example.com/mcp",
             authorization_servers=[
                 AuthorizationServerEntry(
@@ -632,7 +632,7 @@ class TestResourceServer:
             ],
         )
 
-        metadata = resource_server.get_resource_metadata()
+        metadata = resource_server_auth.get_resource_metadata()
 
         assert metadata["resource"] == "https://mcp.example.com/mcp"
         assert metadata["authorization_servers"] == ["https://auth.example.com"]
@@ -665,7 +665,7 @@ class TestResourceServer:
             mock_response.raise_for_status = Mock()
             mock_get.return_value = mock_response
 
-            resource_server = ResourceServer(
+            resource_server_auth = ResourceServerAuth(
                 canonical_url="https://mcp.example.com/mcp",
                 authorization_servers=[
                     AuthorizationServerEntry(
@@ -677,7 +677,7 @@ class TestResourceServer:
                 ],
             )
 
-            user = await resource_server.validate_token(token)
+            user = await resource_server_auth.validate_token(token)
             assert user.user_id == "user123"
 
     @pytest.mark.asyncio
@@ -707,7 +707,7 @@ class TestResourceServer:
             mock_response.raise_for_status = Mock()
             mock_get.return_value = mock_response
 
-            resource_server = ResourceServer(
+            resource_server_auth = ResourceServerAuth(
                 canonical_url="https://mcp.example.com/mcp",
                 authorization_servers=[
                     AuthorizationServerEntry(
@@ -723,7 +723,7 @@ class TestResourceServer:
                 ],
             )
 
-            user = await resource_server.validate_token(token)
+            user = await resource_server_auth.validate_token(token)
             assert user.user_id == "user123"
 
     @pytest.mark.asyncio
@@ -752,7 +752,7 @@ class TestResourceServer:
             mock_response.raise_for_status = Mock()
             mock_get.return_value = mock_response
 
-            resource_server = ResourceServer(
+            resource_server_auth = ResourceServerAuth(
                 canonical_url="https://mcp.example.com/mcp",
                 authorization_servers=[
                     AuthorizationServerEntry(
@@ -763,7 +763,7 @@ class TestResourceServer:
                 ],
             )
 
-            user = await resource_server.validate_token(token)
+            user = await resource_server_auth.validate_token(token)
             assert user.user_id == "user123"
 
     @pytest.mark.asyncio
@@ -792,7 +792,7 @@ class TestResourceServer:
             mock_response.raise_for_status = Mock()
             mock_get.return_value = mock_response
 
-            resource_server = ResourceServer(
+            resource_server_auth = ResourceServerAuth(
                 canonical_url="https://mcp.example.com/mcp",
                 authorization_servers=[
                     AuthorizationServerEntry(
@@ -805,7 +805,7 @@ class TestResourceServer:
             )
 
             with pytest.raises(InvalidTokenError):
-                await resource_server.validate_token(token)
+                await resource_server_auth.validate_token(token)
 
 
 # ResourceServerMiddleware Tests
@@ -913,7 +913,7 @@ class TestResourceServerMiddleware:
             mock_response.raise_for_status = Mock()
             mock_get.return_value = mock_response
 
-            resource_server = ResourceServer(
+            resource_server = ResourceServerAuth(
                 canonical_url="https://mcp.example.com/mcp",
                 authorization_servers=[
                     AuthorizationServerEntry(
@@ -969,7 +969,7 @@ class TestEnvVarConfiguration:
             '[{"authorization_server_url":"https://env.example.com","issuer":"https://env.example.com","jwks_uri":"https://env.example.com/jwks"}]',
         )
 
-        resource_server = ResourceServer(
+        resource_server = ResourceServerAuth(
             canonical_url="https://param-mcp.example.com",
             authorization_servers=[
                 AuthorizationServerEntry(
@@ -987,23 +987,23 @@ class TestEnvVarConfiguration:
 
     @pytest.mark.asyncio
     async def test_resource_server_all_env_vars(self, monkeypatch):
-        """Test ResourceServer with all env vars, no parameters."""
+        """Test ResourceServerAuth with all env vars, no parameters."""
         monkeypatch.setenv("MCP_RESOURCE_SERVER_CANONICAL_URL", "https://mcp.example.com/mcp")
         monkeypatch.setenv(
             "MCP_RESOURCE_SERVER_AUTHORIZATION_SERVERS",
             '[{"authorization_server_url":"https://auth.example.com","issuer":"https://auth.example.com","jwks_uri":"https://auth.example.com/jwks","algorithm":"RS256","expected_audiences":["custom-client-id"]}]',
         )
 
-        resource_server = ResourceServer()
+        resource_server_auth = ResourceServerAuth()
 
-        assert resource_server.canonical_url == "https://mcp.example.com/mcp"
-        metadata = resource_server.get_resource_metadata()
+        assert resource_server_auth.canonical_url == "https://mcp.example.com/mcp"
+        metadata = resource_server_auth.get_resource_metadata()
         assert metadata["authorization_servers"] == ["https://auth.example.com"]
 
     def test_resource_server_missing_required(self):
         """Test that missing required fields raise ValueError."""
         with pytest.raises(ValueError, match="'canonical_url' required"):
-            ResourceServer(
+            ResourceServerAuth(
                 authorization_servers=[
                     AuthorizationServerEntry(
                         authorization_server_url="https://auth.example.com",
@@ -1029,9 +1029,9 @@ class TestEnvVarConfiguration:
         assert app is not None
 
     def test_worker_requires_canonical_url_for_resource_server(self):
-        """Test that ResourceServer validation happens during init."""
+        """Test that ResourceServerAuth validation happens during init."""
         with pytest.raises(ValueError, match="'canonical_url' required"):
-            ResourceServer(
+            ResourceServerAuth(
                 authorization_servers=[
                     AuthorizationServerEntry(
                         authorization_server_url="https://auth.example.com",
@@ -1055,7 +1055,7 @@ class TestMultipleAuthorizationServers:
             mock_response.raise_for_status = Mock()
             mock_get.return_value = mock_response
 
-            resource_server = ResourceServer(
+            resource_server_auth = ResourceServerAuth(
                 canonical_url="https://mcp.example.com/mcp",
                 authorization_servers=[
                     AuthorizationServerEntry(
@@ -1072,7 +1072,7 @@ class TestMultipleAuthorizationServers:
             )
 
             # Verify that metadata returns all Auth Server URLs
-            metadata = resource_server.get_resource_metadata()
+            metadata = resource_server_auth.get_resource_metadata()
             assert metadata["resource"] == "https://mcp.example.com/mcp"
             assert metadata["authorization_servers"] == [
                 "https://auth-us.example.com",
@@ -1080,7 +1080,7 @@ class TestMultipleAuthorizationServers:
             ]
 
             # Verify that token validation works
-            user = await resource_server.validate_token(valid_jwt_token)
+            user = await resource_server_auth.validate_token(valid_jwt_token)
             assert user.user_id == "user123"
             assert user.email == "user@example.com"
 
@@ -1125,7 +1125,7 @@ class TestMultipleAuthorizationServers:
             mock_response.raise_for_status = Mock()
             mock_get.return_value = mock_response
 
-            resource_server = ResourceServer(
+            resource_server_auth = ResourceServerAuth(
                 canonical_url="https://mcp.example.com/mcp",
                 authorization_servers=[
                     AuthorizationServerEntry(
@@ -1143,18 +1143,18 @@ class TestMultipleAuthorizationServers:
             )
 
             # Verify metadata returns all Auth Server URLs
-            metadata = resource_server.get_resource_metadata()
+            metadata = resource_server_auth.get_resource_metadata()
             assert metadata["authorization_servers"] == [
                 "https://workos.authkit.app",
                 "http://localhost:8080/realms/mcp-test",
             ]
 
             # Verify tokens from both Auth Servers work
-            user1 = await resource_server.validate_token(token1)
+            user1 = await resource_server_auth.validate_token(token1)
             assert user1.user_id == "user123"
             assert user1.email == "user@workos.com"
 
-            user2 = await resource_server.validate_token(token2)
+            user2 = await resource_server_auth.validate_token(token2)
             assert user2.user_id == "user456"
             assert user2.email == "user@keycloak.com"
 
@@ -1184,7 +1184,7 @@ class TestMultipleAuthorizationServers:
             mock_response.raise_for_status = Mock()
             mock_get.return_value = mock_response
 
-            resource_server = ResourceServer(
+            resource_server_auth = ResourceServerAuth(
                 canonical_url="https://mcp.example.com/mcp",
                 authorization_servers=[
                     AuthorizationServerEntry(
@@ -1200,7 +1200,7 @@ class TestMultipleAuthorizationServers:
                 InvalidTokenError,
                 match="Token validation failed for all configured authorization servers",
             ):
-                await resource_server.validate_token(token)
+                await resource_server_auth.validate_token(token)
 
     def test_authorization_servers_env_var_parsing_json(self, monkeypatch):
         """Test parsing JSON array of AS configs from env var."""
@@ -1210,14 +1210,14 @@ class TestMultipleAuthorizationServers:
             '[{"authorization_server_url": "https://auth1.com", "issuer": "https://auth1.com", "jwks_uri": "https://auth1.com/jwks"}]',
         )
 
-        resource_server = ResourceServer()
+        resource_server_auth = ResourceServerAuth()
 
-        metadata = resource_server.get_resource_metadata()
+        metadata = resource_server_auth.get_resource_metadata()
         assert metadata["authorization_servers"] == ["https://auth1.com"]
 
     def test_resource_metadata_multiple_as(self):
         """Test that resource metadata returns all AS URLs."""
-        resource_server = ResourceServer(
+        resource_server_auth = ResourceServerAuth(
             canonical_url="https://mcp.example.com/mcp",
             authorization_servers=[
                 AuthorizationServerEntry(
@@ -1238,7 +1238,7 @@ class TestMultipleAuthorizationServers:
             ],
         )
 
-        metadata = resource_server.get_resource_metadata()
+        metadata = resource_server_auth.get_resource_metadata()
         assert metadata["resource"] == "https://mcp.example.com/mcp"
         assert len(metadata["authorization_servers"]) == 3
         assert "https://auth1.example.com" in metadata["authorization_servers"]
