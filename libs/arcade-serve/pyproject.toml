@@ -1,6 +1,6 @@
 [project]
 name = "arcade-serve"
-version = "3.1.5"
+version = "3.2.0"
 description = "Arcade Serve - Serving infrastructure for Arcade tools and workers"
 readme = "README.md"
 license = {text = "MIT"}
@@ -19,7 +19,7 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-    "arcade-core>=3.4.0,<4.0.0",
+    "arcade-core>=4.0.0,<5.0.0",
     "fastapi>=0.115.3",
     "uvicorn>=0.30.0",
     "watchfiles>=1.0.5",

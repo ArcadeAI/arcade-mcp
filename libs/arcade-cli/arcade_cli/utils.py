@@ -12,11 +12,12 @@ from importlib import metadata
 from pathlib import Path
 from textwrap import dedent
 from typing import Any, Callable, Union, cast
-from urllib.parse import urlencode, urlparse
+from urllib.parse import urlparse
 
 import idna
 from arcade_core import ToolCatalog, Toolkit
 from arcade_core.config_model import Config
+from arcade_core.constants import LOCALHOST
 from arcade_core.discovery import (
     analyze_files_for_tools,
     build_minimal_toolkit,
@@ -24,6 +25,7 @@ from arcade_core.discovery import (
     find_candidate_tool_files,
 )
 from arcade_core.errors import ToolkitLoadError
+from arcade_core.network.org_transport import build_org_scoped_http_client
 from arcade_core.schema import ToolDefinition
 from arcadepy import (
     NOT_GIVEN,
@@ -47,8 +49,6 @@ from rich.markup import escape
 from rich.text import Text
 from typer.core import TyperGroup
 from typer.models import Context
-
-from arcade_cli.constants import LOCAL_AUTH_CALLBACK_PORT, LOCALHOST
 
 console = Console()
 
@@ -203,9 +203,10 @@ def compute_base_url(
     force_no_tls: bool,
     host: str,
     port: int | None,
+    default_port: int | None = 9099,
 ) -> str:
     """
-    Compute the base URL for the Arcade Engine from the provided overrides.
+    Compute the base URL for an Arcade service from the provided overrides.
 
     Treats 127.0.0.1 and 0.0.0.0 as aliases for localhost.
 
@@ -217,8 +218,8 @@ def compute_base_url(
     hostnames with underscores.
 
     This property exists to provide a consistent and correctly formatted URL for
-    connecting to the Arcade Engine, taking into account various configuration
-    options and edge cases. It ensures that:
+    connecting to Arcade services (Engine, Coordinator), taking into account various
+    configuration options and edge cases. It ensures that:
 
     1. The correct protocol (http/https) is used based on the TLS setting.
     2. IPv4 and IPv6 addresses are properly formatted.
@@ -228,10 +229,16 @@ def compute_base_url(
     6. Hostnames with underscores (common in development environments) are supported.
     7. Pre-existing port specifications in the host are respected.
 
-    The resulting URL is always suffixed with api_version to specify the API version.
+    Args:
+        force_tls: Force HTTPS protocol.
+        force_no_tls: Force HTTP protocol (takes precedence over force_tls).
+        host: The hostname or IP address.
+        port: The port number (optional).
+        default_port: The default port for localhost if none specified.
+            Use 9099 for Engine, None for Coordinator (standard HTTPS).
 
     Returns:
-        str: The fully constructed URL for the Arcade Engine.
+        str: The fully constructed URL for the Arcade service.
     """
     # "Use 127.0.0.1" and "0.0.0.0" as aliases for "localhost"
     host = LOCALHOST if host in ["127.0.0.1", "0.0.0.0"] else host  # noqa: S104
@@ -244,9 +251,9 @@ def compute_base_url(
     else:
         is_tls = host != LOCALHOST
 
-    # "localhost" defaults to dev port if not specified
-    if host == LOCALHOST and port is None:
-        port = 9099
+    # "localhost" defaults to dev port if not specified and a default is provided
+    if host == LOCALHOST and port is None and default_port is not None:
+        port = default_port
 
     protocol = "https" if is_tls else "http"
 
@@ -284,39 +291,6 @@ def compute_base_url(
         return f"{protocol}://{encoded_host}"
 
 
-def compute_login_url(
-    host: str, state: str, port: int | None, callback_host: str | None = None
-) -> str:
-    """
-    Compute the full URL for the CLI login endpoint.
-    """
-    if callback_host:
-        if not (callback_host.startswith("http://") or callback_host.startswith("https://")):
-            callback_uri = f"http://{callback_host}"
-        else:
-            callback_uri = callback_host
-        if not callback_uri.rstrip("/").endswith("/callback"):
-            if port:
-                callback_uri = callback_uri.rstrip("/") + f":{port}" + "/callback"
-            else:
-                callback_uri = callback_uri.rstrip("/") + "/callback"
-    else:
-        callback_uri = f"http://{LOCALHOST}:{LOCAL_AUTH_CALLBACK_PORT}/callback"
-
-    params = urlencode({"callback_uri": callback_uri, "state": state})
-
-    port = port if port else 8000
-
-    login_base_url = (
-        f"http://{LOCALHOST}:{port}"
-        if host in [LOCALHOST, "127.0.0.1", "0.0.0.0"]  # noqa: S104
-        else f"https://{host}"
-    )
-    endpoint = "/api/v1/auth/cli_login"
-
-    return f"{login_base_url}{endpoint}?{params}"
-
-
 def get_tools_from_engine(
     host: str,
     port: int | None = None,
@@ -324,9 +298,8 @@ def get_tools_from_engine(
     force_no_tls: bool = False,
     toolkit: str | None = None,
 ) -> list[ToolDefinition]:
-    config = validate_and_get_config()
     base_url = compute_base_url(force_tls, force_no_tls, host, port)
-    client = Arcade(api_key=config.api.key, base_url=base_url)
+    client = get_arcade_client(base_url)
 
     tools = []
     try:
@@ -422,23 +395,134 @@ def validate_and_get_config(
     validate_user: bool = True,
 ) -> Config:
     """
-    Validates the configuration, user, and returns the Config object
+    Validates the configuration, user, and returns the Config object.
     """
-
     try:
         from arcade_core.config import config
     except Exception as e:
         handle_cli_error("Not logged in", e, debug=False)
 
-    if validate_api and (not config.api or not config.api.key):
-        handle_cli_error(
-            "API configuration not found or key is missing. Please run `arcade login`."
-        )
+    if validate_api and not config.auth:
+        handle_cli_error("Authentication not configured. Please run `arcade login`.")
 
     if validate_user and (not config.user or not config.user.email):
         handle_cli_error("User email not found in configuration. Please run `arcade login`.")
 
     return config
+
+
+def get_org_project_context() -> tuple[str, str]:
+    """
+    Get the active org_id and project_id from config.
+
+    Returns:
+        Tuple of (org_id, project_id)
+
+    Raises:
+        CLIError if no active org/project context is set.
+    """
+    config = validate_and_get_config()
+
+    if not config.context or not config.context.org_id or not config.context.project_id:
+        handle_cli_error("No active organization/project set. Please run `arcade login` first.")
+        raise AssertionError("unreachable")  # handle_cli_error raises CLIError
+
+    return config.context.org_id, config.context.project_id
+
+
+def get_auth_headers(coordinator_url: str | None = None) -> dict[str, str]:
+    """
+    Get authorization headers for API calls.
+
+    Args:
+        coordinator_url: Coordinator URL for token refresh (optional for legacy)
+
+    Returns:
+        Dictionary with Authorization header
+    """
+    from arcade_core.constants import PROD_COORDINATOR_HOST
+
+    from arcade_cli.authn import get_valid_access_token
+
+    config = validate_and_get_config()
+    resolved_coordinator_url = (
+        coordinator_url
+        or (getattr(config, "coordinator_url", None) or None)
+        or f"https://{PROD_COORDINATOR_HOST}"
+    )
+
+    try:
+        access_token = get_valid_access_token(resolved_coordinator_url)
+    except ValueError as e:
+        handle_cli_error(str(e))
+        raise AssertionError("unreachable")  # handle_cli_error raises CLIError
+
+    return {"Authorization": f"Bearer {access_token}"}
+
+
+def get_org_scoped_url(base_url: str, path: str) -> str:
+    """
+    Build an org-scoped URL using the active context.
+
+    Args:
+        base_url: Base URL of the API (e.g., https://api.arcade.dev)
+        path: Path suffix after the org/project prefix (e.g., "/secrets/KEY")
+
+    Returns:
+        Full URL with org/project path prefix
+
+    Raises:
+        CLIError if no active context is set
+
+    Example:
+        get_org_scoped_url("https://api.arcade.dev", "/secrets/MY_KEY")
+        # Returns: "https://api.arcade.dev/v1/orgs/ORG_ID/projects/PROJECT_ID/secrets/MY_KEY"
+    """
+    config = validate_and_get_config()
+
+    if not config.context:
+        handle_cli_error("No active organization/project. Please run `arcade login` first.")
+        raise AssertionError("unreachable")  # handle_cli_error raises CLIError
+
+    org_id = config.context.org_id
+    project_id = config.context.project_id
+
+    return f"{base_url}/v1/orgs/{org_id}/projects/{project_id}{path}"
+
+
+def get_arcade_client(base_url: str) -> Arcade:
+    """
+    Create an Arcade client with proper authentication and org-scoped URL rewriting.
+    Requests are automatically rewritten to include org/project scope in URLs.
+
+    Args:
+        base_url: Base URL of the Arcade Engine
+
+    Returns:
+        Configured Arcade client
+
+    Example:
+        client = get_arcade_client("https://api.arcade.dev")
+        servers = client.workers.list()  # Automatically uses org-scoped URLs
+    """
+    config = validate_and_get_config()
+
+    # OAuth mode: need to rewrite URLs to include org/project scope
+    from arcade_cli.authn import get_valid_access_token
+
+    access_token = get_valid_access_token()
+
+    # Get org/project context for URL rewriting
+    if not config.context or not config.context.org_id or not config.context.project_id:
+        handle_cli_error("No active organization/project set. Please run `arcade login` first.")
+        raise AssertionError("unreachable")  # handle_cli_error raises CLIError
+
+    org_id = config.context.org_id
+    project_id = config.context.project_id
+
+    http_client = build_org_scoped_http_client(org_id, project_id)
+
+    return Arcade(api_key=access_token, base_url=base_url, http_client=http_client)
 
 
 def log_engine_health(client: Arcade) -> None:

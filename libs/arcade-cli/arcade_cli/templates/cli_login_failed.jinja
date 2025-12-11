@@ -1,0 +1,152 @@
+{% extends "base.jinja" %}
+
+{% block title %}Arcade.dev - Authorization failed{% endblock %}
+
+{% block styles %}
+.arc-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    text-align: center;
+    align-items: center;
+}
+.arc-stack p {
+    color: var(--text-secondary, #d6d6d6);
+}
+.message-error {
+    color: #ff4d4d;
+    font-weight: 500;
+}
+.developer-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+    width: 100%;
+}
+.developer-toggle {
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--border-default, #2f2f2f), transparent 10%);
+    background: transparent;
+    color: var(--text-secondary, #d6d6d6);
+    font-weight: 500;
+    font-size: 0.875rem;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.developer-toggle:hover {
+    border-color: color-mix(in srgb, var(--border-default, #2f2f2f), #ffffff 15%);
+    background: rgba(255, 255, 255, 0.03);
+}
+.developer-details {
+    width: 100%;
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s ease, opacity 0.3s ease;
+    opacity: 0;
+}
+.developer-details.show {
+    grid-template-rows: 1fr;
+    opacity: 1;
+}
+.developer-details-inner {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.arc-panel {
+    padding: clamp(16px, 4vw, 24px);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--surface-card, #141414) 85%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border-default, #2d2d2d), transparent 25%);
+    text-align: left;
+}
+.arc-panel pre {
+    margin: 0;
+    font-family: 'JetBrains Mono', 'SFMono-Regular', monospace;
+    font-size: 0.8rem;
+    color: var(--text-secondary, #d6d6d6);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.error-label {
+    color: var(--text-muted, #999);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+}
+.error-value {
+    color: var(--text-primary, #fff);
+    font-family: 'JetBrains Mono', 'SFMono-Regular', monospace;
+    font-size: 0.85rem;
+}
+.error-block {
+    margin-bottom: 12px;
+}
+.error-block:last-child {
+    margin-bottom: 0;
+}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleDeveloperInfo() {
+    const details = document.getElementById('developerDetails');
+    const button = document.querySelector('.developer-toggle');
+
+    if (details.classList.contains('show')) {
+        details.classList.remove('show');
+        button.textContent = 'Show developer info';
+    } else {
+        details.classList.add('show');
+        button.textContent = 'Hide developer info';
+    }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="arc-stack">
+    <h2>Authorization failed</h2>
+    <p class="message-error">{{ message if message else 'Something went wrong. Please close this window and try again.' }}</p>
+
+    <div class="branding">
+        <p class="branding-text">Powered by <a href="https://arcade.dev" class="docs-link" target="_blank" rel="noopener">Arcade.dev</a></p>
+    </div>
+
+    {% if error or error_description %}
+    <div class="developer-section">
+        <button class="developer-toggle" onclick="toggleDeveloperInfo()">
+            Show developer info
+        </button>
+        <div class="developer-details" id="developerDetails">
+            <div class="developer-details-inner">
+                <div class="arc-panel">
+                    {% if error %}
+                    <div class="error-block">
+                        <div class="error-label">Error</div>
+                        <div class="error-value">{{ error }}</div>
+                    </div>
+                    {% endif %}
+                    {% if error_description %}
+                    <div class="error-block">
+                        <div class="error-label">Description</div>
+                        <div class="error-value">{{ error_description }}</div>
+                    </div>
+                    {% endif %}
+                    {% if state %}
+                    <div class="error-block">
+                        <div class="error-label">State</div>
+                        <div class="error-value">{{ state }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

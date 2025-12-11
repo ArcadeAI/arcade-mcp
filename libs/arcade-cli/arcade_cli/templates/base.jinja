@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}{% endblock %}</title>
+
+    <link rel="icon" type="image/svg+xml" href="https://cdn.arcade.dev/favicons/favicon.svg" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="https://cdn.arcade.dev/favicons/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="https://cdn.arcade.dev/favicons/favicon-16x16.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="https://cdn.arcade.dev/favicons/apple-touch-icon.png"
+    />
+
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+
+      *, *::before, *::after {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: radial-gradient(circle at top, color-mix(in srgb, var(--primary, #ED155D) 20%, transparent), #050505 55%);
+        color: var(--text-primary, #f7f7f7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: clamp(24px, 5vw, 48px);
+      }
+
+      h1, h2, h3, h4, h5, h6 {
+        margin: 0;
+        line-height: 1.3;
+      }
+
+      h2 {
+        font-size: clamp(1.75rem, 4vw, 2rem);
+        font-weight: 600;
+        color: var(--text-primary, #ffffff);
+      }
+
+      p {
+        margin: 0;
+        line-height: 1.6;
+      }
+
+      .container {
+        width: min(560px, 100%);
+      }
+
+      .arc-card {
+        background: var(--surface-card, rgba(18, 18, 18, 0.92));
+        border: 1px solid color-mix(in srgb, var(--border-default, #2c2c2c) 65%, transparent);
+        border-radius: 24px;
+        box-shadow: var(--shadow-lg, 0 25px 60px rgba(0, 0, 0, 0.55));
+        padding: clamp(32px, 6vw, 48px);
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+      }
+
+      .arc-logo {
+        display: block;
+        width: 80px;
+        height: 80px;
+        margin: 0 auto;
+      }
+
+      .arc-heading {
+        margin: 0;
+        text-align: center;
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-primary, #ffffff);
+      }
+
+      a {
+        color: var(--primary, #ED155D);
+        text-decoration: none;
+      }
+
+      a:hover {
+        color: color-mix(in srgb, var(--primary, #ED155D), #ffffff 20%);
+      }
+
+      .branding {
+        border-top: 1px solid color-mix(in srgb, var(--border-default, #2a2a2a), transparent 30%);
+        padding-top: 24px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .branding-text {
+        font-size: 0.875rem;
+        color: var(--text-muted, #bcbcbc);
+      }
+
+      .docs-link {
+        color: var(--primary, #ED155D);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+      }
+
+      .docs-link:hover {
+        color: color-mix(in srgb, var(--primary, #ED155D), #ffffff 20%);
+        text-decoration: underline;
+      }
+
+      {% block styles %}{% endblock %}
+    </style>
+    {% block scripts %}{% endblock %}
+  </head>
+  <body>
+    <main class="container">
+      <section class="arc-card" aria-live="polite">
+        <img
+          src="https://cdn.arcade.dev/logos/circle_texture.png"
+          width="80"
+          height="80"
+          alt="Arcade.dev logo"
+          class="arc-logo"
+        />
+        {% set heading_block %}{% block heading %}{% endblock %}{% endset %}
+        {% if heading_block | trim %}
+        <h2 class="arc-heading">{{ heading_block | trim | safe }}</h2>
+        {% endif %}
+        {% block content %}{% endblock %}
+      </section>
+    </main>
+  </body>
+</html>
+

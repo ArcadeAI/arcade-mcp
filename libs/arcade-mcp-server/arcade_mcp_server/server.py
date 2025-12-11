@@ -19,8 +19,10 @@ import logging
 import os
 from typing import Any, Callable, cast
 
+from arcade_core.auth_tokens import get_valid_access_token
 from arcade_core.catalog import MaterializedTool, ToolCatalog
 from arcade_core.executor import ToolExecutor
+from arcade_core.network.org_transport import build_org_scoped_async_http_client
 from arcade_core.schema import ToolAuthorizationContext, ToolContext
 from arcade_core.schema import ToolAuthRequirement as CoreToolAuthRequirement
 from arcadepy import ArcadeError, AsyncArcade
@@ -216,30 +218,48 @@ class MCPServer:
         self._handlers = self._register_handlers()
 
     def _load_config_values(self) -> tuple[str | None, str | None]:
-        """Load API key and user_id from credentials file.
+        """Load access token and user_id from credentials file.
 
         Returns:
-            Tuple of (api_key, user_id) from credentials file, or (None, None) if not available
+            Tuple of (access_token, user_id) from credentials file, or (None, None) if not available
         """
         try:
             from arcade_core.config import config
 
-            api_key = config.api.key if config.api else None
+            access_token = get_valid_access_token()
             user_id = config.user.email if config.user else None
 
-            if api_key or user_id:
+            if access_token or user_id:
                 config_path = config.get_config_file_path()
-                if api_key:
-                    logger.info(f"Loaded Arcade API key from {config_path}")
+                if access_token:
+                    logger.info(f"Loaded Arcade access token from {config_path}")
                 if user_id:
                     logger.debug(f"Loaded user_id '{user_id}' from {config_path}")
-                return api_key, user_id
+                return access_token, user_id
             else:
-                logger.debug("No API key or user_id found in credentials file")
+                logger.debug(
+                    "No access token or user_id found in credentials file. If this is unexpected, run 'arcade login' to authenticate."
+                )
                 return None, None
         except Exception as e:
             logger.debug(f"Could not load values from credentials file: {e}")
             return None, None
+
+    def _load_org_project_context(self) -> tuple[str, str] | None:
+        """
+        Load org/project context from the shared Arcade config (same source as the CLI).
+        Returns (org_id, project_id) when both are available; otherwise None.
+        """
+        try:
+            from arcade_core.config import config
+
+            context = getattr(config, "context", None)
+            if context and context.org_id and context.project_id:
+                return context.org_id, context.project_id
+            logger.debug("Org/project context not found in arcade_core.config")
+        except Exception as e:
+            logger.debug(f"Could not load org/project context from config: {e}")
+        return None
 
     def _init_arcade_client(self, api_key: str | None, api_url: str | None) -> None:
         """Initialize Arcade client for runtime authorization."""
@@ -257,10 +277,31 @@ class MCPServer:
 
         if final_api_key:
             logger.info(f"Using Arcade client with API URL: {api_url}")
-            self.arcade = AsyncArcade(api_key=final_api_key, base_url=api_url)
+            client_kwargs: dict[str, Any] = {"api_key": final_api_key, "base_url": api_url}
+
+            # Non-service keys need org/project URL rewriting
+            if not final_api_key.startswith("arc_"):
+                context = self._load_org_project_context()
+                if context:
+                    org_id, project_id = context
+                    client_kwargs["http_client"] = build_org_scoped_async_http_client(
+                        org_id, project_id
+                    )
+                    logger.info(
+                        "Configured org-scoped Arcade client for org '%s' project '%s'",
+                        org_id,
+                        project_id,
+                    )
+                else:
+                    logger.warning(
+                        "Expected to find org/project context in arcade_core.config but no org/project context "
+                        "was found; using non-scoped Arcade client."
+                    )
+
+            self.arcade = AsyncArcade(**client_kwargs)
         else:
             logger.warning(
-                "Arcade API key not configured. Tools requiring auth will return a login instruction."
+                "Arcade access token not configured. Tools requiring auth will return a login instruction."
             )
 
     def _init_middleware(self, custom_middleware: list[Middleware] | None) -> None:
