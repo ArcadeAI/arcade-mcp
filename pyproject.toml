@@ -1,6 +1,6 @@
 [project]
 name = "arcade-mcp"
-version = "1.6.0"
+version = "1.6.1"
 description = "Arcade.dev - Tool Calling platform for Agents"
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -93,10 +93,6 @@ packages = [
     "libs/arcade-cli/arcade_cli",
     "libs/arcade-evals/arcade_evals",
 ]
-
-# Include Jinja templates in the CLI package
-[tool.hatch.build.targets.wheel.force-include]
-"libs/arcade-cli/arcade_cli/templates" = "arcade_cli/templates"
 
 [tool.uv.workspace]
 members = [

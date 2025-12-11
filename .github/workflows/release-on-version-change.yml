@@ -107,6 +107,41 @@ jobs:
         run: |
           uv build --out-dir dist | tee build.log
 
+          # Validate wheel archives: PyPI rejects duplicate filenames in wheels
+          python - <<'PY'
+          from __future__ import annotations
+
+          from pathlib import Path
+          import sys
+          import zipfile
+
+          dist = Path("dist")
+          wheels = sorted(dist.glob("*.whl"))
+          if not wheels:
+            print("No wheels found in dist/, skipping wheel validation.")
+            raise SystemExit(0)
+
+          for whl in wheels:
+            with zipfile.ZipFile(whl) as zf:
+              names = zf.namelist()
+
+            seen: set[str] = set()
+            dupes: set[str] = set()
+            for name in names:
+              if name in seen:
+                dupes.add(name)
+              else:
+                seen.add(name)
+
+            if dupes:
+              print(f"ERROR: {whl} contains duplicate paths (PyPI will reject this wheel):", file=sys.stderr)
+              for name in sorted(dupes):
+                print(f"  - {name}", file=sys.stderr)
+              raise SystemExit(1)
+
+          print("Wheel validation OK (no duplicate filenames).")
+          PY
+
           # Verify build artifacts
           ls -la dist/
           echo "Built artifacts for ${{ env.PACKAGE_NAME }} v${{ env.VERSION }}"
