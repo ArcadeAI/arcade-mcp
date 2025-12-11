@@ -14,8 +14,9 @@ class AccessTokenValidationOptions(BaseModel):
     Set to False to disable specific validations for authorization servers
     that are not compliant with MCP.
 
-    Note: Token signature verification is always enabled and cannot be disabled.
-    Additionally, the subject (sub claim) must always be present in the token.
+    Note: Token signature verification and audience validation are always enabled
+    and cannot be disabled. Additionally, the subject (sub claim) must always be
+    present in the token.
     """
 
     verify_exp: bool = Field(
@@ -26,13 +27,17 @@ class AccessTokenValidationOptions(BaseModel):
         default=True,
         description="Verify issued-at time (iat claim)",
     )
-    verify_aud: bool = Field(
-        default=True,
-        description="Verify audience claim (aud claim)",
-    )
     verify_iss: bool = Field(
         default=True,
         description="Verify issuer claim (iss claim)",
+    )
+    verify_nbf: bool = Field(
+        default=True,
+        description="Verify not-before time (nbf claim). Rejects tokens used before their activation time.",
+    )
+    leeway: int = Field(
+        default=0,
+        description="Clock skew tolerance in seconds for exp/nbf validation. Recommended: 30-60 seconds.",
     )
 
 
@@ -78,6 +83,11 @@ class AuthorizationServerEntry:
 
     algorithm: str = "RS256"
     """JWT signature algorithm (RS256, ES256, PS256, etc.)"""
+
+    expected_audiences: list[str] | None = None
+    """Optional list of expected audience claims. If not provided,
+    defaults to the MCP server's canonical_url. Use this when your
+    authorization server returns a different aud claim (e.g., client_id)."""
 
     validation_options: AccessTokenValidationOptions = field(
         default_factory=AccessTokenValidationOptions

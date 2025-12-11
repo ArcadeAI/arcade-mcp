@@ -308,9 +308,15 @@ class MCPApp:
         logger.info(f"Starting {self._name} v{self.version} with {len(self._catalog)} tools")
 
         if transport in ["http", "streamable-http", "streamable"]:
-            logger.info(
-                f"Resource Server authentication enabled: {isinstance(self.resource_server_validator, ResourceServerValidator)}"
+            resource_server_auth_enabled = isinstance(
+                self.resource_server_validator, ResourceServerValidator
             )
+            if resource_server_auth_enabled:
+                logger.info("Resource Server authentication is enabled. MCP routes are protected.")
+            else:
+                logger.warning(
+                    "Resource Server authentication is disabled. MCP routes are not protected, so tools requiring auth or secrets will fail."
+                )
             if (
                 isinstance(self.resource_server_validator, ResourceServerValidator)
                 and self.resource_server_validator.supports_oauth_discovery()

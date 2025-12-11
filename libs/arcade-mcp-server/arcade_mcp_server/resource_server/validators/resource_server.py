@@ -40,7 +40,7 @@ class ResourceServer(ResourceServerValidator):
         """Initialize Resource Server.
 
         Supports environment variable configuration via MCP_RESOURCE_SERVER_* variables.
-        Environment variables take precedence over parameters.
+        Explicit parameters take precedence over environment variables.
 
         Args:
             authorization_servers: List of authorization server entries
@@ -48,7 +48,7 @@ class ResourceServer(ResourceServerValidator):
             cache_ttl: JWKS cache TTL in seconds
 
         Raises:
-            ValueError: If required fields not provided via env vars or parameters
+            ValueError: If required fields not provided via params or env vars
 
         Example:
             ```python
@@ -56,7 +56,7 @@ class ResourceServer(ResourceServerValidator):
             # Set MCP_RESOURCE_SERVER_CANONICAL_URL and MCP_RESOURCE_SERVER_AUTHORIZATION_SERVERS env vars
             resource_server = ResourceServer()
 
-            # Option 2: Single Authorization Server
+            # Option 2: Single Authorization Server (aud claim matches canonical_url)
             resource_server = ResourceServer(
                 canonical_url="https://mcp.example.com/mcp",
                 authorization_servers=[
@@ -68,7 +68,7 @@ class ResourceServer(ResourceServerValidator):
                 ],
             )
 
-            # Option 3: Multiple Authorization Servers
+            # Option 3: Custom audience (when auth server returns different aud claim)
             resource_server = ResourceServer(
                 canonical_url="https://mcp.example.com/mcp",
                 authorization_servers=[
@@ -76,14 +76,14 @@ class ResourceServer(ResourceServerValidator):
                         authorization_server_url="https://workos.authkit.app",
                         issuer="https://workos.authkit.app",
                         jwks_uri="https://workos.authkit.app/oauth2/jwks",
-                        validation_options=AccessTokenValidationOptions(verify_aud=False),
+                        expected_audiences=["my-authkit-client-id"],  # Override expected aud
                     ),
-                    AuthorizationServerEntry( # Keycloak example configuration
+                    AuthorizationServerEntry(  # Keycloak example configuration
                         authorization_server_url="http://localhost:8080/realms/mcp-test",
                         issuer="http://localhost:8080/realms/mcp-test",
                         jwks_uri="http://localhost:8080/realms/mcp-test/protocol/openid-connect/certs",
                         algorithm="RS256",
-                        validation_options=AccessTokenValidationOptions(verify_aud=False),
+                        expected_audiences=["my-keycloak-client-id"],
                     ),
                 ],
             )
@@ -93,20 +93,20 @@ class ResourceServer(ResourceServerValidator):
 
         self.cache_ttl = cache_ttl
 
-        # Environment variables (loaded into settings) take precedence
-        if settings.resource_server.canonical_url is not None:
-            self.canonical_url = settings.resource_server.canonical_url
-        elif canonical_url is not None:
+        # Explicit parameters take precedence over environment variables
+        if canonical_url is not None:
             self.canonical_url = canonical_url
+        elif settings.resource_server.canonical_url is not None:
+            self.canonical_url = settings.resource_server.canonical_url
         else:
             raise ValueError(
                 "'canonical_url' required (parameter or MCP_RESOURCE_SERVER_CANONICAL_URL environment variable)"
             )
 
-        if settings.resource_server.authorization_servers:
-            configs = settings.resource_server.to_authorization_server_entries()
-        elif authorization_servers is not None:
+        if authorization_servers is not None:
             configs = authorization_servers
+        elif settings.resource_server.authorization_servers:
+            configs = settings.resource_server.to_authorization_server_entries()
         else:
             raise ValueError(
                 "'authorization_servers' required (parameter or MCP_RESOURCE_SERVER_AUTHORIZATION_SERVERS environment variable)"
@@ -142,10 +142,14 @@ class ResourceServer(ResourceServerValidator):
         validators = {}
 
         for entry in entries:
+            # Use expected_audiences if provided, otherwise default to canonical_url
+            audience = (
+                entry.expected_audiences if entry.expected_audiences else [self.canonical_url]
+            )
             validators[entry.authorization_server_url] = JWKSTokenValidator(
                 jwks_uri=entry.jwks_uri,
                 issuer=entry.issuer,
-                audience=self.canonical_url,
+                audience=audience,
                 algorithm=entry.algorithm,
                 cache_ttl=self.cache_ttl,
                 validation_options=entry.validation_options,

@@ -7,12 +7,13 @@ import httpx
 from arcade_mcp_server import Context, MCPApp
 from arcade_mcp_server.auth import Reddit
 from arcade_mcp_server.resource_server import (
-    AccessTokenValidationOptions,
     AuthorizationServerEntry,
     ResourceServer,
 )
 
-# Option 1: Single authorization server example
+# Option 1: Single authorization server with custom audience
+# Use expected_audiences when your auth server returns a different aud claim
+# (e.g., client_id instead of canonical_url)
 resource_server = ResourceServer(
     canonical_url="http://127.0.0.1:8000/mcp",
     authorization_servers=[
@@ -20,7 +21,7 @@ resource_server = ResourceServer(
             authorization_server_url="https://your-workos.authkit.app",
             issuer="https://your-workos.authkit.app",
             jwks_uri="https://your-workos.authkit.app/oauth2/jwks",
-            validation_options=AccessTokenValidationOptions(verify_aud=False),
+            expected_audiences=["your-authkit-client-id"],  # Override expected aud claim
         ),
     ],
 )
@@ -29,22 +30,23 @@ resource_server = ResourceServer(
 # resource_server = ResourceServer(
 #     canonical_url="http://127.0.0.1:8000/mcp",
 #     authorization_servers=[
-#         AuthorizationServerEntry( # WorkOS Authkit example configuration
+#         AuthorizationServerEntry(  # WorkOS Authkit example configuration
 #             authorization_server_url="https://your-workos.authkit.app",
 #             issuer="https://your-workos.authkit.app",
 #             jwks_uri="https://your-workos.authkit.app/oauth2/jwks",
+#             expected_audiences=["your-authkit-client-id"],
 #         ),
-#         AuthorizationServerEntry( # Keycloak example configuration
+#         AuthorizationServerEntry(  # Keycloak example configuration
 #             authorization_server_url="http://localhost:8080/realms/mcp-test",
 #             issuer="http://localhost:8080/realms/mcp-test",
 #             jwks_uri="http://localhost:8080/realms/mcp-test/protocol/openid-connect/certs",
 #             algorithm="RS256",
-#             validation_options=AccessTokenValidationOptions(verify_aud=False),
+#             expected_audiences=["your-keycloak-client-id"],
 #         )
 #     ],
 # )
 
-# Option 3: Authoriation via env vars (place in your .env file)
+# Option 3: Authorization via env vars (place in your .env file)
 # ```bash
 # MCP_RESOURCE_SERVER_CANONICAL_URL=http://127.0.0.1:8000/mcp
 # MCP_RESOURCE_SERVER_AUTHORIZATION_SERVERS='[
@@ -53,9 +55,7 @@ resource_server = ResourceServer(
 #     "issuer": "https://your-workos.authkit.app",
 #     "jwks_uri": "https://your-workos.authkit.app/oauth2/jwks",
 #     "algorithm": "RS256",
-#     "validation_options": {
-#       "verify_aud": false
-#     }
+#     "expected_audiences": ["your-authkit-client-id"]
 #   }
 # ]'
 # ```

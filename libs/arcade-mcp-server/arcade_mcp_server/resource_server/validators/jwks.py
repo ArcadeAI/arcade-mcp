@@ -194,11 +194,13 @@ class JWKSTokenValidator(ResourceServerValidator):
             jwt.JWTError: Token is invalid
         """
         decode_options = {
-            "verify_signature": True,  # We always verify signature. Impossible to disable.
+            "verify_signature": True,  # Always verify signature. Cannot be disabled.
             "verify_exp": self.validation_options.verify_exp,
             "verify_iat": self.validation_options.verify_iat,
-            "verify_aud": False,  # We'll validate manually so that we can support multi-audience
-            "verify_iss": False,  # We'll validate manually for better multi-issuer handling
+            "verify_nbf": self.validation_options.verify_nbf,
+            "verify_aud": False,  # Manual validation for multi-audience support
+            "verify_iss": False,  # Manual validation for multi-issuer support
+            "leeway": self.validation_options.leeway,
         }
 
         # Decode token once without aud/iss validation
@@ -226,19 +228,16 @@ class JWKSTokenValidator(ResourceServerValidator):
                         f"Token issuer '{token_iss}' doesn't match expected '{self.issuer}'"
                     )
 
-        # Manually validate audience (if flag is enabled)
-        if self.validation_options.verify_aud:
-            token_aud = decoded.get("aud")
-            token_audiences = [token_aud] if isinstance(token_aud, str) else (token_aud or [])
-            expected_audiences = (
-                [self.audience] if isinstance(self.audience, str) else self.audience
-            )
+        # Always validate audience
+        token_aud = decoded.get("aud")
+        token_audiences = [token_aud] if isinstance(token_aud, str) else (token_aud or [])
+        expected_audiences = [self.audience] if isinstance(self.audience, str) else self.audience
 
-            # Token is valid if any of its aud values match any of our expected values
-            if not (set(token_audiences) & set(expected_audiences)):
-                raise InvalidTokenError(
-                    f"Token audience {token_aud} doesn't match expected {self.audience}"
-                )
+        # Token is valid if any of its aud values match any of our expected values
+        if not (set(token_audiences) & set(expected_audiences)):
+            raise InvalidTokenError(
+                f"Token audience {token_aud} doesn't match expected {self.audience}"
+            )
 
         return decoded
 
@@ -268,25 +267,25 @@ class JWKSTokenValidator(ResourceServerValidator):
         Returns:
             Client identifier or "unknown" if no client claim found
         """
-        client_id = (
-            decoded.get("client_id") or decoded.get("azp") or decoded.get("sub") or "unknown"
-        )
+        client_id = decoded.get("client_id") or decoded.get("azp") or "unknown"
 
         return client_id
 
     async def validate_token(self, token: str) -> ResourceOwner:
         """Validate JWT and return authenticated resource owner.
 
-        Validates:
+        Always validates (cannot be disabled):
         - Token signature using JWKS public key
         - Subject (sub claim) exists
-        - Expiration (exp claim) (if validation_options.verify_exp is True, default True)
-        - Issued-at time (iat claim) (if validation_options.verify_iat is True, default True)
-        - Issuer (iss claim) matches configured issuer(s) (if validation_options.verify_iss is True, default True)
-        - Audience (aud claim) matches configured audience(s) (if validation_options.verify_aud is True, default True)
+        - Audience (aud claim) matches configured audience(s)
 
-        Note: All validation_options default to True, so by default all validations
-        are enabled for max security.
+        Optionally validates (controlled by validation_options, all default to True):
+        - Expiration (exp claim) - verify_exp
+        - Issued-at time (iat claim) - verify_iat
+        - Not-before time (nbf claim) - verify_nbf
+        - Issuer (iss claim) matches configured issuer(s) - verify_iss
+
+        Clock skew tolerance can be configured via validation_options.leeway (in seconds).
 
         Args:
             token: JWT Bearer token

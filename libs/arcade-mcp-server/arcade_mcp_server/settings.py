@@ -144,11 +144,13 @@ class ResourceServerSettings(BaseSettings):
                 issuer=config["issuer"],
                 jwks_uri=config["jwks_uri"],
                 algorithm=config.get("algorithm", "RS256"),
+                expected_audiences=config.get("expected_audiences"),
                 validation_options=AccessTokenValidationOptions(
-                    verify_aud=config.get("validation_options", {}).get("verify_aud", True),
                     verify_exp=config.get("validation_options", {}).get("verify_exp", True),
                     verify_iat=config.get("validation_options", {}).get("verify_iat", True),
                     verify_iss=config.get("validation_options", {}).get("verify_iss", True),
+                    verify_nbf=config.get("validation_options", {}).get("verify_nbf", True),
+                    leeway=config.get("validation_options", {}).get("leeway", 0),
                 ),
             )
             for config in self.authorization_servers

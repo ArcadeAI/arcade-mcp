@@ -28,15 +28,6 @@ class ResourceServerMiddleware:
     The WWW-Authenticate header includes:
     - resource_metadata URL for OAuth discovery (if validator supports it)
     - error and error_description for token validation failures (RFC 6750)
-
-    Example:
-        ```python
-        from starlette.applications import Starlette
-
-        app = Starlette()
-        validator = JWKSTokenValidator(...)
-        app = ResourceServerMiddleware(app, validator, "https://mcp.example.com/mcp")
-        ```
     """
 
     def __init__(

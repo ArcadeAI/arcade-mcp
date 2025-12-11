@@ -4,12 +4,15 @@ The routes defined here enable MCP clients to discover authorization servers
 associated with this MCP server.
 """
 
+import logging
 from urllib.parse import urlparse
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from arcade_mcp_server.resource_server.base import ResourceServerValidator
+
+logger = logging.getLogger(__name__)
 
 
 def create_auth_router(
@@ -52,6 +55,10 @@ def create_auth_router(
 
         metadata = resource_server_validator.get_resource_metadata()
         if metadata is None:
+            logger.error(
+                "Resource metadata unavailable for OAuth discovery endpoint. "
+                "This is unexpected - the validator should provide metadata if OAuth discovery is enabled."
+            )
             return JSONResponse(
                 {"error": "Resource metadata not available"},
                 status_code=500,

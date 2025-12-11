@@ -5,6 +5,7 @@ from unittest.mock import Mock, patch
 import pytest
 from arcade_core.catalog import ToolCatalog
 from arcade_mcp_server.resource_server import (
+    AccessTokenValidationOptions,
     AuthorizationServerEntry,
     JWKSTokenValidator,
     ResourceServer,
@@ -491,6 +492,113 @@ class TestJWKSTokenValidator:
                 # Should only need to decode once, not 3 times
                 assert mock_decode.call_count == 1
 
+    @pytest.mark.asyncio
+    async def test_validate_nbf_claim_before_time(self, serialized_private_key, jwks_data):
+        """Test that token with nbf claim in the future is rejected."""
+        payload = {
+            "sub": "user123",
+            "iss": "https://auth.example.com",
+            "aud": "https://mcp.example.com/mcp",
+            "exp": int(time.time()) + 7200,  # expires in 2 hours
+            "iat": int(time.time()),
+            "nbf": int(time.time()) + 3600,  # Not valid for 1 hour
+        }
+
+        token = jwt.encode(
+            payload,
+            serialized_private_key,
+            algorithm="RS256",
+            headers={"kid": "test-key-1"},
+        )
+
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            validator = JWKSTokenValidator(
+                jwks_uri="https://auth.example.com/.well-known/jwks.json",
+                issuer="https://auth.example.com",
+                audience="https://mcp.example.com/mcp",
+                validation_options=AccessTokenValidationOptions(verify_nbf=True),
+            )
+
+            with pytest.raises(InvalidTokenError):
+                await validator.validate_token(token)
+
+    @pytest.mark.asyncio
+    async def test_validate_nbf_claim_disabled(self, serialized_private_key, jwks_data):
+        """Test that token with nbf in future is accepted when verify_nbf=False."""
+        payload = {
+            "sub": "user123",
+            "iss": "https://auth.example.com",
+            "aud": "https://mcp.example.com/mcp",
+            "exp": int(time.time()) + 7200,  # expires in 2 hours
+            "iat": int(time.time()),
+            "nbf": int(time.time()) + 3600,  # Not valid for 1 hour
+        }
+
+        token = jwt.encode(
+            payload,
+            serialized_private_key,
+            algorithm="RS256",
+            headers={"kid": "test-key-1"},
+        )
+
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            validator = JWKSTokenValidator(
+                jwks_uri="https://auth.example.com/.well-known/jwks.json",
+                issuer="https://auth.example.com",
+                audience="https://mcp.example.com/mcp",
+                validation_options=AccessTokenValidationOptions(verify_nbf=False),
+            )
+
+            # Should accept the token when nbf verification is disabled
+            user = await validator.validate_token(token)
+            assert user.user_id == "user123"
+
+    @pytest.mark.asyncio
+    async def test_validate_with_leeway(self, serialized_private_key, jwks_data):
+        """Test that leeway allows slightly expired tokens."""
+        # Token expired 30 seconds ago
+        payload = {
+            "sub": "user123",
+            "iss": "https://auth.example.com",
+            "aud": "https://mcp.example.com/mcp",
+            "exp": int(time.time()) - 30,
+            "iat": int(time.time()) - 3600,
+        }
+
+        token = jwt.encode(
+            payload,
+            serialized_private_key,
+            algorithm="RS256",
+            headers={"kid": "test-key-1"},
+        )
+
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            # Validator with 60 second leeway should accept this token
+            validator = JWKSTokenValidator(
+                jwks_uri="https://auth.example.com/.well-known/jwks.json",
+                issuer="https://auth.example.com",
+                audience="https://mcp.example.com/mcp",
+                validation_options=AccessTokenValidationOptions(leeway=60),
+            )
+
+            user = await validator.validate_token(token)
+            assert user.user_id == "user123"
+
 
 # ResourceServer Tests
 class TestResourceServer:
@@ -529,6 +637,175 @@ class TestResourceServer:
         assert metadata["resource"] == "https://mcp.example.com/mcp"
         assert metadata["authorization_servers"] == ["https://auth.example.com"]
         assert metadata["bearer_methods_supported"] == ["header"]
+
+    @pytest.mark.asyncio
+    async def test_expected_audiences_override(self, rsa_keypair, jwks_data):
+        """Test that expected_audiences overrides canonical_url for audience validation."""
+        private_key, _ = rsa_keypair
+
+        # Token with custom audience
+        payload = {
+            "sub": "user123",
+            "iss": "https://auth.example.com",
+            "aud": "my-authkit-client-id",
+            "exp": int(time.time()) + 3600,
+            "iat": int(time.time()),
+        }
+
+        token = jwt.encode(
+            payload,
+            private_key,
+            algorithm="RS256",
+            headers={"kid": "test-key-1"},
+        )
+
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            resource_server = ResourceServer(
+                canonical_url="https://mcp.example.com/mcp",
+                authorization_servers=[
+                    AuthorizationServerEntry(
+                        authorization_server_url="https://auth.example.com",
+                        issuer="https://auth.example.com",
+                        jwks_uri="https://auth.example.com/.well-known/jwks.json",
+                        expected_audiences=["my-authkit-client-id"],
+                    )
+                ],
+            )
+
+            user = await resource_server.validate_token(token)
+            assert user.user_id == "user123"
+
+    @pytest.mark.asyncio
+    async def test_expected_audiences_multiple_values(self, rsa_keypair, jwks_data):
+        """Test that multiple expected_audiences work correctly."""
+        private_key, _ = rsa_keypair
+
+        # Token with one of the expected audiences
+        payload = {
+            "sub": "user123",
+            "iss": "https://auth.example.com",
+            "aud": "secondary-client-id",
+            "exp": int(time.time()) + 3600,
+            "iat": int(time.time()),
+        }
+
+        token = jwt.encode(
+            payload,
+            private_key,
+            algorithm="RS256",
+            headers={"kid": "test-key-1"},
+        )
+
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            resource_server = ResourceServer(
+                canonical_url="https://mcp.example.com/mcp",
+                authorization_servers=[
+                    AuthorizationServerEntry(
+                        authorization_server_url="https://auth.example.com",
+                        issuer="https://auth.example.com",
+                        jwks_uri="https://auth.example.com/.well-known/jwks.json",
+                        expected_audiences=[
+                            "primary-client-id",
+                            "secondary-client-id",
+                            "tertiary-client-id",
+                        ],
+                    )
+                ],
+            )
+
+            user = await resource_server.validate_token(token)
+            assert user.user_id == "user123"
+
+    @pytest.mark.asyncio
+    async def test_expected_audiences_defaults_to_canonical_url(self, rsa_keypair, jwks_data):
+        """Test that without expected_audiences, canonical_url is used for audience validation."""
+        private_key, _ = rsa_keypair
+
+        payload = {
+            "sub": "user123",
+            "iss": "https://auth.example.com",
+            "aud": "https://mcp.example.com/mcp",
+            "exp": int(time.time()) + 3600,
+            "iat": int(time.time()),
+        }
+
+        token = jwt.encode(
+            payload,
+            private_key,
+            algorithm="RS256",
+            headers={"kid": "test-key-1"},
+        )
+
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            resource_server = ResourceServer(
+                canonical_url="https://mcp.example.com/mcp",
+                authorization_servers=[
+                    AuthorizationServerEntry(
+                        authorization_server_url="https://auth.example.com",
+                        issuer="https://auth.example.com",
+                        jwks_uri="https://auth.example.com/.well-known/jwks.json",
+                    )
+                ],
+            )
+
+            user = await resource_server.validate_token(token)
+            assert user.user_id == "user123"
+
+    @pytest.mark.asyncio
+    async def test_expected_audiences_wrong_audience_rejected(self, rsa_keypair, jwks_data):
+        """Test that tokens with wrong audience are rejected even with expected_audiences."""
+        private_key, _ = rsa_keypair
+
+        payload = {
+            "sub": "user123",
+            "iss": "https://auth.example.com",
+            "aud": "wrong-client-id",  # Not in expected_audiences list
+            "exp": int(time.time()) + 3600,
+            "iat": int(time.time()),
+        }
+
+        token = jwt.encode(
+            payload,
+            private_key,
+            algorithm="RS256",
+            headers={"kid": "test-key-1"},
+        )
+
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            resource_server = ResourceServer(
+                canonical_url="https://mcp.example.com/mcp",
+                authorization_servers=[
+                    AuthorizationServerEntry(
+                        authorization_server_url="https://auth.example.com",
+                        issuer="https://auth.example.com",
+                        jwks_uri="https://auth.example.com/.well-known/jwks.json",
+                        expected_audiences=["correct-client-id"],
+                    )
+                ],
+            )
+
+            with pytest.raises(InvalidTokenError):
+                await resource_server.validate_token(token)
 
 
 # ResourceServerMiddleware Tests
@@ -684,8 +961,8 @@ class TestEnvVarConfiguration:
     """Tests for front-door auth env var configuration support."""
 
     @pytest.mark.asyncio
-    async def test_resource_server_env_var_precedence(self, monkeypatch):
-        """Test that environment variables override parameters."""
+    async def test_resource_server_param_precedence(self, monkeypatch):
+        """Test that explicit parameters take precedence over environment variables."""
         monkeypatch.setenv("MCP_RESOURCE_SERVER_CANONICAL_URL", "https://env-mcp.example.com")
         monkeypatch.setenv(
             "MCP_RESOURCE_SERVER_AUTHORIZATION_SERVERS",
@@ -703,9 +980,10 @@ class TestEnvVarConfiguration:
             ],
         )
 
-        assert resource_server.canonical_url == "https://env-mcp.example.com"
+        # Explicit parameters should take precedence over env vars
+        assert resource_server.canonical_url == "https://param-mcp.example.com"
         metadata = resource_server.get_resource_metadata()
-        assert metadata["authorization_servers"] == ["https://env.example.com"]
+        assert metadata["authorization_servers"] == ["https://param.example.com"]
 
     @pytest.mark.asyncio
     async def test_resource_server_all_env_vars(self, monkeypatch):
@@ -713,7 +991,7 @@ class TestEnvVarConfiguration:
         monkeypatch.setenv("MCP_RESOURCE_SERVER_CANONICAL_URL", "https://mcp.example.com/mcp")
         monkeypatch.setenv(
             "MCP_RESOURCE_SERVER_AUTHORIZATION_SERVERS",
-            '[{"authorization_server_url":"https://auth.example.com","issuer":"https://auth.example.com","jwks_uri":"https://auth.example.com/jwks","algorithm":"RS256","validation_options":{"verify_aud":false}}]',
+            '[{"authorization_server_url":"https://auth.example.com","issuer":"https://auth.example.com","jwks_uri":"https://auth.example.com/jwks","algorithm":"RS256","expected_audiences":["custom-client-id"]}]',
         )
 
         resource_server = ResourceServer()
