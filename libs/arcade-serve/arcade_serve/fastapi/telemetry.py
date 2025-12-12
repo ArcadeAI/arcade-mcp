@@ -1,14 +1,17 @@
 import logging
 import os
 import urllib.parse
-from typing import Optional
+from typing import Literal, Optional
 
 from fastapi import FastAPI
 from opentelemetry import _logs, trace
 from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
 from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.instrumentation.aiohttp_client import AioHttpClientInstrumentor
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+from opentelemetry.instrumentation.requests import RequestsInstrumentor
 from opentelemetry.metrics import Meter, get_meter_provider, set_meter_provider
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
@@ -21,7 +24,7 @@ from opentelemetry.semconv._incubating.attributes import deployment_attributes
 from opentelemetry.semconv.attributes import service_attributes
 
 EXCLUDED_URLS = "/worker/health"
-EXCLUDED_SPANS = ["send", "receive"]
+EXCLUDED_SPANS: list[Literal["send", "receive"]] = ["send", "receive"]
 
 
 class ShutdownError(Exception):
@@ -59,6 +62,9 @@ class OTELHandler:
             FastAPIInstrumentor().instrument_app(
                 app, excluded_urls=EXCLUDED_URLS, exclude_spans=EXCLUDED_SPANS
             )
+            HTTPXClientInstrumentor()._instrument(tracer_provider=self._tracer_provider)
+            AioHttpClientInstrumentor()._instrument(tracer_provider=self._tracer_provider)
+            RequestsInstrumentor()._instrument(tracer_provider=self._tracer_provider)
 
     def _init_tracer(self) -> None:
         self._tracer_provider = TracerProvider(resource=self.resource)

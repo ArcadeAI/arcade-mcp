@@ -1,6 +1,6 @@
 [project]
 name = "arcade-serve"
-version = "3.2.0"
+version = "3.2.1"
 description = "Arcade Serve - Serving infrastructure for Arcade tools and workers"
 readme = "README.md"
 license = {text = "MIT"}
@@ -27,6 +27,10 @@ dependencies = [
     "opentelemetry-instrumentation-fastapi==0.49b2",
     "opentelemetry-exporter-otlp-proto-http==1.28.2",
     "opentelemetry-exporter-otlp-proto-common==1.28.2",
+    "opentelemetry-instrumentation-httpx==0.49b2",
+    "opentelemetry-instrumentation-aiohttp-client==0.49b2",
+    "opentelemetry-instrumentation-requests==0.49b2",
+    "aiohttp>=3.0.0,<4.0.0",
 ]
 
 [project.optional-dependencies]
