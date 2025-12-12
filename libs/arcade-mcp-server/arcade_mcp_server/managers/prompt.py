@@ -8,7 +8,18 @@ from __future__ import annotations
 
 import inspect
 import logging
-from typing import TYPE_CHECKING, Any, Callable, Union, cast
+import types
+from typing import (
+    TYPE_CHECKING,
+    Annotated,
+    Any,
+    Callable,
+    Union,
+    cast,
+    get_args,
+    get_origin,
+    get_type_hints,
+)
 
 from arcade_mcp_server.exceptions import NotFoundError, PromptError
 from arcade_mcp_server.managers.base import ComponentManager
@@ -61,6 +72,56 @@ class PromptHandler:
             - handler(context: dict[str, str]) -> False (legacy with misleading name)
             - handler(args) -> False (legacy)
         """
+        from arcade_mcp_server.context import Context as ArcadeContext
+
+        def _is_context_annotation(ann: Any) -> bool:
+            """Return True only for the actual Context type (or Optional/Union/Annotated wrappers).
+
+            Important: do NOT do substring matching on string annotations. That can produce false
+            positives for unrelated types like ContextManager/ExecutionContext/etc.
+            """
+            if ann is ArcadeContext:
+                return True
+
+            # Real class annotations (including subclasses).
+            if isinstance(ann, type) and issubclass(ann, ArcadeContext):
+                return True
+
+            # Unwrap common typing wrappers.
+            origin = get_origin(ann)
+            if origin is Annotated:
+                args = get_args(ann)
+                return _is_context_annotation(args[0]) if args else False
+
+            if origin is Union or origin is types.UnionType:
+                return any(_is_context_annotation(a) for a in get_args(ann))
+
+            # Conservative fallback for unresolved forward refs (strings).
+            if isinstance(ann, str):
+                s = ann.strip().strip("'\"")
+
+                # Handle PEP604 unions in string form: "Context | None"
+                if "|" in s:
+                    return any(_is_context_annotation(part.strip()) for part in s.split("|"))
+
+                # Handle Optional/Union/Annotated in string form. We only unwrap these;
+                # we intentionally do NOT look inside arbitrary generics like ContextManager[...].
+                for wrapper in ("Optional[", "Union[", "Annotated["):
+                    if s.startswith(wrapper) and s.endswith("]"):
+                        inner = s[len(wrapper) : -1].strip()
+                        if wrapper == "Union[":
+                            return any(_is_context_annotation(p.strip()) for p in inner.split(","))
+                        if wrapper == "Annotated[":
+                            first = inner.split(",", 1)[0].strip()
+                            return _is_context_annotation(first)
+                        # Optional[
+                        return _is_context_annotation(inner)
+
+                # Accept only the actual arcade_mcp_server Context name(s).
+                return s in {"Context", "arcade_mcp_server.context.Context", "arcade_mcp_server.Context"}
+
+            return False
+
         try:
             sig = inspect.signature(handler)
             params = list(sig.parameters.values())
@@ -74,10 +135,34 @@ class PromptHandler:
 
             # Check if first parameter is type-annotated
             if first_param.annotation != inspect.Parameter.empty:
-                annotation_str = str(first_param.annotation)
-                # Only return True if the type annotation contains "Context"
-                # This handles Context, arcade_mcp_server.context.Context, etc.
-                return "Context" in annotation_str
+                ann: Any = first_param.annotation
+
+                # Prefer resolving type hints (handles forward refs, Optional/Union, etc.)
+                try:
+                    import arcade_mcp_server
+
+                    globalns = getattr(handler, "__globals__", {}) or {}
+                    if "arcade_mcp_server" not in globalns:
+                        # Avoid mutating handler globals in-place.
+                        globalns = dict(globalns)
+                        globalns["arcade_mcp_server"] = arcade_mcp_server
+
+                    hints = get_type_hints(
+                        handler,
+                        globalns=globalns,
+                        localns={"Context": ArcadeContext},
+                        include_extras=True,
+                    )
+                    ann = hints.get(first_param.name, ann)
+                except Exception:
+                    # Fall back to raw signature annotation.
+                    logger.debug(
+                        "Failed to resolve prompt handler type hints; falling back to raw signature annotations",
+                        exc_info=True,
+                    )
+                    ann = first_param.annotation
+
+                return _is_context_annotation(ann)
             else:
                 # No type annotation - check if named "context" (untyped context handler)
                 return first_param.name == "context"
