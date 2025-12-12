@@ -1339,7 +1339,7 @@ class MCPServer:
         try:
             # Get current context for prompt handlers that need it
             from arcade_mcp_server.context import get_current_model_context
-            
+
             context = get_current_model_context()
             result = await self._prompt_manager.get_prompt(
                 message.params.name,

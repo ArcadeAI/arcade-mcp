@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import inspect
 import logging
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Any, Callable, Union, cast
 
 from arcade_mcp_server.exceptions import NotFoundError, PromptError
 from arcade_mcp_server.managers.base import ComponentManager
@@ -19,24 +19,29 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger("arcade.mcp.managers.prompt")
 
+# Type aliases for prompt handler signatures
+PromptHandlerLegacy = Callable[[dict[str, str]], list[PromptMessage]]
+PromptHandlerWithContext = Callable[["Context", dict[str, str]], list[PromptMessage]]
+PromptHandlerType = Union[PromptHandlerLegacy, PromptHandlerWithContext]
+
 
 class PromptHandler:
     """Handler for generating prompt messages.
-    
+
     Supports two handler signatures:
     1. Legacy: handler(args: dict[str, str]) -> list[PromptMessage]
     2. New (with context): handler(context: Context, args: dict[str, str]) -> list[PromptMessage]
-    
+
     The handler signature is detected automatically using introspection.
     """
 
     def __init__(
         self,
         prompt: Prompt,
-        handler: Callable[[dict[str, str]], list[PromptMessage]] | None = None,
+        handler: PromptHandlerType | None = None,
     ) -> None:
         self.prompt = prompt
-        self.handler = handler or self._default_handler
+        self.handler: Any = handler or self._default_handler
         self._accepts_context = self._check_context_signature(self.handler)
 
     def __eq__(self, other: object) -> bool:  # pragma: no cover - simple comparison
@@ -44,9 +49,9 @@ class PromptHandler:
             return False
         return self.prompt == other.prompt and self.handler == other.handler
 
-    def _check_context_signature(self, handler: Callable) -> bool:
+    def _check_context_signature(self, handler: Any) -> bool:
         """Check if handler accepts context parameter.
-        
+
         Returns True if the handler signature has 2 parameters (context, args),
         False if it has 1 parameter (args only).
         """
@@ -54,7 +59,7 @@ class PromptHandler:
             sig = inspect.signature(handler)
             params = list(sig.parameters.values())
             # Filter out 'self' parameter for bound methods
-            params = [p for p in params if p.name != 'self']
+            params = [p for p in params if p.name != "self"]
             return len(params) >= 2
         except (ValueError, TypeError):
             # If we can't inspect, assume legacy signature
@@ -85,17 +90,19 @@ class PromptHandler:
                     raise PromptError(f"Required argument '{arg.name}' not provided")
 
         # Call handler with appropriate signature
+        result: Any
         if self._accepts_context:
             if context is None:
                 raise PromptError("Handler requires context but none was provided")
             result = self.handler(context, args)
         else:
             result = self.handler(args)
-            
+
         if hasattr(result, "__await__"):
             result = await result
 
-        return result
+        # Cast result to expected type after dynamic invocation
+        return cast(list[PromptMessage], result)
 
 
 class PromptManager(ComponentManager[str, PromptHandler]):
@@ -135,7 +142,7 @@ class PromptManager(ComponentManager[str, PromptHandler]):
     async def add_prompt(
         self,
         prompt: Prompt,
-        handler: Callable[[dict[str, str]], list[PromptMessage]] | None = None,
+        handler: PromptHandlerType | None = None,
     ) -> None:
         prompt_handler = PromptHandler(prompt, handler)
         await self.registry.upsert(prompt.name, prompt_handler)
@@ -151,7 +158,7 @@ class PromptManager(ComponentManager[str, PromptHandler]):
         self,
         name: str,
         prompt: Prompt,
-        handler: Callable[[dict[str, str]], list[PromptMessage]] | None = None,
+        handler: PromptHandlerType | None = None,
     ) -> Prompt:
         # Ensure exists
         try:

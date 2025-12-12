@@ -86,10 +86,10 @@ class TestPromptManager:
         context = Context(mock_server)
         # Mock the log interface with async methods
         mock_log = Mock()
-        
+
         async def async_info(*args, **kwargs):
             pass
-        
+
         mock_log.info = async_info
         context._log = mock_log
         return context
