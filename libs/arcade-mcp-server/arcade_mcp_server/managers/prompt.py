@@ -52,15 +52,31 @@ class PromptHandler:
     def _check_context_signature(self, handler: Any) -> bool:
         """Check if handler accepts context parameter.
 
-        Returns True if the handler signature has 2 parameters (context, args),
-        False if it has 1 parameter (args only).
+        Returns True if the first parameter is named "context" or type-annotated as Context,
+        False for legacy signature (args only).
         """
         try:
             sig = inspect.signature(handler)
             params = list(sig.parameters.values())
             # Filter out 'self' parameter for bound methods
             params = [p for p in params if p.name != "self"]
-            return len(params) >= 2
+            
+            if not params:
+                return False
+            
+            # Check if first parameter is named "context"
+            first_param = params[0]
+            if first_param.name == "context":
+                return True
+            
+            # Check if first parameter is type-annotated as Context
+            if first_param.annotation != inspect.Parameter.empty:
+                annotation_str = str(first_param.annotation)
+                # Check for Context in various forms (Context, arcade_mcp_server.context.Context, etc.)
+                if "Context" in annotation_str:
+                    return True
+            
+            return False
         except (ValueError, TypeError):
             # If we can't inspect, assume legacy signature
             return False
