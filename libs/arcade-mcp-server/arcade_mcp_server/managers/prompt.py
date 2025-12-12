@@ -52,30 +52,40 @@ class PromptHandler:
     def _check_context_signature(self, handler: Any) -> bool:
         """Check if handler accepts context parameter.
 
-        Returns True if the first parameter is named "context" or type-annotated as Context,
-        False for legacy signature (args only).
+        Returns True if the first parameter is type-annotated as Context or named "context"
+        without a conflicting type annotation. Returns False for legacy signatures.
+
+        Examples:
+            - handler(context: Context, args) -> True (typed context)
+            - handler(context, args) -> True (untyped context)
+            - handler(context: dict[str, str]) -> False (legacy with misleading name)
+            - handler(args) -> False (legacy)
         """
         try:
             sig = inspect.signature(handler)
             params = list(sig.parameters.values())
             # Filter out 'self' parameter for bound methods
             params = [p for p in params if p.name != "self"]
-            
+
             if not params:
                 return False
-            
-            # Check if first parameter is named "context"
+
             first_param = params[0]
-            if first_param.name == "context":
-                return True
-            
-            # Check if first parameter is type-annotated as Context
+
+            # Check if first parameter is type-annotated
             if first_param.annotation != inspect.Parameter.empty:
                 annotation_str = str(first_param.annotation)
-                # Check for Context in various forms (Context, arcade_mcp_server.context.Context, etc.)
+                # Only return True if the type annotation contains "Context"
+                # This handles Context, arcade_mcp_server.context.Context, etc.
                 if "Context" in annotation_str:
                     return True
-            
+                # If annotated as something else (e.g., dict), it's a legacy handler
+                # even if the parameter happens to be named "context"
+            else:
+                # No type annotation - check if named "context" (untyped context handler)
+                if first_param.name == "context":
+                    return True
+
             return False
         except (ValueError, TypeError):
             # If we can't inspect, assume legacy signature
