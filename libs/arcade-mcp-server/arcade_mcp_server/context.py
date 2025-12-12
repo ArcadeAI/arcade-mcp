@@ -533,7 +533,7 @@ class Prompts(_ContextComponent):
         return cast(list[Any], prompts)
 
     async def get(self, name: str, arguments: dict[str, str] | None = None) -> Any:
-        return await self._ctx.server._prompt_manager.get_prompt(name, arguments)
+        return await self._ctx.server._prompt_manager.get_prompt(name, arguments, self._ctx)
 
 
 class Sampling(_ContextComponent):

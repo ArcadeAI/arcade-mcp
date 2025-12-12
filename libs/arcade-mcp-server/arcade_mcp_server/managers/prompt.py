@@ -6,18 +6,29 @@ Async-safe prompts with registry-based storage and deterministic listing.
 
 from __future__ import annotations
 
+import inspect
 import logging
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
 from arcade_mcp_server.exceptions import NotFoundError, PromptError
 from arcade_mcp_server.managers.base import ComponentManager
 from arcade_mcp_server.types import GetPromptResult, Prompt, PromptMessage
 
+if TYPE_CHECKING:
+    from arcade_mcp_server.context import Context
+
 logger = logging.getLogger("arcade.mcp.managers.prompt")
 
 
 class PromptHandler:
-    """Handler for generating prompt messages."""
+    """Handler for generating prompt messages.
+    
+    Supports two handler signatures:
+    1. Legacy: handler(args: dict[str, str]) -> list[PromptMessage]
+    2. New (with context): handler(context: Context, args: dict[str, str]) -> list[PromptMessage]
+    
+    The handler signature is detected automatically using introspection.
+    """
 
     def __init__(
         self,
@@ -26,11 +37,28 @@ class PromptHandler:
     ) -> None:
         self.prompt = prompt
         self.handler = handler or self._default_handler
+        self._accepts_context = self._check_context_signature(self.handler)
 
     def __eq__(self, other: object) -> bool:  # pragma: no cover - simple comparison
         if not isinstance(other, PromptHandler):
             return False
         return self.prompt == other.prompt and self.handler == other.handler
+
+    def _check_context_signature(self, handler: Callable) -> bool:
+        """Check if handler accepts context parameter.
+        
+        Returns True if the handler signature has 2 parameters (context, args),
+        False if it has 1 parameter (args only).
+        """
+        try:
+            sig = inspect.signature(handler)
+            params = list(sig.parameters.values())
+            # Filter out 'self' parameter for bound methods
+            params = [p for p in params if p.name != 'self']
+            return len(params) >= 2
+        except (ValueError, TypeError):
+            # If we can't inspect, assume legacy signature
+            return False
 
     def _default_handler(self, arguments: dict[str, str]) -> list[PromptMessage]:
         return [
@@ -43,7 +71,11 @@ class PromptHandler:
             )
         ]
 
-    async def get_messages(self, arguments: dict[str, str] | None = None) -> list[PromptMessage]:
+    async def get_messages(
+        self,
+        arguments: dict[str, str] | None = None,
+        context: Context | None = None,
+    ) -> list[PromptMessage]:
         args = arguments or {}
 
         # Validate required arguments
@@ -52,7 +84,14 @@ class PromptHandler:
                 if arg.required and arg.name not in args:
                     raise PromptError(f"Required argument '{arg.name}' not provided")
 
-        result = self.handler(args)
+        # Call handler with appropriate signature
+        if self._accepts_context:
+            if context is None:
+                raise PromptError("Handler requires context but none was provided")
+            result = self.handler(context, args)
+        else:
+            result = self.handler(args)
+            
         if hasattr(result, "__await__"):
             result = await result
 
@@ -72,7 +111,10 @@ class PromptManager(ComponentManager[str, PromptHandler]):
         return [h.prompt for h in handlers]
 
     async def get_prompt(
-        self, name: str, arguments: dict[str, str] | None = None
+        self,
+        name: str,
+        arguments: dict[str, str] | None = None,
+        context: Context | None = None,
     ) -> GetPromptResult:
         try:
             handler = await self.registry.get(name)
@@ -80,7 +122,7 @@ class PromptManager(ComponentManager[str, PromptHandler]):
             raise NotFoundError(f"Prompt '{name}' not found")
 
         try:
-            messages = await handler.get_messages(arguments)
+            messages = await handler.get_messages(arguments, context)
             return GetPromptResult(
                 description=handler.prompt.description,
                 messages=messages,

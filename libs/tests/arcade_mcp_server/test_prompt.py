@@ -1,8 +1,10 @@
 """Tests for Prompt Manager implementation."""
 
 import asyncio
+from unittest.mock import Mock
 
 import pytest
+from arcade_mcp_server.context import Context
 from arcade_mcp_server.exceptions import NotFoundError, PromptError
 from arcade_mcp_server.managers.prompt import PromptManager
 from arcade_mcp_server.types import (
@@ -37,7 +39,7 @@ class TestPromptManager:
 
     @pytest.fixture
     def prompt_function(self):
-        """Create a prompt function."""
+        """Create a prompt function (legacy signature without context)."""
 
         async def greeting_prompt(args: dict[str, str]) -> list[PromptMessage]:
             name = args.get("name", "")
@@ -52,6 +54,45 @@ class TestPromptManager:
             return [PromptMessage(role="assistant", content={"type": "text", "text": text})]
 
         return greeting_prompt
+
+    @pytest.fixture
+    def prompt_function_with_context(self):
+        """Create a prompt function with context parameter (new signature)."""
+
+        async def greeting_prompt_with_context(
+            context: Context, args: dict[str, str]
+        ) -> list[PromptMessage]:
+            name = args.get("name", "")
+            formal_arg = args.get("formal", "false")
+            formal = str(formal_arg).lower() == "true"
+
+            # Access context (e.g., for logging)
+            if hasattr(context, "log"):
+                await context.log.info(f"Generating greeting for {name}")
+
+            if formal:
+                text = f"Good day, {name}. How may I assist you?"
+            else:
+                text = f"Hey {name}! What's up?"
+
+            return [PromptMessage(role="assistant", content={"type": "text", "text": text})]
+
+        return greeting_prompt_with_context
+
+    @pytest.fixture
+    def mock_context(self):
+        """Create a mock context."""
+        mock_server = Mock()
+        context = Context(mock_server)
+        # Mock the log interface with async methods
+        mock_log = Mock()
+        
+        async def async_info(*args, **kwargs):
+            pass
+        
+        mock_log.info = async_info
+        context._log = mock_log
+        return context
 
     def test_manager_initialization(self):
         """Test prompt manager initialization."""
@@ -239,3 +280,116 @@ class TestPromptManager:
 
         with pytest.raises(PromptError):
             await manager.get_prompt("error_prompt", {})
+
+    @pytest.mark.asyncio
+    async def test_prompt_with_context_parameter(
+        self, prompt_manager, sample_prompt, prompt_function_with_context, mock_context
+    ):
+        """Test prompt with new context parameter signature."""
+        await prompt_manager.add_prompt(sample_prompt, prompt_function_with_context)
+
+        result = await prompt_manager.get_prompt(
+            "greeting", {"name": "Alice", "formal": "true"}, mock_context
+        )
+
+        assert isinstance(result, GetPromptResult)
+        assert len(result.messages) == 1
+        assert result.messages[0].role == "assistant"
+        assert "Good day, Alice" in result.messages[0].content["text"]
+
+    @pytest.mark.asyncio
+    async def test_prompt_with_context_logging(
+        self, prompt_manager, sample_prompt, prompt_function_with_context, mock_context
+    ):
+        """Test that prompt with context can use logging."""
+        await prompt_manager.add_prompt(sample_prompt, prompt_function_with_context)
+
+        await prompt_manager.get_prompt("greeting", {"name": "Bob"}, mock_context)
+
+        # Verify logging was called (if mock was set up properly)
+        # This would require a more sophisticated mock setup
+
+    @pytest.mark.asyncio
+    async def test_prompt_context_required_but_not_provided(
+        self, prompt_manager, sample_prompt, prompt_function_with_context
+    ):
+        """Test that error is raised when context-requiring prompt doesn't get context."""
+        await prompt_manager.add_prompt(sample_prompt, prompt_function_with_context)
+
+        with pytest.raises(PromptError, match="Handler requires context"):
+            await prompt_manager.get_prompt("greeting", {"name": "Alice"}, None)
+
+    @pytest.mark.asyncio
+    async def test_backward_compatibility_legacy_signature(
+        self, prompt_manager, sample_prompt, prompt_function
+    ):
+        """Test backward compatibility with legacy signature (no context)."""
+        await prompt_manager.add_prompt(sample_prompt, prompt_function)
+
+        # Should work without context
+        result = await prompt_manager.get_prompt("greeting", {"name": "Charlie"}, None)
+
+        assert isinstance(result, GetPromptResult)
+        assert len(result.messages) == 1
+        assert "Hey Charlie!" in result.messages[0].content["text"]
+
+    @pytest.mark.asyncio
+    async def test_mixed_signatures(
+        self, prompt_manager, prompt_function, prompt_function_with_context, mock_context
+    ):
+        """Test that both signatures can coexist."""
+        prompt1 = Prompt(name="legacy", description="Legacy prompt")
+        prompt2 = Prompt(name="new", description="New prompt with context")
+
+        await prompt_manager.add_prompt(prompt1, prompt_function)
+        await prompt_manager.add_prompt(prompt2, prompt_function_with_context)
+
+        # Legacy prompt works without context
+        result1 = await prompt_manager.get_prompt(
+            "legacy", {"name": "Dave", "formal": "false"}, None
+        )
+        assert "Hey Dave!" in result1.messages[0].content["text"]
+
+        # New prompt works with context
+        result2 = await prompt_manager.get_prompt(
+            "new", {"name": "Eve", "formal": "true"}, mock_context
+        )
+        assert "Good day, Eve" in result2.messages[0].content["text"]
+
+    @pytest.mark.asyncio
+    async def test_sync_prompt_function_with_context(self, prompt_manager, mock_context):
+        """Test synchronous prompt function with context parameter."""
+        prompt = Prompt(name="sync_prompt", description="Sync prompt with context")
+
+        def sync_prompt(context: Context, args: dict[str, str]) -> list[PromptMessage]:
+            name = args.get("name", "User")
+            return [
+                PromptMessage(role="user", content={"type": "text", "text": f"Hello {name}!"})
+            ]
+
+        await prompt_manager.add_prompt(prompt, sync_prompt)
+
+        result = await prompt_manager.get_prompt("sync_prompt", {"name": "Frank"}, mock_context)
+
+        assert isinstance(result, GetPromptResult)
+        assert len(result.messages) == 1
+        assert "Hello Frank!" in result.messages[0].content["text"]
+
+    @pytest.mark.asyncio
+    async def test_sync_prompt_function_without_context(self, prompt_manager):
+        """Test synchronous prompt function without context (legacy)."""
+        prompt = Prompt(name="sync_legacy", description="Sync legacy prompt")
+
+        def sync_legacy_prompt(args: dict[str, str]) -> list[PromptMessage]:
+            name = args.get("name", "User")
+            return [
+                PromptMessage(role="user", content={"type": "text", "text": f"Hi {name}!"})
+            ]
+
+        await prompt_manager.add_prompt(prompt, sync_legacy_prompt)
+
+        result = await prompt_manager.get_prompt("sync_legacy", {"name": "Grace"}, None)
+
+        assert isinstance(result, GetPromptResult)
+        assert len(result.messages) == 1
+        assert "Hi Grace!" in result.messages[0].content["text"]
