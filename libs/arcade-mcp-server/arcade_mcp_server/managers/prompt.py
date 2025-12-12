@@ -77,16 +77,10 @@ class PromptHandler:
                 annotation_str = str(first_param.annotation)
                 # Only return True if the type annotation contains "Context"
                 # This handles Context, arcade_mcp_server.context.Context, etc.
-                if "Context" in annotation_str:
-                    return True
-                # If annotated as something else (e.g., dict), it's a legacy handler
-                # even if the parameter happens to be named "context"
+                return "Context" in annotation_str
             else:
                 # No type annotation - check if named "context" (untyped context handler)
-                if first_param.name == "context":
-                    return True
-
-            return False
+                return first_param.name == "context"
         except (ValueError, TypeError):
             # If we can't inspect, assume legacy signature
             return False
