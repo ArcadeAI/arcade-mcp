@@ -6,20 +6,20 @@ from typing import Optional
 
 import httpx
 import typer
-from arcadepy import Arcade, NotFoundError
+from arcade_core.constants import PROD_ENGINE_HOST
+from arcadepy import NotFoundError
 from arcadepy.types import WorkerHealthResponse, WorkerResponse
 from dateutil import parser
 from rich.console import Console
 from rich.table import Table
 
-from arcade_cli.constants import (
-    PROD_ENGINE_HOST,
-)
 from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
     compute_base_url,
+    get_arcade_client,
+    get_auth_headers,
+    get_org_scoped_url,
     handle_cli_error,
-    validate_and_get_config,
 )
 
 console = Console()
@@ -159,9 +159,8 @@ def list_servers(
         help="Show debug information",
     ),
 ) -> None:
-    config = validate_and_get_config()
     base_url = state["engine_url"]
-    client = Arcade(api_key=config.api.key, base_url=base_url)
+    client = get_arcade_client(base_url)
     try:
         servers = client.workers.list(limit=100)
         _print_servers_table(servers.items)
@@ -179,9 +178,8 @@ def get_server(
         help="Show debug information",
     ),
 ) -> None:
-    config = validate_and_get_config()
     base_url = state["engine_url"]
-    client = Arcade(api_key=config.api.key, base_url=base_url)
+    client = get_arcade_client(base_url)
     try:
         server = client.workers.get(server_name)
         server_health = client.workers.health(server_name)
@@ -200,9 +198,8 @@ def enable_server(
         help="Show debug information",
     ),
 ) -> None:
-    config = validate_and_get_config()
     engine_url = state["engine_url"]
-    arcade = Arcade(api_key=config.api.key, base_url=engine_url)
+    arcade = get_arcade_client(engine_url)
     try:
         arcade.workers.update(server_name, enabled=True)
     except Exception as e:
@@ -219,9 +216,8 @@ def disable_server(
         help="Show debug information",
     ),
 ) -> None:
-    config = validate_and_get_config()
     engine_url = state["engine_url"]
-    arcade = Arcade(api_key=config.api.key, base_url=engine_url)
+    arcade = get_arcade_client(engine_url)
     try:
         arcade.workers.update(server_name, enabled=False)
     except Exception as e:
@@ -238,11 +234,10 @@ def delete_server(
         help="Show debug information",
     ),
 ) -> None:
-    config = validate_and_get_config()
     engine_url = state["engine_url"]
 
     try:
-        arcade = Arcade(api_key=config.api.key, base_url=engine_url)
+        arcade = get_arcade_client(engine_url)
         arcade.workers.delete(server_name)
         console.print(f"✓ Server '{server_name}' deleted successfully", style="green")
     except NotFoundError as e:
@@ -287,8 +282,8 @@ def get_server_logs(
         help="Show debug information",
     ),
 ) -> None:
-    config = validate_and_get_config()
-    headers = {"Authorization": f"Bearer {config.api.key}", "Content-Type": "application/json"}
+    auth_headers = get_auth_headers()
+    headers = {**auth_headers, "Content-Type": "application/json"}
 
     # Set defaults based on whether we're following or not
     if since is None:
@@ -307,14 +302,16 @@ def get_server_logs(
     except ValueError as e:
         handle_cli_error(f"Invalid time format: {e}", debug=debug)
 
+    base_url = state["engine_url"]
+
     if follow:
         # Use the streaming endpoint
-        engine_url = state["engine_url"] + f"/v1/deployments/{server_name}/logs/stream"
-        asyncio.run(_stream_deployment_logs(engine_url, headers, since_dt, until_dt, debug=debug))
+        logs_url = get_org_scoped_url(base_url, f"/deployments/{server_name}/logs/stream")
+        asyncio.run(_stream_deployment_logs(logs_url, headers, since_dt, until_dt, debug=debug))
     else:
         # Use the non-streaming endpoint
-        engine_url = state["engine_url"] + f"/v1/deployments/{server_name}/logs"
-        _display_deployment_logs(engine_url, headers, since_dt, until_dt, debug=debug)
+        logs_url = get_org_scoped_url(base_url, f"/deployments/{server_name}/logs")
+        _display_deployment_logs(logs_url, headers, since_dt, until_dt, debug=debug)
 
 
 def _display_deployment_logs(

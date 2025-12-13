@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from arcade_cli.constants import PROD_ENGINE_HOST
+from arcade_core.constants import PROD_ENGINE_HOST
 from arcade_cli.main import cli
 from typer.testing import CliRunner
 
@@ -24,7 +24,7 @@ def test_dashboard_url_construction(args, expected_url):
     """Test that the dashboard command constructs the correct URL with various args."""
     with (
         patch("webbrowser.open") as mock_open,
-        patch("arcade_cli.main.validate_and_get_config") as mock_validate,
+        patch("arcade_cli.utils.validate_and_get_config") as mock_validate,
         patch("arcade_cli.main.log_engine_health") as mock_health_check,
     ):
         # Setup mocks
@@ -44,7 +44,7 @@ def test_fallback_when_browser_fails():
     """Test fallback message when browser.open fails."""
     with (
         patch("webbrowser.open") as mock_open,
-        patch("arcade_cli.main.validate_and_get_config") as mock_validate,
+        patch("arcade_cli.utils.validate_and_get_config") as mock_validate,
         patch("arcade_cli.main.log_engine_health") as mock_health_check,
         patch("arcade_cli.main.console.print") as mock_print,
     ):
@@ -65,7 +65,7 @@ def test_health_check_success():
     """Test successful health check."""
     with (
         patch("webbrowser.open") as mock_open,
-        patch("arcade_cli.main.validate_and_get_config") as mock_validate,
+        patch("arcade_cli.utils.validate_and_get_config") as mock_validate,
         patch("arcade_cli.main.log_engine_health") as mock_health_check,
     ):
         mock_open.return_value = True

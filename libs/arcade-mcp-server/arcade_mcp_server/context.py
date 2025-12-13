@@ -37,6 +37,7 @@ from arcade_core.schema import (
     ToolContext,
 )
 
+from arcade_mcp_server.resource_server.base import ResourceOwner
 from arcade_mcp_server.types import (
     AudioContent,
     CallToolParams,
@@ -124,6 +125,7 @@ class Context(ToolContext):
         server: Any,
         session: Any | None = None,
         request_id: str | None = None,
+        resource_owner: ResourceOwner | None = None,
     ):
         """Initialize context with server reference."""
         super().__init__()
@@ -132,6 +134,9 @@ class Context(ToolContext):
         self._tokens: list[Token] = []
         self._notification_queue: set[str] = set()
         self._request_id: str | None = request_id
+
+        # Resource owner from front-door auth (if the server is protected)
+        self._resource_owner: ResourceOwner | None = resource_owner
 
         # Namespaced adapters
         self._log = Logs(self)

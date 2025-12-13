@@ -12,6 +12,8 @@ from arcade_cli.usage.constants import (
     EVENT_CLI_COMMAND_FAILED,
     PROP_CLI_VERSION,
     PROP_COMMAND_NAME,
+    PROP_ORG_ID,
+    PROP_PROJECT_ID,
 )
 from arcade_core.constants import ARCADE_CONFIG_PATH
 from arcade_core.usage import UsageIdentity, UsageService, is_tracking_enabled
@@ -80,6 +82,24 @@ class CommandTracker:
                 command_parts.append(current_ctx.command.name)
             current_ctx = current_ctx.parent
         return ".".join(reversed(command_parts))
+
+    def _get_org_project_context(self) -> tuple[str | None, str | None]:
+        """Get org_id and project_id from config if available."""
+        try:
+            from arcade_core.config_model import Config
+
+            config = Config.load_from_file()
+            if config.context:
+                return config.context.org_id, config.context.project_id
+        except FileNotFoundError:
+            # No config file - user isn't logged in, which is fine
+            pass
+        except Exception as e:
+            console.print(
+                f"[yellow]Warning: Failed to load Arcade config: {e}[/yellow]\n"
+                "[yellow]Run 'arcade logout' then 'arcade login' to fix this.[/yellow]"
+            )
+        return None, None
 
     def _handle_successful_login(self) -> None:
         """Handle a successful login event.
@@ -195,6 +215,13 @@ class CommandTracker:
             PROP_OS_TYPE: platform.system(),
             PROP_OS_RELEASE: platform.release(),
         }
+
+        # Add org/project context when available (many commands operate within a project)
+        org_id, project_id = self._get_org_project_context()
+        if org_id:
+            properties[PROP_ORG_ID] = org_id
+        if project_id:
+            properties[PROP_PROJECT_ID] = project_id
 
         if not success and error_message:
             properties[PROP_ERROR_MESSAGE] = error_message

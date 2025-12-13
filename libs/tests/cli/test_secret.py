@@ -5,10 +5,10 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 from arcade_cli.secret import (
-    _delete_secret_from_engine,
-    _get_secrets_from_engine,
+    _delete_secret,
+    _get_secrets,
     _remove_inline_comment,
-    _upsert_secret_to_engine,
+    _upsert_secret,
     load_env_file,
     print_secret_table,
 )
@@ -144,46 +144,52 @@ class TestRemoveInlineComment:
 
 
 class TestUpsertSecretToEngine:
-    """Tests for _upsert_secret_to_engine function."""
+    """Tests for _upsert_secret function."""
 
+    @patch("arcade_cli.secret.get_auth_headers")
+    @patch("arcade_cli.secret.get_org_scoped_url")
     @patch("arcade_cli.secret.httpx.put")
-    def test_upsert_secret_success(self, mock_put):
+    def test_upsert_secret_success(self, mock_put, mock_get_url, mock_get_headers):
         """Test successful secret upsert."""
         mock_response = MagicMock()
         mock_response.raise_for_status.return_value = None
         mock_put.return_value = mock_response
+        mock_get_url.return_value = "https://api.example.com/v1/org/test-org/secrets/SECRET_KEY"
+        mock_get_headers.return_value = {"Authorization": "Bearer test-api-key"}
 
-        _upsert_secret_to_engine(
-            "https://api.example.com", "test-api-key", "SECRET_KEY", "secret-value"
-        )
+        _upsert_secret("SECRET_KEY", "secret-value")
 
         mock_put.assert_called_once_with(
-            "https://api.example.com/v1/admin/secrets/SECRET_KEY",
+            "https://api.example.com/v1/org/test-org/secrets/SECRET_KEY",
             headers={"Authorization": "Bearer test-api-key"},
             json={"description": "Secret set via CLI", "value": "secret-value"},
         )
         mock_response.raise_for_status.assert_called_once()
 
+    @patch("arcade_cli.secret.get_auth_headers")
+    @patch("arcade_cli.secret.get_org_scoped_url")
     @patch("arcade_cli.secret.httpx.put")
-    def test_upsert_secret_http_error(self, mock_put):
+    def test_upsert_secret_http_error(self, mock_put, mock_get_url, mock_get_headers):
         """Test secret upsert with HTTP error."""
         mock_response = MagicMock()
         mock_response.raise_for_status.side_effect = httpx.HTTPStatusError(
             "Bad Request", request=MagicMock(), response=MagicMock()
         )
         mock_put.return_value = mock_response
+        mock_get_url.return_value = "https://api.example.com/v1/org/test-org/secrets/SECRET_KEY"
+        mock_get_headers.return_value = {"Authorization": "Bearer test-api-key"}
 
         with pytest.raises(httpx.HTTPStatusError):
-            _upsert_secret_to_engine(
-                "https://api.example.com", "test-api-key", "SECRET_KEY", "secret-value"
-            )
+            _upsert_secret("SECRET_KEY", "secret-value")
 
 
 class TestGetSecretsFromEngine:
-    """Tests for _get_secrets_from_engine function."""
+    """Tests for _get_secrets function."""
 
+    @patch("arcade_cli.secret.get_auth_headers")
+    @patch("arcade_cli.secret.get_org_scoped_url")
     @patch("arcade_cli.secret.httpx.get")
-    def test_get_secrets_success(self, mock_get):
+    def test_get_secrets_success(self, mock_get, mock_get_url, mock_get_headers):
         """Test successful secrets retrieval."""
         mock_response = MagicMock()
         mock_response.raise_for_status.return_value = None
@@ -194,58 +200,72 @@ class TestGetSecretsFromEngine:
             ]
         }
         mock_get.return_value = mock_response
+        mock_get_url.return_value = "https://api.example.com/v1/org/test-org/secrets"
+        mock_get_headers.return_value = {"Authorization": "Bearer test-api-key"}
 
-        secrets = _get_secrets_from_engine("https://api.example.com", "test-api-key")
+        secrets = _get_secrets()
 
         assert secrets == [
             {"key": "SECRET1", "id": "id1"},
             {"key": "SECRET2", "id": "id2"},
         ]
         mock_get.assert_called_once_with(
-            "https://api.example.com/v1/admin/secrets",
+            "https://api.example.com/v1/org/test-org/secrets",
             headers={"Authorization": "Bearer test-api-key"},
         )
         mock_response.raise_for_status.assert_called_once()
 
+    @patch("arcade_cli.secret.get_auth_headers")
+    @patch("arcade_cli.secret.get_org_scoped_url")
     @patch("arcade_cli.secret.httpx.get")
-    def test_get_secrets_http_error(self, mock_get):
+    def test_get_secrets_http_error(self, mock_get, mock_get_url, mock_get_headers):
         """Test secrets retrieval with HTTP error."""
         mock_response = MagicMock()
         mock_response.raise_for_status.side_effect = httpx.HTTPStatusError(
             "Unauthorized", request=MagicMock(), response=MagicMock()
         )
         mock_get.return_value = mock_response
+        mock_get_url.return_value = "https://api.example.com/v1/org/test-org/secrets"
+        mock_get_headers.return_value = {"Authorization": "Bearer test-api-key"}
 
         with pytest.raises(httpx.HTTPStatusError):
-            _get_secrets_from_engine("https://api.example.com", "test-api-key")
+            _get_secrets()
 
 
 class TestDeleteSecretFromEngine:
-    """Tests for _delete_secret_from_engine function."""
+    """Tests for _delete_secret function."""
 
+    @patch("arcade_cli.secret.get_auth_headers")
+    @patch("arcade_cli.secret.get_org_scoped_url")
     @patch("arcade_cli.secret.httpx.delete")
-    def test_delete_secret_success(self, mock_delete):
+    def test_delete_secret_success(self, mock_delete, mock_get_url, mock_get_headers):
         """Test successful secret deletion."""
         mock_response = MagicMock()
         mock_response.raise_for_status.return_value = None
         mock_delete.return_value = mock_response
+        mock_get_url.return_value = "https://api.example.com/v1/org/test-org/secrets/secret-id-123"
+        mock_get_headers.return_value = {"Authorization": "Bearer test-api-key"}
 
-        _delete_secret_from_engine("https://api.example.com", "test-api-key", "secret-id-123")
+        _delete_secret("secret-id-123")
 
         mock_delete.assert_called_once_with(
-            "https://api.example.com/v1/admin/secrets/secret-id-123",
+            "https://api.example.com/v1/org/test-org/secrets/secret-id-123",
             headers={"Authorization": "Bearer test-api-key"},
         )
         mock_response.raise_for_status.assert_called_once()
 
+    @patch("arcade_cli.secret.get_auth_headers")
+    @patch("arcade_cli.secret.get_org_scoped_url")
     @patch("arcade_cli.secret.httpx.delete")
-    def test_delete_secret_http_error(self, mock_delete):
+    def test_delete_secret_http_error(self, mock_delete, mock_get_url, mock_get_headers):
         """Test secret deletion with HTTP error."""
         mock_response = MagicMock()
         mock_response.raise_for_status.side_effect = httpx.HTTPStatusError(
             "Not Found", request=MagicMock(), response=MagicMock()
         )
         mock_delete.return_value = mock_response
+        mock_get_url.return_value = "https://api.example.com/v1/org/test-org/secrets/secret-id-123"
+        mock_get_headers.return_value = {"Authorization": "Bearer test-api-key"}
 
         with pytest.raises(httpx.HTTPStatusError):
-            _delete_secret_from_engine("https://api.example.com", "test-api-key", "secret-id-123")
+            _delete_secret("secret-id-123")

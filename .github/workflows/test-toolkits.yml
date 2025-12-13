@@ -99,7 +99,8 @@ jobs:
 
       - name: Test stand-alone toolkits (with secrets)
         if: |
-          !github.event.pull_request.head.repo.fork
+          !github.event.pull_request.head.repo.fork &&
+          github.actor != 'dependabot[bot]'
         working-directory: toolkits/${{ matrix.toolkit }}
         env:
           TEST_POSTGRES_DATABASE_CONNECTION_STRING: ${{ secrets.TEST_POSTGRES_DATABASE_CONNECTION_STRING }} # TODO: dynamically only load the `TEST_${{ matrix.toolkit }}_DATABASE_CONNECTION_STRING secret`

@@ -73,7 +73,8 @@ class CallToolComponent(WorkerComponent):
             current_span.set_attribute("tool_name", str(call_tool_request.tool.name))
             current_span.set_attribute("toolkit_version", str(call_tool_request.tool.version))
             current_span.set_attribute("toolkit_name", str(call_tool_request.tool.toolkit))
-            current_span.set_attribute("environment", self.worker.environment)
+            if hasattr(self.worker, "environment"):
+                current_span.set_attribute("environment", self.worker.environment)
 
             return await self.worker.call_tool(call_tool_request)
 
