@@ -4,9 +4,21 @@ from urllib.parse import urlparse
 from arcade_tdk.errors import RetryableToolError
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+from sqlalchemy.sql import quoted_name
 
 MAX_ROWS_RETURNED = 1000
 TEST_QUERY = "SELECT 1"
+
+
+def quote_identifier(identifier: str) -> str:
+    """
+    Safely quote a PostgreSQL identifier using SQLAlchemy's quoted_name.
+    """
+    # Use quoted_name with quote=True to force quoting
+    safe_identifier = quoted_name(identifier, quote=True)
+    # PostgreSQL uses double quotes for identifiers, doubling any internal double quotes
+    escaped = str(safe_identifier).replace('"', '""')
+    return f'"{escaped}"'
 
 
 class DatabaseEngine:
@@ -153,11 +165,14 @@ class DatabaseEngine:
                 developer_message="Limit must be greater than 0.",
             )
 
+        # Use quoted identifiers for table name
+        safe_table = quote_identifier(from_clause.strip())
+
         # Build query with identifiers directly interpolated, but use parameters for values
         parts = []
         if with_clause:
             parts.append(f"WITH {with_clause}")
-        parts.append(f"SELECT {select_clause} FROM {from_clause}")  # noqa: S608
+        parts.append(f"SELECT {select_clause} FROM {safe_table}")  # noqa: S608
         if join_clause:
             parts.append(f"JOIN {join_clause}")
         if where_clause:
