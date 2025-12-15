@@ -1,6 +1,6 @@
 [project]
 name = "arcade-serve"
-version = "3.1.5"
+version = "3.2.1"
 description = "Arcade Serve - Serving infrastructure for Arcade tools and workers"
 readme = "README.md"
 license = {text = "MIT"}
@@ -19,7 +19,7 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-    "arcade-core>=3.4.0,<4.0.0",
+    "arcade-core>=4.0.0,<5.0.0",
     "fastapi>=0.115.3",
     "uvicorn>=0.30.0",
     "watchfiles>=1.0.5",
@@ -27,6 +27,10 @@ dependencies = [
     "opentelemetry-instrumentation-fastapi==0.49b2",
     "opentelemetry-exporter-otlp-proto-http==1.28.2",
     "opentelemetry-exporter-otlp-proto-common==1.28.2",
+    "opentelemetry-instrumentation-httpx==0.49b2",
+    "opentelemetry-instrumentation-aiohttp-client==0.49b2",
+    "opentelemetry-instrumentation-requests==0.49b2",
+    "aiohttp>=3.0.0,<4.0.0",
 ]
 
 [project.optional-dependencies]
