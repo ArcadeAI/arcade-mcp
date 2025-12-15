@@ -4,6 +4,10 @@ docker/credentials.yaml
 
 *.lock
 
+# Core dumps
+core
+core.*
+
 # example data
 examples/data
 scratch
