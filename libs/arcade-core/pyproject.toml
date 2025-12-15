@@ -1,12 +1,10 @@
 [project]
 name = "arcade-core"
-version = "4.0.0"
+version = "4.1.0"
 description = "Arcade Core - Core library for Arcade platform"
 readme = "README.md"
-license = {text = "MIT"}
-authors = [
-    {name = "Arcade", email = "dev@arcade.dev"},
-]
+license = { text = "MIT" }
+authors = [{ name = "Arcade", email = "dev@arcade.dev" }]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
