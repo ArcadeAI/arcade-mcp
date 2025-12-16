@@ -1,5 +1,12 @@
 """Converters for transforming tool definitions between formats."""
 
+from .anthropic import (
+    AnthropicInputSchema,
+    AnthropicInputSchemaProperty,
+    AnthropicToolList,
+    AnthropicToolSchema,
+    to_anthropic,
+)
 from .openai import (
     OpenAIFunctionParameterProperty,
     OpenAIFunctionParameters,
@@ -10,6 +17,13 @@ from .openai import (
 )
 
 __all__ = [
+    # Anthropic
+    "AnthropicInputSchema",
+    "AnthropicInputSchemaProperty",
+    "AnthropicToolList",
+    "AnthropicToolSchema",
+    "to_anthropic",
+    # OpenAI
     "OpenAIFunctionParameterProperty",
     "OpenAIFunctionParameters",
     "OpenAIFunctionSchema",

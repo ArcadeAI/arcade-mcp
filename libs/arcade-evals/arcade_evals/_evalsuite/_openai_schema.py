@@ -1,7 +1,12 @@
-"""OpenAI strict-mode JSON Schema conversion (internal).
+"""OpenAI tool schema conversion (internal).
 
-This is used for MCP-style tool schemas when formatting tools for OpenAI.
-Not part of the public API.
+Converts MCP-style tool schemas to OpenAI's tool format with strict mode support.
+
+OpenAI strict mode requirements:
+- additionalProperties: false at all object levels
+- properties and required present on all object schemas
+- required includes ALL properties (optional params use null union types)
+- Unsupported JSON Schema keywords are stripped
 """
 
 from __future__ import annotations

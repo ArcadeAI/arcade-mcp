@@ -23,6 +23,7 @@ import uuid
 from abc import ABC, abstractmethod
 from contextlib import suppress
 from typing import Any, Literal, cast
+from urllib.parse import urlsplit, urlunsplit
 
 # =============================================================================
 # CONFIGURATION CONSTANTS
@@ -64,7 +65,7 @@ def _require_mcp() -> tuple[Any, Any, Any, Any]:
         stdio_client = mcp_client_stdio.stdio_client
         sse_client = mcp_client_sse.sse_client
 
-    except Exception as e:
+    except ImportError as e:
         raise ImportError(
             "MCP SDK not installed. Install with: pip install arcade-mcp[mcp] "
             "(or, if using arcade-evals standalone: pip install arcade-evals[mcp])."
@@ -83,10 +84,28 @@ def _tool_to_dict(tool: Any) -> dict[str, Any]:
 
 
 def _ensure_mcp_path(url: str) -> str:
-    """Append '/mcp' to URL if not present."""
-    if "/mcp" in url:
-        return url
-    return f"{url}mcp" if url.endswith("/") else f"{url}/mcp"
+    """Ensure the URL path ends with '/mcp' (without duplicating).
+
+    Preserves query strings and fragments.
+    """
+    parts = urlsplit(url)
+    path = (parts.path or "").rstrip("/")
+
+    # If any path segment is already "mcp" (e.g. "/mcp" or "/mcp/{slug}" or "/foo/mcp"),
+    # treat it as already pointing at an MCP endpoint.
+    segments = [seg for seg in path.split("/") if seg]
+    if "mcp" in segments:
+        normalized_path = "/" + "/".join(segments) if segments else ""
+        return urlunsplit((
+            parts.scheme,
+            parts.netloc,
+            normalized_path,
+            parts.query,
+            parts.fragment,
+        ))
+
+    new_path = (f"{path}/mcp" if path else "/mcp") if path != "" else "/mcp"
+    return urlunsplit((parts.scheme, parts.netloc, new_path, parts.query, parts.fragment))
 
 
 def _build_arcade_mcp_url(gateway_slug: str | None, base_url: str) -> str:

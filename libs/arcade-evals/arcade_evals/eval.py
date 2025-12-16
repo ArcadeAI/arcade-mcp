@@ -1,7 +1,6 @@
 import asyncio
 import functools
 import inspect
-import json
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Callable
 
@@ -12,6 +11,14 @@ from openai import AsyncOpenAI
 from scipy.optimize import linear_sum_assignment
 
 from arcade_evals._evalsuite._convenience import _EvalSuiteConvenienceMixin
+from arcade_evals._evalsuite._providers import (
+    ProviderName,
+    convert_messages_to_anthropic,
+)
+from arcade_evals._evalsuite._providers import (
+    # Backward-compatible alias (prefer convert_messages_to_anthropic)
+    convert_messages_to_anthropic as _convert_messages_to_anthropic,
+)
 from arcade_evals._evalsuite._tool_registry import EvalSuiteToolRegistry
 from arcade_evals.critic import NoneCritic
 from arcade_evals.errors import WeightError
@@ -446,12 +453,12 @@ class EvalSuite(_EvalSuiteConvenienceMixin):
                 if not tool_name:
                     continue
 
+                description = func_schema.get("description") or ""
+                parameters = func_schema.get("parameters") or {"type": "object", "properties": {}}
                 self._internal_registry.add_tool({
                     "name": tool_name,
-                    "description": func_schema.get("description", ""),
-                    "inputSchema": func_schema.get(
-                        "parameters", {"type": "object", "properties": {}}
-                    ),
+                    "description": description,
+                    "inputSchema": dict(parameters),
                 })
 
                 # Keep track of Python function for defaults
@@ -679,13 +686,20 @@ class EvalSuite(_EvalSuiteConvenienceMixin):
         )
         self.cases.append(new_case)
 
-    async def run(self, client: AsyncOpenAI, model: str) -> dict[str, Any]:
+    async def run(
+        self,
+        client: Any,  # AsyncOpenAI | AsyncAnthropic - use Any to avoid import dependency
+        model: str,
+        provider: ProviderName = "openai",
+    ) -> dict[str, Any]:
         """
         Run the evaluation suite.
 
         Args:
-            client: The AsyncOpenAI client instance.
+            client: The LLM client instance (AsyncOpenAI or AsyncAnthropic).
             model: The model to evaluate.
+            provider: The provider name ("openai" or "anthropic").
+
         Returns:
             A dictionary containing the evaluation results.
         """
@@ -695,32 +709,19 @@ class EvalSuite(_EvalSuiteConvenienceMixin):
 
         async def sem_task(case: EvalCase) -> dict[str, Any]:
             async with semaphore:
-                # Prepare messages
-                messages = [{"role": "system", "content": case.system_message}]
-                messages.extend(case.additional_messages)
-                messages.append({"role": "user", "content": case.user_message})
-
                 # All tools are in internal registry (unified container)
                 if self._internal_registry is None or self._internal_registry.tool_count() == 0:
                     raise ValueError(
                         "No tools registered. Use add_* convenience methods or pass catalog=ToolCatalog."
                     )
 
-                tools = self._internal_registry.list_tools_for_model(tool_format="openai")
+                # Get tool calls based on provider
+                if provider == "anthropic":
+                    predicted_args = await self._run_anthropic(client, model, case)
+                else:
+                    predicted_args = await self._run_openai(client, model, case)
 
-                # Get the model response
-                response = await client.chat.completions.create(  # type: ignore[call-overload]
-                    model=model,
-                    messages=messages,
-                    tool_choice="auto",
-                    tools=tools,
-                    user="eval_user",
-                    seed=42,
-                    stream=False,
-                )
-
-                # Extract and fill default arguments for actual tool calls
-                predicted_args = get_tool_args(response, normalize_names=False)
+                # Fill default arguments for actual tool calls
                 filled_actual_tool_calls = []
                 for tool_name, args in predicted_args:
                     # Apply schema defaults from internal registry
@@ -754,6 +755,63 @@ class EvalSuite(_EvalSuiteConvenienceMixin):
 
         results["cases"] = case_results
         return results
+
+    async def _run_openai(
+        self,
+        client: AsyncOpenAI,
+        model: str,
+        case: "EvalCase",
+    ) -> list[tuple[str, dict[str, Any]]]:
+        """Run evaluation using OpenAI client."""
+        # Prepare messages
+        messages = [{"role": "system", "content": case.system_message}]
+        messages.extend(case.additional_messages)
+        messages.append({"role": "user", "content": case.user_message})
+
+        tools = self._internal_registry.list_tools_for_model(tool_format="openai")  # type: ignore[union-attr]
+
+        # Get the model response
+        response = await client.chat.completions.create(  # type: ignore[call-overload]
+            model=model,
+            messages=messages,
+            tool_choice="auto",
+            tools=tools,
+            user="eval_user",
+            seed=42,
+            stream=False,
+        )
+
+        return get_tool_args(response, normalize_names=False)
+
+    async def _run_anthropic(
+        self,
+        client: Any,  # AsyncAnthropic
+        model: str,
+        case: "EvalCase",
+    ) -> list[tuple[str, dict[str, Any]]]:
+        """Run evaluation using Anthropic client."""
+        # Convert OpenAI-format messages to Anthropic format
+        anthropic_messages = convert_messages_to_anthropic(case.additional_messages)
+        anthropic_messages.append({"role": "user", "content": case.user_message})
+
+        tools = self._internal_registry.list_tools_for_model(tool_format="anthropic")  # type: ignore[union-attr]
+
+        # Get the model response
+        response = await client.messages.create(
+            model=model,
+            max_tokens=4096,
+            system=case.system_message,
+            messages=anthropic_messages,
+            tools=tools,
+        )
+
+        # Extract tool calls from Anthropic response
+        tool_calls: list[tuple[str, dict[str, Any]]] = []
+        for block in response.content:
+            if block.type == "tool_use":
+                tool_calls.append((block.name, block.input))
+
+        return tool_calls
 
 
 def get_formatted_tools(catalog: "ToolCatalog", tool_format: str = "openai") -> OpenAIToolList:
@@ -837,20 +895,43 @@ def tool_eval() -> Callable[[Callable], Callable]:
             provider_api_key: str,
             model: str,
             max_concurrency: int = 1,
+            provider: ProviderName = "openai",
         ) -> list[dict[str, Any]]:
             suite = func()
             if not isinstance(suite, EvalSuite):
                 raise TypeError("Eval function must return an EvalSuite")
             suite.max_concurrent = max_concurrency
             results = []
-            async with AsyncOpenAI(
-                api_key=provider_api_key,
-            ) as client:
-                result = await suite.run(client, model)
-                results.append(result)
+
+            if provider == "anthropic":
+                result = await _run_with_anthropic(suite, provider_api_key, model)
+            else:
+                result = await _run_with_openai(suite, provider_api_key, model)
+
+            results.append(result)
             return results
 
         wrapper.__tool_eval__ = True  # type: ignore[attr-defined]
         return wrapper
 
     return decorator
+
+
+async def _run_with_openai(suite: "EvalSuite", api_key: str, model: str) -> dict[str, Any]:
+    """Run evaluation suite with OpenAI client."""
+    async with AsyncOpenAI(api_key=api_key) as client:
+        return await suite.run(client, model, provider="openai")
+
+
+async def _run_with_anthropic(suite: "EvalSuite", api_key: str, model: str) -> dict[str, Any]:
+    """Run evaluation suite with Anthropic client."""
+    try:
+        from anthropic import AsyncAnthropic
+    except ImportError as e:
+        raise ImportError(
+            "The 'anthropic' package is required for Anthropic provider. "
+            "Install it with: pip install anthropic"
+        ) from e
+
+    async with AsyncAnthropic(api_key=api_key) as client:
+        return await suite.run(client, model, provider="anthropic")

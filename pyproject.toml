@@ -1,6 +1,6 @@
 [project]
 name = "arcade-mcp"
-version = "1.7.1"
+version = "1.9.0"
 description = "Arcade.dev - Tool Calling platform for Agents"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -20,7 +20,7 @@ requires-python = ">=3.10"
 dependencies = [
     # CLI dependencies
     "arcade-mcp-server>=1.14.0,<2.0.0",
-    "arcade-core>=4.1.0,<5.0.0",
+    "arcade-core>=4.2.0,<5.0.0",
     "typer==0.10.0",
     "rich>=14.0.0,<15.0.0",
     "Jinja2==3.1.6",
@@ -40,6 +40,7 @@ all = [
     "scikit-learn>=1.5.0",
     "pytz>=2024.1",
     "python-dateutil>=2.8.2",
+    "anthropic>=0.45.0",
     # mcp sdk (optional, for arcade_evals.loaders)
     "mcp>=1.0.0",
     # mcp server
@@ -56,12 +57,11 @@ evals = [
     "scikit-learn>=1.5.0",
     "pytz>=2024.1",
     "python-dateutil>=2.8.2",
+    "anthropic>=0.45.0",      # Optional: for Anthropic provider support in evals
 ]
 
 # Optional extra for MCP server loading features in arcade_evals.loaders
-mcp = [
-    "mcp>=1.0.0",
-]
+mcp = ["mcp>=1.0.0"]
 
 [tool.uv]
 dev-dependencies = [

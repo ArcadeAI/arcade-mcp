@@ -26,10 +26,18 @@ def test_require_mcp_raises_helpful_error_when_missing() -> None:
 def test_ensure_mcp_path_appends() -> None:
     assert loaders._ensure_mcp_path("http://localhost:8000") == "http://localhost:8000/mcp"
     assert loaders._ensure_mcp_path("http://localhost:8000/") == "http://localhost:8000/mcp"
+    assert (
+        loaders._ensure_mcp_path("http://localhost:8000?x=1")
+        == "http://localhost:8000/mcp?x=1"
+    )
 
 
 def test_ensure_mcp_path_does_not_duplicate() -> None:
     assert loaders._ensure_mcp_path("http://localhost:8000/mcp") == "http://localhost:8000/mcp"
+    assert (
+        loaders._ensure_mcp_path("http://localhost:8000/mcp/?x=1")
+        == "http://localhost:8000/mcp?x=1"
+    )
 
 
 @pytest.mark.asyncio

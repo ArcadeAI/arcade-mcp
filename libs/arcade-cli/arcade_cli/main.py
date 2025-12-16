@@ -35,6 +35,7 @@ from arcade_cli.utils import (
     Provider,
     compute_base_url,
     filter_failed_evaluations,
+    get_default_model,
     get_eval_files,
     handle_cli_error,
     load_eval_suites,
@@ -405,11 +406,11 @@ def evals(
         "-c",
         help="Maximum number of concurrent evaluations (default: 1)",
     ),
-    models: str = typer.Option(
-        "gpt-4o",
+    models: Optional[str] = typer.Option(
+        None,
         "--models",
         "-m",
-        help="The models to use for evaluation (default: gpt-4o). Use commas to separate multiple models. All models must belong to the same provider.",
+        help="The models to use for evaluation. Defaults to 'gpt-4o' for OpenAI, 'claude-sonnet-4-5-20250929' for Anthropic. Use commas to separate multiple models.",
     ),
     provider: Provider = typer.Option(
         Provider.OPENAI,
@@ -457,6 +458,10 @@ def evals(
         pip_install_command=r"pip install arcade-tdk",
     )
 
+    # Use default model for provider if not specified
+    if models is None:
+        models = get_default_model(provider)
+
     models_list = models.split(",")  # Use 'models_list' to avoid shadowing
 
     # Resolve the API key for the provider
@@ -464,8 +469,9 @@ def evals(
     if not resolved_api_key:
         provider_env_vars = {
             Provider.OPENAI: "OPENAI_API_KEY",
+            Provider.ANTHROPIC: "ANTHROPIC_API_KEY",
         }
-        env_var_name = provider_env_vars.get(provider, f"{provider.upper()}_API_KEY")
+        env_var_name = provider_env_vars.get(provider, f"{provider.value.upper()}_API_KEY")
         handle_cli_error(
             f"API key not found for provider '{provider.value}'. "
             f"Please provide it via --provider-api-key,-k argument, set the {env_var_name} environment variable, "
@@ -509,6 +515,7 @@ def evals(
                         provider_api_key=resolved_api_key,
                         model=model,
                         max_concurrency=max_concurrent,
+                        provider=provider.value,
                     )
                 )
                 tasks.append(task)

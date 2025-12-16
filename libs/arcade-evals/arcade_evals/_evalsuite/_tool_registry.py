@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from typing import Any, Literal, TypedDict
 
-from arcade_evals._evalsuite._strict_mode import convert_to_strict_mode_schema
+from arcade_evals._evalsuite._anthropic_schema import convert_mcp_to_anthropic_tool
+from arcade_evals._evalsuite._openai_schema import convert_to_strict_mode_schema
 
-ToolFormat = Literal["openai"]
+ToolFormat = Literal["openai", "anthropic"]
 
 
 class _MCPToolDefinitionRequired(TypedDict):
@@ -76,9 +77,15 @@ class EvalSuiteToolRegistry:
             self.add_tool(tool)
 
     def list_tools_for_model(self, tool_format: ToolFormat = "openai") -> list[dict[str, Any]]:
-        if tool_format != "openai":
+        if tool_format == "openai":
+            return self._to_openai_format()
+        elif tool_format == "anthropic":
+            return self._to_anthropic_format()
+        else:
             raise ValueError(f"Tool format '{tool_format}' is not supported")
 
+    def _to_openai_format(self) -> list[dict[str, Any]]:
+        """Convert stored MCP tools to OpenAI function calling format."""
         openai_tools: list[dict[str, Any]] = []
         for tool in self._tools.values():
             parameters = tool.get("inputSchema", {"type": "object", "properties": {}})
@@ -98,6 +105,10 @@ class EvalSuiteToolRegistry:
             openai_tools.append(openai_tool)
 
         return openai_tools
+
+    def _to_anthropic_format(self) -> list[dict[str, Any]]:
+        """Convert stored MCP tools to Anthropic tool format."""
+        return [convert_mcp_to_anthropic_tool(tool) for tool in self._tools.values()]
 
     def normalize_args(self, tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
         tool = self._tools.get(tool_name)

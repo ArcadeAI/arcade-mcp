@@ -1,0 +1,527 @@
+"""Tests for MCP tool schema converters (OpenAI and Anthropic formats)."""
+
+import pytest
+from arcade_evals._evalsuite._anthropic_schema import (
+    convert_mcp_to_anthropic_tool,
+    convert_mcp_tools_to_anthropic,
+)
+from arcade_evals._evalsuite._openai_schema import (
+    SchemaConversionError,
+    convert_to_strict_mode_schema,
+)
+from arcade_evals._evalsuite._tool_registry import EvalSuiteToolRegistry
+
+
+class TestOpenAISchemaConversion:
+    """Tests for OpenAI strict mode schema conversion."""
+
+    def test_basic_schema_conversion(self):
+        """Test basic schema conversion to OpenAI strict mode."""
+        input_schema = {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "Search query"},
+            },
+            "required": ["query"],
+        }
+
+        result = convert_to_strict_mode_schema(input_schema)
+
+        assert result["type"] == "object"
+        assert result["additionalProperties"] is False
+        assert "query" in result["properties"]
+        assert result["required"] == ["query"]
+
+    def test_optional_params_get_null_union(self):
+        """Test that optional parameters get null union type."""
+        input_schema = {
+            "type": "object",
+            "properties": {
+                "required_param": {"type": "string"},
+                "optional_param": {"type": "integer"},
+            },
+            "required": ["required_param"],
+        }
+
+        result = convert_to_strict_mode_schema(input_schema)
+
+        # Required param should have single type
+        assert result["properties"]["required_param"]["type"] == "string"
+
+        # Optional param should have null union
+        assert result["properties"]["optional_param"]["type"] == ["integer", "null"]
+
+        # Both should be in required (OpenAI strict mode requirement)
+        assert set(result["required"]) == {"required_param", "optional_param"}
+
+    def test_unsupported_keywords_stripped(self):
+        """Test that unsupported JSON Schema keywords are stripped."""
+        input_schema = {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "default": 10,
+                },
+                "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 50,
+                    "pattern": "^[a-z]+$",
+                    "format": "hostname",
+                },
+            },
+            "required": ["count", "name"],
+        }
+
+        result = convert_to_strict_mode_schema(input_schema)
+
+        # These keywords should be stripped
+        count_prop = result["properties"]["count"]
+        assert "minimum" not in count_prop
+        assert "maximum" not in count_prop
+        assert "default" not in count_prop
+
+        name_prop = result["properties"]["name"]
+        assert "minLength" not in name_prop
+        assert "maxLength" not in name_prop
+        assert "pattern" not in name_prop
+        assert "format" not in name_prop
+
+    def test_enum_values_converted_to_strings(self):
+        """Test that enum values are converted to strings."""
+        input_schema = {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "enum": [1, 2, "three"],
+                },
+            },
+            "required": ["status"],
+        }
+
+        result = convert_to_strict_mode_schema(input_schema)
+
+        assert result["properties"]["status"]["enum"] == ["1", "2", "three"]
+
+    def test_nested_object_gets_strict_mode(self):
+        """Test that nested objects also get strict mode treatment."""
+        input_schema = {
+            "type": "object",
+            "properties": {
+                "user": {
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "string"},
+                        "age": {"type": "integer"},
+                    },
+                    "required": ["name"],
+                },
+            },
+            "required": ["user"],
+        }
+
+        result = convert_to_strict_mode_schema(input_schema)
+
+        nested = result["properties"]["user"]
+        assert nested["additionalProperties"] is False
+        # Both should be in required for nested object too
+        assert set(nested["required"]) == {"name", "age"}
+        # age is optional so should have null union
+        assert nested["properties"]["age"]["type"] == ["integer", "null"]
+
+    def test_array_items_processed(self):
+        """Test that array items schema is processed."""
+        input_schema = {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {"type": "integer", "minimum": 0},
+                        },
+                        "required": ["id"],
+                    },
+                },
+            },
+            "required": ["items"],
+        }
+
+        result = convert_to_strict_mode_schema(input_schema)
+
+        array_items = result["properties"]["items"]["items"]
+        assert array_items["additionalProperties"] is False
+        # minimum should be stripped from nested object property
+        assert "minimum" not in array_items["properties"]["id"]
+
+    def test_empty_schema(self):
+        """Test conversion of empty schema."""
+        input_schema = {"type": "object", "properties": {}}
+
+        result = convert_to_strict_mode_schema(input_schema)
+
+        assert result["type"] == "object"
+        assert result["properties"] == {}
+        assert result["additionalProperties"] is False
+        assert result["required"] == []
+
+    def test_max_depth_protection(self):
+        """Test that deeply nested schemas raise an error."""
+        # Create a deeply nested schema that exceeds max depth
+        schema: dict = {"type": "object", "properties": {}}
+        current = schema
+        for i in range(60):  # Exceeds _MAX_SCHEMA_DEPTH of 50
+            current["properties"] = {"nested": {"type": "object", "properties": {}}}
+            current["required"] = ["nested"]
+            current = current["properties"]["nested"]
+
+        with pytest.raises(SchemaConversionError, match="maximum depth"):
+            convert_to_strict_mode_schema(schema)
+
+
+class TestAnthropicSchemaConversion:
+    """Tests for Anthropic schema conversion."""
+
+    def test_basic_conversion(self):
+        """Test basic MCP to Anthropic tool conversion."""
+        mcp_tool = {
+            "name": "search_files",
+            "description": "Search for files",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "Search query"},
+                },
+                "required": ["query"],
+            },
+        }
+
+        result = convert_mcp_to_anthropic_tool(mcp_tool)
+
+        assert result["name"] == "search_files"
+        assert result["description"] == "Search for files"
+        assert "input_schema" in result
+        assert "inputSchema" not in result
+        # Schema should be unchanged
+        assert result["input_schema"]["properties"]["query"]["type"] == "string"
+
+    def test_schema_preserved_as_is(self):
+        """Test that the schema is preserved without modifications."""
+        mcp_tool = {
+            "name": "test",
+            "description": "Test",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100,
+                        "default": 10,
+                    },
+                },
+                "required": ["count"],
+            },
+        }
+
+        result = convert_mcp_to_anthropic_tool(mcp_tool)
+
+        # Unlike OpenAI, these keywords should be preserved
+        schema = result["input_schema"]
+        assert schema["properties"]["count"]["minimum"] == 0
+        assert schema["properties"]["count"]["maximum"] == 100
+        assert schema["properties"]["count"]["default"] == 10
+
+    def test_tool_name_dots_normalized_to_underscores(self):
+        """Test that dots in tool names are converted to underscores.
+
+        Anthropic tool names must match pattern: ^[a-zA-Z0-9_-]{1,64}$
+        Dots are not allowed, so they must be converted.
+        """
+        mcp_tool = {
+            "name": "Google.Search",
+            "description": "Search Google",
+            "inputSchema": {"type": "object", "properties": {}},
+        }
+
+        result = convert_mcp_to_anthropic_tool(mcp_tool)
+
+        assert result["name"] == "Google_Search"
+
+    def test_tool_name_hyphens_preserved(self):
+        """Test that hyphens in tool names are preserved (they're valid)."""
+        mcp_tool = {
+            "name": "search-files",
+            "description": "Search files",
+            "inputSchema": {"type": "object", "properties": {}},
+        }
+
+        result = convert_mcp_to_anthropic_tool(mcp_tool)
+
+        assert result["name"] == "search-files"
+
+    def test_tool_name_multiple_dots(self):
+        """Test that multiple dots are all converted to underscores."""
+        mcp_tool = {
+            "name": "Google.Gmail.Send.Email",
+            "description": "Send email",
+            "inputSchema": {"type": "object", "properties": {}},
+        }
+
+        result = convert_mcp_to_anthropic_tool(mcp_tool)
+
+        assert result["name"] == "Google_Gmail_Send_Email"
+
+    def test_missing_description_defaults_to_empty(self):
+        """Test that missing description defaults to empty string."""
+        mcp_tool = {
+            "name": "test",
+            "inputSchema": {"type": "object", "properties": {}},
+        }
+
+        result = convert_mcp_to_anthropic_tool(mcp_tool)
+
+        assert result["description"] == ""
+
+    def test_missing_schema_defaults_to_empty_object(self):
+        """Test that missing inputSchema defaults to empty object schema."""
+        mcp_tool = {"name": "test"}
+
+        result = convert_mcp_to_anthropic_tool(mcp_tool)
+
+        assert result["input_schema"] == {"type": "object", "properties": {}}
+
+    def test_convert_multiple_tools(self):
+        """Test converting a list of MCP tools."""
+        mcp_tools = [
+            {"name": "tool1", "description": "First tool"},
+            {"name": "tool2", "description": "Second tool"},
+        ]
+
+        result = convert_mcp_tools_to_anthropic(mcp_tools)
+
+        assert len(result) == 2
+        assert result[0]["name"] == "tool1"
+        assert result[1]["name"] == "tool2"
+
+
+class TestToolRegistryOpenAIFormat:
+    """Tests for EvalSuiteToolRegistry OpenAI format output."""
+
+    def test_list_tools_openai_format(self):
+        """Test listing tools in OpenAI format."""
+        registry = EvalSuiteToolRegistry(strict_mode=True)
+        registry.add_tool({
+            "name": "search",
+            "description": "Search function",
+            "inputSchema": {
+                "type": "object",
+                "properties": {"query": {"type": "string"}},
+                "required": ["query"],
+            },
+        })
+
+        tools = registry.list_tools_for_model("openai")
+
+        assert len(tools) == 1
+        tool = tools[0]
+        assert tool["type"] == "function"
+        assert tool["function"]["name"] == "search"
+        assert tool["function"]["strict"] is True
+        assert tool["function"]["parameters"]["additionalProperties"] is False
+
+    def test_list_tools_openai_without_strict_mode(self):
+        """Test OpenAI format without strict mode."""
+        registry = EvalSuiteToolRegistry(strict_mode=False)
+        registry.add_tool({
+            "name": "search",
+            "description": "Search",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "minLength": 1},
+                },
+                "required": ["query"],
+            },
+        })
+
+        tools = registry.list_tools_for_model("openai")
+
+        tool = tools[0]
+        # No strict flag when strict_mode is False
+        assert "strict" not in tool["function"]
+        # Schema keywords should be preserved when strict_mode is False
+        assert tool["function"]["parameters"]["properties"]["query"]["minLength"] == 1
+
+
+class TestToolRegistryAnthropicFormat:
+    """Tests for EvalSuiteToolRegistry Anthropic format output."""
+
+    def test_list_tools_anthropic_format(self):
+        """Test listing tools in Anthropic format."""
+        registry = EvalSuiteToolRegistry()
+        registry.add_tool({
+            "name": "search",
+            "description": "Search function",
+            "inputSchema": {
+                "type": "object",
+                "properties": {"query": {"type": "string"}},
+                "required": ["query"],
+            },
+        })
+
+        tools = registry.list_tools_for_model("anthropic")
+
+        assert len(tools) == 1
+        tool = tools[0]
+        # Anthropic format - flat structure
+        assert "type" not in tool
+        assert "function" not in tool
+        assert tool["name"] == "search"
+        assert tool["description"] == "Search function"
+        assert "input_schema" in tool
+
+    def test_anthropic_format_preserves_schema(self):
+        """Test that Anthropic format preserves JSON Schema keywords."""
+        registry = EvalSuiteToolRegistry(strict_mode=True)  # strict_mode shouldn't affect Anthropic
+        registry.add_tool({
+            "name": "test",
+            "description": "Test",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100,
+                    },
+                },
+                "required": ["count"],
+            },
+        })
+
+        tools = registry.list_tools_for_model("anthropic")
+
+        # Schema should be preserved as-is for Anthropic
+        schema = tools[0]["input_schema"]
+        assert schema["properties"]["count"]["minimum"] == 0
+        assert schema["properties"]["count"]["maximum"] == 100
+
+    def test_anthropic_format_no_null_union(self):
+        """Test that Anthropic format doesn't add null union types."""
+        registry = EvalSuiteToolRegistry(strict_mode=True)
+        registry.add_tool({
+            "name": "test",
+            "description": "Test",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "required_param": {"type": "string"},
+                    "optional_param": {"type": "integer"},
+                },
+                "required": ["required_param"],  # optional_param is optional
+            },
+        })
+
+        tools = registry.list_tools_for_model("anthropic")
+
+        # Optional param should NOT have null union for Anthropic
+        optional_type = tools[0]["input_schema"]["properties"]["optional_param"]["type"]
+        assert optional_type == "integer"
+        assert not isinstance(optional_type, list)
+
+    def test_anthropic_format_normalizes_tool_names(self):
+        """Test that Anthropic format normalizes tool names (dots to underscores)."""
+        registry = EvalSuiteToolRegistry()
+        registry.add_tool({
+            "name": "Google.Gmail.Send",
+            "description": "Send email via Gmail",
+            "inputSchema": {"type": "object", "properties": {}},
+        })
+
+        tools = registry.list_tools_for_model("anthropic")
+
+        # Dots should be converted to underscores
+        assert tools[0]["name"] == "Google_Gmail_Send"
+
+
+class TestToolRegistryFormatComparison:
+    """Tests comparing OpenAI and Anthropic format outputs."""
+
+    def test_same_tool_different_formats(self):
+        """Test that the same tool produces correct different formats."""
+        registry = EvalSuiteToolRegistry(strict_mode=True)
+        registry.add_tool({
+            "name": "search",
+            "description": "Search for items",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "Search query"},
+                    "limit": {"type": "integer", "default": 10},
+                },
+                "required": ["query"],
+            },
+        })
+
+        openai_tools = registry.list_tools_for_model("openai")
+        anthropic_tools = registry.list_tools_for_model("anthropic")
+
+        # OpenAI format
+        openai_tool = openai_tools[0]
+        assert openai_tool["type"] == "function"
+        assert openai_tool["function"]["strict"] is True
+        openai_params = openai_tool["function"]["parameters"]
+        assert openai_params["additionalProperties"] is False
+        # limit should have null union in OpenAI
+        assert openai_params["properties"]["limit"]["type"] == ["integer", "null"]
+        # default should be stripped in OpenAI
+        assert "default" not in openai_params["properties"]["limit"]
+
+        # Anthropic format
+        anthropic_tool = anthropic_tools[0]
+        assert "type" not in anthropic_tool
+        assert "function" not in anthropic_tool
+        anthropic_schema = anthropic_tool["input_schema"]
+        # limit should have simple type in Anthropic
+        assert anthropic_schema["properties"]["limit"]["type"] == "integer"
+        # default should be preserved in Anthropic
+        assert anthropic_schema["properties"]["limit"]["default"] == 10
+
+    def test_invalid_format_raises(self):
+        """Test that invalid format raises ValueError."""
+        registry = EvalSuiteToolRegistry()
+        registry.add_tool({"name": "test"})
+
+        with pytest.raises(ValueError, match="not supported"):
+            registry.list_tools_for_model("invalid")  # type: ignore
+
+
+class TestToolRegistryMultipleTools:
+    """Tests for registry with multiple tools."""
+
+    def test_multiple_tools_both_formats(self):
+        """Test multiple tools converted to both formats."""
+        registry = EvalSuiteToolRegistry()
+        registry.add_tools([
+            {"name": "tool1", "description": "First"},
+            {"name": "tool2", "description": "Second"},
+            {"name": "tool3", "description": "Third"},
+        ])
+
+        openai_tools = registry.list_tools_for_model("openai")
+        anthropic_tools = registry.list_tools_for_model("anthropic")
+
+        assert len(openai_tools) == 3
+        assert len(anthropic_tools) == 3
+
+        # Verify names are preserved
+        openai_names = {t["function"]["name"] for t in openai_tools}
+        anthropic_names = {t["name"] for t in anthropic_tools}
+        assert openai_names == {"tool1", "tool2", "tool3"}
+        assert anthropic_names == {"tool1", "tool2", "tool3"}

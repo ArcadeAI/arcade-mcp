@@ -77,6 +77,31 @@ class Provider(str, Enum):
     """Supported model providers for evaluations."""
 
     OPENAI = "openai"
+    ANTHROPIC = "anthropic"
+
+
+# ============================================================================
+# Default Models Configuration
+# ============================================================================
+# Edit these values to change the default models used by the CLI.
+# These are used when --models is not specified.
+
+DEFAULT_MODELS: dict[Provider, str] = {
+    Provider.OPENAI: "gpt-4o",
+    Provider.ANTHROPIC: "claude-sonnet-4-5-20250929",
+}
+
+
+def get_default_model(provider: Provider) -> str:
+    """Get the default model for a provider.
+
+    Args:
+        provider: The provider to get the default model for.
+
+    Returns:
+        The default model name for the provider.
+    """
+    return DEFAULT_MODELS.get(provider, "gpt-4o")
 
 
 class CLIError(Exception):
@@ -1020,6 +1045,7 @@ def resolve_provider_api_key(provider: Provider, provider_api_key: str | None = 
     # Map providers to their environment variable names
     provider_env_vars = {
         Provider.OPENAI: "OPENAI_API_KEY",
+        Provider.ANTHROPIC: "ANTHROPIC_API_KEY",
     }
 
     env_var_name = provider_env_vars.get(provider)
