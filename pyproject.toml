@@ -40,8 +40,9 @@ all = [
     "scikit-learn>=1.5.0",
     "pytz>=2024.1",
     "python-dateutil>=2.8.2",
-    "httpx>=0.27.0",
-    # mcp
+    # mcp sdk (optional, for arcade_evals.loaders)
+    "mcp>=1.0.0",
+    # mcp server
     "arcade-mcp-server>=1.14.0,<2.0.0",
     # serve
     "arcade-serve>=3.2.0,<4.0.0",
@@ -55,7 +56,11 @@ evals = [
     "scikit-learn>=1.5.0",
     "pytz>=2024.1",
     "python-dateutil>=2.8.2",
-    "httpx>=0.27.0",          # For HTTP MCP loaders
+]
+
+# Optional extra for MCP server loading features in arcade_evals.loaders
+mcp = [
+    "mcp>=1.0.0",
 ]
 
 [tool.uv]

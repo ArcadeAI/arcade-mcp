@@ -1,10 +1,9 @@
-"""Tests for MCP server loaders."""
+"""Tests for MCP server loaders (official MCP SDK wrappers)."""
 
 import importlib.util
-import os
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -19,28 +18,50 @@ spec.loader.exec_module(loaders)
 class TestLoadFromStdio:
     """Tests for load_from_stdio function."""
 
-    def test_empty_command_returns_empty_list(self):
-        """Empty command should return empty list."""
-        result = loaders.load_from_stdio([])
+    @pytest.mark.asyncio
+    async def test_empty_command_returns_empty_list(self):
+        """Empty command should return empty list without importing MCP."""
+        result = await loaders.load_from_stdio_async([])
         assert result == []
 
-    def test_invalid_command_returns_empty_list(self):
-        """Invalid command should return empty list."""
-        result = loaders.load_from_stdio(["nonexistent_command_xyz"])
-        assert result == []
+    @pytest.mark.asyncio
+    async def test_env_vars_are_merged_into_stdio_server_parameters(self):
+        """Env vars should be merged with current env and passed to StdioServerParameters."""
+        mock_tool = MagicMock()
+        mock_tool.name = "t"
+        mock_tool.description = "d"
+        mock_tool.inputSchema = {"type": "object", "properties": {}}
 
-    def test_env_vars_are_merged(self):
-        """Environment variables should be merged with current env."""
-        with patch.object(loaders.subprocess, "Popen") as mock_popen:
-            mock_process = MagicMock()
-            mock_process.stdin = MagicMock()
-            mock_process.stdout = MagicMock()
-            mock_process.stdout.readline.return_value = '{"jsonrpc":"2.0","id":1,"result":{}}'
-            mock_popen.return_value = mock_process
+        mock_list_result = MagicMock()
+        mock_list_result.tools = [mock_tool]
 
-            loaders.load_from_stdio(["echo"], env={"TEST_VAR": "test_value"})
+        mock_session = AsyncMock()
+        mock_session.initialize = AsyncMock()
+        mock_session.list_tools = AsyncMock(return_value=mock_list_result)
 
-            call_kwargs = mock_popen.call_args[1]
+        mock_client_session_cls = MagicMock()
+        mock_client_session_cls.return_value.__aenter__ = AsyncMock(return_value=mock_session)
+        mock_client_session_cls.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        mock_stdio_client = MagicMock()
+        mock_stdio_client.return_value.__aenter__ = AsyncMock(return_value=("read", "write"))
+        mock_stdio_client.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        mock_sse_client = MagicMock()
+        mock_stdio_params_cls = MagicMock()
+
+        with patch.object(loaders, "_require_mcp") as mock_require:
+            mock_require.return_value = (
+                mock_client_session_cls,
+                mock_stdio_params_cls,
+                mock_stdio_client,
+                mock_sse_client,
+            )
+
+            await loaders.load_from_stdio_async(["echo"], env={"TEST_VAR": "test_value"})
+
+            # Ensure env merged and passed into server params
+            _, call_kwargs = mock_stdio_params_cls.call_args
             assert "env" in call_kwargs
             assert call_kwargs["env"]["TEST_VAR"] == "test_value"
 
@@ -48,142 +69,238 @@ class TestLoadFromStdio:
 class TestLoadFromHttp:
     """Tests for load_from_http function."""
 
-    def test_url_gets_mcp_appended(self):
-        """URL without /mcp should get it appended."""
-        import httpx
+    @pytest.mark.asyncio
+    async def test_url_gets_mcp_appended(self):
+        """URL without /mcp should get it appended before calling sse_client."""
+        mock_session = AsyncMock()
+        mock_session.initialize = AsyncMock()
+        mock_session.list_tools = AsyncMock(return_value=MagicMock(tools=[]))
 
-        with patch.object(httpx, "post") as mock_post:
-            mock_response = MagicMock()
-            mock_response.json.return_value = {"result": {"tools": []}}
-            mock_response.raise_for_status = MagicMock()
-            mock_post.return_value = mock_response
+        mock_client_session_cls = MagicMock()
+        mock_client_session_cls.return_value.__aenter__ = AsyncMock(return_value=mock_session)
+        mock_client_session_cls.return_value.__aexit__ = AsyncMock(return_value=None)
 
-            loaders.load_from_http("http://localhost:8000")
+        mock_sse_client = MagicMock()
+        mock_sse_client.return_value.__aenter__ = AsyncMock(return_value=("read", "write"))
+        mock_sse_client.return_value.__aexit__ = AsyncMock(return_value=None)
 
-            call_args = mock_post.call_args
-            assert "/mcp" in call_args[0][0]
+        with patch.object(loaders, "_require_mcp") as mock_require:
+            mock_require.return_value = (
+                mock_client_session_cls,
+                MagicMock(),
+                MagicMock(),
+                mock_sse_client,
+            )
 
-    def test_url_with_mcp_not_duplicated(self):
-        """URL with /mcp should not get it duplicated."""
-        import httpx
+            await loaders.load_from_http_async("http://localhost:8000")
+            called_url = mock_sse_client.call_args[0][0]
+            assert called_url.endswith("/mcp")
 
-        with patch.object(httpx, "post") as mock_post:
-            mock_response = MagicMock()
-            mock_response.json.return_value = {"result": {"tools": []}}
-            mock_response.raise_for_status = MagicMock()
-            mock_post.return_value = mock_response
+    @pytest.mark.asyncio
+    async def test_url_with_mcp_not_duplicated(self):
+        """URL with /mcp should not get duplicated."""
+        mock_session = AsyncMock()
+        mock_session.initialize = AsyncMock()
+        mock_session.list_tools = AsyncMock(return_value=MagicMock(tools=[]))
 
-            loaders.load_from_http("http://localhost:8000/mcp")
+        mock_client_session_cls = MagicMock()
+        mock_client_session_cls.return_value.__aenter__ = AsyncMock(return_value=mock_session)
+        mock_client_session_cls.return_value.__aexit__ = AsyncMock(return_value=None)
 
-            call_args = mock_post.call_args
-            assert "/mcp/mcp" not in call_args[0][0]
+        mock_sse_client = MagicMock()
+        mock_sse_client.return_value.__aenter__ = AsyncMock(return_value=("read", "write"))
+        mock_sse_client.return_value.__aexit__ = AsyncMock(return_value=None)
 
-    def test_headers_are_passed(self):
-        """Custom headers should be passed to request."""
-        import httpx
+        with patch.object(loaders, "_require_mcp") as mock_require:
+            mock_require.return_value = (
+                mock_client_session_cls,
+                MagicMock(),
+                MagicMock(),
+                mock_sse_client,
+            )
 
-        with patch.object(httpx, "post") as mock_post:
-            mock_response = MagicMock()
-            mock_response.json.return_value = {"result": {"tools": []}}
-            mock_response.raise_for_status = MagicMock()
-            mock_post.return_value = mock_response
+            await loaders.load_from_http_async("http://localhost:8000/mcp")
+            called_url = mock_sse_client.call_args[0][0]
+            assert "/mcp/mcp" not in called_url
 
-            loaders.load_from_http(
+    @pytest.mark.asyncio
+    async def test_headers_are_passed(self):
+        """Custom headers should be passed to sse_client."""
+        mock_session = AsyncMock()
+        mock_session.initialize = AsyncMock()
+        mock_session.list_tools = AsyncMock(return_value=MagicMock(tools=[]))
+
+        mock_client_session_cls = MagicMock()
+        mock_client_session_cls.return_value.__aenter__ = AsyncMock(return_value=mock_session)
+        mock_client_session_cls.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        mock_sse_client = MagicMock()
+        mock_sse_client.return_value.__aenter__ = AsyncMock(return_value=("read", "write"))
+        mock_sse_client.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        with patch.object(loaders, "_require_mcp") as mock_require:
+            mock_require.return_value = (
+                mock_client_session_cls,
+                MagicMock(),
+                MagicMock(),
+                mock_sse_client,
+            )
+
+            await loaders.load_from_http_async(
                 "http://localhost:8000",
                 headers={"Authorization": "Bearer token123"},
             )
-
-            call_kwargs = mock_post.call_args[1]
+            _, call_kwargs = mock_sse_client.call_args
             assert call_kwargs["headers"]["Authorization"] == "Bearer token123"
 
-    def test_returns_tools_from_response(self):
-        """Should return tools from valid response."""
-        import httpx
+    @pytest.mark.asyncio
+    async def test_returns_tools_from_response(self):
+        """Should convert SDK Tool objects into dicts."""
+        mock_tool1 = MagicMock()
+        mock_tool1.name = "tool1"
+        mock_tool1.description = "Test tool 1"
+        mock_tool1.inputSchema = {"type": "object", "properties": {}}
 
-        mock_tools = [
-            {"name": "tool1", "description": "Test tool 1"},
-            {"name": "tool2", "description": "Test tool 2"},
-        ]
+        mock_tool2 = MagicMock()
+        mock_tool2.name = "tool2"
+        mock_tool2.description = None
+        mock_tool2.inputSchema = {"type": "object", "properties": {}}
 
-        with patch.object(httpx, "post") as mock_post:
-            mock_response = MagicMock()
-            mock_response.json.return_value = {"result": {"tools": mock_tools}}
-            mock_response.raise_for_status = MagicMock()
-            mock_post.return_value = mock_response
+        mock_session = AsyncMock()
+        mock_session.initialize = AsyncMock()
+        mock_session.list_tools = AsyncMock(return_value=MagicMock(tools=[mock_tool1, mock_tool2]))
 
-            result = loaders.load_from_http("http://localhost:8000")
+        mock_client_session_cls = MagicMock()
+        mock_client_session_cls.return_value.__aenter__ = AsyncMock(return_value=mock_session)
+        mock_client_session_cls.return_value.__aexit__ = AsyncMock(return_value=None)
 
-            assert result == mock_tools
+        mock_sse_client = MagicMock()
+        mock_sse_client.return_value.__aenter__ = AsyncMock(return_value=("read", "write"))
+        mock_sse_client.return_value.__aexit__ = AsyncMock(return_value=None)
 
-    def test_timeout_returns_empty_list(self):
-        """Timeout should return empty list."""
-        import httpx
+        with patch.object(loaders, "_require_mcp") as mock_require:
+            mock_require.return_value = (
+                mock_client_session_cls,
+                MagicMock(),
+                MagicMock(),
+                mock_sse_client,
+            )
 
-        with patch.object(httpx, "post") as mock_post:
-            mock_post.side_effect = httpx.TimeoutException("Timeout")
+            result = await loaders.load_from_http_async("http://localhost:8000")
+            assert result == [
+                {"name": "tool1", "description": "Test tool 1", "inputSchema": {"type": "object", "properties": {}}},
+                {"name": "tool2", "description": "", "inputSchema": {"type": "object", "properties": {}}},
+            ]
 
-            result = loaders.load_from_http("http://localhost:8000")
 
-            assert result == []
+class TestLoadArcadeMcpGateway:
+    """Tests for load_arcade_mcp_gateway function."""
 
+    @pytest.mark.asyncio
+    async def test_builds_correct_url_and_headers_with_slug(self):
+        """Should build correct Arcade MCP URL and pass auth headers (official backend)."""
+        mock_session = AsyncMock()
+        mock_session.initialize = AsyncMock()
+        mock_session.list_tools = AsyncMock(return_value=MagicMock(tools=[]))
 
-class TestLoadArcadeCloud:
-    """Tests for load_arcade_cloud function."""
+        mock_client_session_cls = MagicMock()
+        mock_client_session_cls.return_value.__aenter__ = AsyncMock(return_value=mock_session)
+        mock_client_session_cls.return_value.__aexit__ = AsyncMock(return_value=None)
 
-    def test_uses_env_vars_when_no_params(self):
-        """Should use environment variables when params not provided."""
-        with patch.dict(
-            os.environ,
-            {"ARCADE_API_KEY": "env_key", "ARCADE_USER_ID": "env_user"},
-        ):
-            with patch.object(loaders, "_load_with_session") as mock_load:
-                mock_load.return_value = []
+        mock_sse_client = MagicMock()
+        mock_sse_client.return_value.__aenter__ = AsyncMock(return_value=("read", "write"))
+        mock_sse_client.return_value.__aexit__ = AsyncMock(return_value=None)
 
-                loaders.load_arcade_cloud(gateway_slug="test-gateway")
+        with patch.object(loaders, "_require_mcp") as mock_require:
+            mock_require.return_value = (
+                mock_client_session_cls,
+                MagicMock(),
+                MagicMock(),
+                mock_sse_client,
+            )
 
-                call_kwargs = mock_load.call_args[1]
-                assert call_kwargs["headers"]["Authorization"] == "env_key"
-                assert call_kwargs["headers"]["arcade-user-id"] == "env_user"
+            await loaders.load_arcade_mcp_gateway_async(
+                "my-gateway",
+                arcade_api_key="key",
+                arcade_user_id="user",
+            )
 
-    def test_params_override_env_vars(self):
-        """Parameters should override environment variables."""
-        with patch.dict(
-            os.environ,
-            {"ARCADE_API_KEY": "env_key", "ARCADE_USER_ID": "env_user"},
-        ):
-            with patch.object(loaders, "_load_with_session") as mock_load:
-                mock_load.return_value = []
+            called_url = mock_sse_client.call_args[0][0]
+            called_headers = mock_sse_client.call_args[1]["headers"]
+            assert called_url == "https://api.arcade.dev/mcp/my-gateway"
+            assert called_headers["Authorization"] == "key"
+            assert called_headers["arcade-user-id"] == "user"
 
-                loaders.load_arcade_cloud(
-                    gateway_slug="test-gateway",
-                    arcade_api_key="param_key",
-                    arcade_user_id="param_user",
-                )
+    @pytest.mark.asyncio
+    async def test_builds_correct_url_without_slug(self):
+        """Should build correct Arcade MCP URL without gateway slug."""
+        mock_session = AsyncMock()
+        mock_session.initialize = AsyncMock()
+        mock_session.list_tools = AsyncMock(return_value=MagicMock(tools=[]))
 
-                call_kwargs = mock_load.call_args[1]
-                assert call_kwargs["headers"]["Authorization"] == "param_key"
-                assert call_kwargs["headers"]["arcade-user-id"] == "param_user"
+        mock_client_session_cls = MagicMock()
+        mock_client_session_cls.return_value.__aenter__ = AsyncMock(return_value=mock_session)
+        mock_client_session_cls.return_value.__aexit__ = AsyncMock(return_value=None)
 
-    def test_builds_correct_url(self):
-        """Should build correct Arcade Cloud URL."""
-        with patch.object(loaders, "_load_with_session") as mock_load:
-            mock_load.return_value = []
+        mock_sse_client = MagicMock()
+        mock_sse_client.return_value.__aenter__ = AsyncMock(return_value=("read", "write"))
+        mock_sse_client.return_value.__aexit__ = AsyncMock(return_value=None)
 
-            loaders.load_arcade_cloud(gateway_slug="my-gateway", arcade_api_key="key")
+        with patch.object(loaders, "_require_mcp") as mock_require:
+            mock_require.return_value = (
+                mock_client_session_cls,
+                MagicMock(),
+                MagicMock(),
+                mock_sse_client,
+            )
 
-            call_kwargs = mock_load.call_args[1]
-            assert call_kwargs["url"] == "https://api.arcade.dev/mcp/my-gateway"
+            await loaders.load_arcade_mcp_gateway_async(arcade_api_key="key")
+
+            called_url = mock_sse_client.call_args[0][0]
+            assert called_url == "https://api.arcade.dev/mcp"
+
+    @pytest.mark.asyncio
+    async def test_custom_base_url(self):
+        """Should use custom base URL when provided."""
+        mock_session = AsyncMock()
+        mock_session.initialize = AsyncMock()
+        mock_session.list_tools = AsyncMock(return_value=MagicMock(tools=[]))
+
+        mock_client_session_cls = MagicMock()
+        mock_client_session_cls.return_value.__aenter__ = AsyncMock(return_value=mock_session)
+        mock_client_session_cls.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        mock_sse_client = MagicMock()
+        mock_sse_client.return_value.__aenter__ = AsyncMock(return_value=("read", "write"))
+        mock_sse_client.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        with patch.object(loaders, "_require_mcp") as mock_require:
+            mock_require.return_value = (
+                mock_client_session_cls,
+                MagicMock(),
+                MagicMock(),
+                mock_sse_client,
+            )
+
+            await loaders.load_arcade_mcp_gateway_async(
+                "my-gateway",
+                base_url="https://staging.arcade.dev",
+            )
+
+            called_url = mock_sse_client.call_args[0][0]
+            assert called_url == "https://staging.arcade.dev/mcp/my-gateway"
 
 
 class TestLoadStdioArcade:
     """Tests for load_stdio_arcade function."""
 
-    def test_passes_env_vars_to_stdio(self):
+    @pytest.mark.asyncio
+    async def test_passes_env_vars_to_stdio(self):
         """Should pass Arcade env vars to stdio loader."""
-        with patch.object(loaders, "load_from_stdio") as mock_stdio:
+        with patch.object(loaders, "load_from_stdio_async", new_callable=AsyncMock) as mock_stdio:
             mock_stdio.return_value = []
 
-            loaders.load_stdio_arcade(
+            await loaders.load_stdio_arcade_async(
                 ["python", "server.py"],
                 arcade_api_key="test_key",
                 arcade_user_id="test_user",
@@ -193,12 +310,13 @@ class TestLoadStdioArcade:
             assert call_kwargs["env"]["ARCADE_API_KEY"] == "test_key"
             assert call_kwargs["env"]["ARCADE_USER_ID"] == "test_user"
 
-    def test_includes_tool_secrets(self):
+    @pytest.mark.asyncio
+    async def test_includes_tool_secrets(self):
         """Should include tool secrets in environment."""
-        with patch.object(loaders, "load_from_stdio") as mock_stdio:
+        with patch.object(loaders, "load_from_stdio_async", new_callable=AsyncMock) as mock_stdio:
             mock_stdio.return_value = []
 
-            loaders.load_stdio_arcade(
+            await loaders.load_stdio_arcade_async(
                 ["python", "server.py"],
                 tool_secrets={"GITHUB_TOKEN": "gh_token", "SLACK_TOKEN": "slack_token"},
             )
@@ -208,13 +326,14 @@ class TestLoadStdioArcade:
             assert call_kwargs["env"]["SLACK_TOKEN"] == "slack_token"
 
 
-class TestBackwardCompatibility:
-    """Tests for backward compatibility aliases."""
+class TestLazyImport:
+    """Tests for lazy MCP import behavior."""
 
-    def test_load_from_arcade_server_alias(self):
-        """load_from_arcade_server should be alias for load_stdio_arcade."""
-        assert loaders.load_from_arcade_server is loaders.load_stdio_arcade
-
-    def test_load_from_arcade_http_alias(self):
-        """load_from_arcade_http should be alias for load_arcade_cloud."""
-        assert loaders.load_from_arcade_http is loaders.load_arcade_cloud
+    def test_require_mcp_error_message(self):
+        """Should raise helpful ImportError when MCP SDK is not installed."""
+        # If MCP is installed in the environment, this test isn't meaningful.
+        # Force an import failure by masking the module.
+        with patch.dict(sys.modules, {"mcp": None}):
+            with pytest.raises(ImportError) as exc:
+                loaders._require_mcp()
+            assert "pip install" in str(exc.value)

@@ -1,5 +1,3 @@
-from unittest.mock import Mock
-
 import pytest
 from arcade_evals import (
     BinaryCritic,
@@ -210,20 +208,11 @@ def test_eval_suite_add_case():
     """
     Test that add_case correctly adds a new evaluation case to the suite.
     """
-    mock_catalog = Mock()
-    mock_catalog.find_tool_by_func.return_value.get_fully_qualified_name.return_value = "MockTool"
-
-    suite = EvalSuite(name="TestSuite", system_message="System message", catalog=mock_catalog)
+    suite = EvalSuite(name="TestSuite", system_message="System message")
 
     expected_tool_calls = [
-        ExpectedToolCall(
-            func=mock_tool,
-            args={"param1": "value"},
-        ),
-        (
-            mock_tool,
-            {"param1": "value"},
-        ),
+        ExpectedToolCall(tool_name="MockTool", args={"param1": "value"}),
+        ExpectedToolCall(tool_name="MockTool", args={"param1": "value"}),
     ]
 
     suite.add_case(
@@ -251,20 +240,11 @@ def test_eval_suite_extend_case():
     """
     Test that extend_case correctly extends the last added case with new information.
     """
-    mock_catalog = Mock()
-    mock_catalog.find_tool_by_func.return_value.get_fully_qualified_name.return_value = "MockTool"
-
-    suite = EvalSuite(name="TestSuite", system_message="System message", catalog=mock_catalog)
+    suite = EvalSuite(name="TestSuite", system_message="System message")
 
     expected_tool_calls = [
-        ExpectedToolCall(
-            func=mock_tool,
-            args={"param1": "value"},
-        ),
-        (
-            mock_tool,
-            {"param1": "value"},
-        ),
+        ExpectedToolCall(tool_name="MockTool", args={"param1": "value"}),
+        ExpectedToolCall(tool_name="MockTool", args={"param1": "value"}),
     ]
 
     suite.add_case(
@@ -300,8 +280,7 @@ def test_eval_suite_validate_critics_raises_value_error():
     """
     Test that validate_critics raises a ValueError if multiple critics are detected for the same field.
     """
-    mock_catalog = Mock()
-    suite = EvalSuite(name="TestSuite", system_message="System message", catalog=mock_catalog)
+    suite = EvalSuite(name="TestSuite", system_message="System message")
 
     case_name = "TestCase"
     critics = [
@@ -316,8 +295,7 @@ def test_eval_suite_validate_critics_no_error():
     """
     Test that validate_critics does not raise an error when critics are valid.
     """
-    mock_catalog = Mock()
-    suite = EvalSuite(name="TestSuite", system_message="System message", catalog=mock_catalog)
+    suite = EvalSuite(name="TestSuite", system_message="System message")
 
     case_name = "TestCase"
     critics = [
@@ -402,8 +380,7 @@ def test_eval_suite_validate_critics_no_error():
 def test_eval_suite_add_none_critics(
     expected_tool_calls, critics, expected_critics_count, expected_critics_types
 ):
-    mock_catalog = Mock()
-    suite = EvalSuite(name="TestSuite", system_message="System message", catalog=mock_catalog)
+    suite = EvalSuite(name="TestSuite", system_message="System message")
 
     critics_with_none = suite._add_none_critics(expected_tool_calls, critics)
     assert len(critics_with_none) == expected_critics_count

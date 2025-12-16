@@ -1,72 +1,255 @@
 """
-MCP Server Tool Loaders.
+MCP Server Tool Loaders (pluggable backends).
 
-Load tools from MCP servers via stdio or HTTP transport.
+Public API (async-only):
+- `load_from_stdio_async`
+- `load_from_http_async`
+- `load_arcade_mcp_gateway_async`
+- `load_stdio_arcade_async`
 
-Functions:
-    - load_from_stdio: Generic stdio loader
-    - load_stdio_arcade: Arcade MCP server via stdio
-    - load_from_http: Generic HTTP loader with headers
-    - load_arcade_cloud: Arcade Cloud MCP gateway via HTTP
+Backends:
+- **official** (default): official `mcp` Python SDK
+- **internal**: custom subprocess/httpx implementation (alternative)
 """
 
+from __future__ import annotations
+
+import asyncio
+import importlib
 import json
 import os
 import subprocess
+import uuid
+from abc import ABC, abstractmethod
 from contextlib import suppress
-from typing import Any
+from typing import Any, Literal, cast
 
-# Protocol version for MCP handshake
-_MCP_PROTOCOL_VERSION = "2024-11-05"
-_CLIENT_INFO = {"name": "arcade-evals", "version": "1.7.0"}
+# =============================================================================
+# CONFIGURATION CONSTANTS
+# =============================================================================
+
+# MCP protocol version for handshakes
+MCP_PROTOCOL_VERSION = "2024-11-05"
+
+# Client info sent during MCP initialization
+MCP_CLIENT_NAME = "arcade-evals"
+MCP_CLIENT_VERSION = "1.0.0"
+
+# Default Arcade API base URL (production)
+ARCADE_API_BASE_URL = "https://api.arcade.dev"
+
+# Backend type
+LoaderBackendName = Literal["official", "internal"]
 
 
 # =============================================================================
-# STDIO LOADERS
+# UTILITIES
 # =============================================================================
 
 
-def load_from_stdio(
+def _require_mcp() -> tuple[Any, Any, Any, Any]:
+    """
+    Lazy import MCP SDK with a helpful error message.
+
+    Returns:
+        (ClientSession, StdioServerParameters, stdio_client, sse_client)
+    """
+    try:
+        mcp = importlib.import_module("mcp")
+        mcp_client_stdio = importlib.import_module("mcp.client.stdio")
+        mcp_client_sse = importlib.import_module("mcp.client.sse")
+
+        ClientSession = mcp.ClientSession
+        StdioServerParameters = mcp.StdioServerParameters
+        stdio_client = mcp_client_stdio.stdio_client
+        sse_client = mcp_client_sse.sse_client
+
+    except Exception as e:
+        raise ImportError(
+            "MCP SDK not installed. Install with: pip install arcade-mcp[mcp] "
+            "(or, if using arcade-evals standalone: pip install arcade-evals[mcp])."
+        ) from e
+
+    return ClientSession, StdioServerParameters, stdio_client, sse_client
+
+
+def _tool_to_dict(tool: Any) -> dict[str, Any]:
+    """Convert an MCP Tool object to the MCP-style dict format used by EvalSuite."""
+    return {
+        "name": tool.name,
+        "description": tool.description or "",
+        "inputSchema": tool.inputSchema,
+    }
+
+
+def _ensure_mcp_path(url: str) -> str:
+    """Append '/mcp' to URL if not present."""
+    if "/mcp" in url:
+        return url
+    return f"{url}mcp" if url.endswith("/") else f"{url}/mcp"
+
+
+def _build_arcade_mcp_url(gateway_slug: str | None, base_url: str) -> str:
+    """Build the Arcade MCP gateway URL."""
+    base = base_url.rstrip("/")
+    if gateway_slug:
+        return f"{base}/mcp/{gateway_slug}"
+    return f"{base}/mcp"
+
+
+# =============================================================================
+# BASE CLASS
+# =============================================================================
+
+
+class MCPToolLoaderBase(ABC):
+    """Base class for loading MCP tools (async-only)."""
+
+    @abstractmethod
+    async def load_from_stdio(
+        self,
+        command: list[str],
+        *,
+        env: dict[str, str] | None = None,
+        timeout: int = 10,
+    ) -> list[dict[str, Any]]:
+        """Load tools from an MCP server via stdio."""
+        ...
+
+    @abstractmethod
+    async def load_from_http(
+        self,
+        url: str,
+        *,
+        headers: dict[str, str] | None = None,
+        timeout: int = 10,
+        use_sse: bool = False,
+    ) -> list[dict[str, Any]]:
+        """Load tools from an MCP server via HTTP/SSE."""
+        ...
+
+    @abstractmethod
+    async def load_arcade_mcp_gateway(
+        self,
+        gateway_slug: str | None = None,
+        *,
+        arcade_api_key: str | None = None,
+        arcade_user_id: str | None = None,
+        base_url: str = ARCADE_API_BASE_URL,
+        timeout: int = 10,
+    ) -> list[dict[str, Any]]:
+        """Load tools from an Arcade MCP gateway."""
+        ...
+
+
+# =============================================================================
+# OFFICIAL BACKEND (uses mcp SDK)
+# =============================================================================
+
+
+class OfficialMCPToolLoader(MCPToolLoaderBase):
+    """Loader backend using the official MCP Python SDK."""
+
+    async def load_from_stdio(
+        self,
+        command: list[str],
+        *,
+        env: dict[str, str] | None = None,
+        timeout: int = 10,
+    ) -> list[dict[str, Any]]:
+        if not command:
+            return []
+
+        ClientSession, StdioServerParameters, stdio_client, _ = _require_mcp()
+
+        process_env = os.environ.copy()
+        if env:
+            process_env.update(env)
+
+        server_params = StdioServerParameters(
+            command=command[0],
+            args=command[1:] if len(command) > 1 else [],
+            env=process_env,
+        )
+        async with (
+            stdio_client(server_params) as (read, write),
+            ClientSession(read, write) as session,
+        ):
+            await session.initialize()
+            result = await session.list_tools()
+            return [_tool_to_dict(tool) for tool in result.tools]
+
+    async def load_from_http(
+        self,
+        url: str,
+        *,
+        headers: dict[str, str] | None = None,
+        timeout: int = 10,
+        use_sse: bool = False,
+    ) -> list[dict[str, Any]]:
+        _ = timeout  # SDK manages timeouts internally
+        _ = use_sse  # SDK uses SSE transport
+
+        ClientSession, _, _, sse_client = _require_mcp()
+        url = _ensure_mcp_path(url)
+
+        async with (
+            sse_client(url, headers=headers) as (read, write),
+            ClientSession(read, write) as session,
+        ):
+            await session.initialize()
+            result = await session.list_tools()
+            return [_tool_to_dict(tool) for tool in result.tools]
+
+    async def load_arcade_mcp_gateway(
+        self,
+        gateway_slug: str | None = None,
+        *,
+        arcade_api_key: str | None = None,
+        arcade_user_id: str | None = None,
+        base_url: str = ARCADE_API_BASE_URL,
+        timeout: int = 10,
+    ) -> list[dict[str, Any]]:
+        api_key = arcade_api_key or os.environ.get("ARCADE_API_KEY")
+        user_id = arcade_user_id or os.environ.get("ARCADE_USER_ID")
+
+        headers: dict[str, str] = {}
+        if api_key:
+            headers["Authorization"] = api_key
+        if user_id:
+            headers["arcade-user-id"] = user_id
+
+        url = _build_arcade_mcp_url(gateway_slug, base_url)
+        return await self.load_from_http(url, headers=headers, timeout=timeout)
+
+
+# =============================================================================
+# INTERNAL BACKEND (custom subprocess/httpx implementation)
+# =============================================================================
+
+
+def _internal_load_from_stdio_sync(
     command: list[str],
+    *,
     timeout: int = 10,
     env: dict[str, str] | None = None,
 ) -> list[dict[str, Any]]:
-    """
-    Load tools from an MCP server via stdio transport.
-
-    Args:
-        command: Command to start server (e.g., ["python", "server.py", "stdio"])
-        timeout: Timeout in seconds.
-        env: Environment variables for the server. Merged with current env.
-
-    Returns:
-        List of tool descriptors. Empty list on error.
-
-    Example:
-        >>> tools = load_from_stdio(
-        ...     ["python", "my_server.py", "stdio"],
-        ...     env={"API_KEY": "..."}
-        ... )
-    """
+    """Internal: subprocess JSON-RPC handshake over stdio."""
     if not command:
         return []
 
-    # Merge with current environment
     process_env = os.environ.copy()
     if env:
         process_env.update(env)
 
-    try:
-        process = subprocess.Popen(
-            command,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            env=process_env,
-        )
-    except (FileNotFoundError, OSError, ValueError):
-        return []
+    process = subprocess.Popen(
+        command,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        env=process_env,
+    )
 
     try:
         init_req = {
@@ -74,24 +257,22 @@ def load_from_stdio(
             "id": 1,
             "method": "initialize",
             "params": {
-                "protocolVersion": _MCP_PROTOCOL_VERSION,
+                "protocolVersion": MCP_PROTOCOL_VERSION,
                 "capabilities": {},
-                "clientInfo": _CLIENT_INFO,
+                "clientInfo": {"name": MCP_CLIENT_NAME, "version": MCP_CLIENT_VERSION},
             },
         }
 
         if process.stdin and process.stdout:
             process.stdin.write(json.dumps(init_req) + "\n")
             process.stdin.flush()
-            process.stdout.readline()  # Read init response
+            process.stdout.readline()  # init response
 
-            # Send initialized notification
             process.stdin.write(
                 json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"}) + "\n"
             )
             process.stdin.flush()
 
-            # Request tools
             process.stdin.write(
                 json.dumps({"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}}) + "\n"
             )
@@ -99,48 +280,328 @@ def load_from_stdio(
 
             response = json.loads(process.stdout.readline())
             if "result" in response and "tools" in response["result"]:
-                tools_list: list[dict[str, Any]] = response["result"]["tools"]
-                return tools_list
+                return cast(list[dict[str, Any]], response["result"]["tools"])
+
+        return []
     finally:
-        # OSError: process already dead; TimeoutExpired: process didn't stop in time
-        # Both are fine - we're just doing best-effort cleanup
         with suppress(OSError, subprocess.TimeoutExpired):
             process.terminate()
             process.wait(timeout=timeout)
 
+
+def _internal_load_from_http_sync(
+    url: str,
+    *,
+    timeout: int = 10,
+    headers: dict[str, str] | None = None,
+    use_sse: bool = False,
+) -> list[dict[str, Any]]:
+    """Internal: HTTP JSON-RPC over POST, optional SSE streaming fallback."""
+    try:
+        import httpx
+    except ImportError as e:
+        raise ImportError(
+            "Internal MCP HTTP loader requires httpx. Install with: pip install httpx"
+        ) from e
+
+    url = _ensure_mcp_path(url)
+    request_headers = headers.copy() if headers else {}
+
+    if use_sse:
+        if "Accept" not in request_headers:
+            request_headers["Accept"] = "text/event-stream"
+        with httpx.stream(
+            "POST",
+            url,
+            json={"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}},
+            headers=request_headers,
+            timeout=timeout,
+        ) as response:
+            response.raise_for_status()
+            for line in response.iter_lines():
+                if line.startswith("data: "):
+                    try:
+                        data = json.loads(line[6:])
+                        if "result" in data and "tools" in data["result"]:
+                            return cast(list[dict[str, Any]], data["result"]["tools"])
+                    except json.JSONDecodeError:
+                        continue
+        return []
+
+    if "Accept" not in request_headers:
+        request_headers["Accept"] = "application/json, text/event-stream"
+
+    try:
+        response = httpx.post(
+            url,
+            json={"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}},
+            headers=request_headers,
+            timeout=timeout,
+        )
+        response.raise_for_status()
+        data = response.json()
+        if "result" in data and "tools" in data["result"]:
+            return cast(list[dict[str, Any]], data["result"]["tools"])
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 406 and "text/event-stream" in e.response.text:
+            return _internal_load_from_http_sync(
+                url, timeout=timeout, headers=headers, use_sse=True
+            )
+        # Some servers require session handshake first.
+        if e.response.status_code in (400, 401, 403) and "Mcp-Session-Id" not in request_headers:
+            return _internal_load_with_session_sync(
+                url=url, headers=request_headers, timeout=timeout
+            )
+        raise
+
     return []
 
 
-def load_stdio_arcade(
+def _internal_load_with_session_sync(
+    *,
+    url: str,
+    headers: dict[str, str],
+    timeout: int = 10,
+) -> list[dict[str, Any]]:
+    """Internal: initialize handshake to obtain/establish session id, then tools/list."""
+    import httpx
+
+    session_id = str(uuid.uuid4())
+    req_headers = headers.copy()
+    req_headers["Mcp-Session-Id"] = session_id
+
+    init_response = httpx.post(
+        url,
+        json={
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": MCP_PROTOCOL_VERSION,
+                "capabilities": {},
+                "clientInfo": {"name": MCP_CLIENT_NAME, "version": MCP_CLIENT_VERSION},
+            },
+        },
+        headers=req_headers,
+        timeout=timeout,
+    )
+    init_response.raise_for_status()
+
+    if "mcp-session-id" in init_response.headers:
+        session_id = init_response.headers["mcp-session-id"]
+    req_headers["Mcp-Session-Id"] = session_id
+
+    return _internal_load_from_http_sync(url, timeout=timeout, headers=req_headers)
+
+
+def _internal_load_arcade_mcp_gateway_sync(
+    gateway_slug: str | None = None,
+    *,
+    arcade_api_key: str | None = None,
+    arcade_user_id: str | None = None,
+    base_url: str = ARCADE_API_BASE_URL,
+    timeout: int = 10,
+) -> list[dict[str, Any]]:
+    """Internal: Arcade MCP gateway load with session handshake."""
+    api_key = arcade_api_key or os.environ.get("ARCADE_API_KEY")
+    user_id = arcade_user_id or os.environ.get("ARCADE_USER_ID")
+
+    headers: dict[str, str] = {"Accept": "application/json, text/event-stream"}
+    if api_key:
+        headers["Authorization"] = api_key
+    if user_id:
+        headers["arcade-user-id"] = user_id
+
+    url = _build_arcade_mcp_url(gateway_slug, base_url)
+    return _internal_load_with_session_sync(url=url, headers=headers, timeout=timeout)
+
+
+class InternalMCPToolLoader(MCPToolLoaderBase):
+    """Loader backend using custom subprocess/httpx implementation."""
+
+    async def load_from_stdio(
+        self,
+        command: list[str],
+        *,
+        env: dict[str, str] | None = None,
+        timeout: int = 10,
+    ) -> list[dict[str, Any]]:
+        return await asyncio.to_thread(
+            _internal_load_from_stdio_sync, command, timeout=timeout, env=env
+        )
+
+    async def load_from_http(
+        self,
+        url: str,
+        *,
+        headers: dict[str, str] | None = None,
+        timeout: int = 10,
+        use_sse: bool = False,
+    ) -> list[dict[str, Any]]:
+        return await asyncio.to_thread(
+            _internal_load_from_http_sync,
+            url,
+            timeout=timeout,
+            headers=headers,
+            use_sse=use_sse,
+        )
+
+    async def load_arcade_mcp_gateway(
+        self,
+        gateway_slug: str | None = None,
+        *,
+        arcade_api_key: str | None = None,
+        arcade_user_id: str | None = None,
+        base_url: str = ARCADE_API_BASE_URL,
+        timeout: int = 10,
+    ) -> list[dict[str, Any]]:
+        return await asyncio.to_thread(
+            _internal_load_arcade_mcp_gateway_sync,
+            gateway_slug,
+            arcade_api_key=arcade_api_key,
+            arcade_user_id=arcade_user_id,
+            base_url=base_url,
+            timeout=timeout,
+        )
+
+
+# =============================================================================
+# BACKEND MANAGEMENT
+# =============================================================================
+
+_ACTIVE_LOADER_BACKEND: LoaderBackendName = "official"
+_MCP_TOOL_LOADER: MCPToolLoaderBase = OfficialMCPToolLoader()
+
+
+def set_mcp_loader_backend(name: LoaderBackendName) -> None:
+    """Select which MCP loader backend is wired."""
+    global _ACTIVE_LOADER_BACKEND, _MCP_TOOL_LOADER
+    if name == "official":
+        _ACTIVE_LOADER_BACKEND = name
+        _MCP_TOOL_LOADER = OfficialMCPToolLoader()
+    elif name == "internal":
+        _ACTIVE_LOADER_BACKEND = name
+        _MCP_TOOL_LOADER = InternalMCPToolLoader()
+    else:
+        raise ValueError(f"Unknown MCP loader backend: {name}")
+
+
+def get_mcp_loader_backend() -> LoaderBackendName:
+    """Return the active loader backend name."""
+    return _ACTIVE_LOADER_BACKEND
+
+
+def set_mcp_tool_loader(loader: MCPToolLoaderBase, *, name: str = "custom") -> None:
+    """Inject a custom loader implementation (for experiments/testing)."""
+    global _ACTIVE_LOADER_BACKEND, _MCP_TOOL_LOADER
+    _ACTIVE_LOADER_BACKEND = name  # type: ignore[assignment]
+    _MCP_TOOL_LOADER = loader
+
+
+# =============================================================================
+# PUBLIC API (async-only, delegates to wired backend)
+# =============================================================================
+
+
+async def load_from_stdio_async(
     command: list[str],
+    *,
+    env: dict[str, str] | None = None,
+    timeout: int = 10,
+) -> list[dict[str, Any]]:
+    """
+    Load tools from an MCP server via stdio.
+
+    Args:
+        command: Command to run the MCP server (e.g., ["python", "server.py"]).
+        env: Additional environment variables to pass to the server.
+        timeout: Timeout in seconds.
+
+    Returns:
+        List of tool definitions in MCP format.
+    """
+    return await _MCP_TOOL_LOADER.load_from_stdio(command, env=env, timeout=timeout)
+
+
+async def load_from_http_async(
+    url: str,
+    *,
+    headers: dict[str, str] | None = None,
+    timeout: int = 10,
+    use_sse: bool = False,
+) -> list[dict[str, Any]]:
+    """
+    Load tools from an MCP server via HTTP/SSE.
+
+    Args:
+        url: URL of the MCP server.
+        headers: Additional headers to send with the request.
+        timeout: Timeout in seconds.
+        use_sse: Whether to use SSE transport (internal backend only).
+
+    Returns:
+        List of tool definitions in MCP format.
+    """
+    return await _MCP_TOOL_LOADER.load_from_http(
+        url, headers=headers, timeout=timeout, use_sse=use_sse
+    )
+
+
+async def load_arcade_mcp_gateway_async(
+    gateway_slug: str | None = None,
+    *,
+    arcade_api_key: str | None = None,
+    arcade_user_id: str | None = None,
+    base_url: str = ARCADE_API_BASE_URL,
+    timeout: int = 10,
+) -> list[dict[str, Any]]:
+    """
+    Load tools from an Arcade MCP gateway.
+
+    Args:
+        gateway_slug: Optional gateway slug (if None, connects to base MCP endpoint).
+        arcade_api_key: Arcade API key (defaults to ARCADE_API_KEY env var).
+        arcade_user_id: Arcade user ID (defaults to ARCADE_USER_ID env var).
+        base_url: Arcade API base URL (defaults to production).
+        timeout: Timeout in seconds.
+
+    Returns:
+        List of tool definitions in MCP format.
+    """
+    return await _MCP_TOOL_LOADER.load_arcade_mcp_gateway(
+        gateway_slug,
+        arcade_api_key=arcade_api_key,
+        arcade_user_id=arcade_user_id,
+        base_url=base_url,
+        timeout=timeout,
+    )
+
+
+async def load_stdio_arcade_async(
+    command: list[str],
+    *,
     arcade_api_key: str | None = None,
     arcade_user_id: str | None = None,
     tool_secrets: dict[str, str] | None = None,
     timeout: int = 10,
 ) -> list[dict[str, Any]]:
     """
-    Load tools from Arcade MCP server via stdio.
+    Load tools from an Arcade MCP server via stdio.
+
+    Convenience wrapper that sets Arcade env vars and delegates to `load_from_stdio_async`.
 
     Args:
-        command: Command to start server (e.g., ["python", "server.py", "stdio"])
-        arcade_api_key: API key (or set ARCADE_API_KEY env var).
-        arcade_user_id: User ID (or set ARCADE_USER_ID env var).
-        tool_secrets: Additional secrets (e.g., {"GITHUB_TOKEN": "..."}).
+        command: Command to run the MCP server (e.g., ["python", "server.py"]).
+        arcade_api_key: Arcade API key (defaults to ARCADE_API_KEY env var).
+        arcade_user_id: Arcade user ID (defaults to ARCADE_USER_ID env var).
+        tool_secrets: Additional secrets to pass as environment variables.
         timeout: Timeout in seconds.
 
     Returns:
-        List of tool descriptors. Empty list on error.
-
-    Example:
-        >>> tools = load_stdio_arcade(
-        ...     ["python", "server.py", "stdio"],
-        ...     arcade_api_key="arc_...",
-        ...     arcade_user_id="user@example.com"
-        ... )
+        List of tool definitions in MCP format.
     """
     env: dict[str, str] = {}
 
-    # Arcade credentials
     if arcade_api_key:
         env["ARCADE_API_KEY"] = arcade_api_key
     elif "ARCADE_API_KEY" in os.environ:
@@ -151,211 +612,7 @@ def load_stdio_arcade(
     elif "ARCADE_USER_ID" in os.environ:
         env["ARCADE_USER_ID"] = os.environ["ARCADE_USER_ID"]
 
-    # Tool secrets
     if tool_secrets:
         env.update(tool_secrets)
 
-    return load_from_stdio(command, timeout=timeout, env=env if env else None)
-
-
-# =============================================================================
-# HTTP LOADERS
-# =============================================================================
-
-
-def load_from_http(
-    url: str,
-    timeout: int = 10,
-    headers: dict[str, str] | None = None,
-    use_sse: bool = False,
-) -> list[dict[str, Any]]:
-    """
-    Load tools from an MCP server via HTTP.
-
-    Args:
-        url: Server URL. /mcp is appended if needed.
-        timeout: Request timeout in seconds.
-        headers: HTTP headers for auth and metadata.
-        use_sse: Use Server-Sent Events (experimental).
-
-    Returns:
-        List of tool descriptors. Empty list on error.
-
-    Example:
-        >>> tools = load_from_http(
-        ...     "http://localhost:8000",
-        ...     headers={"Authorization": "Bearer token"}
-        ... )
-    """
-    try:
-        import httpx
-    except ImportError as e:
-        raise ImportError("httpx required. Install: pip install httpx") from e
-
-    # Append /mcp if not present
-    if "/mcp" not in url:
-        url = f"{url}mcp" if url.endswith("/") else f"{url}/mcp"
-
-    request_headers = headers.copy() if headers else {}
-
-    if use_sse:
-        # SSE streaming mode
-        if "Accept" not in request_headers:
-            request_headers["Accept"] = "text/event-stream"
-
-        try:
-            with httpx.stream(
-                "POST",
-                url,
-                json={"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}},
-                headers=request_headers,
-                timeout=timeout,
-            ) as response:
-                response.raise_for_status()
-                for line in response.iter_lines():
-                    if line.startswith("data: "):
-                        try:
-                            data = json.loads(line[6:])
-                            if "result" in data and "tools" in data["result"]:
-                                tools: list[dict[str, Any]] = data["result"]["tools"]
-                                return tools
-                        except json.JSONDecodeError:
-                            continue
-                return []
-        except Exception:
-            return []
-    else:
-        # Regular HTTP mode
-        if "Accept" not in request_headers:
-            request_headers["Accept"] = "application/json, text/event-stream"
-
-        try:
-            response = httpx.post(
-                url,
-                json={"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}},
-                headers=request_headers,
-                timeout=timeout,
-            )
-            response.raise_for_status()
-            data = response.json()
-            if "result" in data and "tools" in data["result"]:
-                result_tools: list[dict[str, Any]] = data["result"]["tools"]
-                return result_tools
-        except httpx.HTTPStatusError as e:
-            # Fallback to SSE if server requires it
-            if e.response.status_code == 406 and "text/event-stream" in e.response.text:
-                return load_from_http(url=url, timeout=timeout, headers=headers, use_sse=True)
-            # Some MCP servers (e.g., gateways) require an initialize/session handshake
-            # before handling tools/list. If we received an auth/Bad Request style error
-            # and do not yet have a session header, try the session handshake flow.
-            if (
-                e.response.status_code in (400, 401, 403)
-                and "Mcp-Session-Id" not in request_headers
-            ):
-                try:
-                    return _load_with_session(url=url, headers=request_headers, timeout=timeout)
-                except Exception:
-                    return []
-        except (
-            httpx.TimeoutException,
-            httpx.ConnectError,
-            json.JSONDecodeError,
-            httpx.UnsupportedProtocol,
-        ):
-            # Timeout/unreachable/invalid response - return empty list (graceful degradation)
-            return []
-
-    return []
-
-
-def load_arcade_cloud(
-    gateway_slug: str,
-    arcade_api_key: str | None = None,
-    arcade_user_id: str | None = None,
-    timeout: int = 10,
-) -> list[dict[str, Any]]:
-    """
-    Load tools from Arcade Cloud MCP gateway via HTTP.
-
-    Connects to https://api.arcade.dev/mcp/<gateway_slug>
-
-    Args:
-        gateway_slug: Your gateway slug (e.g., "my-gateway").
-        arcade_api_key: API key (or set ARCADE_API_KEY env var).
-        arcade_user_id: User ID (or set ARCADE_USER_ID env var).
-        timeout: Request timeout in seconds.
-
-    Returns:
-        List of tool descriptors. Empty list on error.
-
-    Example:
-        >>> tools = load_arcade_cloud(
-        ...     gateway_slug="my-gateway",
-        ...     arcade_api_key="arc_...",
-        ...     arcade_user_id="user@example.com"
-        ... )
-    """
-    api_key = arcade_api_key or os.environ.get("ARCADE_API_KEY")
-    user_id = arcade_user_id or os.environ.get("ARCADE_USER_ID")
-
-    headers: dict[str, str] = {"Accept": "application/json, text/event-stream"}
-    if api_key:
-        headers["Authorization"] = api_key
-    if user_id:
-        headers["arcade-user-id"] = user_id
-
-    url = f"https://api.arcade.dev/mcp/{gateway_slug}"
-    return _load_with_session(url=url, headers=headers, timeout=timeout)
-
-
-def _load_with_session(
-    url: str,
-    headers: dict[str, str],
-    timeout: int = 10,
-) -> list[dict[str, Any]]:
-    """Internal: Load tools with MCP session handshake."""
-    try:
-        import uuid
-
-        import httpx
-
-        session_id = str(uuid.uuid4())
-        req_headers = headers.copy()
-        req_headers["Mcp-Session-Id"] = session_id
-
-        # Initialize
-        init_response = httpx.post(
-            url,
-            json={
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "initialize",
-                "params": {
-                    "protocolVersion": _MCP_PROTOCOL_VERSION,
-                    "capabilities": {},
-                    "clientInfo": _CLIENT_INFO,
-                },
-            },
-            headers=req_headers,
-            timeout=timeout,
-        )
-        init_response.raise_for_status()
-
-        # Use session from response
-        if "mcp-session-id" in init_response.headers:
-            session_id = init_response.headers["mcp-session-id"]
-        req_headers["Mcp-Session-Id"] = session_id
-
-        return load_from_http(url=url, headers=req_headers, timeout=timeout)
-
-    except Exception:
-        return []
-
-
-# =============================================================================
-# BACKWARD COMPATIBILITY ALIASES
-# =============================================================================
-
-# Old names -> new names
-load_from_arcade_server = load_stdio_arcade
-load_from_arcade_http = load_arcade_cloud
+    return await load_from_stdio_async(command, timeout=timeout, env=env if env else None)

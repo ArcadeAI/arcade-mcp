@@ -11,9 +11,10 @@ from arcade_core.schema import TOOL_NAME_SEPARATOR
 from openai import AsyncOpenAI
 from scipy.optimize import linear_sum_assignment
 
+from arcade_evals._evalsuite._convenience import _EvalSuiteConvenienceMixin
+from arcade_evals._evalsuite._tool_registry import EvalSuiteToolRegistry
 from arcade_evals.critic import NoneCritic
 from arcade_evals.errors import WeightError
-from arcade_evals.registry import CompositeMCPRegistry, MCPToolRegistry
 
 if TYPE_CHECKING:
     from arcade_core import ToolCatalog
@@ -397,7 +398,7 @@ class EvalCase:
 
 
 @dataclass
-class EvalSuite:
+class EvalSuite(_EvalSuiteConvenienceMixin):
     """
     A suite for evaluating AI model performance on specific tasks or scenarios.
 
@@ -407,19 +408,57 @@ class EvalSuite:
     Attributes:
         name: The name of the evaluation suite.
         system_message: The system message to be used for all cases in this suite.
-        catalog: A ToolCatalog or BaseToolRegistry object containing registered tools.
-        registry: The internal registry (auto-created from catalog).
+        catalog: A ToolCatalog containing registered Python tools.
         cases: A list of EvalCase objects representing individual test scenarios.
         rubric: The evaluation rubric for this case.
         max_concurrent: Maximum number of concurrent evaluations.
+        strict_mode: Whether to enable strict-mode schema conversion for MCP-style tools.
     """
 
     name: str
     system_message: str
-    catalog: "ToolCatalog | MCPToolRegistry | CompositeMCPRegistry"
+    catalog: "ToolCatalog | None" = None
     cases: list[EvalCase] = field(default_factory=list)
     rubric: EvalRubric = field(default_factory=EvalRubric)
     max_concurrent: int = 1
+    strict_mode: bool = True
+
+    # Internal unified registry for MCP-style tools added via convenience methods.
+    _internal_registry: EvalSuiteToolRegistry | None = field(default=None, init=False, repr=False)
+
+    # Python tool helpers (used when Python tools are added via add_tool_catalog()).
+    _python_tool_func_map: dict[str, Callable] = field(default_factory=dict, init=False, repr=False)
+    _python_func_to_tool_name: dict[Callable, str] = field(
+        default_factory=dict, init=False, repr=False
+    )
+
+    def __post_init__(self) -> None:
+        """Initialize internal registry and auto-convert catalog if provided."""
+        # Always create the internal registry
+        self._internal_registry = EvalSuiteToolRegistry(strict_mode=self.strict_mode)
+
+        # If catalog was passed, convert those tools to the internal registry
+        if self.catalog is not None:
+            for tool in self.catalog:
+                openai_tool = to_openai(tool)
+                func_schema = openai_tool.get("function", {})
+                tool_name = func_schema.get("name")
+                if not tool_name:
+                    continue
+
+                self._internal_registry.add_tool({
+                    "name": tool_name,
+                    "description": func_schema.get("description", ""),
+                    "inputSchema": func_schema.get(
+                        "parameters", {"type": "object", "properties": {}}
+                    ),
+                })
+
+                # Keep track of Python function for defaults
+                python_func = getattr(tool, "tool", None)
+                if callable(python_func):
+                    self._python_tool_func_map[tool_name] = python_func
+                    self._python_func_to_tool_name[python_func] = tool_name
 
     def _convert_to_named_expected_tool_call(
         self, tc: ExpectedToolCall | tuple[Callable, dict[str, Any]]
@@ -434,36 +473,36 @@ class EvalSuite:
         Returns:
             A NamedExpectedToolCall instance.
         """
-        # Check if we're using MCP registry (single or composite)
-        is_mcp = isinstance(self.catalog, (MCPToolRegistry, CompositeMCPRegistry))
-
+        # --- Original logic (Python tools via func or tuple) ---
         if isinstance(tc, tuple):
-            # Legacy tuple format (func, args) - Python tools only
             func, args = tc
-            args_with_defaults = self._fill_args_with_defaults(func, args)
-            # Type narrowing: tuples are only for Python tools
-            if is_mcp:
-                raise ValueError("Python tool callables require ToolCatalog, not MCPToolRegistry")
-            tool_name = str(self.catalog.find_tool_by_func(func).get_fully_qualified_name())  # type: ignore[union-attr]
+        elif tc.func is not None:
+            func = tc.func
+            args = tc.args
         else:
-            # ExpectedToolCall object
-            if tc.func is not None:
-                # Python tool
-                args_with_defaults = self._fill_args_with_defaults(tc.func, tc.args)
-                if is_mcp:
-                    raise ValueError(
-                        "Python tool callables require ToolCatalog, not MCPToolRegistry"
-                    )
-                tool_name = str(self.catalog.find_tool_by_func(tc.func).get_fully_qualified_name())  # type: ignore[union-attr]
-            else:
-                # MCP tool (tool_name provided)
-                if not is_mcp:
-                    raise ValueError("tool_name can only be used with MCPToolRegistry")
-                # Type narrowing: at this point we know it's MCP
-                mcp_catalog: MCPToolRegistry = self.catalog  # type: ignore[assignment]
-                tool_name = mcp_catalog.resolve_tool_name(tc.tool_name)
-                args_with_defaults = mcp_catalog.normalize_args(tool_name, tc.args)
+            # --- NEW: MCP tool (tool_name provided, no func) ---
+            return self._convert_mcp_tool_call(tc.tool_name or "", tc.args)
 
+        args_with_defaults = self._fill_args_with_defaults(func, args)
+        # Try convenience method registration first, then fall back to catalog
+        tool_name = self._python_func_to_tool_name.get(func)
+        if not tool_name:
+            if self.catalog is not None:
+                tool_name = str(self.catalog.find_tool_by_func(func).get_fully_qualified_name())
+            else:
+                raise ValueError(
+                    "Python tool callables require ToolCatalog or add_tool_catalog() registration."
+                )
+        return NamedExpectedToolCall(name=tool_name, args=args_with_defaults)
+
+    def _convert_mcp_tool_call(self, tool_name: str, args: dict[str, Any]) -> NamedExpectedToolCall:
+        """Convert an MCP tool reference to a NamedExpectedToolCall (NEW in this PR)."""
+        args_with_defaults = dict(args)
+        # Apply schema defaults from internal registry
+        if self._internal_registry is not None and self._internal_registry.has_tool(tool_name):
+            args_with_defaults = self._internal_registry.normalize_args(
+                tool_name, args_with_defaults
+            )
         return NamedExpectedToolCall(name=tool_name, args=args_with_defaults)
 
     def add_case(
@@ -661,11 +700,13 @@ class EvalSuite:
                 messages.extend(case.additional_messages)
                 messages.append({"role": "user", "content": case.user_message})
 
-                # Get tools in OpenAI format (works for ToolCatalog, MCPToolRegistry, and CompositeMCPRegistry)
-                if isinstance(self.catalog, (MCPToolRegistry, CompositeMCPRegistry)):
-                    tools = self.catalog.list_tools_for_model(tool_format="openai")
-                else:
-                    tools = get_formatted_tools(self.catalog, tool_format="openai")
+                # All tools are in internal registry (unified container)
+                if self._internal_registry is None or self._internal_registry.tool_count() == 0:
+                    raise ValueError(
+                        "No tools registered. Use add_* convenience methods or pass catalog=ToolCatalog."
+                    )
+
+                tools = self._internal_registry.list_tools_for_model(tool_format="openai")
 
                 # Get the model response
                 response = await client.chat.completions.create(  # type: ignore[call-overload]
@@ -679,28 +720,16 @@ class EvalSuite:
                 )
 
                 # Extract and fill default arguments for actual tool calls
-                # For MCP tools, skip name normalization (they use underscores, not dots)
-                is_mcp = isinstance(self.catalog, (MCPToolRegistry, CompositeMCPRegistry))
-                predicted_args = get_tool_args(response, normalize_names=not is_mcp)
+                predicted_args = get_tool_args(response, normalize_names=False)
                 filled_actual_tool_calls = []
                 for tool_name, args in predicted_args:
-                    # Fill in default arguments
-                    if is_mcp:
-                        # MCP tools: use registry normalization
-                        # Type narrowing: at this point catalog is MCPToolRegistry or CompositeMCPRegistry
-                        mcp_catalog: MCPToolRegistry | CompositeMCPRegistry = self.catalog  # type: ignore[assignment]
-                        args_with_defaults = mcp_catalog.normalize_args(tool_name, args)
-                    else:
-                        # Python tools: use original method
-                        # Type narrowing: at this point catalog is ToolCatalog
-                        from arcade_core import ToolCatalog
-
-                        python_catalog: ToolCatalog = self.catalog  # type: ignore[assignment]
-                        tool = python_catalog.get_tool_by_name(tool_name)
-                        if tool is None:
-                            raise ValueError(f"Tool '{tool_name}' not found in catalog.")
-                        func = tool.tool
-                        args_with_defaults = self._fill_args_with_defaults(func, args)
+                    # Apply schema defaults from internal registry
+                    args_with_defaults = self._internal_registry.normalize_args(tool_name, args)
+                    # Apply Python function defaults if available
+                    if tool_name in self._python_tool_func_map:
+                        args_with_defaults = self._fill_args_with_defaults(
+                            self._python_tool_func_map[tool_name], args_with_defaults
+                        )
                     filled_actual_tool_calls.append((tool_name, args_with_defaults))
 
                 # Evaluate the case
