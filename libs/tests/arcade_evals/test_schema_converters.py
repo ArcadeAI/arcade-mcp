@@ -525,3 +525,116 @@ class TestToolRegistryMultipleTools:
         anthropic_names = {t["name"] for t in anthropic_tools}
         assert openai_names == {"tool1", "tool2", "tool3"}
         assert anthropic_names == {"tool1", "tool2", "tool3"}
+
+
+class TestToolNameResolution:
+    """Tests for tool name resolution (handling Anthropic normalized names)."""
+
+    def test_resolve_original_name(self):
+        """Test that original names resolve correctly."""
+        registry = EvalSuiteToolRegistry()
+        registry.add_tool({"name": "Google.Search"})
+
+        assert registry.resolve_tool_name("Google.Search") == "Google.Search"
+
+    def test_resolve_normalized_name(self):
+        """Test that normalized names (underscores) resolve to original."""
+        registry = EvalSuiteToolRegistry()
+        registry.add_tool({"name": "Google.Search"})
+
+        # Anthropic returns "Google_Search" but tool is stored as "Google.Search"
+        assert registry.resolve_tool_name("Google_Search") == "Google.Search"
+
+    def test_resolve_unknown_name_returns_none(self):
+        """Test that unknown names return None."""
+        registry = EvalSuiteToolRegistry()
+        registry.add_tool({"name": "Google.Search"})
+
+        assert registry.resolve_tool_name("Unknown.Tool") is None
+        assert registry.resolve_tool_name("Unknown_Tool") is None
+
+    def test_has_tool_with_normalized_name(self):
+        """Test has_tool works with normalized names."""
+        registry = EvalSuiteToolRegistry()
+        registry.add_tool({"name": "Slack.Post"})
+
+        assert registry.has_tool("Slack.Post") is True
+        assert registry.has_tool("Slack_Post") is True  # Normalized
+        assert registry.has_tool("Unknown") is False
+
+    def test_get_tool_schema_with_normalized_name(self):
+        """Test get_tool_schema works with normalized names."""
+        registry = EvalSuiteToolRegistry()
+        registry.add_tool({
+            "name": "Email.Send",
+            "description": "Send email",
+            "inputSchema": {"type": "object", "properties": {"to": {"type": "string"}}},
+        })
+
+        # Original name
+        schema = registry.get_tool_schema("Email.Send")
+        assert schema is not None
+        assert schema["name"] == "Email.Send"
+
+        # Normalized name
+        schema = registry.get_tool_schema("Email_Send")
+        assert schema is not None
+        assert schema["name"] == "Email.Send"
+
+    def test_normalize_args_with_normalized_tool_name(self):
+        """Test normalize_args works when called with normalized name."""
+        registry = EvalSuiteToolRegistry()
+        registry.add_tool({
+            "name": "Calendar.Create",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string"},
+                    "duration": {"type": "integer", "default": 30},
+                },
+            },
+        })
+
+        # Call normalize_args with the Anthropic-returned name
+        result = registry.normalize_args("Calendar_Create", {"title": "Meeting"})
+
+        # Should apply defaults even though lookup was by normalized name
+        assert result["title"] == "Meeting"
+        assert result["duration"] == 30
+
+    def test_multiple_dots_in_name(self):
+        """Test tools with multiple dots in name."""
+        registry = EvalSuiteToolRegistry()
+        registry.add_tool({"name": "Google.Gmail.Send"})
+
+        # Should normalize all dots
+        assert registry.resolve_tool_name("Google_Gmail_Send") == "Google.Gmail.Send"
+        assert registry.has_tool("Google_Gmail_Send") is True
+
+    def test_no_dot_in_name_no_mapping(self):
+        """Test that tools without dots don't create unnecessary mappings."""
+        registry = EvalSuiteToolRegistry()
+        registry.add_tool({"name": "simple_tool"})
+
+        # Direct lookup works
+        assert registry.resolve_tool_name("simple_tool") == "simple_tool"
+        # No false positives
+        assert registry.resolve_tool_name("simple.tool") is None
+
+    def test_mixed_tools_resolution(self):
+        """Test registry with mix of dotted and non-dotted names."""
+        registry = EvalSuiteToolRegistry()
+        registry.add_tools([
+            {"name": "Google.Search"},
+            {"name": "simple_search"},
+            {"name": "Slack.Channel.Create"},
+        ])
+
+        # All originals resolve
+        assert registry.resolve_tool_name("Google.Search") == "Google.Search"
+        assert registry.resolve_tool_name("simple_search") == "simple_search"
+        assert registry.resolve_tool_name("Slack.Channel.Create") == "Slack.Channel.Create"
+
+        # Normalized versions resolve to originals
+        assert registry.resolve_tool_name("Google_Search") == "Google.Search"
+        assert registry.resolve_tool_name("Slack_Channel_Create") == "Slack.Channel.Create"

@@ -729,12 +729,17 @@ class EvalSuite(_EvalSuiteConvenienceMixin):
                 # Fill default arguments for actual tool calls
                 filled_actual_tool_calls = []
                 for tool_name, args in predicted_args:
+                    # Resolve tool name (handles Anthropic normalized names like "Google_Search" -> "Google.Search")
+                    resolved_name = self._internal_registry.resolve_tool_name(tool_name)
+
                     # Apply schema defaults from internal registry
                     args_with_defaults = self._internal_registry.normalize_args(tool_name, args)
-                    # Apply Python function defaults if available
-                    if tool_name in self._python_tool_func_map:
+
+                    # Apply Python function defaults if available (use resolved name for lookup)
+                    lookup_name = resolved_name or tool_name
+                    if lookup_name in self._python_tool_func_map:
                         args_with_defaults = self._fill_args_with_defaults(
-                            self._python_tool_func_map[tool_name], args_with_defaults
+                            self._python_tool_func_map[lookup_name], args_with_defaults
                         )
                     filled_actual_tool_calls.append((tool_name, args_with_defaults))
 

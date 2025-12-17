@@ -47,11 +47,18 @@ class EvalSuiteToolRegistry:
 
     EvalSuite converts Python tools into this format too, so there is only one
     runtime path for OpenAI tool formatting.
+
+    Note: Tools are stored with their original names (e.g., "Google.Search"),
+    but Anthropic requires underscores (e.g., "Google_Search"). The registry
+    maintains a mapping to look up tools by either format.
     """
 
     def __init__(self, *, strict_mode: bool = True) -> None:
         self._tools: dict[str, dict[str, Any]] = {}
         self._strict_mode = strict_mode
+        # Mapping from normalized names (underscores) to original names (dots)
+        # e.g., {"Google_Search": "Google.Search"}
+        self._normalized_to_original: dict[str, str] = {}
 
     @property
     def strict_mode(self) -> bool:
@@ -71,6 +78,12 @@ class EvalSuiteToolRegistry:
                 "Each tool name must be unique across all sources (MCP servers, gateways, catalogs)."
             )
         self._tools[name] = dict(tool_descriptor)
+
+        # Build normalized name mapping for Anthropic lookups
+        # e.g., "Google.Search" -> normalized key "Google_Search"
+        normalized_name = name.replace(".", "_")
+        if normalized_name != name:
+            self._normalized_to_original[normalized_name] = name
 
     def add_tools(self, tools: list[MCPToolDefinition] | list[dict[str, Any]]) -> None:
         for tool in tools:
@@ -110,8 +123,30 @@ class EvalSuiteToolRegistry:
         """Convert stored MCP tools to Anthropic tool format."""
         return [convert_mcp_to_anthropic_tool(tool) for tool in self._tools.values()]
 
+    def _resolve_tool_name(self, tool_name: str) -> str | None:
+        """Resolve a tool name to its original registry key.
+
+        Handles both original names (e.g., "Google.Search") and
+        normalized names (e.g., "Google_Search" from Anthropic).
+
+        Args:
+            tool_name: The tool name to resolve.
+
+        Returns:
+            The original tool name if found, None otherwise.
+        """
+        # First, try direct lookup
+        if tool_name in self._tools:
+            return tool_name
+        # Then, check if it's a normalized name (from Anthropic)
+        original_name = self._normalized_to_original.get(tool_name)
+        if original_name and original_name in self._tools:
+            return original_name
+        return None
+
     def normalize_args(self, tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
-        tool = self._tools.get(tool_name)
+        resolved_name = self._resolve_tool_name(tool_name)
+        tool = self._tools.get(resolved_name) if resolved_name else None
         if not tool:
             return args
 
@@ -134,10 +169,25 @@ class EvalSuiteToolRegistry:
         return normalized
 
     def get_tool_schema(self, tool_name: str) -> dict[str, Any] | None:
-        return self._tools.get(tool_name)
+        resolved_name = self._resolve_tool_name(tool_name)
+        return self._tools.get(resolved_name) if resolved_name else None
 
     def has_tool(self, tool_name: str) -> bool:
-        return tool_name in self._tools
+        return self._resolve_tool_name(tool_name) is not None
+
+    def resolve_tool_name(self, tool_name: str) -> str | None:
+        """Public method to resolve a tool name to its original registry key.
+
+        This is useful for callers that need to look up tools by names
+        returned from providers (e.g., Anthropic returns underscore names).
+
+        Args:
+            tool_name: The tool name to resolve.
+
+        Returns:
+            The original tool name if found, None otherwise.
+        """
+        return self._resolve_tool_name(tool_name)
 
     def tool_names(self) -> list[str]:
         return list(self._tools.keys())
