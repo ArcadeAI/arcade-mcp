@@ -54,9 +54,17 @@ def convert_messages_to_anthropic(messages: list[dict[str, Any]]) -> list[dict[s
                 anthropic_messages.append({"role": "user", "content": content})
 
         elif role == "assistant":
-            if "tool_calls" in msg:
+            if "tool_calls" in msg and msg.get("tool_calls"):
                 # Convert OpenAI tool_calls to Anthropic tool_use blocks
-                tool_use_blocks = []
+                # Anthropic supports mixed content: text blocks + tool_use blocks
+                content_blocks: list[dict[str, Any]] = []
+
+                # Include text content if present (assistant can say something before using tools)
+                text_content = msg.get("content")
+                if text_content:
+                    content_blocks.append({"type": "text", "text": text_content})
+
+                # Add tool_use blocks
                 for tool_call in msg.get("tool_calls", []):
                     # Parse arguments JSON, fallback to empty dict on parse error
                     arguments_str = tool_call.get("function", {}).get("arguments", "{}")
@@ -64,16 +72,17 @@ def convert_messages_to_anthropic(messages: list[dict[str, Any]]) -> list[dict[s
                         arguments = json.loads(arguments_str) if arguments_str else {}
                     except json.JSONDecodeError:
                         arguments = {}
-                    tool_use_blocks.append({
+                    content_blocks.append({
                         "type": "tool_use",
                         "id": tool_call.get("id", ""),
                         "name": tool_call.get("function", {}).get("name", ""),
                         "input": arguments,
                     })
-                if tool_use_blocks:
-                    anthropic_messages.append({"role": "assistant", "content": tool_use_blocks})
+
+                if content_blocks:
+                    anthropic_messages.append({"role": "assistant", "content": content_blocks})
             else:
-                # Regular assistant message
+                # Regular assistant message (no tool calls)
                 content = msg.get("content", "")
                 if content:
                     anthropic_messages.append({"role": "assistant", "content": content})

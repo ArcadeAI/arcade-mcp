@@ -2,6 +2,7 @@ import pytest
 from arcade_evals import (
     BinaryCritic,
     EvalRubric,
+    ExpectedMCPToolCall,
     ExpectedToolCall,
     NamedExpectedToolCall,
     NoneCritic,
@@ -211,8 +212,8 @@ def test_eval_suite_add_case():
     suite = EvalSuite(name="TestSuite", system_message="System message")
 
     expected_tool_calls = [
-        ExpectedToolCall(tool_name="MockTool", args={"param1": "value"}),
-        ExpectedToolCall(tool_name="MockTool", args={"param1": "value"}),
+        ExpectedMCPToolCall(tool_name="MockTool", args={"param1": "value"}),
+        ExpectedMCPToolCall(tool_name="MockTool", args={"param1": "value"}),
     ]
 
     suite.add_case(
@@ -243,8 +244,8 @@ def test_eval_suite_extend_case():
     suite = EvalSuite(name="TestSuite", system_message="System message")
 
     expected_tool_calls = [
-        ExpectedToolCall(tool_name="MockTool", args={"param1": "value"}),
-        ExpectedToolCall(tool_name="MockTool", args={"param1": "value"}),
+        ExpectedMCPToolCall(tool_name="MockTool", args={"param1": "value"}),
+        ExpectedMCPToolCall(tool_name="MockTool", args={"param1": "value"}),
     ]
 
     suite.add_case(
@@ -387,3 +388,391 @@ def test_eval_suite_add_none_critics(
     for i, (expected_type, expected_field) in enumerate(expected_critics_types):
         assert isinstance(critics_with_none[i], expected_type)
         assert critics_with_none[i].critic_field == expected_field
+
+
+# =============================================================================
+# Tests for ExpectedToolCall and ExpectedMCPToolCall classes
+# =============================================================================
+
+
+class TestExpectedToolCall:
+    """Tests for the ExpectedToolCall dataclass (Python tools)."""
+
+    def test_keyword_args(self):
+        """Test creating with keyword arguments."""
+        tc = ExpectedToolCall(func=mock_tool, args={"param1": "value"})
+        assert tc.func == mock_tool
+        assert tc.args == {"param1": "value"}
+
+    def test_positional_args(self):
+        """Test creating with positional arguments (restored feature)."""
+        tc = ExpectedToolCall(mock_tool, {"param1": "value"})
+        assert tc.func == mock_tool
+        assert tc.args == {"param1": "value"}
+
+    def test_default_empty_args(self):
+        """Test that args defaults to empty dict."""
+        tc = ExpectedToolCall(func=mock_tool)
+        assert tc.func == mock_tool
+        assert tc.args == {}
+
+    def test_func_is_required(self):
+        """Test that func is required (no default)."""
+        with pytest.raises(TypeError):
+            ExpectedToolCall()  # type: ignore[call-arg]
+
+    def test_func_with_positional_only(self):
+        """Test creating with just func as positional."""
+        tc = ExpectedToolCall(mock_tool)
+        assert tc.func == mock_tool
+        assert tc.args == {}
+
+
+class TestExpectedMCPToolCall:
+    """Tests for the ExpectedMCPToolCall dataclass (MCP tools)."""
+
+    def test_keyword_args(self):
+        """Test creating with keyword arguments."""
+        tc = ExpectedMCPToolCall(tool_name="Calculator_Add", args={"a": 5, "b": 3})
+        assert tc.tool_name == "Calculator_Add"
+        assert tc.args == {"a": 5, "b": 3}
+
+    def test_positional_args(self):
+        """Test creating with positional arguments."""
+        tc = ExpectedMCPToolCall("Calculator_Add", {"a": 5, "b": 3})
+        assert tc.tool_name == "Calculator_Add"
+        assert tc.args == {"a": 5, "b": 3}
+
+    def test_default_empty_args(self):
+        """Test that args defaults to empty dict."""
+        tc = ExpectedMCPToolCall(tool_name="Calculator_Add")
+        assert tc.tool_name == "Calculator_Add"
+        assert tc.args == {}
+
+    def test_tool_name_is_required(self):
+        """Test that tool_name is required (no default)."""
+        with pytest.raises(TypeError):
+            ExpectedMCPToolCall()  # type: ignore[call-arg]
+
+    def test_tool_name_with_positional_only(self):
+        """Test creating with just tool_name as positional."""
+        tc = ExpectedMCPToolCall("MyTool")
+        assert tc.tool_name == "MyTool"
+        assert tc.args == {}
+
+
+class TestAnyExpectedToolCall:
+    """Tests for mixed usage of ExpectedToolCall and ExpectedMCPToolCall."""
+
+    def test_import_any_expected_tool_call(self):
+        """Test that AnyExpectedToolCall can be imported."""
+        from arcade_evals import AnyExpectedToolCall
+
+        # Type alias should work with both types
+        python_tc: AnyExpectedToolCall = ExpectedToolCall(func=mock_tool, args={"param1": "v"})
+        mcp_tc: AnyExpectedToolCall = ExpectedMCPToolCall(tool_name="MyTool", args={"a": 1})
+        assert python_tc is not None
+        assert mcp_tc is not None
+
+    def test_mixed_list(self):
+        """Test that mixed lists work correctly."""
+        from arcade_evals import AnyExpectedToolCall
+
+        mixed_list: list[AnyExpectedToolCall] = [
+            ExpectedToolCall(func=mock_tool, args={"param1": "value"}),
+            ExpectedMCPToolCall(tool_name="RemoteTool", args={"x": 1}),
+        ]
+        assert len(mixed_list) == 2
+        assert isinstance(mixed_list[0], ExpectedToolCall)
+        assert isinstance(mixed_list[1], ExpectedMCPToolCall)
+
+    def test_isinstance_checks(self):
+        """Test that isinstance works correctly for type narrowing."""
+        from arcade_evals import AnyExpectedToolCall
+
+        tc: AnyExpectedToolCall = ExpectedToolCall(func=mock_tool, args={})
+
+        if isinstance(tc, ExpectedToolCall):
+            assert tc.func == mock_tool
+        elif isinstance(tc, ExpectedMCPToolCall):
+            pytest.fail("Should not reach here")
+
+
+class TestExpectedToolCallConversion:
+    """Tests for conversion of ExpectedToolCall types to NamedExpectedToolCall."""
+
+    def test_add_case_with_expected_mcp_tool_call(self):
+        """Test add_case correctly converts ExpectedMCPToolCall."""
+        suite = EvalSuite(name="TestSuite", system_message="System message")
+
+        suite.add_case(
+            name="MCP Test",
+            user_message="Test message",
+            expected_tool_calls=[
+                ExpectedMCPToolCall(tool_name="RemoteTool", args={"x": 1}),
+            ],
+        )
+
+        assert len(suite.cases) == 1
+        assert suite.cases[0].expected_tool_calls[0].name == "RemoteTool"
+        assert suite.cases[0].expected_tool_calls[0].args == {"x": 1}
+
+    def test_add_case_with_mixed_tool_calls(self):
+        """Test add_case with both Python and MCP tools in same case."""
+        from typing import Annotated
+
+        from arcade_core import ToolCatalog
+
+        @tool
+        def annotated_tool(value: Annotated[str, "The input value"]) -> str:
+            """A tool with proper annotations."""
+            return value
+
+        catalog = ToolCatalog()
+        catalog.add_tool(annotated_tool, "Test")
+
+        suite = EvalSuite(
+            name="MixedSuite",
+            system_message="System message",
+            catalog=catalog,
+        )
+
+        suite.add_case(
+            name="Mixed Test",
+            user_message="Test message",
+            expected_tool_calls=[
+                ExpectedToolCall(func=annotated_tool, args={"value": "test"}),
+                ExpectedMCPToolCall(tool_name="RemoteTool", args={"x": 1}),
+            ],
+        )
+
+        assert len(suite.cases) == 1
+        case = suite.cases[0]
+        assert len(case.expected_tool_calls) == 2
+        # First is Python tool - name should be toolkit_name + tool_name (PascalCase)
+        assert case.expected_tool_calls[0].name == "Test_AnnotatedTool"
+        # Second is MCP tool - name should be as-is
+        assert case.expected_tool_calls[1].name == "RemoteTool"
+
+
+class TestToolSelectionFailure:
+    """Tests for tool selection failure scenarios and partial matching."""
+
+    def test_tool_mismatch_with_fail_on_tool_selection_true(self):
+        """Test that tool mismatch fails immediately when fail_on_tool_selection=True (default)."""
+        expected_tool_calls = [
+            NamedExpectedToolCall(name="ToolA", args={"param": "value"}),
+        ]
+        actual_tool_calls = [
+            ("ToolB", {"param": "value"}),  # Wrong tool
+        ]
+
+        case = EvalCase(
+            name="TestCase",
+            system_message="",
+            user_message="",
+            expected_tool_calls=expected_tool_calls,
+            critics=[BinaryCritic(critic_field="param", weight=1.0)],
+            rubric=EvalRubric(fail_on_tool_selection=True),
+        )
+
+        result = case.evaluate(actual_tool_calls)
+
+        assert result.score == 0.0
+        assert result.passed is False
+        assert result.failure_reason is not None
+        assert "Tool selection mismatch" in result.failure_reason
+
+    def test_tool_mismatch_with_fail_on_tool_selection_false_partial_scoring(self):
+        """Test that tool mismatch allows partial scoring when fail_on_tool_selection=False."""
+        expected_tool_calls = [
+            NamedExpectedToolCall(name="ToolA", args={"param": "value"}),
+        ]
+        actual_tool_calls = [
+            ("ToolB", {"param": "value"}),  # Wrong tool but correct param
+        ]
+
+        case = EvalCase(
+            name="TestCase",
+            system_message="",
+            user_message="",
+            expected_tool_calls=expected_tool_calls,
+            critics=[BinaryCritic(critic_field="param", weight=1.0)],
+            rubric=EvalRubric(
+                fail_on_tool_selection=False,
+                tool_selection_weight=1.0,
+                fail_threshold=0.3,
+            ),
+        )
+
+        result = case.evaluate(actual_tool_calls)
+
+        # Tool selection: 0.0 (wrong tool)
+        # Critic (param match): 1.0
+        # Total: 1.0 / 2.0 = 0.5
+        assert result.score == pytest.approx(0.5)
+        assert result.failure_reason is None  # No early failure
+        assert result.passed is True  # 0.5 >= 0.3 threshold
+
+
+class TestToolCallQuantityFailure:
+    """Tests for tool call quantity mismatch scenarios."""
+
+    def test_more_tool_calls_than_expected_fails(self):
+        """Test that calling the right tool more times than expected fails by default."""
+        expected_tool_calls = [
+            NamedExpectedToolCall(name="ToolA", args={"param": "value"}),
+        ]
+        actual_tool_calls = [
+            ("ToolA", {"param": "value"}),
+            ("ToolA", {"param": "value2"}),  # Extra call
+        ]
+
+        case = EvalCase(
+            name="TestCase",
+            system_message="",
+            user_message="",
+            expected_tool_calls=expected_tool_calls,
+            critics=[BinaryCritic(critic_field="param", weight=1.0)],
+            rubric=EvalRubric(fail_on_tool_call_quantity=True),
+        )
+
+        result = case.evaluate(actual_tool_calls)
+
+        assert result.score == 0.0
+        assert result.passed is False
+        assert result.failure_reason is not None
+        assert "Expected 1 tool call(s), but got 2" in result.failure_reason
+
+    def test_fewer_tool_calls_than_expected_fails(self):
+        """Test that calling fewer tools than expected fails by default."""
+        expected_tool_calls = [
+            NamedExpectedToolCall(name="ToolA", args={"param": "value1"}),
+            NamedExpectedToolCall(name="ToolB", args={"param": "value2"}),
+        ]
+        actual_tool_calls = [
+            ("ToolA", {"param": "value1"}),  # Only one call
+        ]
+
+        case = EvalCase(
+            name="TestCase",
+            system_message="",
+            user_message="",
+            expected_tool_calls=expected_tool_calls,
+            critics=[BinaryCritic(critic_field="param", weight=1.0)],
+            rubric=EvalRubric(fail_on_tool_call_quantity=True),
+        )
+
+        result = case.evaluate(actual_tool_calls)
+
+        assert result.score == 0.0
+        assert result.passed is False
+        assert result.failure_reason is not None
+        assert "Expected 2 tool call(s), but got 1" in result.failure_reason
+
+    def test_quantity_mismatch_with_fail_on_quantity_false(self):
+        """Test partial scoring when fail_on_tool_call_quantity=False."""
+        expected_tool_calls = [
+            NamedExpectedToolCall(name="ToolA", args={"param": "value"}),
+        ]
+        actual_tool_calls = [
+            ("ToolA", {"param": "value"}),
+            ("ToolA", {"param": "extra"}),  # Extra call - should be ignored
+        ]
+
+        case = EvalCase(
+            name="TestCase",
+            system_message="",
+            user_message="",
+            expected_tool_calls=expected_tool_calls,
+            critics=[BinaryCritic(critic_field="param", weight=1.0)],
+            rubric=EvalRubric(
+                fail_on_tool_call_quantity=False,
+                fail_on_tool_selection=False,
+                tool_selection_weight=1.0,
+            ),
+        )
+
+        result = case.evaluate(actual_tool_calls)
+
+        # Should not fail early - evaluation continues
+        assert result.failure_reason is None
+        # Score depends on matching logic (Hungarian algorithm matches best pairs)
+        assert result.score > 0.0
+
+    def test_right_tool_called_multiple_times_partial_score(self):
+        """Test calling the right tool multiple times with quantity check disabled."""
+        expected_tool_calls = [
+            NamedExpectedToolCall(name="Calculator_Add", args={"a": 5, "b": 3}),
+        ]
+        actual_tool_calls = [
+            ("Calculator_Add", {"a": 5, "b": 3}),  # Correct call
+            ("Calculator_Add", {"a": 10, "b": 20}),  # Extra call with different args
+        ]
+
+        case = EvalCase(
+            name="TestCase",
+            system_message="",
+            user_message="",
+            expected_tool_calls=expected_tool_calls,
+            critics=[
+                BinaryCritic(critic_field="a", weight=0.5),
+                BinaryCritic(critic_field="b", weight=0.5),
+            ],
+            rubric=EvalRubric(
+                fail_on_tool_call_quantity=False,
+                fail_on_tool_selection=False,
+                tool_selection_weight=1.0,
+                fail_threshold=0.5,
+            ),
+        )
+
+        result = case.evaluate(actual_tool_calls)
+
+        # Should not fail immediately
+        assert result.failure_reason is None
+        # The Hungarian algorithm will match expected[0] with the best actual call
+        # First actual call matches perfectly: tool(1.0) + a(0.5) + b(0.5) = 2.0
+        assert result.score > 0.0
+
+    def test_no_tool_calls_when_one_expected_fails(self):
+        """Test that zero tool calls when some expected fails by default."""
+        expected_tool_calls = [
+            NamedExpectedToolCall(name="ToolA", args={"param": "value"}),
+        ]
+        actual_tool_calls = []  # No calls
+
+        case = EvalCase(
+            name="TestCase",
+            system_message="",
+            user_message="",
+            expected_tool_calls=expected_tool_calls,
+            critics=[BinaryCritic(critic_field="param", weight=1.0)],
+            rubric=EvalRubric(fail_on_tool_call_quantity=True),
+        )
+
+        result = case.evaluate(actual_tool_calls)
+
+        assert result.score == 0.0
+        assert result.passed is False
+        assert "Expected 1 tool call(s), but got 0" in result.failure_reason
+
+    def test_both_empty_passes(self):
+        """Test that no expected and no actual tool calls results in pass."""
+        expected_tool_calls = []
+        actual_tool_calls = []
+
+        case = EvalCase(
+            name="TestCase",
+            system_message="",
+            user_message="",
+            expected_tool_calls=expected_tool_calls,
+            critics=[],
+            rubric=EvalRubric(),
+        )
+
+        result = case.evaluate(actual_tool_calls)
+
+        assert result.score == 1.0
+        assert result.passed is True
+        assert result.failure_reason is None

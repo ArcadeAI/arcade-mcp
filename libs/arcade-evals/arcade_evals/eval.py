@@ -1,6 +1,7 @@
 import asyncio
 import functools
 import inspect
+import json
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Callable
 
@@ -15,13 +16,9 @@ from arcade_evals._evalsuite._providers import (
     ProviderName,
     convert_messages_to_anthropic,
 )
-from arcade_evals._evalsuite._providers import (
-    # Backward-compatible alias (prefer convert_messages_to_anthropic)
-    convert_messages_to_anthropic as _convert_messages_to_anthropic,
-)
 from arcade_evals._evalsuite._tool_registry import EvalSuiteToolRegistry
 from arcade_evals.critic import NoneCritic
-from arcade_evals.errors import WeightError
+from arcade_evals.weights import validate_and_normalize_critic_weights
 
 if TYPE_CHECKING:
     from arcade_core import ToolCatalog
@@ -32,24 +29,48 @@ if TYPE_CHECKING:
 @dataclass
 class ExpectedToolCall:
     """
-    Represents an expected tool call with the function or tool name and arguments.
+    Represents an expected tool call for a Python tool (registered via ToolCatalog).
+
+    Use this for Python functions decorated with @tool.
 
     Attributes:
-        func: The function itself (for Python tools). Mutually exclusive with tool_name.
-        tool_name: The tool name (for MCP tools). Mutually exclusive with func.
+        func: The Python function itself.
         args: A dictionary containing the expected arguments for the tool.
+
+    Example:
+        ExpectedToolCall(func=my_tool_function, args={"x": 1, "y": 2})
+        ExpectedToolCall(my_tool_function, {"x": 1})  # Positional args supported
     """
 
-    func: Callable | None = None
-    tool_name: str | None = None
+    func: Callable
     args: dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self) -> None:
-        """Validate that exactly one of func or tool_name is provided."""
-        if self.func is None and self.tool_name is None:
-            raise ValueError("Either 'func' or 'tool_name' must be provided")
-        if self.func is not None and self.tool_name is not None:
-            raise ValueError("Only one of 'func' or 'tool_name' should be provided")
+
+@dataclass
+class ExpectedMCPToolCall:
+    """
+    Represents an expected tool call identified by tool name (string).
+
+    Use this for:
+    - Tools loaded from MCP servers (local stdio or remote HTTP)
+    - Tools loaded from Arcade Gateways
+    - Manual tool definitions (dictionaries with name/description/inputSchema)
+
+    Attributes:
+        tool_name: The name of the tool (e.g., "Weather_GetCurrent").
+        args: A dictionary containing the expected arguments for the tool.
+
+    Example:
+        ExpectedMCPToolCall(tool_name="Calculator_Add", args={"a": 5, "b": 3})
+        ExpectedMCPToolCall("Calculator_Add", {"a": 5})  # Positional args supported
+    """
+
+    tool_name: str
+    args: dict[str, Any] = field(default_factory=dict)
+
+
+# Type alias for mixed usage (Python tools + MCP tools in same test case)
+AnyExpectedToolCall = ExpectedToolCall | ExpectedMCPToolCall
 
 
 @dataclass
@@ -194,28 +215,10 @@ class EvalCase:
 
     def __post_init__(self) -> None:
         if self.critics is not None:
-            self._validate_critics()
+            validate_and_normalize_critic_weights(self.critics)
         else:
             # if no critics are provided, set to empty list
             self.critics = []
-
-    def _validate_critics(self) -> None:
-        """
-        Validate the sum of critic weights.
-
-        Raises:
-            WeightError: If the sum of critic weights exceeds 1.0.
-        """
-        if not self.critics:
-            return
-
-        total_weight = sum(critic.weight for critic in self.critics)
-        if total_weight > 1.0:
-            raise WeightError(f"Sum of critic weights must not exceed 1.0, got {total_weight}")
-
-        for critic in self.critics:
-            if critic.weight < 0.1 and not isinstance(critic, NoneCritic):
-                raise WeightError(f"Critic weights should be at least 0.1, got {critic.weight}")
 
     def check_tool_selection_failure(self, actual_tools: list[str]) -> bool:
         """
@@ -324,11 +327,11 @@ class EvalCase:
                     try:
                         result = critic.evaluate(expected_value, actual_value)
                         total_score += result["score"]
-                        total_weight += critic.weight
+                        total_weight += critic.resolved_weight
                         evaluation_result.add(
                             critic.critic_field,
                             result,
-                            critic.weight,
+                            critic.resolved_weight,
                             expected_value,
                             actual_value,
                         )
@@ -338,7 +341,7 @@ class EvalCase:
                         evaluation_result.add(
                             critic.critic_field,
                             {"match": False, "score": 0.0},
-                            critic.weight,
+                            critic.resolved_weight,
                             expected_value,
                             actual_value,
                         )
@@ -468,27 +471,29 @@ class EvalSuite(_EvalSuiteConvenienceMixin):
                     self._python_func_to_tool_name[python_func] = tool_name
 
     def _convert_to_named_expected_tool_call(
-        self, tc: ExpectedToolCall | tuple[Callable, dict[str, Any]]
+        self, tc: AnyExpectedToolCall | tuple[Callable, dict[str, Any]]
     ) -> NamedExpectedToolCall:
         """
-        Convert an ExpectedToolCall or a tuple to a NamedExpectedToolCall
+        Convert an ExpectedToolCall, ExpectedMCPToolCall, or tuple to a NamedExpectedToolCall
         with default arguments populated.
 
         Args:
-            tc: The tool call, either as an ExpectedToolCall or a tuple.
+            tc: The tool call - ExpectedToolCall (Python), ExpectedMCPToolCall (MCP), or tuple.
 
         Returns:
             A NamedExpectedToolCall instance.
         """
-        # --- Original logic (Python tools via func or tuple) ---
+        # Handle MCP tools (ExpectedMCPToolCall)
+        if isinstance(tc, ExpectedMCPToolCall):
+            return self._convert_mcp_tool_call(tc.tool_name, tc.args)
+
+        # Handle Python tools (ExpectedToolCall or tuple)
         if isinstance(tc, tuple):
             func, args = tc
-        elif tc.func is not None:
+        else:
+            # ExpectedToolCall
             func = tc.func
             args = tc.args
-        else:
-            # --- NEW: MCP tool (tool_name provided, no func) ---
-            return self._convert_mcp_tool_call(tc.tool_name or "", tc.args)
 
         args_with_defaults = self._fill_args_with_defaults(func, args)
         # Try convenience method registration first, then fall back to catalog
@@ -516,7 +521,7 @@ class EvalSuite(_EvalSuiteConvenienceMixin):
         self,
         name: str,
         user_message: str,
-        expected_tool_calls: list[ExpectedToolCall] | list[tuple[Callable, dict[str, Any]]],
+        expected_tool_calls: list[AnyExpectedToolCall] | list[tuple[Callable, dict[str, Any]]],
         critics: list["Critic"] | None = None,
         system_message: str | None = None,
         rubric: EvalRubric | None = None,
@@ -528,7 +533,7 @@ class EvalSuite(_EvalSuiteConvenienceMixin):
         Args:
             name: The name of the evaluation case.
             user_message: The user's input message.
-            expected_tool_calls: A list of expected tool calls as ExpectedToolCall instances.
+            expected_tool_calls: A list of expected tool calls (ExpectedToolCall, ExpectedMCPToolCall, or tuples).
             critics: List of critics to evaluate the tool arguments.
             system_message: The system message to be used.
             rubric: The evaluation rubric for this case.

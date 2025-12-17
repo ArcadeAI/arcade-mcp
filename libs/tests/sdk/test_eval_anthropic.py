@@ -4,13 +4,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from arcade_cli.utils import DEFAULT_MODELS, Provider, get_default_model, resolve_provider_api_key
+from arcade_evals._evalsuite._providers import convert_messages_to_anthropic
 from arcade_evals.eval import (
     EvalCase,
     EvalRubric,
     EvalSuite,
     NamedExpectedToolCall,
     ProviderName,
-    _convert_messages_to_anthropic,
     _run_with_anthropic,
     _run_with_openai,
     compare_tool_name,
@@ -208,23 +208,23 @@ class TestEvalSuiteRun:
 
 
 class TestConvertMessagesToAnthropicHelper:
-    """Tests for the _convert_messages_to_anthropic helper function."""
+    """Tests for the convert_messages_to_anthropic helper function."""
 
     def test_empty_messages(self) -> None:
         """Test conversion of empty messages list."""
-        result = _convert_messages_to_anthropic([])
+        result = convert_messages_to_anthropic([])
         assert result == []
 
     def test_user_messages_pass_through(self) -> None:
         """Test that user messages pass through unchanged."""
         messages = [{"role": "user", "content": "Hello"}]
-        result = _convert_messages_to_anthropic(messages)
+        result = convert_messages_to_anthropic(messages)
         assert result == [{"role": "user", "content": "Hello"}]
 
     def test_assistant_messages_pass_through(self) -> None:
         """Test that regular assistant messages pass through unchanged."""
         messages = [{"role": "assistant", "content": "Hi there"}]
-        result = _convert_messages_to_anthropic(messages)
+        result = convert_messages_to_anthropic(messages)
         assert result == [{"role": "assistant", "content": "Hi there"}]
 
     def test_system_messages_are_skipped(self) -> None:
@@ -233,7 +233,7 @@ class TestConvertMessagesToAnthropicHelper:
             {"role": "system", "content": "You are helpful"},
             {"role": "user", "content": "Hello"},
         ]
-        result = _convert_messages_to_anthropic(messages)
+        result = convert_messages_to_anthropic(messages)
         assert len(result) == 1
         assert result[0]["role"] == "user"
 
@@ -252,7 +252,7 @@ class TestConvertMessagesToAnthropicHelper:
                 ],
             }
         ]
-        result = _convert_messages_to_anthropic(messages)
+        result = convert_messages_to_anthropic(messages)
 
         assert len(result) == 1
         assert result[0]["role"] == "assistant"
@@ -267,7 +267,7 @@ class TestConvertMessagesToAnthropicHelper:
     def test_tool_messages_converted_to_user_tool_result(self) -> None:
         """Test tool messages are converted to user with tool_result block."""
         messages = [{"role": "tool", "content": "Search results...", "tool_call_id": "call_abc"}]
-        result = _convert_messages_to_anthropic(messages)
+        result = convert_messages_to_anthropic(messages)
 
         assert len(result) == 1
         assert result[0]["role"] == "user"
@@ -298,7 +298,7 @@ class TestConvertMessagesToAnthropicHelper:
                 ],
             }
         ]
-        result = _convert_messages_to_anthropic(messages)
+        result = convert_messages_to_anthropic(messages)
 
         assert len(result) == 1
         tool_uses = result[0]["content"]
@@ -325,7 +325,7 @@ class TestConvertMessagesToAnthropicHelper:
             {"role": "assistant", "content": "I found 10 results about cats."},
             {"role": "user", "content": "Thanks!"},
         ]
-        result = _convert_messages_to_anthropic(messages)
+        result = convert_messages_to_anthropic(messages)
 
         assert len(result) == 5
         assert result[0] == {"role": "user", "content": "Search for cats"}
@@ -342,14 +342,14 @@ class TestConvertMessagesToAnthropicHelper:
             {"role": "user", "content": ""},
             {"role": "user", "content": "Hello"},
         ]
-        result = _convert_messages_to_anthropic(messages)
+        result = convert_messages_to_anthropic(messages)
         assert len(result) == 1
         assert result[0]["content"] == "Hello"
 
     def test_legacy_function_role_converted(self) -> None:
         """Test that legacy 'function' role is converted to user with tool_result."""
         messages = [{"role": "function", "name": "search", "content": "Search results..."}]
-        result = _convert_messages_to_anthropic(messages)
+        result = convert_messages_to_anthropic(messages)
 
         assert len(result) == 1
         assert result[0]["role"] == "user"
@@ -379,7 +379,7 @@ class TestConvertMessagesToAnthropicHelper:
             }
         ]
         # Should not raise, should gracefully handle malformed JSON
-        result = _convert_messages_to_anthropic(messages)
+        result = convert_messages_to_anthropic(messages)
 
         assert len(result) == 1
         assert result[0]["role"] == "assistant"
@@ -403,11 +403,88 @@ class TestConvertMessagesToAnthropicHelper:
                 ],
             }
         ]
-        result = _convert_messages_to_anthropic(messages)
+        result = convert_messages_to_anthropic(messages)
 
         assert len(result) == 1
         tool_use = result[0]["content"][0]
         assert tool_use["input"] == {}
+
+    def test_assistant_with_both_content_and_tool_calls(self) -> None:
+        """Test that assistant messages with both content AND tool_calls preserve both.
+
+        This is an edge case where the assistant says something AND calls a tool.
+        The text content should be included as a text block before tool_use blocks.
+        """
+        messages = [
+            {
+                "role": "assistant",
+                "content": "Let me search for that",
+                "tool_calls": [
+                    {
+                        "id": "call_abc",
+                        "type": "function",
+                        "function": {"name": "search", "arguments": '{"q": "cats"}'},
+                    }
+                ],
+            }
+        ]
+        result = convert_messages_to_anthropic(messages)
+
+        assert len(result) == 1
+        assert result[0]["role"] == "assistant"
+        content_blocks = result[0]["content"]
+
+        # Should have both text and tool_use blocks
+        assert len(content_blocks) == 2
+
+        # First block should be text
+        assert content_blocks[0]["type"] == "text"
+        assert content_blocks[0]["text"] == "Let me search for that"
+
+        # Second block should be tool_use
+        assert content_blocks[1]["type"] == "tool_use"
+        assert content_blocks[1]["name"] == "search"
+        assert content_blocks[1]["input"] == {"q": "cats"}
+
+    def test_assistant_with_empty_content_and_tool_calls(self) -> None:
+        """Test that empty/None content is not included when tool_calls are present."""
+        messages = [
+            {
+                "role": "assistant",
+                "content": "",  # Empty string
+                "tool_calls": [
+                    {
+                        "id": "call_abc",
+                        "type": "function",
+                        "function": {"name": "search", "arguments": '{"q": "cats"}'},
+                    }
+                ],
+            }
+        ]
+        result = convert_messages_to_anthropic(messages)
+
+        assert len(result) == 1
+        content_blocks = result[0]["content"]
+
+        # Should only have tool_use block, no empty text block
+        assert len(content_blocks) == 1
+        assert content_blocks[0]["type"] == "tool_use"
+
+    def test_assistant_with_empty_tool_calls_list(self) -> None:
+        """Test that empty tool_calls list is handled correctly."""
+        messages = [
+            {
+                "role": "assistant",
+                "content": "Hello",
+                "tool_calls": [],  # Empty list
+            }
+        ]
+        result = convert_messages_to_anthropic(messages)
+
+        # Should be treated as a regular assistant message
+        assert len(result) == 1
+        assert result[0]["role"] == "assistant"
+        assert result[0]["content"] == "Hello"  # Simple string, not blocks
 
 
 class TestAnthropicMessageConversion:

@@ -17,6 +17,7 @@ from __future__ import annotations
 import asyncio
 import importlib
 import json
+import logging
 import os
 import subprocess
 import uuid
@@ -24,6 +25,8 @@ from abc import ABC, abstractmethod
 from contextlib import suppress
 from typing import Any, Literal, cast
 from urllib.parse import urlsplit, urlunsplit
+
+logger = logging.getLogger(__name__)
 
 # =============================================================================
 # CONFIGURATION CONSTANTS
@@ -297,9 +300,17 @@ def _internal_load_from_stdio_sync(
             )
             process.stdin.flush()
 
-            response = json.loads(process.stdout.readline())
-            if "result" in response and "tools" in response["result"]:
-                return cast(list[dict[str, Any]], response["result"]["tools"])
+            try:
+                response = json.loads(process.stdout.readline())
+                if "result" in response and "tools" in response["result"]:
+                    return cast(list[dict[str, Any]], response["result"]["tools"])
+            except json.JSONDecodeError as e:
+                logger.warning(
+                    "Failed to parse MCP server response as JSON: %s. "
+                    "The server may have returned invalid output or closed unexpectedly.",
+                    e,
+                )
+                return []
 
         return []
     finally:

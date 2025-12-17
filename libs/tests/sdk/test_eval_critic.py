@@ -113,19 +113,18 @@ def test_similarity_critic_evaluate(
     assert result["score"] <= weight + 1e-6  # Allow a small epsilon for floating-point comparison
 
 
-# Test that WeightError is raised for invalid critic weights
+# Test that WeightError is raised for negative critic weights
 @pytest.mark.parametrize(
     "critic_class, weight",
     [
         (BinaryCritic, -0.1),
-        (BinaryCritic, 1.1),
         (NumericCritic, -0.5),
-        (SimilarityCritic, 1.5),
+        (SimilarityCritic, -0.3),
     ],
 )
 def test_critic_invalid_weight(critic_class, weight):
     """
-    Test that initializing a critic with an invalid weight raises a WeightError.
+    Test that initializing a critic with a negative weight raises a WeightError.
     """
     with pytest.raises(WeightError):
         if critic_class == NumericCritic:
@@ -134,6 +133,29 @@ def test_critic_invalid_weight(critic_class, weight):
             critic_class(critic_field="test_field", weight=weight)
         else:
             critic_class(critic_field="test_field", weight=weight)
+
+
+# Test that weights > 1.0 are now allowed (softmax normalization handles them)
+@pytest.mark.parametrize(
+    "critic_class, weight",
+    [
+        (BinaryCritic, 1.5),
+        (BinaryCritic, 3.0),
+        (NumericCritic, 2.0),
+        (SimilarityCritic, 5.0),
+    ],
+)
+def test_critic_allows_weights_above_one(critic_class, weight):
+    """
+    Test that weights > 1.0 are allowed (softmax normalization handles them).
+    """
+    if critic_class == NumericCritic:
+        critic = critic_class(critic_field="test_field", weight=weight, value_range=(0, 1))
+    elif critic_class == SimilarityCritic:
+        critic = critic_class(critic_field="test_field", weight=weight)
+    else:
+        critic = critic_class(critic_field="test_field", weight=weight)
+    assert critic.weight == weight
 
 
 # Test NumericCritic with invalid value range

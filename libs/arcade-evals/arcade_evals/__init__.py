@@ -1,27 +1,43 @@
+from ._evalsuite._providers import ProviderName
 from ._evalsuite._tool_registry import MCPToolDefinition
 from .critic import BinaryCritic, DatetimeCritic, NoneCritic, NumericCritic, SimilarityCritic
-from .eval import EvalRubric, EvalSuite, ExpectedToolCall, NamedExpectedToolCall, tool_eval
+from .eval import (
+    AnyExpectedToolCall,
+    EvalRubric,
+    EvalSuite,
+    ExpectedMCPToolCall,
+    ExpectedToolCall,
+    NamedExpectedToolCall,
+    tool_eval,
+)
 from .loaders import (
     load_arcade_mcp_gateway_async,
     load_from_http_async,
     load_from_stdio_async,
     load_stdio_arcade_async,
 )
+from .weights import FuzzyWeight, Weight, validate_and_normalize_critic_weights
 
 __all__ = [
+    "AnyExpectedToolCall",
     "BinaryCritic",
     "DatetimeCritic",
     "EvalRubric",
     "EvalSuite",
+    "ExpectedMCPToolCall",
     "ExpectedToolCall",
+    "FuzzyWeight",
     "MCPToolDefinition",
     "NamedExpectedToolCall",
     "NoneCritic",
     "NumericCritic",
+    "ProviderName",
     "SimilarityCritic",
+    "Weight",
     "load_arcade_mcp_gateway_async",
     "load_from_http_async",
     "load_from_stdio_async",
     "load_stdio_arcade_async",
     "tool_eval",
+    "validate_and_normalize_critic_weights",
 ]
