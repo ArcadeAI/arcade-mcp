@@ -66,16 +66,21 @@ def convert_messages_to_anthropic(messages: list[dict[str, Any]]) -> list[dict[s
 
                 # Add tool_use blocks
                 for tool_call in msg.get("tool_calls", []):
+                    function = tool_call.get("function")
+                    if not function:
+                        continue  # Skip malformed tool calls
+
                     # Parse arguments JSON, fallback to empty dict on parse error
-                    arguments_str = tool_call.get("function", {}).get("arguments", "{}")
+                    arguments_str = function.get("arguments", "{}")
                     try:
                         arguments = json.loads(arguments_str) if arguments_str else {}
                     except json.JSONDecodeError:
                         arguments = {}
+
                     content_blocks.append({
                         "type": "tool_use",
                         "id": tool_call.get("id", ""),
-                        "name": tool_call.get("function", {}).get("name", ""),
+                        "name": function.get("name", ""),
                         "input": arguments,
                     })
 

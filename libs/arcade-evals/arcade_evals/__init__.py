@@ -1,5 +1,6 @@
 from ._evalsuite._providers import ProviderName
 from ._evalsuite._tool_registry import MCPToolDefinition
+from .capture import CapturedCase, CapturedToolCall, CaptureResult
 from .critic import BinaryCritic, DatetimeCritic, NoneCritic, NumericCritic, SimilarityCritic
 from .eval import (
     AnyExpectedToolCall,
@@ -21,6 +22,9 @@ from .weights import FuzzyWeight, Weight, validate_and_normalize_critic_weights
 __all__ = [
     "AnyExpectedToolCall",
     "BinaryCritic",
+    "CaptureResult",
+    "CapturedCase",
+    "CapturedToolCall",
     "DatetimeCritic",
     "EvalRubric",
     "EvalSuite",

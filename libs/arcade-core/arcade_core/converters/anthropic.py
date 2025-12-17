@@ -3,6 +3,7 @@
 from typing import Any, TypedDict
 
 from arcade_core.catalog import MaterializedTool
+from arcade_core.converters.utils import normalize_tool_name
 from arcade_core.schema import InputParameter, ValueSchema
 
 # ----------------------------------------------------------------------------
@@ -82,7 +83,7 @@ def to_anthropic(tool: MaterializedTool) -> AnthropicToolSchema:
     Returns:
         The Anthropic tool schema format (what is passed to the Anthropic API)
     """
-    name = tool.definition.fully_qualified_name.replace(".", "_")
+    name = normalize_tool_name(tool.definition.fully_qualified_name)
     description = tool.description
     input_schema = _convert_input_parameters_to_json_schema(tool.definition.input.parameters)
 

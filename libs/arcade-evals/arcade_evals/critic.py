@@ -234,7 +234,23 @@ class SimilarityCritic(Critic):
         self.similarity_threshold = similarity_threshold
         self.metric = metric
 
-    def evaluate(self, expected: str, actual: str) -> dict[str, float | bool]:
+    def evaluate(self, expected: Any, actual: Any) -> dict[str, float | bool]:
+        # IMPORTANT: Convert non-string values to strings before TF-IDF comparison.
+        # sklearn's TfidfVectorizer calls .lower() on inputs, which fails on lists/dicts.
+        # This commonly occurs when SimilarityCritic is used for tool arguments that are
+        # lists (e.g., teams_to_add=["Engineering", "Platform"]) instead of strings.
+        # Lists are joined with spaces to create comparable text representations.
+        if not isinstance(expected, str):
+            expected = (
+                " ".join(str(item) for item in expected)
+                if isinstance(expected, list)
+                else str(expected)
+            )
+        if not isinstance(actual, str):
+            actual = (
+                " ".join(str(item) for item in actual) if isinstance(actual, list) else str(actual)
+            )
+
         if self.metric == "cosine":
             try:
                 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -243,9 +259,30 @@ class SimilarityCritic(Critic):
                 raise ImportError(
                     "Use `pip install 'arcade-evals` to install the required dependencies for similarity metrics."
                 )
-            vectorizer = TfidfVectorizer()
-            tfidf_matrix = vectorizer.fit_transform([expected, actual])
-            similarity = cosine_similarity(tfidf_matrix[0], tfidf_matrix[1])[0][0]
+
+            # Handle edge case: empty strings or strings with no valid tokens
+            # TfidfVectorizer fails with "empty vocabulary" for such inputs
+            if not expected.strip() or not actual.strip():
+                # Both empty = match, one empty = no match
+                is_match = expected.strip() == actual.strip()
+                return {
+                    "match": is_match,
+                    "score": self.resolved_weight if is_match else 0.0,
+                }
+
+            try:
+                vectorizer = TfidfVectorizer()
+                tfidf_matrix = vectorizer.fit_transform([expected, actual])
+                similarity = float(cosine_similarity(tfidf_matrix[0], tfidf_matrix[1])[0][0])
+            except ValueError:
+                # TfidfVectorizer raises ValueError for empty vocabulary
+                # (e.g., only numbers/punctuation which get filtered as stop words)
+                # Fall back to exact string match
+                is_match = expected == actual
+                return {
+                    "match": is_match,
+                    "score": self.resolved_weight if is_match else 0.0,
+                }
         else:
             raise ValueError(f"Unsupported similarity metric: {self.metric}")
         return {

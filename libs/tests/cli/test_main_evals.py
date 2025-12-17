@@ -1,7 +1,12 @@
 from unittest.mock import Mock
 
+from typer.testing import CliRunner
+
+from arcade_cli.main import cli
 from arcade_cli.utils import filter_failed_evaluations
 from arcade_evals.eval import EvaluationResult
+
+runner = CliRunner()
 
 
 def create_mock_evaluation_result(passed: bool, warning: bool, score: float) -> Mock:
@@ -253,3 +258,28 @@ def test_filter_failed_evaluations_model_with_no_failed() -> None:
     assert len(filtered_evaluations[0]) == 1  # Only one model with failed cases
     assert filtered_evaluations[0][0]["model"] == "gpt-3.5-turbo"
     assert len(filtered_evaluations[0][0]["cases"]) == 1
+
+
+# --- CLI Capture Mode Flag Tests ---
+
+
+def test_evals_help_shows_capture_flag() -> None:
+    """Test that --capture flag is documented in help."""
+    result = runner.invoke(cli, ["evals", "--help"])
+    assert result.exit_code == 0
+    assert "--capture" in result.output
+    assert "capture mode" in result.output.lower()
+
+
+def test_evals_help_shows_add_context_flag() -> None:
+    """Test that --add-context flag is documented in help."""
+    result = runner.invoke(cli, ["evals", "--help"])
+    assert result.exit_code == 0
+    assert "--add-context" in result.output
+
+
+def test_evals_help_shows_file_flag() -> None:
+    """Test that --file flag is documented in help."""
+    result = runner.invoke(cli, ["evals", "--help"])
+    assert result.exit_code == 0
+    assert "--file" in result.output

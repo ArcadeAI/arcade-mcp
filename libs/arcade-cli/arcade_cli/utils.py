@@ -85,6 +85,10 @@ class Provider(str, Enum):
 # ============================================================================
 # Edit these values to change the default models used by the CLI.
 # These are used when --models is not specified.
+#
+# Note: Anthropic models include date suffixes (e.g., -20250929) which may need
+# periodic updates. Check https://docs.anthropic.com/en/docs/about-claude/models
+# for the latest model identifiers.
 
 DEFAULT_MODELS: dict[Provider, str] = {
     Provider.OPENAI: "gpt-4o",

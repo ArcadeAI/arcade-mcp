@@ -11,8 +11,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Callable
 
-from arcade_core.converters.openai import to_openai
-
 from arcade_evals._evalsuite._tool_registry import EvalSuiteToolRegistry, MCPToolDefinition
 from arcade_evals.loaders import (
     load_arcade_mcp_gateway_async,
@@ -60,9 +58,11 @@ class _EvalSuiteConvenienceMixin:
                 raise TypeError("Tool definitions must be dictionaries")
             if "name" not in tool:
                 raise ValueError("Tool definition must include 'name'")
-            tool.setdefault("description", "")
-            tool.setdefault("inputSchema", {"type": "object", "properties": {}})
-            registry.add_tool(tool)
+            # Copy to avoid mutating input dict
+            tool_copy = dict(tool)
+            tool_copy.setdefault("description", "")
+            tool_copy.setdefault("inputSchema", {"type": "object", "properties": {}})
+            registry.add_tool(tool_copy)
         return self
 
     async def add_mcp_server(
@@ -135,31 +135,16 @@ class _EvalSuiteConvenienceMixin:
         return self
 
     def add_tool_catalog(self, catalog: ToolCatalog) -> Any:
-        registry = self._get_registry()
-        for tool in catalog:
-            openai_tool = to_openai(tool)
-            func_schema = openai_tool.get("function", {})
-            tool_name = func_schema.get("name")
-            if not tool_name:
-                continue
+        """Add tools from a ToolCatalog to the internal registry.
 
-            description = func_schema.get("description") or ""
-            parameters = func_schema.get("parameters")
-            input_schema: dict[str, Any] = (
-                dict(parameters) if parameters else {"type": "object", "properties": {}}
-            )
+        Args:
+            catalog: A ToolCatalog containing registered Python tools.
 
-            registry.add_tool({
-                "name": tool_name,
-                "description": description,
-                "inputSchema": input_schema,
-            })
-
-            python_func = getattr(tool, "tool", None)
-            if callable(python_func):
-                self._python_tool_func_map[tool_name] = python_func
-                self._python_func_to_tool_name[python_func] = tool_name
-
+        Returns:
+            Self for method chaining.
+        """
+        # Delegate to the shared helper method defined in EvalSuite
+        self._register_catalog_tools(catalog)  # type: ignore[attr-defined]
         return self
 
     def get_tool_count(self) -> int:

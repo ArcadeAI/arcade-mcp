@@ -201,3 +201,57 @@ class TestMCPToolDefinition:
 
         with pytest.raises(ValueError, match="already registered"):
             suite.add_tool_definitions([{"name": "my_tool"}])
+
+
+class TestAddToolDefinitionsEdgeCases:
+    """Additional edge case tests for add_tool_definitions."""
+
+    def test_invalid_type_raises_typeerror(self) -> None:
+        """Non-dict tool definitions should raise TypeError."""
+        suite = EvalSuite(name="Test", system_message="Test")
+        with pytest.raises(TypeError, match="must be dictionaries"):
+            suite.add_tool_definitions(["not_a_dict"])  # type: ignore
+
+    def test_does_not_mutate_input(self) -> None:
+        """add_tool_definitions should not mutate the input dicts."""
+        original_tool = {"name": "my_tool"}
+        original_copy = dict(original_tool)
+
+        suite = EvalSuite(name="Test", system_message="Test")
+        suite.add_tool_definitions([original_tool])
+
+        # Original dict should be unchanged (no defaults added)
+        assert original_tool == original_copy
+        assert "description" not in original_tool
+        assert "inputSchema" not in original_tool
+
+
+class TestAddMcpStdioServerWarnings:
+    """Tests for add_mcp_stdio_server warning paths."""
+
+    @pytest.mark.asyncio
+    async def test_empty_response_warns(self) -> None:
+        """Empty response from stdio server should warn."""
+        with patch(
+            "arcade_evals._evalsuite._convenience.load_from_stdio_async", new_callable=AsyncMock
+        ) as mock_load:
+            mock_load.return_value = []
+            suite = EvalSuite(name="Test", system_message="Test")
+            with pytest.warns(UserWarning, match="No tools loaded"):
+                await suite.add_mcp_stdio_server(["python", "server.py"])
+
+
+class TestAddArcadeGatewayWarnings:
+    """Tests for add_arcade_gateway warning paths."""
+
+    @pytest.mark.asyncio
+    async def test_empty_response_warns(self) -> None:
+        """Empty response from arcade gateway should warn."""
+        with patch(
+            "arcade_evals._evalsuite._convenience.load_arcade_mcp_gateway_async",
+            new_callable=AsyncMock,
+        ) as mock_load:
+            mock_load.return_value = []
+            suite = EvalSuite(name="Test", system_message="Test")
+            with pytest.warns(UserWarning, match="No tools loaded"):
+                await suite.add_arcade_gateway("my-gateway")

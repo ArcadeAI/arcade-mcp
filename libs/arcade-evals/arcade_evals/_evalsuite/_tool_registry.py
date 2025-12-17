@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any, Literal, TypedDict
 
+from arcade_core.converters.utils import normalize_tool_name
+
 from arcade_evals._evalsuite._anthropic_schema import convert_mcp_to_anthropic_tool
 from arcade_evals._evalsuite._openai_schema import convert_to_strict_mode_schema
 
@@ -81,7 +83,7 @@ class EvalSuiteToolRegistry:
 
         # Build normalized name mapping for Anthropic lookups
         # e.g., "Google.Search" -> normalized key "Google_Search"
-        normalized_name = name.replace(".", "_")
+        normalized_name = normalize_tool_name(name)
         if normalized_name != name:
             self._normalized_to_original[normalized_name] = name
 
@@ -188,6 +190,25 @@ class EvalSuiteToolRegistry:
             The original tool name if found, None otherwise.
         """
         return self._resolve_tool_name(tool_name)
+
+    def process_tool_call(self, tool_name: str, args: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+        """Resolve tool name and apply schema defaults in one step.
+
+        This combines name resolution (for Anthropic underscore -> dot conversion)
+        with schema default application.
+
+        Args:
+            tool_name: The tool name (may be in provider format like "Google_Search").
+            args: The arguments from the tool call.
+
+        Returns:
+            Tuple of (resolved_name, args_with_defaults).
+            resolved_name will be the original registered name (e.g., "Google.Search")
+            or the input name if not found in registry.
+        """
+        resolved_name = self._resolve_tool_name(tool_name) or tool_name
+        args_with_defaults = self.normalize_args(tool_name, args)
+        return resolved_name, args_with_defaults
 
     def tool_names(self) -> list[str]:
         return list(self._tools.keys())

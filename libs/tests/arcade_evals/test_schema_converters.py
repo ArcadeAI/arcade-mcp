@@ -638,3 +638,155 @@ class TestToolNameResolution:
         # Normalized versions resolve to originals
         assert registry.resolve_tool_name("Google_Search") == "Google.Search"
         assert registry.resolve_tool_name("Slack_Channel_Create") == "Slack.Channel.Create"
+
+
+class TestProcessToolCall:
+    """Tests for EvalSuiteToolRegistry.process_tool_call combined method."""
+
+    def test_process_tool_call_resolves_and_normalizes(self):
+        """Test that process_tool_call resolves name and applies defaults."""
+        registry = EvalSuiteToolRegistry()
+        registry.add_tool({
+            "name": "Google.Search",
+            "description": "Search",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string"},
+                    "limit": {"type": "integer", "default": 10},
+                },
+            },
+        })
+
+        # Anthropic-style name with missing default arg
+        resolved_name, args = registry.process_tool_call("Google_Search", {"query": "test"})
+
+        assert resolved_name == "Google.Search"
+        assert args == {"query": "test", "limit": 10}
+
+    def test_process_tool_call_unknown_tool(self):
+        """Test that unknown tools keep original name."""
+        registry = EvalSuiteToolRegistry()
+        registry.add_tool({"name": "KnownTool"})
+
+        resolved_name, args = registry.process_tool_call("UnknownTool", {"arg": "value"})
+
+        assert resolved_name == "UnknownTool"
+        assert args == {"arg": "value"}
+
+    def test_process_tool_call_no_defaults_needed(self):
+        """Test when all args provided."""
+        registry = EvalSuiteToolRegistry()
+        registry.add_tool({
+            "name": "Tool",
+            "inputSchema": {
+                "type": "object",
+                "properties": {"a": {"type": "string", "default": "x"}, "b": {"type": "string"}},
+            },
+        })
+
+        resolved_name, args = registry.process_tool_call("Tool", {"a": "provided", "b": "also"})
+
+        assert resolved_name == "Tool"
+        assert args == {"a": "provided", "b": "also"}
+
+
+class TestToolRegistryErrors:
+    """Tests for EvalSuiteToolRegistry error handling."""
+
+    def test_duplicate_tool_registration_raises_error(self):
+        """Test that registering the same tool twice raises ValueError."""
+        registry = EvalSuiteToolRegistry()
+        registry.add_tool({"name": "Google.Search", "description": "Search"})
+
+        with pytest.raises(ValueError) as exc_info:
+            registry.add_tool({"name": "Google.Search", "description": "Search again"})
+
+        assert "already registered" in str(exc_info.value)
+        assert "Google.Search" in str(exc_info.value)
+
+    def test_tool_without_name_raises_error(self):
+        """Test that registering a tool without name raises ValueError."""
+        registry = EvalSuiteToolRegistry()
+
+        with pytest.raises(ValueError) as exc_info:
+            registry.add_tool({"description": "No name tool"})
+
+        assert "name" in str(exc_info.value).lower()
+
+    def test_empty_registry_tool_count(self):
+        """Test that empty registry has zero tools."""
+        registry = EvalSuiteToolRegistry()
+        assert registry.tool_count() == 0
+        assert registry.tool_names() == []
+
+    def test_empty_registry_list_tools(self):
+        """Test that empty registry returns empty list for both formats."""
+        registry = EvalSuiteToolRegistry()
+        assert registry.list_tools_for_model("openai") == []
+        assert registry.list_tools_for_model("anthropic") == []
+
+    def test_invalid_format_raises_error(self):
+        """Test that invalid tool format raises ValueError."""
+        registry = EvalSuiteToolRegistry()
+        registry.add_tool({"name": "test"})
+
+        with pytest.raises(ValueError) as exc_info:
+            registry.list_tools_for_model("invalid_format")  # type: ignore
+
+        assert "not supported" in str(exc_info.value)
+
+
+class TestToolNameCollisions:
+    """Tests for handling tool name collisions during normalization."""
+
+    def test_different_original_names_same_normalized(self):
+        """Test that tools with different original names but same normalized name are both registered.
+
+        This is the expected behavior: `Google.Search` and `Google_Search` are treated as
+        different tools because the registry uses original names as keys.
+        The normalized name mapping only helps with lookup (for Anthropic format).
+        """
+        registry = EvalSuiteToolRegistry()
+        registry.add_tool({"name": "Google.Search", "description": "Dot version"})
+        registry.add_tool({"name": "Google_Search", "description": "Underscore version"})
+
+        # Both tools should be registered
+        assert registry.tool_count() == 2
+        assert "Google.Search" in registry.tool_names()
+        assert "Google_Search" in registry.tool_names()
+
+    def test_normalized_name_resolution_prefers_underscore_version(self):
+        """Test that when both Google.Search and Google_Search exist,
+        resolving 'Google_Search' returns the explicit underscore version.
+        """
+        registry = EvalSuiteToolRegistry()
+        registry.add_tool({"name": "Google.Search", "description": "Dot version"})
+        registry.add_tool({"name": "Google_Search", "description": "Underscore version"})
+
+        # "Google_Search" should resolve to itself (explicit match)
+        resolved = registry.resolve_tool_name("Google_Search")
+        assert resolved == "Google_Search"
+
+        # "Google.Search" should resolve to itself (exact match)
+        resolved = registry.resolve_tool_name("Google.Search")
+        assert resolved == "Google.Search"
+
+    def test_normalized_lookup_when_only_dot_version_exists(self):
+        """Test that normalized name lookup works when only dot version exists."""
+        registry = EvalSuiteToolRegistry()
+        registry.add_tool({"name": "Google.Search", "description": "Dot version"})
+
+        # "Google_Search" should resolve to "Google.Search"
+        resolved = registry.resolve_tool_name("Google_Search")
+        assert resolved == "Google.Search"
+
+    def test_anthropic_format_normalizes_names(self):
+        """Test that Anthropic format output uses normalized names (underscores)."""
+        registry = EvalSuiteToolRegistry()
+        registry.add_tool({"name": "Google.Search", "description": "Search"})
+
+        tools = registry.list_tools_for_model("anthropic")
+
+        # Anthropic format should have normalized name
+        assert tools[0]["name"] == "Google_Search"

@@ -15,19 +15,20 @@ from .openai import (
     OpenAIToolSchema,
     to_openai,
 )
+from .utils import denormalize_tool_name, normalize_tool_name
 
 __all__ = [
-    # Anthropic
     "AnthropicInputSchema",
     "AnthropicInputSchemaProperty",
     "AnthropicToolList",
     "AnthropicToolSchema",
-    "to_anthropic",
-    # OpenAI
     "OpenAIFunctionParameterProperty",
     "OpenAIFunctionParameters",
     "OpenAIFunctionSchema",
     "OpenAIToolList",
     "OpenAIToolSchema",
+    "denormalize_tool_name",
+    "normalize_tool_name",
+    "to_anthropic",
     "to_openai",
 ]

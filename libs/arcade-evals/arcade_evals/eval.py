@@ -2,6 +2,7 @@ import asyncio
 import functools
 import inspect
 import json
+import logging
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Callable
 
@@ -11,6 +12,7 @@ from arcade_core.schema import TOOL_NAME_SEPARATOR
 from openai import AsyncOpenAI
 from scipy.optimize import linear_sum_assignment
 
+from arcade_evals._evalsuite._capture import _EvalSuiteCaptureMixin
 from arcade_evals._evalsuite._convenience import _EvalSuiteConvenienceMixin
 from arcade_evals._evalsuite._providers import (
     ProviderName,
@@ -24,6 +26,8 @@ if TYPE_CHECKING:
     from arcade_core import ToolCatalog
 
     from arcade_evals.critic import Critic
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -132,7 +136,13 @@ class EvaluationResult:
 
     @property
     def fail(self) -> bool:
-        return not self.passed and not self.warning
+        """Returns True if the evaluation failed."""
+        return not self.passed
+
+    @property
+    def warn(self) -> bool:
+        """Returns True if the evaluation is in warning state."""
+        return self.warning
 
     def add(
         self,
@@ -188,6 +198,13 @@ class EvaluationResult:
         """
         total_score = sum(result["score"] for result in self.results)
         self.score = total_score / total_weight if total_weight > 0 else 0.0
+
+
+# Import capture mode helpers (defined in capture.py to keep this file focused)
+from arcade_evals.capture import (  # noqa: E402
+    _capture_with_anthropic,
+    _capture_with_openai,
+)
 
 
 @dataclass
@@ -336,8 +353,12 @@ class EvalCase:
                             actual_value,
                         )
                     except Exception as e:
-                        # TODO: log or console
-                        print(f"Critic evaluation failed for field '{critic.critic_field}': {e}")
+                        logger.warning(
+                            "Critic evaluation failed for field '%s': %s",
+                            critic.critic_field,
+                            e,
+                            exc_info=True,
+                        )
                         evaluation_result.add(
                             critic.critic_field,
                             {"match": False, "score": 0.0},
@@ -399,8 +420,10 @@ class EvalCase:
                                 result = critic.evaluate(expected_value, actual_value)
                                 score += result.get("score", 0.0)
                             except Exception as e:
-                                print(
-                                    f"Critic evaluation failed for field '{critic.critic_field}': {e}"
+                                logger.warning(
+                                    "Critic evaluation failed for field '%s': %s",
+                                    critic.critic_field,
+                                    e,
                                 )
                     cost_matrix[i, j] = score
 
@@ -408,7 +431,7 @@ class EvalCase:
 
 
 @dataclass
-class EvalSuite(_EvalSuiteConvenienceMixin):
+class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin):
     """
     A suite for evaluating AI model performance on specific tasks or scenarios.
 
@@ -449,26 +472,38 @@ class EvalSuite(_EvalSuiteConvenienceMixin):
 
         # If catalog was passed, convert those tools to the internal registry
         if self.catalog is not None:
-            for tool in self.catalog:
-                openai_tool = to_openai(tool)
-                func_schema = openai_tool.get("function", {})
-                tool_name = func_schema.get("name")
-                if not tool_name:
-                    continue
+            self._register_catalog_tools(self.catalog)
 
-                description = func_schema.get("description") or ""
-                parameters = func_schema.get("parameters") or {"type": "object", "properties": {}}
-                self._internal_registry.add_tool({
-                    "name": tool_name,
-                    "description": description,
-                    "inputSchema": dict(parameters),
-                })
+    def _register_catalog_tools(self, catalog: "ToolCatalog") -> None:
+        """Convert and register tools from a ToolCatalog to the internal registry.
 
-                # Keep track of Python function for defaults
-                python_func = getattr(tool, "tool", None)
-                if callable(python_func):
-                    self._python_tool_func_map[tool_name] = python_func
-                    self._python_func_to_tool_name[python_func] = tool_name
+        This helper is used by both __post_init__ (for catalog= parameter) and
+        add_tool_catalog() (for post-init registration) to avoid code duplication.
+        """
+        registry = self._internal_registry
+        if registry is None:
+            raise RuntimeError("Internal registry not initialized")
+
+        for tool in catalog:
+            openai_tool = to_openai(tool)
+            func_schema = openai_tool.get("function", {})
+            tool_name = func_schema.get("name")
+            if not tool_name:
+                continue
+
+            description = func_schema.get("description") or ""
+            parameters = func_schema.get("parameters") or {"type": "object", "properties": {}}
+            registry.add_tool({
+                "name": tool_name,
+                "description": description,
+                "inputSchema": dict(parameters),
+            })
+
+            # Keep track of Python function for defaults
+            python_func = getattr(tool, "tool", None)
+            if callable(python_func):
+                self._python_tool_func_map[tool_name] = python_func
+                self._python_func_to_tool_name[python_func] = tool_name
 
     def _convert_to_named_expected_tool_call(
         self, tc: AnyExpectedToolCall | tuple[Callable, dict[str, Any]]
@@ -691,6 +726,38 @@ class EvalSuite(_EvalSuiteConvenienceMixin):
         )
         self.cases.append(new_case)
 
+    def _process_tool_calls(
+        self,
+        tool_calls: list[tuple[str, dict[str, Any]]],
+    ) -> list[tuple[str, dict[str, Any]]]:
+        """
+        Process tool calls by resolving names and applying defaults.
+
+        Args:
+            tool_calls: List of (tool_name, args) tuples.
+
+        Returns:
+            List of processed (tool_name, args_with_defaults) tuples.
+        """
+        if self._internal_registry is None:
+            return tool_calls
+
+        processed_calls = []
+        for tool_name, args in tool_calls:
+            # Resolve name and apply schema defaults (handles Anthropic "Google_Search" -> "Google.Search")
+            resolved_name, args_with_defaults = self._internal_registry.process_tool_call(
+                tool_name, args
+            )
+
+            # Apply Python function defaults if available
+            if resolved_name in self._python_tool_func_map:
+                args_with_defaults = self._fill_args_with_defaults(
+                    self._python_tool_func_map[resolved_name], args_with_defaults
+                )
+
+            processed_calls.append((resolved_name, args_with_defaults))
+        return processed_calls
+
     async def run(
         self,
         client: Any,  # AsyncOpenAI | AsyncAnthropic - use Any to avoid import dependency
@@ -726,22 +793,8 @@ class EvalSuite(_EvalSuiteConvenienceMixin):
                 else:
                     predicted_args = await self._run_openai(client, model, case)
 
-                # Fill default arguments for actual tool calls
-                filled_actual_tool_calls = []
-                for tool_name, args in predicted_args:
-                    # Resolve tool name (handles Anthropic normalized names like "Google_Search" -> "Google.Search")
-                    resolved_name = self._internal_registry.resolve_tool_name(tool_name)
-
-                    # Apply schema defaults from internal registry
-                    args_with_defaults = self._internal_registry.normalize_args(tool_name, args)
-
-                    # Apply Python function defaults if available (use resolved name for lookup)
-                    lookup_name = resolved_name or tool_name
-                    if lookup_name in self._python_tool_func_map:
-                        args_with_defaults = self._fill_args_with_defaults(
-                            self._python_tool_func_map[lookup_name], args_with_defaults
-                        )
-                    filled_actual_tool_calls.append((tool_name, args_with_defaults))
+                # Process tool calls (resolve names, fill defaults)
+                filled_actual_tool_calls = self._process_tool_calls(predicted_args)
 
                 # Evaluate the case
                 evaluation = case.evaluate(filled_actual_tool_calls)
@@ -822,6 +875,8 @@ class EvalSuite(_EvalSuiteConvenienceMixin):
                 tool_calls.append((block.name, block.input))
 
         return tool_calls
+
+    # capture() method is provided by _EvalSuiteCaptureMixin
 
 
 def get_formatted_tools(catalog: "ToolCatalog", tool_format: str = "openai") -> OpenAIToolList:
@@ -906,20 +961,39 @@ def tool_eval() -> Callable[[Callable], Callable]:
             model: str,
             max_concurrency: int = 1,
             provider: ProviderName = "openai",
-        ) -> list[dict[str, Any]]:
+            capture_mode: bool = False,
+            include_context: bool = False,
+        ) -> list[Any]:
+            """
+            Run evaluation or capture mode.
+
+            Returns:
+                In evaluation mode: list[dict[str, Any]] with evaluation results.
+                In capture mode: list[CaptureResult] with captured tool calls.
+            """
             suite = func()
             if not isinstance(suite, EvalSuite):
                 raise TypeError("Eval function must return an EvalSuite")
             suite.max_concurrent = max_concurrency
-            results = []
 
-            if provider == "anthropic":
-                result = await _run_with_anthropic(suite, provider_api_key, model)
+            if capture_mode:
+                # Run in capture mode
+                if provider == "anthropic":
+                    capture_result = await _capture_with_anthropic(
+                        suite, provider_api_key, model, include_context
+                    )
+                else:
+                    capture_result = await _capture_with_openai(
+                        suite, provider_api_key, model, include_context
+                    )
+                return [capture_result]
             else:
-                result = await _run_with_openai(suite, provider_api_key, model)
-
-            results.append(result)
-            return results
+                # Run in evaluation mode
+                if provider == "anthropic":
+                    eval_result = await _run_with_anthropic(suite, provider_api_key, model)
+                else:
+                    eval_result = await _run_with_openai(suite, provider_api_key, model)
+                return [eval_result]
 
         wrapper.__tool_eval__ = True  # type: ignore[attr-defined]
         return wrapper

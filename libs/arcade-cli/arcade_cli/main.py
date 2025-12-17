@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 import subprocess
 import sys
@@ -11,8 +12,6 @@ import typer
 from arcade_core.constants import CREDENTIALS_FILE_PATH, PROD_COORDINATOR_HOST, PROD_ENGINE_HOST
 from arcadepy import Arcade
 from rich.console import Console
-from rich.text import Text
-from tqdm import tqdm
 
 from arcade_cli.authn import (
     OAuthLoginError,
@@ -22,9 +21,7 @@ from arcade_cli.authn import (
     perform_oauth_login,
     save_credentials_from_whoami,
 )
-from arcade_cli.display import (
-    display_eval_results,
-)
+from arcade_cli.evals_runner import run_capture, run_evaluations
 from arcade_cli.org import app as org_app
 from arcade_cli.project import app as project_app
 from arcade_cli.secret import app as secret_app
@@ -34,7 +31,6 @@ from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
     Provider,
     compute_base_url,
-    filter_failed_evaluations,
     get_default_model,
     get_eval_files,
     handle_cli_error,
@@ -436,6 +432,21 @@ def evals(
         "-o",
         help="Write results to a file (plain text format)",
     ),
+    capture: bool = typer.Option(
+        False,
+        "--capture",
+        help="Run in capture mode - record tool calls without evaluation scoring",
+    ),
+    add_context: bool = typer.Option(
+        False,
+        "--add-context",
+        help="Include system_message and additional_messages in capture output",
+    ),
+    capture_file: Optional[str] = typer.Option(
+        None,
+        "--file",
+        help="Write capture results to a JSON file (only used with --capture)",
+    ),
     debug: bool = typer.Option(False, "--debug", help="Show debug information"),
 ) -> None:
     """
@@ -457,6 +468,13 @@ def evals(
         uv_install_command=r"uv pip install arcade-tdk",
         pip_install_command=r"pip install arcade-tdk",
     )
+
+    # Configure logging: suppress verbose SDK logs unless --debug is enabled
+    if not debug:
+        for logger_name in ("openai", "anthropic", "httpx", "httpcore"):
+            logger = logging.getLogger(logger_name)
+            logger.setLevel(logging.WARNING)
+            logger.propagate = False  # Prevent logs from reaching root handler
 
     # Use default model for provider if not specified
     if models is None:
@@ -483,7 +501,10 @@ def evals(
     if not eval_files:
         return
 
-    console.print("\nRunning evaluations", style="bold")
+    if capture:
+        console.print("\nRunning in capture mode", style="bold cyan")
+    else:
+        console.print("\nRunning evaluations", style="bold")
 
     # Use the new function to load eval suites
     eval_suites = load_eval_suites(eval_files)
@@ -492,59 +513,41 @@ def evals(
         console.print("No evaluation suites to run.", style="bold yellow")
         return
 
-    if show_details:
+    if show_details or capture:
         suite_label = "suite" if len(eval_suites) == 1 else "suites"
         console.print(
             f"\nFound {len(eval_suites)} {suite_label} in the evaluation files.",
             style="bold",
         )
 
-    async def run_evaluations() -> None:
-        all_evaluations = []
-        tasks = []
-        for suite_func in eval_suites:
-            console.print(
-                Text.assemble(
-                    ("Running evaluations in ", "bold"),
-                    (suite_func.__name__, "bold blue"),
+    try:
+        if capture:
+            asyncio.run(
+                run_capture(
+                    eval_suites=eval_suites,
+                    models_list=models_list,
+                    provider_api_key=resolved_api_key,
+                    max_concurrent=max_concurrent,
+                    provider=provider.value,
+                    include_context=add_context,
+                    capture_file=capture_file,
+                    console=console,
                 )
             )
-            for model in models_list:
-                task = asyncio.create_task(
-                    suite_func(
-                        provider_api_key=resolved_api_key,
-                        model=model,
-                        max_concurrency=max_concurrent,
-                        provider=provider.value,
-                    )
+        else:
+            asyncio.run(
+                run_evaluations(
+                    eval_suites=eval_suites,
+                    models_list=models_list,
+                    provider_api_key=resolved_api_key,
+                    max_concurrent=max_concurrent,
+                    provider=provider.value,
+                    show_details=show_details,
+                    output_file=output,
+                    failed_only=failed_only,
+                    console=console,
                 )
-                tasks.append(task)
-
-        # Track progress and results as suite functions complete
-        with tqdm(total=len(tasks), desc="Evaluations Progress") as pbar:
-            results = []
-            for f in asyncio.as_completed(tasks):
-                results.append(await f)
-                pbar.update(1)
-
-        # TODO error handling on each eval
-        all_evaluations.extend(results)
-
-        # Filter to show only failed evaluations if requested
-        original_counts = None
-        if failed_only:
-            all_evaluations, original_counts = filter_failed_evaluations(all_evaluations)
-
-        display_eval_results(
-            all_evaluations,
-            show_details=show_details,
-            output_file=output,
-            failed_only=failed_only,
-            original_counts=original_counts,
-        )
-
-    try:
-        asyncio.run(run_evaluations())
+            )
     except Exception as e:
         handle_cli_error("Failed to run evaluations", e, debug)
 

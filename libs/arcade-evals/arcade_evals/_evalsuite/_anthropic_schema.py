@@ -13,22 +13,7 @@ from __future__ import annotations
 
 from typing import Any
 
-
-def _normalize_tool_name(name: str) -> str:
-    """
-    Normalize tool name for Anthropic API compatibility.
-
-    Anthropic tool names must match pattern: ^[a-zA-Z0-9_-]{1,64}$
-    This means dots (.) are not allowed, but underscores (_) and hyphens (-) are fine.
-
-    Args:
-        name: The original tool name (may contain dots from namespacing)
-
-    Returns:
-        Normalized name with dots replaced by underscores
-    """
-    # Replace dots with underscores (consistent with arcade_core/converters/anthropic.py)
-    return name.replace(".", "_")
+from arcade_core.converters.utils import normalize_tool_name as _normalize_tool_name
 
 
 def convert_mcp_to_anthropic_tool(mcp_tool: dict[str, Any]) -> dict[str, Any]:

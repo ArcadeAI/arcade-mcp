@@ -457,9 +457,9 @@ class TestEdgeCases:
         ]
         normalized = normalize_fuzzy_weights(critics)
 
-        # All zero -> equal distribution
-        assert normalized[0] == pytest.approx(0.5)
-        assert normalized[1] == pytest.approx(0.5)
+        # All zero -> return zeros (no scoring should occur)
+        assert normalized[0] == 0.0
+        assert normalized[1] == 0.0
 
     def test_large_float_weights(self) -> None:
         """Test that large float weights are handled correctly."""

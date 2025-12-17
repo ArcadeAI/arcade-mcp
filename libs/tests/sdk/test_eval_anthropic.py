@@ -388,6 +388,33 @@ class TestConvertMessagesToAnthropicHelper:
         assert tool_use["name"] == "search"
         assert tool_use["input"] == {}  # Falls back to empty dict
 
+    def test_malformed_tool_calls_missing_function_key(self) -> None:
+        """Test that tool_calls with missing 'function' key are skipped gracefully."""
+        messages = [
+            {
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [
+                    {"id": "call_1"},  # Missing 'function' key
+                    {"id": "call_2", "function": None},  # None function
+                    {
+                        "id": "call_3",
+                        "function": {"name": "valid_tool", "arguments": "{}"},
+                    },  # Valid
+                ],
+            }
+        ]
+        result = convert_messages_to_anthropic(messages)
+
+        # Should have one message with only the valid tool_use
+        assert len(result) == 1
+        assert result[0]["role"] == "assistant"
+        # Only the valid tool should be included
+        assert len(result[0]["content"]) == 1
+        tool_use = result[0]["content"][0]
+        assert tool_use["type"] == "tool_use"
+        assert tool_use["name"] == "valid_tool"
+
     def test_empty_arguments_string_in_tool_calls(self) -> None:
         """Test that empty arguments string is handled correctly."""
         messages = [
@@ -960,3 +987,158 @@ class TestCompareToolName:
         actual_name = "Google_Search"  # As returned by Anthropic
 
         assert compare_tool_name(expected_name, actual_name) is True
+
+
+class TestProcessToolCallsNameResolution:
+    """Tests for EvalSuite._process_tool_calls tool name resolution."""
+
+    def test_process_tool_calls_resolves_anthropic_names(self) -> None:
+        """Test that Anthropic underscore names are resolved to dot names."""
+        suite = EvalSuite(name="test", system_message="test")
+        suite.add_tool_definitions([
+            {"name": "Google.Search", "description": "Search", "inputSchema": {}}
+        ])
+
+        # Simulate Anthropic returning underscore name
+        tool_calls = [("Google_Search", {"query": "test"})]
+        processed = suite._process_tool_calls(tool_calls)
+
+        # Should resolve to original dot name
+        assert processed[0][0] == "Google.Search"
+
+    def test_process_tool_calls_preserves_original_names(self) -> None:
+        """Test that original names are preserved when no resolution needed."""
+        suite = EvalSuite(name="test", system_message="test")
+        suite.add_tool_definitions([
+            {"name": "simple_tool", "description": "Test", "inputSchema": {}}
+        ])
+
+        tool_calls = [("simple_tool", {"arg": "value"})]
+        processed = suite._process_tool_calls(tool_calls)
+
+        assert processed[0][0] == "simple_tool"
+
+    def test_process_tool_calls_handles_unknown_tools(self) -> None:
+        """Test that unknown tools keep their original names."""
+        suite = EvalSuite(name="test", system_message="test")
+        suite.add_tool_definitions([
+            {"name": "Google.Search", "description": "Search", "inputSchema": {}}
+        ])
+
+        # Tool not in registry
+        tool_calls = [("Unknown_Tool", {"arg": "value"})]
+        processed = suite._process_tool_calls(tool_calls)
+
+        # Should keep original name since not found
+        assert processed[0][0] == "Unknown_Tool"
+
+    def test_process_tool_calls_handles_complex_namespaces(self) -> None:
+        """Test resolution of complex namespaced tools."""
+        suite = EvalSuite(name="test", system_message="test")
+        suite.add_tool_definitions([
+            {"name": "Slack.Channel.Create", "description": "Create channel", "inputSchema": {}}
+        ])
+
+        # Anthropic format with underscores
+        tool_calls = [("Slack_Channel_Create", {"name": "general"})]
+        processed = suite._process_tool_calls(tool_calls)
+
+        assert processed[0][0] == "Slack.Channel.Create"
+
+
+class TestAnthropicEndToEndWorkflow:
+    """End-to-end tests for Anthropic evaluation workflow."""
+
+    @pytest.mark.asyncio
+    async def test_anthropic_evaluation_with_name_resolution(self) -> None:
+        """Test complete evaluation flow with Anthropic name conversion."""
+        from arcade_evals import BinaryCritic, ExpectedMCPToolCall
+
+        suite = EvalSuite(name="E2E Test", system_message="You are a helpful assistant")
+        suite.add_tool_definitions([
+            {
+                "name": "Google.Search",
+                "description": "Search the web",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {"query": {"type": "string"}},
+                    "required": ["query"],
+                },
+            }
+        ])
+
+        suite.add_case(
+            name="search test",
+            user_message="Search for cats",
+            expected_tool_calls=[
+                ExpectedMCPToolCall(tool_name="Google.Search", args={"query": "cats"})
+            ],
+            critics=[BinaryCritic(critic_field="query", weight=1.0)],
+        )
+
+        # Mock Anthropic client that returns underscore name
+        mock_client = AsyncMock()
+        mock_tool_block = MagicMock()
+        mock_tool_block.type = "tool_use"
+        mock_tool_block.name = "Google_Search"  # Anthropic returns underscore
+        mock_tool_block.input = {"query": "cats"}
+
+        mock_response = MagicMock()
+        mock_response.content = [mock_tool_block]
+        mock_client.messages.create = AsyncMock(return_value=mock_response)
+
+        result = await suite.run(mock_client, "claude-3", provider="anthropic")
+
+        # Evaluation should pass - name resolution should work
+        assert result["cases"][0]["evaluation"].passed
+
+    @pytest.mark.asyncio
+    async def test_anthropic_evaluation_partial_match(self) -> None:
+        """Test Anthropic evaluation with partial argument matching."""
+        from arcade_evals import BinaryCritic, ExpectedMCPToolCall
+
+        suite = EvalSuite(name="Partial Match", system_message="Helper")
+        suite.add_tool_definitions([
+            {
+                "name": "Weather.GetForecast",
+                "description": "Get weather forecast",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {"location": {"type": "string"}, "days": {"type": "integer"}},
+                    "required": ["location"],
+                },
+            }
+        ])
+
+        suite.add_case(
+            name="weather test",
+            user_message="Weather in Paris",
+            expected_tool_calls=[
+                ExpectedMCPToolCall(
+                    tool_name="Weather.GetForecast", args={"location": "Paris", "days": 5}
+                )
+            ],
+            critics=[
+                BinaryCritic(critic_field="location", weight=0.8),
+                BinaryCritic(critic_field="days", weight=0.2),
+            ],
+        )
+
+        mock_client = AsyncMock()
+        mock_tool_block = MagicMock()
+        mock_tool_block.type = "tool_use"
+        mock_tool_block.name = "Weather_GetForecast"
+        mock_tool_block.input = {"location": "Paris", "days": 7}  # Wrong days
+
+        mock_response = MagicMock()
+        mock_response.content = [mock_tool_block]
+        mock_client.messages.create = AsyncMock(return_value=mock_response)
+
+        result = await suite.run(mock_client, "claude-3", provider="anthropic")
+
+        # Should have partial score - tool selection is correct, args partially match
+        eval_result = result["cases"][0]["evaluation"]
+        # The score includes tool_selection weight (default 0.1) plus critic scores
+        # Since location matches and days doesn't, we get partial scoring
+        assert eval_result.score > 0.5  # Better than random
+        assert eval_result.score < 1.0  # Not perfect

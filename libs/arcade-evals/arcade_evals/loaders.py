@@ -209,8 +209,10 @@ class OfficialMCPToolLoader(MCPToolLoaderBase):
         timeout: int = 10,
         use_sse: bool = False,
     ) -> list[dict[str, Any]]:
-        _ = timeout  # SDK manages timeouts internally
-        _ = use_sse  # SDK uses SSE transport
+        # Note: The official MCP SDK manages timeouts internally, so the timeout
+        # parameter is not used here. Consider using the internal backend
+        # (set_mcp_loader_backend("internal")) if you need custom timeout control.
+        del timeout, use_sse  # SDK manages these internally
 
         ClientSession, _, _, sse_client = _require_mcp()
         url = _ensure_mcp_path(url)
@@ -312,6 +314,11 @@ def _internal_load_from_stdio_sync(
                 )
                 return []
 
+        # stdin/stdout not available
+        logger.warning(
+            "MCP stdio process for command %s did not provide stdin/stdout handles.",
+            " ".join(command),
+        )
         return []
     finally:
         with suppress(OSError, subprocess.TimeoutExpired):
@@ -356,6 +363,11 @@ def _internal_load_from_http_sync(
                             return cast(list[dict[str, Any]], data["result"]["tools"])
                     except json.JSONDecodeError:
                         continue
+        # SSE stream completed without finding tools
+        logger.warning(
+            "MCP SSE stream from %s completed but no 'result.tools' found in events.",
+            url,
+        )
         return []
 
     if "Accept" not in request_headers:
@@ -372,6 +384,13 @@ def _internal_load_from_http_sync(
         data = response.json()
         if "result" in data and "tools" in data["result"]:
             return cast(list[dict[str, Any]], data["result"]["tools"])
+        # Response was valid JSON but missing expected fields
+        logger.warning(
+            "MCP server at %s returned unexpected response format: missing 'result.tools'. "
+            "Response keys: %s",
+            url,
+            list(data.keys()),
+        )
     except httpx.HTTPStatusError as e:
         if e.response.status_code == 406 and "text/event-stream" in e.response.text:
             return _internal_load_from_http_sync(
@@ -382,7 +401,27 @@ def _internal_load_from_http_sync(
             return _internal_load_with_session_sync(
                 url=url, headers=request_headers, timeout=timeout
             )
+        logger.warning(
+            "HTTP error loading tools from MCP server at %s: %s %s",
+            url,
+            e.response.status_code,
+            e.response.reason_phrase,
+        )
         raise
+    except httpx.ConnectError as e:
+        logger.warning(
+            "Failed to connect to MCP server at %s: %s. "
+            "Ensure the server is running and accessible.",
+            url,
+            e,
+        )
+    except httpx.TimeoutException:
+        logger.warning(
+            "Timeout loading tools from MCP server at %s after %ds. "
+            "Try increasing the timeout parameter.",
+            url,
+            timeout,
+        )
 
     return []
 

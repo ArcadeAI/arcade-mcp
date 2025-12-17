@@ -40,7 +40,7 @@ class FuzzyWeight(Enum):
         ...     BinaryCritic(critic_field="owner", weight=FuzzyWeight.HIGH),
         ...     BinaryCritic(critic_field="state", weight=FuzzyWeight.LOW),
         ... ]
-        # HIGH gets ~71% weight, LOW gets ~29% weight
+        # HIGH (5) gets 62.5% weight, LOW (3) gets 37.5% weight
 
     Weight Buckets (linear scale, uniform increment of 1):
         - MINIMAL: 1 - Almost negligible, rarely affects outcome
@@ -88,7 +88,7 @@ def normalize_fuzzy_weights(critics: list["Critic"]) -> list[float]:
         ...     BinaryCritic("b", FuzzyWeight.LOW),
         ... ]
         >>> normalize_fuzzy_weights(critics)
-        [0.75, 0.25]  # HIGH (3.0) / (3.0 + 1.0), LOW (1.0) / (3.0 + 1.0)
+        [0.625, 0.375]  # HIGH (5) / (5 + 3), LOW (3) / (5 + 3)
     """
     if not critics:
         return []
@@ -105,9 +105,8 @@ def normalize_fuzzy_weights(critics: list["Critic"]) -> list[float]:
     total = sum(raw_weights)
     if total <= 0:
         # Edge case: all weights are zero or negative
-        # Return equal distribution
-        equal_weight = 1.0 / len(critics)
-        return [equal_weight] * len(critics)
+        # Return zeros to indicate no scoring should occur
+        return [0.0] * len(critics)
 
     # Normalize weights (simple division by sum)
     return [w / total for w in raw_weights]
