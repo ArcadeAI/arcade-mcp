@@ -57,6 +57,49 @@ class CapturedCase:
     system_message: str | None = None
     additional_messages: list[dict[str, Any]] | None = None
 
+    @staticmethod
+    def _try_parse_json(value: str) -> Any:
+        """Try to parse a JSON string, returning the original string if parsing fails."""
+        try:
+            return json.loads(value)
+        except json.JSONDecodeError:
+            return value
+
+    @staticmethod
+    def _normalize_messages(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """
+        Normalize additional_messages by parsing JSON strings into proper objects.
+
+        OpenAI returns:
+        - Tool call arguments as JSON strings in assistant messages
+        - Tool response content as JSON strings in tool messages
+
+        For cleaner output, we parse these into proper objects.
+        """
+        normalized = []
+        for msg in messages:
+            msg_copy = dict(msg)
+
+            # Parse tool call arguments in assistant messages
+            if "tool_calls" in msg_copy and isinstance(msg_copy["tool_calls"], list):
+                normalized_tool_calls = []
+                for tc in msg_copy["tool_calls"]:
+                    tc_copy = dict(tc)
+                    if "function" in tc_copy and isinstance(tc_copy["function"], dict):
+                        func = dict(tc_copy["function"])
+                        if "arguments" in func and isinstance(func["arguments"], str):
+                            func["arguments"] = CapturedCase._try_parse_json(func["arguments"])
+                        tc_copy["function"] = func
+                    normalized_tool_calls.append(tc_copy)
+                msg_copy["tool_calls"] = normalized_tool_calls
+
+            # Parse content in tool response messages
+            if msg_copy.get("role") == "tool" and isinstance(msg_copy.get("content"), str):
+                msg_copy["content"] = CapturedCase._try_parse_json(msg_copy["content"])
+
+            normalized.append(msg_copy)
+        return normalized
+
     def to_dict(self, include_context: bool = False) -> dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         result: dict[str, Any] = {
@@ -66,7 +109,9 @@ class CapturedCase:
         }
         if include_context:
             result["system_message"] = self.system_message
-            result["additional_messages"] = self.additional_messages or []
+            # Normalize additional_messages to parse JSON string arguments
+            raw_messages = self.additional_messages or []
+            result["additional_messages"] = self._normalize_messages(raw_messages)
         return result
 
 

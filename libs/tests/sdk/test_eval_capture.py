@@ -129,6 +129,144 @@ class TestCapturedCase:
         result = case.to_dict(include_context=True)
         assert result["additional_messages"] == []
 
+    def test_to_dict_normalizes_json_string_arguments(self):
+        """Test that JSON string arguments in additional_messages are parsed into objects."""
+        # This simulates OpenAI's format where arguments is a JSON string
+        additional_messages = [
+            {"role": "user", "content": "List projects"},
+            {
+                "role": "assistant",
+                "content": "",
+                "tool_calls": [
+                    {
+                        "id": "call_123",
+                        "type": "function",
+                        "function": {
+                            "name": "Linear_ListProjects",
+                            "arguments": '{"state": "started"}',  # JSON string
+                        },
+                    }
+                ],
+            },
+            {
+                "role": "tool",
+                "content": '{"projects": []}',
+                "tool_call_id": "call_123",
+            },
+        ]
+
+        case = CapturedCase(
+            case_name="test_case",
+            user_message="Hello",
+            tool_calls=[],
+            system_message="Sys",
+            additional_messages=additional_messages,
+        )
+        result = case.to_dict(include_context=True)
+
+        # Arguments should be parsed into an object, not a string
+        assistant_msg = result["additional_messages"][1]
+        assert assistant_msg["tool_calls"][0]["function"]["arguments"] == {"state": "started"}
+
+    def test_to_dict_handles_invalid_json_arguments(self):
+        """Test that invalid JSON arguments are kept as strings."""
+        additional_messages = [
+            {
+                "role": "assistant",
+                "content": "",
+                "tool_calls": [
+                    {
+                        "id": "call_123",
+                        "type": "function",
+                        "function": {
+                            "name": "SomeTool",
+                            "arguments": "not valid json {",  # Invalid JSON
+                        },
+                    }
+                ],
+            },
+        ]
+
+        case = CapturedCase(
+            case_name="test_case",
+            user_message="Hello",
+            tool_calls=[],
+            system_message="Sys",
+            additional_messages=additional_messages,
+        )
+        result = case.to_dict(include_context=True)
+
+        # Invalid JSON should remain as string
+        assistant_msg = result["additional_messages"][0]
+        assert assistant_msg["tool_calls"][0]["function"]["arguments"] == "not valid json {"
+
+    def test_to_dict_normalizes_tool_response_content(self):
+        """Test that JSON content in tool response messages is parsed into objects."""
+        additional_messages = [
+            {"role": "user", "content": "Get the initiative"},
+            {
+                "role": "assistant",
+                "content": "",
+                "tool_calls": [
+                    {
+                        "id": "call_get_init",
+                        "type": "function",
+                        "function": {
+                            "name": "Linear_GetInitiative",
+                            "arguments": '{"id": "init_123"}',
+                        },
+                    }
+                ],
+            },
+            {
+                "role": "tool",
+                "content": '{"id": "init_123", "name": "Q1 Goals", "status": "Planned"}',
+                "tool_call_id": "call_get_init",
+                "name": "Linear_GetInitiative",
+            },
+        ]
+
+        case = CapturedCase(
+            case_name="test_case",
+            user_message="Hello",
+            tool_calls=[],
+            system_message="Sys",
+            additional_messages=additional_messages,
+        )
+        result = case.to_dict(include_context=True)
+
+        # Tool call arguments should be parsed
+        assistant_msg = result["additional_messages"][1]
+        assert assistant_msg["tool_calls"][0]["function"]["arguments"] == {"id": "init_123"}
+
+        # Tool response content should be parsed
+        tool_msg = result["additional_messages"][2]
+        assert tool_msg["content"] == {"id": "init_123", "name": "Q1 Goals", "status": "Planned"}
+
+    def test_to_dict_keeps_non_json_tool_content_as_string(self):
+        """Test that non-JSON tool content is kept as string."""
+        additional_messages = [
+            {
+                "role": "tool",
+                "content": "Error: Tool not found",  # Plain text, not JSON
+                "tool_call_id": "call_123",
+                "name": "SomeTool",
+            },
+        ]
+
+        case = CapturedCase(
+            case_name="test_case",
+            user_message="Hello",
+            tool_calls=[],
+            system_message="Sys",
+            additional_messages=additional_messages,
+        )
+        result = case.to_dict(include_context=True)
+
+        # Non-JSON content should remain as string
+        tool_msg = result["additional_messages"][0]
+        assert tool_msg["content"] == "Error: Tool not found"
+
     def test_empty_tool_calls(self):
         """Test case with no tool calls."""
         case = CapturedCase(

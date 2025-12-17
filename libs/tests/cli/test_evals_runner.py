@@ -219,17 +219,24 @@ class TestRunEvaluationsErrorHandling:
         console = MagicMock()
 
         with patch("arcade_cli.evals_runner.display_eval_results"):
-            await run_evaluations(
-                eval_suites=[successful_suite, failing_suite],
-                models_list=["gpt-4o"],
-                provider_api_key="test",
-                max_concurrent=1,
-                provider="openai",
-                show_details=False,
-                output_file=None,
-                failed_only=False,
-                console=console,
-            )
+            with patch("arcade_cli.evals_runner.Progress") as mock_progress:
+                # Mock Progress context manager
+                mock_progress.return_value.__enter__ = MagicMock(return_value=mock_progress)
+                mock_progress.return_value.__exit__ = MagicMock(return_value=None)
+                mock_progress.add_task = MagicMock(return_value=0)
+                mock_progress.update = MagicMock()
+
+                await run_evaluations(
+                    eval_suites=[successful_suite, failing_suite],
+                    models_list=["gpt-4o"],
+                    provider_api_key="test",
+                    max_concurrent=1,
+                    provider="openai",
+                    show_details=False,
+                    output_file=None,
+                    failed_only=False,
+                    console=console,
+                )
 
         # Verify both were attempted
         successful_suite.assert_called_once()
@@ -324,17 +331,24 @@ class TestRunEvaluationsErrorHandling:
         console = MagicMock()
 
         with patch("arcade_cli.evals_runner.display_eval_results"):
-            await run_evaluations(
-                eval_suites=[mock_suite],
-                models_list=["gpt-4o", "bad-model"],
-                provider_api_key="test",
-                max_concurrent=1,
-                provider="openai",
-                show_details=False,
-                output_file=None,
-                failed_only=False,
-                console=console,
-            )
+            with patch("arcade_cli.evals_runner.Progress") as mock_progress:
+                # Mock Progress context manager
+                mock_progress.return_value.__enter__ = MagicMock(return_value=mock_progress)
+                mock_progress.return_value.__exit__ = MagicMock(return_value=None)
+                mock_progress.add_task = MagicMock(return_value=0)
+                mock_progress.update = MagicMock()
+
+                await run_evaluations(
+                    eval_suites=[mock_suite],
+                    models_list=["gpt-4o", "bad-model"],
+                    provider_api_key="test",
+                    max_concurrent=1,
+                    provider="openai",
+                    show_details=False,
+                    output_file=None,
+                    failed_only=False,
+                    console=console,
+                )
 
         # Should have been called twice
         assert mock_suite.call_count == 2
@@ -382,16 +396,23 @@ class TestRunCaptureErrorHandling:
 
         console = MagicMock()
 
-        await run_capture(
-            eval_suites=[successful_suite, failing_suite],
-            models_list=["gpt-4o"],
-            provider_api_key="test",
-            max_concurrent=1,
-            provider="openai",
-            include_context=False,
-            capture_file=None,
-            console=console,
-        )
+        with patch("arcade_cli.evals_runner.Progress") as mock_progress:
+            # Mock Progress context manager
+            mock_progress.return_value.__enter__ = MagicMock(return_value=mock_progress)
+            mock_progress.return_value.__exit__ = MagicMock(return_value=None)
+            mock_progress.add_task = MagicMock(return_value=0)
+            mock_progress.update = MagicMock()
+
+            await run_capture(
+                eval_suites=[successful_suite, failing_suite],
+                models_list=["gpt-4o"],
+                provider_api_key="test",
+                max_concurrent=1,
+                provider="openai",
+                include_context=False,
+                capture_file=None,
+                console=console,
+            )
 
         # Both should have been attempted
         successful_suite.assert_called_once()

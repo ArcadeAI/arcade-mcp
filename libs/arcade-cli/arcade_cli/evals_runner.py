@@ -14,8 +14,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Callable
 
 from rich.console import Console
+from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn
 from rich.text import Text
-from tqdm import tqdm
 
 from arcade_cli.display import display_eval_results
 from arcade_cli.utils import filter_failed_evaluations
@@ -212,13 +212,21 @@ async def run_evaluations(
             )
             tasks.append(task)
 
-    # Track progress
+    # Track progress with Rich progress bar (compatible with Rich console)
     task_results: list[EvalTaskResult] = []
-    with tqdm(total=len(tasks), desc="Evaluations Progress") as pbar:
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        TaskProgressColumn(),
+        console=console,
+        transient=False,
+    ) as progress:
+        task_id = progress.add_task("Evaluations Progress", total=len(tasks))
         for f in asyncio.as_completed(tasks):
             result = await f
             task_results.append(result)
-            pbar.update(1)
+            progress.update(task_id, advance=1)
 
     # Separate successes and failures
     successful = [r for r in task_results if r.success]
@@ -305,13 +313,21 @@ async def run_capture(
             )
             tasks.append(task)
 
-    # Track progress
+    # Track progress with Rich progress bar (compatible with Rich console)
     task_results: list[CaptureTaskResult] = []
-    with tqdm(total=len(tasks), desc="Capture Progress") as pbar:
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        TaskProgressColumn(),
+        console=console,
+        transient=False,
+    ) as progress:
+        task_id = progress.add_task("Capture Progress", total=len(tasks))
         for f in asyncio.as_completed(tasks):
             result = await f
             task_results.append(result)
-            pbar.update(1)
+            progress.update(task_id, advance=1)
 
     # Separate successes and failures
     successful = [r for r in task_results if r.success]
