@@ -649,6 +649,53 @@ class TestToolNameResolution:
         assert result["title"] == "Meeting"
         assert result["duration"] == 30
 
+    def test_normalize_args_replaces_null_with_default(self):
+        """Test normalize_args replaces null (None) values with defaults.
+
+        OpenAI strict mode sends null for optional parameters that weren't provided.
+        This test verifies that null values are replaced with schema defaults.
+        """
+        registry = EvalSuiteToolRegistry()
+        registry.add_tool({
+            "name": "Search",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string"},
+                    "limit": {"type": "integer", "default": 10},
+                    "offset": {"type": "integer", "default": 0},
+                },
+            },
+        })
+
+        # OpenAI strict mode might send null for optional params
+        result = registry.normalize_args("Search", {"query": "test", "limit": None, "offset": None})
+
+        # Null values should be replaced with defaults
+        assert result["query"] == "test"
+        assert result["limit"] == 10
+        assert result["offset"] == 0
+
+    def test_normalize_args_preserves_explicit_values(self):
+        """Test normalize_args preserves explicitly set values (non-null)."""
+        registry = EvalSuiteToolRegistry()
+        registry.add_tool({
+            "name": "Search",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string"},
+                    "limit": {"type": "integer", "default": 10},
+                },
+            },
+        })
+
+        # Explicit value should be preserved
+        result = registry.normalize_args("Search", {"query": "test", "limit": 50})
+
+        assert result["query"] == "test"
+        assert result["limit"] == 50  # Not replaced with default
+
     def test_multiple_dots_in_name(self):
         """Test tools with multiple dots in name."""
         registry = EvalSuiteToolRegistry()

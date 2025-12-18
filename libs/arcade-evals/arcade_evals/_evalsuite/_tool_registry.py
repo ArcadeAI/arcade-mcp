@@ -81,11 +81,24 @@ class EvalSuiteToolRegistry:
             )
         self._tools[name] = dict(tool_descriptor)
 
-        # Build normalized name mapping for Anthropic lookups
+        # Build normalized name mapping for Anthropic/OpenAI lookups
         # e.g., "Google.Search" -> normalized key "Google_Search"
         normalized_name = normalize_tool_name(name)
         if normalized_name != name:
-            self._normalized_to_original[normalized_name] = name
+            # Check for collision: if the normalized name already exists as a direct tool
+            # (e.g., registering "Google.Search" when "Google_Search" already exists),
+            # the normalized lookup would be ambiguous
+            if normalized_name in self._tools:
+                # The underscore version is registered directly, so normalized lookups
+                # should prefer that. Don't add to mapping to avoid ambiguity.
+                pass
+            elif normalized_name in self._normalized_to_original:
+                # Another dotted tool already maps to this normalized name
+                # e.g., "A.B" and "A_B" (as "A.B") would both normalize to "A_B"
+                # Keep the first mapping to avoid silent overwrites
+                pass
+            else:
+                self._normalized_to_original[normalized_name] = name
 
     def add_tools(self, tools: list[MCPToolDefinition] | list[dict[str, Any]]) -> None:
         for tool in tools:
@@ -155,6 +168,15 @@ class EvalSuiteToolRegistry:
         return None
 
     def normalize_args(self, tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
+        """Apply schema defaults to arguments.
+
+        Fills in default values from the tool schema for:
+        - Missing parameters (key not in args)
+        - Null parameters (value is None), which OpenAI strict mode sends for optional params
+
+        This ensures that optional parameters with defaults are properly filled
+        even when the model sends null values.
+        """
         resolved_name = self._resolve_tool_name(tool_name)
         tool = self._tools.get(resolved_name) if resolved_name else None
         if not tool:
@@ -170,11 +192,14 @@ class EvalSuiteToolRegistry:
 
         normalized = dict(args)
         for prop_name, prop_schema in properties.items():
-            if (
-                prop_name not in normalized
-                and isinstance(prop_schema, dict)
+            # Apply default if parameter is missing OR if it's null (None)
+            # OpenAI strict mode sends null for optional parameters that weren't provided
+            should_apply_default = (
+                isinstance(prop_schema, dict)
                 and "default" in prop_schema
-            ):
+                and (prop_name not in normalized or normalized[prop_name] is None)
+            )
+            if should_apply_default:
                 normalized[prop_name] = prop_schema["default"]
         return normalized
 
