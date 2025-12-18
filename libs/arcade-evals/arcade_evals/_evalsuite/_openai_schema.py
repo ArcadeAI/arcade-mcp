@@ -74,6 +74,7 @@ def _apply_strict_mode_recursive(schema: dict[str, Any], *, depth: int = 0) -> d
         schema.pop(keyword, None)
 
     # Convert enum values to strings for consistency
+    # OpenAI strict mode expects string enum values
     if "enum" in schema:
         schema["enum"] = [str(v) for v in schema["enum"]]
 

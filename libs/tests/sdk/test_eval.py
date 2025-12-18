@@ -56,6 +56,71 @@ def test_evaluation_result_accumulation():
     assert evaluation.score == expected_score
 
 
+class TestEvaluationResultProperties:
+    """Tests for EvaluationResult.passed, .fail, and .warn properties."""
+
+    def test_passed_true_no_warning(self):
+        """Test .passed=True, .fail=False, .warn=False for passing evaluation."""
+        evaluation = EvaluationResult()
+        evaluation.passed = True
+        evaluation.warning = False
+
+        assert evaluation.passed is True
+        assert evaluation.fail is False
+        assert evaluation.warn is False
+
+    def test_passed_true_with_warning(self):
+        """Test .passed=True, .fail=False, .warn=True for passing with warning."""
+        evaluation = EvaluationResult()
+        evaluation.passed = True
+        evaluation.warning = True
+
+        assert evaluation.passed is True
+        assert evaluation.fail is False
+        assert evaluation.warn is True
+
+    def test_not_passed_with_warning(self):
+        """Test that warning=True does NOT classify as fail."""
+        evaluation = EvaluationResult()
+        evaluation.passed = False
+        evaluation.warning = True
+
+        # This is the key case: warning should NOT be a fail
+        assert evaluation.passed is False
+        assert evaluation.fail is False  # Not passed but warning, so not a fail
+        assert evaluation.warn is True
+
+    def test_not_passed_no_warning_is_fail(self):
+        """Test .passed=False, .warning=False means it's a real fail."""
+        evaluation = EvaluationResult()
+        evaluation.passed = False
+        evaluation.warning = False
+
+        assert evaluation.passed is False
+        assert evaluation.fail is True
+        assert evaluation.warn is False
+
+    def test_fail_property_distinguishes_warnings_from_failures(self):
+        """Test that the fail property correctly excludes warnings from failures."""
+        # Case 1: Passed - not a fail
+        passed_eval = EvaluationResult()
+        passed_eval.passed = True
+        passed_eval.warning = False
+        assert passed_eval.fail is False
+
+        # Case 2: Warning (not passed but warning set) - not a fail
+        warning_eval = EvaluationResult()
+        warning_eval.passed = False
+        warning_eval.warning = True
+        assert warning_eval.fail is False
+
+        # Case 3: Actual failure (not passed and not warning) - is a fail
+        failed_eval = EvaluationResult()
+        failed_eval.passed = False
+        failed_eval.warning = False
+        assert failed_eval.fail is True
+
+
 # Test EvalCase.evaluate()
 def test_eval_case_evaluate():
     """

@@ -19,7 +19,9 @@ import importlib
 import json
 import logging
 import os
+import queue
 import subprocess
+import threading
 import uuid
 from abc import ABC, abstractmethod
 from contextlib import suppress
@@ -252,13 +254,45 @@ class OfficialMCPToolLoader(MCPToolLoaderBase):
 # =============================================================================
 
 
+def _readline_with_timeout(stream: Any, timeout: float) -> str | None:
+    """Read a line from stream with timeout using threading.
+
+    Args:
+        stream: File-like object with readline() method.
+        timeout: Maximum seconds to wait for a line.
+
+    Returns:
+        The line read, or None if timeout occurred.
+    """
+    result_queue: queue.Queue[str | None] = queue.Queue()
+
+    def reader() -> None:
+        try:
+            line = stream.readline()
+            result_queue.put(line)
+        except Exception:
+            result_queue.put(None)
+
+    thread = threading.Thread(target=reader, daemon=True)
+    thread.start()
+
+    try:
+        return result_queue.get(timeout=timeout)
+    except queue.Empty:
+        return None
+
+
 def _internal_load_from_stdio_sync(
     command: list[str],
     *,
     timeout: int = 10,
     env: dict[str, str] | None = None,
 ) -> list[dict[str, Any]]:
-    """Internal: subprocess JSON-RPC handshake over stdio."""
+    """Internal: subprocess JSON-RPC handshake over stdio.
+
+    Note: Uses threading-based timeout for readline operations to prevent
+    hanging indefinitely on non-responsive MCP servers.
+    """
     if not command:
         return []
 
@@ -290,7 +324,15 @@ def _internal_load_from_stdio_sync(
         if process.stdin and process.stdout:
             process.stdin.write(json.dumps(init_req) + "\n")
             process.stdin.flush()
-            process.stdout.readline()  # init response
+
+            # Read init response with timeout
+            init_response = _readline_with_timeout(process.stdout, timeout)
+            if init_response is None:
+                logger.warning(
+                    "MCP stdio process for command %s timed out waiting for init response.",
+                    " ".join(command),
+                )
+                return []
 
             process.stdin.write(
                 json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"}) + "\n"
@@ -302,8 +344,17 @@ def _internal_load_from_stdio_sync(
             )
             process.stdin.flush()
 
+            # Read tools/list response with timeout
+            tools_response = _readline_with_timeout(process.stdout, timeout)
+            if tools_response is None:
+                logger.warning(
+                    "MCP stdio process for command %s timed out waiting for tools/list response.",
+                    " ".join(command),
+                )
+                return []
+
             try:
-                response = json.loads(process.stdout.readline())
+                response = json.loads(tools_response)
                 if "result" in response and "tools" in response["result"]:
                     return cast(list[dict[str, Any]], response["result"]["tools"])
             except json.JSONDecodeError as e:

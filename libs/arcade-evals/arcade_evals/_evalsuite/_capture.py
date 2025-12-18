@@ -29,15 +29,18 @@ class _EvalSuiteCaptureMixin:
     # These methods are defined in EvalSuite
     async def _run_openai(
         self, client: Any, model: str, case: EvalCase
-    ) -> list[tuple[str, dict[str, Any]]]: ...
+    ) -> list[tuple[str, dict[str, Any]]]:
+        raise NotImplementedError  # Implemented in EvalSuite
 
     async def _run_anthropic(
         self, client: Any, model: str, case: EvalCase
-    ) -> list[tuple[str, dict[str, Any]]]: ...
+    ) -> list[tuple[str, dict[str, Any]]]:
+        raise NotImplementedError  # Implemented in EvalSuite
 
     def _process_tool_calls(
         self, tool_calls: list[tuple[str, dict[str, Any]]]
-    ) -> list[tuple[str, dict[str, Any]]]: ...
+    ) -> list[tuple[str, dict[str, Any]]]:
+        raise NotImplementedError  # Implemented in EvalSuite
 
     async def capture(
         self,

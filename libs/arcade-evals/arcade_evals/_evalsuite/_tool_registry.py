@@ -100,17 +100,25 @@ class EvalSuiteToolRegistry:
             raise ValueError(f"Tool format '{tool_format}' is not supported")
 
     def _to_openai_format(self) -> list[dict[str, Any]]:
-        """Convert stored MCP tools to OpenAI function calling format."""
+        """Convert stored MCP tools to OpenAI function calling format.
+
+        Note: Tool names are normalized (dots replaced with underscores) because
+        OpenAI function names don't allow dots.
+        """
         openai_tools: list[dict[str, Any]] = []
         for tool in self._tools.values():
             parameters = tool.get("inputSchema", {"type": "object", "properties": {}})
             if self._strict_mode and isinstance(parameters, dict):
                 parameters = convert_to_strict_mode_schema(parameters)
 
+            # Normalize tool name for OpenAI (e.g., "Google.Search" -> "Google_Search")
+            # OpenAI function names don't allow dots
+            tool_name = normalize_tool_name(tool["name"])
+
             openai_tool: dict[str, Any] = {
                 "type": "function",
                 "function": {
-                    "name": tool["name"],
+                    "name": tool_name,
                     "description": tool.get("description", ""),
                     "parameters": parameters,
                 },

@@ -147,8 +147,8 @@ class EvaluationResult:
 
     @property
     def fail(self) -> bool:
-        """Returns True if the evaluation failed."""
-        return not self.passed
+        """Returns True if the evaluation failed (excluding warnings)."""
+        return not self.passed and not self.warning
 
     @property
     def warn(self) -> bool:

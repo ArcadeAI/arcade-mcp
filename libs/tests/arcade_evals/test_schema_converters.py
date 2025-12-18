@@ -450,6 +450,53 @@ class TestToolRegistryAnthropicFormat:
         assert tools[0]["name"] == "Google_Gmail_Send"
 
 
+class TestToolRegistryOpenAINameNormalization:
+    """Tests for OpenAI format tool name normalization."""
+
+    def test_openai_format_normalizes_tool_names(self):
+        """Test that OpenAI format normalizes tool names (dots to underscores).
+
+        OpenAI function names don't allow dots, so they must be converted.
+        """
+        registry = EvalSuiteToolRegistry(strict_mode=True)
+        registry.add_tool({
+            "name": "Google.Search",
+            "description": "Search Google",
+            "inputSchema": {"type": "object", "properties": {}},
+        })
+
+        tools = registry.list_tools_for_model("openai")
+
+        # Dots should be converted to underscores
+        assert tools[0]["function"]["name"] == "Google_Search"
+
+    def test_openai_format_normalizes_multiple_dots(self):
+        """Test that multiple dots are all converted to underscores for OpenAI."""
+        registry = EvalSuiteToolRegistry(strict_mode=True)
+        registry.add_tool({
+            "name": "Google.Gmail.Send.Email",
+            "description": "Send email",
+            "inputSchema": {"type": "object", "properties": {}},
+        })
+
+        tools = registry.list_tools_for_model("openai")
+
+        assert tools[0]["function"]["name"] == "Google_Gmail_Send_Email"
+
+    def test_openai_format_preserves_underscores(self):
+        """Test that underscores in tool names are preserved for OpenAI."""
+        registry = EvalSuiteToolRegistry(strict_mode=True)
+        registry.add_tool({
+            "name": "search_files",
+            "description": "Search files",
+            "inputSchema": {"type": "object", "properties": {}},
+        })
+
+        tools = registry.list_tools_for_model("openai")
+
+        assert tools[0]["function"]["name"] == "search_files"
+
+
 class TestToolRegistryFormatComparison:
     """Tests comparing OpenAI and Anthropic format outputs."""
 
