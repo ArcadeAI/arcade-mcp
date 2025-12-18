@@ -7,6 +7,8 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
+from arcade_cli.formatters.base import group_results_by_model
+
 if TYPE_CHECKING:
     from arcade_evals.eval import EvaluationResult
 
@@ -346,9 +348,6 @@ def _display_results_to_console(
         original_counts: Optional tuple of (total_cases, total_passed, total_failed, total_warned)
                         from before filtering. Used when failed_only is True.
     """
-    # Import here to avoid circular import
-    from arcade_cli.formatters.base import group_results_by_model
-
     # Use shared grouping logic
     model_groups, total_passed, total_failed, total_warned, total_cases = group_results_by_model(
         results

@@ -64,22 +64,8 @@ def group_results_by_model(
         for model_results in eval_suite:
             model = model_results.get("model", "Unknown Model")
 
-            # Get suite name with safe fallback
-            suite_name = model_results.get("suite_name", "")
-            if not suite_name:
-                rubric_obj = model_results.get("rubric")
-                if rubric_obj is not None:
-                    # Safe conversion: use name attribute if available, else default
-                    if hasattr(rubric_obj, "name") and rubric_obj.name:
-                        suite_name = rubric_obj.name
-                    elif hasattr(rubric_obj, "__name__"):
-                        suite_name = rubric_obj.__name__
-                    elif isinstance(rubric_obj, str) and rubric_obj:
-                        suite_name = rubric_obj
-                    else:
-                        suite_name = "Unnamed Suite"
-                else:
-                    suite_name = "Unnamed Suite"
+            # suite_name is always set by EvalSuite.evaluate()
+            suite_name = model_results.get("suite_name") or "Unnamed Suite"
 
             cases = model_results.get("cases", [])
             total_cases += len(cases)

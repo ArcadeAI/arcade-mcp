@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any, Callable
 
 from arcade_evals._evalsuite._tool_registry import EvalSuiteToolRegistry, MCPToolDefinition
 from arcade_evals.loaders import (
+    ARCADE_API_BASE_URL,
     load_arcade_mcp_gateway_async,
     load_from_http_async,
     load_from_stdio_async,
@@ -113,8 +114,6 @@ class _EvalSuiteConvenienceMixin:
         timeout: int = 10,
     ) -> Any:
         import warnings
-
-        from arcade_evals.loaders import ARCADE_API_BASE_URL
 
         registry = self._get_registry()
         tools = await load_arcade_mcp_gateway_async(

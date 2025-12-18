@@ -892,8 +892,6 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin):
 
         return tool_calls
 
-    # capture() method is provided by _EvalSuiteCaptureMixin
-
 
 def get_formatted_tools(catalog: "ToolCatalog", tool_format: str = "openai") -> OpenAIToolList:
     """Get the formatted tools from the catalog.

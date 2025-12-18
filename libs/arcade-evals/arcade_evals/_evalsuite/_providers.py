@@ -12,7 +12,10 @@ Anthropic has different message format requirements than OpenAI:
 from __future__ import annotations
 
 import json
+import logging
 from typing import Any, Literal
+
+logger = logging.getLogger(__name__)
 
 # Supported LLM providers for evaluations
 ProviderName = Literal["openai", "anthropic"]
@@ -70,11 +73,16 @@ def convert_messages_to_anthropic(messages: list[dict[str, Any]]) -> list[dict[s
                     if not function:
                         continue  # Skip malformed tool calls
 
-                    # Parse arguments JSON, fallback to empty dict on parse error
+                    # Parse arguments JSON
                     arguments_str = function.get("arguments", "{}")
                     try:
                         arguments = json.loads(arguments_str) if arguments_str else {}
-                    except json.JSONDecodeError:
+                    except json.JSONDecodeError as e:
+                        logger.warning(
+                            "Failed to parse tool arguments JSON for '%s': %s. Using empty dict.",
+                            function.get("name", "unknown"),
+                            e,
+                        )
                         arguments = {}
 
                     content_blocks.append({
