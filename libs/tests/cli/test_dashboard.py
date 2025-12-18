@@ -1,8 +1,8 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from arcade_core.constants import PROD_ENGINE_HOST
 from arcade_cli.main import cli
+from arcade_core.constants import PROD_ENGINE_HOST
 from typer.testing import CliRunner
 
 runner = CliRunner()

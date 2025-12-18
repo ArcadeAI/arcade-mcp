@@ -11,6 +11,7 @@ import asyncio
 import json
 import logging
 from dataclasses import dataclass
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable
 
 from rich.console import Console
@@ -120,6 +121,7 @@ async def _run_eval_task(
             model,
             type(e).__name__,
             str(e),
+            exc_info=True,  # Include full traceback for debugging
         )
         return EvalTaskResult.from_error(suite_name, model, e)
 
@@ -157,6 +159,7 @@ async def _run_capture_task(
             model,
             type(e).__name__,
             str(e),
+            exc_info=True,  # Include full traceback for debugging
         )
         return CaptureTaskResult.from_error(suite_name, model, e)
 
@@ -172,6 +175,7 @@ async def run_evaluations(
     provider: str,
     show_details: bool,
     output_file: str | None,
+    output_format: str,
     failed_only: bool,
     console: Console,
 ) -> None:
@@ -188,6 +192,7 @@ async def run_evaluations(
         provider: Provider name (e.g., "openai", "anthropic").
         show_details: Whether to show detailed results.
         output_file: Optional file path to write results.
+        output_format: Format for file output ('txt', 'md').
         failed_only: Whether to show only failed evaluations.
         console: Rich console for output.
     """
@@ -213,6 +218,9 @@ async def run_evaluations(
             tasks.append(task)
 
     # Track progress with Rich progress bar (compatible with Rich console)
+    # Note: task_results is collected synchronously as each async task completes.
+    # The append() is atomic in CPython due to the GIL, and we await each future
+    # sequentially within the for-loop, so this is safe.
     task_results: list[EvalTaskResult] = []
     with Progress(
         SpinnerColumn(),
@@ -222,11 +230,16 @@ async def run_evaluations(
         console=console,
         transient=False,
     ) as progress:
-        task_id = progress.add_task("Evaluations Progress", total=len(tasks))
+        task_id = progress.add_task("[cyan]Running evaluations...", total=len(tasks))
         for f in asyncio.as_completed(tasks):
             result = await f
             task_results.append(result)
-            progress.update(task_id, advance=1)
+            # Update progress with completed task info
+            progress.update(
+                task_id,
+                advance=1,
+                description=f"[cyan]Completed: {result.suite_name} ({result.model})",
+            )
 
     # Separate successes and failures
     successful = [r for r in task_results if r.success]
@@ -234,17 +247,17 @@ async def run_evaluations(
 
     # Report failures
     if failed:
-        console.print(f"\n[bold yellow]⚠ {len(failed)} evaluation(s) failed:[/bold yellow]")
+        console.print(f"\n[bold yellow]⚠️  {len(failed)} evaluation(s) failed:[/bold yellow]")
         for fail in failed:
             console.print(
-                f"  - {fail.suite_name} ({fail.model}): [red]{fail.error_type}[/red] - {fail.error}"
+                f"  • {fail.suite_name} ({fail.model}): [red]{fail.error_type}[/red] - {fail.error}"
             )
 
     # Process successful results
     all_evaluations = [r.result for r in successful if r.result is not None]
 
     if not all_evaluations:
-        console.print("\n[bold red]No evaluations completed successfully.[/bold red]")
+        console.print("\n[bold red]❌ No evaluations completed successfully.[/bold red]")
         return
 
     # Filter to show only failed evaluations if requested
@@ -258,6 +271,7 @@ async def run_evaluations(
         output_file=output_file,
         failed_only=failed_only,
         original_counts=original_counts,
+        output_format=output_format,
     )
 
     # Summary when there were failures
@@ -314,6 +328,9 @@ async def run_capture(
             tasks.append(task)
 
     # Track progress with Rich progress bar (compatible with Rich console)
+    # Note: task_results is collected synchronously as each async task completes.
+    # The append() is atomic in CPython due to the GIL, and we await each future
+    # sequentially within the for-loop, so this is safe.
     task_results: list[CaptureTaskResult] = []
     with Progress(
         SpinnerColumn(),
@@ -323,11 +340,16 @@ async def run_capture(
         console=console,
         transient=False,
     ) as progress:
-        task_id = progress.add_task("Capture Progress", total=len(tasks))
+        task_id = progress.add_task("[cyan]Capturing tool calls...", total=len(tasks))
         for f in asyncio.as_completed(tasks):
             result = await f
             task_results.append(result)
-            progress.update(task_id, advance=1)
+            # Update progress with completed task info
+            progress.update(
+                task_id,
+                advance=1,
+                description=f"[cyan]Completed: {result.suite_name} ({result.model})",
+            )
 
     # Separate successes and failures
     successful = [r for r in task_results if r.success]
@@ -335,10 +357,10 @@ async def run_capture(
 
     # Report failures
     if failed:
-        console.print(f"\n[bold yellow]⚠ {len(failed)} capture(s) failed:[/bold yellow]")
+        console.print(f"\n[bold yellow]⚠️  {len(failed)} capture(s) failed:[/bold yellow]")
         for fail in failed:
             console.print(
-                f"  - {fail.suite_name} ({fail.model}): [red]{fail.error_type}[/red] - {fail.error}"
+                f"  • {fail.suite_name} ({fail.model}): [red]{fail.error_type}[/red] - {fail.error}"
             )
 
     # Collect successful captures
@@ -348,7 +370,7 @@ async def run_capture(
             all_captures.extend(r.result)
 
     if not all_captures:
-        console.print("\n[bold red]No captures completed successfully.[/bold red]")
+        console.print("\n[bold red]❌ No captures completed successfully.[/bold red]")
         return
 
     # Prepare output
@@ -358,9 +380,22 @@ async def run_capture(
 
     # Output to file or console
     if capture_file:
-        with open(capture_file, "w") as outfile:
-            json.dump(output_data, outfile, indent=2)
-        console.print(f"\n✓ Capture results written to [bold]{capture_file}[/bold]")
+        try:
+            output_path = Path(capture_file)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+
+            with open(output_path, "w") as outfile:
+                json.dump(output_data, outfile, indent=2)
+            console.print(
+                f"\n[green]✓ Capture results written to[/green] [bold]{capture_file}[/bold]"
+            )
+
+        except PermissionError:
+            console.print(f"\n[red]❌ Error: Permission denied writing to {capture_file}[/red]")
+            return
+        except OSError as e:
+            console.print(f"\n[red]❌ Error writing file: {e}[/red]")
+            return
     else:
         console.print("\n[bold]Capture Results:[/bold]")
         console.print(json.dumps(output_data, indent=2))

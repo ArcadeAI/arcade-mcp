@@ -430,7 +430,12 @@ def evals(
         None,
         "--output",
         "-o",
-        help="Write results to a file (plain text format)",
+        help="Write results to a file",
+    ),
+    output_format: str = typer.Option(
+        "txt",
+        "--format",
+        help="Output format for file results: 'txt' (plain text), 'md' (markdown), or 'html' (with colors)",
     ),
     capture: bool = typer.Option(
         False,
@@ -544,6 +549,7 @@ def evals(
                     provider=provider.value,
                     show_details=show_details,
                     output_file=output,
+                    output_format=output_format,
                     failed_only=failed_only,
                     console=console,
                 )

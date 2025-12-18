@@ -1,10 +1,9 @@
 from unittest.mock import Mock
 
-from typer.testing import CliRunner
-
 from arcade_cli.main import cli
 from arcade_cli.utils import filter_failed_evaluations
 from arcade_evals.eval import EvaluationResult
+from typer.testing import CliRunner
 
 runner = CliRunner()
 
@@ -283,3 +282,13 @@ def test_evals_help_shows_file_flag() -> None:
     result = runner.invoke(cli, ["evals", "--help"])
     assert result.exit_code == 0
     assert "--file" in result.output
+
+
+def test_evals_help_shows_format_flag() -> None:
+    """Test that --format flag is documented in help."""
+    result = runner.invoke(cli, ["evals", "--help"])
+    assert result.exit_code == 0
+    assert "--format" in result.output
+    assert "txt" in result.output
+    assert "md" in result.output
+    assert "html" in result.output

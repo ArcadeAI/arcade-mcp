@@ -111,7 +111,18 @@ class EvalRubric:
     tool_selection_weight: float = 1.0
 
     def __str__(self) -> str:
-        return f"Fail threshold: {self.fail_threshold}\nWarn threshold: {self.warn_threshold}\n"
+        """Return a complete string representation of the rubric configuration."""
+        return (
+            f"EvalRubric(fail_threshold={self.fail_threshold}, "
+            f"warn_threshold={self.warn_threshold}, "
+            f"fail_on_tool_selection={self.fail_on_tool_selection}, "
+            f"fail_on_tool_call_quantity={self.fail_on_tool_call_quantity}, "
+            f"tool_selection_weight={self.tool_selection_weight})"
+        )
+
+    def __repr__(self) -> str:
+        """Return the same string representation for repr."""
+        return self.__str__()
 
 
 @dataclass
@@ -775,7 +786,12 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin):
         Returns:
             A dictionary containing the evaluation results.
         """
-        results: dict[str, Any] = {"model": model, "rubric": self.rubric, "cases": []}
+        results: dict[str, Any] = {
+            "model": model,
+            "suite_name": self.name,
+            "rubric": self.rubric,
+            "cases": [],
+        }
 
         semaphore = asyncio.Semaphore(self.max_concurrent)
 

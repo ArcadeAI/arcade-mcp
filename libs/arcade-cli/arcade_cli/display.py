@@ -9,7 +9,11 @@ from rich.text import Text
 
 if TYPE_CHECKING:
     from arcade_evals.eval import EvaluationResult
+
 console = Console()
+
+# Console width for separators (leave room for indentation)
+CONSOLE_SEPARATOR_WIDTH = 76
 
 
 def display_tools_table(tools: list[ToolDefinition]) -> None:
@@ -342,21 +346,20 @@ def _display_results_to_console(
         original_counts: Optional tuple of (total_cases, total_passed, total_failed, total_warned)
                         from before filtering. Used when failed_only is True.
     """
-    total_passed = 0
-    total_failed = 0
-    total_warned = 0
-    total_cases = 0
+    # Import here to avoid circular import
+    from arcade_cli.formatters.base import group_results_by_model
 
-    for eval_suite in results:
-        for model_results in eval_suite:
-            model = model_results.get("model", "Unknown Model")
-            rubric = model_results.get("rubric", "Unknown Rubric")
-            cases = model_results.get("cases", [])
-            total_cases += len(cases)
+    # Use shared grouping logic
+    model_groups, total_passed, total_failed, total_warned, total_cases = group_results_by_model(
+        results
+    )
 
-            output_console.print(f"[bold]Model:[/bold] [bold magenta]{model}[/bold magenta]")
-            if show_details:
-                output_console.print(f"[bold magenta]{rubric}[/bold magenta]")
+    # Display grouped results
+    for model, suites in model_groups.items():
+        output_console.print(f"\n[bold]Model:[/bold] [bold magenta]{model}[/bold magenta]")
+
+        for suite_name, cases in suites.items():
+            output_console.print(f"  [bold cyan]📁 {suite_name}[/bold cyan]")
 
             for case in cases:
                 evaluation = case["evaluation"]
@@ -367,23 +370,21 @@ def _display_results_to_console(
                     if evaluation.warning
                     else "[red]FAILED[/red]"
                 )
-                if evaluation.passed:
-                    total_passed += 1
-                elif evaluation.warning:
-                    total_warned += 1
-                else:
-                    total_failed += 1
 
                 # Display one-line summary for each case with score as a percentage
                 score_percentage = evaluation.score * 100
-                output_console.print(f"{status} {case['name']} -- Score: {score_percentage:.2f}%")
+                output_console.print(
+                    f"    {status} {case['name']} -- Score: {score_percentage:.2f}%"
+                )
 
                 if show_details:
                     # Show detailed information for each case
-                    output_console.print(f"[bold]User Input:[/bold] {case['input']}\n")
-                    output_console.print("[bold]Details:[/bold]")
+                    output_console.print(f"    [bold]User Input:[/bold] {case['input']}\n")
+                    output_console.print("    [bold]Details:[/bold]")
                     output_console.print(_format_evaluation(evaluation))
-                    output_console.print("-" * 80)
+                    output_console.print("    " + "-" * CONSOLE_SEPARATOR_WIDTH)
+
+            output_console.print("")
 
     # Summary - use original counts if filtering, otherwise use current counts
     if failed_only and original_counts:
@@ -422,6 +423,7 @@ def display_eval_results(
     output_file: Optional[str] = None,
     failed_only: bool = False,
     original_counts: Optional[tuple[int, int, int, int]] = None,
+    output_format: str = "txt",
 ) -> None:
     """
     Display evaluation results in a format inspired by pytest's output.
@@ -429,23 +431,41 @@ def display_eval_results(
     Args:
         results: List of dictionaries containing evaluation results for each model.
         show_details: Whether to show detailed results for each case.
-        output_file: Optional file path to write results to (plain text format).
+        output_file: Optional file path to write results to.
         failed_only: Whether only failed cases are being displayed (adds disclaimer).
         original_counts: Optional tuple of (total_cases, total_passed, total_failed, total_warned)
                         from before filtering. Used when failed_only is True.
+        output_format: The output format for file output ('txt', 'md'). Default is 'txt'.
     """
-    # Always display to terminal
+    # Always display to terminal with Rich formatting
     _display_results_to_console(console, results, show_details, failed_only, original_counts)
 
-    # Also write to file if requested
+    # Also write to file if requested using the specified formatter
     if output_file:
+        from arcade_cli.formatters import get_formatter
+
         output_path = Path(output_file)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(output_path, "w") as f:
-            file_console = Console(file=f, width=120, legacy_windows=False)
-            _display_results_to_console(
-                file_console, results, show_details, failed_only, original_counts
+
+        try:
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+
+            formatter = get_formatter(output_format)
+            formatted_output = formatter.format(
+                results,
+                show_details=show_details,
+                failed_only=failed_only,
+                original_counts=original_counts,
             )
+
+            with open(output_path, "w") as f:
+                f.write(formatted_output)
+
+            console.print(f"[green]✓ Results written to {output_path}[/green]")
+
+        except PermissionError:
+            console.print(f"[red]Error: Permission denied writing to {output_path}[/red]")
+        except OSError as e:
+            console.print(f"[red]Error writing file: {e}[/red]")
 
 
 def _format_evaluation(evaluation: "EvaluationResult") -> str:
