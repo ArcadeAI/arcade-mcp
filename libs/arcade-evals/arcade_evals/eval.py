@@ -13,116 +13,45 @@ from openai import AsyncOpenAI
 from scipy.optimize import linear_sum_assignment
 
 from arcade_evals._evalsuite._capture import _EvalSuiteCaptureMixin
+from arcade_evals._evalsuite._comparative_execution import _EvalSuiteComparativeMixin
 from arcade_evals._evalsuite._convenience import _EvalSuiteConvenienceMixin
 from arcade_evals._evalsuite._providers import (
     ProviderName,
     convert_messages_to_anthropic,
 )
 from arcade_evals._evalsuite._tool_registry import EvalSuiteToolRegistry
+from arcade_evals._evalsuite._tracks import TrackManager
+
+# Import shared types from _types module (breaks circular dependencies)
+from arcade_evals._evalsuite._types import (
+    AnyExpectedToolCall,
+    EvalRubric,
+    ExpectedMCPToolCall,
+    ExpectedToolCall,
+    NamedExpectedToolCall,
+)
 from arcade_evals.critic import NoneCritic
 from arcade_evals.weights import validate_and_normalize_critic_weights
 
 if TYPE_CHECKING:
     from arcade_core import ToolCatalog
 
+    from arcade_evals._evalsuite._comparative import ComparativeCaseBuilder
     from arcade_evals.critic import Critic
 
 logger = logging.getLogger(__name__)
 
-
-@dataclass
-class ExpectedToolCall:
-    """
-    Represents an expected tool call for a Python tool (registered via ToolCatalog).
-
-    Use this for Python functions decorated with @tool.
-
-    Attributes:
-        func: The Python function itself.
-        args: A dictionary containing the expected arguments for the tool.
-
-    Example:
-        ExpectedToolCall(func=my_tool_function, args={"x": 1, "y": 2})
-        ExpectedToolCall(my_tool_function, {"x": 1})  # Positional args supported
-    """
-
-    func: Callable
-    args: dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass
-class ExpectedMCPToolCall:
-    """
-    Represents an expected tool call identified by tool name (string).
-
-    Use this for:
-    - Tools loaded from MCP servers (local stdio or remote HTTP)
-    - Tools loaded from Arcade Gateways
-    - Manual tool definitions (dictionaries with name/description/inputSchema)
-
-    Attributes:
-        tool_name: The name of the tool (e.g., "Weather_GetCurrent").
-        args: A dictionary containing the expected arguments for the tool.
-
-    Example:
-        ExpectedMCPToolCall(tool_name="Calculator_Add", args={"a": 5, "b": 3})
-        ExpectedMCPToolCall("Calculator_Add", {"a": 5})  # Positional args supported
-    """
-
-    tool_name: str
-    args: dict[str, Any] = field(default_factory=dict)
-
-
-# Type alias for mixed usage (Python tools + MCP tools in same test case)
-AnyExpectedToolCall = ExpectedToolCall | ExpectedMCPToolCall
-
-
-@dataclass
-class NamedExpectedToolCall:
-    """
-    Represents a tool call with its name and arguments.
-
-    Attributes:
-        name: The name of the tool.
-        args: A dictionary containing the expected arguments for the tool.
-    """
-
-    name: str
-    args: dict[str, Any]
-
-
-@dataclass
-class EvalRubric:
-    """
-    Defines the rubric for evaluating an AI model's performance on a task.
-
-    Attributes:
-        fail_threshold: The minimum score required to pass the evaluation (between 0.0 and 1.0).
-        warn_threshold: The score threshold for issuing a warning (between 0.0 and 1.0).
-        fail_on_tool_selection: Whether to fail the evaluation if the tool selection is incorrect.
-        fail_on_tool_call_quantity: Whether to fail the evaluation if the number of tool calls is incorrect.
-        tool_selection_weight: The weight assigned to the tool selection score (between 0.0 and 1.0).
-    """
-
-    fail_threshold: float = 0.8
-    warn_threshold: float = 0.9
-    fail_on_tool_selection: bool = True
-    fail_on_tool_call_quantity: bool = True
-    tool_selection_weight: float = 1.0
-
-    def __str__(self) -> str:
-        """Return a complete string representation of the rubric configuration."""
-        return (
-            f"EvalRubric(fail_threshold={self.fail_threshold}, "
-            f"warn_threshold={self.warn_threshold}, "
-            f"fail_on_tool_selection={self.fail_on_tool_selection}, "
-            f"fail_on_tool_call_quantity={self.fail_on_tool_call_quantity}, "
-            f"tool_selection_weight={self.tool_selection_weight})"
-        )
-
-    def __repr__(self) -> str:
-        """Return the same string representation for repr."""
-        return self.__str__()
+# Re-export for backwards compatibility (these are now defined in _types.py)
+__all__ = [
+    "AnyExpectedToolCall",
+    "EvalCase",
+    "EvalRubric",
+    "EvalSuite",
+    "EvaluationResult",
+    "ExpectedMCPToolCall",
+    "ExpectedToolCall",
+    "NamedExpectedToolCall",
+]
 
 
 @dataclass
@@ -442,7 +371,7 @@ class EvalCase:
 
 
 @dataclass
-class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin):
+class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteComparativeMixin):
     """
     A suite for evaluating AI model performance on specific tasks or scenarios.
 
@@ -470,6 +399,14 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin):
     # Internal unified registry for MCP-style tools added via convenience methods.
     _internal_registry: EvalSuiteToolRegistry | None = field(default=None, init=False, repr=False)
 
+    # Track manager for comparative evaluations (isolated registries per track).
+    _track_manager: TrackManager = field(default_factory=TrackManager, init=False, repr=False)
+
+    # Comparative case builders for multi-track evaluations (validated at execution time).
+    _comparative_case_builders: list["ComparativeCaseBuilder"] = field(
+        default_factory=list, init=False, repr=False
+    )
+
     # Python tool helpers (used when Python tools are added via add_tool_catalog()).
     _python_tool_func_map: dict[str, Callable] = field(default_factory=dict, init=False, repr=False)
     _python_func_to_tool_name: dict[Callable, str] = field(
@@ -485,15 +422,18 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin):
         if self.catalog is not None:
             self._register_catalog_tools(self.catalog)
 
-    def _register_catalog_tools(self, catalog: "ToolCatalog") -> None:
+    def _register_catalog_tools(self, catalog: "ToolCatalog", *, track: str | None = None) -> None:
         """Convert and register tools from a ToolCatalog to the internal registry.
 
         This helper is used by both __post_init__ (for catalog= parameter) and
         add_tool_catalog() (for post-init registration) to avoid code duplication.
+
+        Args:
+            catalog: The ToolCatalog to register.
+            track: Optional track name for comparative evaluations.
         """
-        registry = self._internal_registry
-        if registry is None:
-            raise RuntimeError("Internal registry not initialized")
+        # Use _get_registry from ConvenienceMixin (avoids code duplication)
+        registry = self._get_registry(track)
 
         for tool in catalog:
             openai_tool = to_openai(tool)
@@ -562,6 +502,30 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin):
                 tool_name, args_with_defaults
             )
         return NamedExpectedToolCall(name=tool_name, args=args_with_defaults)
+
+    def _create_eval_case(
+        self,
+        name: str,
+        system_message: str,
+        user_message: str,
+        expected_tool_calls: list[NamedExpectedToolCall],
+        rubric: EvalRubric,
+        critics: list["Critic"],
+        additional_messages: list[dict[str, str]],
+    ) -> "EvalCase":
+        """Factory method to create EvalCase instances.
+
+        Used by the comparative mixin to create EvalCase without circular imports.
+        """
+        return EvalCase(
+            name=name,
+            system_message=system_message,
+            user_message=user_message,
+            expected_tool_calls=expected_tool_calls,
+            rubric=rubric,
+            critics=critics,
+            additional_messages=additional_messages,
+        )
 
     def add_case(
         self,
@@ -740,23 +704,26 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin):
     def _process_tool_calls(
         self,
         tool_calls: list[tuple[str, dict[str, Any]]],
+        registry: EvalSuiteToolRegistry | None = None,
     ) -> list[tuple[str, dict[str, Any]]]:
         """
         Process tool calls by resolving names and applying defaults.
 
         Args:
             tool_calls: List of (tool_name, args) tuples.
+            registry: Optional registry to use. If None, uses _internal_registry.
 
         Returns:
             List of processed (tool_name, args_with_defaults) tuples.
         """
-        if self._internal_registry is None:
+        effective_registry = registry or self._internal_registry
+        if effective_registry is None:
             return tool_calls
 
         processed_calls = []
         for tool_name, args in tool_calls:
             # Resolve name and apply schema defaults (handles Anthropic "Google_Search" -> "Google.Search")
-            resolved_name, args_with_defaults = self._internal_registry.process_tool_call(
+            resolved_name, args_with_defaults = effective_registry.process_tool_call(
                 tool_name, args
             )
 
@@ -840,14 +807,29 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin):
         client: AsyncOpenAI,
         model: str,
         case: "EvalCase",
+        registry: EvalSuiteToolRegistry | None = None,
     ) -> list[tuple[str, dict[str, Any]]]:
-        """Run evaluation using OpenAI client."""
+        """Run evaluation using OpenAI client.
+
+        Args:
+            client: The OpenAI client.
+            model: The model name.
+            case: The evaluation case.
+            registry: Optional registry to use. If None, uses _internal_registry.
+
+        Returns:
+            List of tool calls.
+        """
+        effective_registry = registry or self._internal_registry
+        if effective_registry is None:
+            raise RuntimeError("No registry available")
+
         # Prepare messages
-        messages = [{"role": "system", "content": case.system_message}]
+        messages: list[dict[str, Any]] = [{"role": "system", "content": case.system_message}]
         messages.extend(case.additional_messages)
         messages.append({"role": "user", "content": case.user_message})
 
-        tools = self._internal_registry.list_tools_for_model(tool_format="openai")  # type: ignore[union-attr]
+        tools = effective_registry.list_tools_for_model(tool_format="openai")
 
         # Get the model response
         response = await client.chat.completions.create(  # type: ignore[call-overload]
@@ -867,13 +849,28 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin):
         client: Any,  # AsyncAnthropic
         model: str,
         case: "EvalCase",
+        registry: EvalSuiteToolRegistry | None = None,
     ) -> list[tuple[str, dict[str, Any]]]:
-        """Run evaluation using Anthropic client."""
+        """Run evaluation using Anthropic client.
+
+        Args:
+            client: The Anthropic client.
+            model: The model name.
+            case: The evaluation case.
+            registry: Optional registry to use. If None, uses _internal_registry.
+
+        Returns:
+            List of tool calls.
+        """
+        effective_registry = registry or self._internal_registry
+        if effective_registry is None:
+            raise RuntimeError("No registry available")
+
         # Convert OpenAI-format messages to Anthropic format
         anthropic_messages = convert_messages_to_anthropic(case.additional_messages)
         anthropic_messages.append({"role": "user", "content": case.user_message})
 
-        tools = self._internal_registry.list_tools_for_model(tool_format="anthropic")  # type: ignore[union-attr]
+        tools = effective_registry.list_tools_for_model(tool_format="anthropic")
 
         # Get the model response
         response = await client.messages.create(
