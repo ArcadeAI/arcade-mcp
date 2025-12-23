@@ -124,34 +124,68 @@ class UsageIdentity:
         return str(data[KEY_ANON_ID])
 
     def get_principal_id(self) -> str | None:
-        """Fetch principal_id from Arcade Cloud API.
+        """Fetch principal_id (account_id) from Arcade Cloud API.
+
+        Prefers any linked principal already stored in usage.json. If not
+        found, attempts to fetch via OAuth access token and falls
+        back to legacy API key validation if present.
 
         Returns:
             str | None: Principal ID if authenticated and API call succeeds, None otherwise
         """
+        # Prefer already-linked principal_id in usage.json
+        data = self.load_or_create()
+        linked_principal_id = data.get(KEY_LINKED_PRINCIPAL_ID)
+        if linked_principal_id:
+            return str(linked_principal_id)
+
         if not os.path.exists(CREDENTIALS_FILE_PATH):
             return None
 
         try:
             with open(CREDENTIALS_FILE_PATH) as f:
-                config = yaml.safe_load(f)
+                config = yaml.safe_load(f) or {}
 
-            cloud_config = config.get("cloud", {})
-            api_key = cloud_config.get("api", {}).get("key")
+            cloud_config = config.get("cloud", {}) if isinstance(config, dict) else {}
 
-            if not api_key:
-                return None
+            # Determine coordinator/authority URL for auth calls
+            coordinator_url = cloud_config.get("coordinator_url") or "https://cloud.arcade.dev"
+            whoami_url = f"{coordinator_url}/api/v1/auth/whoami"
+            validate_url = f"{coordinator_url}/api/v1/auth/validate"
 
-            response = httpx.get(
-                "https://cloud.arcade.dev/api/v1/auth/validate",
-                headers={"accept": "application/json", "Authorization": f"Bearer {api_key}"},
-                timeout=TIMEOUT_ARCADE_API,
+            # OAuth credentials: use access_token to call /whoami
+            auth_config = cloud_config.get("auth", {}) if isinstance(cloud_config, dict) else {}
+            access_token = auth_config.get("access_token")
+            if access_token:
+                response = httpx.get(
+                    whoami_url,
+                    headers={
+                        "accept": "application/json",
+                        "Authorization": f"Bearer {access_token}",
+                    },
+                    timeout=TIMEOUT_ARCADE_API,
+                )
+                if response.status_code == 200:
+                    data = response.json().get("data", {})
+                    principal_id = data.get("account_id") or data.get("principal_id")
+                    if principal_id:
+                        return str(principal_id)
+
+            # Legacy API key credentials (deprecated)
+            api_key = (
+                cloud_config.get("api", {}).get("key") if isinstance(cloud_config, dict) else None
             )
-
-            if response.status_code == 200:
-                data = response.json()
-                principal_id = data.get("data", {}).get("principal_id")
-                return str(principal_id) if principal_id else None
+            if api_key:
+                response = httpx.get(
+                    validate_url,
+                    headers={"accept": "application/json", "Authorization": f"Bearer {api_key}"},
+                    timeout=TIMEOUT_ARCADE_API,
+                )
+                if response.status_code == 200:
+                    data = response.json()
+                    principal_id = data.get("data", {}).get("principal_id")
+                    if principal_id:
+                        return str(principal_id)
 
         except Exception:  # noqa: S110
             # Silent failure - don't disrupt CLI

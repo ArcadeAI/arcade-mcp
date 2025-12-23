@@ -342,6 +342,7 @@ class TestMCPApp:
                 catalog=mcp_app._catalog,
                 mcp_settings=mcp_app._mcp_settings,
                 debug=False,
+                resource_server_validator=mcp_app.resource_server_validator,
             )
             mock_serve.assert_called_once_with(
                 app=mock_fastapi_app,
@@ -365,6 +366,7 @@ class TestMCPApp:
                 catalog=mcp_app._catalog,
                 mcp_settings=mcp_app._mcp_settings,
                 debug=True,
+                resource_server_validator=mcp_app.resource_server_validator,
             )
             mock_serve.assert_called_once_with(
                 app=mock_fastapi_app,

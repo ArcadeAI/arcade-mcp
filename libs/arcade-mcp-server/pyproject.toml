@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade-mcp-server"
-version = "1.9.1"
+version = "1.14.0"
 description = "Model Context Protocol (MCP) server framework for Arcade.dev"
 readme = "README.md"
 authors = [{ name = "Arcade.dev" }]
@@ -21,14 +21,14 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-    "arcade-core>=3.3.3,<4.0.0",
-    "arcade-serve>=3.0.0,<4.0.0",
-    "arcade-tdk>=3.0.0,<4.0.0",
+    "arcade-core>=4.1.0,<5.0.0",
+    "arcade-serve>=3.2.0,<4.0.0",
+    "arcade-tdk>=3.4.0,<4.0.0",
     "arcadepy>=1.5.0",
     "pydantic>=2.0.0",
     "fastapi>=0.100.0",
     "uvicorn>=0.30.0",
-    "watchfiles>=0.18.0", # included with uvicorn, but listed to be explicit
+    "watchfiles>=0.18.0",                      # included with uvicorn, but listed to be explicit
     "sse-starlette>=2.0.0",
     "starlette>=0.37.0",
     "anyio>=4.0.0",
@@ -37,15 +37,12 @@ dependencies = [
     "duckdb>=1.0.0",
     "boto3>=1.34.0",
     "redis>=5.0.0",
+    "python-jose[cryptography]>=3.3.0,<4.0.0",
+    "httpx>=0.27.0,<1.0.0",
 ]
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=8.0.0",
-    "pytest-asyncio>=0.23.0",
-    "mypy>=1.0.0",
-    "ruff>=0.1.0",
-]
+dev = ["pytest>=8.0.0", "pytest-asyncio>=0.23.0", "mypy>=1.0.0", "ruff>=0.1.0"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["arcade_mcp_server"]

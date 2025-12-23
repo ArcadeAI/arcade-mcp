@@ -19,11 +19,12 @@ from arcade_core.catalog import MaterializedTool, ToolCatalog, ToolDefinitionErr
 from arcade_tdk.auth import ToolAuthorization
 from arcade_tdk.error_adapters import ErrorAdapter
 from arcade_tdk.tool import tool as tool_decorator
-from dotenv import load_dotenv
 from loguru import logger
 from watchfiles import watch
 
 from arcade_mcp_server.exceptions import ServerError
+from arcade_mcp_server.logging_utils import intercept_standard_logging
+from arcade_mcp_server.resource_server.base import ResourceServerValidator
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.settings import MCPSettings, ServerSettings
 from arcade_mcp_server.types import Prompt, PromptMessage, Resource
@@ -74,6 +75,7 @@ class MCPApp:
         host: str = "127.0.0.1",
         port: int = 8000,
         reload: bool = False,
+        auth: ResourceServerValidator | None = None,
         **kwargs: Any,
     ):
         """
@@ -89,6 +91,7 @@ class MCPApp:
             host: Host for transport
             port: Port for transport
             reload: Enable auto-reload for development
+            auth: Resource Server validator for front-door authentication
             **kwargs: Additional server configuration
         """
         self._name = self._validate_name(name)
@@ -96,6 +99,7 @@ class MCPApp:
         self.title = title or name
         self.instructions = instructions
         self.log_level = log_level
+        self.resource_server_validator = auth
         self.server_kwargs = kwargs
         self.transport = transport
         self.host = host
@@ -122,7 +126,6 @@ class MCPApp:
         # Store the actual instructions that ended up in ServerSettings
         self.instructions = self._mcp_settings.server.instructions
 
-        self._load_env()
         if not logger._core.handlers:  # type: ignore[attr-defined]
             self._setup_logging(transport == "stdio")
 
@@ -192,13 +195,6 @@ class MCPApp:
         """Runtime resources API: add/remove/list."""
         return _ResourcesAPI(self)
 
-    def _load_env(self) -> None:
-        """Load .env file from the current directory."""
-        env_path = Path.cwd() / ".env"
-        if env_path.exists():
-            load_dotenv(env_path, override=False)
-            logger.info(f"Loaded environment from {env_path}")
-
     def _setup_logging(self, stdio_mode: bool = False) -> None:
         logger.remove()
 
@@ -216,6 +212,9 @@ class MCPApp:
             colorize=(not stdio_mode),
             diagnose=(self.log_level == "DEBUG"),
         )
+
+        # Intercept standard logging and route through Loguru
+        intercept_standard_logging()
 
     def add_tool(
         self,
@@ -313,6 +312,24 @@ class MCPApp:
         logger.info(f"Starting {self._name} v{self.version} with {len(self._catalog)} tools")
 
         if transport in ["http", "streamable-http", "streamable"]:
+            resource_server_auth_enabled = isinstance(
+                self.resource_server_validator, ResourceServerValidator
+            )
+            if resource_server_auth_enabled:
+                logger.info("Resource Server authentication is enabled. MCP routes are protected.")
+            else:
+                logger.warning(
+                    "Resource Server authentication is disabled. MCP routes are not protected, so tools requiring auth or secrets will fail."
+                )
+            if (
+                isinstance(self.resource_server_validator, ResourceServerValidator)
+                and self.resource_server_validator.supports_oauth_discovery()
+            ):
+                metadata = self.resource_server_validator.get_resource_metadata()
+                if metadata:
+                    auth_servers = metadata.get("authorization_servers", [])
+                    logger.info(f"Accepted authorization server(s): {', '.join(auth_servers)}")
+
             if reload:
                 self._run_with_reload(host, port)
             else:
@@ -326,6 +343,7 @@ class MCPApp:
                 host=None,
                 port=None,
                 tool_count=len(self._catalog),
+                resource_server_validator=self.resource_server_validator,
             )
             asyncio.run(
                 run_stdio_server(
@@ -403,6 +421,7 @@ class MCPApp:
             catalog=self._catalog,
             mcp_settings=self._mcp_settings,
             debug=debug,
+            resource_server_validator=self.resource_server_validator,
             **self.server_kwargs,
         )
 
@@ -412,16 +431,10 @@ class MCPApp:
             host=host,
             port=port,
             tool_count=len(self._catalog),
+            resource_server_validator=self.resource_server_validator,
         )
 
-        asyncio.run(
-            serve_with_force_quit(
-                app=app,
-                host=host,
-                port=port,
-                log_level=log_level,
-            )
-        )
+        asyncio.run(serve_with_force_quit(app=app, host=host, port=port, log_level=log_level))
 
     @staticmethod
     def _get_configuration_overrides(

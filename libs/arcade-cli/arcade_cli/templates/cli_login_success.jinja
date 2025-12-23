@@ -1,0 +1,28 @@
+{% extends "base.jinja" %}
+
+{% block title %}Arcade.dev - Authorization successful{% endblock %}
+
+{% block styles %}
+.arc-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    text-align: center;
+    align-items: center;
+}
+.arc-stack p {
+    color: var(--text-secondary, #d6d6d6);
+}
+{% endblock %}
+
+{% block content %}
+<div class="arc-stack">
+    <h2>Authorization successful.</h2>
+    <p>You can close this window and return to your terminal.</p>
+
+    <div class="branding">
+        <p class="branding-text">Powered by <a href="https://arcade.dev" class="docs-link" target="_blank" rel="noopener">Arcade.dev</a></p>
+    </div>
+</div>
+{% endblock %}
+

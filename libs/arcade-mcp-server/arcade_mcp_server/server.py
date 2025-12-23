@@ -21,9 +21,11 @@ import os
 import os.path
 from typing import Any, Callable, cast
 
+from arcade_core.auth_tokens import get_valid_access_token
 from arcade_core.catalog import MaterializedTool, ToolCatalog
 from arcade_core.executor import ToolExecutor
 from arcade_core.schema import ToolAuthorizationContext, ToolContext, ToolMetadataItem
+from arcade_core.network.org_transport import build_org_scoped_async_http_client
 from arcade_core.schema import ToolAuthRequirement as CoreToolAuthRequirement
 from arcadepy import ArcadeError, AsyncArcade
 from arcadepy.types.auth_authorize_params import AuthRequirement, AuthRequirementOauth2
@@ -49,6 +51,7 @@ from arcade_mcp_server.middleware import (
     Middleware,
     MiddlewareContext,
 )
+from arcade_mcp_server.resource_server.base import ResourceOwner
 from arcade_mcp_server.session import InitializationState, NotificationManager, ServerSession
 from arcade_mcp_server.settings import MCPSettings, ServerSettings
 from arcade_mcp_server.types import (
@@ -226,30 +229,48 @@ class MCPServer:
         self._handlers = self._register_handlers()
 
     def _load_config_values(self) -> tuple[str | None, str | None]:
-        """Load API key and user_id from credentials file.
+        """Load access token and user_id from credentials file.
 
         Returns:
-            Tuple of (api_key, user_id) from credentials file, or (None, None) if not available
+            Tuple of (access_token, user_id) from credentials file, or (None, None) if not available
         """
         try:
             from arcade_core.config import config
 
-            api_key = config.api.key if config.api else None
+            access_token = get_valid_access_token()
             user_id = config.user.email if config.user else None
 
-            if api_key or user_id:
+            if access_token or user_id:
                 config_path = config.get_config_file_path()
-                if api_key:
-                    logger.info(f"Loaded Arcade API key from {config_path}")
+                if access_token:
+                    logger.info(f"Loaded Arcade access token from {config_path}")
                 if user_id:
                     logger.debug(f"Loaded user_id '{user_id}' from {config_path}")
-                return api_key, user_id
+                return access_token, user_id
             else:
-                logger.debug("No API key or user_id found in credentials file")
+                logger.debug(
+                    "No access token or user_id found in credentials file. If this is unexpected, run 'arcade login' to authenticate."
+                )
                 return None, None
         except Exception as e:
             logger.debug(f"Could not load values from credentials file: {e}")
             return None, None
+
+    def _load_org_project_context(self) -> tuple[str, str] | None:
+        """
+        Load org/project context from the shared Arcade config (same source as the CLI).
+        Returns (org_id, project_id) when both are available; otherwise None.
+        """
+        try:
+            from arcade_core.config import config
+
+            context = getattr(config, "context", None)
+            if context and context.org_id and context.project_id:
+                return context.org_id, context.project_id
+            logger.debug("Org/project context not found in arcade_core.config")
+        except Exception as e:
+            logger.debug(f"Could not load org/project context from config: {e}")
+        return None
 
     def _init_arcade_client(self, api_key: str | None, api_url: str | None) -> None:
         """Initialize Arcade client for runtime authorization."""
@@ -267,10 +288,31 @@ class MCPServer:
 
         if final_api_key:
             logger.info(f"Using Arcade client with API URL: {api_url}")
-            self.arcade = AsyncArcade(api_key=final_api_key, base_url=api_url)
+            client_kwargs: dict[str, Any] = {"api_key": final_api_key, "base_url": api_url}
+
+            # Non-service keys need org/project URL rewriting
+            if not final_api_key.startswith("arc_"):
+                context = self._load_org_project_context()
+                if context:
+                    org_id, project_id = context
+                    client_kwargs["http_client"] = build_org_scoped_async_http_client(
+                        org_id, project_id
+                    )
+                    logger.info(
+                        "Configured org-scoped Arcade client for org '%s' project '%s'",
+                        org_id,
+                        project_id,
+                    )
+                else:
+                    logger.warning(
+                        "Expected to find org/project context in arcade_core.config but no org/project context "
+                        "was found; using non-scoped Arcade client."
+                    )
+
+            self.arcade = AsyncArcade(**client_kwargs)
         else:
             logger.warning(
-                "Arcade API key not configured. Tools requiring auth will return a login instruction."
+                "Arcade access token not configured. Tools requiring auth will return a login instruction."
             )
 
     def _init_middleware(self, custom_middleware: list[Middleware] | None) -> None:
@@ -342,6 +384,10 @@ class MCPServer:
             await self._tool_manager.load_from_catalog(self._initial_catalog)
         except Exception:
             logger.exception("Failed to load tools from initial catalog")
+
+        # Check for missing secrets and log warnings (only when worker routes are disabled)
+        await self._check_and_warn_missing_secrets()
+
         await self._resource_manager.start()
         await self._prompt_manager.start()
         await self.lifespan_manager.startup()
@@ -434,6 +480,7 @@ class MCPServer:
         self,
         message: Any,
         session: ServerSession | None = None,
+        resource_owner: ResourceOwner | None = None,
     ) -> MCPMessage | None:
         """
         Handle an incoming message.
@@ -441,6 +488,7 @@ class MCPServer:
         Args:
             message: Message to handle
             session: Server session
+            resource_owner: Authenticated resource owner from front-door auth
 
         Returns:
             Response message or None
@@ -453,7 +501,18 @@ class MCPServer:
         ):
             return JSONRPCError(
                 id="null",
-                error={"code": -32600, "message": "Invalid request"},
+                error={
+                    "code": -32600,
+                    "message": (
+                        "✗ Invalid request\n\n"
+                        "  The request is not a valid JSON-RPC message.\n\n"
+                        "  To fix:\n"
+                        "  1. Ensure request has 'method' field\n"
+                        "  2. Verify JSON structure is correct\n"
+                        "  3. Check JSON-RPC 2.0 specification\n\n"
+                        '  Expected format: {"jsonrpc": "2.0", "method": "...", "params": {...}, "id": ...}'
+                    ),
+                },
             )
 
         method = message["method"]
@@ -480,7 +539,15 @@ class MCPServer:
                 id=str(msg_id or "null"),
                 error={
                     "code": -32600,
-                    "message": "Request not allowed before initialization",
+                    "message": (
+                        "✗ Not initialized\n\n"
+                        "  This request cannot be processed before the session is initialized.\n\n"
+                        "  To fix:\n"
+                        "  1. Send an 'initialize' request first\n"
+                        "  2. Wait for initialization to complete\n"
+                        "  3. Send 'notifications/initialized' notification\n\n"
+                        "  Only 'initialize' and 'ping' methods are allowed before initialization."
+                    ),
                 },
             )
 
@@ -489,7 +556,20 @@ class MCPServer:
         if not handler:
             return JSONRPCError(
                 id=str(msg_id or "null"),
-                error={"code": -32601, "message": f"Method not found: {method}"},
+                error={
+                    "code": -32601,
+                    "message": (
+                        f"✗ Method not found: {method}\n\n"
+                        f"  The requested method is not supported by this server.\n\n"
+                        f"  Supported methods:\n"
+                        f"    - initialize, ping\n"
+                        f"    - tools/list, tools/call\n"
+                        f"    - resources/list, resources/read, resources/templates/list\n"
+                        f"    - prompts/list, prompts/get\n"
+                        f"    - logging/setLevel\n\n"
+                        f"  Check the MCP specification for valid method names."
+                    ),
+                },
             )
 
         # Create context and apply middleware
@@ -502,9 +582,13 @@ class MCPServer:
 
             # Create request context
             context = (
-                await session.create_request_context()
+                await session.create_request_context(resource_owner=resource_owner)
                 if session
-                else Context(self, request_id=str(msg_id) if msg_id else None)
+                else Context(
+                    self,
+                    request_id=str(msg_id) if msg_id else None,
+                    resource_owner=resource_owner,
+                )
             )
 
             # Set as current model context
@@ -546,7 +630,19 @@ class MCPServer:
             logger.exception("Error handling message")
             return JSONRPCError(
                 id=str(msg_id or "null"),
-                error={"code": -32603, "message": "Internal error"},
+                error={
+                    "code": -32603,
+                    "message": (
+                        "✗ Internal server error\n\n"
+                        "  An unexpected error occurred while processing the request.\n\n"
+                        "  To troubleshoot:\n"
+                        "  1. Check server logs for detailed error information\n"
+                        "  2. Verify the request parameters are valid\n"
+                        "  3. Try the request again\n"
+                        "  4. Contact support if the issue persists\n\n"
+                        "  The error has been logged for investigation."
+                    ),
+                },
             )
 
     def _parse_message(self, message: dict[str, Any], method: str) -> Any:
@@ -652,10 +748,21 @@ class MCPServer:
             logger.exception("Error listing tools")
             return JSONRPCError(
                 id=message.id,
-                error={"code": -32603, "message": "Internal error listing tools"},
+                error={
+                    "code": -32603,
+                    "message": (
+                        "✗ Failed to list tools\n\n"
+                        "  An error occurred while retrieving the tool list.\n\n"
+                        "  To troubleshoot:\n"
+                        "  1. Check server logs for details\n"
+                        "  2. Verify toolkits are properly loaded\n"
+                        "  3. Restart the server if needed\n\n"
+                        "  The error has been logged."
+                    ),
+                },
             )
 
-    async def _create_tool_context(
+    def _create_tool_context(
         self, tool: MaterializedTool, session: ServerSession | None = None
     ) -> ToolContext:
         """Create a tool context from a tool definition and session"""
@@ -669,23 +776,49 @@ class MCPServer:
                 elif secret.key in os.environ:
                     tool_context.set_secret(secret.key, os.environ[secret.key])
 
-        # user_id selection
+        tool_context.user_id = self._select_user_id(session)
+
+        return tool_context
+
+    def _select_user_id(self, session: ServerSession | None = None) -> str | None:
+        """Select the user_id for the tool's context.
+
+        User ID selection priority:
+        - Authenticated user from front-door auth
+        - Configured user_id from settings
+        - Configured user_id from credentials file
+        - Use session ID if no other user_id is available
+
+        Args:
+            session: Server session
+
+        Returns:
+            User ID for the context
+        """
         env = (self.settings.arcade.environment or "").lower()
-        user_id = self.settings.arcade.user_id
 
-        # If no user_id from env, try credentials file
-        if not user_id:
-            _, config_user_id = self._load_config_values()
-            user_id = config_user_id
+        # First priority: resource owner from front-door auth (from current model context)
+        mctx = get_current_model_context()
+        if mctx is not None and hasattr(mctx, "_resource_owner") and mctx._resource_owner:
+            user_id = mctx._resource_owner.user_id
+            logger.debug(f"Context user_id set from Authorization Server 'sub' claim: {user_id}")
+            return cast(str, user_id)
 
-        if user_id:
-            tool_context.user_id = user_id
-            logger.debug(f"Context user_id set: {user_id}")
-        elif env in ("development", "dev", "local"):
-            tool_context.user_id = session.session_id if session else None
+        # Second priority: configured user_id from settings
+        if (settings_user_id := self.settings.arcade.user_id) is not None:
+            logger.debug(f"Context user_id set from settings: {settings_user_id}")
+            return settings_user_id
+
+        # Third priority: configured user_id from credentials file
+        _, config_user_id = self._load_config_values()
+        if config_user_id:
+            logger.debug(f"Context user_id set from credentials file: {config_user_id}")
+            return config_user_id
+
+        # Fourth priority: use session ID if no other user_id is available
+        if env in ("development", "dev", "local"):
             logger.debug(f"Context user_id set from session (dev env={env})")
         else:
-            tool_context.user_id = session.session_id if session else None
             logger.debug("Context user_id set from session (non-dev env)")
 
         # metadata propagation from request _meta -> ToolContext.metadata
@@ -718,6 +851,41 @@ class MCPServer:
             tool_context.metadata = metadata_items
 
         return tool_context
+        return session.session_id if session else None
+
+    async def _check_and_warn_missing_secrets(self) -> None:
+        """
+        Check for missing tool secrets and log warnings.
+
+        This method is called during server startup to provide early feedback
+        about missing configuration. It only runs when worker routes are disabled
+        (when ARCADE_WORKER_SECRET is not set), as worker routes receive secrets
+        with tool execution information.
+        """
+        # Skip validation if worker routes are enabled
+        if self.settings.arcade.server_secret:
+            logger.debug("Skipping secret validation check - worker routes are enabled")
+            return
+
+        # Get all available secrets from settings and environment
+        available_secrets = set(self.settings.tool_secrets().keys()) | set(os.environ.keys())
+
+        # Check each tool for missing secrets
+        managed_tools = await self._tool_manager.registry.list()
+        for managed_tool in managed_tools:
+            tool = managed_tool["materialized"]
+            if tool.definition.requirements and tool.definition.requirements.secrets:
+                missing_secrets = []
+                for secret_requirement in tool.definition.requirements.secrets:
+                    if secret_requirement.key not in available_secrets:
+                        missing_secrets.append(secret_requirement.key)
+
+                if missing_secrets:
+                    secret_list = "', '".join(missing_secrets)
+                    tool_name = tool.definition.name
+                    logger.warning(
+                        f"Tool '{tool_name}' declares secret(s) '{secret_list}' which is/are not set. It will return an error if called."
+                    )
 
     async def _handle_call_tool(
         self,
@@ -733,7 +901,7 @@ class MCPServer:
             tool = await self._tool_manager.get_tool(tool_name)
 
             # Create tool context
-            tool_context = await self._create_tool_context(tool, session)
+            tool_context = self._create_tool_context(tool, session)
 
             # Check restrictions for unauthenticated HTTP transport
             if transport_restriction_response := self._check_transport_restrictions(
@@ -910,7 +1078,14 @@ class MCPServer:
             )
         except NotFoundError:
             # Match test expectation: return a normal response with isError=True
-            error_message = f"Unknown tool: {tool_name}"
+            error_message = f"✗ Unknown tool: {tool_name}\n\n"
+            error_message += "  The requested tool does not exist or is not loaded.\n\n"
+            error_message += "  To fix:\n"
+            error_message += "  1. Check the tool name is correct\n"
+            error_message += "  2. List available tools with tools/list\n"
+            error_message += "  3. Ensure the server is properly installed\n\n"
+            error_message += "  Available tools can be found by calling the tools/list method."
+
             content = convert_to_mcp_content(error_message)
 
             # structuredContent should be the error as a JSON object
@@ -930,7 +1105,19 @@ class MCPServer:
             self._tracker.track_tool_call(False, "internal error calling tool")
             return JSONRPCError(
                 id=message.id,
-                error={"code": -32603, "message": "Internal error calling tool"},
+                error={
+                    "code": -32603,
+                    "message": (
+                        "✗ Tool execution failed\n\n"
+                        "  An unexpected error occurred while executing the tool.\n\n"
+                        "  To troubleshoot:\n"
+                        "  1. Check server logs for detailed error information\n"
+                        "  2. Verify all required parameters are provided\n"
+                        "  3. Ensure required secrets/authorization are configured\n"
+                        "  4. Try the tool again\n\n"
+                        "  The error has been logged."
+                    ),
+                },
             )
 
     def _create_error_response(
@@ -956,21 +1143,42 @@ class MCPServer:
         tool_name: str,
         session: ServerSession | None = None,
     ) -> JSONRPCResponse[CallToolResult] | None:
-        """Check transport restrictions for tools requiring auth or secrets"""
+        """Check transport restrictions for tools requiring auth or secrets.
+
+        Tools requiring authorization or secrets are blocked on unauthenticated HTTP
+        transport for security reasons. However, if the HTTP transport has front-door
+        authentication enabled (resource_owner is present), these tools are allowed
+        since we can safely identify the end-user and handle their authorization.
+        """
         # Check transport restrictions for tools requiring auth or secrets
         if session and session.init_options:
             transport_type = session.init_options.get("transport_type")
             if transport_type != "stdio":
+                # Get resource_owner from current model context (set during handle_message)
+                mctx = get_current_model_context()
+                is_authenticated = (
+                    mctx is not None
+                    and hasattr(mctx, "_resource_owner")
+                    and mctx._resource_owner is not None
+                )
+
                 requirements = tool.definition.requirements
-                if requirements and (requirements.authorization or requirements.secrets):
+                if (
+                    requirements
+                    and (requirements.authorization or requirements.secrets)
+                    and not is_authenticated
+                ):
                     documentation_url = "https://docs.arcade.dev/en/home/compare-server-types"
+                    user_message = "✗ Unsupported transport\n\n"
+                    user_message += f"  Tool '{tool_name}' cannot run over HTTP transport for security reasons.\n"
+                    user_message += f"  This tool requires {'authorization' if requirements.authorization else 'secrets'}.\n\n"
+                    user_message += "  To fix:\n"
+                    user_message += "  1. Use STDIO transport instead of HTTP\n"
+                    user_message += f"  2. See documentation: {documentation_url}\n\n"
+                    user_message += "  HTTP transport doesn't support tools needing user authorization or secrets."
+
                     tool_response = {
-                        "message": (
-                            f"Tool '{tool_name}' cannot be executed over unauthenticated HTTP transport for security reasons. "
-                            "This tool requires end-user authorization or access to sensitive secrets.\n"
-                            "For more information about server capabilities and transport options, see: "
-                            f"{documentation_url}"
-                        ),
+                        "message": user_message,
                         "llm_instructions": (
                             f"Please show the following link to the end user formatted as markdown: [Compare Server Types]({documentation_url})\n"
                             "Inform the end user that the provided link contains documentation on how to configure the server to use the correct transport."
@@ -992,13 +1200,24 @@ class MCPServer:
         if tool.definition.requirements and tool.definition.requirements.authorization:
             # First check if Arcade API key is configured
             if not self.arcade:
+                user_message = "✗ Missing Arcade API key\n\n"
+                user_message += (
+                    f"  Tool '{tool_name}' requires authorization but no API key is configured.\n\n"
+                )
+                user_message += "  To fix, either:\n"
+                user_message += "  1. Run arcade login:     arcade login\n"
+                user_message += "  2. Set environment var:  export ARCADE_API_KEY=your_key_here\n"
+                user_message += "  3. Add to .env file:     ARCADE_API_KEY=your_key_here\n\n"
+                user_message += "  Then restart the server."
+
                 tool_response = {
-                    "message": f"Tool '{tool_name}' cannot be executed because it requires authorization but no Arcade API key is configured.",
+                    "message": user_message,
                     "llm_instructions": (
                         f"The MCP server cannot execute the '{tool_name}' tool because it requires authorization "
                         "but the Arcade API key is not configured. The developer needs to: "
                         "1) Run 'arcade login' to authenticate, or "
                         "2) Set the ARCADE_API_KEY environment variable with a valid API key, or "
+                        "3) Add ARCADE_API_KEY to the .env file. "
                         "Once the API key is configured, restart the MCP server for the changes to take effect."
                     ),
                 }
@@ -1008,8 +1227,18 @@ class MCPServer:
             try:
                 auth_result = await self._check_authorization(tool, tool_context.user_id)
                 if auth_result.status != "completed":
+                    user_message = "⚠ Authorization required\n\n"
+                    user_message += (
+                        f"  Tool '{tool_name}' needs your permission to access your account.\n\n"
+                    )
+                    user_message += "  To authorize:\n"
+                    user_message += f"  1. Click this link: {auth_result.url}\n"
+                    user_message += "  2. Grant the requested permissions\n"
+                    user_message += "  3. Return here and try again\n\n"
+                    user_message += "  This is a one-time setup for this tool."
+
                     tool_response = {
-                        "message": "The tool was not executed because it requires authorization. This is not an error, but the end user must click the link to complete the OAuth2 flow before the tool can be executed.",
+                        "message": user_message,
                         "llm_instructions": f"Please show the following link to the end user formatted as markdown: {auth_result.url} \nInform the end user that the tool requires their authorization to be completed before the tool can be executed.",
                         "authorization_url": auth_result.url,
                     }
@@ -1023,9 +1252,18 @@ class MCPServer:
                 )
             except ToolRuntimeError as e:
                 # Handle any other authorization errors
+                user_message = "✗ Authorization error\n\n"
+                user_message += f"  Tool '{tool_name}' failed to authorize.\n\n"
+                user_message += f"  Error: {e}\n\n"
+                user_message += "  To fix:\n"
+                user_message += "  1. Check your API key is valid\n"
+                user_message += "  2. Verify you have necessary permissions\n"
+                user_message += "  3. Try running: arcade login\n\n"
+                user_message += "  Then restart the server."
+
                 tool_response = {
-                    "message": f"Tool '{tool_name}' cannot be executed due to an authorization error: {e}",
-                    "llm_instructions": f"The '{tool_name}' tool failed authorization. Error: {e}",
+                    "message": user_message,
+                    "llm_instructions": f"The '{tool_name}' tool failed authorization. Error: {e}. The developer should check their API key and permissions.",
                 }
                 return self._create_error_response(message, tool_response)
 
@@ -1039,13 +1277,28 @@ class MCPServer:
                     missing_secrets.append(secret_requirement.key)
             if missing_secrets:
                 missing_secrets_str = ", ".join(missing_secrets)
+
+                # Create actionable error message
+                fix_instructions = "\n\n  To fix, either:\n"
+                fix_instructions += "  1. Add to .env file:\n"
+                for secret in missing_secrets:
+                    fix_instructions += f"       {secret}=your_value_here\n"
+                fix_instructions += "  2. Set environment variable:\n"
+                for secret in missing_secrets:
+                    fix_instructions += f"       export {secret}=your_value_here\n"
+                fix_instructions += "\n  Then restart the server."
+
+                user_message = f"✗ Missing {'secret' if len(missing_secrets) == 1 else 'secrets'}: {missing_secrets_str}\n\n"
+                user_message += f"  Tool '{tool_name}' requires {'this secret' if len(missing_secrets) == 1 else 'these secrets'} but {'it is' if len(missing_secrets) == 1 else 'they are'} not configured."
+                user_message += fix_instructions
+
                 tool_response = {
-                    "message": f"Tool '{tool_name}' cannot be executed because it requires the following secrets that are not available: {missing_secrets_str}",
+                    "message": user_message,
                     "llm_instructions": (
                         f"The MCP server is missing required secrets for the '{tool_name}' tool. "
-                        f"The developer needs to provide these secrets by either: "
-                        f"1) Adding them to a .env file in the server's working directory (e.g., {missing_secrets[0]}=your_secret_value), "
-                        f"2) Setting them as environment variables before starting the server (e.g., export {missing_secrets[0]}=your_secret_value). "
+                        f"The developer needs to provide {'this secret' if len(missing_secrets) == 1 else 'these secrets'} by either: "
+                        f"1) Adding {'it' if len(missing_secrets) == 1 else 'them'} to a .env file in the server's working directory (e.g., {missing_secrets[0]}=your_secret_value), or "
+                        f"2) Setting {'it' if len(missing_secrets) == 1 else 'them'} as environment variable{'s' if len(missing_secrets) > 1 else ''} before starting the server (e.g., export {missing_secrets[0]}=your_secret_value). "
                         "Once the secrets are configured, restart the MCP server for the changes to take effect."
                     ),
                 }
@@ -1118,7 +1371,18 @@ class MCPServer:
             logger.exception("Error listing resources")
             return JSONRPCError(
                 id=message.id,
-                error={"code": -32603, "message": "Internal error listing resources"},
+                error={
+                    "code": -32603,
+                    "message": (
+                        "✗ Failed to list resources\n\n"
+                        "  An error occurred while retrieving the resource list.\n\n"
+                        "  To troubleshoot:\n"
+                        "  1. Check server logs for details\n"
+                        "  2. Verify resource providers are properly configured\n"
+                        "  3. Restart the server if needed\n\n"
+                        "  The error has been logged."
+                    ),
+                },
             )
 
     async def _handle_list_resource_templates(
@@ -1137,7 +1401,18 @@ class MCPServer:
             logger.exception("Error listing resource templates")
             return JSONRPCError(
                 id=message.id,
-                error={"code": -32603, "message": "Internal error listing resource templates"},
+                error={
+                    "code": -32603,
+                    "message": (
+                        "✗ Failed to list resource templates\n\n"
+                        "  An error occurred while retrieving resource templates.\n\n"
+                        "  To troubleshoot:\n"
+                        "  1. Check server logs for details\n"
+                        "  2. Verify resource templates are properly configured\n"
+                        "  3. Restart the server if needed\n\n"
+                        "  The error has been logged."
+                    ),
+                },
             )
 
     async def _handle_read_resource(
@@ -1159,13 +1434,36 @@ class MCPServer:
         except NotFoundError:
             return JSONRPCError(
                 id=message.id,
-                error={"code": -32002, "message": f"Resource not found: {message.params.uri}"},
+                error={
+                    "code": -32002,
+                    "message": (
+                        f"✗ Resource not found: {message.params.uri}\n\n"
+                        f"  The requested resource does not exist.\n\n"
+                        f"  To fix:\n"
+                        f"  1. Check the resource URI is correct\n"
+                        f"  2. List available resources with resources/list\n"
+                        f"  3. Verify the resource provider is loaded\n\n"
+                        f"  Resource URIs are case-sensitive."
+                    ),
+                },
             )
         except Exception:
             logger.exception(f"Error reading resource: {message.params.uri}")
             return JSONRPCError(
                 id=message.id,
-                error={"code": -32603, "message": "Internal error reading resource"},
+                error={
+                    "code": -32603,
+                    "message": (
+                        f"✗ Failed to read resource\n\n"
+                        f"  An error occurred while reading: {message.params.uri}\n\n"
+                        f"  To troubleshoot:\n"
+                        f"  1. Check server logs for details\n"
+                        f"  2. Verify you have access to the resource\n"
+                        f"  3. Ensure the resource is not corrupted\n"
+                        f"  4. Try again or contact support\n\n"
+                        f"  The error has been logged."
+                    ),
+                },
             )
 
     async def _handle_list_prompts(
@@ -1181,7 +1479,18 @@ class MCPServer:
             logger.exception("Error listing prompts")
             return JSONRPCError(
                 id=message.id,
-                error={"code": -32603, "message": "Internal error listing prompts"},
+                error={
+                    "code": -32603,
+                    "message": (
+                        "✗ Failed to list prompts\n\n"
+                        "  An error occurred while retrieving the prompt list.\n\n"
+                        "  To troubleshoot:\n"
+                        "  1. Check server logs for details\n"
+                        "  2. Verify prompt providers are properly configured\n"
+                        "  3. Restart the server if needed\n\n"
+                        "  The error has been logged."
+                    ),
+                },
             )
 
     async def _handle_get_prompt(
@@ -1199,13 +1508,36 @@ class MCPServer:
         except NotFoundError:
             return JSONRPCError(
                 id=message.id,
-                error={"code": -32002, "message": f"Prompt not found: {message.params.name}"},
+                error={
+                    "code": -32002,
+                    "message": (
+                        f"✗ Prompt not found: {message.params.name}\n\n"
+                        f"  The requested prompt does not exist.\n\n"
+                        f"  To fix:\n"
+                        f"  1. Check the prompt name is correct\n"
+                        f"  2. List available prompts with prompts/list\n"
+                        f"  3. Verify the prompt provider is loaded\n\n"
+                        f"  Prompt names are case-sensitive."
+                    ),
+                },
             )
         except Exception:
             logger.exception(f"Error getting prompt: {message.params.name}")
             return JSONRPCError(
                 id=message.id,
-                error={"code": -32603, "message": "Internal error getting prompt"},
+                error={
+                    "code": -32603,
+                    "message": (
+                        f"✗ Failed to get prompt\n\n"
+                        f"  An error occurred while retrieving prompt: {message.params.name}\n\n"
+                        f"  To troubleshoot:\n"
+                        f"  1. Check server logs for details\n"
+                        f"  2. Verify the prompt arguments are valid\n"
+                        f"  3. Ensure the prompt is properly configured\n"
+                        f"  4. Try again or contact support\n\n"
+                        f"  The error has been logged."
+                    ),
+                },
             )
 
     async def _handle_set_log_level(

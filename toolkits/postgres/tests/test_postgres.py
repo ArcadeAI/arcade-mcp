@@ -17,7 +17,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 POSTGRES_DATABASE_CONNECTION_STRING = (
     environ.get("TEST_POSTGRES_DATABASE_CONNECTION_STRING")
-    or "postgresql://evan@localhost:5432/postgres"
+    or "postgresql://postgres@localhost:5432/postgres"
 )
 
 
