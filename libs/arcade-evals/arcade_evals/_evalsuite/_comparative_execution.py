@@ -199,6 +199,8 @@ class _EvalSuiteComparativeMixin:
                             "name": _case.name,
                             "track": _t_name,
                             "input": _case.user_message,
+                            "system_message": _case.system_message,
+                            "additional_messages": _case.additional_messages,
                             "expected_tool_calls": [
                                 {"name": tc.name, "args": tc.args}
                                 for tc in _case.expected_tool_calls

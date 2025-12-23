@@ -96,7 +96,7 @@ class TestAddArcadeGateway:
     @pytest.mark.asyncio
     async def test_calls_loader_with_correct_params(self) -> None:
         with patch(
-            "arcade_evals._evalsuite._convenience.load_arcade_mcp_gateway_async", new_callable=AsyncMock
+            "arcade_evals._evalsuite._convenience._internal_load_arcade_mcp_gateway_sync"
         ) as mock_load:
             mock_load.return_value = [sample_tool_def()]
             suite = EvalSuite(name="Test", system_message="Test")
@@ -248,8 +248,7 @@ class TestAddArcadeGatewayWarnings:
     async def test_empty_response_warns(self) -> None:
         """Empty response from arcade gateway should warn."""
         with patch(
-            "arcade_evals._evalsuite._convenience.load_arcade_mcp_gateway_async",
-            new_callable=AsyncMock,
+            "arcade_evals._evalsuite._convenience._internal_load_arcade_mcp_gateway_sync"
         ) as mock_load:
             mock_load.return_value = []
             suite = EvalSuite(name="Test", system_message="Test")

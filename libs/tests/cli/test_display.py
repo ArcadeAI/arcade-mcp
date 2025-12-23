@@ -107,6 +107,7 @@ def test_display_eval_results_with_output_file() -> None:
             results,
             show_details=False,
             output_file=str(output_file),
+            output_formats=["txt"],
         )
 
         # Verify file was created
@@ -148,6 +149,7 @@ def test_display_eval_results_with_output_file_and_failed_only() -> None:
             output_file=str(output_file),
             failed_only=True,
             original_counts=original_counts,
+            output_formats=["txt"],
         )
 
         # Verify file was created
@@ -189,6 +191,7 @@ def test_display_eval_results_creates_parent_directories() -> None:
             results,
             show_details=False,
             output_file=str(output_file),
+            output_formats=["txt"],
         )
 
         # Parent directories should be created
@@ -505,6 +508,7 @@ def test_display_eval_results_failed_only_with_warnings_in_summary() -> None:
             output_file=str(output_file),
             failed_only=True,
             original_counts=original_counts,
+            output_formats=["txt"],
         )
 
         content = output_file.read_text()
@@ -550,9 +554,56 @@ def test_display_eval_results_with_details_and_output() -> None:
             results,
             show_details=True,
             output_file=str(output_file),
+            output_formats=["txt"],
         )
 
         assert output_file.exists()
         content = output_file.read_text()
         assert "User Input:" in content
         assert "Details:" in content
+
+
+def test_display_eval_results_multi_format_output() -> None:
+    """Test display with multiple output formats."""
+    results = [
+        [
+            {
+                "model": "gpt-4o",
+                "rubric": "Test Rubric",
+                "cases": [
+                    {
+                        "name": "Test Case",
+                        "input": "Test input",
+                        "evaluation": create_mock_evaluation_result(
+                            passed=True, warning=False, score=0.9
+                        ),
+                    },
+                ],
+            }
+        ]
+    ]
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        output_file = Path(tmpdir) / "results"
+
+        display_eval_results(
+            results,
+            show_details=False,
+            output_file=str(output_file),
+            output_formats=["txt", "md", "html"],
+        )
+
+        # Verify all three files were created
+        assert (Path(tmpdir) / "results.txt").exists()
+        assert (Path(tmpdir) / "results.md").exists()
+        assert (Path(tmpdir) / "results.html").exists()
+
+        # Verify each file has appropriate content
+        txt_content = (Path(tmpdir) / "results.txt").read_text()
+        assert "Test Case" in txt_content
+
+        md_content = (Path(tmpdir) / "results.md").read_text()
+        assert "# " in md_content  # Markdown header
+
+        html_content = (Path(tmpdir) / "results.html").read_text()
+        assert "<html" in html_content

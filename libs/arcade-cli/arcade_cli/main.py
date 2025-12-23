@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import os
 import subprocess
 import sys
@@ -29,15 +28,19 @@ from arcade_cli.server import app as server_app
 from arcade_cli.show import show_logic
 from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
+    ModelSpec,
     Provider,
     compute_base_url,
+    expand_provider_configs,
     get_default_model,
     get_eval_files,
     handle_cli_error,
     load_eval_suites,
     log_engine_health,
+    parse_provider_spec,
     require_dependency,
     resolve_provider_api_key,
+    resolve_provider_api_keys,
     version_callback,
 )
 
@@ -402,40 +405,62 @@ def evals(
         "-c",
         help="Maximum number of concurrent evaluations (default: 1)",
     ),
+    # --- New multi-provider flags ---
+    use_provider: Optional[list[str]] = typer.Option(
+        None,
+        "--use-provider",
+        help="Provider and models to use. Format: 'provider' or 'provider:model1,model2'. "
+        "Can be repeated for multiple providers. Examples: --use-provider openai "
+        "--use-provider anthropic:claude-sonnet-4-5-20250929",
+    ),
+    openai_key: Optional[str] = typer.Option(
+        None,
+        "--openai-key",
+        help="OpenAI API key. Falls back to OPENAI_API_KEY environment variable.",
+    ),
+    anthropic_key: Optional[str] = typer.Option(
+        None,
+        "--anthropic-key",
+        help="Anthropic API key. Falls back to ANTHROPIC_API_KEY environment variable.",
+    ),
+    # --- Legacy flags (kept for backward compatibility) ---
     models: Optional[str] = typer.Option(
         None,
         "--models",
         "-m",
-        help="The models to use for evaluation. Defaults to 'gpt-4o' for OpenAI, 'claude-sonnet-4-5-20250929' for Anthropic. Use commas to separate multiple models.",
+        help="[DEPRECATED] Use --use-provider instead. Models for single provider mode.",
+        hidden=True,
     ),
-    provider: Provider = typer.Option(
-        Provider.OPENAI,
+    provider: Optional[Provider] = typer.Option(
+        None,
         "--provider",
         "-p",
-        help="The provider of the models to use for evaluation.",
+        help="[DEPRECATED] Use --use-provider instead. Provider for single provider mode.",
+        hidden=True,
     ),
-    provider_api_key: str = typer.Option(
+    provider_api_key: Optional[str] = typer.Option(
         None,
         "--provider-api-key",
         "-k",
-        help="The model provider API key. If not provided, will look for the appropriate environment variable based on the provider (e.g., OPENAI_API_KEY for openai provider), first in the current environment, then in the current working directory's .env file.",
+        help="[DEPRECATED] Use --openai-key or --anthropic-key instead.",
+        hidden=True,
     ),
+    # --- Other flags ---
     failed_only: bool = typer.Option(
         False,
         "--failed-only",
         "-f",
         help="Show only failed evaluations",
     ),
-    output: Optional[str] = typer.Option(
+    output_file: Optional[str] = typer.Option(
         None,
-        "--output",
-        "-o",
-        help="Write results to a file",
+        "--file",
+        help="Write results to a file (works for both eval and capture modes)",
     ),
     output_format: str = typer.Option(
         "txt",
         "--format",
-        help="Output format for file results: 'txt' (plain text), 'md' (markdown), or 'html' (with colors)",
+        help="Output format(s) for file results. Single: 'txt', 'md', 'html', 'json'. Multiple: 'md,html'. All: 'all'",
     ),
     capture: bool = typer.Option(
         False,
@@ -445,12 +470,7 @@ def evals(
     add_context: bool = typer.Option(
         False,
         "--add-context",
-        help="Include system_message and additional_messages in capture output",
-    ),
-    capture_file: Optional[str] = typer.Option(
-        None,
-        "--file",
-        help="Write capture results to a JSON file (only used with --capture)",
+        help="Include system_message and additional_messages in output (works for both eval and capture modes)",
     ),
     debug: bool = typer.Option(False, "--debug", help="Show debug information"),
 ) -> None:
@@ -474,42 +494,112 @@ def evals(
         pip_install_command=r"pip install arcade-tdk",
     )
 
-    # Configure logging: suppress verbose SDK logs unless --debug is enabled
-    if not debug:
-        for logger_name in ("openai", "anthropic", "httpx", "httpcore"):
-            logger = logging.getLogger(logger_name)
-            logger.setLevel(logging.WARNING)
-            logger.propagate = False  # Prevent logs from reaching root handler
+    # --- Build model specs from flags ---
+    model_specs: list[ModelSpec] = []
 
-    # Use default model for provider if not specified
-    if models is None:
-        models = get_default_model(provider)
+    # Handle new --use-provider flags
+    if use_provider:
+        # Parse provider specs
+        try:
+            provider_configs = [parse_provider_spec(spec) for spec in use_provider]
+        except ValueError as e:
+            handle_cli_error(str(e), should_exit=True)
+            return  # For type checker
 
-    models_list = models.split(",")  # Use 'models_list' to avoid shadowing
-
-    # Resolve the API key for the provider
-    resolved_api_key = resolve_provider_api_key(provider, provider_api_key)
-    if not resolved_api_key:
-        provider_env_vars = {
-            Provider.OPENAI: "OPENAI_API_KEY",
-            Provider.ANTHROPIC: "ANTHROPIC_API_KEY",
-        }
-        env_var_name = provider_env_vars.get(provider, f"{provider.value.upper()}_API_KEY")
-        handle_cli_error(
-            f"API key not found for provider '{provider.value}'. "
-            f"Please provide it via --provider-api-key,-k argument, set the {env_var_name} environment variable, "
-            f"or add it to a .env file in the current directory.",
-            should_exit=True,
+        # Resolve API keys (explicit flags take precedence)
+        api_keys = resolve_provider_api_keys(
+            openai_key=openai_key or provider_api_key
+            if provider == Provider.OPENAI
+            else openai_key,
+            anthropic_key=anthropic_key or provider_api_key
+            if provider == Provider.ANTHROPIC
+            else anthropic_key,
         )
+
+        # Expand to model specs
+        try:
+            model_specs = expand_provider_configs(provider_configs, api_keys)
+        except ValueError as e:
+            handle_cli_error(str(e), should_exit=True)
+            return  # For type checker
+
+    # Handle legacy --provider/--models flags
+    elif provider is not None or models is not None:
+        # Show deprecation warning
+        console.print(
+            "[yellow]⚠️  --provider and --models are deprecated. "
+            "Use --use-provider instead (e.g., --use-provider openai:gpt-4o)[/yellow]"
+        )
+
+        # Use defaults if not specified
+        legacy_provider = provider or Provider.OPENAI
+        legacy_models = models.split(",") if models else [get_default_model(legacy_provider)]
+
+        # Resolve API key
+        resolved_key = openai_key if legacy_provider == Provider.OPENAI else anthropic_key
+        if not resolved_key:
+            resolved_key = resolve_provider_api_key(legacy_provider, provider_api_key)
+        if not resolved_key:
+            env_var = f"{legacy_provider.value.upper()}_API_KEY"
+            handle_cli_error(
+                f"API key not found for provider '{legacy_provider.value}'. "
+                f"Please provide it via --{legacy_provider.value}-key, set the {env_var} environment variable, "
+                f"or add it to a .env file in the current directory.",
+                should_exit=True,
+            )
+            return  # For type checker
+
+        model_specs = [
+            ModelSpec(provider=legacy_provider, model=m.strip(), api_key=resolved_key)
+            for m in legacy_models
+        ]
+
+    # Default: OpenAI with default model
+    else:
+        api_keys = resolve_provider_api_keys(openai_key=openai_key)
+        if not api_keys.get(Provider.OPENAI):
+            handle_cli_error(
+                "API key not found for provider 'openai'. "
+                "Please provide it via --openai-key, set the OPENAI_API_KEY environment variable, "
+                "or add it to a .env file in the current directory.",
+                should_exit=True,
+            )
+            return  # For type checker
+
+        model_specs = [
+            ModelSpec(
+                provider=Provider.OPENAI,
+                model=get_default_model(Provider.OPENAI),
+                api_key=api_keys[Provider.OPENAI],  # type: ignore[arg-type]
+            )
+        ]
+
+    if not model_specs:
+        handle_cli_error("No models specified. Use --use-provider to specify models.")
+        return
 
     eval_files = get_eval_files(directory)
     if not eval_files:
         return
 
+    # Warn about incompatible flag combinations
     if capture:
         console.print("\nRunning in capture mode", style="bold cyan")
+        if failed_only:
+            console.print("[yellow]⚠️  --failed-only is ignored in capture mode[/yellow]")
+        if show_details:
+            console.print("[yellow]⚠️  --details is ignored in capture mode[/yellow]")
     else:
         console.print("\nRunning evaluations", style="bold")
+
+    # Show which models will be used
+    unique_providers = set(spec.provider.value for spec in model_specs)
+    if len(unique_providers) > 1:
+        console.print(
+            f"[bold cyan]Using {len(model_specs)} model(s) across {len(unique_providers)} providers[/bold cyan]"
+        )
+    for spec in model_specs:
+        console.print(f"  • {spec.display_name}", style="dim")
 
     # Use the new function to load eval suites
     eval_suites = load_eval_suites(eval_files)
@@ -518,7 +608,7 @@ def evals(
         console.print("No evaluation suites to run.", style="bold yellow")
         return
 
-    if show_details or capture:
+    if show_details:
         suite_label = "suite" if len(eval_suites) == 1 else "suites"
         console.print(
             f"\nFound {len(eval_suites)} {suite_label} in the evaluation files.",
@@ -530,12 +620,11 @@ def evals(
             asyncio.run(
                 run_capture(
                     eval_suites=eval_suites,
-                    models_list=models_list,
-                    provider_api_key=resolved_api_key,
+                    model_specs=model_specs,
                     max_concurrent=max_concurrent,
-                    provider=provider.value,
                     include_context=add_context,
-                    capture_file=capture_file,
+                    output_file=output_file,
+                    output_format=output_format,
                     console=console,
                 )
             )
@@ -543,14 +632,13 @@ def evals(
             asyncio.run(
                 run_evaluations(
                     eval_suites=eval_suites,
-                    models_list=models_list,
-                    provider_api_key=resolved_api_key,
+                    model_specs=model_specs,
                     max_concurrent=max_concurrent,
-                    provider=provider.value,
                     show_details=show_details,
-                    output_file=output,
+                    output_file=output_file,
                     output_format=output_format,
                     failed_only=failed_only,
+                    include_context=add_context,
                     console=console,
                 )
             )

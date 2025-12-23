@@ -108,6 +108,158 @@ def get_default_model(provider: Provider) -> str:
     return DEFAULT_MODELS.get(provider, "gpt-4o")
 
 
+# ============================================================================
+# Multi-Provider Model Specification
+# ============================================================================
+
+
+@dataclass
+class ProviderConfig:
+    """Configuration for a single provider from CLI input.
+
+    Parsed from --use-provider flag values like:
+    - "openai" -> provider=OPENAI, models=[] (use default)
+    - "openai:gpt-4o,gpt-4o-mini" -> provider=OPENAI, models=["gpt-4o", "gpt-4o-mini"]
+    """
+
+    provider: Provider
+    models: list[str]  # Empty list means use default model
+
+    def get_models(self) -> list[str]:
+        """Get models, using default if none specified."""
+        if self.models:
+            return self.models
+        return [get_default_model(self.provider)]
+
+
+@dataclass
+class ModelSpec:
+    """A specific model to run evaluations against.
+
+    This is the expanded form used by the runner - one ModelSpec per
+    (provider, model, api_key) combination.
+    """
+
+    provider: Provider
+    model: str
+    api_key: str
+
+    @property
+    def display_name(self) -> str:
+        """Get display name in format 'provider/model'."""
+        return f"{self.provider.value}/{self.model}"
+
+
+def parse_provider_spec(spec: str) -> ProviderConfig:
+    """Parse a --use-provider value into a ProviderConfig.
+
+    Args:
+        spec: Provider spec string. Examples:
+            - "openai" -> use OpenAI with default model
+            - "openai:gpt-4o" -> use OpenAI with gpt-4o
+            - "anthropic:claude-sonnet-4-5-20250929,claude-3-haiku-20240307"
+
+    Returns:
+        ProviderConfig with parsed provider and models.
+
+    Raises:
+        ValueError: If provider name is invalid.
+
+    Examples:
+        >>> parse_provider_spec("openai")
+        ProviderConfig(provider=Provider.OPENAI, models=[])
+        >>> parse_provider_spec("openai:gpt-4o,gpt-4o-mini")
+        ProviderConfig(provider=Provider.OPENAI, models=['gpt-4o', 'gpt-4o-mini'])
+    """
+    if ":" in spec:
+        provider_str, models_str = spec.split(":", 1)
+        models = [m.strip() for m in models_str.split(",") if m.strip()]
+    else:
+        provider_str = spec.strip()
+        models = []
+
+    # Validate provider
+    provider_str_lower = provider_str.lower()
+    try:
+        provider = Provider(provider_str_lower)
+    except ValueError:
+        valid_providers = [p.value for p in Provider]
+        raise ValueError(
+            f"Invalid provider '{provider_str}'. Valid providers: {', '.join(valid_providers)}"
+        )
+
+    return ProviderConfig(provider=provider, models=models)
+
+
+def expand_provider_configs(
+    configs: list[ProviderConfig],
+    api_keys: dict[Provider, str | None],
+) -> list[ModelSpec]:
+    """Expand provider configs into individual ModelSpecs with resolved API keys.
+
+    Args:
+        configs: List of ProviderConfig from parsed --use-provider flags.
+        api_keys: Dict mapping Provider to API key (from flags or env vars).
+
+    Returns:
+        List of ModelSpec, one per (provider, model) combination.
+
+    Raises:
+        ValueError: If API key is missing for any provider.
+    """
+    model_specs: list[ModelSpec] = []
+
+    for config in configs:
+        api_key = api_keys.get(config.provider)
+        if not api_key:
+            env_var = f"{config.provider.value.upper()}_API_KEY"
+            raise ValueError(
+                f"API key required for provider '{config.provider.value}'. "
+                f"Provide via --{config.provider.value}-key or set {env_var} environment variable."
+            )
+
+        for model in config.get_models():
+            model_specs.append(ModelSpec(provider=config.provider, model=model, api_key=api_key))
+
+    return model_specs
+
+
+def resolve_provider_api_keys(
+    openai_key: str | None = None,
+    anthropic_key: str | None = None,
+) -> dict[Provider, str | None]:
+    """Resolve API keys for all providers from flags and environment.
+
+    Priority: explicit flag > environment variable > .env file
+
+    Args:
+        openai_key: Explicit OpenAI API key from --openai-key flag.
+        anthropic_key: Explicit Anthropic API key from --anthropic-key flag.
+
+    Returns:
+        Dict mapping Provider to resolved API key (or None if not found).
+    """
+    from dotenv import dotenv_values
+
+    # Load .env file
+    env_values = dotenv_values(".env")
+
+    def resolve_key(explicit: str | None, env_var: str) -> str | None:
+        if explicit:
+            return explicit
+        # Check current environment
+        key = os.environ.get(env_var)
+        if key:
+            return key
+        # Check .env file
+        return env_values.get(env_var)
+
+    return {
+        Provider.OPENAI: resolve_key(openai_key, "OPENAI_API_KEY"),
+        Provider.ANTHROPIC: resolve_key(anthropic_key, "ANTHROPIC_API_KEY"),
+    }
+
+
 class CLIError(Exception):
     """Custom exception for CLI errors that preserves error messages for tracking.
 

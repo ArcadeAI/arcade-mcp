@@ -19,12 +19,40 @@ from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn
 from rich.text import Text
 
 from arcade_cli.display import display_eval_results
-from arcade_cli.utils import filter_failed_evaluations
+from arcade_cli.formatters import get_capture_formatter
+from arcade_cli.utils import ModelSpec, filter_failed_evaluations
 
 if TYPE_CHECKING:
     from arcade_evals import CaptureResult
 
 logger = logging.getLogger(__name__)
+
+
+# All supported output formats
+ALL_FORMATS = ["txt", "md", "html", "json"]
+
+
+def parse_output_formats(format_str: str) -> list[str]:
+    """
+    Parse output format string into a list of formats.
+
+    Supports:
+    - Single format: "md" -> ["md"]
+    - Comma-separated: "md,html" -> ["md", "html"]
+    - "all" keyword: "all" -> ["txt", "md", "html", "json"]
+
+    Args:
+        format_str: The format string from CLI.
+
+    Returns:
+        List of format strings.
+    """
+    if format_str.lower() == "all":
+        return ALL_FORMATS.copy()
+
+    formats = [f.strip().lower() for f in format_str.split(",")]
+    # Filter to only valid formats
+    return [f for f in formats if f in ALL_FORMATS]
 
 
 # --- Result Types for Error Handling ---
@@ -36,22 +64,35 @@ class EvalTaskResult:
 
     suite_name: str
     model: str
+    provider: str
     success: bool
     result: Any | None = None  # EvalResult on success
     error: str | None = None
     error_type: str | None = None
 
-    @classmethod
-    def from_success(cls, suite_name: str, model: str, result: Any) -> EvalTaskResult:
-        """Create a successful result."""
-        return cls(suite_name=suite_name, model=model, success=True, result=result)
+    @property
+    def display_name(self) -> str:
+        """Get display name in format 'provider/model'."""
+        return f"{self.provider}/{self.model}"
 
     @classmethod
-    def from_error(cls, suite_name: str, model: str, error: Exception) -> EvalTaskResult:
+    def from_success(
+        cls, suite_name: str, model: str, provider: str, result: Any
+    ) -> EvalTaskResult:
+        """Create a successful result."""
+        return cls(
+            suite_name=suite_name, model=model, provider=provider, success=True, result=result
+        )
+
+    @classmethod
+    def from_error(
+        cls, suite_name: str, model: str, provider: str, error: Exception
+    ) -> EvalTaskResult:
         """Create a failed result from an exception."""
         return cls(
             suite_name=suite_name,
             model=model,
+            provider=provider,
             success=False,
             error=str(error),
             error_type=type(error).__name__,
@@ -64,24 +105,35 @@ class CaptureTaskResult:
 
     suite_name: str
     model: str
+    provider: str
     success: bool
     result: list[CaptureResult] | None = None  # List of CaptureResult on success
     error: str | None = None
     error_type: str | None = None
 
-    @classmethod
-    def from_success(
-        cls, suite_name: str, model: str, result: list[CaptureResult]
-    ) -> CaptureTaskResult:
-        """Create a successful result."""
-        return cls(suite_name=suite_name, model=model, success=True, result=result)
+    @property
+    def display_name(self) -> str:
+        """Get display name in format 'provider/model'."""
+        return f"{self.provider}/{self.model}"
 
     @classmethod
-    def from_error(cls, suite_name: str, model: str, error: Exception) -> CaptureTaskResult:
+    def from_success(
+        cls, suite_name: str, model: str, provider: str, result: list[CaptureResult]
+    ) -> CaptureTaskResult:
+        """Create a successful result."""
+        return cls(
+            suite_name=suite_name, model=model, provider=provider, success=True, result=result
+        )
+
+    @classmethod
+    def from_error(
+        cls, suite_name: str, model: str, provider: str, error: Exception
+    ) -> CaptureTaskResult:
         """Create a failed result from an exception."""
         return cls(
             suite_name=suite_name,
             model=model,
+            provider=provider,
             success=False,
             error=str(error),
             error_type=type(error).__name__,
@@ -93,10 +145,9 @@ class CaptureTaskResult:
 
 async def _run_eval_task(
     suite_func: Callable[..., Any],
-    model: str,
-    provider_api_key: str | None,
+    model_spec: ModelSpec,
     max_concurrent: int,
-    provider: str,
+    include_context: bool = False,
 ) -> EvalTaskResult:
     """
     Run a single evaluation task with error handling.
@@ -107,31 +158,35 @@ async def _run_eval_task(
 
     try:
         result = await suite_func(
-            provider_api_key=provider_api_key,
-            model=model,
+            provider_api_key=model_spec.api_key,
+            model=model_spec.model,
             max_concurrency=max_concurrent,
-            provider=provider,
+            provider=model_spec.provider.value,
+            include_context=include_context,
         )
-        return EvalTaskResult.from_success(suite_name, model, result)
+        return EvalTaskResult.from_success(
+            suite_name, model_spec.model, model_spec.provider.value, result
+        )
 
     except Exception as e:
         logger.warning(
-            "Evaluation task failed: suite=%s, model=%s, error=%s: %s",
+            "Evaluation task failed: suite=%s, model=%s, provider=%s, error=%s: %s",
             suite_name,
-            model,
+            model_spec.model,
+            model_spec.provider.value,
             type(e).__name__,
             str(e),
             exc_info=True,  # Include full traceback for debugging
         )
-        return EvalTaskResult.from_error(suite_name, model, e)
+        return EvalTaskResult.from_error(
+            suite_name, model_spec.model, model_spec.provider.value, e
+        )
 
 
 async def _run_capture_task(
     suite_func: Callable[..., Any],
-    model: str,
-    provider_api_key: str | None,
+    model_spec: ModelSpec,
     max_concurrent: int,
-    provider: str,
     include_context: bool,
 ) -> CaptureTaskResult:
     """
@@ -143,25 +198,30 @@ async def _run_capture_task(
 
     try:
         result = await suite_func(
-            provider_api_key=provider_api_key,
-            model=model,
+            provider_api_key=model_spec.api_key,
+            model=model_spec.model,
             max_concurrency=max_concurrent,
-            provider=provider,
+            provider=model_spec.provider.value,
             capture_mode=True,
             include_context=include_context,
         )
-        return CaptureTaskResult.from_success(suite_name, model, result)
+        return CaptureTaskResult.from_success(
+            suite_name, model_spec.model, model_spec.provider.value, result
+        )
 
     except Exception as e:
         logger.warning(
-            "Capture task failed: suite=%s, model=%s, error=%s: %s",
+            "Capture task failed: suite=%s, model=%s, provider=%s, error=%s: %s",
             suite_name,
-            model,
+            model_spec.model,
+            model_spec.provider.value,
             type(e).__name__,
             str(e),
             exc_info=True,  # Include full traceback for debugging
         )
-        return CaptureTaskResult.from_error(suite_name, model, e)
+        return CaptureTaskResult.from_error(
+            suite_name, model_spec.model, model_spec.provider.value, e
+        )
 
 
 # --- Main Runner Functions ---
@@ -169,15 +229,14 @@ async def _run_capture_task(
 
 async def run_evaluations(
     eval_suites: list[Callable[..., Any]],
-    models_list: list[str],
-    provider_api_key: str | None,
+    model_specs: list[ModelSpec],
     max_concurrent: int,
-    provider: str,
     show_details: bool,
     output_file: str | None,
     output_format: str,
     failed_only: bool,
     console: Console,
+    include_context: bool = False,
 ) -> None:
     """
     Run evaluation suites and display results.
@@ -186,15 +245,14 @@ async def run_evaluations(
 
     Args:
         eval_suites: List of decorated evaluation suite functions.
-        models_list: List of model names to run evaluations against.
-        provider_api_key: API key for the provider.
+        model_specs: List of ModelSpec objects containing provider, model, and API key.
         max_concurrent: Maximum concurrent evaluations.
-        provider: Provider name (e.g., "openai", "anthropic").
         show_details: Whether to show detailed results.
         output_file: Optional file path to write results.
         output_format: Format for file output ('txt', 'md').
         failed_only: Whether to show only failed evaluations.
         console: Rich console for output.
+        include_context: Whether to include system_message and additional_messages.
     """
     tasks = []
 
@@ -205,14 +263,13 @@ async def run_evaluations(
                 (suite_func.__name__, "bold blue"),
             )
         )
-        for model in models_list:
+        for model_spec in model_specs:
             task = asyncio.create_task(
                 _run_eval_task(
                     suite_func=suite_func,
-                    model=model,
-                    provider_api_key=provider_api_key,
+                    model_spec=model_spec,
                     max_concurrent=max_concurrent,
-                    provider=provider,
+                    include_context=include_context,
                 )
             )
             tasks.append(task)
@@ -238,7 +295,7 @@ async def run_evaluations(
             progress.update(
                 task_id,
                 advance=1,
-                description=f"[cyan]Completed: {result.suite_name} ({result.model})",
+                description=f"[cyan]Completed: {result.suite_name} ({result.display_name})",
             )
 
     # Separate successes and failures
@@ -250,11 +307,23 @@ async def run_evaluations(
         console.print(f"\n[bold yellow]⚠️  {len(failed)} evaluation(s) failed:[/bold yellow]")
         for fail in failed:
             console.print(
-                f"  • {fail.suite_name} ({fail.model}): [red]{fail.error_type}[/red] - {fail.error}"
+                f"  • {fail.suite_name} ({fail.display_name}): [red]{fail.error_type}[/red] - {fail.error}"
             )
 
     # Process successful results
-    all_evaluations = [r.result for r in successful if r.result is not None]
+    # Normalize results structure: ensure each result is a list (for consistent formatting)
+    # - Regular evals return a single dict -> wrap in list
+    # - Comparative evals return a list of dicts -> keep as is
+    all_evaluations: list[list[dict[str, Any]]] = []
+    for r in successful:
+        if r.result is None:
+            continue
+        if isinstance(r.result, list):
+            # Comparative eval: already a list of results (one per track)
+            all_evaluations.append(r.result)
+        else:
+            # Regular eval: single dict, wrap in list for consistent structure
+            all_evaluations.append([r.result])
 
     if not all_evaluations:
         console.print("\n[bold red]❌ No evaluations completed successfully.[/bold red]")
@@ -265,13 +334,17 @@ async def run_evaluations(
     if failed_only:
         all_evaluations, original_counts = filter_failed_evaluations(all_evaluations)
 
+    # Parse output_format as a list (handles comma-separated and "all")
+    output_formats = parse_output_formats(output_format)
+
     display_eval_results(
         all_evaluations,
         show_details=show_details,
         output_file=output_file,
         failed_only=failed_only,
         original_counts=original_counts,
-        output_format=output_format,
+        output_formats=output_formats,
+        include_context=include_context,
     )
 
     # Summary when there were failures
@@ -281,12 +354,11 @@ async def run_evaluations(
 
 async def run_capture(
     eval_suites: list[Callable[..., Any]],
-    models_list: list[str],
-    provider_api_key: str | None,
+    model_specs: list[ModelSpec],
     max_concurrent: int,
-    provider: str,
     include_context: bool,
-    capture_file: str | None,
+    output_file: str | None,
+    output_format: str,
     console: Console,
 ) -> None:
     """
@@ -297,12 +369,11 @@ async def run_capture(
 
     Args:
         eval_suites: List of decorated evaluation suite functions.
-        models_list: List of model names to run against.
-        provider_api_key: API key for the provider.
+        model_specs: List of ModelSpec objects containing provider, model, and API key.
         max_concurrent: Maximum concurrent operations.
-        provider: Provider name (e.g., "openai", "anthropic").
         include_context: Whether to include system_message and additional_messages.
-        capture_file: Optional file path to write JSON results.
+        output_file: Optional file path to write results.
+        output_format: Output format ('json', 'txt', 'md', 'html').
         console: Rich console for output.
     """
     tasks = []
@@ -314,14 +385,12 @@ async def run_capture(
                 (suite_func.__name__, "bold cyan"),
             )
         )
-        for model in models_list:
+        for model_spec in model_specs:
             task = asyncio.create_task(
                 _run_capture_task(
                     suite_func=suite_func,
-                    model=model,
-                    provider_api_key=provider_api_key,
+                    model_spec=model_spec,
                     max_concurrent=max_concurrent,
-                    provider=provider,
                     include_context=include_context,
                 )
             )
@@ -348,7 +417,7 @@ async def run_capture(
             progress.update(
                 task_id,
                 advance=1,
-                description=f"[cyan]Completed: {result.suite_name} ({result.model})",
+                description=f"[cyan]Completed: {result.suite_name} ({result.display_name})",
             )
 
     # Separate successes and failures
@@ -360,7 +429,7 @@ async def run_capture(
         console.print(f"\n[bold yellow]⚠️  {len(failed)} capture(s) failed:[/bold yellow]")
         for fail in failed:
             console.print(
-                f"  • {fail.suite_name} ({fail.model}): [red]{fail.error_type}[/red] - {fail.error}"
+                f"  • {fail.suite_name} ({fail.display_name}): [red]{fail.error_type}[/red] - {fail.error}"
             )
 
     # Collect successful captures
@@ -373,32 +442,52 @@ async def run_capture(
         console.print("\n[bold red]❌ No captures completed successfully.[/bold red]")
         return
 
-    # Prepare output
-    output_data = {
-        "captures": [cap.to_dict(include_context=include_context) for cap in all_captures]
-    }
+    # Parse output formats (handles comma-separated and "all")
+    output_formats = parse_output_formats(output_format)
 
-    # Output to file or console
-    if capture_file:
+    # Output to file(s) or console
+    if output_file:
+        # Get base path without extension
+        base_path = Path(output_file)
+        base_name = base_path.stem
+        parent_dir = base_path.parent
+
         try:
-            output_path = Path(capture_file)
-            output_path.parent.mkdir(parents=True, exist_ok=True)
-
-            with open(output_path, "w") as outfile:
-                json.dump(output_data, outfile, indent=2)
-            console.print(
-                f"\n[green]✓ Capture results written to[/green] [bold]{capture_file}[/bold]"
-            )
-
+            parent_dir.mkdir(parents=True, exist_ok=True)
         except PermissionError:
-            console.print(f"\n[red]❌ Error: Permission denied writing to {capture_file}[/red]")
+            console.print(
+                f"\n[red]❌ Error: Permission denied creating directory {parent_dir}[/red]"
+            )
             return
         except OSError as e:
-            console.print(f"\n[red]❌ Error writing file: {e}[/red]")
+            console.print(f"\n[red]❌ Error creating directory: {e}[/red]")
             return
+
+        for fmt in output_formats:
+            try:
+                formatter = get_capture_formatter(fmt)
+                formatted_output = formatter.format(all_captures, include_context=include_context)
+
+                # Build output path with proper extension
+                file_path = parent_dir / f"{base_name}.{formatter.file_extension}"
+
+                with open(file_path, "w", encoding="utf-8") as outfile:
+                    outfile.write(formatted_output)
+                console.print(
+                    f"\n[green]✓ Capture results written to[/green] [bold]{file_path}[/bold]"
+                )
+
+            except ValueError as e:
+                console.print(f"\n[red]❌ {e}[/red]")
+            except PermissionError:
+                console.print(f"\n[red]❌ Error: Permission denied writing to {file_path}[/red]")
+            except OSError as e:
+                console.print(f"\n[red]❌ Error writing file: {e}[/red]")
     else:
+        # Console output: always use JSON for best copy-paste experience
         console.print("\n[bold]Capture Results:[/bold]")
-        console.print(json.dumps(output_data, indent=2))
+        json_formatter = get_capture_formatter("json")
+        console.print(json_formatter.format(all_captures, include_context=include_context))
 
     # Summary
     total_cases = sum(len(cap.captured_cases) for cap in all_captures)

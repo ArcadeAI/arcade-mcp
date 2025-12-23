@@ -107,6 +107,145 @@ class TestOpenAISchemaConversion:
 
         assert result["properties"]["status"]["enum"] == ["1", "2", "three"]
 
+    def test_integer_enum_type_changed_to_string(self):
+        """Test that integer enums have their type changed to string.
+
+        OpenAI strict mode validates enum values against the declared type.
+        When enum values are converted to strings, the type must also change.
+
+        Example error without fix:
+        "enum value 0 does not validate against {'type': ['integer', 'null']}"
+        """
+        input_schema = {
+            "type": "object",
+            "properties": {
+                "priority": {
+                    "type": "integer",
+                    "enum": [0, 1, 2, 3, 4],
+                    "description": "Priority: 0=none, 1=urgent, 2=high, 3=medium, 4=low",
+                },
+            },
+            "required": ["priority"],
+        }
+
+        result = convert_to_strict_mode_schema(input_schema)
+
+        # Enum values should be strings
+        assert result["properties"]["priority"]["enum"] == ["0", "1", "2", "3", "4"]
+        # Type should be changed to string to match
+        assert result["properties"]["priority"]["type"] == "string"
+
+    def test_optional_integer_enum_type_changed_to_string_null_union(self):
+        """Test that optional integer enums get type ["string", "null"].
+
+        When an integer enum is optional:
+        1. Enum values are converted to strings
+        2. Type changes from "integer" to ["string", "null"]
+
+        This fixes: "enum value 0 does not validate against {'type': ['integer', 'null']}"
+        """
+        input_schema = {
+            "type": "object",
+            "properties": {
+                "priority": {
+                    "type": "integer",
+                    "enum": [0, 1, 2, 3, 4],
+                },
+            },
+            "required": [],  # priority is optional
+        }
+
+        result = convert_to_strict_mode_schema(input_schema)
+
+        # Enum values should be strings
+        assert result["properties"]["priority"]["enum"] == ["0", "1", "2", "3", "4"]
+        # Type should be ["string", "null"] for optional param
+        assert result["properties"]["priority"]["type"] == ["string", "null"]
+
+    def test_string_enum_type_unchanged(self):
+        """Test that string enums keep their type as string."""
+        input_schema = {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "enum": ["active", "inactive", "pending"],
+                },
+            },
+            "required": ["status"],
+        }
+
+        result = convert_to_strict_mode_schema(input_schema)
+
+        # Enum values unchanged
+        assert result["properties"]["status"]["enum"] == ["active", "inactive", "pending"]
+        # Type remains string
+        assert result["properties"]["status"]["type"] == "string"
+
+    def test_boolean_enum_type_changed_to_string(self):
+        """Test that boolean enums have their type changed to string."""
+        input_schema = {
+            "type": "object",
+            "properties": {
+                "flag": {
+                    "type": "boolean",
+                    "enum": [True, False],
+                },
+            },
+            "required": ["flag"],
+        }
+
+        result = convert_to_strict_mode_schema(input_schema)
+
+        # Boolean values converted to strings
+        assert result["properties"]["flag"]["enum"] == ["True", "False"]
+        # Type changed to string
+        assert result["properties"]["flag"]["type"] == "string"
+
+    def test_enum_with_list_type_no_null(self):
+        """Test that enums with list type but no null are converted to single string type."""
+        input_schema = {
+            "type": "object",
+            "properties": {
+                "priority": {
+                    "type": ["integer"],
+                    "enum": [1, 2, 3],
+                },
+            },
+            "required": ["priority"],
+        }
+
+        result = convert_to_strict_mode_schema(input_schema)
+
+        assert result["properties"]["priority"]["enum"] == ["1", "2", "3"]
+        # Should be "string", not ["string"]
+        assert result["properties"]["priority"]["type"] == "string"
+
+    def test_nested_object_enum_type_conversion(self):
+        """Test that enum type conversion works in nested objects."""
+        input_schema = {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "type": "object",
+                    "properties": {
+                        "level": {
+                            "type": "integer",
+                            "enum": [1, 2, 3],
+                        },
+                    },
+                    "required": ["level"],
+                },
+            },
+            "required": ["config"],
+        }
+
+        result = convert_to_strict_mode_schema(input_schema)
+
+        nested = result["properties"]["config"]["properties"]["level"]
+        assert nested["enum"] == ["1", "2", "3"]
+        assert nested["type"] == "string"
+
     def test_nested_object_gets_strict_mode(self):
         """Test that nested objects also get strict mode treatment."""
         input_schema = {

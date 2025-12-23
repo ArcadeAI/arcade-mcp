@@ -4,13 +4,16 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from arcade_cli.evals_runner import (
+    ALL_FORMATS,
     CaptureTaskResult,
     EvalTaskResult,
     _run_capture_task,
     _run_eval_task,
+    parse_output_formats,
     run_capture,
     run_evaluations,
 )
+from arcade_cli.utils import ModelSpec, Provider
 
 
 class TestEvalTaskResult:
@@ -18,10 +21,11 @@ class TestEvalTaskResult:
 
     def test_from_success(self) -> None:
         """Test creating a successful result."""
-        result = EvalTaskResult.from_success("test_suite", "gpt-4o", {"score": 0.9})
+        result = EvalTaskResult.from_success("test_suite", "gpt-4o", "openai", {"score": 0.9})
         assert result.success is True
         assert result.suite_name == "test_suite"
         assert result.model == "gpt-4o"
+        assert result.provider == "openai"
         assert result.result == {"score": 0.9}
         assert result.error is None
         assert result.error_type is None
@@ -29,10 +33,11 @@ class TestEvalTaskResult:
     def test_from_error(self) -> None:
         """Test creating a failed result from an exception."""
         error = ValueError("Something went wrong")
-        result = EvalTaskResult.from_error("test_suite", "gpt-4o", error)
+        result = EvalTaskResult.from_error("test_suite", "gpt-4o", "openai", error)
         assert result.success is False
         assert result.suite_name == "test_suite"
         assert result.model == "gpt-4o"
+        assert result.provider == "openai"
         assert result.error == "Something went wrong"
         assert result.error_type == "ValueError"
         assert result.result is None
@@ -46,8 +51,16 @@ class TestEvalTaskResult:
             (ConnectionError("conn"), "ConnectionError"),
         ]
         for error, expected_type in errors:
-            result = EvalTaskResult.from_error("suite", "model", error)
+            result = EvalTaskResult.from_error("suite", "model", "openai", error)
             assert result.error_type == expected_type
+
+    def test_display_name(self) -> None:
+        """Test that display_name shows provider/model format."""
+        result = EvalTaskResult.from_success("suite", "gpt-4o", "openai", {})
+        assert result.display_name == "openai/gpt-4o"
+
+        result2 = EvalTaskResult.from_success("suite", "claude-3-sonnet", "anthropic", {})
+        assert result2.display_name == "anthropic/claude-3-sonnet"
 
 
 class TestCaptureTaskResult:
@@ -56,10 +69,11 @@ class TestCaptureTaskResult:
     def test_from_success(self) -> None:
         """Test creating a successful capture result."""
         mock_captures = [MagicMock(), MagicMock()]
-        result = CaptureTaskResult.from_success("test_suite", "gpt-4o", mock_captures)
+        result = CaptureTaskResult.from_success("test_suite", "gpt-4o", "openai", mock_captures)
         assert result.success is True
         assert result.suite_name == "test_suite"
         assert result.model == "gpt-4o"
+        assert result.provider == "openai"
         assert result.result == mock_captures
         assert result.error is None
         assert result.error_type is None
@@ -67,11 +81,16 @@ class TestCaptureTaskResult:
     def test_from_error(self) -> None:
         """Test creating a failed capture result."""
         error = RuntimeError("Capture failed")
-        result = CaptureTaskResult.from_error("test_suite", "gpt-4o", error)
+        result = CaptureTaskResult.from_error("test_suite", "gpt-4o", "openai", error)
         assert result.success is False
         assert result.error == "Capture failed"
         assert result.error_type == "RuntimeError"
         assert result.result is None
+
+    def test_display_name(self) -> None:
+        """Test that display_name shows provider/model format."""
+        result = CaptureTaskResult.from_success("suite", "gpt-4o", "openai", [])
+        assert result.display_name == "openai/gpt-4o"
 
 
 class TestRunEvalTask:
@@ -83,18 +102,18 @@ class TestRunEvalTask:
         mock_suite = AsyncMock(return_value={"score": 0.95})
         mock_suite.__name__ = "test_suite"
 
+        model_spec = ModelSpec(provider=Provider.OPENAI, model="gpt-4o", api_key="test-key")
         result = await _run_eval_task(
             suite_func=mock_suite,
-            model="gpt-4o",
-            provider_api_key="test-key",
+            model_spec=model_spec,
             max_concurrent=1,
-            provider="openai",
         )
 
         assert result.success is True
         assert result.result == {"score": 0.95}
         assert result.suite_name == "test_suite"
         assert result.model == "gpt-4o"
+        assert result.provider == "openai"
 
     @pytest.mark.asyncio
     async def test_failed_task_returns_error_result(self) -> None:
@@ -102,12 +121,11 @@ class TestRunEvalTask:
         mock_suite = AsyncMock(side_effect=ValueError("API error"))
         mock_suite.__name__ = "test_suite"
 
+        model_spec = ModelSpec(provider=Provider.OPENAI, model="gpt-4o", api_key="test-key")
         result = await _run_eval_task(
             suite_func=mock_suite,
-            model="gpt-4o",
-            provider_api_key="test-key",
+            model_spec=model_spec,
             max_concurrent=1,
-            provider="openai",
         )
 
         assert result.success is False
@@ -121,12 +139,14 @@ class TestRunEvalTask:
         mock_suite = AsyncMock(return_value={"score": 1.0})
         mock_suite.__name__ = "test_suite"
 
+        model_spec = ModelSpec(
+            provider=Provider.ANTHROPIC, model="claude-sonnet", api_key="my-key"
+        )
         await _run_eval_task(
             suite_func=mock_suite,
-            model="claude-sonnet",
-            provider_api_key="my-key",
+            model_spec=model_spec,
             max_concurrent=5,
-            provider="anthropic",
+            include_context=False,
         )
 
         mock_suite.assert_called_once_with(
@@ -134,6 +154,7 @@ class TestRunEvalTask:
             model="claude-sonnet",
             max_concurrency=5,
             provider="anthropic",
+            include_context=False,
         )
 
 
@@ -147,12 +168,11 @@ class TestRunCaptureTask:
         mock_suite = AsyncMock(return_value=mock_captures)
         mock_suite.__name__ = "capture_suite"
 
+        model_spec = ModelSpec(provider=Provider.OPENAI, model="gpt-4o", api_key="test-key")
         result = await _run_capture_task(
             suite_func=mock_suite,
-            model="gpt-4o",
-            provider_api_key="test-key",
+            model_spec=model_spec,
             max_concurrent=1,
-            provider="openai",
             include_context=True,
         )
 
@@ -165,12 +185,11 @@ class TestRunCaptureTask:
         mock_suite = AsyncMock(side_effect=ConnectionError("Network failed"))
         mock_suite.__name__ = "capture_suite"
 
+        model_spec = ModelSpec(provider=Provider.OPENAI, model="gpt-4o", api_key="test-key")
         result = await _run_capture_task(
             suite_func=mock_suite,
-            model="gpt-4o",
-            provider_api_key="test-key",
+            model_spec=model_spec,
             max_concurrent=1,
-            provider="openai",
             include_context=False,
         )
 
@@ -179,17 +198,16 @@ class TestRunCaptureTask:
         assert result.error_type == "ConnectionError"
 
     @pytest.mark.asyncio
-    async def test_passes_capture_mode_arguments(self) -> None:
+    async def test_capture_mode_passed(self) -> None:
         """Test that capture_mode and include_context are passed."""
         mock_suite = AsyncMock(return_value=[])
         mock_suite.__name__ = "capture_suite"
 
+        model_spec = ModelSpec(provider=Provider.OPENAI, model="gpt-4o", api_key="key")
         await _run_capture_task(
             suite_func=mock_suite,
-            model="gpt-4o",
-            provider_api_key="key",
+            model_spec=model_spec,
             max_concurrent=2,
-            provider="openai",
             include_context=True,
         )
 
@@ -201,6 +219,7 @@ class TestRunCaptureTask:
             capture_mode=True,
             include_context=True,
         )
+
 
 
 class TestRunEvaluationsErrorHandling:
@@ -216,6 +235,7 @@ class TestRunEvaluationsErrorHandling:
         failing_suite.__name__ = "failing_suite"
 
         console = MagicMock()
+        model_specs = [ModelSpec(provider=Provider.OPENAI, model="gpt-4o", api_key="test")]
 
         with (
             patch("arcade_cli.evals_runner.display_eval_results"),
@@ -229,10 +249,8 @@ class TestRunEvaluationsErrorHandling:
 
             await run_evaluations(
                 eval_suites=[successful_suite, failing_suite],
-                models_list=["gpt-4o"],
-                provider_api_key="test",
+                model_specs=model_specs,
                 max_concurrent=1,
-                provider="openai",
                 show_details=False,
                 output_file=None,
                 output_format="txt",
@@ -251,13 +269,12 @@ class TestRunEvaluationsErrorHandling:
         failing_suite.__name__ = "failing_suite"
 
         console = MagicMock()
+        model_specs = [ModelSpec(provider=Provider.OPENAI, model="gpt-4o", api_key="test")]
 
         await run_evaluations(
             eval_suites=[failing_suite],
-            models_list=["gpt-4o"],
-            provider_api_key="test",
+            model_specs=model_specs,
             max_concurrent=1,
-            provider="openai",
             show_details=False,
             output_file=None,
             output_format="txt",
@@ -277,13 +294,12 @@ class TestRunEvaluationsErrorHandling:
         failing_suite.__name__ = "bad_suite"
 
         console = MagicMock()
+        model_specs = [ModelSpec(provider=Provider.OPENAI, model="gpt-4o", api_key="test")]
 
         await run_evaluations(
             eval_suites=[failing_suite],
-            models_list=["gpt-4o"],
-            provider_api_key="test",
+            model_specs=model_specs,
             max_concurrent=1,
-            provider="openai",
             show_details=False,
             output_file=None,
             output_format="txt",
@@ -302,14 +318,13 @@ class TestRunEvaluationsErrorHandling:
         successful_suite.__name__ = "success_suite"
 
         console = MagicMock()
+        model_specs = [ModelSpec(provider=Provider.OPENAI, model="gpt-4o", api_key="test")]
 
         with patch("arcade_cli.evals_runner.display_eval_results"):
             await run_evaluations(
                 eval_suites=[successful_suite],
-                models_list=["gpt-4o"],
-                provider_api_key="test",
+                model_specs=model_specs,
                 max_concurrent=1,
-                provider="openai",
                 show_details=False,
                 output_file=None,
                 output_format="txt",
@@ -335,6 +350,10 @@ class TestRunEvaluationsErrorHandling:
         mock_suite.__name__ = "conditional_suite"
 
         console = MagicMock()
+        model_specs = [
+            ModelSpec(provider=Provider.OPENAI, model="gpt-4o", api_key="test"),
+            ModelSpec(provider=Provider.OPENAI, model="bad-model", api_key="test"),
+        ]
 
         with (
             patch("arcade_cli.evals_runner.display_eval_results"),
@@ -348,10 +367,8 @@ class TestRunEvaluationsErrorHandling:
 
             await run_evaluations(
                 eval_suites=[mock_suite],
-                models_list=["gpt-4o", "bad-model"],
-                provider_api_key="test",
+                model_specs=model_specs,
                 max_concurrent=1,
-                provider="openai",
                 show_details=False,
                 output_file=None,
                 output_format="txt",
@@ -373,15 +390,15 @@ class TestRunCaptureErrorHandling:
         failing_suite.__name__ = "failing_capture"
 
         console = MagicMock()
+        model_specs = [ModelSpec(provider=Provider.OPENAI, model="gpt-4o", api_key="test")]
 
         await run_capture(
             eval_suites=[failing_suite],
-            models_list=["gpt-4o"],
-            provider_api_key="test",
+            model_specs=model_specs,
             max_concurrent=1,
-            provider="openai",
             include_context=False,
-            capture_file=None,
+            output_file=None,
+            output_format="json",
             console=console,
         )
 
@@ -405,6 +422,7 @@ class TestRunCaptureErrorHandling:
         failing_suite.__name__ = "failing_capture"
 
         console = MagicMock()
+        model_specs = [ModelSpec(provider=Provider.OPENAI, model="gpt-4o", api_key="test")]
 
         with patch("arcade_cli.evals_runner.Progress") as mock_progress:
             # Mock Progress context manager
@@ -415,12 +433,11 @@ class TestRunCaptureErrorHandling:
 
             await run_capture(
                 eval_suites=[successful_suite, failing_suite],
-                models_list=["gpt-4o"],
-                provider_api_key="test",
+                model_specs=model_specs,
                 max_concurrent=1,
-                provider="openai",
                 include_context=False,
-                capture_file=None,
+                output_file=None,
+                output_format="json",
                 console=console,
             )
 
@@ -439,15 +456,15 @@ class TestRunCaptureErrorHandling:
         failing_suite.__name__ = "network_capture"
 
         console = MagicMock()
+        model_specs = [ModelSpec(provider=Provider.OPENAI, model="gpt-4o", api_key="test")]
 
         await run_capture(
             eval_suites=[failing_suite],
-            models_list=["gpt-4o"],
-            provider_api_key="test",
+            model_specs=model_specs,
             max_concurrent=1,
-            provider="openai",
             include_context=False,
-            capture_file=None,
+            output_file=None,
+            output_format="json",
             console=console,
         )
 
@@ -455,3 +472,44 @@ class TestRunCaptureErrorHandling:
         calls = [str(c) for c in console.print.call_args_list]
         assert any("network_capture" in c for c in calls)
         assert any("ConnectionError" in c for c in calls)
+
+
+class TestParseOutputFormats:
+    """Tests for parse_output_formats function."""
+
+    def test_single_format(self) -> None:
+        """Should return a list with a single format."""
+        assert parse_output_formats("md") == ["md"]
+        assert parse_output_formats("txt") == ["txt"]
+        assert parse_output_formats("html") == ["html"]
+        assert parse_output_formats("json") == ["json"]
+
+    def test_comma_separated_formats(self) -> None:
+        """Should return a list of multiple formats."""
+        assert parse_output_formats("md,html") == ["md", "html"]
+        assert parse_output_formats("txt,md,html,json") == ["txt", "md", "html", "json"]
+
+    def test_comma_separated_with_spaces(self) -> None:
+        """Should handle spaces around commas."""
+        assert parse_output_formats("md, html") == ["md", "html"]
+        assert parse_output_formats(" md , html ") == ["md", "html"]
+
+    def test_all_keyword(self) -> None:
+        """Should return all formats for 'all' keyword."""
+        assert parse_output_formats("all") == ALL_FORMATS
+        assert parse_output_formats("ALL") == ALL_FORMATS
+        assert parse_output_formats("All") == ALL_FORMATS
+
+    def test_case_insensitive(self) -> None:
+        """Should be case-insensitive."""
+        assert parse_output_formats("MD") == ["md"]
+        assert parse_output_formats("HTML,JSON") == ["html", "json"]
+
+    def test_invalid_formats_filtered(self) -> None:
+        """Should filter out invalid formats."""
+        assert parse_output_formats("md,invalid") == ["md"]
+        assert parse_output_formats("invalid") == []
+
+    def test_mixed_valid_invalid(self) -> None:
+        """Should keep valid formats and drop invalid ones."""
+        assert parse_output_formats("md,foo,html,bar") == ["md", "html"]

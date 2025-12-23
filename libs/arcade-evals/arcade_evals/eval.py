@@ -786,6 +786,8 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
                 result = {
                     "name": case.name,
                     "input": case.user_message,
+                    "system_message": case.system_message,
+                    "additional_messages": case.additional_messages,
                     "expected_tool_calls": [
                         {"name": tc.name, "args": tc.args} for tc in case.expected_tool_calls
                     ],
@@ -1004,6 +1006,11 @@ def tool_eval() -> Callable[[Callable], Callable]:
                     eval_result = await _run_with_anthropic(suite, provider_api_key, model)
                 else:
                     eval_result = await _run_with_openai(suite, provider_api_key, model)
+
+                # For comparative evaluations, eval_result is already a list of track results
+                # For regular evaluations, it's a single dict that needs wrapping
+                if isinstance(eval_result, list):
+                    return eval_result
                 return [eval_result]
 
         wrapper.__tool_eval__ = True  # type: ignore[attr-defined]
@@ -1012,14 +1019,36 @@ def tool_eval() -> Callable[[Callable], Callable]:
     return decorator
 
 
-async def _run_with_openai(suite: "EvalSuite", api_key: str, model: str) -> dict[str, Any]:
-    """Run evaluation suite with OpenAI client."""
+async def _run_with_openai(
+    suite: "EvalSuite", api_key: str, model: str
+) -> dict[str, Any] | list[dict[str, Any]]:
+    """Run evaluation suite with OpenAI client.
+
+    Returns:
+        For regular evaluations: A single result dict.
+        For comparative evaluations: A list of result dicts (one per track).
+    """
     async with AsyncOpenAI(api_key=api_key) as client:
-        return await suite.run(client, model, provider="openai")
+        # Check if this suite has comparative cases
+        if suite._comparative_case_builders:
+            # Run comparative evaluation - returns dict[track_name, result]
+            track_results = await suite.run_comparative(client, model, provider="openai")
+            # Convert to list of results for consistent handling
+            return list(track_results.values())
+        else:
+            # Run regular evaluation
+            return await suite.run(client, model, provider="openai")
 
 
-async def _run_with_anthropic(suite: "EvalSuite", api_key: str, model: str) -> dict[str, Any]:
-    """Run evaluation suite with Anthropic client."""
+async def _run_with_anthropic(
+    suite: "EvalSuite", api_key: str, model: str
+) -> dict[str, Any] | list[dict[str, Any]]:
+    """Run evaluation suite with Anthropic client.
+
+    Returns:
+        For regular evaluations: A single result dict.
+        For comparative evaluations: A list of result dicts (one per track).
+    """
     try:
         from anthropic import AsyncAnthropic
     except ImportError as e:
@@ -1029,4 +1058,12 @@ async def _run_with_anthropic(suite: "EvalSuite", api_key: str, model: str) -> d
         ) from e
 
     async with AsyncAnthropic(api_key=api_key) as client:
-        return await suite.run(client, model, provider="anthropic")
+        # Check if this suite has comparative cases
+        if suite._comparative_case_builders:
+            # Run comparative evaluation - returns dict[track_name, result]
+            track_results = await suite.run_comparative(client, model, provider="anthropic")
+            # Convert to list of results for consistent handling
+            return list(track_results.values())
+        else:
+            # Run regular evaluation
+            return await suite.run(client, model, provider="anthropic")

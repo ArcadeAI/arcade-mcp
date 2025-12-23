@@ -73,10 +73,30 @@ def _apply_strict_mode_recursive(schema: dict[str, Any], *, depth: int = 0) -> d
     for keyword in _UNSUPPORTED_STRICT_MODE_KEYWORDS:
         schema.pop(keyword, None)
 
-    # Convert enum values to strings for consistency
-    # OpenAI strict mode expects string enum values
+    # OpenAI strict mode enum handling:
+    # 1. OpenAI requires enum values to be strings
+    # 2. OpenAI validates that enum values match the declared type
+    # 3. When we convert enum values to strings, we must also change the type to "string"
+    #
+    # Example: {"type": "integer", "enum": [0, 1, 2]} becomes {"type": "string", "enum": ["0", "1", "2"]}
+    # Example: {"type": ["integer", "null"], "enum": [0, 1]} becomes {"type": ["string", "null"], "enum": ["0", "1"]}
+    #
+    # Without this fix, OpenAI returns: "enum value 0 does not validate against {'type': ['integer', 'null']}"
     if "enum" in schema:
         schema["enum"] = [str(v) for v in schema["enum"]]
+        # Change type to string to match the stringified enum values
+        current_type = schema.get("type")
+        if current_type and current_type != "string":
+            if isinstance(current_type, str):
+                schema["type"] = "string"
+            elif isinstance(current_type, list) and "string" not in current_type:
+                # Replace non-string types with string, preserve null if present
+                has_null = "null" in current_type
+                if has_null:
+                    schema["type"] = ["string", "null"]
+                else:
+                    # Single type without null should be simplified to string
+                    schema["type"] = "string"
 
     schema_type = schema.get("type")
 

@@ -397,7 +397,8 @@ def _internal_load_from_http_sync(
 
     if use_sse:
         if "Accept" not in request_headers:
-            request_headers["Accept"] = "text/event-stream"
+            # Some servers (e.g., Semgrep) require both application/json and text/event-stream
+            request_headers["Accept"] = "application/json, text/event-stream"
         with httpx.stream(
             "POST",
             url,
@@ -406,14 +407,27 @@ def _internal_load_from_http_sync(
             timeout=timeout,
         ) as response:
             response.raise_for_status()
-            for line in response.iter_lines():
-                if line.startswith("data: "):
-                    try:
-                        data = json.loads(line[6:])
-                        if "result" in data and "tools" in data["result"]:
-                            return cast(list[dict[str, Any]], data["result"]["tools"])
-                    except json.JSONDecodeError:
-                        continue
+            content_type = response.headers.get("content-type", "")
+
+            # If server returns JSON instead of SSE, handle it directly
+            if "application/json" in content_type:
+                full_content = response.read().decode("utf-8")
+                try:
+                    data = json.loads(full_content)
+                    if "result" in data and "tools" in data["result"]:
+                        return cast(list[dict[str, Any]], data["result"]["tools"])
+                except json.JSONDecodeError:
+                    pass
+            else:
+                # Parse SSE stream format
+                for line in response.iter_lines():
+                    if line.startswith("data: "):
+                        try:
+                            data = json.loads(line[6:])
+                            if "result" in data and "tools" in data["result"]:
+                                return cast(list[dict[str, Any]], data["result"]["tools"])
+                        except json.JSONDecodeError:
+                            continue
         # SSE stream completed without finding tools
         logger.warning(
             "MCP SSE stream from %s completed but no 'result.tools' found in events.",

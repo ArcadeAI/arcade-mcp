@@ -10,13 +10,15 @@ It is intentionally not exported from `arcade_evals.__init__`.
 
 from __future__ import annotations
 
+import asyncio
+import warnings
 from typing import TYPE_CHECKING, Any, Callable
 
 from arcade_evals._evalsuite._tool_registry import EvalSuiteToolRegistry, MCPToolDefinition
 from arcade_evals._evalsuite._tracks import TrackManager
 from arcade_evals.loaders import (
     ARCADE_API_BASE_URL,
-    load_arcade_mcp_gateway_async,
+    _internal_load_arcade_mcp_gateway_sync,
     load_from_http_async,
     load_from_stdio_async,
 )
@@ -113,6 +115,7 @@ class _EvalSuiteConvenienceMixin:
         headers: dict[str, str] | None = None,
         timeout: int = 10,
         track: str | None = None,
+        use_sse: bool = False,
     ) -> Any:
         """Add tools from an MCP HTTP server.
 
@@ -121,14 +124,13 @@ class _EvalSuiteConvenienceMixin:
             headers: Optional HTTP headers.
             timeout: Connection timeout in seconds.
             track: Optional track name for comparative evaluations.
+            use_sse: If True, use Server-Sent Events (SSE) transport.
 
         Returns:
             Self for method chaining.
         """
-        import warnings
-
         registry = self._get_registry(track)
-        tools = await load_from_http_async(url, timeout=timeout, headers=headers)
+        tools = await load_from_http_async(url, timeout=timeout, headers=headers, use_sse=use_sse)
         if not tools:
             warnings.warn(
                 f"No tools loaded from {url}. Server may be unavailable.",
@@ -158,8 +160,6 @@ class _EvalSuiteConvenienceMixin:
         Returns:
             Self for method chaining.
         """
-        import warnings
-
         registry = self._get_registry(track)
         tools = await load_from_stdio_async(command, timeout=timeout, env=env)
         if not tools:
@@ -184,6 +184,8 @@ class _EvalSuiteConvenienceMixin:
     ) -> Any:
         """Add tools from an Arcade MCP gateway.
 
+        This method uses HTTP directly and does NOT require the MCP SDK.
+
         Args:
             gateway_slug: The Arcade gateway slug.
             arcade_api_key: Optional API key.
@@ -195,16 +197,18 @@ class _EvalSuiteConvenienceMixin:
         Returns:
             Self for method chaining.
         """
-        import warnings
-
         registry = self._get_registry(track)
-        tools = await load_arcade_mcp_gateway_async(
+
+        # Use internal HTTP implementation directly - no MCP SDK required
+        tools = await asyncio.to_thread(
+            _internal_load_arcade_mcp_gateway_sync,
             gateway_slug,
             arcade_api_key=arcade_api_key,
             arcade_user_id=arcade_user_id,
             base_url=base_url or ARCADE_API_BASE_URL,
             timeout=timeout,
         )
+
         if not tools:
             warnings.warn(
                 f"No tools loaded from Arcade gateway: {gateway_slug}",

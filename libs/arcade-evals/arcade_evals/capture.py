@@ -49,6 +49,7 @@ class CapturedCase:
         tool_calls: List of tool calls made by the model.
         system_message: The system message (included if include_context is True).
         additional_messages: Additional messages (included if include_context is True).
+        track_name: The track name for comparative captures (None for regular cases).
     """
 
     case_name: str
@@ -56,6 +57,7 @@ class CapturedCase:
     tool_calls: list[CapturedToolCall] = field(default_factory=list)
     system_message: str | None = None
     additional_messages: list[dict[str, Any]] | None = None
+    track_name: str | None = None
 
     @staticmethod
     def _try_parse_json(value: str) -> Any:
@@ -107,6 +109,8 @@ class CapturedCase:
             "user_message": self.user_message,
             "tool_calls": [tc.to_dict() for tc in self.tool_calls],
         }
+        if self.track_name:
+            result["track_name"] = self.track_name
         if include_context:
             result["system_message"] = self.system_message
             # Normalize additional_messages to parse JSON string arguments
