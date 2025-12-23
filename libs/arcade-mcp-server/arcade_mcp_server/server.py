@@ -15,19 +15,30 @@ Key notes:
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import os
+import os.path
 from typing import Any, Callable, cast
 
 from arcade_core.catalog import MaterializedTool, ToolCatalog
 from arcade_core.executor import ToolExecutor
-from arcade_core.schema import ToolAuthorizationContext, ToolContext
+from arcade_core.schema import ToolAuthorizationContext, ToolContext, ToolMetadataItem
 from arcade_core.schema import ToolAuthRequirement as CoreToolAuthRequirement
 from arcadepy import ArcadeError, AsyncArcade
 from arcadepy.types.auth_authorize_params import AuthRequirement, AuthRequirementOauth2
 
 from arcade_mcp_server.context import Context, get_current_model_context, set_current_model_context
 from arcade_mcp_server.convert import convert_content_to_structured_content, convert_to_mcp_content
+from arcade_mcp_server.datacache import (
+    DatacacheClient,
+    DatacacheConfigError,
+    build_datacache_identity,
+    is_datacache_enabled,
+)
+from arcade_mcp_server.datacache.config import parse_datacache_config
+from arcade_mcp_server.datacache.lock import RedisLock
+from arcade_mcp_server.datacache.storage import LocalFileDatacacheStorage, S3DatacacheStorage
 from arcade_mcp_server.exceptions import NotFoundError, ToolRuntimeError
 from arcade_mcp_server.lifespan import LifespanManager
 from arcade_mcp_server.managers import PromptManager, ResourceManager, ToolManager
@@ -299,6 +310,30 @@ class MCPServer:
             "Use 'tools/list' to see available tools and 'tools/call' to execute them."
         )
 
+    def _validate_datacache_boot_requirements(self) -> None:
+        """Fail fast on missing datacache requirements.
+
+        If any tool enables datacache (presence of datacache.keys), we require Redis to be
+        configured so locking works consistently.
+        """
+        datacache_required = False
+        for t in self._initial_catalog:
+            cfg_raw = getattr(t.meta, "datacache", None)
+            if is_datacache_enabled(cfg_raw):
+                datacache_required = True
+                break
+
+        if not datacache_required:
+            return
+
+        dc = self.settings.datacache
+        if not dc.redis_url:
+            logger.error(
+                "Datacache is enabled for at least one tool, but ARCADE_DATACACHE_REDIS_URL is not set. "
+                "Set ARCADE_DATACACHE_REDIS_URL and restart the server."
+            )
+            raise SystemExit(1)
+
     async def _start(self) -> None:
         """Start server components (called by MCPComponent.start)."""
         await self._tool_manager.start()
@@ -333,6 +368,7 @@ class MCPServer:
                 logger.debug(f"{self.name} already started")
                 return
             logger.info(f"Starting {self.name}")
+            self._validate_datacache_boot_requirements()
             try:
                 await self._start()
                 self._started = True
@@ -652,6 +688,35 @@ class MCPServer:
             tool_context.user_id = session.session_id if session else None
             logger.debug("Context user_id set from session (non-dev env)")
 
+        # metadata propagation from request _meta -> ToolContext.metadata
+        # Request meta is stored on the session as a SimpleNamespace in ServerSession.set_request_meta().
+        meta_dict: dict[str, Any] = {}
+        if session is not None and getattr(session, "_request_meta", None) is not None:
+            try:
+                meta_dict = vars(session._request_meta)  # type: ignore[attr-defined]
+            except Exception:
+                meta_dict = {}
+
+        required_meta_keys: set[str] = set()
+        if tool.definition.requirements and tool.definition.requirements.metadata:
+            required_meta_keys = {m.key for m in tool.definition.requirements.metadata if m.key}
+
+        # Always allow these common datacache keys if present
+        allowed_keys = required_meta_keys | {"organization", "project"}
+
+        metadata_items: list[ToolMetadataItem] = []
+        for k in sorted(allowed_keys):
+            if k not in meta_dict:
+                continue
+            v = meta_dict.get(k)
+            if v is None:
+                continue
+            v_str = json.dumps(v, sort_keys=True) if isinstance(v, (dict, list)) else str(v)
+            metadata_items.append(ToolMetadataItem(key=str(k), value=v_str))
+
+        if metadata_items:
+            tool_context.metadata = metadata_items
+
         return tool_context
 
     async def _handle_call_tool(
@@ -700,15 +765,99 @@ class MCPServer:
                 mctx.set_tool_context(tool_context)
 
             try:
-                # Execute tool
-                result = await ToolExecutor.run(
-                    func=tool.tool,
-                    definition=tool.definition,
-                    input_model=tool.input_model,
-                    output_model=tool.output_model,
-                    context=mctx if mctx is not None else tool_context,
-                    **input_params,
-                )
+                # Optional datacache wrapper
+                datacache_cfg_raw = getattr(tool.meta, "datacache", None)
+                if is_datacache_enabled(datacache_cfg_raw):
+                    cfg = parse_datacache_config(datacache_cfg_raw)
+                    if cfg is None or not cfg.get("keys"):
+                        raise DatacacheConfigError("datacache enabled but no keys configured")
+
+                    dc_settings = self.settings.datacache
+                    if not dc_settings.redis_url:
+                        raise DatacacheConfigError(
+                            "ARCADE_DATACACHE_REDIS_URL must be set when datacache is enabled"
+                        )
+                    if not dc_settings.storage_backend:
+                        raise DatacacheConfigError(
+                            "ARCADE_DATACACHE_STORAGE_BACKEND must be set to 's3' or 'local' when datacache is enabled"
+                        )
+
+                    identity = build_datacache_identity(
+                        tool_fqn=tool.definition.fully_qualified_name,
+                        cfg=cfg,
+                        tool_context=tool_context,
+                    )
+                    lock_key = f"arcade:datacache:lock:{identity.cache_key_slug}"
+                    local_path = os.path.join(
+                        dc_settings.local_dir, f"{identity.cache_key_slug}.duckdb"
+                    )
+
+                    if dc_settings.storage_backend == "s3":
+                        if not dc_settings.s3_bucket:
+                            raise DatacacheConfigError(
+                                "ARCADE_DATACACHE_S3_BUCKET must be set when ARCADE_DATACACHE_STORAGE_BACKEND=s3"
+                            )
+                        storage = S3DatacacheStorage(
+                            bucket=dc_settings.s3_bucket,
+                            prefix=dc_settings.s3_prefix,
+                            endpoint_url=dc_settings.s3_endpoint_url,
+                            region_name=dc_settings.aws_region,
+                            aws_access_key_id=dc_settings.aws_access_key_id,
+                            aws_secret_access_key=dc_settings.aws_secret_access_key,
+                            aws_session_token=dc_settings.aws_session_token,
+                        )
+                        loc = storage.location_for_digest(identity.cache_key_slug)
+                    elif dc_settings.storage_backend == "local":
+                        storage = LocalFileDatacacheStorage(
+                            storage_dir=os.path.join(dc_settings.local_dir, "storage")
+                        )
+                        loc = storage.location_for_digest(identity.cache_key_slug)
+                    else:
+                        raise DatacacheConfigError(
+                            "ARCADE_DATACACHE_STORAGE_BACKEND must be one of: s3, local"
+                        )
+
+                    async with RedisLock(
+                        redis_url=dc_settings.redis_url,
+                        key=lock_key,
+                        ttl_seconds=dc_settings.lock_ttl_seconds,
+                        wait_seconds=dc_settings.lock_wait_seconds,
+                    ):
+                        await storage.download_if_exists(loc, local_path)
+
+                        client = await DatacacheClient.open(
+                            path=local_path, default_ttl=cfg.get("ttl")
+                        )
+
+                        saved_client = None
+                        if mctx is not None and isinstance(mctx, Context):
+                            saved_client = getattr(mctx, "_datacache_client", None)
+                            mctx._datacache_client = client  # type: ignore[attr-defined]
+
+                        try:
+                            result = await ToolExecutor.run(
+                                func=tool.tool,
+                                definition=tool.definition,
+                                input_model=tool.input_model,
+                                output_model=tool.output_model,
+                                context=mctx if mctx is not None else tool_context,
+                                **input_params,
+                            )
+                        finally:
+                            if mctx is not None and isinstance(mctx, Context):
+                                mctx._datacache_client = saved_client  # type: ignore[attr-defined]
+                            await client.aclose()
+                            await storage.upload(loc, local_path)
+                else:
+                    # Execute tool normally
+                    result = await ToolExecutor.run(
+                        func=tool.tool,
+                        definition=tool.definition,
+                        input_model=tool.input_model,
+                        output_model=tool.output_model,
+                        context=mctx if mctx is not None else tool_context,
+                        **input_params,
+                    )
             finally:
                 # Restore the original tool context to prevent context leakage to parent tools in the case of tool chaining.
                 if mctx is not None and saved_tool_context is not None:
@@ -746,6 +895,19 @@ class MCPServer:
                         isError=True,
                     ),
                 )
+        except DatacacheConfigError as e:
+            error_message = f"Datacache configuration error: {e}"
+            content = convert_to_mcp_content(error_message)
+            structured_content = convert_content_to_structured_content({"error": error_message})
+            self._tracker.track_tool_call(False, "datacache config error")
+            return JSONRPCResponse(
+                id=message.id,
+                result=CallToolResult(
+                    content=content,
+                    structuredContent=structured_content,
+                    isError=True,
+                ),
+            )
         except NotFoundError:
             # Match test expectation: return a normal response with isError=True
             error_message = f"Unknown tool: {tool_name}"

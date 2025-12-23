@@ -65,14 +65,14 @@ def test_get_secret_when_secrets_is_none():
     tool_context = ToolContext(secrets=None)
 
     # When no secrets dictionary is provided, get_secret should raise a ValueError.
-    with pytest.raises(ValueError, match="Secret 'missing_key' not found in context."):
+    with pytest.raises(ValueError, match=r"Secret 'missing_key' not found in context\."):
         tool_context.get_secret("missing_key")
 
 
 def test_get_secret_with_empty_key():
     tool_context = ToolContext(secrets=[])
 
-    with pytest.raises(ValueError, match="Secret key passed to get_secret cannot be empty."):
+    with pytest.raises(ValueError, match=r"Secret key passed to get_secret cannot be empty\."):
         tool_context.get_secret("")
 
 
@@ -107,12 +107,12 @@ def test_get_metadata_key_not_found():
 def test_get_metadata_when_metadata_is_none():
     tool_context = ToolContext(metadata=None)
 
-    with pytest.raises(ValueError, match="Metadata 'missing_key' not found in context."):
+    with pytest.raises(ValueError, match=r"Metadata 'missing_key' not found in context\."):
         tool_context.get_metadata("missing_key")
 
 
 def test_get_metadata_with_empty_key():
     tool_context = ToolContext(metadata=[])
 
-    with pytest.raises(ValueError, match="Metadata key passed to get_metadata cannot be empty."):
+    with pytest.raises(ValueError, match=r"Metadata key passed to get_metadata cannot be empty\."):
         tool_context.get_metadata("")

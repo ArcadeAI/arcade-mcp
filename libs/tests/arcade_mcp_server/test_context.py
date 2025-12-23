@@ -8,7 +8,6 @@ from arcade_mcp_server.context import Context
 from arcade_mcp_server.context import get_current_model_context as get_current_context
 from arcade_mcp_server.context import set_current_model_context as set_current_context
 from arcade_mcp_server.types import (
-    MCPTool,
     ModelHint,
     ModelPreferences,
 )
@@ -159,7 +158,7 @@ class TestContext:
         await context.progress.report(50, 100, "Processing...")
 
         session.send_progress_notification.assert_called_once_with(
-            progress_token="task-123", progress=50, total=100, message="Processing..."
+            progress_token="task-123", progress=50, total=100, message="Processing..."  # noqa: S106
         )
 
         # Without total

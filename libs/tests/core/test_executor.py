@@ -326,13 +326,13 @@ def check_output_error(output_error: ToolCallError, expected_error: ToolCallErro
     assert output_error.message == expected_error.message, "message mismatch"
     assert output_error.kind == expected_error.kind, "kind mismatch"
     if expected_error.developer_message:
-        assert (
-            output_error.developer_message == expected_error.developer_message
-        ), "developer message mismatch"
+        assert output_error.developer_message == expected_error.developer_message, (
+            "developer message mismatch"
+        )
     assert output_error.can_retry == expected_error.can_retry, "can retry mismatch"
-    assert (
-        output_error.additional_prompt_content == expected_error.additional_prompt_content
-    ), "additional prompt content mismatch"
+    assert output_error.additional_prompt_content == expected_error.additional_prompt_content, (
+        "additional prompt content mismatch"
+    )
     assert output_error.retry_after_ms == expected_error.retry_after_ms, "retry after ms mismatch"
     if expected_error.stacktrace:
         assert output_error.stacktrace == expected_error.stacktrace, "stacktrace mismatch"

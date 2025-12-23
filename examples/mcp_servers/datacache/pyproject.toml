@@ -1,0 +1,29 @@
+[project]
+name = "datacache"
+version = "0.1.0"
+description = "Example MCP server demonstrating Arcade datacache (DuckDB + S3 + Redis locking)"
+requires-python = ">=3.10"
+dependencies = [
+    "arcade-mcp-server>=1.9.1,<2.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/datacache"]
+
+[project.entry-points.arcade_toolkits]
+toolkit_name = "datacache"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.uv.sources]
+arcade-mcp = { path = "../../../", editable = true }
+arcade-core = { path = "../../../libs/arcade-core/", editable = true }
+arcade-tdk = { path = "../../../libs/arcade-tdk/", editable = true }
+arcade-serve = { path = "../../../libs/arcade-serve/", editable = true }
+arcade-mcp-server = { path = "../../../libs/arcade-mcp-server/", editable = true }

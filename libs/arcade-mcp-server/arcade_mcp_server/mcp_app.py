@@ -225,6 +225,7 @@ class MCPApp:
         requires_auth: ToolAuthorization | None = None,
         requires_secrets: list[str] | None = None,
         requires_metadata: list[str] | None = None,
+        datacache: dict[str, Any] | None = None,
         adapters: list[ErrorAdapter] | None = None,
     ) -> Callable[P, T]:
         """Add a tool for build-time materialization (pre-server)."""
@@ -236,6 +237,7 @@ class MCPApp:
                 requires_auth=requires_auth,
                 requires_secrets=requires_secrets,
                 requires_metadata=requires_metadata,
+                datacache=datacache,
                 adapters=adapters,
             )
         try:
@@ -264,6 +266,7 @@ class MCPApp:
         requires_auth: ToolAuthorization | None = None,
         requires_secrets: list[str] | None = None,
         requires_metadata: list[str] | None = None,
+        datacache: dict[str, Any] | None = None,
         adapters: list[ErrorAdapter] | None = None,
     ) -> Callable[[Callable[P, T]], Callable[P, T]] | Callable[P, T]:
         """Decorator for adding tools with optional parameters."""
@@ -276,6 +279,7 @@ class MCPApp:
                 requires_auth=requires_auth,
                 requires_secrets=requires_secrets,
                 requires_metadata=requires_metadata,
+                datacache=datacache,
                 adapters=adapters,
             )
 

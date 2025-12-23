@@ -1,6 +1,5 @@
 """Tests for MCP Settings."""
 
-import pytest
 from arcade_mcp_server.settings import MCPSettings, ServerSettings
 
 
@@ -98,3 +97,17 @@ class TestServerSettingsTitleDefault:
         """Test that the title field default is 'ArcadeMCP'."""
         field_info = ServerSettings.model_fields["title"]
         assert field_info.default == "ArcadeMCP"
+
+
+class TestToolEnvironmentFiltering:
+    def test_datacache_env_not_exposed_to_tools(self, monkeypatch):
+        monkeypatch.setenv("ARCADE_DATACACHE_REDIS_URL", "redis://localhost:6379/0")
+        monkeypatch.setenv("ARCADE_DATACACHE_S3_BUCKET", "bucket")
+        monkeypatch.setenv("SOME_TOOL_SECRET", "ok")
+
+        settings = MCPSettings.from_env()
+        tool_env = settings.tool_secrets()
+
+        assert "SOME_TOOL_SECRET" in tool_env
+        assert "ARCADE_DATACACHE_REDIS_URL" not in tool_env
+        assert "ARCADE_DATACACHE_S3_BUCKET" not in tool_env
