@@ -32,6 +32,7 @@ dependencies = [
     # LLM providers
     "openai==1.82.1",
     "anthropic>=0.40.0",
+    "mcp>=1.9.0",
 ]
 
 [project.optional-dependencies]
@@ -42,7 +43,7 @@ all = [
     "scikit-learn>=1.5.0",
     "pytz>=2024.1",
     "python-dateutil>=2.8.2",
-    # mcp
+    # mcp server
     "arcade-mcp-server>=1.14.0,<2.0.0",
     # serve
     "arcade-serve>=3.2.0,<4.0.0",
@@ -56,6 +57,7 @@ evals = [
     "scikit-learn>=1.5.0",
     "pytz>=2024.1",
     "python-dateutil>=2.8.2",
+    "mcp>=1.9.0",
 ]
 
 [tool.uv]

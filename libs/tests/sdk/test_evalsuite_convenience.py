@@ -63,6 +63,7 @@ class TestAddMcpServer:
                 "http://localhost:8000",
                 timeout=30,
                 headers={"Auth": "t"},
+                use_sse=False,
             )
 
     @pytest.mark.asyncio
@@ -96,7 +97,8 @@ class TestAddArcadeGateway:
     @pytest.mark.asyncio
     async def test_calls_loader_with_correct_params(self) -> None:
         with patch(
-            "arcade_evals._evalsuite._convenience._internal_load_arcade_mcp_gateway_sync"
+            "arcade_evals._evalsuite._convenience.load_arcade_mcp_gateway_async",
+            new_callable=AsyncMock,
         ) as mock_load:
             mock_load.return_value = [sample_tool_def()]
             suite = EvalSuite(name="Test", system_message="Test")
@@ -107,6 +109,7 @@ class TestAddArcadeGateway:
                 timeout=15,
             )
             from arcade_evals.loaders import ARCADE_API_BASE_URL
+
             mock_load.assert_called_once_with(
                 "my-gateway",
                 arcade_api_key="k",
@@ -248,7 +251,8 @@ class TestAddArcadeGatewayWarnings:
     async def test_empty_response_warns(self) -> None:
         """Empty response from arcade gateway should warn."""
         with patch(
-            "arcade_evals._evalsuite._convenience._internal_load_arcade_mcp_gateway_sync"
+            "arcade_evals._evalsuite._convenience.load_arcade_mcp_gateway_async",
+            new_callable=AsyncMock,
         ) as mock_load:
             mock_load.return_value = []
             suite = EvalSuite(name="Test", system_message="Test")

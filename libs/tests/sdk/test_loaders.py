@@ -1,7 +1,6 @@
 """Unit tests for MCP tool loaders (no network / no external processes)."""
 
 import sys
-from typing import Literal
 from unittest.mock import AsyncMock, patch
 
 import arcade_evals.loaders as loaders
@@ -19,7 +18,7 @@ def test_require_mcp_raises_helpful_error_when_missing() -> None:
     with patch.dict(sys.modules, {"mcp": None}):
         with pytest.raises(ImportError) as exc:
             loaders._require_mcp()
-        assert "MCP SDK not installed" in str(exc.value)
+        assert "MCP SDK is required" in str(exc.value)
         assert "pip install" in str(exc.value)
 
 
@@ -59,18 +58,6 @@ async def test_stdio_arcade_sets_env_and_calls_stdio_loader() -> None:
         assert kwargs["env"]["S"] == "1"
 
 
-@pytest.mark.asyncio
-async def test_backend_switching_can_route_to_internal_loader() -> None:
-    """We can swap the wired loader implementation (official remains default)."""
-    original: Literal["official", "internal"] = loaders.get_mcp_loader_backend()
-    try:
-        loaders.set_mcp_loader_backend("internal")
-        assert loaders.get_mcp_loader_backend() == "internal"
-
-        # Avoid requiring httpx/subprocess behavior by patching the internal helper.
-        with patch.object(loaders, "_internal_load_from_http_sync") as mock_internal_http:
-            mock_internal_http.return_value = [{"name": "t", "description": "", "inputSchema": {}}]
-            result = await loaders.load_from_http_async("http://localhost:8000")
-            assert result and result[0]["name"] == "t"
-    finally:
-        loaders.set_mcp_loader_backend(original)
+def test_arcade_api_base_url_constant() -> None:
+    """Verify the default Arcade API base URL is set correctly."""
+    assert loaders.ARCADE_API_BASE_URL == "https://api.arcade.dev"

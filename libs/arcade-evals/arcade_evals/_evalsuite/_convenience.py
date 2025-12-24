@@ -10,15 +10,13 @@ It is intentionally not exported from `arcade_evals.__init__`.
 
 from __future__ import annotations
 
-import asyncio
 import warnings
 from typing import TYPE_CHECKING, Any, Callable
 
 from arcade_evals._evalsuite._tool_registry import EvalSuiteToolRegistry, MCPToolDefinition
 from arcade_evals._evalsuite._tracks import TrackManager
 from arcade_evals.loaders import (
-    ARCADE_API_BASE_URL,
-    _internal_load_arcade_mcp_gateway_sync,
+    load_arcade_mcp_gateway_async,
     load_from_http_async,
     load_from_stdio_async,
 )
@@ -184,8 +182,6 @@ class _EvalSuiteConvenienceMixin:
     ) -> Any:
         """Add tools from an Arcade MCP gateway.
 
-        This method uses HTTP directly and does NOT require the MCP SDK.
-
         Args:
             gateway_slug: The Arcade gateway slug.
             arcade_api_key: Optional API key.
@@ -199,13 +195,11 @@ class _EvalSuiteConvenienceMixin:
         """
         registry = self._get_registry(track)
 
-        # Use internal HTTP implementation directly - no MCP SDK required
-        tools = await asyncio.to_thread(
-            _internal_load_arcade_mcp_gateway_sync,
+        tools = await load_arcade_mcp_gateway_async(
             gateway_slug,
             arcade_api_key=arcade_api_key,
             arcade_user_id=arcade_user_id,
-            base_url=base_url or ARCADE_API_BASE_URL,
+            base_url=base_url,  # Let loader handle default/env var
             timeout=timeout,
         )
 
