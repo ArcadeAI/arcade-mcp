@@ -108,13 +108,13 @@ class TestAddArcadeGateway:
                 arcade_user_id="u",
                 timeout=15,
             )
-            from arcade_evals.loaders import ARCADE_API_BASE_URL
 
+            # base_url defaults to None, loader handles the default
             mock_load.assert_called_once_with(
                 "my-gateway",
                 arcade_api_key="k",
                 arcade_user_id="u",
-                base_url=ARCADE_API_BASE_URL,
+                base_url=None,
                 timeout=15,
             )
 

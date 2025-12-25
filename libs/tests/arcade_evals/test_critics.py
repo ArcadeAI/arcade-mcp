@@ -381,4 +381,3 @@ class TestCriticEdgeCases:
         # Very close values should have very high score
         assert result["score"] > 0.999
         assert result["match"] is True
-

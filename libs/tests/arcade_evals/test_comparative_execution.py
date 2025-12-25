@@ -25,7 +25,7 @@ class TestRunComparative:
         # Try to add comparative case with track2 (doesn't exist)
         case = suite.add_comparative_case(name="test", user_message="test")
         case.for_track("track1", expected_tool_calls=[ExpectedMCPToolCall("tool1", args={})])
-        
+
         # for_track validates immediately
         with pytest.raises(ValueError, match="Track.*not found"):
             case.for_track("track2", expected_tool_calls=[ExpectedMCPToolCall("tool2", args={})])
@@ -188,7 +188,7 @@ class TestComparativeTrackValidation:
         # Try to use nonexistent_track
         case = suite.add_comparative_case(name="test", user_message="test")
         case.for_track("track1", expected_tool_calls=[])
-        
+
         # for_track validates immediately
         with pytest.raises(ValueError, match="Track.*not found"):
             case.for_track("nonexistent_track", expected_tool_calls=[])
@@ -244,4 +244,3 @@ class TestComparativeConcurrencyControl:
 
         # All 3 cases should have been called
         assert call_count == 3
-

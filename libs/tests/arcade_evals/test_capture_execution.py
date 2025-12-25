@@ -45,7 +45,7 @@ class TestCaptureMode:
         # Should have recorded the tool call
         assert len(captured.tool_calls) == 1
         assert captured.tool_calls[0].name == "search"
-        assert captured.tool_calls[0].arguments == {"query": "cats"}
+        assert captured.tool_calls[0].args == {"query": "cats"}
 
     @pytest.mark.asyncio
     async def test_capture_raises_without_tools(self) -> None:
@@ -100,4 +100,3 @@ class TestCaptureMode:
 
         # All 3 cases should be captured
         assert len(result.captured_cases) == 3
-

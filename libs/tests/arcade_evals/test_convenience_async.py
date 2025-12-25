@@ -288,4 +288,3 @@ class TestAsyncConvenienceMethodChaining:
 
             # Verify final result is still the suite
             assert result is suite
-
