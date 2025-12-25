@@ -180,7 +180,11 @@ class _EvalSuiteComparativeMixin:
                     _reg: EvalSuiteToolRegistry,
                     _t_name: str,
                 ) -> dict[str, Any]:
+                    import time
+
                     async with semaphore:
+                        start = time.time()
+                        print(f"    [TASK START] {_case.name} @ {_t_name}", flush=True)
                         if provider == "anthropic":
                             predicted_args = await self._run_anthropic(
                                 client, model, _case, registry=_reg
@@ -189,6 +193,11 @@ class _EvalSuiteComparativeMixin:
                             predicted_args = await self._run_openai(
                                 client, model, _case, registry=_reg
                             )
+                        elapsed = time.time() - start
+                        print(
+                            f"    [TASK DONE] {_case.name} @ {_t_name} ({elapsed:.1f}s)",
+                            flush=True,
+                        )
 
                         filled_actual_tool_calls = self._process_tool_calls(
                             predicted_args, registry=_reg

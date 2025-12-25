@@ -1077,47 +1077,77 @@ class HtmlFormatter(EvalResultFormatter):
                 if tn in tracks and tracks[tn].get("evaluation")
             ]
 
-            # Tab buttons - show all tracks, disable those without data
+            # Tab buttons - show all tracks, style N/A differently but keep clickable
             lines.append('<div class="track-tabs">')
-            first_with_data = tracks_with_data[0][0] if tracks_with_data else -1
+            first_with_data = tracks_with_data[0][0] if tracks_with_data else 0
             for i, track_name in enumerate(track_order):
                 has_data = track_name in tracks and tracks[track_name].get("evaluation")
                 active = "active" if i == first_with_data else ""
-                disabled = "" if has_data else "disabled"
+                na_class = "" if has_data else "na-track"
                 diff_class = "has-diff" if differences.get(track_name) else ""
                 lines.append(
-                    f'<button class="track-tab {active} {diff_class} {disabled}" '
-                    f'data-case="{case_id}" data-track="{i}"'
-                    f"{' disabled' if not has_data else ''}>"
+                    f'<button class="track-tab {active} {diff_class} {na_class}" '
+                    f'data-case="{case_id}" data-track="{i}">'
                     f"{self._escape_html(track_name)}"
                     f"{'' if has_data else ' (N/A)'}"
                     f"</button>"
                 )
             lines.append("</div>")  # track-tabs
 
-            # Tab panels container
+            # Tab panels container - include panels for ALL tracks
             lines.append('<div class="track-panels-container">')
             for i, track_name in enumerate(track_order):
-                if track_name not in tracks:
-                    continue
-
-                track_result = tracks[track_name]
-                evaluation = track_result.get("evaluation")
-
-                if not evaluation:
-                    continue
-
+                has_data = track_name in tracks and tracks[track_name].get("evaluation")
                 active = "active" if i == first_with_data else ""
+
                 lines.append(
                     f'<div class="track-panel {active}" data-case="{case_id}" data-track="{i}">'
                 )
-                # Add track header for clarity
-                lines.append('<div class="track-panel-header">')
-                lines.append('<span class="track-label">Viewing track:</span>')
-                lines.append(f'<span class="track-badge">{self._escape_html(track_name)}</span>')
-                lines.append("</div>")
-                lines.append(self._format_evaluation_details(evaluation))
-                lines.append("</div>")
+
+                if not has_data:
+                    # Show informative N/A panel
+                    lines.append('<div class="track-panel-header">')
+                    lines.append('<span class="track-label">Viewing track:</span>')
+                    lines.append(
+                        f'<span class="track-badge na-badge">{self._escape_html(track_name)}</span>'
+                    )
+                    lines.append("</div>")
+                    lines.append('<div class="na-panel-content">')
+                    lines.append('<div class="na-icon">ℹ️</div>')
+                    lines.append("<h4>Track Not Configured</h4>")
+                    lines.append(
+                        f"<p>The <strong>{self._escape_html(track_name)}</strong> track "
+                        f"was not configured for this test case.</p>"
+                    )
+                    lines.append("<p class='na-explanation'>")
+                    lines.append(
+                        "This happens when a comparative case uses <code>.for_track()</code> "
+                        "to define expectations only for specific tracks. "
+                        "Tracks without expectations are skipped during evaluation."
+                    )
+                    lines.append("</p>")
+                    lines.append('<div class="na-hint">')
+                    lines.append("<strong>To include this track:</strong>")
+                    lines.append("<pre><code>case.for_track(")
+                    lines.append(f'    "{self._escape_html(track_name)}",')
+                    lines.append("    expected_tool_calls=[...],")
+                    lines.append("    critics=[...]")
+                    lines.append(")</code></pre>")
+                    lines.append("</div>")
+                    lines.append("</div>")  # na-panel-content
+                else:
+                    # Show normal evaluation panel
+                    track_result = tracks[track_name]
+                    evaluation = track_result.get("evaluation")
+                    lines.append('<div class="track-panel-header">')
+                    lines.append('<span class="track-label">Viewing track:</span>')
+                    lines.append(
+                        f'<span class="track-badge">{self._escape_html(track_name)}</span>'
+                    )
+                    lines.append("</div>")
+                    lines.append(self._format_evaluation_details(evaluation))
+
+                lines.append("</div>")  # track-panel
             lines.append("</div>")  # track-panels-container
 
         lines.append("</div>")  # comparative-case
@@ -1605,16 +1635,24 @@ document.querySelectorAll('.track-tab').forEach(tab => {
             border-bottom-color: var(--bg-color);
         }
 
-        .track-tab.disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
+        .track-tab.na-track {
+            opacity: 0.6;
             background: #2a2a3a;
-            color: #666;
+            color: #888;
+            border-style: dashed;
         }
 
-        .track-tab.disabled:hover {
-            background: #2a2a3a;
-            opacity: 0.4;
+        .track-tab.na-track:hover {
+            background: #3a3a4a;
+            opacity: 0.8;
+            color: #aaa;
+        }
+
+        .track-tab.na-track.active {
+            background: var(--bg-color);
+            border-bottom-color: var(--bg-color);
+            opacity: 1;
+            color: #999;
         }
 
         .track-panels-container {
@@ -1660,6 +1698,76 @@ document.querySelectorAll('.track-tab').forEach(tab => {
         .track-panel-header .track-label {
             color: var(--text-muted);
             font-size: 0.85em;
+        }
+
+        .track-panel-header .na-badge {
+            background: #4a4a5a;
+            color: #999;
+            border: 1px dashed #666;
+        }
+
+        /* N/A Panel Content Styles */
+        .na-panel-content {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--text-muted);
+        }
+
+        .na-panel-content .na-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            opacity: 0.8;
+        }
+
+        .na-panel-content h4 {
+            color: var(--text-color);
+            margin: 0 0 10px 0;
+            font-size: 1.2em;
+        }
+
+        .na-panel-content p {
+            margin: 10px auto;
+            max-width: 500px;
+            line-height: 1.5;
+        }
+
+        .na-panel-content .na-explanation {
+            font-size: 0.9em;
+            color: #666;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            margin: 15px auto;
+            max-width: 550px;
+        }
+
+        .na-panel-content .na-hint {
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px auto;
+            max-width: 400px;
+            text-align: left;
+        }
+
+        .na-panel-content .na-hint strong {
+            color: var(--purple);
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .na-panel-content .na-hint pre {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 4px;
+            margin: 0;
+            overflow-x: auto;
+            font-size: 0.85em;
+        }
+
+        .na-panel-content .na-hint code {
+            color: var(--cyan);
         }
 
         .no-diff {
