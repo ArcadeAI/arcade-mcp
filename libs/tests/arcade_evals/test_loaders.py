@@ -56,6 +56,7 @@ class TestLoadFromStdio:
                 mock_stdio_params_cls,
                 mock_stdio_client,
                 mock_sse_client,
+                MagicMock(),  # streamablehttp_client
             )
 
             await loaders.load_from_stdio_async(["echo"], env={"TEST_VAR": "test_value"})
@@ -68,6 +69,14 @@ class TestLoadFromStdio:
 
 class TestLoadFromHttp:
     """Tests for load_from_http function."""
+
+    def setup_method(self):
+        """Clear cache before each test."""
+        loaders.clear_tools_cache()
+
+    def teardown_method(self):
+        """Clear cache after each test."""
+        loaders.clear_tools_cache()
 
     @pytest.mark.asyncio
     async def test_url_gets_mcp_appended(self):
@@ -90,9 +99,10 @@ class TestLoadFromHttp:
                 MagicMock(),
                 MagicMock(),
                 mock_sse_client,
+                MagicMock(),  # streamablehttp_client
             )
 
-            await loaders.load_from_http_async("http://localhost:8000")
+            await loaders.load_from_http_async("http://localhost:8000", use_sse=True)
             called_url = mock_sse_client.call_args[0][0]
             assert called_url.endswith("/mcp")
 
@@ -117,9 +127,10 @@ class TestLoadFromHttp:
                 MagicMock(),
                 MagicMock(),
                 mock_sse_client,
+                MagicMock(),  # streamablehttp_client
             )
 
-            await loaders.load_from_http_async("http://localhost:8000/mcp")
+            await loaders.load_from_http_async("http://localhost:8000/mcp", use_sse=True)
             called_url = mock_sse_client.call_args[0][0]
             assert "/mcp/mcp" not in called_url
 
@@ -144,11 +155,13 @@ class TestLoadFromHttp:
                 MagicMock(),
                 MagicMock(),
                 mock_sse_client,
+                MagicMock(),  # streamablehttp_client
             )
 
             await loaders.load_from_http_async(
                 "http://localhost:8000",
                 headers={"Authorization": "Bearer token123"},
+                use_sse=True,
             )
             _, call_kwargs = mock_sse_client.call_args
             assert call_kwargs["headers"]["Authorization"] == "Bearer token123"
@@ -184,9 +197,12 @@ class TestLoadFromHttp:
                 MagicMock(),
                 MagicMock(),
                 mock_sse_client,
+                MagicMock(),  # streamablehttp_client
             )
 
-            result = await loaders.load_from_http_async("http://localhost:8000")
+            result = await loaders.load_from_http_async(
+                "http://localhost:8000", use_sse=True
+            )
             assert result == [
                 {
                     "name": "tool1",
@@ -215,16 +231,20 @@ class TestLoadArcadeMcpGateway:
         mock_client_session_cls.return_value.__aenter__ = AsyncMock(return_value=mock_session)
         mock_client_session_cls.return_value.__aexit__ = AsyncMock(return_value=None)
 
-        mock_sse_client = MagicMock()
-        mock_sse_client.return_value.__aenter__ = AsyncMock(return_value=("read", "write"))
-        mock_sse_client.return_value.__aexit__ = AsyncMock(return_value=None)
+        # Arcade gateway uses streamable-http (returns 3 values)
+        mock_streamable_client = MagicMock()
+        mock_streamable_client.return_value.__aenter__ = AsyncMock(
+            return_value=("read", "write", "session_id")
+        )
+        mock_streamable_client.return_value.__aexit__ = AsyncMock(return_value=None)
 
         with patch.object(loaders, "_require_mcp") as mock_require:
             mock_require.return_value = (
                 mock_client_session_cls,
                 MagicMock(),
                 MagicMock(),
-                mock_sse_client,
+                MagicMock(),  # sse_client
+                mock_streamable_client,
             )
 
             await loaders.load_arcade_mcp_gateway_async(
@@ -233,11 +253,12 @@ class TestLoadArcadeMcpGateway:
                 arcade_user_id="user",
             )
 
-            called_url = mock_sse_client.call_args[0][0]
-            called_headers = mock_sse_client.call_args[1]["headers"]
+            called_url = mock_streamable_client.call_args[0][0]
+            called_headers = mock_streamable_client.call_args[1]["headers"]
             assert called_url == "https://api.arcade.dev/mcp/my-gateway"
-            assert called_headers["Authorization"] == "key"
-            assert called_headers["arcade-user-id"] == "user"
+            # Code adds "Bearer " prefix to key
+            assert called_headers["Authorization"] == "Bearer key"
+            assert called_headers["Arcade-User-Id"] == "user"
 
     @pytest.mark.asyncio
     async def test_builds_correct_url_without_slug(self):
@@ -250,21 +271,24 @@ class TestLoadArcadeMcpGateway:
         mock_client_session_cls.return_value.__aenter__ = AsyncMock(return_value=mock_session)
         mock_client_session_cls.return_value.__aexit__ = AsyncMock(return_value=None)
 
-        mock_sse_client = MagicMock()
-        mock_sse_client.return_value.__aenter__ = AsyncMock(return_value=("read", "write"))
-        mock_sse_client.return_value.__aexit__ = AsyncMock(return_value=None)
+        mock_streamable_client = MagicMock()
+        mock_streamable_client.return_value.__aenter__ = AsyncMock(
+            return_value=("read", "write", "session_id")
+        )
+        mock_streamable_client.return_value.__aexit__ = AsyncMock(return_value=None)
 
         with patch.object(loaders, "_require_mcp") as mock_require:
             mock_require.return_value = (
                 mock_client_session_cls,
                 MagicMock(),
                 MagicMock(),
-                mock_sse_client,
+                MagicMock(),  # sse_client
+                mock_streamable_client,
             )
 
             await loaders.load_arcade_mcp_gateway_async(arcade_api_key="key")
 
-            called_url = mock_sse_client.call_args[0][0]
+            called_url = mock_streamable_client.call_args[0][0]
             assert called_url == "https://api.arcade.dev/mcp"
 
     @pytest.mark.asyncio
@@ -278,16 +302,19 @@ class TestLoadArcadeMcpGateway:
         mock_client_session_cls.return_value.__aenter__ = AsyncMock(return_value=mock_session)
         mock_client_session_cls.return_value.__aexit__ = AsyncMock(return_value=None)
 
-        mock_sse_client = MagicMock()
-        mock_sse_client.return_value.__aenter__ = AsyncMock(return_value=("read", "write"))
-        mock_sse_client.return_value.__aexit__ = AsyncMock(return_value=None)
+        mock_streamable_client = MagicMock()
+        mock_streamable_client.return_value.__aenter__ = AsyncMock(
+            return_value=("read", "write", "session_id")
+        )
+        mock_streamable_client.return_value.__aexit__ = AsyncMock(return_value=None)
 
         with patch.object(loaders, "_require_mcp") as mock_require:
             mock_require.return_value = (
                 mock_client_session_cls,
                 MagicMock(),
                 MagicMock(),
-                mock_sse_client,
+                MagicMock(),  # sse_client
+                mock_streamable_client,
             )
 
             await loaders.load_arcade_mcp_gateway_async(
@@ -295,7 +322,7 @@ class TestLoadArcadeMcpGateway:
                 base_url="https://staging.arcade.dev",
             )
 
-            called_url = mock_sse_client.call_args[0][0]
+            called_url = mock_streamable_client.call_args[0][0]
             assert called_url == "https://staging.arcade.dev/mcp/my-gateway"
 
 
@@ -426,3 +453,161 @@ class TestToolToDict:
 
         result = loaders._tool_to_dict(mock_tool)
         assert result["description"] == ""
+
+
+class TestToolsCache:
+    """Tests for tools caching functionality."""
+
+    def setup_method(self):
+        """Clear cache before each test."""
+        loaders.clear_tools_cache()
+
+    def teardown_method(self):
+        """Clear cache after each test."""
+        loaders.clear_tools_cache()
+
+    def test_clear_tools_cache(self):
+        """Should clear the tools cache and locks."""
+        # Add something to cache directly
+        loaders._tools_cache["test_key"] = [{"name": "tool1"}]
+        loaders._cache_locks["test_key"] = MagicMock()
+        assert len(loaders._tools_cache) == 1
+        assert len(loaders._cache_locks) == 1
+
+        loaders.clear_tools_cache()
+        assert len(loaders._tools_cache) == 0
+        assert len(loaders._cache_locks) == 0
+
+    def test_make_cache_key_different_urls(self):
+        """Should create different keys for different URLs."""
+        key1 = loaders._make_cache_key("http://localhost:8000", None)
+        key2 = loaders._make_cache_key("http://localhost:9000", None)
+        assert key1 != key2
+
+    def test_make_cache_key_different_headers(self):
+        """Should create different keys for different headers."""
+        key1 = loaders._make_cache_key("http://localhost:8000", {"Auth": "token1"})
+        key2 = loaders._make_cache_key("http://localhost:8000", {"Auth": "token2"})
+        assert key1 != key2
+
+    def test_make_cache_key_same_inputs(self):
+        """Should create same key for same inputs."""
+        key1 = loaders._make_cache_key("http://localhost:8000", {"Auth": "token"})
+        key2 = loaders._make_cache_key("http://localhost:8000", {"Auth": "token"})
+        assert key1 == key2
+
+    @pytest.mark.asyncio
+    async def test_get_cache_lock_creates_lock(self):
+        """Should create a lock for a new key."""
+        lock = await loaders._get_cache_lock("new_key")
+        assert isinstance(lock, type(loaders.asyncio.Lock()))
+        assert "new_key" in loaders._cache_locks
+
+    @pytest.mark.asyncio
+    async def test_get_cache_lock_returns_same_lock(self):
+        """Should return same lock for same key."""
+        lock1 = await loaders._get_cache_lock("same_key")
+        lock2 = await loaders._get_cache_lock("same_key")
+        assert lock1 is lock2
+
+    @pytest.mark.asyncio
+    async def test_acquire_lock_with_timeout_succeeds(self):
+        """Should acquire lock successfully when available."""
+        lock = loaders.asyncio.Lock()
+        acquired = await loaders._acquire_lock_with_timeout(lock, timeout=1.0)
+        assert acquired is True
+        assert lock.locked()
+        lock.release()
+
+    @pytest.mark.asyncio
+    async def test_acquire_lock_with_timeout_fails(self):
+        """Should return False when lock acquisition times out."""
+        lock = loaders.asyncio.Lock()
+        await lock.acquire()  # Hold the lock
+
+        # Try to acquire with short timeout - should fail
+        acquired = await loaders._acquire_lock_with_timeout(lock, timeout=0.1)
+        assert acquired is False
+
+        lock.release()
+
+    @pytest.mark.asyncio
+    async def test_http_loader_caches_results(self):
+        """Should cache results and return cached on second call."""
+        mock_tool = MagicMock()
+        mock_tool.name = "tool1"
+        mock_tool.description = "Test"
+        mock_tool.inputSchema = {}
+
+        mock_session = AsyncMock()
+        mock_session.initialize = AsyncMock()
+        mock_session.list_tools = AsyncMock(return_value=MagicMock(tools=[mock_tool]))
+
+        mock_client_session_cls = MagicMock()
+        mock_client_session_cls.return_value.__aenter__ = AsyncMock(return_value=mock_session)
+        mock_client_session_cls.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        mock_sse_client = MagicMock()
+        mock_sse_client.return_value.__aenter__ = AsyncMock(return_value=("read", "write"))
+        mock_sse_client.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        with patch.object(loaders, "_require_mcp") as mock_require:
+            mock_require.return_value = (
+                mock_client_session_cls,
+                MagicMock(),
+                MagicMock(),
+                mock_sse_client,
+                MagicMock(),  # streamablehttp_client
+            )
+
+            # First call - should connect
+            result1 = await loaders.load_from_http_async(
+                "http://localhost:8000", use_sse=True
+            )
+            assert len(result1) == 1
+            assert mock_sse_client.call_count == 1
+
+            # Second call - should use cache
+            result2 = await loaders.load_from_http_async(
+                "http://localhost:8000", use_sse=True
+            )
+            assert len(result2) == 1
+            # sse_client should NOT be called again
+            assert mock_sse_client.call_count == 1
+
+    @pytest.mark.asyncio
+    async def test_http_loader_different_urls_not_cached(self):
+        """Should not use cache for different URLs."""
+        mock_tool = MagicMock()
+        mock_tool.name = "tool1"
+        mock_tool.description = "Test"
+        mock_tool.inputSchema = {}
+
+        mock_session = AsyncMock()
+        mock_session.initialize = AsyncMock()
+        mock_session.list_tools = AsyncMock(return_value=MagicMock(tools=[mock_tool]))
+
+        mock_client_session_cls = MagicMock()
+        mock_client_session_cls.return_value.__aenter__ = AsyncMock(return_value=mock_session)
+        mock_client_session_cls.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        mock_sse_client = MagicMock()
+        mock_sse_client.return_value.__aenter__ = AsyncMock(return_value=("read", "write"))
+        mock_sse_client.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        with patch.object(loaders, "_require_mcp") as mock_require:
+            mock_require.return_value = (
+                mock_client_session_cls,
+                MagicMock(),
+                MagicMock(),
+                mock_sse_client,
+                MagicMock(),  # streamablehttp_client
+            )
+
+            # First URL
+            await loaders.load_from_http_async("http://localhost:8000", use_sse=True)
+            assert mock_sse_client.call_count == 1
+
+            # Different URL - should connect again
+            await loaders.load_from_http_async("http://localhost:9000", use_sse=True)
+            assert mock_sse_client.call_count == 2

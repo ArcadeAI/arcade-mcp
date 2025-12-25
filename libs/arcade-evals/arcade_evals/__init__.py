@@ -12,6 +12,7 @@ from .eval import (
     tool_eval,
 )
 from .loaders import (
+    clear_tools_cache,
     load_arcade_mcp_gateway_async,
     load_from_http_async,
     load_from_stdio_async,
@@ -38,6 +39,7 @@ __all__ = [
     "ProviderName",
     "SimilarityCritic",
     "Weight",
+    "clear_tools_cache",
     "load_arcade_mcp_gateway_async",
     "load_from_http_async",
     "load_from_stdio_async",

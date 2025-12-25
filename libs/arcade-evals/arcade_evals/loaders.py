@@ -12,6 +12,7 @@ Requires the MCP SDK: pip install mcp
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 from typing import Any
@@ -25,6 +26,51 @@ logger = logging.getLogger(__name__)
 
 # Default Arcade API base URL (production)
 ARCADE_API_BASE_URL = "https://api.arcade.dev"
+
+# =============================================================================
+# TOOL CACHE - Prevents redundant connections to the same MCP source
+# Uses asyncio locks to prevent concurrent loads to the same MCP source
+# =============================================================================
+
+# Cache for loaded tools: key is (url, headers_hash), value is list of tools
+_tools_cache: dict[str, list[dict[str, Any]]] = {}
+
+# Per-key asyncio locks to prevent concurrent loads to same source
+_cache_locks: dict[str, asyncio.Lock] = {}
+
+
+def _make_cache_key(url: str, headers: dict[str, str] | None) -> str:
+    """Create a cache key from URL and headers."""
+    headers_str = str(sorted((headers or {}).items()))
+    return f"{url}|{headers_str}"
+
+
+# Lock acquisition timeout (seconds) - prevents indefinite hangs
+LOCK_TIMEOUT_SECONDS = 60
+
+
+async def _get_cache_lock(cache_key: str) -> asyncio.Lock:
+    """Get or create an asyncio lock for the given cache key."""
+    if cache_key not in _cache_locks:
+        _cache_locks[cache_key] = asyncio.Lock()
+    return _cache_locks[cache_key]
+
+
+async def _acquire_lock_with_timeout(
+    lock: asyncio.Lock, timeout: float = LOCK_TIMEOUT_SECONDS
+) -> bool:
+    """Acquire a lock with timeout. Returns True if acquired, False on timeout."""
+    try:
+        await asyncio.wait_for(lock.acquire(), timeout=timeout)
+        return True
+    except asyncio.TimeoutError:
+        return False
+
+
+def clear_tools_cache() -> None:
+    """Clear the tools cache. Useful for testing or forcing fresh connections."""
+    _tools_cache.clear()
+    _cache_locks.clear()
 
 
 def _get_arcade_base_url() -> str:
@@ -126,6 +172,10 @@ async def load_from_stdio_async(
     """
     Load tools from an MCP server via stdio.
 
+    Results are cached by command to avoid starting multiple subprocesses
+    for the same server. Concurrent requests for the same command will wait
+    for the first request to complete and share the result.
+
     Args:
         command: Command to run the MCP server (e.g., ["python", "server.py"]).
         env: Additional environment variables to pass to the server.
@@ -139,24 +189,44 @@ async def load_from_stdio_async(
 
     del timeout  # MCP SDK manages timeouts internally
 
-    ClientSession, StdioServerParameters, stdio_client, _, _ = _require_mcp()
+    cache_key = f"stdio|{' '.join(command)}|{sorted((env or {}).items())!s}"
 
-    process_env = os.environ.copy()
-    if env:
-        process_env.update(env)
+    # Acquire lock for this specific cache key - ensures only one concurrent
+    # request starts the stdio subprocess, others wait for the cached result
+    lock = await _get_cache_lock(cache_key)
+    if not await _acquire_lock_with_timeout(lock):
+        raise TimeoutError(f"Timeout waiting for lock on stdio: {command[0]}")
 
-    server_params = StdioServerParameters(
-        command=command[0],
-        args=command[1:] if len(command) > 1 else [],
-        env=process_env,
-    )
-    async with (
-        stdio_client(server_params) as (read, write),
-        ClientSession(read, write) as session,
-    ):
-        await session.initialize()
-        result = await session.list_tools()
-        return [_tool_to_dict(tool) for tool in result.tools]
+    try:
+        # Check cache (inside lock to prevent race condition)
+        if cache_key in _tools_cache:
+            logger.debug(f"Using cached tools for stdio: {command[0]}")
+            return _tools_cache[cache_key].copy()
+
+        ClientSession, StdioServerParameters, stdio_client, _, _ = _require_mcp()
+
+        process_env = os.environ.copy()
+        if env:
+            process_env.update(env)
+
+        server_params = StdioServerParameters(
+            command=command[0],
+            args=command[1:] if len(command) > 1 else [],
+            env=process_env,
+        )
+        async with (
+            stdio_client(server_params) as (read, write),
+            ClientSession(read, write) as session,
+        ):
+            await session.initialize()
+            result = await session.list_tools()
+            tools = [_tool_to_dict(tool) for tool in result.tools]
+
+        # Cache the result
+        _tools_cache[cache_key] = tools.copy()
+        return tools
+    finally:
+        lock.release()
 
 
 async def load_from_http_async(
@@ -168,6 +238,10 @@ async def load_from_http_async(
 ) -> list[dict[str, Any]]:
     """
     Load tools from an MCP server via HTTP/SSE.
+
+    Results are cached to avoid redundant connections when multiple models
+    load the same MCP source. Concurrent requests for the same URL will wait
+    for the first request to complete and share the result.
 
     Args:
         url: URL of the MCP server.
@@ -183,25 +257,48 @@ async def load_from_http_async(
     ClientSession, _, _, sse_client, streamablehttp_client = _require_mcp()
     url = _ensure_mcp_path(url)
 
-    # Choose the appropriate client based on transport type
-    if use_sse:
-        # SSE client returns (read, write)
-        async with (
-            sse_client(url, headers=headers) as (read, write),
-            ClientSession(read, write) as session,
-        ):
-            await session.initialize()
-            result = await session.list_tools()
-            return [_tool_to_dict(tool) for tool in result.tools]
-    else:
-        # Streamable HTTP client returns (read, write, get_session_id)
-        async with (
-            streamablehttp_client(url, headers=headers) as (read, write, _),
-            ClientSession(read, write) as session,
-        ):
-            await session.initialize()
-            result = await session.list_tools()
-            return [_tool_to_dict(tool) for tool in result.tools]
+    cache_key = _make_cache_key(url, headers)
+
+    # Acquire lock for this specific cache key - ensures only one concurrent
+    # request loads from this MCP source, others wait for the cached result
+    lock = await _get_cache_lock(cache_key)
+    if not await _acquire_lock_with_timeout(lock):
+        raise TimeoutError(f"Timeout waiting for lock on HTTP: {url}")
+
+    try:
+        # Check cache (inside lock to prevent race condition)
+        if cache_key in _tools_cache:
+            logger.debug(f"Using cached tools for {url}")
+            return _tools_cache[cache_key].copy()
+
+        # Not in cache - load from MCP server
+        tools: list[dict[str, Any]] = []
+
+        # Choose the appropriate client based on transport type
+        if use_sse:
+            # SSE client returns (read, write)
+            async with (
+                sse_client(url, headers=headers) as (read, write),
+                ClientSession(read, write) as session,
+            ):
+                await session.initialize()
+                result = await session.list_tools()
+                tools = [_tool_to_dict(tool) for tool in result.tools]
+        else:
+            # Streamable HTTP client returns (read, write, get_session_id)
+            async with (
+                streamablehttp_client(url, headers=headers) as (read, write, _),
+                ClientSession(read, write) as session,
+            ):
+                await session.initialize()
+                result = await session.list_tools()
+                tools = [_tool_to_dict(tool) for tool in result.tools]
+
+        # Cache the result
+        _tools_cache[cache_key] = tools.copy()
+        return tools
+    finally:
+        lock.release()
 
 
 async def load_arcade_mcp_gateway_async(

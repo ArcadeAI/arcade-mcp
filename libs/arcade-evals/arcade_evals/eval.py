@@ -984,7 +984,20 @@ def tool_eval() -> Callable[[Callable], Callable]:
                 In evaluation mode: list[dict[str, Any]] with evaluation results.
                 In capture mode: list[CaptureResult] with captured tool calls.
             """
-            suite = func()
+            # Support both sync and async suite creation functions
+            import asyncio
+            import inspect
+
+            if inspect.iscoroutinefunction(func):
+                suite = await func()
+            else:
+                result = func()
+                # Handle case where sync func returns a coroutine
+                if asyncio.iscoroutine(result):
+                    suite = await result
+                else:
+                    suite = result
+
             if not isinstance(suite, EvalSuite):
                 raise TypeError("Eval function must return an EvalSuite")
             suite.max_concurrent = max_concurrency
