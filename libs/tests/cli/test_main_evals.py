@@ -4,8 +4,15 @@ from arcade_cli.main import cli
 from arcade_cli.utils import filter_failed_evaluations
 from arcade_evals.eval import EvaluationResult
 from typer.testing import CliRunner
+import re
 
 runner = CliRunner()
+
+_ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-9;]*m")
+
+
+def _strip_ansi(text: str) -> str:
+    return _ANSI_ESCAPE_RE.sub("", text)
 
 
 def create_mock_evaluation_result(passed: bool, warning: bool, score: float) -> Mock:
@@ -266,29 +273,33 @@ def test_evals_help_shows_capture_flag() -> None:
     """Test that --capture flag is documented in help."""
     result = runner.invoke(cli, ["evals", "--help"])
     assert result.exit_code == 0
-    assert "--capture" in result.output
-    assert "capture mode" in result.output.lower()
+    output = _strip_ansi(result.output)
+    assert "--capture" in output
+    assert "capture mode" in output.lower()
 
 
 def test_evals_help_shows_add_context_flag() -> None:
     """Test that --add-context flag is documented in help."""
     result = runner.invoke(cli, ["evals", "--help"])
     assert result.exit_code == 0
-    assert "--add-context" in result.output
+    output = _strip_ansi(result.output)
+    assert "--add-context" in output
 
 
 def test_evals_help_shows_file_flag() -> None:
     """Test that --file flag is documented in help."""
     result = runner.invoke(cli, ["evals", "--help"])
     assert result.exit_code == 0
-    assert "--file" in result.output
+    output = _strip_ansi(result.output)
+    assert "--file" in output
 
 
 def test_evals_help_shows_format_flag() -> None:
     """Test that --format flag is documented in help."""
     result = runner.invoke(cli, ["evals", "--help"])
     assert result.exit_code == 0
-    assert "--format" in result.output
-    assert "txt" in result.output
-    assert "md" in result.output
-    assert "html" in result.output
+    output = _strip_ansi(result.output)
+    assert "--format" in output
+    assert "txt" in output
+    assert "md" in output
+    assert "html" in output
