@@ -38,7 +38,7 @@ class TestFormatterEdgeCases:
     def test_empty_results_all_formatters(self) -> None:
         """All formatters should handle empty results gracefully."""
         results = make_empty_results()
-        
+
         for formatter_class in [TextFormatter, MarkdownFormatter, HtmlFormatter, JsonFormatter]:
             formatter = formatter_class()
             output = formatter.format(results)
@@ -50,7 +50,7 @@ class TestFormatterEdgeCases:
         results = make_empty_results()
         # Edge case: original_counts with 0 total (shouldn't happen in practice but should be safe)
         original_counts = (0, 0, 0, 0)
-        
+
         for formatter_class in [TextFormatter, MarkdownFormatter, HtmlFormatter, JsonFormatter]:
             formatter = formatter_class()
             # Should not raise ZeroDivisionError
@@ -62,7 +62,7 @@ class TestFormatterEdgeCases:
         results = make_empty_results()
         # All cases were filtered out, but there were originally 5 cases (all passed)
         original_counts = (5, 5, 0, 0)
-        
+
         for formatter_class in [TextFormatter, MarkdownFormatter, HtmlFormatter, JsonFormatter]:
             formatter = formatter_class()
             output = formatter.format(results, failed_only=True, original_counts=original_counts)
@@ -82,7 +82,7 @@ class TestFormatterEdgeCases:
                 "evaluation": MockEvaluation(passed=False, score=0.0),
             }],
         }]]
-        
+
         for formatter_class in [TextFormatter, MarkdownFormatter, HtmlFormatter, JsonFormatter]:
             formatter = formatter_class()
             # Should not crash with None original_counts
@@ -112,7 +112,7 @@ class TestFormatterEdgeCases:
                 "cases": [],  # Empty cases for this track
             },
         ]]
-        
+
         for formatter_class in [TextFormatter, MarkdownFormatter, HtmlFormatter, JsonFormatter]:
             formatter = formatter_class()
             output = formatter.format(results)
@@ -137,10 +137,10 @@ class TestFormatterEdgeCases:
                 ),
             }],
         }]]
-        
+
         formatter = HtmlFormatter()
         output = formatter.format(results)
-        
+
         # Should NOT contain raw script tags or other unescaped HTML
         assert "<script>" not in output
         assert "onerror" not in output or "&" in output  # Should be escaped
@@ -151,7 +151,7 @@ class TestFormatterEdgeCases:
     def test_json_formatter_produces_valid_json_for_all_cases(self) -> None:
         """JSON formatter must always produce valid JSON."""
         import json
-        
+
         test_cases = [
             make_empty_results(),
             [[{
@@ -165,7 +165,7 @@ class TestFormatterEdgeCases:
                 }],
             }]],
         ]
-        
+
         formatter = JsonFormatter()
         for results in test_cases:
             output = formatter.format(results)
@@ -186,7 +186,7 @@ class TestFormatterEdgeCases:
                 "evaluation": MockEvaluation(passed=True),
             }],
         }]]
-        
+
         for formatter_class in [TextFormatter, MarkdownFormatter, HtmlFormatter, JsonFormatter]:
             formatter = formatter_class()
             output = formatter.format(results)
@@ -206,7 +206,7 @@ class TestFormatterEdgeCases:
                 for i in range(5)
             ],
         }]]
-        
+
         # Case 2: All failed
         results_all_failed = [[{
             "model": "gpt-4o",
@@ -217,13 +217,13 @@ class TestFormatterEdgeCases:
                 for i in range(5)
             ],
         }]]
-        
+
         formatter = JsonFormatter()
-        
+
         # All passed should show 100% pass rate
         output_passed = formatter.format(results_all_passed)
         assert "100" in output_passed or "100.0" in output_passed
-        
+
         # All failed should show 0% pass rate
         output_failed = formatter.format(results_all_failed)
         assert '"pass_rate": 0' in output_failed or '"pass_rate": 0.0' in output_failed
@@ -233,7 +233,7 @@ class TestFormatterEdgeCases:
         # Simulate a track result with missing evaluation (edge case)
         # This could happen if there was an error during evaluation
         # Note: In real usage, group_comparative_by_case would build the tracks dict
-        # from cases, so we need to test this at the formatting level where 
+        # from cases, so we need to test this at the formatting level where
         # the track might not have evaluation data
         results = [[
             {
@@ -258,7 +258,7 @@ class TestFormatterEdgeCases:
             },
             # track_b exists but has no cases (edge case where data is missing)
         ]]
-        
+
         # All formatters should handle missing track data without crashing
         for formatter_class in [TextFormatter, MarkdownFormatter, HtmlFormatter, JsonFormatter]:
             formatter = formatter_class()
@@ -283,10 +283,9 @@ class TestFormatterEdgeCases:
                 }],
             },
         ]]
-        
+
         for formatter_class in [TextFormatter, MarkdownFormatter, HtmlFormatter, JsonFormatter]:
             formatter = formatter_class()
             # Should not crash with empty results
             output = formatter.format(results, show_details=True)
             assert output
-

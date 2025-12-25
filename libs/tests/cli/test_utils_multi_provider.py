@@ -246,4 +246,3 @@ class TestIntegration:
         assert specs[0].display_name == "openai/gpt-4o"
         assert specs[1].display_name == "openai/gpt-4o-mini"
         assert specs[2].display_name == "anthropic/claude-3-sonnet"
-

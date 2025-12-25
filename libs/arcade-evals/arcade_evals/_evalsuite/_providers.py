@@ -107,7 +107,21 @@ def convert_messages_to_anthropic(messages: list[dict[str, Any]]) -> list[dict[s
                 "tool_use_id": msg.get("tool_call_id", ""),
                 "content": msg.get("content", ""),
             }
-            anthropic_messages.append({"role": "user", "content": [tool_result_block]})
+            # Batch consecutive tool results into the last user message
+            if anthropic_messages and anthropic_messages[-1]["role"] == "user":
+                # Add to existing user message's content array
+                last_content = anthropic_messages[-1]["content"]
+                if isinstance(last_content, list):
+                    last_content.append(tool_result_block)
+                else:
+                    # Convert string content to array with both blocks
+                    anthropic_messages[-1]["content"] = [
+                        {"type": "text", "text": last_content},
+                        tool_result_block,
+                    ]
+            else:
+                # Start new user message with tool result
+                anthropic_messages.append({"role": "user", "content": [tool_result_block]})
 
         elif role == "function":
             # Legacy OpenAI function role (deprecated) - same as tool
@@ -116,6 +130,20 @@ def convert_messages_to_anthropic(messages: list[dict[str, Any]]) -> list[dict[s
                 "tool_use_id": msg.get("name", ""),  # function uses "name" not "tool_call_id"
                 "content": msg.get("content", ""),
             }
-            anthropic_messages.append({"role": "user", "content": [tool_result_block]})
+            # Batch consecutive tool results into the last user message
+            if anthropic_messages and anthropic_messages[-1]["role"] == "user":
+                # Add to existing user message's content array
+                last_content = anthropic_messages[-1]["content"]
+                if isinstance(last_content, list):
+                    last_content.append(tool_result_block)
+                else:
+                    # Convert string content to array with both blocks
+                    anthropic_messages[-1]["content"] = [
+                        {"type": "text", "text": last_content},
+                        tool_result_block,
+                    ]
+            else:
+                # Start new user message with tool result
+                anthropic_messages.append({"role": "user", "content": [tool_result_block]})
 
     return anthropic_messages

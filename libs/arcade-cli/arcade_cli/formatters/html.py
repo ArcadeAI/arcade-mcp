@@ -11,7 +11,6 @@ from arcade_cli.formatters.base import (
     EvalResultFormatter,
     compute_track_differences,
     find_best_model,
-    group_captures_by_case,
     group_comparative_by_case,
     group_comparative_by_case_first,
     group_eval_for_comparison,
@@ -1113,7 +1112,7 @@ class HtmlFormatter(EvalResultFormatter):
                     )
                     lines.append("</div>")
                     lines.append('<div class="na-panel-content">')
-                    lines.append('<div class="na-icon">ℹ️</div>')
+                    lines.append('<div class="na-icon">ℹ</div>')  # noqa: RUF001
                     lines.append("<h4>Track Not Configured</h4>")
                     lines.append(
                         f"<p>The <strong>{self._escape_html(track_name)}</strong> track "
@@ -2106,7 +2105,6 @@ class CaptureHtmlFormatter(CaptureFormatter):
         from arcade_cli.formatters.base import group_captures_by_case_then_track
 
         grouped_data, model_order, track_order = group_captures_by_case_then_track(captures)
-        has_tracks = len(track_order) > 1 or (track_order and track_order[0] is not None)
 
         html_parts: list[str] = []
 
@@ -2253,8 +2251,8 @@ class CaptureHtmlFormatter(CaptureFormatter):
             white-space: pre-wrap;
         }
         .no-calls { color: var(--text-secondary); font-style: italic; }
-        .no-track-data { 
-            color: var(--text-secondary); 
+        .no-track-data {
+            color: var(--text-secondary);
             font-style: italic;
             padding: 1rem;
             text-align: center;
@@ -2534,13 +2532,13 @@ document.querySelectorAll('.track-tab').forEach(tab => {{
     tab.addEventListener('click', () => {{
         const caseId = tab.dataset.case;
         const trackId = tab.dataset.track;
-        
+
         // Update tab states
         document.querySelectorAll(`.track-tab[data-case="${{caseId}}"]`).forEach(t => {{
             t.classList.remove('active');
         }});
         tab.classList.add('active');
-        
+
         // Update panel states
         document.querySelectorAll(`.track-panel[data-case="${{caseId}}"]`).forEach(p => {{
             p.classList.remove('active');

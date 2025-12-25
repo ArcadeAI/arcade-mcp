@@ -62,9 +62,10 @@ async def _acquire_lock_with_timeout(
     """Acquire a lock with timeout. Returns True if acquired, False on timeout."""
     try:
         await asyncio.wait_for(lock.acquire(), timeout=timeout)
-        return True
     except asyncio.TimeoutError:
         return False
+    else:
+        return True
 
 
 def clear_tools_cache() -> None:

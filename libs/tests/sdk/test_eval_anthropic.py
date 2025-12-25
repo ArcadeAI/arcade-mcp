@@ -513,6 +513,62 @@ class TestConvertMessagesToAnthropicHelper:
         assert result[0]["role"] == "assistant"
         assert result[0]["content"] == "Hello"  # Simple string, not blocks
 
+    def test_consecutive_tool_results_batched_into_single_user_message(self) -> None:
+        """Test that consecutive tool results are batched into ONE user message.
+
+        This is critical for Anthropic API compatibility - Anthropic requires
+        alternating user/assistant roles and rejects consecutive messages of
+        the same role. When multiple tool calls are made (parallel tool use),
+        their results should be combined into a single user message with
+        multiple tool_result content blocks.
+        """
+        messages = [
+            {"role": "user", "content": "Search for cats and get weather in Paris"},
+            {
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [
+                    {
+                        "id": "call_1",
+                        "type": "function",
+                        "function": {"name": "search", "arguments": '{"q": "cats"}'},
+                    },
+                    {
+                        "id": "call_2",
+                        "type": "function",
+                        "function": {"name": "weather", "arguments": '{"city": "Paris"}'},
+                    },
+                ],
+            },
+            # Multiple consecutive tool results (common with parallel tool use)
+            {"role": "tool", "content": "Search results...", "tool_call_id": "call_1"},
+            {"role": "tool", "content": "Weather data...", "tool_call_id": "call_2"},
+            {"role": "assistant", "content": "Here are the results..."},
+        ]
+        result = convert_messages_to_anthropic(messages)
+
+        # Should have: user, assistant (with tool_use), user (with BOTH tool_results), assistant
+        assert len(result) == 4
+        assert result[0]["role"] == "user"
+        assert result[1]["role"] == "assistant"
+        assert result[2]["role"] == "user"  # SINGLE user message with both results
+        assert result[3]["role"] == "assistant"
+
+        # The user message should have BOTH tool_result blocks
+        tool_results_content = result[2]["content"]
+        assert isinstance(tool_results_content, list)
+        assert len(tool_results_content) == 2
+
+        # First tool result
+        assert tool_results_content[0]["type"] == "tool_result"
+        assert tool_results_content[0]["tool_use_id"] == "call_1"
+        assert tool_results_content[0]["content"] == "Search results..."
+
+        # Second tool result (batched in same message)
+        assert tool_results_content[1]["type"] == "tool_result"
+        assert tool_results_content[1]["tool_use_id"] == "call_2"
+        assert tool_results_content[1]["content"] == "Weather data..."
+
 
 class TestAnthropicMessageConversion:
     """Tests for Anthropic message role filtering."""

@@ -8,7 +8,6 @@ and capture mode operations.
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 from dataclasses import dataclass
 from pathlib import Path
@@ -178,9 +177,7 @@ async def _run_eval_task(
             str(e),
             exc_info=True,  # Include full traceback for debugging
         )
-        return EvalTaskResult.from_error(
-            suite_name, model_spec.model, model_spec.provider.value, e
-        )
+        return EvalTaskResult.from_error(suite_name, model_spec.model, model_spec.provider.value, e)
 
 
 async def _run_capture_task(

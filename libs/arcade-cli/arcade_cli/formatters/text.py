@@ -10,7 +10,6 @@ from arcade_cli.formatters.base import (
     EvalResultFormatter,
     compute_track_differences,
     find_best_model,
-    group_captures_by_case,
     group_comparative_by_case,
     group_comparative_by_case_first,
     group_eval_for_comparison,
@@ -246,7 +245,9 @@ class TextFormatter(EvalResultFormatter):
             header_parts = [f"{'Case':<{case_col_width}}"]
             for model in model_order:
                 # Truncate model name if too long
-                display_name = model[:model_col_width - 1] if len(model) > model_col_width - 1 else model
+                display_name = (
+                    model[: model_col_width - 1] if len(model) > model_col_width - 1 else model
+                )
                 header_parts.append(f"{display_name:>{model_col_width}}")
             header_parts.append(f"{'Best':>{best_col_width}}")
 
@@ -257,7 +258,11 @@ class TextFormatter(EvalResultFormatter):
             # Build rows for each case
             for case_name, case_models in cases.items():
                 # Truncate case name if needed
-                display_case = case_name[:case_col_width - 1] if len(case_name) > case_col_width - 1 else case_name
+                display_case = (
+                    case_name[: case_col_width - 1]
+                    if len(case_name) > case_col_width - 1
+                    else case_name
+                )
                 row_parts = [f"{display_case:<{case_col_width}}"]
 
                 for model in model_order:
@@ -279,7 +284,9 @@ class TextFormatter(EvalResultFormatter):
                 if best == "Tie":
                     best_cell = "Tie"
                 elif best:
-                    best_cell = best[:best_col_width - 1] if len(best) > best_col_width - 1 else best
+                    best_cell = (
+                        best[: best_col_width - 1] if len(best) > best_col_width - 1 else best
+                    )
                 else:
                     best_cell = "-"
                 row_parts.append(f"{best_cell:>{best_col_width}}")
@@ -323,7 +330,7 @@ class TextFormatter(EvalResultFormatter):
         lines.append("=" * 78)
         if failed_only and original_counts:
             orig_total, orig_passed, orig_failed, orig_warned = original_counts
-            lines.append(f"Note: Showing only failed evaluations (--failed-only)")
+            lines.append("Note: Showing only failed evaluations (--failed-only)")
             lines.append(
                 f"Summary -- Total: {orig_total} -- Passed: {orig_passed} -- "
                 f"Failed: {orig_failed} -- Warned: {orig_warned}"
@@ -436,6 +443,7 @@ class TextFormatter(EvalResultFormatter):
                                         if role.lower() == "tool":
                                             try:
                                                 import json
+
                                                 parsed = json.loads(content)
                                                 formatted = json.dumps(parsed, indent=2)
                                                 for json_line in formatted.split("\n"):
@@ -454,7 +462,12 @@ class TextFormatter(EvalResultFormatter):
                                             lines.append(f"      🔧 {tc_name}")
                                             try:
                                                 import json
-                                                args_dict = json.loads(tc_args) if isinstance(tc_args, str) else tc_args
+
+                                                args_dict = (
+                                                    json.loads(tc_args)
+                                                    if isinstance(tc_args, str)
+                                                    else tc_args
+                                                )
                                                 formatted = json.dumps(args_dict, indent=2)
                                                 for arg_line in formatted.split("\n"):
                                                     lines.append(f"        {arg_line}")
@@ -574,6 +587,7 @@ class TextFormatter(EvalResultFormatter):
                                     if role.lower() == "tool":
                                         try:
                                             import json
+
                                             parsed = json.loads(content)
                                             formatted = json.dumps(parsed, indent=2)
                                             for json_line in formatted.split("\n"):
@@ -592,7 +606,12 @@ class TextFormatter(EvalResultFormatter):
                                         lines.append(f"      🔧 {tc_name}")
                                         try:
                                             import json
-                                            args_dict = json.loads(tc_args) if isinstance(tc_args, str) else tc_args
+
+                                            args_dict = (
+                                                json.loads(tc_args)
+                                                if isinstance(tc_args, str)
+                                                else tc_args
+                                            )
                                             formatted = json.dumps(args_dict, indent=2)
                                             for arg_line in formatted.split("\n"):
                                                 lines.append(f"        {arg_line}")
@@ -1050,9 +1069,7 @@ class CaptureTextFormatter(CaptureFormatter):
 
                     # Parse and format arguments
                     try:
-                        args_dict = (
-                            json.loads(tc_args) if isinstance(tc_args, str) else tc_args
-                        )
+                        args_dict = json.loads(tc_args) if isinstance(tc_args, str) else tc_args
                         args_formatted = json.dumps(args_dict, indent=2)
                         for arg_line in args_formatted.split("\n"):
                             lines.append(f"         {arg_line}")

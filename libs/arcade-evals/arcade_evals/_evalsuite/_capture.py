@@ -148,7 +148,7 @@ class _EvalSuiteCaptureMixin:
                 comp_case = builder.build()
 
                 # For each track configured in this comparative case
-                for track_name in comp_case.track_configs.keys():
+                for track_name in comp_case.track_configs:
                     if not self._track_manager.has_track(track_name):
                         continue  # Skip missing tracks
 

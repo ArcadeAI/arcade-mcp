@@ -925,4 +925,3 @@ class TestCaptureWithTracks:
 
         # Should include track info in markdown
         assert "[track_a]" in output or "track_a" in output
-

@@ -11,7 +11,6 @@ from arcade_cli.formatters.base import (
     EvalResultFormatter,
     compute_track_differences,
     find_best_model,
-    group_captures_by_case,
     group_comparative_by_case,
     group_comparative_by_case_first,
     group_eval_for_comparison,
@@ -386,7 +385,7 @@ class MarkdownFormatter(EvalResultFormatter):
         lines.append("")
         if failed_only and original_counts:
             orig_total, orig_passed, orig_failed, orig_warned = original_counts
-            lines.append(f"> ⚠️ Showing only failed evaluations")
+            lines.append("> ⚠️ Showing only failed evaluations")
             lines.append("")
             lines.append(f"- **Total Cases:** {orig_total}")
             lines.append(f"- **Passed:** {orig_passed}")
@@ -541,14 +540,24 @@ class MarkdownFormatter(EvalResultFormatter):
                                     role = msg.get("role", "unknown")
                                     content = msg.get("content", "")
                                     name = msg.get("name", "")
-                                    role_icons = {"user": "👤", "assistant": "🤖", "tool": "🔧", "system": "⚙️"}
+                                    role_icons = {
+                                        "user": "👤",
+                                        "assistant": "🤖",
+                                        "tool": "🔧",
+                                        "system": "⚙️",
+                                    }
                                     icon = role_icons.get(role, "💬")
-                                    label = f"{icon} **{role.title()}**" if not name else f"{icon} **{role.title()}** (`{name}`)"
+                                    label = (
+                                        f"{icon} **{role.title()}**"
+                                        if not name
+                                        else f"{icon} **{role.title()}** (`{name}`)"
+                                    )
                                     lines.append(f"> {label}")
                                     if content:
                                         if role == "tool":
                                             try:
                                                 import json
+
                                                 parsed = json.loads(content)
                                                 formatted = json.dumps(parsed, indent=2)
                                                 lines.append("> ```json")
@@ -568,7 +577,12 @@ class MarkdownFormatter(EvalResultFormatter):
                                             lines.append(f"> 🔧 **{tc_name}**")
                                             try:
                                                 import json
-                                                args_dict = json.loads(tc_args) if isinstance(tc_args, str) else tc_args
+
+                                                args_dict = (
+                                                    json.loads(tc_args)
+                                                    if isinstance(tc_args, str)
+                                                    else tc_args
+                                                )
                                                 formatted = json.dumps(args_dict, indent=2)
                                                 lines.append("> ```json")
                                                 for arg_line in formatted.split("\n"):
@@ -707,15 +721,25 @@ class MarkdownFormatter(EvalResultFormatter):
                                 role = msg.get("role", "unknown")
                                 content = msg.get("content", "")
                                 name = msg.get("name", "")
-                                role_icons = {"user": "👤", "assistant": "🤖", "tool": "🔧", "system": "⚙️"}
+                                role_icons = {
+                                    "user": "👤",
+                                    "assistant": "🤖",
+                                    "tool": "🔧",
+                                    "system": "⚙️",
+                                }
                                 icon = role_icons.get(role, "💬")
-                                label = f"{icon} **{role.title()}**" if not name else f"{icon} **{role.title()}** (`{name}`)"
+                                label = (
+                                    f"{icon} **{role.title()}**"
+                                    if not name
+                                    else f"{icon} **{role.title()}** (`{name}`)"
+                                )
                                 lines.append(f"> {label}")
                                 if content:
                                     # For tool responses, format as JSON code block
                                     if role == "tool":
                                         try:
                                             import json
+
                                             parsed = json.loads(content)
                                             formatted = json.dumps(parsed, indent=2)
                                             lines.append("> ```json")
@@ -736,7 +760,12 @@ class MarkdownFormatter(EvalResultFormatter):
                                         lines.append(f"> 🔧 **{tc_name}**")
                                         try:
                                             import json
-                                            args_dict = json.loads(tc_args) if isinstance(tc_args, str) else tc_args
+
+                                            args_dict = (
+                                                json.loads(tc_args)
+                                                if isinstance(tc_args, str)
+                                                else tc_args
+                                            )
                                             formatted = json.dumps(args_dict, indent=2)
                                             lines.append("> ```json")
                                             for arg_line in formatted.split("\n"):
@@ -869,7 +898,11 @@ class MarkdownFormatter(EvalResultFormatter):
 
             role_icons = {"user": "👤", "assistant": "🤖", "tool": "🔧", "system": "⚙️"}
             icon = role_icons.get(role, "💬")
-            label = f"{icon} **{role.title()}**" if not name else f"{icon} **{role.title()}** (`{name}`)"
+            label = (
+                f"{icon} **{role.title()}**"
+                if not name
+                else f"{icon} **{role.title()}** (`{name}`)"
+            )
 
             lines.append(f"> {label}")
 
@@ -1091,7 +1124,7 @@ class CaptureMarkdownFormatter(CaptureFormatter):
                             if not captured_case.tool_calls:
                                 continue
 
-                            lines.append(f"<details>")
+                            lines.append("<details>")
                             lines.append(f"<summary>🤖 {model} - Details</summary>")
                             lines.append("")
 

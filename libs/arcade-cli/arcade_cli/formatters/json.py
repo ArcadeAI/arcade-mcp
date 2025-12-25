@@ -11,7 +11,6 @@ from arcade_cli.formatters.base import (
     EvalResults,
     EvalStats,
     find_best_model,
-    group_captures_by_case,
     group_comparative_by_case,
     group_comparative_by_case_first,
     group_eval_for_comparison,
