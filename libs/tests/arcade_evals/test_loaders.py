@@ -18,6 +18,14 @@ spec.loader.exec_module(loaders)
 class TestLoadFromStdio:
     """Tests for load_from_stdio function."""
 
+    def setup_method(self):
+        """Clear cache before each test."""
+        loaders.clear_tools_cache()
+
+    def teardown_method(self):
+        """Clear cache after each test."""
+        loaders.clear_tools_cache()
+
     @pytest.mark.asyncio
     async def test_empty_command_returns_empty_list(self):
         """Empty command should return empty list without importing MCP."""
@@ -219,6 +227,14 @@ class TestLoadFromHttp:
 
 class TestLoadArcadeMcpGateway:
     """Tests for load_arcade_mcp_gateway function."""
+
+    def setup_method(self):
+        """Clear cache before each test."""
+        loaders.clear_tools_cache()
+
+    def teardown_method(self):
+        """Clear cache after each test."""
+        loaders.clear_tools_cache()
 
     @pytest.mark.asyncio
     async def test_builds_correct_url_and_headers_with_slug(self):
