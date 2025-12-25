@@ -387,6 +387,27 @@ class TestLazyImport:
                 loaders._require_mcp()
             assert "pip install" in str(exc.value)
 
+    @pytest.mark.asyncio
+    async def test_http_loader_raises_import_error_without_mcp(self):
+        """Test that HTTP loader raises ImportError when MCP SDK missing."""
+        with patch.dict(sys.modules, {"mcp": None}):
+            with pytest.raises(ImportError, match="pip install"):
+                await loaders.load_from_http_async("http://localhost:8000")
+
+    @pytest.mark.asyncio
+    async def test_stdio_loader_raises_import_error_without_mcp(self):
+        """Test that stdio loader raises ImportError when MCP SDK missing."""
+        with patch.dict(sys.modules, {"mcp": None}):
+            with pytest.raises(ImportError, match="pip install"):
+                await loaders.load_from_stdio_async(["python", "server.py"])
+
+    @pytest.mark.asyncio
+    async def test_arcade_gateway_loader_raises_import_error_without_mcp(self):
+        """Test that Arcade gateway loader raises ImportError when MCP SDK missing."""
+        with patch.dict(sys.modules, {"mcp": None}):
+            with pytest.raises(ImportError, match="pip install"):
+                await loaders.load_arcade_mcp_gateway_async("my-gateway")
+
 
 class TestEnsureMcpPath:
     """Tests for _ensure_mcp_path utility function."""
@@ -621,3 +642,73 @@ class TestToolsCache:
             # Different URL - should connect again
             await loaders.load_from_http_async("http://localhost:9000", use_sse=True)
             assert mock_sse_client.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_http_loader_lock_timeout_raises_error(self):
+        """Should raise TimeoutError when lock acquisition times out."""
+        # Create a lock and hold it
+        loaders._cache_locks["test_key"] = loaders.asyncio.Lock()
+        lock = loaders._cache_locks["test_key"]
+        await lock.acquire()
+
+        try:
+            # Try to load with a key that will wait for the held lock
+            with (
+                patch.object(loaders, "_make_cache_key", return_value="test_key"),
+                patch.object(loaders, "LOCK_TIMEOUT_SECONDS", 0.1),
+            ):
+                with pytest.raises(TimeoutError, match="Timeout waiting for lock"):
+                    await loaders.load_from_http_async("http://localhost:8000")
+        finally:
+            lock.release()
+            loaders.clear_tools_cache()
+
+    @pytest.mark.asyncio
+    async def test_stdio_loader_lock_timeout_raises_error(self):
+        """Should raise TimeoutError when stdio lock acquisition times out."""
+        # Create a specific cache key and hold its lock
+        cache_key = "stdio|python server.py|[]"
+        loaders._cache_locks[cache_key] = loaders.asyncio.Lock()
+        lock = loaders._cache_locks[cache_key]
+        await lock.acquire()
+
+        try:
+            with patch.object(loaders, "LOCK_TIMEOUT_SECONDS", 0.1):
+                with pytest.raises(TimeoutError, match="Timeout waiting for lock on stdio"):
+                    await loaders.load_from_stdio_async(["python", "server.py"])
+        finally:
+            lock.release()
+            loaders.clear_tools_cache()
+
+    @pytest.mark.asyncio
+    async def test_lock_released_after_connection_error(self):
+        """Should release lock even when MCP connection fails."""
+        mock_session = AsyncMock()
+        mock_session.initialize = AsyncMock(side_effect=ConnectionError("Connection failed"))
+
+        mock_client_session_cls = MagicMock()
+        mock_client_session_cls.return_value.__aenter__ = AsyncMock(return_value=mock_session)
+        mock_client_session_cls.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        mock_sse_client = MagicMock()
+        mock_sse_client.return_value.__aenter__ = AsyncMock(return_value=("read", "write"))
+        mock_sse_client.return_value.__aexit__ = AsyncMock(return_value=None)
+
+        with patch.object(loaders, "_require_mcp") as mock_require:
+            mock_require.return_value = (
+                mock_client_session_cls,
+                MagicMock(),
+                MagicMock(),
+                mock_sse_client,
+                MagicMock(),
+            )
+
+            # First call should fail
+            with pytest.raises(ConnectionError):
+                await loaders.load_from_http_async("http://localhost:8000", use_sse=True)
+
+            # Lock should be released - second call should not timeout
+            cache_key = loaders._make_cache_key("http://localhost:8000/mcp", None)
+            lock = loaders._cache_locks.get(cache_key)
+            if lock:
+                assert not lock.locked(), "Lock should be released after error"

@@ -513,6 +513,103 @@ class TestConvertMessagesToAnthropicHelper:
         assert result[0]["role"] == "assistant"
         assert result[0]["content"] == "Hello"  # Simple string, not blocks
 
+    def test_tool_result_added_to_existing_user_message_with_text(self) -> None:
+        """Test that tool result is added to existing user message with text content."""
+        messages = [
+            {"role": "user", "content": "First question"},
+            {"role": "tool", "content": "Tool result", "tool_call_id": "call_123"},
+        ]
+        result = convert_messages_to_anthropic(messages)
+
+        # Should batch into ONE user message with both text and tool_result
+        assert len(result) == 1
+        assert result[0]["role"] == "user"
+        assert isinstance(result[0]["content"], list)
+        assert len(result[0]["content"]) == 2
+        # First block is the original text
+        assert result[0]["content"][0]["type"] == "text"
+        assert result[0]["content"][0]["text"] == "First question"
+        # Second block is the tool result
+        assert result[0]["content"][1]["type"] == "tool_result"
+        assert result[0]["content"][1]["tool_use_id"] == "call_123"
+
+    def test_three_consecutive_tool_results_all_batched(self) -> None:
+        """Test that 3+ consecutive tool results are all batched together."""
+        messages = [
+            {
+                "role": "assistant",
+                "tool_calls": [
+                    {"id": "c1", "function": {"name": "t1", "arguments": "{}"}},
+                    {"id": "c2", "function": {"name": "t2", "arguments": "{}"}},
+                    {"id": "c3", "function": {"name": "t3", "arguments": "{}"}},
+                ],
+            },
+            {"role": "tool", "content": "Result 1", "tool_call_id": "c1"},
+            {"role": "tool", "content": "Result 2", "tool_call_id": "c2"},
+            {"role": "tool", "content": "Result 3", "tool_call_id": "c3"},
+        ]
+        result = convert_messages_to_anthropic(messages)
+
+        # Should have: assistant with 3 tool_use blocks, then ONE user message with 3 tool_results
+        assert len(result) == 2
+        assert result[0]["role"] == "assistant"
+        assert len(result[0]["content"]) == 3  # 3 tool_use blocks
+
+        assert result[1]["role"] == "user"
+        assert len(result[1]["content"]) == 3  # 3 tool_result blocks batched
+        assert all(block["type"] == "tool_result" for block in result[1]["content"])
+
+    def test_tool_result_then_user_text_then_tool_result(self) -> None:
+        """Test interleaved tool results and user text messages."""
+        messages = [
+            {
+                "role": "assistant",
+                "tool_calls": [{"id": "c1", "function": {"name": "t1", "arguments": "{}"}}],
+            },
+            {"role": "tool", "content": "First result", "tool_call_id": "c1"},
+            {"role": "user", "content": "User interrupts"},
+            {
+                "role": "assistant",
+                "tool_calls": [{"id": "c2", "function": {"name": "t2", "arguments": "{}"}}],
+            },
+            {"role": "tool", "content": "Second result", "tool_call_id": "c2"},
+        ]
+        result = convert_messages_to_anthropic(messages)
+
+        # Should have: assistant, user (tool_result), user (text), assistant, user (tool_result)
+        assert len(result) == 5
+        assert result[0]["role"] == "assistant"
+        assert result[1]["role"] == "user"
+        assert isinstance(result[1]["content"], list)
+        assert result[2]["role"] == "user"
+        assert result[2]["content"] == "User interrupts"
+        assert result[3]["role"] == "assistant"
+        assert result[4]["role"] == "user"
+        assert isinstance(result[4]["content"], list)
+
+    def test_empty_tool_result_content(self) -> None:
+        """Test tool result with empty content string."""
+        messages = [
+            {"role": "tool", "content": "", "tool_call_id": "call_123"},
+        ]
+        result = convert_messages_to_anthropic(messages)
+
+        assert len(result) == 1
+        assert result[0]["role"] == "user"
+        tool_result = result[0]["content"][0]
+        assert tool_result["content"] == ""
+
+    def test_tool_result_missing_tool_call_id(self) -> None:
+        """Test tool result with missing tool_call_id."""
+        messages = [
+            {"role": "tool", "content": "Result"},  # Missing tool_call_id
+        ]
+        result = convert_messages_to_anthropic(messages)
+
+        assert len(result) == 1
+        tool_result = result[0]["content"][0]
+        assert tool_result["tool_use_id"] == ""  # Defaults to empty string
+
     def test_consecutive_tool_results_batched_into_single_user_message(self) -> None:
         """Test that consecutive tool results are batched into ONE user message.
 
