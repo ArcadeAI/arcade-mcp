@@ -208,9 +208,7 @@ class TestLoadFromHttp:
                 MagicMock(),  # streamablehttp_client
             )
 
-            result = await loaders.load_from_http_async(
-                "http://localhost:8000", use_sse=True
-            )
+            result = await loaders.load_from_http_async("http://localhost:8000", use_sse=True)
             assert result == [
                 {
                     "name": "tool1",
@@ -577,16 +575,12 @@ class TestToolsCache:
             )
 
             # First call - should connect
-            result1 = await loaders.load_from_http_async(
-                "http://localhost:8000", use_sse=True
-            )
+            result1 = await loaders.load_from_http_async("http://localhost:8000", use_sse=True)
             assert len(result1) == 1
             assert mock_sse_client.call_count == 1
 
             # Second call - should use cache
-            result2 = await loaders.load_from_http_async(
-                "http://localhost:8000", use_sse=True
-            )
+            result2 = await loaders.load_from_http_async("http://localhost:8000", use_sse=True)
             assert len(result2) == 1
             # sse_client should NOT be called again
             assert mock_sse_client.call_count == 1
