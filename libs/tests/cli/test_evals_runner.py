@@ -139,9 +139,7 @@ class TestRunEvalTask:
         mock_suite = AsyncMock(return_value={"score": 1.0})
         mock_suite.__name__ = "test_suite"
 
-        model_spec = ModelSpec(
-            provider=Provider.ANTHROPIC, model="claude-sonnet", api_key="my-key"
-        )
+        model_spec = ModelSpec(provider=Provider.ANTHROPIC, model="claude-sonnet", api_key="my-key")
         await _run_eval_task(
             suite_func=mock_suite,
             model_spec=model_spec,
@@ -219,7 +217,6 @@ class TestRunCaptureTask:
             capture_mode=True,
             include_context=True,
         )
-
 
 
 class TestRunEvaluationsErrorHandling:
@@ -479,37 +476,83 @@ class TestParseOutputFormats:
 
     def test_single_format(self) -> None:
         """Should return a list with a single format."""
-        assert parse_output_formats("md") == ["md"]
-        assert parse_output_formats("txt") == ["txt"]
-        assert parse_output_formats("html") == ["html"]
-        assert parse_output_formats("json") == ["json"]
+        console = MagicMock()
+        assert parse_output_formats("md", console) == ["md"]
+        assert parse_output_formats("txt", console) == ["txt"]
+        assert parse_output_formats("html", console) == ["html"]
+        assert parse_output_formats("json", console) == ["json"]
 
     def test_comma_separated_formats(self) -> None:
         """Should return a list of multiple formats."""
-        assert parse_output_formats("md,html") == ["md", "html"]
-        assert parse_output_formats("txt,md,html,json") == ["txt", "md", "html", "json"]
+        console = MagicMock()
+        assert parse_output_formats("md,html", console) == ["md", "html"]
+        assert parse_output_formats("txt,md,html,json", console) == ["txt", "md", "html", "json"]
 
     def test_comma_separated_with_spaces(self) -> None:
         """Should handle spaces around commas."""
-        assert parse_output_formats("md, html") == ["md", "html"]
-        assert parse_output_formats(" md , html ") == ["md", "html"]
+        console = MagicMock()
+        assert parse_output_formats("md, html", console) == ["md", "html"]
+        assert parse_output_formats(" md , html ", console) == ["md", "html"]
 
     def test_all_keyword(self) -> None:
         """Should return all formats for 'all' keyword."""
-        assert parse_output_formats("all") == ALL_FORMATS
-        assert parse_output_formats("ALL") == ALL_FORMATS
-        assert parse_output_formats("All") == ALL_FORMATS
+        console = MagicMock()
+        assert parse_output_formats("all", console) == ALL_FORMATS
+        assert parse_output_formats("ALL", console) == ALL_FORMATS
+        assert parse_output_formats("All", console) == ALL_FORMATS
 
     def test_case_insensitive(self) -> None:
         """Should be case-insensitive."""
-        assert parse_output_formats("MD") == ["md"]
-        assert parse_output_formats("HTML,JSON") == ["html", "json"]
+        console = MagicMock()
+        assert parse_output_formats("MD", console) == ["md"]
+        assert parse_output_formats("HTML,JSON", console) == ["html", "json"]
 
     def test_invalid_formats_filtered(self) -> None:
         """Should filter out invalid formats."""
-        assert parse_output_formats("md,invalid") == ["md"]
-        assert parse_output_formats("invalid") == []
+        console = MagicMock()
+        assert parse_output_formats("md,invalid", console) == ["md"]
+        assert parse_output_formats("invalid", console) == []
 
     def test_mixed_valid_invalid(self) -> None:
         """Should keep valid formats and drop invalid ones."""
-        assert parse_output_formats("md,foo,html,bar") == ["md", "html"]
+        assert parse_output_formats("md,foo,html,bar", MagicMock()) == ["md", "html"]
+
+    def test_warns_on_invalid_formats(self) -> None:
+        """Should warn when invalid formats are provided."""
+        from rich.console import Console
+
+        console = Console()
+        with patch.object(console, "print") as mock_print:
+            result = parse_output_formats("xlsx,invalid", console)
+            assert result == []
+            # Should have printed one warning with all invalid formats
+            assert mock_print.call_count == 1
+            calls_str = str(mock_print.call_args_list)
+            assert "xlsx" in calls_str.lower()
+            assert "invalid" in calls_str.lower()
+            assert "ignoring" in calls_str.lower()
+
+    def test_warns_on_partially_invalid_formats(self) -> None:
+        """Should warn only for invalid formats when mix exists."""
+        from rich.console import Console
+
+        console = Console()
+        with patch.object(console, "print") as mock_print:
+            result = parse_output_formats("md,xlsx,html", console)
+            assert result == ["md", "html"]
+            # Should warn about xlsx
+            assert mock_print.call_count == 1
+            calls_str = str(mock_print.call_args_list)
+            assert "xlsx" in calls_str.lower()
+            assert "ignoring" in calls_str.lower()
+
+    def test_no_warning_when_all_valid(self) -> None:
+        """Should not warn when all formats are valid."""
+        from rich.console import Console
+
+        console = Console()
+        with patch.object(console, "print") as mock_print:
+            result = parse_output_formats("md,html,json", console)
+            assert result == ["md", "html", "json"]
+            # Should not print any warnings
+            assert mock_print.call_count == 0

@@ -19,7 +19,7 @@ class TestAddMcpServer:
             {"name": "tool2", "description": "Test tool 2", "inputSchema": {}},
         ]
 
-        with patch("arcade_evals._evalsuite._convenience.load_from_http_async") as mock_load:
+        with patch("arcade_evals._evalsuite._convenience.load_mcp_remote_async") as mock_load:
             mock_load.return_value = mock_tools
 
             result = await suite.add_mcp_server(
@@ -51,7 +51,7 @@ class TestAddMcpServer:
 
         mock_tools = [{"name": "tool1", "description": "Test", "inputSchema": {}}]
 
-        with patch("arcade_evals._evalsuite._convenience.load_from_http_async") as mock_load:
+        with patch("arcade_evals._evalsuite._convenience.load_mcp_remote_async") as mock_load:
             mock_load.return_value = mock_tools
 
             await suite.add_mcp_server("http://localhost:8000", track="github")
@@ -71,7 +71,7 @@ class TestAddMcpServer:
         """Test that add_mcp_server warns when no tools are loaded."""
         suite = EvalSuite(name="test", system_message="test")
 
-        with patch("arcade_evals._evalsuite._convenience.load_from_http_async") as mock_load:
+        with patch("arcade_evals._evalsuite._convenience.load_mcp_remote_async") as mock_load:
             mock_load.return_value = []  # Empty tools
 
             with pytest.warns(UserWarning, match="No tools loaded from"):
@@ -82,7 +82,7 @@ class TestAddMcpServer:
         """Test that add_mcp_server propagates loader exceptions."""
         suite = EvalSuite(name="test", system_message="test")
 
-        with patch("arcade_evals._evalsuite._convenience.load_from_http_async") as mock_load:
+        with patch("arcade_evals._evalsuite._convenience.load_mcp_remote_async") as mock_load:
             mock_load.side_effect = TimeoutError("Connection timeout")
 
             with pytest.raises(TimeoutError, match="Connection timeout"):
@@ -260,7 +260,7 @@ class TestAsyncConvenienceMethodChaining:
 
         with (
             patch(
-                "arcade_evals._evalsuite._convenience.load_from_http_async"
+                "arcade_evals._evalsuite._convenience.load_mcp_remote_async"
             ) as mock_http,
             patch(
                 "arcade_evals._evalsuite._convenience.load_from_stdio_async"

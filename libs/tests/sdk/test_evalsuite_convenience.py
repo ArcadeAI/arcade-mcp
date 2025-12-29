@@ -5,9 +5,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from arcade_core import ToolCatalog
-from arcade_tdk import tool
-
 from arcade_evals import EvalSuite, ExpectedToolCall, MCPToolDefinition
+from arcade_tdk import tool
 
 
 def sample_tool_def(name: str = "test_tool") -> dict[str, Any]:
@@ -54,7 +53,7 @@ class TestAddMcpServer:
     @pytest.mark.asyncio
     async def test_calls_loader_with_correct_params(self) -> None:
         with patch(
-            "arcade_evals._evalsuite._convenience.load_from_http_async", new_callable=AsyncMock
+            "arcade_evals._evalsuite._convenience.load_mcp_remote_async", new_callable=AsyncMock
         ) as mock_load:
             mock_load.return_value = [sample_tool_def()]
             suite = EvalSuite(name="Test", system_message="Test")
@@ -69,7 +68,7 @@ class TestAddMcpServer:
     @pytest.mark.asyncio
     async def test_empty_response_warns(self) -> None:
         with patch(
-            "arcade_evals._evalsuite._convenience.load_from_http_async", new_callable=AsyncMock
+            "arcade_evals._evalsuite._convenience.load_mcp_remote_async", new_callable=AsyncMock
         ) as mock_load:
             mock_load.return_value = []
             suite = EvalSuite(name="Test", system_message="Test")

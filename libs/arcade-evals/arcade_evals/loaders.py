@@ -3,7 +3,7 @@ MCP Server Tool Loaders.
 
 Public API (async-only):
 - `load_from_stdio_async`
-- `load_from_http_async`
+- `load_mcp_remote_async`
 - `load_arcade_mcp_gateway_async`
 - `load_stdio_arcade_async`
 
@@ -192,14 +192,18 @@ async def load_from_stdio_async(
 
     cache_key = f"stdio|{' '.join(command)}|{sorted((env or {}).items())!s}"
 
-    # Acquire lock for this specific cache key - ensures only one concurrent
-    # request starts the stdio subprocess, others wait for the cached result
+    # Fast path: check cache without lock (no locking overhead for cache hits)
+    if cache_key in _tools_cache:
+        logger.debug(f"Using cached tools for stdio: {command[0]}")
+        return _tools_cache[cache_key].copy()
+
+    # Cache miss - acquire lock and check again (double-checked locking)
     lock = await _get_cache_lock(cache_key)
     if not await _acquire_lock_with_timeout(lock):
         raise TimeoutError(f"Timeout waiting for lock on stdio: {command[0]}")
 
     try:
-        # Check cache (inside lock to prevent race condition)
+        # Re-check cache (another request may have populated it while we waited)
         if cache_key in _tools_cache:
             logger.debug(f"Using cached tools for stdio: {command[0]}")
             return _tools_cache[cache_key].copy()
@@ -230,7 +234,7 @@ async def load_from_stdio_async(
         lock.release()
 
 
-async def load_from_http_async(
+async def load_mcp_remote_async(
     url: str,
     *,
     headers: dict[str, str] | None = None,
@@ -238,7 +242,7 @@ async def load_from_http_async(
     use_sse: bool = False,
 ) -> list[dict[str, Any]]:
     """
-    Load tools from an MCP server via HTTP/SSE.
+    Load tools from a remote MCP server via URL (HTTP or SSE transport).
 
     Results are cached to avoid redundant connections when multiple models
     load the same MCP source. Concurrent requests for the same URL will wait
@@ -255,29 +259,32 @@ async def load_from_http_async(
     """
     del timeout  # MCP SDK manages timeout internally
 
-    ClientSession, _, _, sse_client, streamablehttp_client = _require_mcp()
     url = _ensure_mcp_path(url)
-
     cache_key = _make_cache_key(url, headers)
 
-    # Acquire lock for this specific cache key - ensures only one concurrent
-    # request loads from this MCP source, others wait for the cached result
+    # Fast path: check cache without lock (no locking overhead for cache hits)
+    if cache_key in _tools_cache:
+        logger.debug(f"Using cached tools for {url}")
+        return _tools_cache[cache_key].copy()
+
+    # Cache miss - acquire lock and check again (double-checked locking)
     lock = await _get_cache_lock(cache_key)
     if not await _acquire_lock_with_timeout(lock):
         raise TimeoutError(f"Timeout waiting for lock on HTTP: {url}")
 
     try:
-        # Check cache (inside lock to prevent race condition)
+        # Re-check cache (another request may have populated it while we waited)
         if cache_key in _tools_cache:
             logger.debug(f"Using cached tools for {url}")
             return _tools_cache[cache_key].copy()
 
-        # Not in cache - load from MCP server
+        # Load MCP SDK (deferred import)
+        ClientSession, _, _, sse_client, streamablehttp_client = _require_mcp()
+
+        # Load from MCP server
         tools: list[dict[str, Any]] = []
 
-        # Choose the appropriate client based on transport type
         if use_sse:
-            # SSE client returns (read, write)
             async with (
                 sse_client(url, headers=headers) as (read, write),
                 ClientSession(read, write) as session,
@@ -286,7 +293,6 @@ async def load_from_http_async(
                 result = await session.list_tools()
                 tools = [_tool_to_dict(tool) for tool in result.tools]
         else:
-            # Streamable HTTP client returns (read, write, get_session_id)
             async with (
                 streamablehttp_client(url, headers=headers) as (read, write, _),
                 ClientSession(read, write) as session,
@@ -340,7 +346,7 @@ async def load_arcade_mcp_gateway_async(
     # Use provided base_url or check env var at runtime
     effective_base_url = base_url or _get_arcade_base_url()
     url = _build_arcade_mcp_url(gateway_slug, effective_base_url)
-    tools = await load_from_http_async(url, headers=headers, timeout=timeout)
+    tools = await load_mcp_remote_async(url, headers=headers, timeout=timeout)
 
     # Deduplicate tools by name (gateway may return duplicates)
     seen: dict[str, dict[str, Any]] = {}

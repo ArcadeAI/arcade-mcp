@@ -929,7 +929,11 @@ MCP_SERVER_LINEAR_ARCADE: dict = {
                 "title": {"type": "string", "required": True},
                 "description": {"type": "string", "required": False},
                 "team_key": {"type": "string", "required": True},
-                "priority_level": {"type": "string", "required": False, "enum": ["urgent", "high", "medium", "low", "none"]},
+                "priority_level": {
+                    "type": "string",
+                    "required": False,
+                    "enum": ["urgent", "high", "medium", "low", "none"],
+                },
                 "assignee_email": {"type": "string", "required": False},
             },
         },
@@ -967,7 +971,11 @@ MCP_SERVER_LINEAR_COMMUNITY: dict = {
                 "name": {"type": "string", "required": True},  # Different param name!
                 "body": {"type": "string", "required": False},  # Different param name!
                 "team": {"type": "string", "required": True},
-                "urgency": {"type": "string", "required": False, "enum": ["critical", "high", "normal", "low"]},
+                "urgency": {
+                    "type": "string",
+                    "required": False,
+                    "enum": ["critical", "high", "normal", "low"],
+                },
                 "owner": {"type": "string", "required": False},
             },
         },
@@ -1268,7 +1276,9 @@ class TestComparativeHelpers:
         from arcade_cli.formatters.base import group_comparative_by_case
 
         results = make_comparative_results()
-        groups, passed, failed, warned, total, suite_track_order = group_comparative_by_case(results)
+        groups, passed, failed, warned, total, suite_track_order = group_comparative_by_case(
+            results
+        )
 
         # Check structure
         assert "gpt-4o" in groups
@@ -1430,9 +1440,15 @@ class TestMcpServerComparison:
     def test_mcp_servers_have_different_param_names(self) -> None:
         """Different MCP servers may use different parameter names for same concept."""
         # Get create issue tool from each server
-        official_create = next(t for t in MCP_SERVER_LINEAR_OFFICIAL["tools"] if "create" in t["name"].lower())
-        arcade_create = next(t for t in MCP_SERVER_LINEAR_ARCADE["tools"] if "create" in t["name"].lower())
-        community_create = next(t for t in MCP_SERVER_LINEAR_COMMUNITY["tools"] if "create" in t["name"].lower())
+        official_create = next(
+            t for t in MCP_SERVER_LINEAR_OFFICIAL["tools"] if "create" in t["name"].lower()
+        )
+        arcade_create = next(
+            t for t in MCP_SERVER_LINEAR_ARCADE["tools"] if "create" in t["name"].lower()
+        )
+        community_create = next(
+            t for t in MCP_SERVER_LINEAR_COMMUNITY["tools"] if "create" in t["name"].lower()
+        )
 
         # Official uses "title", Arcade uses "title", Community uses "name"
         assert "title" in official_create["parameters"]
@@ -1449,7 +1465,9 @@ class TestMcpServerComparison:
         from arcade_cli.formatters.base import group_comparative_by_case
 
         results = make_mcp_server_comparative_results()
-        groups, passed, failed, warned, total, suite_track_order = group_comparative_by_case(results)
+        groups, passed, failed, warned, total, suite_track_order = group_comparative_by_case(
+            results
+        )
 
         # Should have 3 tracks (one per MCP server)
         assert "Linear MCP Comparison" in suite_track_order
@@ -1714,7 +1732,16 @@ class TestJsonFormatter:
                 "evaluation": MockEvaluation(
                     passed=True,
                     score=1.0,
-                    results=[{"field": "test", "match": True, "score": 1.0, "weight": 1.0, "expected": "x", "actual": "x"}],
+                    results=[
+                        {
+                            "field": "test",
+                            "match": True,
+                            "score": 1.0,
+                            "weight": 1.0,
+                            "expected": "x",
+                            "actual": "x",
+                        }
+                    ],
                 ),
             }
         ]
@@ -2147,28 +2174,26 @@ def make_multi_model_comparative_results() -> list[list[dict]]:
 
     for model in ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo"]:
         for track in ["track_a", "track_b"]:
-            results.append(
-                [
-                    {
-                        "model": model,
-                        "suite_name": f"TestSuite [{track}]",
-                        "track_name": track,
-                        "is_comparative": True,
-                        "cases": [
-                            {
-                                "name": "case_1",
-                                "input": "Test input for case 1",
-                                "evaluation": MockEvaluation(passed=True, score=0.9),
-                            },
-                            {
-                                "name": "case_2",
-                                "input": "Test input for case 2",
-                                "evaluation": MockEvaluation(passed=False, score=0.3),
-                            },
-                        ],
-                    }
-                ]
-            )
+            results.append([
+                {
+                    "model": model,
+                    "suite_name": f"TestSuite [{track}]",
+                    "track_name": track,
+                    "is_comparative": True,
+                    "cases": [
+                        {
+                            "name": "case_1",
+                            "input": "Test input for case 1",
+                            "evaluation": MockEvaluation(passed=True, score=0.9),
+                        },
+                        {
+                            "name": "case_2",
+                            "input": "Test input for case 2",
+                            "evaluation": MockEvaluation(passed=False, score=0.3),
+                        },
+                    ],
+                }
+            ])
 
     return results
 
@@ -2185,9 +2210,7 @@ class TestMultiModelComparativeCaseFirstGrouping:
         assert is_multi_model_comparative(results) is True
 
         # Single-model comparative
-        single_model_results = [
-            r for r in results if r[0].get("model") == "gpt-4o"
-        ]
+        single_model_results = [r for r in results if r[0].get("model") == "gpt-4o"]
         assert is_multi_model_comparative(single_model_results) is False
 
     def test_group_comparative_by_case_first(self) -> None:
@@ -2195,7 +2218,9 @@ class TestMultiModelComparativeCaseFirstGrouping:
         from arcade_cli.formatters.base import group_comparative_by_case_first
 
         results = make_multi_model_comparative_results()
-        case_groups, model_order, _, passed, failed, _, total = group_comparative_by_case_first(results)
+        case_groups, model_order, _, passed, failed, _, total = group_comparative_by_case_first(
+            results
+        )
 
         # Check model order
         assert len(model_order) == 3
@@ -2301,7 +2326,9 @@ class TestMultiModelComparativeCaseFirstGrouping:
         from arcade_cli.formatters.base import is_multi_model_comparative
 
         # Create single-model comparative
-        results = [[r[0]] for r in make_multi_model_comparative_results() if r[0].get("model") == "gpt-4o"]
+        results = [
+            [r[0]] for r in make_multi_model_comparative_results() if r[0].get("model") == "gpt-4o"
+        ]
 
         # Should not be detected as multi-model
         assert is_multi_model_comparative(results) is False
@@ -2572,23 +2599,21 @@ class TestGroupingPreservesContext:
         # Create multi-model comparative results
         results = make_comparative_results_with_context()
         # Add another model
-        results[0].append(
-            {
-                "model": "gpt-4o-mini",
-                "suite_name": "weather_suite [track_a]",
-                "track_name": "track_a",
-                "rubric": "Test",
-                "cases": [
-                    {
-                        "name": "weather_test",
-                        "input": "Get weather for NYC",
-                        "system_message": "You are a weather bot.",
-                        "additional_messages": [{"role": "user", "content": "Test"}],
-                        "evaluation": MockEvaluation(passed=True, score=0.95),
-                    }
-                ],
-            }
-        )
+        results[0].append({
+            "model": "gpt-4o-mini",
+            "suite_name": "weather_suite [track_a]",
+            "track_name": "track_a",
+            "rubric": "Test",
+            "cases": [
+                {
+                    "name": "weather_test",
+                    "input": "Get weather for NYC",
+                    "system_message": "You are a weather bot.",
+                    "additional_messages": [{"role": "user", "content": "Test"}],
+                    "evaluation": MockEvaluation(passed=True, score=0.95),
+                }
+            ],
+        })
 
         groups, model_order, *_ = group_comparative_by_case_first(results)
 
@@ -2697,6 +2722,62 @@ class TestComparativeWithContext:
 
         assert "You are a weather bot" in output
 
+
+class TestHtmlSafeId:
+    """Tests for HTML formatter's _make_safe_id method."""
+
+    def test_make_safe_id_basic(self) -> None:
+        """Test basic ID generation."""
+        formatter = HtmlFormatter()
+        case_id = formatter._make_safe_id("My Suite", "Test Case", "gpt-4o")
+
+        # Should be a valid HTML ID (alphanumeric + hyphens/underscores)
+        assert isinstance(case_id, str)
+        assert len(case_id) > 0
+        # Should not contain problematic characters
+        assert '"' not in case_id
+        assert "'" not in case_id
+        assert " " not in case_id
+
+    def test_make_safe_id_with_special_chars(self) -> None:
+        """Test ID generation with special characters that could break HTML."""
+        formatter = HtmlFormatter()
+
+        # Test with double quotes
+        case_id = formatter._make_safe_id('Suite "quoted"', 'Case "test"', 'model "name"')
+        assert '"' not in case_id
+
+        # Test with single quotes
+        case_id2 = formatter._make_safe_id("Suite's name", "Case's test", "model's")
+        assert "'" not in case_id2
+
+        # Test with brackets
+        case_id3 = formatter._make_safe_id("Suite [track]", "Case [test]", "model")
+        assert "[" not in case_id3
+        assert "]" not in case_id3
+
+    def test_make_safe_id_stable(self) -> None:
+        """Test that same inputs produce same ID (for caching/consistency)."""
+        formatter = HtmlFormatter()
+
+        id1 = formatter._make_safe_id("Suite", "Case", "Model")
+        id2 = formatter._make_safe_id("Suite", "Case", "Model")
+
+        assert id1 == id2
+
+    def test_make_safe_id_unique(self) -> None:
+        """Test that different inputs produce different IDs."""
+        formatter = HtmlFormatter()
+
+        id1 = formatter._make_safe_id("Suite1", "Case", "Model")
+        id2 = formatter._make_safe_id("Suite2", "Case", "Model")
+        id3 = formatter._make_safe_id("Suite1", "Case2", "Model")
+        id4 = formatter._make_safe_id("Suite1", "Case", "Model2")
+
+        # All should be different
+        ids = {id1, id2, id3, id4}
+        assert len(ids) == 4
+
     def test_json_comparative_preserves_tool_response(self) -> None:
         """JSON comparative should preserve tool response content."""
         formatter = JsonFormatter()
@@ -2709,7 +2790,5 @@ class TestComparativeWithContext:
         case_data = cases["weather_test"]
 
         assert "additional_messages" in case_data
-        tool_msg = next(
-            m for m in case_data["additional_messages"] if m.get("role") == "tool"
-        )
+        tool_msg = next(m for m in case_data["additional_messages"] if m.get("role") == "tool")
         assert "temp" in tool_msg["content"]

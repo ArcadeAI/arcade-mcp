@@ -7,6 +7,7 @@ allowing the same cases to be run against multiple tool tracks.
 from __future__ import annotations
 
 import asyncio
+import time
 from typing import TYPE_CHECKING, Any
 
 from arcade_evals._evalsuite._comparative import ComparativeCaseBuilder
@@ -180,8 +181,6 @@ class _EvalSuiteComparativeMixin:
                     _reg: EvalSuiteToolRegistry,
                     _t_name: str,
                 ) -> dict[str, Any]:
-                    import time
-
                     async with semaphore:
                         start = time.time()
                         print(f"    [TASK START] {_case.name} @ {_t_name}", flush=True)

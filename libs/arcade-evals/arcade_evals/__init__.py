@@ -14,8 +14,8 @@ from .eval import (
 from .loaders import (
     clear_tools_cache,
     load_arcade_mcp_gateway_async,
-    load_from_http_async,
     load_from_stdio_async,
+    load_mcp_remote_async,
     load_stdio_arcade_async,
 )
 from .weights import FuzzyWeight, Weight, validate_and_normalize_critic_weights
@@ -41,7 +41,7 @@ __all__ = [
     "Weight",
     "clear_tools_cache",
     "load_arcade_mcp_gateway_async",
-    "load_from_http_async",
+    "load_mcp_remote_async",
     "load_from_stdio_async",
     "load_stdio_arcade_async",
     "tool_eval",

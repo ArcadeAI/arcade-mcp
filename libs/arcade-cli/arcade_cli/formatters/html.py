@@ -318,6 +318,42 @@ class HtmlFormatter(EvalResultFormatter):
             .replace("'", "&#x27;")
         )
 
+    def _make_safe_id(self, suite_name: str, case_name: str, model_name: str = "") -> str:
+        """Generate a safe ID for HTML attributes and CSS selectors.
+
+        Removes or replaces characters that could break HTML attributes or
+        CSS selectors, including quotes, brackets, and special characters.
+
+        Args:
+            suite_name: The suite name.
+            case_name: The case name.
+            model_name: Optional model name.
+
+        Returns:
+            A sanitized string safe for use in HTML id/data attributes.
+        """
+        import re
+
+        def sanitize(s: str) -> str:
+            # Replace common separators with underscores
+            s = s.replace(" ", "_").replace("-", "_")
+            # Remove brackets and parentheses
+            s = s.replace("[", "").replace("]", "").replace("(", "").replace(")", "")
+            # Remove quotes that would break HTML attributes
+            s = s.replace('"', "").replace("'", "")
+            # Remove any remaining non-alphanumeric characters except underscores
+            s = re.sub(r"[^\w]", "", s)
+            return s
+
+        suite_id = sanitize(suite_name)
+        case_id_part = sanitize(case_name)
+        base_id = f"{suite_id}__{case_id_part}"
+
+        if model_name:
+            model_id = sanitize(model_name)
+            return f"{model_id}__{base_id}"
+        return base_id
+
     def _format_conversation(self, messages: list[dict]) -> str:
         """Format conversation messages as rich HTML for context display."""
         html_parts = ['<div class="conversation">']
@@ -985,10 +1021,8 @@ class HtmlFormatter(EvalResultFormatter):
         differences = compute_track_differences(case_data, track_order)
 
         # Generate unique ID for this case's tabs - include suite name and model for uniqueness
-        suite_id = suite_name.replace(" ", "_").replace("-", "_").replace("[", "").replace("]", "")
-        model_id = model_name.replace(" ", "_").replace("-", "_") if model_name else ""
-        base_id = f"{suite_id}__{case_name.replace(' ', '_').replace('-', '_')}"
-        case_id = f"{model_id}__{base_id}" if model_id else base_id
+        # Sanitize all parts for use in HTML attributes and CSS selectors
+        case_id = self._make_safe_id(suite_name, case_name, model_name)
 
         lines.append('<div class="comparative-case">')
 

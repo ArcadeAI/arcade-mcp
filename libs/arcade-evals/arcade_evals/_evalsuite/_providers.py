@@ -47,7 +47,9 @@ def convert_messages_to_anthropic(messages: list[dict[str, Any]]) -> list[dict[s
         role = msg.get("role", "")
 
         if role == "system":
-            # Skip system messages - handled separately in Anthropic
+            # Skip system messages - Anthropic API takes system as a separate parameter.
+            # In _run_anthropic(), we pass system=case.system_message to client.messages.create().
+            # This is the correct approach per Anthropic's API design.
             continue
 
         elif role == "user":

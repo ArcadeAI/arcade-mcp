@@ -25,11 +25,9 @@ class Critic(ABC):
     weight: Weight
 
     def __post_init__(self) -> None:
-        # Skip validation for FuzzyWeight (will be normalized later in EvalCase)
         if isinstance(self.weight, FuzzyWeight):
             return
 
-        # Only validate that weight is non-negative (softmax normalization handles the rest)
         if self.weight < 0:
             raise WeightError(f"Critic weight must be non-negative, got {self.weight}")
 

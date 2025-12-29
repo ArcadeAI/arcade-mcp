@@ -110,7 +110,7 @@ class TestLoadFromHttp:
                 MagicMock(),  # streamablehttp_client
             )
 
-            await loaders.load_from_http_async("http://localhost:8000", use_sse=True)
+            await loaders.load_mcp_remote_async("http://localhost:8000", use_sse=True)
             called_url = mock_sse_client.call_args[0][0]
             assert called_url.endswith("/mcp")
 
@@ -138,7 +138,7 @@ class TestLoadFromHttp:
                 MagicMock(),  # streamablehttp_client
             )
 
-            await loaders.load_from_http_async("http://localhost:8000/mcp", use_sse=True)
+            await loaders.load_mcp_remote_async("http://localhost:8000/mcp", use_sse=True)
             called_url = mock_sse_client.call_args[0][0]
             assert "/mcp/mcp" not in called_url
 
@@ -166,7 +166,7 @@ class TestLoadFromHttp:
                 MagicMock(),  # streamablehttp_client
             )
 
-            await loaders.load_from_http_async(
+            await loaders.load_mcp_remote_async(
                 "http://localhost:8000",
                 headers={"Authorization": "Bearer token123"},
                 use_sse=True,
@@ -208,7 +208,7 @@ class TestLoadFromHttp:
                 MagicMock(),  # streamablehttp_client
             )
 
-            result = await loaders.load_from_http_async("http://localhost:8000", use_sse=True)
+            result = await loaders.load_mcp_remote_async("http://localhost:8000", use_sse=True)
             assert result == [
                 {
                     "name": "tool1",
@@ -392,7 +392,7 @@ class TestLazyImport:
         """Test that HTTP loader raises ImportError when MCP SDK missing."""
         with patch.dict(sys.modules, {"mcp": None}):
             with pytest.raises(ImportError, match="pip install"):
-                await loaders.load_from_http_async("http://localhost:8000")
+                await loaders.load_mcp_remote_async("http://localhost:8000")
 
     @pytest.mark.asyncio
     async def test_stdio_loader_raises_import_error_without_mcp(self):
@@ -596,12 +596,12 @@ class TestToolsCache:
             )
 
             # First call - should connect
-            result1 = await loaders.load_from_http_async("http://localhost:8000", use_sse=True)
+            result1 = await loaders.load_mcp_remote_async("http://localhost:8000", use_sse=True)
             assert len(result1) == 1
             assert mock_sse_client.call_count == 1
 
             # Second call - should use cache
-            result2 = await loaders.load_from_http_async("http://localhost:8000", use_sse=True)
+            result2 = await loaders.load_mcp_remote_async("http://localhost:8000", use_sse=True)
             assert len(result2) == 1
             # sse_client should NOT be called again
             assert mock_sse_client.call_count == 1
@@ -636,11 +636,11 @@ class TestToolsCache:
             )
 
             # First URL
-            await loaders.load_from_http_async("http://localhost:8000", use_sse=True)
+            await loaders.load_mcp_remote_async("http://localhost:8000", use_sse=True)
             assert mock_sse_client.call_count == 1
 
             # Different URL - should connect again
-            await loaders.load_from_http_async("http://localhost:9000", use_sse=True)
+            await loaders.load_mcp_remote_async("http://localhost:9000", use_sse=True)
             assert mock_sse_client.call_count == 2
 
     @pytest.mark.asyncio
@@ -658,7 +658,7 @@ class TestToolsCache:
                 patch.object(loaders, "LOCK_TIMEOUT_SECONDS", 0.1),
             ):
                 with pytest.raises(TimeoutError, match="Timeout waiting for lock"):
-                    await loaders.load_from_http_async("http://localhost:8000")
+                    await loaders.load_mcp_remote_async("http://localhost:8000")
         finally:
             lock.release()
             loaders.clear_tools_cache()
@@ -705,7 +705,7 @@ class TestToolsCache:
 
             # First call should fail
             with pytest.raises(ConnectionError):
-                await loaders.load_from_http_async("http://localhost:8000", use_sse=True)
+                await loaders.load_mcp_remote_async("http://localhost:8000", use_sse=True)
 
             # Lock should be released - second call should not timeout
             cache_key = loaders._make_cache_key("http://localhost:8000/mcp", None)

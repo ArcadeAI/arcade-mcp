@@ -455,6 +455,8 @@ def display_eval_results(
             return
 
         for fmt in output_formats:
+            # Define output_path early so it's available in exception handlers
+            output_path = parent_dir / f"{base_name}.{fmt}"
             try:
                 formatter = get_formatter(fmt)
                 formatted_output = formatter.format(

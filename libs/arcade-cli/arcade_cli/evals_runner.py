@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 ALL_FORMATS = ["txt", "md", "html", "json"]
 
 
-def parse_output_formats(format_str: str) -> list[str]:
+def parse_output_formats(format_str: str, console: Console | None = None) -> list[str]:
     """
     Parse output format string into a list of formats.
 
@@ -42,16 +42,27 @@ def parse_output_formats(format_str: str) -> list[str]:
 
     Args:
         format_str: The format string from CLI.
+        console: Optional Rich console for warnings.
 
     Returns:
-        List of format strings.
+        List of valid format strings. Warns about invalid formats if console provided.
     """
     if format_str.lower() == "all":
         return ALL_FORMATS.copy()
 
     formats = [f.strip().lower() for f in format_str.split(",")]
-    # Filter to only valid formats
-    return [f for f in formats if f in ALL_FORMATS]
+    valid_formats = [f for f in formats if f in ALL_FORMATS]
+    invalid_formats = [f for f in formats if f and f not in ALL_FORMATS]
+
+    # Warn about invalid formats
+    if invalid_formats and console:
+        valid_list = ", ".join(ALL_FORMATS)
+        console.print(
+            f"[yellow]⚠️  Ignoring invalid format(s): {', '.join(invalid_formats)}. "
+            f"Valid formats: {valid_list}[/yellow]"
+        )
+
+    return valid_formats
 
 
 # --- Result Types for Error Handling ---
@@ -332,7 +343,7 @@ async def run_evaluations(
         all_evaluations, original_counts = filter_failed_evaluations(all_evaluations)
 
     # Parse output_format as a list (handles comma-separated and "all")
-    output_formats = parse_output_formats(output_format)
+    output_formats = parse_output_formats(output_format, console)
 
     display_eval_results(
         all_evaluations,
@@ -440,7 +451,7 @@ async def run_capture(
         return
 
     # Parse output formats (handles comma-separated and "all")
-    output_formats = parse_output_formats(output_format)
+    output_formats = parse_output_formats(output_format, console)
 
     # Output to file(s) or console
     if output_file:
@@ -461,6 +472,8 @@ async def run_capture(
             return
 
         for fmt in output_formats:
+            # Define file_path early so it's available in exception handlers
+            file_path = parent_dir / f"{base_name}.{fmt}"
             try:
                 formatter = get_capture_formatter(fmt)
                 formatted_output = formatter.format(all_captures, include_context=include_context)

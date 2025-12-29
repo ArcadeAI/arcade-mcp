@@ -426,16 +426,22 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
         """Convert and register tools from a ToolCatalog to the internal registry.
 
         This helper is used by both __post_init__ (for catalog= parameter) and
-        add_tool_catalog() (for post-init registration) to avoid code duplication.
+        add_tool_catalog() (for post-init registration).
 
         Args:
             catalog: The ToolCatalog to register.
             track: Optional track name for comparative evaluations.
         """
-        # Use _get_registry from ConvenienceMixin (avoids code duplication)
         registry = self._get_registry(track)
 
+        # Convert Python tools from ToolCatalog and store in unified registry format.
+        # We use to_openai() to extract the normalized tool schema, then pass the
+        # original MaterializedTool to the registry. This allows:
+        # - OpenAI: Uses the extracted MCP-style schema (stored in registry)
+        # - Anthropic: Uses direct to_anthropic() converter (via stored MaterializedTool)
+        # This avoids double-conversion overhead while maintaining unified storage.
         for tool in catalog:
+            # Use OpenAI converter to get the tool name and base schema
             openai_tool = to_openai(tool)
             func_schema = openai_tool.get("function", {})
             tool_name = func_schema.get("name")
@@ -444,11 +450,14 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
 
             description = func_schema.get("description") or ""
             parameters = func_schema.get("parameters") or {"type": "object", "properties": {}}
-            registry.add_tool({
-                "name": tool_name,
-                "description": description,
-                "inputSchema": dict(parameters),
-            })
+            registry.add_tool(
+                {
+                    "name": tool_name,
+                    "description": description,
+                    "inputSchema": dict(parameters),
+                },
+                materialized_tool=tool,  # Pass for direct Anthropic conversion
+            )
 
             # Keep track of Python function for defaults
             python_func = getattr(tool, "tool", None)

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Literal, TypedDict
 
+from arcade_core.converters.anthropic import to_anthropic
 from arcade_core.converters.utils import normalize_tool_name
 
 from arcade_evals._evalsuite._anthropic_schema import convert_mcp_to_anthropic_tool
@@ -61,6 +62,8 @@ class EvalSuiteToolRegistry:
         # Mapping from normalized names (underscores) to original names (dots)
         # e.g., {"Google_Search": "Google.Search"}
         self._normalized_to_original: dict[str, str] = {}
+        # Store original MaterializedTool objects for direct Anthropic conversion (Python tools only)
+        self._materialized_tools: dict[str, Any] = {}
 
     @property
     def strict_mode(self) -> bool:
@@ -70,7 +73,17 @@ class EvalSuiteToolRegistry:
     def strict_mode(self, value: bool) -> None:
         self._strict_mode = value
 
-    def add_tool(self, tool_descriptor: MCPToolDefinition | dict[str, Any]) -> None:
+    def add_tool(
+        self,
+        tool_descriptor: MCPToolDefinition | dict[str, Any],
+        materialized_tool: Any = None,
+    ) -> None:
+        """Add a tool to the registry.
+
+        Args:
+            tool_descriptor: MCP-style tool definition.
+            materialized_tool: Optional MaterializedTool for direct Anthropic conversion (Python tools only).
+        """
         if "name" not in tool_descriptor:
             raise ValueError("Tool descriptor must have a 'name' field")
         name = tool_descriptor["name"]
@@ -80,6 +93,10 @@ class EvalSuiteToolRegistry:
                 "Each tool name must be unique across all sources (MCP servers, gateways, catalogs)."
             )
         self._tools[name] = dict(tool_descriptor)
+
+        # Store MaterializedTool if provided (for direct Anthropic conversion)
+        if materialized_tool is not None:
+            self._materialized_tools[name] = materialized_tool
 
         # Build normalized name mapping for Anthropic/OpenAI lookups
         # e.g., "Google.Search" -> normalized key "Google_Search"
@@ -143,8 +160,24 @@ class EvalSuiteToolRegistry:
         return openai_tools
 
     def _to_anthropic_format(self) -> list[dict[str, Any]]:
-        """Convert stored MCP tools to Anthropic tool format."""
-        return [convert_mcp_to_anthropic_tool(tool) for tool in self._tools.values()]
+        """Convert stored tools to Anthropic format.
+
+        Uses direct to_anthropic() from arcade-core for Python tools (when MaterializedTool available),
+        falls back to convert_mcp_to_anthropic_tool() for MCP/remote tools (JSON descriptors only).
+        """
+        anthropic_tools: list[dict[str, Any]] = []
+        for tool_name, tool_descriptor in self._tools.items():
+            # Python tools: use direct converter (we have MaterializedTool)
+            if tool_name in self._materialized_tools:
+                anthropic_tool = to_anthropic(self._materialized_tools[tool_name])
+                anthropic_tools.append(dict(anthropic_tool))
+            else:
+                # MCP/remote tools: convert from JSON descriptor (no MaterializedTool available)
+                # Used for tools from: load_mcp_remote_async(), load_from_stdio_async(),
+                # load_arcade_mcp_gateway_async(), or add_tool_definitions()
+                anthropic_tools.append(convert_mcp_to_anthropic_tool(tool_descriptor))
+
+        return anthropic_tools
 
     def _resolve_tool_name(self, tool_name: str) -> str | None:
         """Resolve a tool name to its original registry key.

@@ -17,8 +17,8 @@ from arcade_evals._evalsuite._tool_registry import EvalSuiteToolRegistry, MCPToo
 from arcade_evals._evalsuite._tracks import TrackManager
 from arcade_evals.loaders import (
     load_arcade_mcp_gateway_async,
-    load_from_http_async,
     load_from_stdio_async,
+    load_mcp_remote_async,
 )
 
 if TYPE_CHECKING:
@@ -128,7 +128,7 @@ class _EvalSuiteConvenienceMixin:
             Self for method chaining.
         """
         registry = self._get_registry(track)
-        tools = await load_from_http_async(url, timeout=timeout, headers=headers, use_sse=use_sse)
+        tools = await load_mcp_remote_async(url, timeout=timeout, headers=headers, use_sse=use_sse)
         if not tools:
             warnings.warn(
                 f"No tools loaded from {url}. Server may be unavailable.",

@@ -565,7 +565,8 @@ def find_best_model(
         case_models: Dict mapping model -> case_result with evaluation.
 
     Returns:
-        Tuple of (best_model_name, best_score). Returns (None, 0) if no models.
+        Tuple of (best_model_name, best_score). Returns (None, 0.0) if no models
+        or if all evaluations are missing.
         Returns ("Tie", score) if multiple models share the highest score.
     """
     if not case_models:
@@ -574,12 +575,14 @@ def find_best_model(
     best_model: str | None = None
     best_score = -1.0
     tie = False
+    found_valid_evaluation = False
 
     for model, case_result in case_models.items():
         evaluation = case_result.get("evaluation")
         if not evaluation:
             continue
 
+        found_valid_evaluation = True
         score = evaluation.score
         if score > best_score:
             best_score = score
@@ -587,6 +590,10 @@ def find_best_model(
             tie = False
         elif score == best_score:
             tie = True
+
+    # Return 0.0 if no valid evaluations found (not -1.0)
+    if not found_valid_evaluation:
+        return None, 0.0
 
     if tie:
         return "Tie", best_score
