@@ -12,6 +12,59 @@ from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
 
 
+def find_env_file(
+    start_dir: Path | None = None,
+    stop_at: Path | None = None,
+    filename: str = ".env",
+) -> Path | None:
+    """Find a .env file by traversing upward through parent directories.
+
+    Starts at the specified directory (or current working directory) and
+    traverses upward through parent directories until a .env file is found
+    or the filesystem root (or stop_at directory) is reached.
+
+    Args:
+        start_dir: Directory to start searching from. Defaults to current working directory.
+        stop_at: Directory to stop traversal at (inclusive). If specified, the search
+                 will not continue past this directory. The stop_at directory itself
+                 is still checked for the .env file.
+        filename: Name of the env file to find. Defaults to ".env".
+
+    Returns:
+        Path to the .env file if found, None otherwise.
+
+    Example:
+        # Find .env starting from current directory
+        env_path = find_env_file()
+
+        # Find .env starting from a specific directory
+        env_path = find_env_file(start_dir=Path("/path/to/project/src"))
+
+        # Find .env but don't search above project root
+        env_path = find_env_file(stop_at=Path("/path/to/project"))
+    """
+    current = start_dir or Path.cwd()
+    current = current.resolve()
+
+    if stop_at is not None:
+        stop_at = stop_at.resolve()
+
+    while True:
+        env_path = current / filename
+        if env_path.is_file():
+            return env_path
+
+        if stop_at is not None and current == stop_at:
+            return None
+
+        parent = current.parent
+        if parent == current:
+            # We've reached the filesystem root
+            return None
+
+        current = parent
+
+
 class NotificationSettings(BaseSettings):
     """Notification-related settings."""
 
@@ -308,16 +361,17 @@ class MCPSettings(BaseSettings):
     def from_env(cls) -> "MCPSettings":
         """Create settings from environment variables.
 
-        Automatically loads .env file from current directory if it exists,
-        then creates settings from the combined environment.
+        Automatically discovers and loads .env file by traversing upward from
+        the current directory through parent directories until a .env file is
+        found or the filesystem root is reached.
 
         The .env file is loaded with override=False, meaning existing
-        environment variables take precedence. Multiple calls are safe
+        environment variables take precedence. Multiple calls are safe.
         """
         from dotenv import load_dotenv
 
-        env_path = Path.cwd() / ".env"
-        if env_path.exists():
+        env_path = find_env_file()
+        if env_path is not None:
             load_dotenv(env_path, override=False)
 
         return cls()

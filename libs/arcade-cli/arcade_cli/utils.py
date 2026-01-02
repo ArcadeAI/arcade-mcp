@@ -27,6 +27,7 @@ from arcade_core.discovery import (
 from arcade_core.errors import ToolkitLoadError
 from arcade_core.network.org_transport import build_org_scoped_http_client
 from arcade_core.schema import ToolDefinition
+from arcade_mcp_server.settings import find_env_file
 from arcadepy import (
     NOT_GIVEN,
     APIConnectionError,
@@ -1031,9 +1032,9 @@ def resolve_provider_api_key(provider: Provider, provider_api_key: str | None = 
     if api_key:
         return api_key
 
-    # Then check .env file in current working directory
-    env_file_path = Path.cwd() / ".env"
-    if env_file_path.exists():
+    # Then check .env file by traversing upward through parent directories
+    env_file_path = find_env_file()
+    if env_file_path is not None:
         load_dotenv(env_file_path, override=False)
         api_key = os.getenv(env_var_name)
         if api_key:

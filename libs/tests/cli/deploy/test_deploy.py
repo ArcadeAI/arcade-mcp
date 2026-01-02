@@ -2,7 +2,6 @@ import base64
 import io
 import subprocess
 import tarfile
-import time
 from pathlib import Path
 
 import pytest
