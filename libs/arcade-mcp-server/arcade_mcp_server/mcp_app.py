@@ -398,7 +398,12 @@ class MCPApp:
                     env_file_path is not None and Path(path) == env_file_path
                 )
 
-            for changes in watch(".", watch_filter=watch_filter):
+            # Watch current directory, plus the .env file if it's outside cwd
+            paths_to_watch: list[str] = ["."]
+            if env_file_path is not None:
+                paths_to_watch.append(str(env_file_path))
+
+            for changes in watch(*paths_to_watch, watch_filter=watch_filter):
                 logger.info(f"Detected changes in {len(changes)} file(s), restarting server...")
                 shutdown_server_process(process, reason="reload")
                 process = start_server_process()
