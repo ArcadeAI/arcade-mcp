@@ -37,6 +37,7 @@ from arcade_cli.utils import (
     handle_cli_error,
     load_eval_suites,
     log_engine_health,
+    parse_output_paths,
     parse_provider_spec,
     require_dependency,
     resolve_provider_api_keys,
@@ -404,55 +405,54 @@ def evals(
         "-c",
         help="Maximum number of concurrent evaluations (default: 1)",
     ),
-    use_provider: Optional[list[str]] = typer.Option(
+    use_provider: Optional[str] = typer.Option(
         None,
         "--use-provider",
         "-p",
-        help="Provider and models to use. Format: 'provider' or 'provider:model1,model2'. "
-        "Can be repeated for multiple providers. Examples: --use-provider openai "
-        "--use-provider anthropic:claude-sonnet-4-5-20250929",
+        help="Provider(s) and models to use. Format: 'provider' or 'provider:model1,model2'. "
+        "Multiple providers: separate with spaces. "
+        "Examples: 'openai' or 'openai:gpt-4o anthropic:claude-sonnet-4-5-20250929'",
     ),
-    openai_key: Optional[str] = typer.Option(
+    api_key: Optional[list[str]] = typer.Option(
         None,
-        "--openai-key",
-        help="OpenAI API key. Falls back to OPENAI_API_KEY environment variable.",
+        "--api-key",
+        "-k",
+        help="API key(s) for provider(s). Format: 'provider:key'. "
+        "Can be repeated. Examples: --api-key openai:sk-... --api-key anthropic:sk-ant-...",
     ),
-    anthropic_key: Optional[str] = typer.Option(
-        None,
-        "--anthropic-key",
-        help="Anthropic API key. Falls back to ANTHROPIC_API_KEY environment variable.",
-    ),
-    failed_only: bool = typer.Option(
+    only_failed: bool = typer.Option(
         False,
-        "--failed-only",
+        "--only-failed",
         "-f",
         help="Show only failed evaluations",
     ),
-    output_file: Optional[str] = typer.Option(
+    output: Optional[list[str]] = typer.Option(
         None,
-        "--file",
-        help="Write results to a file (works for both eval and capture modes)",
-    ),
-    output_format: str = typer.Option(
-        "txt",
-        "--format",
-        help="Output format(s) for file results. Single: 'txt', 'md', 'html', 'json'. Multiple: 'md,html'. All: 'all'",
+        "--output",
+        "-o",
+        help="Output file(s) with auto-detected format from extension. "
+        "Examples: -o results.json, -o results.md -o results.html, -o results (all formats). "
+        "Can be repeated for multiple formats.",
     ),
     capture: bool = typer.Option(
         False,
         "--capture",
         help="Run in capture mode - record tool calls without evaluation scoring",
     ),
-    add_context: bool = typer.Option(
+    include_context: bool = typer.Option(
         False,
-        "--add-context",
+        "--include-context",
         help="Include system_message and additional_messages in output (works for both eval and capture modes)",
     ),
-    arcade_url: Optional[str] = typer.Option(
+    host: Optional[str] = typer.Option(
         None,
-        "--arcade-url",
-        hidden=True,
-        help="Override the Arcade API base URL for gateway connections",
+        "--host",
+        help="Arcade API host for gateway connections (e.g., 'api.bosslevel.dev')",
+    ),
+    port: Optional[int] = typer.Option(
+        None,
+        "--port",
+        help="Arcade API port for gateway connections (default: 443 for HTTPS)",
     ),
     debug: bool = typer.Option(False, "--debug", help="Show debug information"),
 ) -> None:
@@ -479,13 +479,15 @@ def evals(
     # --- Build model specs from flags ---
     model_specs: list[ModelSpec] = []
 
-    # Resolve API keys (explicit flags take precedence over env vars)
-    api_keys = resolve_provider_api_keys(openai_key=openai_key, anthropic_key=anthropic_key)
+    # Resolve API keys from --api-key flags and environment
+    api_keys = resolve_provider_api_keys(api_keys_specs=api_key)
 
     if use_provider:
-        # Parse provider specs
+        # Parse provider specs - supports space-separated values
+        # e.g., "openai:gpt-4o anthropic:claude"
+        provider_specs = use_provider.split()
         try:
-            provider_configs = [parse_provider_spec(spec) for spec in use_provider]
+            provider_configs = [parse_provider_spec(spec) for spec in provider_specs]
         except ValueError as e:
             handle_cli_error(str(e), should_exit=True)
             return  # For type checker
@@ -501,7 +503,7 @@ def evals(
         if not api_keys.get(Provider.OPENAI):
             handle_cli_error(
                 "API key not found for provider 'openai'. "
-                "Please provide it via --openai-key, set the OPENAI_API_KEY environment variable, "
+                "Please provide it via --api-key openai:KEY, set the OPENAI_API_KEY environment variable, "
                 "or add it to a .env file in the current directory.\n\n"
                 "Tip: Use --use-provider to specify a different provider (e.g., --use-provider anthropic)",
                 should_exit=True,
@@ -527,8 +529,8 @@ def evals(
     # Warn about incompatible flag combinations
     if capture:
         console.print("\nRunning in capture mode", style="bold cyan")
-        if failed_only:
-            console.print("[yellow]⚠️  --failed-only is ignored in capture mode[/yellow]")
+        if only_failed:
+            console.print("[yellow]⚠️  --only-failed is ignored in capture mode[/yellow]")
         if show_details:
             console.print("[yellow]⚠️  --details is ignored in capture mode[/yellow]")
     else:
@@ -544,8 +546,17 @@ def evals(
         console.print(f"  • {spec.display_name}", style="dim")
 
     # Set arcade URL override BEFORE loading suites (so MCP connections use it)
-    if arcade_url:
-        os.environ["ARCADE_API_BASE_URL"] = arcade_url
+    if host or port:
+        # Build URL from --host and --port
+        if not host:
+            handle_cli_error("--port requires --host to be specified", should_exit=True)
+            return
+
+        # Default to HTTPS on port 443
+        scheme = "https"
+        port_str = f":{port}" if port and port != 443 else ""
+        constructed_url = f"{scheme}://{host}{port_str}"
+        os.environ["ARCADE_API_BASE_URL"] = constructed_url
 
     # Use the new function to load eval suites
     eval_suites = load_eval_suites(eval_files)
@@ -561,6 +572,17 @@ def evals(
             style="bold",
         )
 
+    # Parse output paths with smart format detection
+    final_output_file: str | None = None
+    final_output_formats: list[str] = []
+
+    if output:
+        try:
+            final_output_file, final_output_formats = parse_output_paths(output)
+        except ValueError as e:
+            handle_cli_error(str(e), should_exit=True)
+            return
+
     try:
         if capture:
             asyncio.run(
@@ -568,9 +590,9 @@ def evals(
                     eval_suites=eval_suites,
                     model_specs=model_specs,
                     max_concurrent=max_concurrent,
-                    include_context=add_context,
-                    output_file=output_file,
-                    output_format=output_format,
+                    include_context=include_context,
+                    output_file=final_output_file,
+                    output_format=",".join(final_output_formats) if final_output_formats else "txt",
                     console=console,
                 )
             )
@@ -581,10 +603,10 @@ def evals(
                     model_specs=model_specs,
                     max_concurrent=max_concurrent,
                     show_details=show_details,
-                    output_file=output_file,
-                    output_format=output_format,
-                    failed_only=failed_only,
-                    include_context=add_context,
+                    output_file=final_output_file,
+                    output_format=",".join(final_output_formats) if final_output_formats else "txt",
+                    failed_only=only_failed,
+                    include_context=include_context,
                     console=console,
                 )
             )

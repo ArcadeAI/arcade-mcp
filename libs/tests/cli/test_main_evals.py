@@ -1,10 +1,10 @@
+import re
 from unittest.mock import Mock
 
 from arcade_cli.main import cli
 from arcade_cli.utils import filter_failed_evaluations
 from arcade_evals.eval import EvaluationResult
 from typer.testing import CliRunner
-import re
 
 runner = CliRunner()
 
@@ -279,27 +279,78 @@ def test_evals_help_shows_capture_flag() -> None:
 
 
 def test_evals_help_shows_add_context_flag() -> None:
-    """Test that --add-context flag is documented in help."""
+    """Test that --add-context flag is documented in help (deprecated, now --include-context)."""
     result = runner.invoke(cli, ["evals", "--help"])
     assert result.exit_code == 0
     output = _strip_ansi(result.output)
-    assert "--add-context" in output
+    # Old flag is hidden, new flag should show
+    assert "--include-context" in output or "--with-context" in output
 
 
 def test_evals_help_shows_file_flag() -> None:
-    """Test that --file flag is documented in help."""
+    """Test that --file flag is documented in help (deprecated, now hidden)."""
     result = runner.invoke(cli, ["evals", "--help"])
     assert result.exit_code == 0
     output = _strip_ansi(result.output)
-    assert "--file" in output
+    # Old flag is hidden, new --output should show
+    assert "--output" in output or "-o" in output
 
 
 def test_evals_help_shows_format_flag() -> None:
-    """Test that --format flag is documented in help."""
+    """Test that --format flag is documented in help (deprecated, now uses --output)."""
     result = runner.invoke(cli, ["evals", "--help"])
     assert result.exit_code == 0
     output = _strip_ansi(result.output)
-    assert "--format" in output
-    assert "txt" in output
-    assert "md" in output
-    assert "html" in output
+    # New --output flag should show formats
+    assert "--output" in output
+
+
+# --- New CLI Flags Tests (addressing Eric's review) ---
+
+
+def test_evals_help_shows_output_flag() -> None:
+    """Test that --output/-o flag is documented in help."""
+    result = runner.invoke(cli, ["evals", "--help"])
+    assert result.exit_code == 0
+    output = _strip_ansi(result.output)
+    assert "--output" in output or "-o" in output
+
+
+def test_evals_help_shows_api_key_flag() -> None:
+    """Test that --api-key flag is documented in help."""
+    result = runner.invoke(cli, ["evals", "--help"])
+    assert result.exit_code == 0
+    output = _strip_ansi(result.output)
+    assert "--api-key" in output
+
+
+def test_evals_help_shows_only_failed_flag() -> None:
+    """Test that --only-failed flag is documented in help."""
+    result = runner.invoke(cli, ["evals", "--help"])
+    assert result.exit_code == 0
+    output = _strip_ansi(result.output)
+    assert "--only-failed" in output
+
+
+def test_evals_help_shows_include_context_flag() -> None:
+    """Test that --include-context flag is documented in help."""
+    result = runner.invoke(cli, ["evals", "--help"])
+    assert result.exit_code == 0
+    output = _strip_ansi(result.output)
+    assert "--include-context" in output
+
+
+def test_evals_help_shows_host_flag() -> None:
+    """Test that --host flag is documented in help."""
+    result = runner.invoke(cli, ["evals", "--help"])
+    assert result.exit_code == 0
+    output = _strip_ansi(result.output)
+    assert "--host" in output
+
+
+def test_evals_help_shows_port_flag() -> None:
+    """Test that --port flag is documented in help."""
+    result = runner.invoke(cli, ["evals", "--help"])
+    assert result.exit_code == 0
+    output = _strip_ansi(result.output)
+    assert "--port" in output

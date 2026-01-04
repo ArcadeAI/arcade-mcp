@@ -712,3 +712,67 @@ class TestToolsCache:
             lock = loaders._cache_locks.get(cache_key)
             if lock:
                 assert not lock.locked(), "Lock should be released after error"
+
+
+class TestMCPLoggingFilter:
+    """Tests for MCP SDK logging filter."""
+
+    def test_filter_suppresses_session_termination_202(self):
+        """Should suppress 'Session termination failed: 202' messages."""
+        import logging
+
+        log_filter = loaders.MCPSessionFilter()
+
+        # Create a mock log record with the misleading message
+        record = logging.LogRecord(
+            name="mcp.client.session",
+            level=logging.WARNING,
+            pathname="",
+            lineno=0,
+            msg="Session termination failed: 202",
+            args=(),
+            exc_info=None,
+        )
+
+        # Should be filtered out (return False)
+        assert log_filter.filter(record) is False
+
+    def test_filter_allows_other_messages(self):
+        """Should allow other log messages through."""
+        import logging
+
+        log_filter = loaders.MCPSessionFilter()
+
+        # Create a log record with a normal message
+        record = logging.LogRecord(
+            name="mcp.client",
+            level=logging.INFO,
+            pathname="",
+            lineno=0,
+            msg="Connected to MCP server",
+            args=(),
+            exc_info=None,
+        )
+
+        # Should pass through (return True)
+        assert log_filter.filter(record) is True
+
+    def test_filter_allows_real_errors(self):
+        """Should allow real error messages through."""
+        import logging
+
+        log_filter = loaders.MCPSessionFilter()
+
+        # Create a log record with an actual error
+        record = logging.LogRecord(
+            name="mcp.client",
+            level=logging.ERROR,
+            pathname="",
+            lineno=0,
+            msg="Connection failed: Timeout",
+            args=(),
+            exc_info=None,
+        )
+
+        # Should pass through (return True)
+        assert log_filter.filter(record) is True

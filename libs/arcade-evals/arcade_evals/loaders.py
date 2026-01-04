@@ -20,6 +20,48 @@ from urllib.parse import urlsplit, urlunsplit
 
 logger = logging.getLogger(__name__)
 
+
+class MCPSessionFilter(logging.Filter):
+    """Filter to suppress/rewrite misleading MCP SDK session termination messages.
+
+    The MCP SDK logs "Session termination failed: 202" when sessions close gracefully.
+    HTTP 202 (Accepted) is the correct response for MCP notifications per spec,
+    not an error. This filter suppresses the misleading error message.
+    """
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        """Return False to suppress log record, True to allow it."""
+        message = record.getMessage()
+
+        # Suppress the misleading "Session termination failed: 202" message
+        # HTTP 202 is the correct response for MCP session close notifications
+        is_termination_message = "Session termination failed" in message
+        has_202_code = "202" in message
+
+        return not (is_termination_message and has_202_code)
+
+
+# Apply filter to MCP SDK loggers to suppress misleading session messages
+def _configure_mcp_logging() -> None:
+    """Configure MCP SDK logging to suppress misleading messages."""
+    mcp_loggers = [
+        "mcp",
+        "mcp.client",
+        "mcp.client.session",
+        "mcp.client.sse",
+        "mcp.client.stdio",
+        "mcp.client.streamable_http",
+    ]
+
+    session_filter = MCPSessionFilter()
+    for logger_name in mcp_loggers:
+        mcp_logger = logging.getLogger(logger_name)
+        mcp_logger.addFilter(session_filter)
+
+
+# Configure MCP logging on module import
+_configure_mcp_logging()
+
 # =============================================================================
 # CONFIGURATION CONSTANTS
 # =============================================================================

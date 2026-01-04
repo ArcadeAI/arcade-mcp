@@ -5,11 +5,14 @@ from unittest.mock import patch
 
 import pytest
 from arcade_cli.utils import (
+    ALL_OUTPUT_FORMATS,
     ModelSpec,
     Provider,
     ProviderConfig,
     expand_provider_configs,
     get_default_model,
+    parse_api_key_spec,
+    parse_output_paths,
     parse_provider_spec,
     resolve_provider_api_keys,
 )
@@ -174,9 +177,9 @@ class TestResolveProviderApiKeys:
     """Tests for resolve_provider_api_keys function."""
 
     def test_explicit_keys_take_precedence(self) -> None:
-        """Test that explicit keys override environment variables."""
+        """Test that --api-key takes precedence over environment variables."""
         with patch.dict(os.environ, {"OPENAI_API_KEY": "env-key"}, clear=False):
-            keys = resolve_provider_api_keys(openai_key="explicit-key")
+            keys = resolve_provider_api_keys(api_keys_specs=["openai:explicit-key"])
             assert keys[Provider.OPENAI] == "explicit-key"
 
     def test_falls_back_to_env_var(self) -> None:
@@ -193,9 +196,7 @@ class TestResolveProviderApiKeys:
     def test_returns_none_when_not_found(self) -> None:
         """Test that None is returned when key not found anywhere."""
         # Clear env vars and mock dotenv_values
-        with patch.dict(
-            os.environ, {"OPENAI_API_KEY": "", "ANTHROPIC_API_KEY": ""}, clear=False
-        ):
+        with patch.dict(os.environ, {"OPENAI_API_KEY": "", "ANTHROPIC_API_KEY": ""}, clear=False):
             # Removing keys by setting to empty won't work, so we need to unset them
             env_copy = os.environ.copy()
             if "OPENAI_API_KEY" in env_copy:
@@ -209,6 +210,29 @@ class TestResolveProviderApiKeys:
                     # Check structure - values should be None when not found
                     assert Provider.OPENAI in keys
                     assert Provider.ANTHROPIC in keys
+
+    def test_multiple_api_key_specs(self) -> None:
+        """Test parsing multiple --api-key specs."""
+        keys = resolve_provider_api_keys(
+            api_keys_specs=["openai:openai-key", "anthropic:anthropic-key"]
+        )
+        assert keys[Provider.OPENAI] == "openai-key"
+        assert keys[Provider.ANTHROPIC] == "anthropic-key"
+
+    def test_api_key_specs_override_env_vars(self) -> None:
+        """Test that --api-key specs override environment variables."""
+        with patch.dict(
+            os.environ, {"OPENAI_API_KEY": "env-key", "ANTHROPIC_API_KEY": "env-key-2"}, clear=False
+        ):
+            keys = resolve_provider_api_keys(api_keys_specs=["openai:explicit-key"])
+            assert keys[Provider.OPENAI] == "explicit-key"
+            assert keys[Provider.ANTHROPIC] == "env-key-2"  # Not overridden, uses env
+
+    def test_invalid_api_key_spec_raises(self) -> None:
+        """Test that invalid --api-key spec raises ValueError."""
+        with pytest.raises(ValueError) as exc_info:
+            resolve_provider_api_keys(api_keys_specs=["invalid-format"])
+        assert "Invalid --api-key format" in str(exc_info.value)
 
 
 class TestIntegration:
@@ -246,3 +270,102 @@ class TestIntegration:
         assert specs[0].display_name == "openai/gpt-4o"
         assert specs[1].display_name == "openai/gpt-4o-mini"
         assert specs[2].display_name == "anthropic/claude-3-sonnet"
+
+
+class TestParseApiKeySpec:
+    """Tests for parse_api_key_spec function."""
+
+    def test_parse_openai_key(self) -> None:
+        """Test parsing OpenAI API key."""
+        provider, key = parse_api_key_spec("openai:sk-test123")
+        assert provider == Provider.OPENAI
+        assert key == "sk-test123"
+
+    def test_parse_anthropic_key(self) -> None:
+        """Test parsing Anthropic API key."""
+        provider, key = parse_api_key_spec("anthropic:sk-ant-test456")
+        assert provider == Provider.ANTHROPIC
+        assert key == "sk-ant-test456"
+
+    def test_strips_whitespace(self) -> None:
+        """Test that whitespace is stripped."""
+        provider, key = parse_api_key_spec("  openai : sk-test  ")
+        assert provider == Provider.OPENAI
+        assert key == "sk-test"
+
+    def test_case_insensitive_provider(self) -> None:
+        """Test that provider name is case-insensitive."""
+        provider, key = parse_api_key_spec("OPENAI:sk-test")
+        assert provider == Provider.OPENAI
+
+    def test_missing_colon_raises(self) -> None:
+        """Test that missing colon raises ValueError."""
+        with pytest.raises(ValueError) as exc_info:
+            parse_api_key_spec("openai-key-without-colon")
+        assert "Invalid --api-key format" in str(exc_info.value)
+        assert "provider:key" in str(exc_info.value)
+
+    def test_empty_key_raises(self) -> None:
+        """Test that empty key raises ValueError."""
+        with pytest.raises(ValueError) as exc_info:
+            parse_api_key_spec("openai:")
+        assert "Empty API key" in str(exc_info.value)
+
+    def test_invalid_provider_raises(self) -> None:
+        """Test that invalid provider raises ValueError."""
+        with pytest.raises(ValueError) as exc_info:
+            parse_api_key_spec("invalid:sk-test")
+        assert "Invalid provider" in str(exc_info.value)
+
+
+class TestParseOutputPaths:
+    """Tests for parse_output_paths function."""
+
+    def test_single_path_with_extension(self) -> None:
+        """Test parsing single path with extension."""
+        base, formats = parse_output_paths(["results.json"])
+        assert base == "results"
+        assert formats == ["json"]
+
+    def test_multiple_paths_same_base(self) -> None:
+        """Test parsing multiple paths with same base."""
+        base, formats = parse_output_paths(["results.md", "results.html"])
+        assert base == "results"
+        assert set(formats) == {"md", "html"}
+
+    def test_path_without_extension_returns_all_formats(self) -> None:
+        """Test that path without extension returns all formats."""
+        base, formats = parse_output_paths(["results"])
+        assert base == "results"
+        assert formats == ALL_OUTPUT_FORMATS
+
+    def test_path_with_directory(self) -> None:
+        """Test parsing path with directory."""
+        base, formats = parse_output_paths(["output/results.json"])
+        assert base == "output/results"
+        assert formats == ["json"]
+
+    def test_none_returns_empty(self) -> None:
+        """Test that None returns (None, [])."""
+        base, formats = parse_output_paths(None)
+        assert base is None
+        assert formats == []
+
+    def test_empty_list_returns_empty(self) -> None:
+        """Test that empty list returns (None, [])."""
+        base, formats = parse_output_paths([])
+        assert base is None
+        assert formats == []
+
+    def test_invalid_extension_raises(self) -> None:
+        """Test that invalid extension raises ValueError."""
+        with pytest.raises(ValueError) as exc_info:
+            parse_output_paths(["results.xlsx"])
+        assert "Invalid output format" in str(exc_info.value)
+        assert ".xlsx" in str(exc_info.value)
+
+    def test_inconsistent_base_names_raises(self) -> None:
+        """Test that inconsistent base names raise ValueError."""
+        with pytest.raises(ValueError) as exc_info:
+            parse_output_paths(["results1.md", "results2.html"])
+        assert "different base names" in str(exc_info.value)
