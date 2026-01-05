@@ -37,4 +37,4 @@
 
 ## Development
 
-Read the docs on how to create a toolkit [here](https://docs.arcade.dev/home/build-tools/create-a-toolkit)
+Read the docs on how to create a toolkit [here](https://docs.arcade.dev/en/guides/create-tools/tool-basics/build-mcp-server)
