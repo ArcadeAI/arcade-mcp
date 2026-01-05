@@ -7,6 +7,43 @@ import os
 
 import pytest
 
+# Check if eval dependencies are available
+try:
+    import anthropic  # noqa: F401
+    import openai  # noqa: F401
+
+    EVALS_DEPS_AVAILABLE = True
+except ImportError:
+    EVALS_DEPS_AVAILABLE = False
+
+
+def pytest_configure(config):
+    """Register custom markers."""
+    config.addinivalue_line(
+        "markers", "evals: marks tests that require eval dependencies (openai, anthropic, mcp)"
+    )
+
+
+def pytest_collection_modifyitems(config, items):
+    """Auto-skip evals tests if dependencies not available."""
+    skip_evals = pytest.mark.skip(
+        reason="Evals dependencies not installed. Install with: pip install 'arcade-mcp[evals]'"
+    )
+
+    for item in items:
+        # Check if test is in arcade_evals or sdk test directories
+        test_path = str(item.fspath)
+        is_evals_test = (
+            "/tests/arcade_evals/" in test_path
+            or "/tests/sdk/test_eval" in test_path
+            or "/tests/sdk/test_fuzzy_weight" in test_path
+            or "/tests/cli/test_display.py" in test_path
+            or "/tests/cli/test_main_evals.py" in test_path
+        )
+
+        if is_evals_test and not EVALS_DEPS_AVAILABLE:
+            item.add_marker(skip_evals)
+
 
 @pytest.fixture(autouse=True)
 def disable_usage_tracking():
