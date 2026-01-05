@@ -1807,7 +1807,7 @@ document.querySelectorAll('.track-tab').forEach(tab => {
             color: #6c7086;
         }
 
-        /* Context section styles for --add-context */
+        /* Context section styles for --include-context */
         .context-section {
             background: rgba(0, 0, 0, 0.2);
             border-radius: 8px;

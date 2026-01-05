@@ -123,7 +123,7 @@ class TextFormatter(EvalResultFormatter):
         # Summary
         if failed_only and original_counts:
             orig_total, orig_passed, orig_failed, orig_warned = original_counts
-            lines.append(f"Note: Showing only {total_cases} failed evaluation(s) (--failed-only)")
+            lines.append(f"Note: Showing only {total_cases} failed evaluation(s) (--only-failed)")
             summary = f"Summary -- Total: {orig_total} -- Passed: {orig_passed}"
             if orig_warned > 0:
                 summary += f" -- Warnings: {orig_warned}"
@@ -330,7 +330,7 @@ class TextFormatter(EvalResultFormatter):
         lines.append("=" * 78)
         if failed_only and original_counts:
             orig_total, orig_passed, orig_failed, orig_warned = original_counts
-            lines.append("Note: Showing only failed evaluations (--failed-only)")
+            lines.append("Note: Showing only failed evaluations (--only-failed)")
             lines.append(
                 f"Summary -- Total: {orig_total} -- Passed: {orig_passed} -- "
                 f"Failed: {orig_failed} -- Warned: {orig_warned}"
@@ -486,7 +486,7 @@ class TextFormatter(EvalResultFormatter):
         # Summary
         if failed_only and original_counts:
             orig_total, orig_passed, orig_failed, orig_warned = original_counts
-            lines.append(f"Note: Showing only {total_cases} failed evaluation(s) (--failed-only)")
+            lines.append(f"Note: Showing only {total_cases} failed evaluation(s) (--only-failed)")
             summary = f"Summary -- Total: {orig_total} -- Passed: {orig_passed}"
             if orig_warned > 0:
                 summary += f" -- Warnings: {orig_warned}"
@@ -645,7 +645,7 @@ class TextFormatter(EvalResultFormatter):
         lines.append("=" * 78)
         if failed_only and original_counts:
             orig_total, orig_passed, orig_failed, orig_warned = original_counts
-            lines.append(f"Note: Showing only {total_cases} failed evaluation(s) (--failed-only)")
+            lines.append(f"Note: Showing only {total_cases} failed evaluation(s) (--only-failed)")
             summary = f"Summary -- Total: {orig_total} -- Passed: {orig_passed}"
             if orig_warned > 0:
                 summary += f" -- Warnings: {orig_warned}"

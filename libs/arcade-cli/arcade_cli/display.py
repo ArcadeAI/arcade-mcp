@@ -384,7 +384,7 @@ def _display_results_to_console(
 
         # Show disclaimer before summary
         output_console.print(
-            f"[bold yellow]Note: Showing only {total_cases} failed evaluation(s) (--failed-only)[/bold yellow]"
+            f"[bold yellow]Note: Showing only {total_cases} failed evaluation(s) (--only-failed)[/bold yellow]"
         )
 
         # Build summary with original counts

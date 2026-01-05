@@ -278,13 +278,12 @@ def test_evals_help_shows_capture_flag() -> None:
     assert "capture mode" in output.lower()
 
 
-def test_evals_help_shows_add_context_flag() -> None:
-    """Test that --add-context flag is documented in help (deprecated, now --include-context)."""
+def test_evals_help_shows_include_context_flag() -> None:
+    """Test that --include-context flag is documented in help."""
     result = runner.invoke(cli, ["evals", "--help"])
     assert result.exit_code == 0
     output = _strip_ansi(result.output)
-    # Old flag is hidden, new flag should show
-    assert "--include-context" in output or "--with-context" in output
+    assert "--include-context" in output
 
 
 def test_evals_help_shows_file_flag() -> None:
