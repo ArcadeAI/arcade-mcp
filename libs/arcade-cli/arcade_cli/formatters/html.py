@@ -34,6 +34,12 @@ class HtmlFormatter(EvalResultFormatter):
     suite names, and any evaluation results or error messages.
     """
 
+    def __init__(self) -> None:
+        """Initialize formatter with ID tracking for uniqueness."""
+        super().__init__()
+        self._id_cache: dict[tuple[str, str, str], str] = {}
+        self._used_ids: set[str] = set()
+
     @property
     def file_extension(self) -> str:
         return "html"
@@ -323,6 +329,7 @@ class HtmlFormatter(EvalResultFormatter):
 
         Removes or replaces characters that could break HTML attributes or
         CSS selectors, including quotes, brackets, and special characters.
+        Ensures uniqueness by appending a counter when duplicates are detected.
 
         Args:
             suite_name: The suite name.
@@ -330,7 +337,7 @@ class HtmlFormatter(EvalResultFormatter):
             model_name: Optional model name.
 
         Returns:
-            A sanitized string safe for use in HTML id/data attributes.
+            A sanitized string safe for use in HTML id/data attributes, guaranteed unique.
         """
         import re
 
@@ -345,14 +352,30 @@ class HtmlFormatter(EvalResultFormatter):
             s = re.sub(r"[^\w]", "", s)
             return s
 
+        # Check cache for idempotence - same inputs should return same ID
+        cache_key = (suite_name, case_name, model_name)
+        if cache_key in self._id_cache:
+            return self._id_cache[cache_key]
+
         suite_id = sanitize(suite_name)
         case_id_part = sanitize(case_name)
         base_id = f"{suite_id}__{case_id_part}"
 
         if model_name:
             model_id = sanitize(model_name)
-            return f"{model_id}__{base_id}"
-        return base_id
+            base_id = f"{model_id}__{base_id}"
+
+        # Ensure uniqueness by appending a counter if this ID already exists
+        unique_id = base_id
+        counter = 1
+        while unique_id in self._used_ids:
+            unique_id = f"{base_id}_{counter}"
+            counter += 1
+
+        # Cache the result and mark ID as used
+        self._id_cache[cache_key] = unique_id
+        self._used_ids.add(unique_id)
+        return unique_id
 
     def _format_conversation(self, messages: list[dict]) -> str:
         """Format conversation messages as rich HTML for context display."""
