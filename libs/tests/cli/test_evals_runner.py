@@ -507,52 +507,42 @@ class TestParseOutputFormats:
         assert parse_output_formats("MD", console) == ["md"]
         assert parse_output_formats("HTML,JSON", console) == ["html", "json"]
 
-    def test_invalid_formats_filtered(self) -> None:
-        """Should filter out invalid formats."""
+    def test_invalid_formats_raise_error(self) -> None:
+        """Should raise ValueError for invalid formats (parse-time validation)."""
         console = MagicMock()
-        assert parse_output_formats("md,invalid", console) == ["md"]
-        assert parse_output_formats("invalid", console) == []
 
-    def test_mixed_valid_invalid(self) -> None:
-        """Should keep valid formats and drop invalid ones."""
-        assert parse_output_formats("md,foo,html,bar", MagicMock()) == ["md", "html"]
+        with pytest.raises(ValueError, match="Invalid format.*invalid"):
+            parse_output_formats("md,invalid", console)
 
-    def test_warns_on_invalid_formats(self) -> None:
-        """Should warn when invalid formats are provided."""
-        from rich.console import Console
+        with pytest.raises(ValueError, match="Invalid format.*invalid"):
+            parse_output_formats("invalid", console)
 
-        console = Console()
-        with patch.object(console, "print") as mock_print:
-            result = parse_output_formats("xlsx,invalid", console)
-            assert result == []
-            # Should have printed one warning with all invalid formats
-            assert mock_print.call_count == 1
-            calls_str = str(mock_print.call_args_list)
-            assert "xlsx" in calls_str.lower()
-            assert "invalid" in calls_str.lower()
-            assert "ignoring" in calls_str.lower()
+    def test_mixed_valid_invalid_raises(self) -> None:
+        """Should raise ValueError when any invalid formats present."""
+        with pytest.raises(ValueError, match="Invalid format"):
+            parse_output_formats("md,foo,html,bar", MagicMock())
 
-    def test_warns_on_partially_invalid_formats(self) -> None:
-        """Should warn only for invalid formats when mix exists."""
-        from rich.console import Console
+    def test_raises_on_invalid_formats(self) -> None:
+        """Should raise ValueError when invalid formats are provided."""
+        with pytest.raises(ValueError) as exc_info:
+            parse_output_formats("xlsx,invalid", MagicMock())
 
-        console = Console()
-        with patch.object(console, "print") as mock_print:
-            result = parse_output_formats("md,xlsx,html", console)
-            assert result == ["md", "html"]
-            # Should warn about xlsx
-            assert mock_print.call_count == 1
-            calls_str = str(mock_print.call_args_list)
-            assert "xlsx" in calls_str.lower()
-            assert "ignoring" in calls_str.lower()
+        error_msg = str(exc_info.value)
+        assert "Invalid format" in error_msg
+        assert "xlsx" in error_msg
+        assert "invalid" in error_msg
 
-    def test_no_warning_when_all_valid(self) -> None:
-        """Should not warn when all formats are valid."""
-        from rich.console import Console
+    def test_raises_on_partially_invalid_formats(self) -> None:
+        """Should raise ValueError even when some valid formats exist."""
+        with pytest.raises(ValueError) as exc_info:
+            parse_output_formats("md,xlsx,html", MagicMock())
 
-        console = Console()
-        with patch.object(console, "print") as mock_print:
-            result = parse_output_formats("md,html,json", console)
-            assert result == ["md", "html", "json"]
-            # Should not print any warnings
-            assert mock_print.call_count == 0
+        error_msg = str(exc_info.value)
+        assert "Invalid format" in error_msg
+        assert "xlsx" in error_msg
+
+    def test_no_error_when_all_valid(self) -> None:
+        """Should not raise when all formats are valid."""
+        console = MagicMock()
+        result = parse_output_formats("md,html,json", console)
+        assert result == ["md", "html", "json"]

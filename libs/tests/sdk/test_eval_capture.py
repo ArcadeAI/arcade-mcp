@@ -841,19 +841,23 @@ class TestCaptureHelperFunctions:
         suite.add_tool_definitions([{"name": "TestTool", "description": "A test tool"}])
         suite.add_case(name="case1", user_message="Test", expected_tool_calls=[])
 
-        with patch("arcade_evals.capture.AsyncOpenAI") as MockOpenAI:
-            mock_client = AsyncMock()
-            mock_response = MagicMock()
-            mock_response.choices = [MagicMock()]
-            mock_response.choices[0].message.tool_calls = None
-            mock_client.chat.completions.create = AsyncMock(return_value=mock_response)
+        # Mock the suite.capture method directly instead of AsyncOpenAI
+        mock_result = CaptureResult(
+            suite_name="OpenAI Helper Test",
+            provider="openai",
+            model="gpt-4o",
+            captured_cases=[
+                CapturedCase(
+                    case_name="case1",
+                    user_message="Test",
+                    tool_calls=[],
+                    system_message="Test",
+                    additional_messages=[],
+                )
+            ],
+        )
 
-            # Mock context manager
-            mock_instance = AsyncMock()
-            mock_instance.__aenter__.return_value = mock_client
-            mock_instance.__aexit__.return_value = None
-            MockOpenAI.return_value = mock_instance
-
+        with patch.object(suite, "capture", return_value=mock_result) as mock_capture:
             result = await _capture_with_openai(
                 suite=suite,
                 api_key="test-key",
@@ -863,6 +867,13 @@ class TestCaptureHelperFunctions:
 
             assert result.suite_name == "OpenAI Helper Test"
             assert result.provider == "openai"
+            # Verify capture was called with correct arguments
+            mock_capture.assert_called_once()
+            call_args = mock_capture.call_args
+            # Arguments: (client, model, provider=..., include_context=...)
+            assert call_args.args[1] == "gpt-4o"  # model
+            assert call_args.kwargs.get("provider") == "openai"
+            assert call_args.kwargs.get("include_context") is True
 
     def test_capture_with_anthropic_function_exists(self):
         """Test that _capture_with_anthropic helper function exists and is callable."""

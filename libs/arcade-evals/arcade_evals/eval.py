@@ -843,7 +843,7 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
         tools = effective_registry.list_tools_for_model(tool_format="openai")
 
         # Get the model response
-        response = await client.chat.completions.create(  # type: ignore[call-overload]
+        response = await client.chat.completions.create(  # type: ignore[arg-type]
             model=model,
             messages=messages,
             tool_choice="auto",

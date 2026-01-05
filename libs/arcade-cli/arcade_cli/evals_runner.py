@@ -42,10 +42,13 @@ def parse_output_formats(format_str: str, console: Console | None = None) -> lis
 
     Args:
         format_str: The format string from CLI.
-        console: Optional Rich console for warnings.
+        console: Optional Rich console for error messages (unused now - raises instead).
 
     Returns:
-        List of valid format strings. Warns about invalid formats if console provided.
+        List of valid format strings.
+
+    Raises:
+        ValueError: If any invalid formats are provided.
     """
     if format_str.lower() == "all":
         return ALL_FORMATS.copy()
@@ -54,12 +57,11 @@ def parse_output_formats(format_str: str, console: Console | None = None) -> lis
     valid_formats = [f for f in formats if f in ALL_FORMATS]
     invalid_formats = [f for f in formats if f and f not in ALL_FORMATS]
 
-    # Warn about invalid formats
-    if invalid_formats and console:
+    # Fail fast on invalid formats (parse-time validation)
+    if invalid_formats:
         valid_list = ", ".join(ALL_FORMATS)
-        console.print(
-            f"[yellow]⚠️  Ignoring invalid format(s): {', '.join(invalid_formats)}. "
-            f"Valid formats: {valid_list}[/yellow]"
+        raise ValueError(
+            f"Invalid format(s): {', '.join(invalid_formats)}. Valid formats: {valid_list}"
         )
 
     return valid_formats

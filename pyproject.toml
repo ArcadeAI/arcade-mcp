@@ -33,7 +33,11 @@ dependencies = [
 
 [project.optional-dependencies]
 all = [
-    # evals
+    # LLM providers (needed for evals)
+    "openai==1.82.1",
+    "anthropic>=0.40.0",
+    "mcp>=1.9.0",
+    # Scientific computing (needed for evals)
     "scipy>=1.14.0",
     "numpy>=2.0.0",
     "scikit-learn>=1.5.0",
