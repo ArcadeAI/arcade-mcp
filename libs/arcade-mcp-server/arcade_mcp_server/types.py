@@ -373,15 +373,16 @@ class PromptListChangedNotification(JSONRPCMessage, Notification):
 # Tools
 # -----------------------------------------------------------------------------
 
+from arcade_core.metadata import Annotations as ToolAnnotations
 
-class ToolAnnotations(BaseModel):
-    title: str | None = None
-    readOnlyHint: bool | None = None
-    destructiveHint: bool | None = None
-    idempotentHint: bool | None = None
-    openWorldHint: bool | None = None
+# class ToolAnnotations(BaseModel):
+#     title: str | None = None
+#     readOnlyHint: bool | None = None
+#     destructiveHint: bool | None = None
+#     idempotentHint: bool | None = None
+#     openWorldHint: bool | None = None
 
-    model_config = ConfigDict(extra="allow")
+#     model_config = ConfigDict(extra="allow")
 
 
 class MCPTool(BaseModel):

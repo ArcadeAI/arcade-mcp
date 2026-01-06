@@ -6,7 +6,7 @@ Async-safe tool management with pre-converted MCPTool DTOs and executable materi
 
 from __future__ import annotations
 
-from typing import TypedDict
+from typing import Any, TypedDict
 
 from arcade_core.catalog import MaterializedTool, ToolCatalog
 
@@ -36,18 +36,30 @@ class ToolManager(ComponentManager[Key, ManagedTool]):
         return name.replace(".", "_")
 
     def _to_dto(self, tool: MaterializedTool) -> MCPTool:
-        # Extract requirements and build meta if needed
+        # Build _meta dict with requirements and arcade metadata
         requirements = tool.definition.requirements
-        meta = None
+        meta: dict[str, Any] = {}
+
         if requirements.authorization or requirements.secrets or requirements.metadata:
-            meta = {"arcade_requirements": requirements.model_dump(exclude_none=True)}
+            meta["arcade_requirements"] = requirements.model_dump(exclude_none=True)
+
+        # Add arcade metadata (categories and tags) per MCP spec
+        # Categories and tags go in _meta.arcade, annotations go at top-level
+        arcade_meta: dict[str, Any] = {}
+        if tool.definition.categories:
+            arcade_meta["categories"] = tool.definition.categories.model_dump(exclude_none=True)
+        if tool.definition.tags:
+            arcade_meta["tags"] = tool.definition.tags
+        if arcade_meta:
+            meta["arcade"] = arcade_meta
 
         return MCPTool(
             name=self._sanitize_name(tool.definition.fully_qualified_name),
             title=f"{tool.definition.toolkit.name}_{tool.definition.name}",
             description=tool.definition.description,
             inputSchema=build_input_schema_from_definition(tool.definition),
-            _meta=meta,
+            annotations=tool.definition.annotations,  # Top-level per MCP spec
+            _meta=meta if meta else None,
         )
 
     async def load_from_catalog(self, catalog: ToolCatalog) -> None:
