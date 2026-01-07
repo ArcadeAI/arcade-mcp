@@ -1,12 +1,10 @@
-from http import HTTPStatus
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from arcade_mcp_server.transports.http_session_manager import (
     MCP_SESSION_ID_HEADER,
     HTTPSessionManager,
 )
-from arcade_mcp_server.transports.http_streamable import HTTPStreamableTransport
 
 
 class TestHTTPSessionManager:

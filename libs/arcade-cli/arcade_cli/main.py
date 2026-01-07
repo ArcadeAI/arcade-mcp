@@ -11,8 +11,6 @@ import typer
 from arcade_core.constants import CREDENTIALS_FILE_PATH, PROD_COORDINATOR_HOST, PROD_ENGINE_HOST
 from arcadepy import Arcade
 from rich.console import Console
-from rich.text import Text
-from tqdm import tqdm
 
 from arcade_cli.authn import (
     OAuthLoginError,
@@ -22,9 +20,7 @@ from arcade_cli.authn import (
     perform_oauth_login,
     save_credentials_from_whoami,
 )
-from arcade_cli.display import (
-    display_eval_results,
-)
+from arcade_cli.evals_runner import run_capture, run_evaluations
 from arcade_cli.org import app as org_app
 from arcade_cli.project import app as project_app
 from arcade_cli.secret import app as secret_app
@@ -32,14 +28,19 @@ from arcade_cli.server import app as server_app
 from arcade_cli.show import show_logic
 from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
+    ModelSpec,
     Provider,
     compute_base_url,
+    expand_provider_configs,
+    get_default_model,
     get_eval_files,
     handle_cli_error,
     load_eval_suites,
     log_engine_health,
+    parse_output_paths,
+    parse_provider_spec,
     require_dependency,
-    resolve_provider_api_key,
+    resolve_provider_api_keys,
     version_callback,
 )
 
@@ -404,23 +405,54 @@ def evals(
         "-c",
         help="Maximum number of concurrent evaluations (default: 1)",
     ),
-    models: str = typer.Option(
-        "gpt-4o",
-        "--models",
-        "-m",
-        help="The models to use for evaluation (default: gpt-4o). Use commas to separate multiple models. All models must belong to the same provider.",
-    ),
-    provider: Provider = typer.Option(
-        Provider.OPENAI,
-        "--provider",
-        "-p",
-        help="The provider of the models to use for evaluation.",
-    ),
-    provider_api_key: str = typer.Option(
+    use_provider: Optional[str] = typer.Option(
         None,
-        "--provider-api-key",
+        "--use-provider",
+        "-p",
+        help="Provider(s) and models to use. Format: 'provider' or 'provider:model1,model2'. "
+        "Multiple providers: separate with spaces. "
+        "Examples: 'openai' or 'openai:gpt-4o anthropic:claude-sonnet-4-5-20250929'",
+    ),
+    api_key: Optional[list[str]] = typer.Option(
+        None,
+        "--api-key",
         "-k",
-        help="The model provider API key. If not provided, will look for the appropriate environment variable based on the provider (e.g., OPENAI_API_KEY for openai provider), first in the current environment, then in the current working directory's .env file.",
+        help="API key(s) for provider(s). Format: 'provider:key'. "
+        "Can be repeated. Examples: --api-key openai:sk-... --api-key anthropic:sk-ant-...",
+    ),
+    only_failed: bool = typer.Option(
+        False,
+        "--only-failed",
+        "-f",
+        help="Show only failed evaluations",
+    ),
+    output: Optional[list[str]] = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Output file(s) with auto-detected format from extension. "
+        "Examples: -o results.json, -o results.md -o results.html, -o results (all formats). "
+        "Can be repeated for multiple formats.",
+    ),
+    capture: bool = typer.Option(
+        False,
+        "--capture",
+        help="Run in capture mode - record tool calls without evaluation scoring",
+    ),
+    include_context: bool = typer.Option(
+        False,
+        "--include-context",
+        help="Include system_message and additional_messages in output (works for both eval and capture modes)",
+    ),
+    host: Optional[str] = typer.Option(
+        None,
+        "--host",
+        help="Arcade API host for gateway connections (e.g., 'api.bosslevel.dev')",
+    ),
+    port: Optional[int] = typer.Option(
+        None,
+        "--port",
+        help="Arcade API port for gateway connections (default: 443 for HTTPS)",
     ),
     debug: bool = typer.Option(False, "--debug", help="Show debug information"),
 ) -> None:
@@ -444,27 +476,87 @@ def evals(
         pip_install_command=r"pip install arcade-tdk",
     )
 
-    models_list = models.split(",")  # Use 'models_list' to avoid shadowing
+    # --- Build model specs from flags ---
+    model_specs: list[ModelSpec] = []
 
-    # Resolve the API key for the provider
-    resolved_api_key = resolve_provider_api_key(provider, provider_api_key)
-    if not resolved_api_key:
-        provider_env_vars = {
-            Provider.OPENAI: "OPENAI_API_KEY",
-        }
-        env_var_name = provider_env_vars.get(provider, f"{provider.upper()}_API_KEY")
-        handle_cli_error(
-            f"API key not found for provider '{provider.value}'. "
-            f"Please provide it via --provider-api-key,-k argument, set the {env_var_name} environment variable, "
-            f"or add it to a .env file in the current directory.",
-            should_exit=True,
-        )
+    # Resolve API keys from --api-key flags and environment
+    api_keys = resolve_provider_api_keys(api_keys_specs=api_key)
+
+    if use_provider:
+        # Parse provider specs - supports space-separated values
+        # e.g., "openai:gpt-4o anthropic:claude"
+        provider_specs = use_provider.split()
+        try:
+            provider_configs = [parse_provider_spec(spec) for spec in provider_specs]
+        except ValueError as e:
+            handle_cli_error(str(e), should_exit=True)
+            return  # For type checker
+
+        # Expand to model specs
+        try:
+            model_specs = expand_provider_configs(provider_configs, api_keys)
+        except ValueError as e:
+            handle_cli_error(str(e), should_exit=True)
+            return  # For type checker
+    else:
+        # Default: OpenAI with default model
+        if not api_keys.get(Provider.OPENAI):
+            handle_cli_error(
+                "API key not found for provider 'openai'. "
+                "Please provide it via --api-key openai:KEY, set the OPENAI_API_KEY environment variable, "
+                "or add it to a .env file in the current directory.\n\n"
+                "Tip: Use --use-provider to specify a different provider (e.g., --use-provider anthropic)",
+                should_exit=True,
+            )
+            return  # For type checker
+
+        model_specs = [
+            ModelSpec(
+                provider=Provider.OPENAI,
+                model=get_default_model(Provider.OPENAI),
+                api_key=api_keys[Provider.OPENAI],  # type: ignore[arg-type]
+            )
+        ]
+
+    if not model_specs:
+        handle_cli_error("No models specified. Use --use-provider to specify models.")
+        return
 
     eval_files = get_eval_files(directory)
     if not eval_files:
         return
 
-    console.print("\nRunning evaluations", style="bold")
+    # Warn about incompatible flag combinations
+    if capture:
+        console.print("\nRunning in capture mode", style="bold cyan")
+        if only_failed:
+            console.print("[yellow]⚠️  --only-failed is ignored in capture mode[/yellow]")
+        if show_details:
+            console.print("[yellow]⚠️  --details is ignored in capture mode[/yellow]")
+    else:
+        console.print("\nRunning evaluations", style="bold")
+
+    # Show which models will be used
+    unique_providers = {spec.provider.value for spec in model_specs}
+    if len(unique_providers) > 1:
+        console.print(
+            f"[bold cyan]Using {len(model_specs)} model(s) across {len(unique_providers)} providers[/bold cyan]"
+        )
+    for spec in model_specs:
+        console.print(f"  • {spec.display_name}", style="dim")
+
+    # Set arcade URL override BEFORE loading suites (so MCP connections use it)
+    if host or port:
+        # Build URL from --host and --port
+        if not host:
+            handle_cli_error("--port requires --host to be specified", should_exit=True)
+            return
+
+        # Default to HTTPS on port 443
+        scheme = "https"
+        port_str = f":{port}" if port and port != 443 else ""
+        constructed_url = f"{scheme}://{host}{port_str}"
+        os.environ["ARCADE_API_BASE_URL"] = constructed_url
 
     # Use the new function to load eval suites
     eval_suites = load_eval_suites(eval_files)
@@ -480,39 +572,44 @@ def evals(
             style="bold",
         )
 
-    async def run_evaluations() -> None:
-        all_evaluations = []
-        tasks = []
-        for suite_func in eval_suites:
-            console.print(
-                Text.assemble(
-                    ("Running evaluations in ", "bold"),
-                    (suite_func.__name__, "bold blue"),
-                )
-            )
-            for model in models_list:
-                task = asyncio.create_task(
-                    suite_func(
-                        provider_api_key=resolved_api_key,
-                        model=model,
-                        max_concurrency=max_concurrent,
-                    )
-                )
-                tasks.append(task)
+    # Parse output paths with smart format detection
+    final_output_file: str | None = None
+    final_output_formats: list[str] = []
 
-        # Track progress and results as suite functions complete
-        with tqdm(total=len(tasks), desc="Evaluations Progress") as pbar:
-            results = []
-            for f in asyncio.as_completed(tasks):
-                results.append(await f)
-                pbar.update(1)
-
-        # TODO error handling on each eval
-        all_evaluations.extend(results)
-        display_eval_results(all_evaluations, show_details=show_details)
+    if output:
+        try:
+            final_output_file, final_output_formats = parse_output_paths(output)
+        except ValueError as e:
+            handle_cli_error(str(e), should_exit=True)
+            return
 
     try:
-        asyncio.run(run_evaluations())
+        if capture:
+            asyncio.run(
+                run_capture(
+                    eval_suites=eval_suites,
+                    model_specs=model_specs,
+                    max_concurrent=max_concurrent,
+                    include_context=include_context,
+                    output_file=final_output_file,
+                    output_format=",".join(final_output_formats) if final_output_formats else "txt",
+                    console=console,
+                )
+            )
+        else:
+            asyncio.run(
+                run_evaluations(
+                    eval_suites=eval_suites,
+                    model_specs=model_specs,
+                    max_concurrent=max_concurrent,
+                    show_details=show_details,
+                    output_file=final_output_file,
+                    output_format=",".join(final_output_formats) if final_output_formats else "txt",
+                    failed_only=only_failed,
+                    include_context=include_context,
+                    console=console,
+                )
+            )
     except Exception as e:
         handle_cli_error("Failed to run evaluations", e, debug)
 

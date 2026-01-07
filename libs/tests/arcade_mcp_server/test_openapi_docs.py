@@ -1,6 +1,5 @@
 """Test that MCP routes appear in OpenAPI documentation."""
 
-import pytest
 from arcade_core import ToolCatalog
 from arcade_core.toolkit import Toolkit
 from arcade_mcp_server.settings import MCPSettings
@@ -73,7 +72,6 @@ def test_mcp_routes_in_openapi(monkeypatch):
 
     # Verify the actual proxy is mounted (not routes)
     # The OpenAPI docs should exist but not interfere with the mount
-    import inspect
 
     mounts = [route for route in app.routes if hasattr(route, "app") and hasattr(route, "path")]
     mcp_mounts = [m for m in mounts if m.path == "/mcp"]

@@ -4,14 +4,13 @@ import os
 import shlex
 import sys
 import traceback
-import webbrowser
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from importlib import metadata
 from pathlib import Path
 from textwrap import dedent
-from typing import Any, Callable, Union, cast
+from typing import Any, Callable, cast
 from urllib.parse import urlparse
 
 import idna
@@ -35,18 +34,9 @@ from arcadepy import (
     Arcade,
 )
 from arcadepy.types import AuthorizationResponse
-from openai import OpenAI, Stream
-from openai.types.chat.chat_completion import Choice as ChatCompletionChoice
-from openai.types.chat.chat_completion_chunk import ChatCompletionChunk
-from openai.types.chat.chat_completion_chunk import (
-    Choice as ChatCompletionChunkChoice,
-)
 from pydantic import ValidationError
 from rich.console import Console
-from rich.live import Live
-from rich.markdown import Markdown
 from rich.markup import escape
-from rich.text import Text
 from typer.core import TyperGroup
 from typer.models import Context
 
@@ -77,6 +67,302 @@ class Provider(str, Enum):
     """Supported model providers for evaluations."""
 
     OPENAI = "openai"
+    ANTHROPIC = "anthropic"
+
+
+# ============================================================================
+# Default Models Configuration
+# ============================================================================
+# Edit these values to change the default models used by the CLI.
+# These are used when --models is not specified.
+#
+# Note: Anthropic models include date suffixes (e.g., -20250929) which may need
+# periodic updates. Check https://docs.anthropic.com/en/docs/about-claude/models
+# for the latest model identifiers.
+
+DEFAULT_MODELS: dict[Provider, str] = {
+    Provider.OPENAI: "gpt-4o",
+    Provider.ANTHROPIC: "claude-sonnet-4-5-20250929",
+}
+
+
+def get_default_model(provider: Provider) -> str:
+    """Get the default model for a provider.
+
+    Args:
+        provider: The provider to get the default model for.
+
+    Returns:
+        The default model name for the provider.
+    """
+    return DEFAULT_MODELS.get(provider, "gpt-4o")
+
+
+# ============================================================================
+# Output Format Detection
+# ============================================================================
+
+ALL_OUTPUT_FORMATS = ["txt", "md", "html", "json"]
+
+
+def parse_output_paths(output_paths: list[str] | None) -> tuple[str | None, list[str]]:
+    """Parse --output/-o paths into base path and format list.
+
+    Supports:
+    - Single file with extension: "results.json" → ("results", ["json"])
+    - Multiple files: ["results.md", "results.html"] → ("results", ["md", "html"])
+    - No extension: "results" → ("results", ["txt", "md", "html", "json"])
+
+    Args:
+        output_paths: List of output paths from --output/-o flag.
+
+    Returns:
+        Tuple of (base_path, formats). Returns (None, []) if no paths.
+
+    Raises:
+        ValueError: If paths have inconsistent base names or invalid extensions.
+    """
+    if not output_paths:
+        return None, []
+
+    # Extract base path and formats
+    base_path = None
+    formats: list[str] = []
+
+    for path_str in output_paths:
+        path = Path(path_str)
+        stem = path.stem
+        ext = path.suffix.lstrip(".")
+
+        # Determine base path (all paths should have same base)
+        if base_path is None:
+            base_path = str(Path(path.parent) / stem)
+        elif str(Path(path.parent) / stem) != base_path:
+            raise ValueError(
+                f"Output paths have different base names: '{base_path}' vs '{Path(path.parent) / stem}'. "
+                "All outputs must use the same base path."
+            )
+
+        # No extension means all formats
+        if not ext:
+            formats = ALL_OUTPUT_FORMATS.copy()
+            break
+
+        # Validate extension
+        if ext not in ALL_OUTPUT_FORMATS:
+            valid = ", ".join(ALL_OUTPUT_FORMATS)
+            raise ValueError(f"Invalid output format '.{ext}'. Valid extensions: {valid}")
+
+        if ext not in formats:
+            formats.append(ext)
+
+    return base_path, formats
+
+
+def parse_api_key_spec(spec: str) -> tuple[Provider, str]:
+    """Parse --api-key value into (provider, key).
+
+    Args:
+        spec: API key spec string. Format: "provider:key"
+              Examples: "openai:sk-...", "anthropic:sk-ant-..."
+
+    Returns:
+        Tuple of (Provider, api_key_string).
+
+    Raises:
+        ValueError: If format is invalid or provider is unknown.
+    """
+    if ":" not in spec:
+        raise ValueError(
+            f"Invalid --api-key format: '{spec}'. "
+            "Expected format: 'provider:key' (e.g., 'openai:sk-...')"
+        )
+
+    provider_str, key = spec.split(":", 1)
+    provider_str = provider_str.strip().lower()
+    key = key.strip()
+
+    if not key:
+        raise ValueError(f"Empty API key for provider '{provider_str}'")
+
+    try:
+        provider = Provider(provider_str)
+    except ValueError:
+        valid_providers = [p.value for p in Provider]
+        raise ValueError(
+            f"Invalid provider '{provider_str}' in --api-key. "
+            f"Valid providers: {', '.join(valid_providers)}"
+        )
+
+    return provider, key
+
+
+# ============================================================================
+# Multi-Provider Model Specification
+# ============================================================================
+
+
+@dataclass
+class ProviderConfig:
+    """Configuration for a single provider from CLI input.
+
+    Parsed from --use-provider flag values like:
+    - "openai" -> provider=OPENAI, models=[] (use default)
+    - "openai:gpt-4o,gpt-4o-mini" -> provider=OPENAI, models=["gpt-4o", "gpt-4o-mini"]
+    """
+
+    provider: Provider
+    models: list[str]  # Empty list means use default model
+
+    def get_models(self) -> list[str]:
+        """Get models, using default if none specified."""
+        if self.models:
+            return self.models
+        return [get_default_model(self.provider)]
+
+
+@dataclass
+class ModelSpec:
+    """A specific model to run evaluations against.
+
+    This is the expanded form used by the runner - one ModelSpec per
+    (provider, model, api_key) combination.
+    """
+
+    provider: Provider
+    model: str
+    api_key: str
+
+    @property
+    def display_name(self) -> str:
+        """Get display name in format 'provider/model'."""
+        return f"{self.provider.value}/{self.model}"
+
+
+def parse_provider_spec(spec: str) -> ProviderConfig:
+    """Parse a --use-provider value into a ProviderConfig.
+
+    Args:
+        spec: Provider spec string. Examples:
+            - "openai" -> use OpenAI with default model
+            - "openai:gpt-4o" -> use OpenAI with gpt-4o
+            - "anthropic:claude-sonnet-4-5-20250929,claude-3-haiku-20240307"
+
+    Returns:
+        ProviderConfig with parsed provider and models.
+
+    Raises:
+        ValueError: If provider name is invalid.
+
+    Examples:
+        >>> parse_provider_spec("openai")
+        ProviderConfig(provider=Provider.OPENAI, models=[])
+        >>> parse_provider_spec("openai:gpt-4o,gpt-4o-mini")
+        ProviderConfig(provider=Provider.OPENAI, models=['gpt-4o', 'gpt-4o-mini'])
+    """
+    if ":" in spec:
+        provider_str, models_str = spec.split(":", 1)
+        models = [m.strip() for m in models_str.split(",") if m.strip()]
+    else:
+        provider_str = spec.strip()
+        models = []
+
+    # Validate provider
+    provider_str_lower = provider_str.lower()
+    try:
+        provider = Provider(provider_str_lower)
+    except ValueError:
+        valid_providers = [p.value for p in Provider]
+        raise ValueError(
+            f"Invalid provider '{provider_str}'. Valid providers: {', '.join(valid_providers)}"
+        )
+
+    return ProviderConfig(provider=provider, models=models)
+
+
+def expand_provider_configs(
+    configs: list[ProviderConfig],
+    api_keys: dict[Provider, str | None],
+) -> list[ModelSpec]:
+    """Expand provider configs into individual ModelSpecs with resolved API keys.
+
+    Args:
+        configs: List of ProviderConfig from parsed --use-provider flags.
+        api_keys: Dict mapping Provider to API key (from flags or env vars).
+
+    Returns:
+        List of ModelSpec, one per (provider, model) combination.
+
+    Raises:
+        ValueError: If API key is missing for any provider.
+    """
+    model_specs: list[ModelSpec] = []
+
+    for config in configs:
+        api_key = api_keys.get(config.provider)
+        if not api_key:
+            env_var = f"{config.provider.value.upper()}_API_KEY"
+            raise ValueError(
+                f"API key required for provider '{config.provider.value}'. "
+                f"Provide via --{config.provider.value}-key or set {env_var} environment variable."
+            )
+
+        for model in config.get_models():
+            model_specs.append(ModelSpec(provider=config.provider, model=model, api_key=api_key))
+
+    return model_specs
+
+
+def resolve_provider_api_keys(
+    api_keys_specs: list[str] | None = None,
+) -> dict[Provider, str | None]:
+    """Resolve API keys for all providers from flags and environment.
+
+    Priority: --api-key flag > environment variable > .env file
+
+    Args:
+        api_keys_specs: List of provider:key specs from --api-key flags.
+
+    Returns:
+        Dict mapping Provider to resolved API key (or None if not found).
+    """
+    from dotenv import dotenv_values
+
+    # Load .env file
+    env_values = dotenv_values(".env")
+
+    # Start with empty dict
+    keys: dict[Provider, str | None] = {
+        Provider.OPENAI: None,
+        Provider.ANTHROPIC: None,
+    }
+
+    # Parse --api-key provider:key specs (highest priority)
+    if api_keys_specs:
+        for spec in api_keys_specs:
+            try:
+                provider, key = parse_api_key_spec(spec)
+                keys[provider] = key
+            except ValueError as e:
+                # Re-raise to let CLI handle error
+                raise ValueError(str(e)) from e
+
+    # Fallback to environment variables and .env file
+    def resolve_key_from_env(env_var: str) -> str | None:
+        # Check current environment
+        key = os.environ.get(env_var)
+        if key:
+            return key
+        # Check .env file
+        return env_values.get(env_var)
+
+    # Set from environment if not already set by --api-key
+    if keys[Provider.OPENAI] is None:
+        keys[Provider.OPENAI] = resolve_key_from_env("OPENAI_API_KEY")
+    if keys[Provider.ANTHROPIC] is None:
+        keys[Provider.ANTHROPIC] = resolve_key_from_env("ANTHROPIC_API_KEY")
+
+    return keys
 
 
 class CLIError(Exception):
@@ -319,77 +605,6 @@ def get_tools_from_engine(
     return tools
 
 
-def get_tool_messages(choice: dict) -> list[dict]:
-    if hasattr(choice, "tool_messages") and choice.tool_messages:
-        return choice.tool_messages  # type: ignore[no-any-return]
-    return []
-
-
-@dataclass
-class StreamingResult:
-    role: str
-    full_message: str
-    tool_messages: list
-    tool_authorization: dict | None
-
-
-def handle_streaming_content(stream: Stream[ChatCompletionChunk], model: str) -> StreamingResult:
-    """
-    Display the streamed markdown chunks as a single line.
-    """
-    from rich.live import Live
-
-    full_message = ""
-    tool_messages = []
-    tool_authorization = None
-    role = ""
-    printed_role: bool = False
-
-    with Live(console=console, refresh_per_second=10) as live:
-        for chunk in stream:
-            choice = chunk.choices[0]
-            role = choice.delta.role or role
-
-            # Display and get tool messages if they exist
-            tool_messages += get_tool_messages(choice)  # type: ignore[arg-type]
-            tool_authorization = get_tool_authorization(choice)
-
-            chunk_message = choice.delta.content
-
-            if role == "assistant" and tool_authorization:
-                continue  # Skip the message if it's an auth request (handled later in handle_tool_authorization)
-
-            if role == "assistant" and not printed_role:
-                console.print(f"\n[blue][bold]Assistant[/bold] ({model}):[/blue] ")
-                printed_role = True
-
-            if chunk_message:
-                full_message += chunk_message
-                markdown_chunk = Markdown(full_message)
-                live.update(markdown_chunk)
-
-        # Markdownify URLs in the final message if applicable
-        if role == "assistant":
-            full_message = markdownify_urls(full_message)
-            live.update(Markdown(full_message))
-
-    return StreamingResult(role, full_message, tool_messages, tool_authorization)
-
-
-def markdownify_urls(message: str) -> str:
-    """
-    Convert URLs in the message to markdown links.
-    """
-    import re
-
-    # This regex will match URLs that are not already formatted as markdown links:
-    # [Link text](https://example.com)
-    url_pattern = r"(?<!\]\()https?://\S+"
-
-    # Wrap all URLs in the message with markdown links
-    return re.sub(url_pattern, r"[Link](\g<0>)", message)
-
-
 def validate_and_get_config(
     validate_api: bool = True,
     validate_user: bool = True,
@@ -555,106 +770,6 @@ def log_engine_health(client: Arcade) -> None:
         )
 
 
-@dataclass
-class ChatInteractionResult:
-    history: list[dict]
-    tool_messages: list[dict]
-    tool_authorization: dict | None
-
-
-def handle_chat_interaction(
-    client: OpenAI,
-    model: str,
-    history: list[dict],
-    user_email: str | None,
-    stream: bool = False,
-) -> ChatInteractionResult:
-    """
-    Handle a single chat-request/chat-response interaction for both streamed and non-streamed responses.
-    Handling the chat response includes:
-    - Streaming the response if the stream flag is set
-    - Displaying the response in the console
-    - Getting the tool messages and tool authorization from the response
-    - Updating the history with the response, tool calls, and tool responses
-    """
-    if stream:
-        # TODO Fix this in the client so users don't deal with these
-        # typing issues
-        response = client.chat.completions.create(  # type: ignore[call-overload]
-            model=model,
-            messages=history,
-            tool_choice="generate",
-            user=user_email,
-            stream=True,
-        )
-        streaming_result = handle_streaming_content(response, model)
-        role, message_content = streaming_result.role, streaming_result.full_message
-        tool_messages, tool_authorization = (
-            streaming_result.tool_messages,
-            streaming_result.tool_authorization,
-        )
-    else:
-        response = client.chat.completions.create(  # type: ignore[call-overload]
-            model=model,
-            messages=history,
-            tool_choice="generate",
-            user=user_email,
-            stream=False,
-        )
-        message_content = response.choices[0].message.content or ""
-
-        # Get extra fields from the response
-        tool_messages = get_tool_messages(response.choices[0])
-        tool_authorization = get_tool_authorization(response.choices[0])
-
-        role = response.choices[0].message.role
-
-        if role == "assistant" and tool_authorization:
-            pass  # Skip the message if it's an auth request (handled later in handle_tool_authorization)
-        elif role == "assistant":
-            message_content = markdownify_urls(message_content)
-            console.print(
-                f"\n[blue][bold]Assistant[/bold] ({model}):[/blue] ",
-                Markdown(message_content),
-            )
-        else:
-            console.print(f"\n[bold]{role}:[/bold] {message_content}")
-
-    history += tool_messages
-    history.append({"role": role, "content": message_content})
-
-    return ChatInteractionResult(history, tool_messages, tool_authorization)
-
-
-def handle_tool_authorization(
-    arcade_client: Arcade,
-    tool_authorization: AuthorizationResponse,
-    history: list[dict[str, Any]],
-    openai_client: OpenAI,
-    model: str,
-    user_email: str | None,
-    stream: bool,
-) -> ChatInteractionResult:
-    with Live(console=console, refresh_per_second=4) as live:
-        if tool_authorization.url:
-            authorization_url = str(tool_authorization.url)
-            webbrowser.open(authorization_url)
-            message = (
-                "You'll need to authorize this action in your browser.\n\n"
-                f"If a browser doesn't open automatically, click [this link]({authorization_url}) "
-                f"or copy this URL and paste it into your browser:\n\n{authorization_url}"
-            )
-            live.update(Markdown(message, style="dim"))
-
-        wait_for_authorization_completion(arcade_client, tool_authorization)
-
-        message = "Thanks for authorizing the action! Sending your request..."
-        live.update(Text(message, style="dim"))
-
-    history.pop()
-    return handle_chat_interaction(openai_client, model, history, user_email, stream)
-
-
 def wait_for_authorization_completion(
     client: Arcade, tool_authorization: AuthorizationResponse | None
 ) -> None:
@@ -675,28 +790,6 @@ def wait_for_authorization_completion(
             )
         except APITimeoutError:
             continue
-
-
-def get_tool_authorization(
-    choice: Union[ChatCompletionChoice, ChatCompletionChunkChoice],
-) -> dict | None:
-    """
-    Get the tool authorization from a chat response's choice.
-    """
-    if hasattr(choice, "tool_authorizations") and choice.tool_authorizations:
-        return choice.tool_authorizations[0]  # type: ignore[no-any-return]
-    return None
-
-
-def is_authorization_pending(tool_authorization: dict | None) -> bool:
-    """
-    Check if the authorization for a tool call is pending.
-    Expects a chat response's choice.tool_authorizations as input.
-    """
-    is_auth_pending = (
-        tool_authorization is not None and tool_authorization.get("status", "") == "pending"
-    )
-    return is_auth_pending
 
 
 def get_eval_files(directory: str) -> list[Path]:
@@ -1020,6 +1113,7 @@ def resolve_provider_api_key(provider: Provider, provider_api_key: str | None = 
     # Map providers to their environment variable names
     provider_env_vars = {
         Provider.OPENAI: "OPENAI_API_KEY",
+        Provider.ANTHROPIC: "ANTHROPIC_API_KEY",
     }
 
     env_var_name = provider_env_vars.get(provider)
@@ -1040,6 +1134,65 @@ def resolve_provider_api_key(provider: Provider, provider_api_key: str | None = 
             return api_key
 
     return None
+
+
+def filter_failed_evaluations(
+    all_evaluations: list[list[dict[str, Any]]],
+) -> tuple[list[list[dict[str, Any]]], tuple[int, int, int, int]]:
+    """
+    Filter evaluation results to show only failed cases and calculate original counts.
+
+    Args:
+        all_evaluations: List of evaluation results with structure:
+            [[{model: str, rubric: str, cases: [{name, input, evaluation}]}]]
+
+    Returns:
+        Tuple of (filtered_evaluations, original_counts) where original_counts is
+        (total_cases, total_passed, total_failed, total_warned)
+    """
+    original_total_cases = 0
+    original_total_passed = 0
+    original_total_failed = 0
+    original_total_warned = 0
+
+    # Calculate original counts before filtering
+    for eval_suite in all_evaluations:
+        for model_results in eval_suite:
+            for case in model_results.get("cases", []):
+                evaluation = case["evaluation"]
+                original_total_cases += 1
+                if evaluation.passed:
+                    original_total_passed += 1
+                elif evaluation.warning:
+                    original_total_warned += 1
+                else:
+                    original_total_failed += 1
+
+    # Filter to show only failed evaluations
+    filtered_evaluations = []
+    for eval_suite in all_evaluations:
+        filtered_suite = []
+        for model_results in eval_suite:
+            filtered_cases = [
+                case
+                for case in model_results.get("cases", [])
+                if not case["evaluation"].passed and not case["evaluation"].warning
+            ]
+            if filtered_cases:  # Only include model results with failed cases
+                filtered_model_results = model_results.copy()
+                filtered_model_results["cases"] = filtered_cases
+                filtered_suite.append(filtered_model_results)
+        if filtered_suite:
+            filtered_evaluations.append(filtered_suite)
+
+    original_counts = (
+        original_total_cases,
+        original_total_passed,
+        original_total_failed,
+        original_total_warned,
+    )
+
+    return filtered_evaluations, original_counts
 
 
 def require_dependency(

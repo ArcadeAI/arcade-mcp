@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Any
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Optional
 
 from arcade_core.schema import ToolDefinition
 from rich.console import Console
@@ -323,14 +324,14 @@ def display_tool_messages(tool_messages: list[dict]) -> None:
             )
 
 
-def display_eval_results(results: list[list[dict[str, Any]]], show_details: bool = False) -> None:
-    """
-    Display evaluation results in a format inspired by pytest's output.
-
-    Args:
-        results: List of dictionaries containing evaluation results for each model.
-        show_details: Whether to show detailed results for each case.
-    """
+def _display_results_to_console(
+    output_console: Console,
+    results: list[list[dict[str, Any]]],
+    show_details: bool = False,
+    failed_only: bool = False,
+    original_counts: Optional[tuple[int, int, int, int]] = None,
+) -> None:
+    """Display evaluation results to a Rich console."""
     total_passed = 0
     total_failed = 0
     total_warned = 0
@@ -343,9 +344,9 @@ def display_eval_results(results: list[list[dict[str, Any]]], show_details: bool
             cases = model_results.get("cases", [])
             total_cases += len(cases)
 
-            console.print(f"[bold]Model:[/bold] [bold magenta]{model}[/bold magenta]")
+            output_console.print(f"[bold]Model:[/bold] [bold magenta]{model}[/bold magenta]")
             if show_details:
-                console.print(f"[bold magenta]{rubric}[/bold magenta]")
+                output_console.print(f"[bold magenta]{rubric}[/bold magenta]")
 
             for case in cases:
                 evaluation = case["evaluation"]
@@ -365,24 +366,123 @@ def display_eval_results(results: list[list[dict[str, Any]]], show_details: bool
 
                 # Display one-line summary for each case with score as a percentage
                 score_percentage = evaluation.score * 100
-                console.print(f"{status} {case['name']} -- Score: {score_percentage:.2f}%")
+                output_console.print(f"{status} {case['name']} -- Score: {score_percentage:.2f}%")
 
                 if show_details:
                     # Show detailed information for each case
-                    console.print(f"[bold]User Input:[/bold] {case['input']}\n")
-                    console.print("[bold]Details:[/bold]")
-                    console.print(_format_evaluation(evaluation))
-                    console.print("-" * 80)
+                    output_console.print(f"[bold]User Input:[/bold] {case['input']}\n")
+                    output_console.print("[bold]Details:[/bold]")
+                    output_console.print(_format_evaluation(evaluation))
+                    output_console.print("-" * 80)
 
-    # Summary
-    summary = (
-        f"[bold]Summary -- [/bold]Total: {total_cases} -- [green]Passed: {total_passed}[/green]"
-    )
-    if total_warned > 0:
-        summary += f" -- [yellow]Warnings: {total_warned}[/yellow]"
-    if total_failed > 0:
-        summary += f" -- [red]Failed: {total_failed}[/red]"
-    console.print(summary + "\n")
+            output_console.print("")
+
+    # Summary - use original counts if filtering, otherwise use current counts
+    if failed_only and original_counts:
+        # Unpack original counts
+        orig_total, orig_passed, orig_failed, orig_warned = original_counts
+
+        # Show disclaimer before summary
+        output_console.print(
+            f"[bold yellow]Note: Showing only {total_cases} failed evaluation(s) (--only-failed)[/bold yellow]"
+        )
+
+        # Build summary with original counts
+        summary = (
+            f"[bold]Summary -- [/bold]Total: {orig_total} -- [green]Passed: {orig_passed}[/green]"
+        )
+        if orig_warned > 0:
+            summary += f" -- [yellow]Warnings: {orig_warned}[/yellow]"
+        if orig_failed > 0:
+            summary += f" -- [red]Failed: {orig_failed}[/red]"
+    else:
+        # Normal summary with current counts
+        summary = (
+            f"[bold]Summary -- [/bold]Total: {total_cases} -- [green]Passed: {total_passed}[/green]"
+        )
+        if total_warned > 0:
+            summary += f" -- [yellow]Warnings: {total_warned}[/yellow]"
+        if total_failed > 0:
+            summary += f" -- [red]Failed: {total_failed}[/red]"
+
+    output_console.print(summary + "\n")
+
+
+def display_eval_results(
+    results: list[list[dict[str, Any]]],
+    show_details: bool = False,
+    output_file: Optional[str] = None,
+    failed_only: bool = False,
+    original_counts: Optional[tuple[int, int, int, int]] = None,
+    output_formats: list[str] | None = None,
+    include_context: bool = False,
+) -> None:
+    """
+    Display evaluation results in a format inspired by pytest's output.
+
+    Args:
+        results: List of dictionaries containing evaluation results for each model.
+        show_details: Whether to show detailed results for each case.
+        output_file: Optional file path to write results to.
+        failed_only: Whether only failed cases are being displayed (adds disclaimer).
+        original_counts: Optional tuple of (total_cases, total_passed, total_failed, total_warned)
+                        from before filtering. Used when failed_only is True.
+        output_formats: List of output formats for file output (e.g., ['txt', 'md', 'html']).
+        include_context: Whether to include system_message and additional_messages.
+    """
+    # Always display to terminal with Rich formatting
+    try:
+        _display_results_to_console(console, results, show_details, failed_only, original_counts)
+    except Exception as e:
+        console.print(f"[red]Error displaying results to console: {type(e).__name__}: {e}[/red]")
+
+    # Also write to file(s) if requested using the specified formatter(s)
+    if output_file and output_formats:
+        from arcade_cli.formatters import get_formatter
+
+        # Get base path without extension
+        base_path = Path(output_file)
+        base_name = base_path.stem
+        parent_dir = base_path.parent
+
+        try:
+            parent_dir.mkdir(parents=True, exist_ok=True)
+        except PermissionError:
+            console.print(f"[red]Error: Permission denied creating directory {parent_dir}[/red]")
+            return
+        except OSError as e:
+            console.print(f"[red]Error creating directory: {e}[/red]")
+            return
+
+        for fmt in output_formats:
+            # Define output_path early so it's available in exception handlers
+            output_path = parent_dir / f"{base_name}.{fmt}"
+            try:
+                formatter = get_formatter(fmt)
+                formatted_output = formatter.format(
+                    results,
+                    show_details=show_details,
+                    failed_only=failed_only,
+                    original_counts=original_counts,
+                    include_context=include_context,
+                )
+
+                # Build output path with proper extension
+                output_path = parent_dir / f"{base_name}.{formatter.file_extension}"
+
+                with open(output_path, "w", encoding="utf-8") as f:
+                    f.write(formatted_output)
+
+                console.print(f"[green]✓ Results written to {output_path}[/green]")
+
+            except PermissionError:
+                console.print(f"[red]Error: Permission denied writing to {output_path}[/red]")
+            except OSError as e:
+                console.print(f"[red]Error writing file: {e}[/red]")
+            except Exception as e:
+                console.print(
+                    f"[red]Error formatting results ({fmt}): {type(e).__name__}: {e}[/red]"
+                )
 
 
 def _format_evaluation(evaluation: "EvaluationResult") -> str:

@@ -3,6 +3,7 @@
 from typing import Any, Literal, TypedDict
 
 from arcade_core.catalog import MaterializedTool
+from arcade_core.converters.utils import normalize_tool_name
 from arcade_core.schema import InputParameter, ValueSchema
 
 # ----------------------------------------------------------------------------
@@ -101,7 +102,7 @@ def to_openai(tool: MaterializedTool) -> OpenAIToolSchema:
     Returns:
         The OpenAI JsonToolSchema format (what is passed to the OpenAI API)
     """
-    name = tool.definition.fully_qualified_name.replace(".", "_")
+    name = normalize_tool_name(tool.definition.fully_qualified_name)
     description = tool.description
     parameters_schema = _convert_input_parameters_to_json_schema(tool.definition.input.parameters)
     return _create_tool_schema(name, description, parameters_schema)
