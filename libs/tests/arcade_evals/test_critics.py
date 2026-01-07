@@ -10,6 +10,9 @@ from arcade_evals.critic import (
 from arcade_evals.errors import WeightError
 from arcade_evals.weights import FuzzyWeight
 
+# Mark all tests in this module as requiring evals dependencies
+pytestmark = pytest.mark.evals
+
 
 class TestNoneCritic:
     """Tests for NoneCritic placeholder."""

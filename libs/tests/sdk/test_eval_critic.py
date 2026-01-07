@@ -12,6 +12,9 @@ from arcade_evals import (
 from arcade_evals.errors import WeightError
 from dateutil import parser
 
+# Mark all tests in this module as requiring evals dependencies
+pytestmark = pytest.mark.evals
+
 
 # Test NoneCritic initialization
 @pytest.mark.parametrize("weight, expected_weight", [(0.0, 0.0), (0.5, 0.0)])

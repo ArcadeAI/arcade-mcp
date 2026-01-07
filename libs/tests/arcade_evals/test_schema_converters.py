@@ -11,6 +11,9 @@ from arcade_evals._evalsuite._openai_schema import (
 )
 from arcade_evals._evalsuite._tool_registry import EvalSuiteToolRegistry
 
+# Mark all tests in this module as requiring evals dependencies
+pytestmark = pytest.mark.evals
+
 
 class TestOpenAISchemaConversion:
     """Tests for OpenAI strict mode schema conversion."""

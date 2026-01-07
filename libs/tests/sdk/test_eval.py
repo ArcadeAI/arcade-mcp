@@ -11,6 +11,9 @@ from arcade_evals import (
 from arcade_evals.eval import EvalCase, EvalSuite, EvaluationResult
 from arcade_tdk import tool
 
+# Mark all tests in this module as requiring evals dependencies
+pytestmark = pytest.mark.evals
+
 
 @tool
 def mock_tool(param1: str):

@@ -2,8 +2,12 @@ import tempfile
 from pathlib import Path
 from unittest.mock import Mock
 
+import pytest
 from arcade_cli.display import display_eval_results
 from arcade_evals.eval import EvaluationResult
+
+# Mark all tests in this module as requiring evals dependencies
+pytestmark = pytest.mark.evals
 
 
 def create_mock_evaluation_result(passed: bool, warning: bool, score: float) -> Mock:

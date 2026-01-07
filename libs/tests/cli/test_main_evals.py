@@ -1,10 +1,14 @@
 import re
 from unittest.mock import Mock
 
+import pytest
 from arcade_cli.main import cli
 from arcade_cli.utils import filter_failed_evaluations
 from arcade_evals.eval import EvaluationResult
 from typer.testing import CliRunner
+
+# Mark all tests in this module as requiring evals dependencies
+pytestmark = pytest.mark.evals
 
 runner = CliRunner()
 

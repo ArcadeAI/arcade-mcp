@@ -18,6 +18,9 @@ from arcade_evals.eval import (
     tool_eval,
 )
 
+# Mark all tests in this module as requiring evals dependencies
+pytestmark = pytest.mark.evals
+
 
 class TestProviderEnum:
     """Tests for Provider enum."""

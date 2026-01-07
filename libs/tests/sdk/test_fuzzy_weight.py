@@ -5,6 +5,9 @@ from arcade_evals import BinaryCritic, EvalRubric, FuzzyWeight, NoneCritic, Weig
 from arcade_evals.eval import EvalCase, NamedExpectedToolCall
 from arcade_evals.weights import normalize_fuzzy_weights, resolve_weight
 
+# Mark all tests in this module as requiring evals dependencies
+pytestmark = pytest.mark.evals
+
 
 class TestFuzzyWeightEnum:
     """Test FuzzyWeight enum values."""

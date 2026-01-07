@@ -7,6 +7,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+# Mark all tests in this module as requiring evals dependencies
+pytestmark = pytest.mark.evals
+
 # Import the loaders module directly by file path to avoid arcade_core dependency
 _LOADERS_PATH = Path(__file__).parent.parent.parent / "arcade-evals" / "arcade_evals" / "loaders.py"
 spec = importlib.util.spec_from_file_location("loaders", _LOADERS_PATH)

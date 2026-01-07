@@ -27,8 +27,8 @@ These examples are designed to be:
 # Install with evals support
 pip install 'arcade-mcp[evals]'
 
-# Or using uv
-uv pip install 'arcade-mcp[evals]'
+# Or using uv (recommended)
+uv tool install 'arcade-mcp[evals]'
 ```
 
 ### Basic Usage
@@ -99,6 +99,19 @@ Evaluates tools from Arcade Gateway (cloud-hosted toolkits).
 - Math toolkit evaluations
 - BinaryCritic for parameter validation
 - Conversational context with additional_messages
+
+**Prerequisites:**
+
+Before running this example, you need to set up an MCP Gateway:
+
+1. **Get your API key** - [API Keys Setup Guide](https://docs.arcade.dev/en/get-started/setup/api-keys)
+2. **Create an MCP Gateway** at [Arcade Portal](https://portal.arcade.dev)
+3. **Add toolkits** (e.g., Math, GitHub, Slack) to your gateway
+4. **Get your credentials:**
+   - `ARCADE_API_KEY` - Your Arcade API key
+   - `ARCADE_USER_ID` - Your user ID (found in portal settings)
+
+📚 **Full setup guide:** [MCP Gateways Documentation](https://docs.arcade.dev/en/guides/create-tools/mcp-gateways)
 
 **Requirements:**
 

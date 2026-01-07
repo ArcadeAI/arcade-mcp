@@ -25,23 +25,18 @@ def pytest_configure(config):
 
 
 def pytest_collection_modifyitems(config, items):
-    """Auto-skip evals tests if dependencies not available."""
+    """Auto-skip evals tests if dependencies not available.
+
+    Tests are detected as evals tests if they have the @pytest.mark.evals marker.
+
+    """
     skip_evals = pytest.mark.skip(
-        reason="Evals dependencies not installed. Install with: pip install 'arcade-mcp[evals]'"
+        reason="Evals dependencies not installed. Install with: uv tool install 'arcade-mcp[evals]'"
     )
 
     for item in items:
-        # Check if test is in arcade_evals or sdk test directories
-        test_path = str(item.fspath)
-        is_evals_test = (
-            "/tests/arcade_evals/" in test_path
-            or "/tests/sdk/test_eval" in test_path
-            or "/tests/sdk/test_fuzzy_weight" in test_path
-            or "/tests/cli/test_display.py" in test_path
-            or "/tests/cli/test_main_evals.py" in test_path
-        )
-
-        if is_evals_test and not EVALS_DEPS_AVAILABLE:
+        # Check if test has the @pytest.mark.evals marker
+        if item.get_closest_marker("evals") and not EVALS_DEPS_AVAILABLE:
             item.add_marker(skip_evals)
 
 

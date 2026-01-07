@@ -5,6 +5,9 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from arcade_evals import EvalSuite, ExpectedMCPToolCall
 
+# Mark all tests in this module as requiring evals dependencies
+pytestmark = pytest.mark.evals
+
 
 class TestCaptureMode:
     """Tests for EvalSuite.capture() method."""

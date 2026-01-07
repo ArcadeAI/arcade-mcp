@@ -4,6 +4,9 @@ import pytest
 from arcade_evals._evalsuite._tool_registry import EvalSuiteToolRegistry
 from arcade_evals._evalsuite._tracks import TrackManager
 
+# Mark all tests in this module as requiring evals dependencies
+pytestmark = pytest.mark.evals
+
 
 class TestTrackManager:
     """Tests for TrackManager class."""

@@ -8,6 +8,9 @@ from arcade_core import ToolCatalog
 from arcade_evals import EvalSuite, ExpectedToolCall, MCPToolDefinition
 from arcade_tdk import tool
 
+# Mark all tests in this module as requiring evals dependencies
+pytestmark = pytest.mark.evals
+
 
 def sample_tool_def(name: str = "test_tool") -> dict[str, Any]:
     return {

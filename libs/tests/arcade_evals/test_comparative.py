@@ -9,6 +9,9 @@ from arcade_evals._evalsuite._types import (
     TrackConfig,
 )
 
+# Mark all tests in this module as requiring evals dependencies
+pytestmark = pytest.mark.evals
+
 
 class TestTrackConfig:
     """Tests for TrackConfig dataclass."""

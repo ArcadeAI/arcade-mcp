@@ -5,6 +5,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from arcade_evals import EvalSuite
 
+# Mark all tests in this module as requiring evals dependencies
+pytestmark = pytest.mark.evals
+
 
 class TestAddMcpServer:
     """Tests for add_mcp_server async convenience method."""

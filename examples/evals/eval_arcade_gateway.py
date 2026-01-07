@@ -3,7 +3,20 @@
 This example demonstrates loading and evaluating tools from Arcade Gateway,
 which provides access to pre-built toolkits (Math, GitHub, Slack, Linear, etc.).
 
+Prerequisites:
+    1. Get your API key: https://docs.arcade.dev/en/get-started/setup/api-keys
+    2. Create an MCP Gateway at https://portal.arcade.dev
+    3. Add toolkits to your gateway (e.g., Math, GitHub, Slack)
+    4. Get your ARCADE_API_KEY and ARCADE_USER_ID from the portal
+
+    Full setup guide: https://docs.arcade.dev/en/guides/create-tools/mcp-gateways
+
 Run:
+    # Set environment variables
+    export ARCADE_API_KEY=your_arcade_key
+    export ARCADE_USER_ID=your_user_id
+
+    # Run the evaluation
     arcade evals examples/evals/eval_arcade_gateway.py \\
         -p openai:gpt-4o \\
         -k openai:YOUR_KEY \\
