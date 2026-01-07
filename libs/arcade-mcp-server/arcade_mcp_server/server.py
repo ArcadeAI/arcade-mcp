@@ -1005,7 +1005,7 @@ class MCPServer:
                     and (requirements.authorization or requirements.secrets)
                     and not is_authenticated
                 ):
-                    documentation_url = "https://docs.arcade.dev/en/home/compare-server-types"
+                    documentation_url = "https://docs.arcade.dev/en/guides/create-tools/tool-basics/compare-server-types"
                     user_message = "✗ Unsupported transport\n\n"
                     user_message += f"  Tool '{tool_name}' cannot run over HTTP transport for security reasons.\n"
                     user_message += f"  This tool requires {'authorization' if requirements.authorization else 'secrets'}.\n\n"

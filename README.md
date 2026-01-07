@@ -32,16 +32,16 @@
 </div>
 
 <p align="center" style="display: flex; justify-content: center; gap: 5px; font-size: 15px;">
-    <a href="https://docs.arcade.dev/tools" target="_blank">Prebuilt Tools</a> •
-    <a href="https://docs.arcade.dev/home/contact-us" target="_blank">Contact Us</a>
+    <a href="https://docs.arcade.dev/en/resources/integrations" target="_blank">Prebuilt Tools</a> •
+    <a href="https://docs.arcade.dev/en/resources/contact-us" target="_blank">Contact Us</a>
 
 # Arcade MCP Server Framework
 
 * **To see example servers built with Arcade MCP Server Framework (this repo), check out our [examples](examples/)**
 
-* **To learn more about the Arcade MCP Server Framework (this repo), check out our [Arcade MCP documentation](https://docs.arcade.dev/en/home/build-tools/create-a-mcp-server)**
+* **To learn more about the Arcade MCP Server Framework (this repo), check out our [Arcade MCP documentation](https://docs.arcade.dev/en/guides/create-tools/tool-basics/build-mcp-server)**
 
-* **To learn more about other offerings from Arcade.dev, check out our [documentation](https://docs.arcade.dev/home).**
+* **To learn more about other offerings from Arcade.dev, check out our [documentation](https://docs.arcade.dev/en/home).**
 
 _Pst. hey, you, give us a star if you like it!_
 
