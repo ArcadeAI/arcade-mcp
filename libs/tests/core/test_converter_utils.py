@@ -1,6 +1,5 @@
 """Tests for arcade_core.converters.utils module."""
 
-import pytest
 from arcade_core.converters.utils import denormalize_tool_name, normalize_tool_name
 
 

@@ -9,9 +9,7 @@ from arcade_evals.eval import (
     EvalCase,
     EvalRubric,
     EvalSuite,
-    NamedExpectedToolCall,
     ProviderName,
-    _run_with_anthropic,
     _run_with_openai,
     compare_tool_name,
     normalize_name,
@@ -685,7 +683,6 @@ class TestAnthropicMessageConversion:
         self, suite_with_additional_messages: EvalSuite
     ) -> None:
         """Test that 'tool' role messages are converted to Anthropic user tool_result."""
-        from arcade_evals.eval import EvalCase
 
         # Create a case with mixed message roles including 'tool'
         case = EvalCase(
@@ -732,7 +729,6 @@ class TestAnthropicMessageConversion:
         self, suite_with_additional_messages: EvalSuite
     ) -> None:
         """Test that assistant messages with tool_calls are converted to Anthropic format."""
-        from arcade_evals.eval import EvalCase
 
         # Create a case with OpenAI-style assistant message containing tool_calls
         case = EvalCase(
@@ -904,9 +900,7 @@ class TestRunWithProviderFunctions:
         """Test _run_with_anthropic raises ImportError when anthropic not installed."""
         with patch.dict("sys.modules", {"anthropic": None}):
             # Force re-import to trigger ImportError
-            import importlib
 
-            import arcade_evals.eval as eval_module
 
             # Create a version of the function that will fail to import
             async def failing_run(suite, api_key, model):

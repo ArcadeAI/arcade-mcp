@@ -1,6 +1,5 @@
 """Additional edge case tests for formatters to ensure robustness."""
 
-import pytest
 from arcade_cli.formatters import (
     HtmlFormatter,
     JsonFormatter,

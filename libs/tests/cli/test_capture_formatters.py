@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import pytest
-
 from arcade_cli.formatters import (
     CAPTURE_FORMATTERS,
     CaptureHtmlFormatter,
@@ -26,7 +25,7 @@ def _create_mock_capture_result(
     model: str = "gpt-4o",
     provider: str = "openai",
     cases: list[dict] | None = None,
-) -> "CaptureResult":
+) -> CaptureResult:
     """Create a mock CaptureResult for testing."""
     if cases is None:
         cases = [
@@ -740,7 +739,7 @@ def _create_mock_capture_with_tracks(
     suite_name: str = "ComparativeSuite",
     model: str = "gpt-4o",
     provider: str = "openai",
-) -> "CaptureResult":
+) -> CaptureResult:
     """Create a mock CaptureResult with track information for testing."""
     cases = [
         {

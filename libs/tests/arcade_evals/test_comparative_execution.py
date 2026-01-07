@@ -1,6 +1,6 @@
 """Tests for comparative evaluation execution logic."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from arcade_evals import (

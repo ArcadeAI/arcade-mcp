@@ -3,7 +3,7 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from arcade_evals import EvalSuite, ExpectedMCPToolCall
+from arcade_evals import EvalSuite
 
 # Mark all tests in this module as requiring evals dependencies
 pytestmark = pytest.mark.evals

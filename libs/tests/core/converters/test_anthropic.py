@@ -6,8 +6,6 @@ import pytest
 from arcade_core.catalog import MaterializedTool, ToolMeta, create_func_models
 from arcade_core.converters.anthropic import (
     AnthropicInputSchema,
-    AnthropicInputSchemaProperty,
-    AnthropicToolSchema,
     _convert_input_parameters_to_json_schema,
     _convert_value_schema_to_json_schema,
     _create_tool_schema,

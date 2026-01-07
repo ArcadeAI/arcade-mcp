@@ -1,6 +1,6 @@
 """Tests for async MCP convenience methods in EvalSuite."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from arcade_evals import EvalSuite

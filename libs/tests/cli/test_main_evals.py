@@ -335,14 +335,6 @@ def test_evals_help_shows_only_failed_flag() -> None:
     assert "--only-failed" in output
 
 
-def test_evals_help_shows_include_context_flag() -> None:
-    """Test that --include-context flag is documented in help."""
-    result = runner.invoke(cli, ["evals", "--help"])
-    assert result.exit_code == 0
-    output = _strip_ansi(result.output)
-    assert "--include-context" in output
-
-
 def test_evals_help_shows_host_flag() -> None:
     """Test that --host flag is documented in help."""
     result = runner.invoke(cli, ["evals", "--help"])

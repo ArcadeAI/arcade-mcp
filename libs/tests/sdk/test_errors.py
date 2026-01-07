@@ -1,7 +1,6 @@
 """Tests for arcade_evals.errors module."""
 
 import pytest
-
 from arcade_evals.errors import EvalError, WeightError
 
 

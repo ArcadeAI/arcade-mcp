@@ -3,7 +3,7 @@
 import subprocess
 import sys
 from typing import Annotated
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from arcade_core.catalog import MaterializedTool

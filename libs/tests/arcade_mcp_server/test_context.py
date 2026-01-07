@@ -8,7 +8,6 @@ from arcade_mcp_server.context import Context
 from arcade_mcp_server.context import get_current_model_context as get_current_context
 from arcade_mcp_server.context import set_current_model_context as set_current_context
 from arcade_mcp_server.types import (
-    MCPTool,
     ModelHint,
     ModelPreferences,
 )
