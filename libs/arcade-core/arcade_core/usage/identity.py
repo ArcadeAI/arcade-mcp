@@ -87,7 +87,9 @@ class UsageIdentity:
                 finally:
                     portalocker.unlock(f)
 
-            os.rename(temp_path, self.usage_file_path)
+            # Use os.replace() for cross-platform atomic file replacement
+            # os.replace() is atomic on both Unix and Windows (Python 3.3+)
+            os.replace(temp_path, self.usage_file_path)
         except Exception:
             # clean up
             import contextlib
