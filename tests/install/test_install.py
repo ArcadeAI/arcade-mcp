@@ -185,8 +185,10 @@ with tempfile.TemporaryDirectory() as tmpdir:
         identity_module.ARCADE_CONFIG_PATH = original_path
 """
 
+        # Use uv run to ensure we're in the right environment
+        python_cmd = ["uv", "run", "python", "-c", test_code]
         success, _ = self.run_command(
-            [sys.executable, "-c", test_code],
+            python_cmd,
             "Test portalocker file locking (cross-platform)",
             required=True,
         )
