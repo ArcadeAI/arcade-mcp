@@ -8,10 +8,21 @@ This script:
 3. Tests cross-platform compatibility (file locking with portalocker)
 """
 
+import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+# Ensure UTF-8 encoding for cross-platform compatibility (especially Windows)
+if sys.platform == "win32":
+    # Set UTF-8 encoding for Windows console
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8")
+    # Set environment variable for subprocesses
+    os.environ["PYTHONIOENCODING"] = "utf-8"
 
 
 class TestRunner:
@@ -38,6 +49,10 @@ class TestRunner:
         print(f"Command: {' '.join(cmd)}")
         print(f"{'=' * 60}")
 
+        # Ensure UTF-8 encoding for cross-platform compatibility (especially Windows)
+        env = os.environ.copy()
+        env["PYTHONIOENCODING"] = "utf-8"
+
         try:
             result = subprocess.run(
                 cmd,
@@ -45,6 +60,9 @@ class TestRunner:
                 text=True,
                 check=True,
                 timeout=60,
+                env=env,
+                encoding="utf-8",
+                errors="replace",
             )
         except subprocess.TimeoutExpired:
             print(f"❌ Timeout: {description}")
