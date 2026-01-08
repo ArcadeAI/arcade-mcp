@@ -2,9 +2,9 @@ name: Test Installation (Cross-Platform)
 
 on:
     push:
-        branches: [main, develop]
+        branches: [main]
     pull_request:
-        branches: [main, develop]
+        branches: [main]
     workflow_dispatch:
 
 jobs:
