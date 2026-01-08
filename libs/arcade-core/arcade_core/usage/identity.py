@@ -6,7 +6,6 @@ supporting pre-login anonymous tracking, post-login identity stitching,
 and logout identity rotation.
 """
 
-import fcntl
 import json
 import os
 import tempfile
@@ -14,6 +13,7 @@ import uuid
 from typing import Any
 
 import httpx
+import portalocker
 import yaml
 
 from arcade_core.constants import ARCADE_CONFIG_PATH, CREDENTIALS_FILE_PATH
@@ -46,18 +46,16 @@ class UsageIdentity:
         if os.path.exists(self.usage_file_path):
             try:
                 with open(self.usage_file_path) as f:
-                    # lock file
-                    if os.name != "nt":  # Unix-like systems
-                        fcntl.flock(f.fileno(), fcntl.LOCK_SH)
+                    # Lock file for reading (shared lock)
+                    portalocker.lock(f, portalocker.LOCK_SH)
                     try:
                         data = json.load(f)
                         if isinstance(data, dict) and KEY_ANON_ID in data:
                             self._data = data
                             return self._data
                     finally:
-                        # unlock file
-                        if os.name != "nt":
-                            fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+                        # Unlock file
+                        portalocker.unlock(f)
             except Exception:  # noqa: S110
                 pass
 
@@ -80,16 +78,14 @@ class UsageIdentity:
 
         try:
             with os.fdopen(temp_fd, "w") as f:
-                # lock file
-                if os.name != "nt":  # Unix-like systems
-                    fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+                # Lock file for writing (exclusive lock)
+                portalocker.lock(f, portalocker.LOCK_EX)
                 try:
                     json.dump(data, f, indent=2)
                     f.flush()
                     os.fsync(f.fileno())  # ensure data is written to disk
                 finally:
-                    if os.name != "nt":
-                        fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+                    portalocker.unlock(f)
 
             os.rename(temp_path, self.usage_file_path)
         except Exception:
