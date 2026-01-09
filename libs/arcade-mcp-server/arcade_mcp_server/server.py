@@ -1337,9 +1337,11 @@ class MCPServer:
     ) -> JSONRPCResponse[GetPromptResult] | JSONRPCError:
         """Handle get prompt request."""
         try:
+            context = get_current_model_context()
             result = await self._prompt_manager.get_prompt(
                 message.params.name,
                 message.params.arguments if hasattr(message.params, "arguments") else None,
+                context,
             )
             return JSONRPCResponse(id=message.id, result=result)
         except NotFoundError:
