@@ -46,19 +46,24 @@ class ToolManager(ComponentManager[Key, ManagedTool]):
         # Add arcade metadata (categories and tags) per MCP spec
         # Categories and tags go in _meta.arcade, annotations go at top-level
         arcade_meta: dict[str, Any] = {}
-        if tool.definition.categories:
-            arcade_meta["categories"] = tool.definition.categories.model_dump(exclude_none=True)
-        if tool.definition.tags:
-            arcade_meta["tags"] = tool.definition.tags
+        tool_metadata = tool.definition.metadata
+        if tool_metadata:
+            if tool_metadata.categories:
+                arcade_meta["categories"] = tool_metadata.categories.model_dump(exclude_none=True)
+            if tool_metadata.tags:
+                arcade_meta["tags"] = tool_metadata.tags
         if arcade_meta:
             meta["arcade"] = arcade_meta
+
+        # Extract annotations from metadata container
+        annotations = tool_metadata.annotations if tool_metadata else None
 
         return MCPTool(
             name=self._sanitize_name(tool.definition.fully_qualified_name),
             title=f"{tool.definition.toolkit.name}_{tool.definition.name}",
             description=tool.definition.description,
             inputSchema=build_input_schema_from_definition(tool.definition),
-            annotations=tool.definition.annotations,  # Top-level per MCP spec
+            annotations=annotations,  # Top-level per MCP spec
             _meta=meta if meta else None,
         )
 

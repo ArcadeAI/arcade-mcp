@@ -466,9 +466,7 @@ class ToolCatalog(BaseModel):
         deprecation_message = getattr(tool, "__tool_deprecation_message__", None)
 
         # Extract metadata from the tool decorator
-        annotations = getattr(tool, "__tool_annotations__", None)
-        categories = getattr(tool, "__tool_categories__", None)
-        tags = getattr(tool, "__tool_tags__", None)
+        tool_metadata = getattr(tool, "__tool_metadata__", None)
 
         return ToolDefinition(
             name=tool_name,
@@ -483,9 +481,7 @@ class ToolCatalog(BaseModel):
                 metadata=metadata_requirement,
             ),
             deprecation_message=deprecation_message,
-            annotations=annotations,
-            categories=categories,
-            tags=tags,
+            metadata=tool_metadata,
         )
 
 

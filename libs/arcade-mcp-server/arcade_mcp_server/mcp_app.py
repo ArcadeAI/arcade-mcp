@@ -24,7 +24,7 @@ from watchfiles import watch
 
 from arcade_mcp_server.exceptions import ServerError
 from arcade_mcp_server.logging_utils import intercept_standard_logging
-from arcade_mcp_server.metadata import Annotations, Categories
+from arcade_mcp_server.metadata import ToolMetadata
 from arcade_mcp_server.resource_server.base import ResourceServerValidator
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.settings import MCPSettings, ServerSettings
@@ -226,9 +226,7 @@ class MCPApp:
         requires_secrets: list[str] | None = None,
         requires_metadata: list[str] | None = None,
         adapters: list[ErrorAdapter] | None = None,
-        annotations: Annotations | None = None,
-        categories: Categories | None = None,
-        tags: list[str] | None = None,
+        metadata: ToolMetadata | None = None,
     ) -> Callable[P, T]:
         """Add a tool for build-time materialization (pre-server)."""
         if not hasattr(func, "__tool_name__"):
@@ -240,9 +238,7 @@ class MCPApp:
                 requires_secrets=requires_secrets,
                 requires_metadata=requires_metadata,
                 adapters=adapters,
-                annotations=annotations,
-                categories=categories,
-                tags=tags,
+                metadata=metadata,
             )
         try:
             self._catalog.add_tool(
@@ -271,9 +267,7 @@ class MCPApp:
         requires_secrets: list[str] | None = None,
         requires_metadata: list[str] | None = None,
         adapters: list[ErrorAdapter] | None = None,
-        annotations: Annotations | None = None,
-        categories: Categories | None = None,
-        tags: list[str] | None = None,
+        metadata: ToolMetadata | None = None,
     ) -> Callable[[Callable[P, T]], Callable[P, T]] | Callable[P, T]:
         """Decorator for adding tools with optional parameters."""
 
@@ -286,9 +280,7 @@ class MCPApp:
                 requires_secrets=requires_secrets,
                 requires_metadata=requires_metadata,
                 adapters=adapters,
-                annotations=annotations,
-                categories=categories,
-                tags=tags,
+                metadata=metadata,
             )
 
         if func is not None:

@@ -7,18 +7,50 @@ from typing import Annotated
 import httpx
 from arcade_mcp_server import Context, MCPApp
 from arcade_mcp_server.auth import Reddit
+from arcade_mcp_server.metadata import Annotations, Categories, Domain, Scope, ToolMetadata, Verb
 
 app = MCPApp(name="simple", version="1.0.0", log_level="DEBUG")
 
 
-@app.tool
+@app.tool(
+    metadata=ToolMetadata(
+        annotations=Annotations(
+            title="Greet Person",
+            readOnlyHint=True,
+            destructiveHint=False,
+            idempotentHint=True,
+            openWorldHint=False,
+        ),
+        categories=Categories(
+            verb=Verb.READ,
+            scope=Scope.INTERNAL,
+            domains=[Domain.COMMUNICATION],
+        ),
+    ),
+)
 def greet(name: Annotated[str, "The name of the person to greet"]) -> str:
     """Greet a person by name."""
     return f"Hello, {name}!"
 
 
 # To use this tool locally, you need to either set the secret in the .env file or as an environment variable
-@app.tool(requires_secrets=["MY_SECRET_KEY"])
+@app.tool(
+    requires_secrets=["MY_SECRET_KEY"],
+    metadata=ToolMetadata(
+        annotations=Annotations(
+            title="Whisper Secret",
+            readOnlyHint=True,
+            destructiveHint=False,
+            idempotentHint=True,
+            openWorldHint=False,
+        ),
+        categories=Categories(
+            verb=Verb.READ,
+            scope=Scope.INTERNAL,
+            domains=[Domain.IDENTITY],
+        ),
+    ),
+)
 def whisper_secret(context: Context) -> Annotated[str, "The last 4 characters of the secret"]:
     """Reveal the last 4 characters of a secret"""
     # Secrets are injected into the context at runtime.
@@ -34,7 +66,23 @@ def whisper_secret(context: Context) -> Annotated[str, "The last 4 characters of
 
 # To use this tool locally, you need to install the Arcade CLI (uv tool install arcade-mcp)
 # and then run 'arcade login' to authenticate.
-@app.tool(requires_auth=Reddit(scopes=["read"]))
+@app.tool(
+    requires_auth=Reddit(scopes=["read"]),
+    metadata=ToolMetadata(
+        annotations=Annotations(
+            title="Get Subreddit Posts",
+            readOnlyHint=True,
+            destructiveHint=False,
+            idempotentHint=True,
+            openWorldHint=True,
+        ),
+        categories=Categories(
+            verb=Verb.READ,
+            scope=Scope.EXTERNAL,
+            domains=[Domain.COMMUNICATION],
+        ),
+    ),
+)
 async def get_posts_in_subreddit(
     context: Context, subreddit: Annotated[str, "The name of the subreddit"]
 ) -> dict:

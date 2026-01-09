@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
@@ -91,36 +92,34 @@ class Domain(str, Enum):
     # Counterfactual or sandboxed worlds
 
 
-# class Domain(str, Enum):
-#     """
-#     High-level functional domain the tool belongs to.
-#     Tools can belong to multiple domains.
+class Domain2(str, Enum):
+    """
+    High-level functional domain the tool belongs to.
+    Tools can belong to multiple domains.
 
-#     Litmus test:
-#     If it can be applied uniformly to every domain, it is not itself a domain.
-#     """
+    Litmus test:
+    If it can be applied uniformly to every domain, it is not itself a domain.
+    """
 
-#     COMMUNICATION = "communication"  # Internal/external communication
-#     CONTENT = "content"  # Content management, publishing
-#     ECOMMERCE = "ecommerce"  # E-commerce, retail, inventory
-#     PRODUCTIVITY = "productivity"
-#     CALENDAR = "calendar"
-#     STORAGE = "storage"
-#     RESEARCH = "research"
-#     FINANCE = "finance"  # Finance, accounting, billing, payments
-#     SALES = "sales"  # Sales operations, CRM, leads, opportunities, deals
-#     MARKETING = "marketing"  # Marketing campaigns, email, content, analytics
-#     ENGINEERING = "engineering"  # Software development, DevOps, infrastructure
-#     IT = "it"  # IT operations, infrastructure, systems
-#     DESIGN = "design"  # Design, UX, creative
-#     SUPPORT = "support"  # Customer support, helpdesk, ticketing
-#     PRODUCT = "product"  # Product management, roadmaps, features
-#     HR = "hr"  # Human resources, recruiting, onboarding
-#     LEGAL = "legal"  # Legal, compliance, contracts
-#     SECURITY = "security"  # Security, access control, compliance
-#     ANALYTICS = "analytics"  # Data analytics, reporting, insights
-#     OPERATIONS = "operations"  # Business operations, administration
-#     OTHER = "other"
+    COMMUNICATION = "communication"  # Internal/external communication
+    CONTENT = "content"  # Content management, publishing
+    ECOMMERCE = "ecommerce"  # E-commerce, retail, inventory
+    PRODUCTIVITY = "productivity"
+    RESEARCH = "research"
+    FINANCE = "finance"  # Finance, accounting, billing, payments
+    SALES = "sales"  # Sales operations, CRM, leads, opportunities, deals
+    MARKETING = "marketing"  # Marketing campaigns, email, content, analytics
+    ENGINEERING = "engineering"  # Software development, DevOps, infrastructure
+    IT = "it"  # IT operations, infrastructure, systems
+    DESIGN = "design"  # Design, UX, creative
+    SUPPORT = "support"  # Customer support, helpdesk, ticketing
+    PRODUCT = "product"  # Product management, roadmaps, features
+    HR = "hr"  # Human resources, recruiting, onboarding
+    LEGAL = "legal"  # Legal, compliance, contracts
+    SECURITY = "security"  # Security, access control, compliance
+    ANALYTICS = "analytics"  # Data analytics, reporting, insights
+    OPERATIONS = "operations"  # Business operations, administration
+    OTHER = "other"
 
 
 class Annotations(BaseModel):
@@ -149,3 +148,22 @@ class Categories(BaseModel):
     domains: list[Domain] | None = None  # Multiple: Functional areas (can span multiple)
 
     model_config = ConfigDict(extra="allow")
+
+
+class ToolMetadata(BaseModel):
+    """
+    Container for tool metadata. Static properties defined by tool authors.
+
+    Note: Tags are NOT defined here - they are customer-defined via GUI/API
+    and stored separately. Only categories and annotations are defined in code.
+
+    The `extensions` field allows tool authors to define arbitrary key/values
+    for custom logic (e.g., IDP routing, feature flags). These are NOT used
+    by tool selection scoring.
+    """
+
+    annotations: Annotations | None = None
+    categories: Categories | None = None
+    extensions: dict[str, Any] | None = None  # Arbitrary key/values for custom logic
+
+    model_config = ConfigDict(extra="forbid")
