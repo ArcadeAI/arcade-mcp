@@ -158,7 +158,7 @@ class TestContext:
         await context.progress.report(50, 100, "Processing...")
 
         session.send_progress_notification.assert_called_once_with(
-            progress_token="task-123", progress=50, total=100, message="Processing..."
+            progress_token="task-123", progress=50, total=100, message="Processing..."  # noqa: S106
         )
 
         # Without total

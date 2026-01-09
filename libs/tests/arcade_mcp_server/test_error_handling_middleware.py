@@ -245,7 +245,8 @@ class TestErrorHandlingMiddleware:
 
         async def handler(ctx):
             try:
-                raise ValueError("Original error")
+                msg = "Original error"
+                raise ValueError(msg)  # noqa: TRY301
             except ValueError as e:
                 raise RuntimeError("Wrapped error") from e
 

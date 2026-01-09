@@ -5,6 +5,7 @@ Provides Pydantic-based settings with validation and environment variable suppor
 """
 
 import os
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -224,6 +225,63 @@ class ArcadeSettings(BaseSettings):
     model_config = {"env_prefix": "ARCADE_"}
 
 
+class DatacacheSettings(BaseSettings):
+    """Datacache (DuckDB + S3 + Redis) settings."""
+
+    storage_backend: str | None = Field(
+        default=None,
+        description="Datacache storage backend: 's3' or 'local' (required when datacache is enabled)",
+    )
+    redis_url: str | None = Field(
+        default=None,
+        description="Redis URL used for datacache locking (e.g. redis://localhost:6379/0)",
+    )
+    s3_bucket: str | None = Field(
+        default=None,
+        description="S3 bucket for storing datacache DuckDB files",
+    )
+    s3_prefix: str = Field(
+        default="arcade/datacache",
+        description="S3 key prefix for datacache DuckDB files",
+    )
+    aws_access_key_id: str | None = Field(default=None, description="AWS access key ID")
+    aws_secret_access_key: str | None = Field(default=None, description="AWS secret access key")
+    aws_session_token: str | None = Field(default=None, description="AWS session token")
+    aws_region: str | None = Field(default=None, description="AWS region")
+    s3_endpoint_url: str | None = Field(
+        default=None,
+        description="Custom S3 endpoint URL (e.g. for MinIO)",
+    )
+    local_dir: str = Field(
+        default_factory=lambda: os.path.join(tempfile.gettempdir(), "arcade_datacache"),
+        description="Local directory for storing active datacache DuckDB files",
+    )
+    lock_ttl_seconds: int = Field(
+        default=900,
+        description="Redis lock TTL in seconds (safety to prevent deadlocks)",
+        ge=1,
+        le=86400,
+    )
+    lock_wait_seconds: int = Field(
+        default=900,
+        description="How long to wait to acquire the datacache lock before failing",
+        ge=0,
+        le=86400,
+    )
+
+    @field_validator("storage_backend")
+    @classmethod
+    def validate_storage_backend(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        v_norm = v.strip().lower()
+        if v_norm not in {"s3", "local"}:
+            raise ValueError("ARCADE_DATACACHE_STORAGE_BACKEND must be one of: s3, local")
+        return v_norm
+
+    model_config = {"env_prefix": "ARCADE_DATACACHE_"}
+
+
 class ToolEnvironmentSettings(BaseSettings):
     """Tool environment settings.
 
@@ -241,7 +299,9 @@ class ToolEnvironmentSettings(BaseSettings):
     def model_post_init(self, __context: Any) -> None:
         """Populate tool_environment from process env if not provided."""
         if not self.tool_environment:
-            excluded_prefixes = ("MCP_", "_")
+            # IMPORTANT: do not leak server/runtime config into tool secrets.
+            # In particular, ARCADE_DATACACHE_* can include credentials and endpoints.
+            excluded_prefixes = ("MCP_", "_", "ARCADE_DATACACHE_")
             self.tool_environment = {
                 key: value
                 for key, value in os.environ.items()
@@ -284,6 +344,10 @@ class MCPSettings(BaseSettings):
     arcade: ArcadeSettings = Field(
         default_factory=ArcadeSettings,
         description="Arcade integration settings",
+    )
+    datacache: DatacacheSettings = Field(
+        default_factory=DatacacheSettings,
+        description="Datacache settings (DuckDB + S3 + Redis)",
     )
     tool_environment: ToolEnvironmentSettings = Field(
         default_factory=ToolEnvironmentSettings,

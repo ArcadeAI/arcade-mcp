@@ -16,33 +16,29 @@ from arcade_core.errors import (
 )
 
 __all__ = [
-    # Re-exports
+    "AuthorizationError",
+    "ContextRequiredToolError",
     "ErrorKind",
     "FatalToolError",
-    "RetryableToolError",
-    "ToolExecutionError",
-    "ToolRuntimeError",
-    "UpstreamError",
-    "UpstreamRateLimitError",
-    "ContextRequiredToolError",
-    # Base exceptions
+    "LifespanError",
+    "MCPContextError",
     "MCPError",
     "MCPRuntimeError",
-    # Server exceptions
-    "ServerError",
-    "SessionError",
+    "NotFoundError",
+    "PromptError",
+    "ProtocolError",
     "RequestError",
     "ResponseError",
-    "ServerRequestError",
-    "LifespanError",
-    # Context exceptions
-    "MCPContextError",
-    "NotFoundError",
-    "AuthorizationError",
-    "PromptError",
+    "RetryableToolError",
     "ResourceError",
+    "ServerError",
+    "ServerRequestError",
+    "SessionError",
+    "ToolExecutionError",
+    "ToolRuntimeError",
     "TransportError",
-    "ProtocolError",
+    "UpstreamError",
+    "UpstreamRateLimitError",
 ]
 
 

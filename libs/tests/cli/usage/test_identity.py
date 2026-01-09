@@ -129,9 +129,9 @@ class TestWriteAtomic:
                 "tempfile.mkstemp", return_value=(999, str(temp_config_path / ".usage_temp.tmp"))
             ),
             patch("os.fdopen", side_effect=Exception("Write failed")),
+            pytest.raises(Exception, match=r"Write failed"),
         ):
-            with pytest.raises(Exception, match="Write failed"):
-                identity._write_atomic({"anon_id": "test"})
+            identity._write_atomic({"anon_id": "test"})
 
         # Verify no temp files are left behind
         temp_files = list(temp_config_path.glob(".usage_*.tmp"))

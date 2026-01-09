@@ -133,7 +133,7 @@ class TestServerSession:
         """Test progress notification sending."""
         # Send progress notification
         await server_session.send_progress_notification(
-            progress_token="task-123", progress=50, total=100, message="Processing..."
+            progress_token="task-123", progress=50, total=100, message="Processing..."  # noqa: S106
         )
 
         # Verify notification was sent

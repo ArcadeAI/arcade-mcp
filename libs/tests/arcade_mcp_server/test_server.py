@@ -475,7 +475,7 @@ class TestMCPServer:
 
         # Mock a handler to raise an exception
         async def failing_handler(*args, **kwargs):
-            raise Exception("Test error")
+            raise RuntimeError("Test error")
 
         mcp_server._handlers["test/fail"] = failing_handler
 
@@ -674,7 +674,7 @@ class TestMCPServer:
         mock_auth_response = Mock()
         mock_auth_response.status = "completed"
         mock_auth_response.context = Mock()
-        mock_auth_response.context.token = "test-token"
+        mock_auth_response.context.token = "test-token"  # noqa: S105
         mock_auth_response.context.user_info = {"user_id": "test-user"}
 
         mcp_server._check_authorization = AsyncMock(return_value=mock_auth_response)
@@ -694,7 +694,7 @@ class TestMCPServer:
         # Should return None (no error) and set authorization context
         assert result is None
         assert tool_context.authorization is not None
-        assert tool_context.authorization.token == "test-token"
+        assert tool_context.authorization.token == "test-token"  # noqa: S105
         assert tool_context.authorization.user_info == {"user_id": "test-user"}
 
     @pytest.mark.asyncio
@@ -873,7 +873,7 @@ class TestMCPServer:
         mock_auth_response = Mock()
         mock_auth_response.status = "completed"
         mock_auth_response.context = Mock()
-        mock_auth_response.context.token = "test-token"
+        mock_auth_response.context.token = "test-token"  # noqa: S105
         mock_auth_response.context.user_info = {"user_id": "test-user"}
 
         mcp_server._check_authorization = AsyncMock(return_value=mock_auth_response)
@@ -1124,7 +1124,7 @@ class TestMCPServer:
         mock_auth_response = Mock()
         mock_auth_response.status = "completed"
         mock_auth_response.context = Mock()
-        mock_auth_response.context.token = "test-token"
+        mock_auth_response.context.token = "test-token"  # noqa: S105
         mock_auth_response.context.user_info = {}
         mcp_server._check_authorization = AsyncMock(return_value=mock_auth_response)
 
@@ -1161,7 +1161,7 @@ class TestMCPServer:
         mock_auth_response = Mock()
         mock_auth_response.status = "completed"
         mock_auth_response.context = Mock()
-        mock_auth_response.context.token = "test-token"
+        mock_auth_response.context.token = "test-token"  # noqa: S105
         mock_auth_response.context.user_info = {}
         mcp_server._check_authorization = AsyncMock(return_value=mock_auth_response)
 
@@ -1208,6 +1208,26 @@ class TestMCPServer:
         assert isinstance(response.result, CallToolResult)
         assert response.result.isError is False
 
+    @pytest.mark.asyncio
+    async def test_startup_exits_if_datacache_enabled_without_redis_url(self):
+        """If any tool enables datacache, missing ARCADE_DATACACHE_REDIS_URL should fail fast."""
+        from arcade_core.catalog import ToolCatalog
+        from arcade_mcp_server.settings import MCPSettings
+
+        @tool(datacache={"keys": ["user_id"], "ttl": 1})
+        def dc_tool(text: Annotated[str, "Input text"]) -> Annotated[str, "Output"]:
+            """Tool with datacache enabled."""
+            return text
+
+        catalog = ToolCatalog()
+        catalog.add_tool(dc_tool, "TestToolkit", toolkit_version="1.0.0", toolkit_description="x")
+
+        settings = MCPSettings()
+        settings.datacache.redis_url = None
+
+        server = MCPServer(catalog=catalog, settings=settings)
+        with pytest.raises(SystemExit):
+            await server.start()
 
 class TestMissingSecretsWarnings:
     """Test startup warnings for missing tool secrets."""

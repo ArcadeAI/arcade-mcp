@@ -10,6 +10,7 @@ from arcade_core.errors import (
 )
 
 __all__ = [
+    "ContextRequiredToolError",
     "ErrorKind",
     "FatalToolError",
     "RetryableToolError",
@@ -18,7 +19,6 @@ __all__ = [
     "ToolRuntimeError",
     "UpstreamError",
     "UpstreamRateLimitError",
-    "ContextRequiredToolError",
     "WeightError",
 ]
 

@@ -37,6 +37,8 @@ from arcade_core.schema import (
     ToolContext,
 )
 
+from arcade_mcp_server.datacache.client import DatacacheClient
+from arcade_mcp_server.datacache.types import DatacacheSetResult
 from arcade_mcp_server.resource_server.base import ResourceOwner
 from arcade_mcp_server.types import (
     AudioContent,
@@ -147,6 +149,7 @@ class Context(ToolContext):
         self._sampling = Sampling(self)
         self._ui = UI(self)
         self._notifications = Notifications(self)
+        self._datacache = Datacache(self)
 
     @property
     def server(self) -> Any:
@@ -291,6 +294,15 @@ class Context(ToolContext):
             ```
         """
         return self._notifications
+
+    @property
+    def datacache(self) -> Datacache:
+        """DuckDB-backed datacache for the currently executing tool.
+
+        This is only available when the tool was declared with:
+        `@app.tool(datacache={keys:[...]})`.
+        """
+        return self._datacache
 
     @property
     def request_id(self) -> str | None:
@@ -687,6 +699,46 @@ class Notifications(_ContextComponent):
     @property
     def prompts(self) -> _NotificationsPrompts:
         return self._prompts
+
+
+class Datacache(_ContextComponent):
+    """Namespaced datacache API exposed to tool code as `context.datacache.*`."""
+
+    def _client(self) -> DatacacheClient:
+        client = getattr(self._ctx, "_datacache_client", None)
+        if client is None:
+            raise RuntimeError(
+                "Datacache is not enabled for this tool execution. "
+                "Enable it by setting `datacache={keys:[...]}` on the tool decorator."
+            )
+        return client
+
+    async def discover_databases(self) -> list[dict[str, Any]]:
+        return await self._client().discover_databases()
+
+    async def discover_tables(self, database: str) -> list[str]:
+        return await self._client().discover_tables(database)
+
+    async def discover_schema(self, database: str, table: str) -> list[dict[str, Any]]:
+        return await self._client().discover_schema(database, table)
+
+    async def query(self, database: str, table: str, sql: str) -> list[dict[str, Any]]:
+        return await self._client().query(database, table, sql)
+
+    async def set(
+        self,
+        table_name: str,
+        record: dict[str, Any],
+        id_col: str = "id",
+        ttl: int | None = None,
+    ) -> DatacacheSetResult:
+        return await self._client().set(table_name, record, id_col=id_col, ttl=ttl)
+
+    async def get(self, table_name: str, record_id: str) -> dict[str, Any] | None:
+        return await self._client().get(table_name, record_id)
+
+    async def search(self, table_name: str, field: str, value: str) -> list[dict[str, Any]]:
+        return await self._client().search(table_name, field, value)
 
 
 def get_current_model_context() -> Context | None:

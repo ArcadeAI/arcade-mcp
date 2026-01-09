@@ -64,13 +64,13 @@ def test_create_tool_def2(test_case):
 
     for i, input_type in enumerate(input_types):
         param = tool_def.input.parameters[i]
-        assert (
-            param.value_schema.val_type == get_wire_type(input_type)
-        ), f"Parameter {param.name} has value type {param.value_schema.val_type} but {input_type} was expected at index {i}"
+        assert param.value_schema.val_type == get_wire_type(input_type), (
+            f"Parameter {param.name} has value type {param.value_schema.val_type} but {input_type} was expected at index {i}"
+        )
 
     if output_type:
-        assert tool_def.output.value_schema.val_type == get_wire_type(
-            output_type
-        ), f"Output has value type {tool_def.output.val_type} but {output_type} was expected"
+        assert tool_def.output.value_schema.val_type == get_wire_type(output_type), (
+            f"Output has value type {tool_def.output.val_type} but {output_type} was expected"
+        )
     else:
         assert tool_def.output.value_schema is None, "Output is not None"

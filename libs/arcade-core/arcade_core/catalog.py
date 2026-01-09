@@ -112,6 +112,7 @@ class ToolMeta(BaseModel):
     toolkit: str | None = None
     package: str | None = None
     path: str | None = None
+    datacache: dict[str, Any] | None = None
     date_added: datetime = Field(default_factory=datetime.now)
     date_updated: datetime = Field(default_factory=datetime.now)
 
@@ -261,6 +262,7 @@ class ToolCatalog(BaseModel):
                 toolkit=toolkit_name,
                 package=toolkit.package_name if toolkit else None,
                 path=module.__file__ if module else None,
+                datacache=getattr(tool_func, "__tool_datacache__", None),
             ),
             input_model=input_model,
             output_model=output_model,
