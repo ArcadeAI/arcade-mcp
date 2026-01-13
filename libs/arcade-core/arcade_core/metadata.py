@@ -7,119 +7,61 @@ from pydantic import BaseModel, ConfigDict
 class Verb(str, Enum):
     """
     Classifies the primary action performed by the tool.
+
+    Design: Based on CRUD + common automation actions.
+    Single value per tool.
     """
 
-    CREATE = "create"
-    READ = "read"
-    UPDATE = "update"
-    DELETE = "delete"
-    EXECUTE = "execute"
-    TRANSFER = "transfer"
-    MANAGE = "manage"
-    CONTROL = "control"
-    AUTHORIZE = "authorize"
-    DENY = "deny"
-    ASSOCIATE = "associate"
-    DISASSOCIATE = "disassociate"
-    MONITOR = "monitor"
-    SUBSCRIBE = "subscribe"
-    UNSUBSCRIBE = "unsubscribe"
+    CREATE = "create"  # Generates new resources
+    READ = "read"  # Retrieves existing data
+    UPDATE = "update"  # Modifies existing resources
+    DELETE = "delete"  # Removes resources
+    EXECUTE = "execute"  # Runs processes, triggers actions
+    TRANSFER = "transfer"  # Moves/syncs data between systems
+    LINK = "link"  # Associates or disassociates resources
+    CONTROL = "control"  # Start/stop/pause lifecycle operations
+    AUTHORIZE = "authorize"  # Grants or revokes permissions
+    MONITOR = "monitor"  # Observes, tracks, or subscribes to changes
 
 
 class Scope(str, Enum):
     """
-    Defines where the authoritative state lives.
+    Defines where the tool operates.
+
+    Single value per tool.
     """
 
-    INTERNAL = "internal"
-    # State is owned and controlled by the LLM's host system
-
-    EXTERNAL = "external"
-    # State is owned by a third-party system or environment
-
-    HYBRID = "hybrid"
-    # Tool bridges internal and external state-spaces
+    LOCAL = "local"  # Runs entirely in-process
+    REMOTE = "remote"  # Interacts with external services/APIs
+    HYBRID = "hybrid"  # Both local computation and remote calls
 
 
 class Domain(str, Enum):
     """
-    Classifies the primary state-space a tool exposes or mutates.
-    """
+    High-level functional domain the tool serves.
 
-    SYMBOLIC = "symbolic"
-    # Unstructured representations: text, images, audio, video, code
-
-    STRUCTURED_DATA = "structured_data"
-    # Typed records, tables, schemas, metrics
-
-    MEMORY = "memory"
-    # Persistence, recall, embeddings, logs
-
-    TIME = "time"
-    # Temporal state: schedules, timers, ordering, deadlines
-
-    IDENTITY = "identity"
-    # Actors, principals, credentials, profiles
-
-    COMMUNICATION = "communication"
-    # Directed information exchange between actors
-
-    SEARCH = "search"
-    # Discovery over unknown or partially known spaces
-
-    INFERENCE = "inference"
-    # Derived knowledge: analytics, classification, prediction
-
-    PLANNING = "planning"
-    # Sequencing and goal decomposition
-
-    EXECUTION = "execution"
-    # Triggering code paths, workflows, automations
-
-    CONFIGURATION = "configuration"
-    # Modifying system behavior via settings or policies
-
-    ACCESS_CONTROL = "access_control"
-    # Permissions, authorization, enforcement
-
-    TRANSACTION = "transaction"
-    # Irreversible, accountable state changes
-
-    PHYSICAL = "physical"
-    # Sensors, actuators, robots, IoT
-
-    SIMULATION = "simulation"
-    # Counterfactual or sandboxed worlds
-
-
-class Domain2(str, Enum):
-    """
-    High-level functional domain the tool belongs to.
+    Design: Based on existing SaaS marketplace category taxonomies.
     Tools can belong to multiple domains.
 
-    Litmus test:
-    If it can be applied uniformly to every domain, it is not itself a domain.
+    Litmus test: Would this category appear in a SaaS marketplace filter?
     """
 
-    COMMUNICATION = "communication"  # Internal/external communication
-    CONTENT = "content"  # Content management, publishing
-    ECOMMERCE = "ecommerce"  # E-commerce, retail, inventory
-    PRODUCTIVITY = "productivity"
-    RESEARCH = "research"
-    FINANCE = "finance"  # Finance, accounting, billing, payments
-    SALES = "sales"  # Sales operations, CRM, leads, opportunities, deals
-    MARKETING = "marketing"  # Marketing campaigns, email, content, analytics
-    ENGINEERING = "engineering"  # Software development, DevOps, infrastructure
-    IT = "it"  # IT operations, infrastructure, systems
-    DESIGN = "design"  # Design, UX, creative
-    SUPPORT = "support"  # Customer support, helpdesk, ticketing
-    PRODUCT = "product"  # Product management, roadmaps, features
-    HR = "hr"  # Human resources, recruiting, onboarding
-    LEGAL = "legal"  # Legal, compliance, contracts
-    SECURITY = "security"  # Security, access control, compliance
-    ANALYTICS = "analytics"  # Data analytics, reporting, insights
-    OPERATIONS = "operations"  # Business operations, administration
-    OTHER = "other"
+    COMMUNICATION = "communication"  # Messaging, email, notifications
+    PRODUCTIVITY = "productivity"  # Docs, tasks, notes, collaboration
+    SCHEDULING = "scheduling"  # Calendars, appointments, time
+    STORAGE = "storage"  # Files, drives, databases
+    CRM = "crm"  # Customer relationships, contacts
+    SALES = "sales"  # Deals, pipelines, quoting
+    MARKETING = "marketing"  # Campaigns, social, content
+    SUPPORT = "support"  # Helpdesk, tickets, success
+    FINANCE = "finance"  # Accounting, payments, invoicing
+    HR = "hr"  # Recruiting, onboarding, people
+    ENGINEERING = "engineering"  # Code, repos, DevOps, infra
+    ANALYTICS = "analytics"  # Reporting, BI, metrics
+    SECURITY = "security"  # Access control, compliance
+    IDENTITY = "identity"  # User profiles, credentials, authentication
+    ECOMMERCE = "ecommerce"  # Stores, inventory, fulfillment
+    UTILITY = "utility"  # Pure computation, transformation, generation
 
 
 class Annotations(BaseModel):
@@ -140,12 +82,12 @@ class Categories(BaseModel):
     These properties are intrinsic to the tool's code, not user-configurable.
 
     A tool is fully described by:
-    (one or more Domains) + (one or more Verbs) + (one Scope)
+    (one Verb) + (one Scope) + (one or more Domains)
     """
 
-    verb: Verb | None = None  # Single: What action (CREATE, READ, etc.)
-    scope: Scope | None = None  # Single: System boundary (INTERNAL, EXTERNAL, HYBRID)
-    domains: list[Domain] | None = None  # Multiple: Functional areas (can span multiple)
+    verb: Verb | None = None  # Single: What action
+    scope: Scope | None = None  # Single: System boundary
+    domains: list[Domain] | None = None  # Multiple: Functional areas
 
     model_config = ConfigDict(extra="allow")
 
@@ -155,7 +97,7 @@ class ToolMetadata(BaseModel):
     Container for tool metadata. Static properties defined by tool authors.
 
     Note: Tags are NOT defined here - they are customer-defined via GUI/API
-    and stored separately. Only categories and annotations are defined in code.
+    and stored separately. Only categories, annotations, and extensions can be defined in code.
 
     The `extensions` field allows tool authors to define arbitrary key/values
     for custom logic (e.g., IDP routing, feature flags). These are NOT used
@@ -164,6 +106,6 @@ class ToolMetadata(BaseModel):
 
     annotations: Annotations | None = None
     categories: Categories | None = None
-    extensions: dict[str, Any] | None = None  # Arbitrary key/values for custom logic
+    extensions: dict[str, Any] | None = None
 
     model_config = ConfigDict(extra="forbid")

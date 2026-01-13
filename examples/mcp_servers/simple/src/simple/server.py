@@ -22,9 +22,9 @@ app = MCPApp(name="simple", version="1.0.0", log_level="DEBUG")
             openWorldHint=False,
         ),
         categories=Categories(
-            verb=Verb.READ,
-            scope=Scope.INTERNAL,
-            domains=[Domain.COMMUNICATION],
+            verb=Verb.EXECUTE,
+            scope=Scope.LOCAL,
+            domains=[Domain.UTILITY],
         ),
     ),
 )
@@ -46,7 +46,7 @@ def greet(name: Annotated[str, "The name of the person to greet"]) -> str:
         ),
         categories=Categories(
             verb=Verb.READ,
-            scope=Scope.INTERNAL,
+            scope=Scope.LOCAL,
             domains=[Domain.IDENTITY],
         ),
     ),
@@ -78,7 +78,7 @@ def whisper_secret(context: Context) -> Annotated[str, "The last 4 characters of
         ),
         categories=Categories(
             verb=Verb.READ,
-            scope=Scope.EXTERNAL,
+            scope=Scope.REMOTE,
             domains=[Domain.COMMUNICATION],
         ),
     ),
