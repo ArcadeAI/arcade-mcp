@@ -791,7 +791,7 @@ def deploy_server_logic(
 
     if secrets == "skip":
         console.print("\n[!] Skipping secret upload (--secrets skip)", style="yellow")
-    elif secrets == "all":
+    elif secrets == "all" and env_path is not None:
         console.print("\nUploading ALL secrets from .env file...", style="dim")
         secrets_to_upsert = set(load_env_file(str(env_path)).keys())
         if secrets_to_upsert:
