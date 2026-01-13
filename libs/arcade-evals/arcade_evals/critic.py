@@ -7,16 +7,34 @@ import pytz
 from dateutil import parser
 
 from arcade_evals.errors import WeightError
+from arcade_evals.weights import FuzzyWeight, Weight, resolve_weight
 
 
 @dataclass
 class Critic(ABC):
+    """
+    Base class for all critics.
+
+    Attributes:
+        critic_field: The field name this critic evaluates.
+        weight: The weight for this critic. Can be a float (0.0-1.0) or FuzzyWeight enum.
+                When using FuzzyWeight, weights are auto-normalized to sum to 1.0.
+    """
+
     critic_field: str
-    weight: float
+    weight: Weight
 
     def __post_init__(self) -> None:
-        if self.weight < 0 or self.weight > 1:
-            raise WeightError(f"Critic weight must be between 0 and 1, got {self.weight}")
+        if isinstance(self.weight, FuzzyWeight):
+            return
+
+        if self.weight < 0:
+            raise WeightError(f"Critic weight must be non-negative, got {self.weight}")
+
+    @property
+    def resolved_weight(self) -> float:
+        """Get the weight as a float value."""
+        return resolve_weight(self.weight)
 
     @abstractmethod
     def evaluate(self, expected: Any, actual: Any) -> dict[str, Any]:
@@ -31,6 +49,10 @@ class NoneCritic(Critic):
     If a critic is not found for an evaluation case's field, then
     a NoneCritic is used to indicate that the field was not criticized.
     """
+
+    # Marker attribute to identify placeholder critics without isinstance checks
+    # (avoids circular imports in weights.py)
+    _is_placeholder: ClassVar[bool] = True
 
     weight: float = 0.0
 
@@ -108,7 +130,7 @@ class BinaryCritic(Critic):
             actual_casted = actual
 
         match = expected == actual_casted
-        return {"match": match, "score": self.weight if match else 0.0}
+        return {"match": match, "score": self.resolved_weight if match else 0.0}
 
 
 @dataclass
@@ -158,7 +180,10 @@ class NumericCritic(Critic):
         normalized_expected = float((float(expected) - min_val) / (max_val - min_val))
         normalized_actual = float((float(actual) - min_val) / (max_val - min_val))
         score = float(1 - abs(normalized_expected - normalized_actual))
-        return {"match": bool(score >= self.match_threshold), "score": float(score * self.weight)}
+        return {
+            "match": bool(score >= self.match_threshold),
+            "score": float(score * self.resolved_weight),
+        }
 
 
 @dataclass
@@ -207,7 +232,23 @@ class SimilarityCritic(Critic):
         self.similarity_threshold = similarity_threshold
         self.metric = metric
 
-    def evaluate(self, expected: str, actual: str) -> dict[str, float | bool]:
+    def evaluate(self, expected: Any, actual: Any) -> dict[str, float | bool]:
+        # IMPORTANT: Convert non-string values to strings before TF-IDF comparison.
+        # sklearn's TfidfVectorizer calls .lower() on inputs, which fails on lists/dicts.
+        # This commonly occurs when SimilarityCritic is used for tool arguments that are
+        # lists (e.g., teams_to_add=["Engineering", "Platform"]) instead of strings.
+        # Lists are joined with spaces to create comparable text representations.
+        if not isinstance(expected, str):
+            expected = (
+                " ".join(str(item) for item in expected)
+                if isinstance(expected, list)
+                else str(expected)
+            )
+        if not isinstance(actual, str):
+            actual = (
+                " ".join(str(item) for item in actual) if isinstance(actual, list) else str(actual)
+            )
+
         if self.metric == "cosine":
             try:
                 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -216,14 +257,35 @@ class SimilarityCritic(Critic):
                 raise ImportError(
                     "Use `pip install 'arcade-evals` to install the required dependencies for similarity metrics."
                 )
-            vectorizer = TfidfVectorizer()
-            tfidf_matrix = vectorizer.fit_transform([expected, actual])
-            similarity = cosine_similarity(tfidf_matrix[0], tfidf_matrix[1])[0][0]
+
+            # Handle edge case: empty strings or strings with no valid tokens
+            # TfidfVectorizer fails with "empty vocabulary" for such inputs
+            if not expected.strip() or not actual.strip():
+                # Both empty = match, one empty = no match
+                is_match = expected.strip() == actual.strip()
+                return {
+                    "match": is_match,
+                    "score": self.resolved_weight if is_match else 0.0,
+                }
+
+            try:
+                vectorizer = TfidfVectorizer()
+                tfidf_matrix = vectorizer.fit_transform([expected, actual])
+                similarity = float(cosine_similarity(tfidf_matrix[0], tfidf_matrix[1])[0][0])
+            except ValueError:
+                # TfidfVectorizer raises ValueError for empty vocabulary
+                # (e.g., only numbers/punctuation which get filtered as stop words)
+                # Fall back to exact string match
+                is_match = expected == actual
+                return {
+                    "match": is_match,
+                    "score": self.resolved_weight if is_match else 0.0,
+                }
         else:
             raise ValueError(f"Unsupported similarity metric: {self.metric}")
         return {
             "match": similarity >= self.similarity_threshold,
-            "score": min(similarity * self.weight, self.weight),
+            "score": min(similarity * self.resolved_weight, self.resolved_weight),
         }
 
 
@@ -278,7 +340,7 @@ class DatetimeCritic(Critic):
 
         if time_diff_seconds <= tolerance_seconds:
             # Full score if within tolerance
-            return {"match": True, "score": self.weight}
+            return {"match": True, "score": self.resolved_weight}
         elif time_diff_seconds >= max_difference_seconds:
             # No score if beyond max_difference
             return {"match": False, "score": 0.0}
@@ -287,5 +349,5 @@ class DatetimeCritic(Critic):
             ratio = 1 - (time_diff_seconds / max_difference_seconds)
             # Ensure ratio is not negative
             ratio = max(ratio, 0)
-            score = self.weight * ratio
+            score = self.resolved_weight * ratio
             return {"match": False, "score": score}

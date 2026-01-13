@@ -1,0 +1,48 @@
+name: Test Installation (Cross-Platform)
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+    workflow_dispatch:
+
+jobs:
+    test-install:
+        name: Test Installation on ${{ matrix.os }} with Python ${{ matrix.python-version }}
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [ubuntu-latest, windows-latest, macos-latest]
+                python-version: ["3.10", "3.12"]
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Install uv
+              uses: astral-sh/setup-uv@v5
+              with:
+                  version: "latest"
+
+            - name: Set up Python ${{ matrix.python-version }}
+              uses: actions/setup-python@v5
+              with:
+                  python-version: ${{ matrix.python-version }}
+
+            - name: Install dependencies
+              run: |
+                  uv sync --dev
+
+            - name: Install arcade-mcp from source
+              run: |
+                  uv pip install -e .
+
+            - name: Run installation test
+              run: |
+                  python tests/install/test_install.py
+
+            - name: Verify arcade CLI is available
+              run: |
+                  uv run arcade --help
