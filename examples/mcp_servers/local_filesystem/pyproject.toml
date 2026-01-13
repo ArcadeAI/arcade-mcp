@@ -38,7 +38,9 @@ toolkit_name = "simple"
 
 # # Uncomment the following if you are developing inside of the arcade-mcp repo & want to use editable mode
 # # Otherwise, you will install the following packages from PyPI
-# [tool.uv.sources]
-# arcade-mcp = { path = "../../../", editable = true }
-# arcade-serve = { path = "../../../libs/arcade-serve/", editable = true }
-# arcade-mcp-server = { path = "../../../libs/arcade-mcp-server/", editable = true }
+[tool.uv.sources]
+arcade-mcp = { path = "../../../", editable = true }
+arcade-core = { path = "../../../libs/arcade-core/", editable = true }
+arcade-tdk = { path = "../../../libs/arcade-tdk/", editable = true }
+arcade-serve = { path = "../../../libs/arcade-serve/", editable = true }
+arcade-mcp-server = { path = "../../../libs/arcade-mcp-server/", editable = true }

@@ -51,7 +51,7 @@ def test_structured_tool_auto_name_description():
 def test_structured_tool_validation_errors():
     # Test missing docstring
     with pytest.raises(
-        ValueError, match="Function must have a docstring if description not provided."
+        ValueError, match=r"Function must have a docstring if description not provided\."
     ):
         StructuredTool.from_function(func=unnamed_function, args_schema=CalculatorInput)
 

@@ -111,6 +111,7 @@ def tool(
     requires_auth: ToolAuthorization | None = None,
     requires_secrets: list[str] | None = None,
     requires_metadata: list[str] | None = None,
+    datacache: dict[str, Any] | None = None,
     adapters: list[ErrorAdapter] | None = None,
 ) -> Callable:
     def decorator(func: Callable) -> Callable:
@@ -122,6 +123,7 @@ def tool(
         func.__tool_requires_auth__ = requires_auth  # type: ignore[attr-defined]
         func.__tool_requires_secrets__ = requires_secrets  # type: ignore[attr-defined]
         func.__tool_requires_metadata__ = requires_metadata  # type: ignore[attr-defined]
+        func.__tool_datacache__ = datacache  # type: ignore[attr-defined]
 
         adapter_chain = _build_adapter_chain(adapters, requires_auth)
 

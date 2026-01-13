@@ -176,7 +176,7 @@ class TestGraphQLErrorAdapter:
         exc = DummyTransportServerError("Error", code=429)
         # No headers on exc, but on __cause__
         cause = Exception("inner")
-        cause.response = DummyResponse({"retry-after": "10"})  # type: ignore
+        cause.response = DummyResponse({"retry-after": "10"})  # type: ignore[attr-defined]
         exc.__cause__ = cause
 
         with _patch_loader():
@@ -195,7 +195,7 @@ class TestGraphQLErrorAdapter:
             method = "POST"
 
         cause = Exception("inner")
-        cause.request_info = FakeRequestInfo()  # type: ignore
+        cause.request_info = FakeRequestInfo()  # type: ignore[attr-defined]
         exc.__cause__ = cause
 
         with _patch_loader():
@@ -219,7 +219,7 @@ class TestGraphQLErrorAdapter:
             request = FakeRequest()
 
         cause = Exception("inner")
-        cause.response = FakeResponse()  # type: ignore
+        cause.response = FakeResponse()  # type: ignore[attr-defined]
         exc.__cause__ = cause
 
         with _patch_loader():

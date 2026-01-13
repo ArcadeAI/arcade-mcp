@@ -95,7 +95,7 @@ class TestConvertToMCPContent:
 
         # Should handle gracefully (implementation dependent)
         # Most JSON encoders will raise an error
-        with pytest.raises(Exception):
+        with pytest.raises((TypeError, ValueError)):
             convert_to_mcp_content(obj)
 
     def test_convert_custom_objects(self):

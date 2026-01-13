@@ -94,28 +94,26 @@ class Middleware:
 
         # Method-specific handlers
         if context.method:
-            match context.method:
-                case "tools/call":
-                    handler = partial(self.on_call_tool, call_next=handler)
-                case "tools/list":
-                    handler = partial(self.on_list_tools, call_next=handler)
-                case "resources/read":
-                    handler = partial(self.on_read_resource, call_next=handler)
-                case "resources/list":
-                    handler = partial(self.on_list_resources, call_next=handler)
-                case "resources/templates/list":
-                    handler = partial(self.on_list_resource_templates, call_next=handler)
-                case "prompts/get":
-                    handler = partial(self.on_get_prompt, call_next=handler)
-                case "prompts/list":
-                    handler = partial(self.on_list_prompts, call_next=handler)
+            if context.method == "tools/call":
+                handler = partial(self.on_call_tool, call_next=handler)
+            elif context.method == "tools/list":
+                handler = partial(self.on_list_tools, call_next=handler)
+            elif context.method == "resources/read":
+                handler = partial(self.on_read_resource, call_next=handler)
+            elif context.method == "resources/list":
+                handler = partial(self.on_list_resources, call_next=handler)
+            elif context.method == "resources/templates/list":
+                handler = partial(self.on_list_resource_templates, call_next=handler)
+            elif context.method == "prompts/get":
+                handler = partial(self.on_get_prompt, call_next=handler)
+            elif context.method == "prompts/list":
+                handler = partial(self.on_list_prompts, call_next=handler)
 
         # Type-specific handlers
-        match context.type:
-            case "request":
-                handler = partial(self.on_request, call_next=handler)
-            case "notification":
-                handler = partial(self.on_notification, call_next=handler)
+        if context.type == "request":
+            handler = partial(self.on_request, call_next=handler)
+        elif context.type == "notification":
+            handler = partial(self.on_notification, call_next=handler)
 
         # Generic message handler (always runs)
         handler = partial(self.on_message, call_next=handler)
