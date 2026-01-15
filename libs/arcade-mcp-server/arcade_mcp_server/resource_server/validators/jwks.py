@@ -8,7 +8,9 @@ import time
 from typing import Any, cast
 
 import httpx
-from jose import jwk, jwt
+from joserfc import jwt
+from joserfc.errors import ExpiredTokenError, JoseError
+from joserfc.jwk import KeySet
 
 from arcade_mcp_server.resource_server.base import (
     AccessTokenValidationOptions,
@@ -21,16 +23,25 @@ from arcade_mcp_server.resource_server.base import (
 
 # Note: Only asymmetric algorithms supported
 SUPPORTED_ALGORITHMS = {
+    # RSA
     "RS256",
     "RS384",
     "RS512",
+    # ECDSA
     "ES256",
     "ES384",
     "ES512",
+    # RSA-PSS
     "PS256",
     "PS384",
     "PS512",
+    # EdDSA (RFC 9864)
+    "Ed25519",
+    "EdDSA",
 }
+
+# EdDSA algorithm aliases - joserfc uses "Ed25519" per RFC 9864
+EDDSA_ALGORITHMS = {"Ed25519", "EdDSA"}
 
 
 class JWKSTokenValidator(ResourceServerValidator):
@@ -92,6 +103,14 @@ class JWKSTokenValidator(ResourceServerValidator):
                 audience="https://mcp.example.com/mcp",
                 algorithm="ES256",
             )
+
+            # Ed25519 algorithm (for Arcade Intermediate AS)
+            validator = JWKSTokenValidator(
+                jwks_uri="https://cloud.arcade.dev/.well-known/jwks/oauth2",
+                issuer="https://cloud.arcade.dev/oauth2",
+                audience="urn:arcade:mcp",
+                algorithm="Ed25519",
+            )
             ```
         """
         if algorithm not in SUPPORTED_ALGORITHMS:
@@ -113,6 +132,33 @@ class JWKSTokenValidator(ResourceServerValidator):
         self._http_client = httpx.AsyncClient(timeout=10.0)
         self._jwks_cache: dict[str, Any] | None = None
         self._cache_timestamp: float = 0
+
+    def _normalize_algorithm(self, alg: str) -> str:
+        """Normalize algorithm name for comparison.
+
+        EdDSA has multiple names (EdDSA, Ed25519) that should be treated as equivalent.
+
+        Args:
+            alg: Algorithm name
+
+        Returns:
+            Normalized algorithm name
+        """
+        if alg in EDDSA_ALGORITHMS:
+            return "Ed25519"
+        return alg
+
+    def _algorithms_match(self, alg1: str, alg2: str) -> bool:
+        """Check if two algorithm names match (considering EdDSA aliases).
+
+        Args:
+            alg1: First algorithm name
+            alg2: Second algorithm name
+
+        Returns:
+            True if algorithms match
+        """
+        return self._normalize_algorithm(alg1) == self._normalize_algorithm(alg2)
 
     async def _fetch_jwks(self) -> dict[str, Any]:
         """Fetch JWKS with caching.
@@ -139,6 +185,39 @@ class JWKSTokenValidator(ResourceServerValidator):
         else:
             return self._jwks_cache
 
+    def _get_unverified_header(self, token: str) -> dict[str, Any]:
+        """Extract header from JWT without verification.
+
+        Args:
+            token: JWT token string
+
+        Returns:
+            Header dictionary
+
+        Raises:
+            InvalidTokenError: If token format is invalid
+        """
+        try:
+            # Split token and decode header (first part)
+            parts = token.split(".")
+            if len(parts) != 3:
+                raise InvalidTokenError("Invalid JWT format")
+
+            import base64
+
+            # Add padding if needed
+            header_b64 = parts[0]
+            padding = 4 - len(header_b64) % 4
+            if padding != 4:
+                header_b64 += "=" * padding
+
+            import json
+
+            header_bytes = base64.urlsafe_b64decode(header_b64)
+            return cast(dict[str, Any], json.loads(header_bytes))
+        except (ValueError, json.JSONDecodeError) as e:
+            raise InvalidTokenError(f"Invalid JWT header: {e}") from e
+
     def _find_signing_key(self, jwks: dict[str, Any], token: str) -> Any:
         """Find the signing key from JWKS that matches the token's kid.
 
@@ -147,72 +226,88 @@ class JWKSTokenValidator(ResourceServerValidator):
             token: JWT token
 
         Returns:
-            Signing key in PEM format
+            Key object from joserfc KeySet
 
         Raises:
             InvalidTokenError: If no matching key found or algorithm mismatch
         """
-        unverified_header = jwt.get_unverified_header(token)
-        kid = unverified_header.get("kid")
-        token_alg = unverified_header.get("alg")
+        header = self._get_unverified_header(token)
+        kid = header.get("kid")
+        token_alg = header.get("alg")
 
         # Validate token algorithm matches configuration (prevent algorithm confusion)
-        if token_alg and token_alg != self.algorithm:
+        if token_alg and not self._algorithms_match(token_alg, self.algorithm):
             raise InvalidTokenError(
                 f"Token algorithm '{token_alg}' doesn't match "
                 f"configured algorithm '{self.algorithm}'"
             )
 
-        for key_data in jwks.get("keys", []):
-            if key_data.get("kid") == kid:
-                key_alg = key_data.get("alg")
+        # Import JWKS as KeySet
+        try:
+            key_set = KeySet.import_key_set(jwks)
+        except Exception as e:
+            raise InvalidTokenError(f"Failed to import JWKS: {e}") from e
 
-                if key_alg and key_alg != self.algorithm:
+        # Find key by kid
+        for key in key_set.keys:
+            if key.kid == kid:
+                key_alg = key.alg
+                if key_alg and not self._algorithms_match(key_alg, self.algorithm):
                     raise InvalidTokenError(
                         f"Key algorithm '{key_alg}' doesn't match "
                         f"configured algorithm '{self.algorithm}'"
                     )
-
-                key_obj = jwk.construct(key_data, algorithm=self.algorithm)
-                return key_obj.to_pem().decode("utf-8")
+                return key
 
         raise InvalidTokenError("No matching key found in JWKS")
 
-    def _decode_token(self, token: str, signing_key: str) -> dict[str, Any]:
+    def _decode_token(self, token: str, signing_key: Any) -> dict[str, Any]:
         """Decode and verify the provided JWT token.
 
         Args:
             token: JWT token
-            signing_key: Public key in PEM format
+            signing_key: Key object from joserfc
 
         Returns:
             Decoded token claims
 
         Raises:
-            jwt.ExpiredSignatureError: Token has expired
-            jwt.JWTClaimsError: Token claims validation failed (audience/issuer mismatch)
-            jwt.JWTError: Token is invalid
+            TokenExpiredError: Token has expired
+            InvalidTokenError: Token validation failed
         """
-        decode_options = {
-            "verify_signature": True,  # Always verify signature. Cannot be disabled.
-            "verify_exp": self.validation_options.verify_exp,
-            "verify_iat": self.validation_options.verify_iat,
-            "verify_nbf": self.validation_options.verify_nbf,
-            "verify_aud": False,  # Manual validation for multi-audience support
-            "verify_iss": False,  # Manual validation for multi-issuer support
-            "leeway": self.validation_options.leeway,
-        }
+        # Build the list of algorithms to accept
+        # For EdDSA, we accept both "Ed25519" and "EdDSA" in case the token uses either
+        if self.algorithm in EDDSA_ALGORITHMS:
+            algorithms = list(EDDSA_ALGORITHMS)
+        else:
+            algorithms = [self.algorithm]
 
-        # Decode token once without aud/iss validation
-        decoded = cast(
-            dict[str, Any],
-            jwt.decode(
-                token,
-                signing_key,
-                algorithms=[self.algorithm],
-                options=decode_options,
-            ),
-        )
+        try:
+            result = jwt.decode(token, signing_key, algorithms=algorithms)
+            decoded = dict(result.claims)
+        except ExpiredTokenError as e:
+            raise TokenExpiredError("Token has expired") from e
+        except JoseError as e:
+            raise InvalidTokenError(f"Token validation failed: {e}") from e
+
+        # Manual validation of timing claims based on options
+        current_time = int(time.time())
+        leeway = self.validation_options.leeway
+
+        if self.validation_options.verify_exp:
+            exp = decoded.get("exp")
+            if exp is not None and exp + leeway < current_time:
+                raise TokenExpiredError("Token has expired")
+
+        if self.validation_options.verify_iat:
+            iat = decoded.get("iat")
+            if iat is not None and iat - leeway > current_time:
+                raise InvalidTokenError("Token issued in the future")
+
+        if self.validation_options.verify_nbf:
+            nbf = decoded.get("nbf")
+            if nbf is not None and nbf - leeway > current_time:
+                raise InvalidTokenError("Token not yet valid")
 
         # Manually validate issuer (if flag is enabled)
         if self.validation_options.verify_iss:
@@ -313,12 +408,6 @@ class JWKSTokenValidator(ResourceServerValidator):
                 claims=decoded,
             )
 
-        except jwt.ExpiredSignatureError as e:
-            raise TokenExpiredError("Token has expired") from e
-        except jwt.JWTClaimsError as e:
-            raise InvalidTokenError(f"Token claims validation failed: {e}") from e
-        except jwt.JWTError as e:
-            raise InvalidTokenError(f"Invalid token: {e}") from e
         except (InvalidTokenError, TokenExpiredError):
             raise
         except Exception as e:

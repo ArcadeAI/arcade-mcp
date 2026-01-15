@@ -19,7 +19,9 @@ from arcade_mcp_server.resource_server.middleware import ResourceServerMiddlewar
 from arcade_mcp_server.worker import create_arcade_mcp
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-from jose import jwt
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+from joserfc import jwt
+from joserfc.jwk import RSAKey, OKPKey
 
 
 # Test fixtures
@@ -50,10 +52,22 @@ def rsa_keypair():
 
 
 @pytest.fixture
+def rsa_joserfc_key(rsa_keypair):
+    """Generate joserfc RSAKey from keypair."""
+    private_key, _ = rsa_keypair
+    pem = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+    return RSAKey.import_key(pem)
+
+
+@pytest.fixture
 def serialized_private_key(rsa_keypair):
     """Generate private key as PEM format for testing."""
     private_key, _ = rsa_keypair
-    # Serialize private key to PEM format for python-jose
+    # Serialize private key to PEM format
     pem = private_key.private_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PrivateFormat.PKCS8,
@@ -94,11 +108,9 @@ def jwks_data(rsa_keypair):
 
 
 @pytest.fixture
-def valid_jwt_token(rsa_keypair):
+def valid_jwt_token(rsa_joserfc_key):
     """Generate valid JWT token for testing."""
-    private_key, _ = rsa_keypair
-
-    payload = {
+    claims = {
         "sub": "user123",
         "email": "user@example.com",
         "iss": "https://auth.example.com",
@@ -107,22 +119,16 @@ def valid_jwt_token(rsa_keypair):
         "iat": int(time.time()),
     }
 
-    token = jwt.encode(
-        payload,
-        private_key,
-        algorithm="RS256",
-        headers={"kid": "test-key-1"},
-    )
+    header = {"alg": "RS256", "kid": "test-key-1"}
+    token = jwt.encode(header, claims, rsa_joserfc_key)
 
     return token
 
 
 @pytest.fixture
-def expired_jwt_token(rsa_keypair):
+def expired_jwt_token(rsa_joserfc_key):
     """Generate expired JWT token for testing."""
-    private_key, _ = rsa_keypair
-
-    payload = {
+    claims = {
         "sub": "user123",
         "email": "user@example.com",
         "iss": "https://auth.example.com",
@@ -131,12 +137,92 @@ def expired_jwt_token(rsa_keypair):
         "iat": int(time.time()) - 7200,
     }
 
-    token = jwt.encode(
-        payload,
-        private_key,
-        algorithm="RS256",
-        headers={"kid": "test-key-1"},
+    header = {"alg": "RS256", "kid": "test-key-1"}
+    token = jwt.encode(header, claims, rsa_joserfc_key)
+
+    return token
+
+
+# Ed25519 fixtures
+@pytest.fixture
+def ed25519_keypair():
+    """Generate Ed25519 key pair for testing."""
+    private_key = Ed25519PrivateKey.generate()
+    public_key = private_key.public_key()
+    return private_key, public_key
+
+
+@pytest.fixture
+def ed25519_joserfc_key(ed25519_keypair):
+    """Generate joserfc OKPKey from Ed25519 keypair."""
+    private_key, _ = ed25519_keypair
+    pem = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),
     )
+    return OKPKey.import_key(pem)
+
+
+@pytest.fixture
+def ed25519_jwks_data(ed25519_keypair):
+    """Generate Ed25519 JWKS data for testing."""
+    _, public_key = ed25519_keypair
+
+    # Get the raw public key bytes
+    public_bytes = public_key.public_bytes_raw()
+
+    # Base64url encode the public key
+    x_b64 = base64.urlsafe_b64encode(public_bytes).decode("utf-8").rstrip("=")
+
+    return {
+        "keys": [
+            {
+                "kty": "OKP",
+                "kid": "ed25519-key-1",
+                "use": "sig",
+                "alg": "Ed25519",
+                "crv": "Ed25519",
+                "x": x_b64,
+            }
+        ]
+    }
+
+
+@pytest.fixture
+def valid_ed25519_token(ed25519_joserfc_key):
+    """Generate valid Ed25519 JWT token for testing."""
+    claims = {
+        "sub": "user456",
+        "email": "ed25519user@example.com",
+        "iss": "https://cloud.arcade.dev/oauth2",
+        "aud": "urn:arcade:mcp",
+        "exp": int(time.time()) + 3600,
+        "iat": int(time.time()),
+    }
+
+    header = {"alg": "Ed25519", "kid": "ed25519-key-1"}
+    # Ed25519 is not in joserfc's recommended algorithms, so we must explicitly allow it
+    token = jwt.encode(header, claims, ed25519_joserfc_key, algorithms=["Ed25519"])
+
+    return token
+
+
+@pytest.fixture
+def expired_ed25519_token(ed25519_joserfc_key):
+    """Generate expired Ed25519 JWT token for testing."""
+    claims = {
+        "sub": "user456",
+        "email": "ed25519user@example.com",
+        "iss": "https://cloud.arcade.dev/oauth2",
+        "aud": "urn:arcade:mcp",
+        "exp": int(time.time()) - 3600,
+        "iat": int(time.time()) - 7200,
+    }
+
+    header = {"alg": "Ed25519", "kid": "ed25519-key-1"}
+    # Ed25519 is not in joserfc's recommended algorithms, so we must explicitly allow it
+    token = jwt.encode(header, claims, ed25519_joserfc_key, algorithms=["Ed25519"])
 
     return token
 
@@ -185,9 +271,9 @@ class TestJWKSTokenValidator:
                 await validator.validate_token(expired_jwt_token)
 
     @pytest.mark.asyncio
-    async def test_validate_wrong_audience(self, serialized_private_key, jwks_data):
+    async def test_validate_wrong_audience(self, rsa_joserfc_key, jwks_data):
         """Test validating token with wrong audience."""
-        payload = {
+        claims = {
             "sub": "user123",
             "iss": "https://auth.example.com",
             "aud": "https://wrong-server.com",  # Wrong audience
@@ -195,12 +281,8 @@ class TestJWKSTokenValidator:
             "iat": int(time.time()),
         }
 
-        token = jwt.encode(
-            payload,
-            serialized_private_key,
-            algorithm="RS256",
-            headers={"kid": "test-key-1"},
-        )
+        header = {"alg": "RS256", "kid": "test-key-1"}
+        token = jwt.encode(header, claims, rsa_joserfc_key)
 
         with patch("httpx.AsyncClient.get") as mock_get:
             mock_response = Mock()
@@ -218,9 +300,9 @@ class TestJWKSTokenValidator:
                 await validator.validate_token(token)
 
     @pytest.mark.asyncio
-    async def test_validate_wrong_issuer(self, serialized_private_key, jwks_data):
+    async def test_validate_wrong_issuer(self, rsa_joserfc_key, jwks_data):
         """Test validating token with wrong issuer."""
-        payload = {
+        claims = {
             "sub": "user123",
             "iss": "https://wrong-issuer.com",  # Wrong issuer
             "aud": "https://mcp.example.com/mcp",
@@ -228,12 +310,8 @@ class TestJWKSTokenValidator:
             "iat": int(time.time()),
         }
 
-        token = jwt.encode(
-            payload,
-            serialized_private_key,
-            algorithm="RS256",
-            headers={"kid": "test-key-1"},
-        )
+        header = {"alg": "RS256", "kid": "test-key-1"}
+        token = jwt.encode(header, claims, rsa_joserfc_key)
 
         with patch("httpx.AsyncClient.get") as mock_get:
             mock_response = Mock()
@@ -251,21 +329,17 @@ class TestJWKSTokenValidator:
                 await validator.validate_token(token)
 
     @pytest.mark.asyncio
-    async def test_validate_missing_sub_claim(self, serialized_private_key, jwks_data):
+    async def test_validate_missing_sub_claim(self, rsa_joserfc_key, jwks_data):
         """Test validating token without sub claim."""
-        payload = {
+        claims = {
             "iss": "https://auth.example.com",
             "aud": "https://mcp.example.com/mcp",
             "exp": int(time.time()) + 3600,
             "iat": int(time.time()),
         }
 
-        token = jwt.encode(
-            payload,
-            serialized_private_key,
-            algorithm="RS256",
-            headers={"kid": "test-key-1"},
-        )
+        header = {"alg": "RS256", "kid": "test-key-1"}
+        token = jwt.encode(header, claims, rsa_joserfc_key)
 
         with patch("httpx.AsyncClient.get") as mock_get:
             mock_response = Mock()
@@ -308,10 +382,10 @@ class TestJWKSTokenValidator:
 
     @pytest.mark.asyncio
     async def test_validate_multiple_audiences_single_token_aud(
-        self, serialized_private_key, jwks_data
+        self, rsa_joserfc_key, jwks_data
     ):
         """Test validator with multiple audiences accepts token with matching single aud."""
-        payload = {
+        claims = {
             "sub": "user123",
             "iss": "https://auth.example.com",
             "aud": "https://old-mcp.example.com",  # Matches first audience
@@ -319,12 +393,8 @@ class TestJWKSTokenValidator:
             "iat": int(time.time()),
         }
 
-        token = jwt.encode(
-            payload,
-            serialized_private_key,
-            algorithm="RS256",
-            headers={"kid": "test-key-1"},
-        )
+        header = {"alg": "RS256", "kid": "test-key-1"}
+        token = jwt.encode(header, claims, rsa_joserfc_key)
 
         with patch("httpx.AsyncClient.get") as mock_get:
             mock_response = Mock()
@@ -343,11 +413,11 @@ class TestJWKSTokenValidator:
 
     @pytest.mark.asyncio
     async def test_validate_multiple_audiences_list_token_aud(
-        self, serialized_private_key, jwks_data
+        self, rsa_joserfc_key, jwks_data
     ):
         """Test validator with multiple audiences accepts token with list aud."""
         # Token with list of audiences where one matches the validator's accepted audiences
-        payload = {
+        claims = {
             "sub": "user123",
             "iss": "https://auth.example.com",
             "aud": ["https://api1.com", "https://new-mcp.example.com"],  # Second matches
@@ -355,12 +425,8 @@ class TestJWKSTokenValidator:
             "iat": int(time.time()),
         }
 
-        token = jwt.encode(
-            payload,
-            serialized_private_key,
-            algorithm="RS256",
-            headers={"kid": "test-key-1"},
-        )
+        header = {"alg": "RS256", "kid": "test-key-1"}
+        token = jwt.encode(header, claims, rsa_joserfc_key)
 
         with patch("httpx.AsyncClient.get") as mock_get:
             mock_response = Mock()
@@ -378,10 +444,10 @@ class TestJWKSTokenValidator:
             assert user.user_id == "user123"
 
     @pytest.mark.asyncio
-    async def test_validate_multiple_audiences_no_match(self, serialized_private_key, jwks_data):
+    async def test_validate_multiple_audiences_no_match(self, rsa_joserfc_key, jwks_data):
         """Test validator with multiple audiences rejects token with non-matching aud."""
         # Token with audience that doesn't match any of validator's accepted audiences
-        payload = {
+        claims = {
             "sub": "user123",
             "iss": "https://auth.example.com",
             "aud": "https://different-server.com",  # Doesn't match
@@ -389,12 +455,8 @@ class TestJWKSTokenValidator:
             "iat": int(time.time()),
         }
 
-        token = jwt.encode(
-            payload,
-            serialized_private_key,
-            algorithm="RS256",
-            headers={"kid": "test-key-1"},
-        )
+        header = {"alg": "RS256", "kid": "test-key-1"}
+        token = jwt.encode(header, claims, rsa_joserfc_key)
 
         with patch("httpx.AsyncClient.get") as mock_get:
             mock_response = Mock()
@@ -413,11 +475,11 @@ class TestJWKSTokenValidator:
 
     @pytest.mark.asyncio
     async def test_validate_single_audience_with_list_token_aud(
-        self, serialized_private_key, jwks_data
+        self, rsa_joserfc_key, jwks_data
     ):
         """Test validator with single audience accepts token with list aud containing match."""
         # Token with list of audiences where one matches validator's single audience
-        payload = {
+        claims = {
             "sub": "user123",
             "iss": "https://auth.example.com",
             "aud": ["https://api1.com", "https://mcp.example.com/mcp", "https://api2.com"],
@@ -425,12 +487,8 @@ class TestJWKSTokenValidator:
             "iat": int(time.time()),
         }
 
-        token = jwt.encode(
-            payload,
-            serialized_private_key,
-            algorithm="RS256",
-            headers={"kid": "test-key-1"},
-        )
+        header = {"alg": "RS256", "kid": "test-key-1"}
+        token = jwt.encode(header, claims, rsa_joserfc_key)
 
         with patch("httpx.AsyncClient.get") as mock_get:
             mock_response = Mock()
@@ -448,10 +506,10 @@ class TestJWKSTokenValidator:
             assert user.user_id == "user123"
 
     @pytest.mark.asyncio
-    async def test_validate_multiple_issuers_efficient(self, serialized_private_key, jwks_data):
+    async def test_validate_multiple_issuers_efficient(self, rsa_joserfc_key, jwks_data):
         """Test that multi-issuer validation is efficient (single decode)."""
         # Token from second issuer in list
-        payload = {
+        claims = {
             "sub": "user123",
             "iss": "https://auth2.example.com",  # Second in list
             "aud": "https://mcp.example.com/mcp",
@@ -459,12 +517,8 @@ class TestJWKSTokenValidator:
             "iat": int(time.time()),
         }
 
-        token = jwt.encode(
-            payload,
-            serialized_private_key,
-            algorithm="RS256",
-            headers={"kid": "test-key-1"},
-        )
+        header = {"alg": "RS256", "kid": "test-key-1"}
+        token = jwt.encode(header, claims, rsa_joserfc_key)
 
         with patch("httpx.AsyncClient.get") as mock_get:
             mock_response = Mock()
@@ -493,9 +547,9 @@ class TestJWKSTokenValidator:
                 assert mock_decode.call_count == 1
 
     @pytest.mark.asyncio
-    async def test_validate_nbf_claim_before_time(self, serialized_private_key, jwks_data):
+    async def test_validate_nbf_claim_before_time(self, rsa_joserfc_key, jwks_data):
         """Test that token with nbf claim in the future is rejected."""
-        payload = {
+        claims = {
             "sub": "user123",
             "iss": "https://auth.example.com",
             "aud": "https://mcp.example.com/mcp",
@@ -504,12 +558,8 @@ class TestJWKSTokenValidator:
             "nbf": int(time.time()) + 3600,  # Not valid for 1 hour
         }
 
-        token = jwt.encode(
-            payload,
-            serialized_private_key,
-            algorithm="RS256",
-            headers={"kid": "test-key-1"},
-        )
+        header = {"alg": "RS256", "kid": "test-key-1"}
+        token = jwt.encode(header, claims, rsa_joserfc_key)
 
         with patch("httpx.AsyncClient.get") as mock_get:
             mock_response = Mock()
@@ -528,9 +578,9 @@ class TestJWKSTokenValidator:
                 await validator.validate_token(token)
 
     @pytest.mark.asyncio
-    async def test_validate_nbf_claim_disabled(self, serialized_private_key, jwks_data):
+    async def test_validate_nbf_claim_disabled(self, rsa_joserfc_key, jwks_data):
         """Test that token with nbf in future is accepted when verify_nbf=False."""
-        payload = {
+        claims = {
             "sub": "user123",
             "iss": "https://auth.example.com",
             "aud": "https://mcp.example.com/mcp",
@@ -539,12 +589,8 @@ class TestJWKSTokenValidator:
             "nbf": int(time.time()) + 3600,  # Not valid for 1 hour
         }
 
-        token = jwt.encode(
-            payload,
-            serialized_private_key,
-            algorithm="RS256",
-            headers={"kid": "test-key-1"},
-        )
+        header = {"alg": "RS256", "kid": "test-key-1"}
+        token = jwt.encode(header, claims, rsa_joserfc_key)
 
         with patch("httpx.AsyncClient.get") as mock_get:
             mock_response = Mock()
@@ -564,10 +610,10 @@ class TestJWKSTokenValidator:
             assert user.user_id == "user123"
 
     @pytest.mark.asyncio
-    async def test_validate_with_leeway(self, serialized_private_key, jwks_data):
+    async def test_validate_with_leeway(self, rsa_joserfc_key, jwks_data):
         """Test that leeway allows slightly expired tokens."""
         # Token expired 30 seconds ago
-        payload = {
+        claims = {
             "sub": "user123",
             "iss": "https://auth.example.com",
             "aud": "https://mcp.example.com/mcp",
@@ -575,12 +621,8 @@ class TestJWKSTokenValidator:
             "iat": int(time.time()) - 3600,
         }
 
-        token = jwt.encode(
-            payload,
-            serialized_private_key,
-            algorithm="RS256",
-            headers={"kid": "test-key-1"},
-        )
+        header = {"alg": "RS256", "kid": "test-key-1"}
+        token = jwt.encode(header, claims, rsa_joserfc_key)
 
         with patch("httpx.AsyncClient.get") as mock_get:
             mock_response = Mock()
@@ -598,6 +640,209 @@ class TestJWKSTokenValidator:
 
             user = await validator.validate_token(token)
             assert user.user_id == "user123"
+
+
+class TestJWKSTokenValidatorEd25519:
+    """Tests for JWKSTokenValidator with Ed25519 algorithm."""
+
+    @pytest.mark.asyncio
+    async def test_validate_valid_ed25519_token(self, valid_ed25519_token, ed25519_jwks_data):
+        """Test validating a valid Ed25519 JWT token."""
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = ed25519_jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            validator = JWKSTokenValidator(
+                jwks_uri="https://cloud.arcade.dev/.well-known/jwks/oauth2",
+                issuer="https://cloud.arcade.dev/oauth2",
+                audience="urn:arcade:mcp",
+                algorithm="Ed25519",
+            )
+
+            user = await validator.validate_token(valid_ed25519_token)
+
+            assert isinstance(user, ResourceOwner)
+            assert user.user_id == "user456"
+            assert user.email == "ed25519user@example.com"
+            assert user.claims["iss"] == "https://cloud.arcade.dev/oauth2"
+
+    @pytest.mark.asyncio
+    async def test_validate_expired_ed25519_token(self, expired_ed25519_token, ed25519_jwks_data):
+        """Test validating an expired Ed25519 JWT token."""
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = ed25519_jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            validator = JWKSTokenValidator(
+                jwks_uri="https://cloud.arcade.dev/.well-known/jwks/oauth2",
+                issuer="https://cloud.arcade.dev/oauth2",
+                audience="urn:arcade:mcp",
+                algorithm="Ed25519",
+            )
+
+            with pytest.raises(TokenExpiredError):
+                await validator.validate_token(expired_ed25519_token)
+
+    @pytest.mark.asyncio
+    async def test_ed25519_algorithm_mismatch(self, valid_jwt_token, ed25519_jwks_data):
+        """Test that RS256 token is rejected when validator expects Ed25519."""
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = ed25519_jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            validator = JWKSTokenValidator(
+                jwks_uri="https://cloud.arcade.dev/.well-known/jwks/oauth2",
+                issuer="https://auth.example.com",
+                audience="https://mcp.example.com/mcp",
+                algorithm="Ed25519",
+            )
+
+            # RS256 token should be rejected when Ed25519 is expected
+            with pytest.raises(InvalidTokenError, match="algorithm"):
+                await validator.validate_token(valid_jwt_token)
+
+    @pytest.mark.asyncio
+    async def test_ed25519_wrong_audience(self, ed25519_joserfc_key, ed25519_jwks_data):
+        """Test Ed25519 token with wrong audience is rejected."""
+        claims = {
+            "sub": "user456",
+            "iss": "https://cloud.arcade.dev/oauth2",
+            "aud": "wrong:audience",
+            "exp": int(time.time()) + 3600,
+            "iat": int(time.time()),
+        }
+
+        header = {"alg": "Ed25519", "kid": "ed25519-key-1"}
+        token = jwt.encode(header, claims, ed25519_joserfc_key, algorithms=["Ed25519"])
+
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = ed25519_jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            validator = JWKSTokenValidator(
+                jwks_uri="https://cloud.arcade.dev/.well-known/jwks/oauth2",
+                issuer="https://cloud.arcade.dev/oauth2",
+                audience="urn:arcade:mcp",
+                algorithm="Ed25519",
+            )
+
+            with pytest.raises(InvalidTokenError, match="audience"):
+                await validator.validate_token(token)
+
+    @pytest.mark.asyncio
+    async def test_eddsa_algorithm_alias(self, ed25519_joserfc_key, ed25519_jwks_data):
+        """Test that EdDSA algorithm alias works for Ed25519."""
+        claims = {
+            "sub": "user456",
+            "email": "ed25519user@example.com",
+            "iss": "https://cloud.arcade.dev/oauth2",
+            "aud": "urn:arcade:mcp",
+            "exp": int(time.time()) + 3600,
+            "iat": int(time.time()),
+        }
+
+        header = {"alg": "Ed25519", "kid": "ed25519-key-1"}
+        token = jwt.encode(header, claims, ed25519_joserfc_key, algorithms=["Ed25519"])
+
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = ed25519_jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            # Use EdDSA alias
+            validator = JWKSTokenValidator(
+                jwks_uri="https://cloud.arcade.dev/.well-known/jwks/oauth2",
+                issuer="https://cloud.arcade.dev/oauth2",
+                audience="urn:arcade:mcp",
+                algorithm="EdDSA",  # Using EdDSA alias
+            )
+
+            user = await validator.validate_token(token)
+            assert user.user_id == "user456"
+
+    def test_ed25519_supported_algorithm(self):
+        """Test that Ed25519 is in supported algorithms."""
+        # Should not raise
+        validator = JWKSTokenValidator(
+            jwks_uri="https://example.com/jwks",
+            issuer="https://example.com",
+            audience="https://example.com",
+            algorithm="Ed25519",
+        )
+        assert validator.algorithm == "Ed25519"
+
+    def test_eddsa_supported_algorithm(self):
+        """Test that EdDSA is in supported algorithms."""
+        # Should not raise
+        validator = JWKSTokenValidator(
+            jwks_uri="https://example.com/jwks",
+            issuer="https://example.com",
+            audience="https://example.com",
+            algorithm="EdDSA",
+        )
+        assert validator.algorithm == "EdDSA"
+
+
+class TestIntermediateASConfiguration:
+    """Tests for Arcade Intermediate AS configuration."""
+
+    @pytest.mark.asyncio
+    async def test_intermediate_as_config(self, valid_ed25519_token, ed25519_jwks_data):
+        """Test configuration matching Arcade Intermediate AS."""
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = ed25519_jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            # Configuration matching Intermediate AS
+            resource_server_auth = ResourceServerAuth(
+                canonical_url="https://gateway-manager.arcade.dev/mcp",
+                authorization_servers=[
+                    AuthorizationServerEntry(
+                        authorization_server_url="https://cloud.arcade.dev/oauth2",
+                        issuer="https://cloud.arcade.dev/oauth2",
+                        jwks_uri="https://cloud.arcade.dev/.well-known/jwks/oauth2",
+                        algorithm="Ed25519",
+                        expected_audiences=[
+                            "urn:arcade:mcp",
+                            "https://gateway-manager.arcade.dev/mcp",
+                        ],
+                    )
+                ],
+            )
+
+            user = await resource_server_auth.validate_token(valid_ed25519_token)
+            assert user.user_id == "user456"
+            assert user.email == "ed25519user@example.com"
+
+    def test_intermediate_as_metadata(self):
+        """Test OAuth metadata for Intermediate AS configuration."""
+        resource_server_auth = ResourceServerAuth(
+            canonical_url="https://gateway-manager.arcade.dev/mcp",
+            authorization_servers=[
+                AuthorizationServerEntry(
+                    authorization_server_url="https://cloud.arcade.dev/oauth2",
+                    issuer="https://cloud.arcade.dev/oauth2",
+                    jwks_uri="https://cloud.arcade.dev/.well-known/jwks/oauth2",
+                    algorithm="Ed25519",
+                    expected_audiences=["urn:arcade:mcp"],
+                )
+            ],
+        )
+
+        metadata = resource_server_auth.get_resource_metadata()
+        assert metadata["resource"] == "https://gateway-manager.arcade.dev/mcp"
+        assert metadata["authorization_servers"] == ["https://cloud.arcade.dev/oauth2"]
 
 
 # ResourceServerAuth Tests
@@ -639,12 +884,10 @@ class TestResourceServerAuth:
         assert metadata["bearer_methods_supported"] == ["header"]
 
     @pytest.mark.asyncio
-    async def test_expected_audiences_override(self, rsa_keypair, jwks_data):
+    async def test_expected_audiences_override(self, rsa_keypair, jwks_data, rsa_joserfc_key):
         """Test that expected_audiences overrides canonical_url for audience validation."""
-        private_key, _ = rsa_keypair
-
         # Token with custom audience
-        payload = {
+        claims = {
             "sub": "user123",
             "iss": "https://auth.example.com",
             "aud": "my-authkit-client-id",
@@ -652,12 +895,8 @@ class TestResourceServerAuth:
             "iat": int(time.time()),
         }
 
-        token = jwt.encode(
-            payload,
-            private_key,
-            algorithm="RS256",
-            headers={"kid": "test-key-1"},
-        )
+        header = {"alg": "RS256", "kid": "test-key-1"}
+        token = jwt.encode(header, claims, rsa_joserfc_key)
 
         with patch("httpx.AsyncClient.get") as mock_get:
             mock_response = Mock()
@@ -681,12 +920,10 @@ class TestResourceServerAuth:
             assert user.user_id == "user123"
 
     @pytest.mark.asyncio
-    async def test_expected_audiences_multiple_values(self, rsa_keypair, jwks_data):
+    async def test_expected_audiences_multiple_values(self, rsa_keypair, jwks_data, rsa_joserfc_key):
         """Test that multiple expected_audiences work correctly."""
-        private_key, _ = rsa_keypair
-
         # Token with one of the expected audiences
-        payload = {
+        claims = {
             "sub": "user123",
             "iss": "https://auth.example.com",
             "aud": "secondary-client-id",
@@ -694,12 +931,8 @@ class TestResourceServerAuth:
             "iat": int(time.time()),
         }
 
-        token = jwt.encode(
-            payload,
-            private_key,
-            algorithm="RS256",
-            headers={"kid": "test-key-1"},
-        )
+        header = {"alg": "RS256", "kid": "test-key-1"}
+        token = jwt.encode(header, claims, rsa_joserfc_key)
 
         with patch("httpx.AsyncClient.get") as mock_get:
             mock_response = Mock()
@@ -727,11 +960,9 @@ class TestResourceServerAuth:
             assert user.user_id == "user123"
 
     @pytest.mark.asyncio
-    async def test_expected_audiences_defaults_to_canonical_url(self, rsa_keypair, jwks_data):
+    async def test_expected_audiences_defaults_to_canonical_url(self, rsa_keypair, jwks_data, rsa_joserfc_key):
         """Test that without expected_audiences, canonical_url is used for audience validation."""
-        private_key, _ = rsa_keypair
-
-        payload = {
+        claims = {
             "sub": "user123",
             "iss": "https://auth.example.com",
             "aud": "https://mcp.example.com/mcp",
@@ -739,12 +970,8 @@ class TestResourceServerAuth:
             "iat": int(time.time()),
         }
 
-        token = jwt.encode(
-            payload,
-            private_key,
-            algorithm="RS256",
-            headers={"kid": "test-key-1"},
-        )
+        header = {"alg": "RS256", "kid": "test-key-1"}
+        token = jwt.encode(header, claims, rsa_joserfc_key)
 
         with patch("httpx.AsyncClient.get") as mock_get:
             mock_response = Mock()
@@ -767,11 +994,9 @@ class TestResourceServerAuth:
             assert user.user_id == "user123"
 
     @pytest.mark.asyncio
-    async def test_expected_audiences_wrong_audience_rejected(self, rsa_keypair, jwks_data):
+    async def test_expected_audiences_wrong_audience_rejected(self, rsa_keypair, jwks_data, rsa_joserfc_key):
         """Test that tokens with wrong audience are rejected even with expected_audiences."""
-        private_key, _ = rsa_keypair
-
-        payload = {
+        claims = {
             "sub": "user123",
             "iss": "https://auth.example.com",
             "aud": "wrong-client-id",  # Not in expected_audiences list
@@ -779,12 +1004,8 @@ class TestResourceServerAuth:
             "iat": int(time.time()),
         }
 
-        token = jwt.encode(
-            payload,
-            private_key,
-            algorithm="RS256",
-            headers={"kid": "test-key-1"},
-        )
+        header = {"alg": "RS256", "kid": "test-key-1"}
+        token = jwt.encode(header, claims, rsa_joserfc_key)
 
         with patch("httpx.AsyncClient.get") as mock_get:
             mock_response = Mock()
@@ -1085,11 +1306,9 @@ class TestMultipleAuthorizationServers:
             assert user.email == "user@example.com"
 
     @pytest.mark.asyncio
-    async def test_resource_server_multiple_as_different_jwks(self, rsa_keypair, jwks_data):
+    async def test_resource_server_multiple_as_different_jwks(self, rsa_keypair, jwks_data, rsa_joserfc_key):
         """Test multiple AS with different JWKS (multi-IdP)."""
-        private_key, _ = rsa_keypair
-
-        payload1 = {
+        claims1 = {
             "sub": "user123",
             "email": "user@workos.com",
             "iss": "https://workos.authkit.app",
@@ -1097,14 +1316,10 @@ class TestMultipleAuthorizationServers:
             "exp": int(time.time()) + 3600,
             "iat": int(time.time()),
         }
-        token1 = jwt.encode(
-            payload1,
-            private_key,
-            algorithm="RS256",
-            headers={"kid": "test-key-1"},
-        )
+        header1 = {"alg": "RS256", "kid": "test-key-1"}
+        token1 = jwt.encode(header1, claims1, rsa_joserfc_key)
 
-        payload2 = {
+        claims2 = {
             "sub": "user456",
             "email": "user@keycloak.com",
             "iss": "http://localhost:8080/realms/mcp-test",
@@ -1112,12 +1327,8 @@ class TestMultipleAuthorizationServers:
             "exp": int(time.time()) + 3600,
             "iat": int(time.time()),
         }
-        token2 = jwt.encode(
-            payload2,
-            private_key,
-            algorithm="RS256",
-            headers={"kid": "test-key-1"},
-        )
+        header2 = {"alg": "RS256", "kid": "test-key-1"}
+        token2 = jwt.encode(header2, claims2, rsa_joserfc_key)
 
         with patch("httpx.AsyncClient.get") as mock_get:
             mock_response = Mock()
@@ -1159,11 +1370,9 @@ class TestMultipleAuthorizationServers:
             assert user2.email == "user@keycloak.com"
 
     @pytest.mark.asyncio
-    async def test_resource_server_rejects_unconfigured_as(self, rsa_keypair, jwks_data):
+    async def test_resource_server_rejects_unconfigured_as(self, rsa_keypair, jwks_data, rsa_joserfc_key):
         """Test that tokens from unlisted AS are rejected."""
-        private_key, _ = rsa_keypair
-
-        payload = {
+        claims = {
             "sub": "user123",
             "email": "user@evil.com",
             "iss": "https://evil.com",  # Not in configured list (unauthorized issuer)
@@ -1171,12 +1380,8 @@ class TestMultipleAuthorizationServers:
             "exp": int(time.time()) + 3600,
             "iat": int(time.time()),
         }
-        token = jwt.encode(
-            payload,
-            private_key,
-            algorithm="RS256",
-            headers={"kid": "test-key-1"},
-        )
+        header = {"alg": "RS256", "kid": "test-key-1"}
+        token = jwt.encode(header, claims, rsa_joserfc_key)
 
         with patch("httpx.AsyncClient.get") as mock_get:
             mock_response = Mock()
