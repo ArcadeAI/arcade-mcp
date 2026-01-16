@@ -12,7 +12,7 @@ from typing import Any, cast
 import httpx
 from joserfc import jws
 from joserfc.errors import JoseError
-from joserfc.jwk import KeySet
+from joserfc.jwk import KeySet, KeySetSerialization
 from joserfc.jws import JWSRegistry
 from joserfc.registry import HeaderParameter
 
@@ -239,7 +239,7 @@ class JWKSTokenValidator(ResourceServerValidator):
             )
 
         try:
-            key_set = KeySet.import_key_set(jwks)
+            key_set = KeySet.import_key_set(cast(KeySetSerialization, jwks))
         except Exception as e:
             raise InvalidTokenError(f"Failed to import JWKS: {e}") from e
 
