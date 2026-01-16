@@ -5,12 +5,11 @@ Implements OAuth 2.1 Resource Server token validation using JWT with JWKS.
 """
 
 import binascii
-import json
 import time
 from typing import Any, cast
 
 import httpx
-from joserfc import jws
+from joserfc import jws, jwt
 from joserfc.errors import JoseError
 from joserfc.jwk import KeySet, KeySetSerialization
 from joserfc.jws import JWSRegistry
@@ -187,7 +186,7 @@ class JWKSTokenValidator(ResourceServerValidator):
         else:
             return self._jwks_cache
 
-    def _get_unverified_header(self, token: str) -> dict[str, Any]:
+    def _get_headers_without_verification(self, token: str) -> dict[str, Any]:
         """Extract header from JWT without verification.
 
         Args:
@@ -202,7 +201,7 @@ class JWKSTokenValidator(ResourceServerValidator):
         try:
             # Use joserfc's extract_compact to parse JWT without verification
             obj = jws.extract_compact(token.encode())
-            return dict(obj.protected)
+            return obj.headers()
         except (JoseError, ValueError, binascii.Error) as e:
             raise InvalidTokenError(f"Invalid JWT format: {e}") from e
 
@@ -219,7 +218,7 @@ class JWKSTokenValidator(ResourceServerValidator):
         Raises:
             InvalidTokenError: If no matching key found or algorithm mismatch
         """
-        header = self._get_unverified_header(token)
+        header = self._get_headers_without_verification(token)
         kid = header.get("kid")
         token_alg = header.get("alg")
 
@@ -251,9 +250,8 @@ class JWKSTokenValidator(ResourceServerValidator):
     def _decode_token(self, token: str, signing_key: Any) -> dict[str, Any]:
         """Decode and verify the provided JWT token.
 
-        Uses jws.deserialize_compact for signature verification only, then
-        performs all claims validation manually. This gives us full control
-        over leeway handling for time-based claims (exp, iat, nbf).
+        Uses jwt.decode for signature verification and payload parsing, then
+        performs time-based claims validation manually for leeway handling
 
         Args:
             token: JWT token
@@ -271,19 +269,15 @@ class JWKSTokenValidator(ResourceServerValidator):
         else:
             algorithms = [self.algorithm]
 
-        # First, verify signature without any claims validation,
+        # First, verify signature & decode payload
         try:
-            result = jws.deserialize_compact(
-                token.encode(), signing_key, algorithms=algorithms, registry=_ACCESS_TOKEN_REGISTRY
+            result = jwt.decode(
+                token, signing_key, algorithms=algorithms, registry=_ACCESS_TOKEN_REGISTRY
             )
         except JoseError as e:
             raise InvalidTokenError(f"Token signature verification failed: {e}") from e
 
-        # Parse the payload as JSON claims
-        try:
-            decoded = cast(dict[str, Any], json.loads(result.payload))
-        except (json.JSONDecodeError, ValueError) as e:
-            raise InvalidTokenError(f"Invalid token payload: {e}") from e
+        decoded = result.claims
 
         # Validate time based claims with leeway support
         current_time = int(time.time())
