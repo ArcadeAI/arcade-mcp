@@ -62,9 +62,6 @@ class ResourceOwner:
     claims: dict[str, Any] = field(default_factory=dict)
     """All claims from the validated token for advanced use cases"""
 
-    access_token: str | None = None
-    """The raw access token from the client request's Authorization header"""
-
 
 @dataclass
 class AuthorizationServerEntry:
