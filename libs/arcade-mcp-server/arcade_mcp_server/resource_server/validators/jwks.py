@@ -115,14 +115,6 @@ class JWKSTokenValidator(ResourceServerValidator):
                 audience="https://mcp.example.com/mcp",
                 algorithm="ES256",
             )
-
-            # Ed25519 algorithm (for Arcade Intermediate AS)
-            validator = JWKSTokenValidator(
-                jwks_uri="https://cloud.arcade.dev/.well-known/jwks/oauth2",
-                issuer="https://cloud.arcade.dev/oauth2",
-                audience="urn:arcade:mcp",
-                algorithm="Ed25519",
-            )
             ```
         """
         if algorithm not in SUPPORTED_ALGORITHMS:
