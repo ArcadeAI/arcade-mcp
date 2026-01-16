@@ -11,6 +11,8 @@ import httpx
 from joserfc import jwt
 from joserfc.errors import ExpiredTokenError, JoseError
 from joserfc.jwk import KeySet
+from joserfc.jws import JWSRegistry
+from joserfc.registry import HeaderParameter
 
 from arcade_mcp_server.resource_server.base import (
     AccessTokenValidationOptions,
@@ -21,7 +23,6 @@ from arcade_mcp_server.resource_server.base import (
     TokenExpiredError,
 )
 
-# Note: Only asymmetric algorithms supported
 SUPPORTED_ALGORITHMS = {
     # RSA
     "RS256",
@@ -42,6 +43,15 @@ SUPPORTED_ALGORITHMS = {
 
 # EdDSA algorithm aliases - joserfc uses "Ed25519" per RFC 9864
 EDDSA_ALGORITHMS = {"Ed25519", "EdDSA"}
+
+# Custom JWS registry that allows additional header parameters per RFC 9068 (JWT Access Tokens)
+_ACCESS_TOKEN_REGISTRY = JWSRegistry(
+    header_registry={
+        "iss": HeaderParameter("Issuer", "str"),  # Issuer in header (RFC 9068)
+        "aud": HeaderParameter("Audience", "str"),  # Audience in header (RFC 9068)
+    },
+    algorithms=list(SUPPORTED_ALGORITHMS),
+)
 
 
 class JWKSTokenValidator(ResourceServerValidator):
@@ -283,7 +293,9 @@ class JWKSTokenValidator(ResourceServerValidator):
             algorithms = [self.algorithm]
 
         try:
-            result = jwt.decode(token, signing_key, algorithms=algorithms)
+            result = jwt.decode(
+                token, signing_key, algorithms=algorithms, registry=_ACCESS_TOKEN_REGISTRY
+            )
             decoded = dict(result.claims)
         except ExpiredTokenError as e:
             raise TokenExpiredError("Token has expired") from e
