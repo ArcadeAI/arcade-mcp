@@ -520,10 +520,13 @@ class TestJWKSTokenValidator:
             mock_response.raise_for_status = Mock()
             mock_get.return_value = mock_response
 
-            # Patch jwt.decode to count calls
+            # Patch jws.deserialize_compact to count calls
+            from joserfc import jws
+
             with patch(
-                "arcade_mcp_server.resource_server.validators.jwks.jwt.decode", wraps=jwt.decode
-            ) as mock_decode:
+                "arcade_mcp_server.resource_server.validators.jwks.jws.deserialize_compact",
+                wraps=jws.deserialize_compact,
+            ) as mock_deserialize:
                 validator = JWKSTokenValidator(
                     jwks_uri="https://auth.example.com/.well-known/jwks.json",
                     issuer=[
@@ -537,8 +540,8 @@ class TestJWKSTokenValidator:
                 user = await validator.validate_token(token)
                 assert user.user_id == "user123"
 
-                # Should only need to decode once, not 3 times
-                assert mock_decode.call_count == 1
+                # Should only need to deserialize once, not 3 times
+                assert mock_deserialize.call_count == 1
 
     @pytest.mark.asyncio
     async def test_validate_nbf_claim_before_time(self, rsa_joserfc_key, jwks_data):
