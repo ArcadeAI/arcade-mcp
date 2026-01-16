@@ -21,7 +21,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from joserfc import jwt
-from joserfc.jwk import RSAKey, OKPKey
+from joserfc.jwk import OKPKey, RSAKey
 
 
 # Test fixtures
@@ -381,9 +381,7 @@ class TestJWKSTokenValidator:
             assert mock_get.call_count == 1
 
     @pytest.mark.asyncio
-    async def test_validate_multiple_audiences_single_token_aud(
-        self, rsa_joserfc_key, jwks_data
-    ):
+    async def test_validate_multiple_audiences_single_token_aud(self, rsa_joserfc_key, jwks_data):
         """Test validator with multiple audiences accepts token with matching single aud."""
         claims = {
             "sub": "user123",
@@ -412,9 +410,7 @@ class TestJWKSTokenValidator:
             assert user.user_id == "user123"
 
     @pytest.mark.asyncio
-    async def test_validate_multiple_audiences_list_token_aud(
-        self, rsa_joserfc_key, jwks_data
-    ):
+    async def test_validate_multiple_audiences_list_token_aud(self, rsa_joserfc_key, jwks_data):
         """Test validator with multiple audiences accepts token with list aud."""
         # Token with list of audiences where one matches the validator's accepted audiences
         claims = {
@@ -474,9 +470,7 @@ class TestJWKSTokenValidator:
                 await validator.validate_token(token)
 
     @pytest.mark.asyncio
-    async def test_validate_single_audience_with_list_token_aud(
-        self, rsa_joserfc_key, jwks_data
-    ):
+    async def test_validate_single_audience_with_list_token_aud(self, rsa_joserfc_key, jwks_data):
         """Test validator with single audience accepts token with list aud containing match."""
         # Token with list of audiences where one matches validator's single audience
         claims = {
@@ -920,7 +914,9 @@ class TestResourceServerAuth:
             assert user.user_id == "user123"
 
     @pytest.mark.asyncio
-    async def test_expected_audiences_multiple_values(self, rsa_keypair, jwks_data, rsa_joserfc_key):
+    async def test_expected_audiences_multiple_values(
+        self, rsa_keypair, jwks_data, rsa_joserfc_key
+    ):
         """Test that multiple expected_audiences work correctly."""
         # Token with one of the expected audiences
         claims = {
@@ -960,7 +956,9 @@ class TestResourceServerAuth:
             assert user.user_id == "user123"
 
     @pytest.mark.asyncio
-    async def test_expected_audiences_defaults_to_canonical_url(self, rsa_keypair, jwks_data, rsa_joserfc_key):
+    async def test_expected_audiences_defaults_to_canonical_url(
+        self, rsa_keypair, jwks_data, rsa_joserfc_key
+    ):
         """Test that without expected_audiences, canonical_url is used for audience validation."""
         claims = {
             "sub": "user123",
@@ -994,7 +992,9 @@ class TestResourceServerAuth:
             assert user.user_id == "user123"
 
     @pytest.mark.asyncio
-    async def test_expected_audiences_wrong_audience_rejected(self, rsa_keypair, jwks_data, rsa_joserfc_key):
+    async def test_expected_audiences_wrong_audience_rejected(
+        self, rsa_keypair, jwks_data, rsa_joserfc_key
+    ):
         """Test that tokens with wrong audience are rejected even with expected_audiences."""
         claims = {
             "sub": "user123",
@@ -1306,7 +1306,9 @@ class TestMultipleAuthorizationServers:
             assert user.email == "user@example.com"
 
     @pytest.mark.asyncio
-    async def test_resource_server_multiple_as_different_jwks(self, rsa_keypair, jwks_data, rsa_joserfc_key):
+    async def test_resource_server_multiple_as_different_jwks(
+        self, rsa_keypair, jwks_data, rsa_joserfc_key
+    ):
         """Test multiple AS with different JWKS (multi-IdP)."""
         claims1 = {
             "sub": "user123",
@@ -1370,7 +1372,9 @@ class TestMultipleAuthorizationServers:
             assert user2.email == "user@keycloak.com"
 
     @pytest.mark.asyncio
-    async def test_resource_server_rejects_unconfigured_as(self, rsa_keypair, jwks_data, rsa_joserfc_key):
+    async def test_resource_server_rejects_unconfigured_as(
+        self, rsa_keypair, jwks_data, rsa_joserfc_key
+    ):
         """Test that tokens from unlisted AS are rejected."""
         claims = {
             "sub": "user123",
@@ -1449,3 +1453,139 @@ class TestMultipleAuthorizationServers:
         assert "https://auth1.example.com" in metadata["authorization_servers"]
         assert "https://auth2.example.com" in metadata["authorization_servers"]
         assert "https://auth3.example.com" in metadata["authorization_servers"]
+
+
+class TestAccessToken:
+    """Tests for access_token exposure in ResourceOwner."""
+
+    @pytest.mark.asyncio
+    async def test_access_token_returned_in_resource_owner(self, valid_jwt_token, jwks_data):
+        """Test that the raw access token is included in ResourceOwner after validation."""
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            validator = JWKSTokenValidator(
+                jwks_uri="https://auth.example.com/.well-known/jwks.json",
+                issuer="https://auth.example.com",
+                audience="https://mcp.example.com/mcp",
+            )
+
+            user = await validator.validate_token(valid_jwt_token)
+
+            assert user.access_token is not None
+            assert user.access_token == valid_jwt_token
+
+    @pytest.mark.asyncio
+    async def test_access_token_with_ed25519(self, valid_ed25519_token, ed25519_jwks_data):
+        """Test that the raw access token is included for Ed25519 tokens."""
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = ed25519_jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            validator = JWKSTokenValidator(
+                jwks_uri="https://cloud.arcade.dev/.well-known/jwks/oauth2",
+                issuer="https://cloud.arcade.dev/oauth2",
+                audience="urn:arcade:mcp",
+                algorithm="Ed25519",
+            )
+
+            user = await validator.validate_token(valid_ed25519_token)
+
+            assert user.access_token is not None
+            assert user.access_token == valid_ed25519_token
+
+    @pytest.mark.asyncio
+    async def test_access_token_via_resource_server_auth(self, valid_jwt_token, jwks_data):
+        """Test that access_token is available when using ResourceServerAuth."""
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            resource_server_auth = ResourceServerAuth(
+                canonical_url="https://mcp.example.com/mcp",
+                authorization_servers=[
+                    AuthorizationServerEntry(
+                        authorization_server_url="https://auth.example.com",
+                        issuer="https://auth.example.com",
+                        jwks_uri="https://auth.example.com/.well-known/jwks.json",
+                    )
+                ],
+            )
+
+            user = await resource_server_auth.validate_token(valid_jwt_token)
+
+            assert user.access_token is not None
+            assert user.access_token == valid_jwt_token
+
+    @pytest.mark.asyncio
+    async def test_access_token_in_middleware_scope(self, valid_jwt_token, jwks_data):
+        """Test that access_token is accessible via middleware scope resource_owner."""
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            validator = JWKSTokenValidator(
+                jwks_uri="https://auth.example.com/.well-known/jwks.json",
+                issuer="https://auth.example.com",
+                audience="https://mcp.example.com/mcp",
+            )
+
+            captured_token = None
+
+            async def mock_app(scope, receive, send):
+                nonlocal captured_token
+                assert "resource_owner" in scope
+                captured_token = scope["resource_owner"].access_token
+
+            middleware = ResourceServerMiddleware(
+                mock_app,
+                validator,
+                "https://mcp.example.com/mcp",
+            )
+
+            scope = {
+                "type": "http",
+                "method": "POST",
+                "headers": [(b"authorization", f"Bearer {valid_jwt_token}".encode())],
+            }
+
+            async def receive():
+                return {"type": "http.request", "body": b""}
+
+            async def send(message):
+                pass
+
+            await middleware(scope, receive, send)
+
+            assert captured_token is not None
+            assert captured_token == valid_jwt_token
+
+    def test_resource_owner_access_token_field(self):
+        """Test that ResourceOwner has access_token field."""
+        resource_owner = ResourceOwner(
+            user_id="user123",
+            client_id="client456",
+            email="user@example.com",
+            claims={"sub": "user123"},
+            access_token="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+        )
+
+        assert resource_owner.access_token == "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    def test_resource_owner_access_token_default_none(self):
+        """Test that ResourceOwner access_token defaults to None."""
+        resource_owner = ResourceOwner(
+            user_id="user123",
+            claims={"sub": "user123"},
+        )
+
+        assert resource_owner.access_token is None

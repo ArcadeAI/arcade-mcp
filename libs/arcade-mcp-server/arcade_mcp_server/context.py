@@ -312,6 +312,17 @@ class Context(ToolContext):
             return None
         return getattr(self._session, "session_id", None)
 
+    @property
+    def access_token(self) -> str | None:
+        """
+        Get the raw access token that the MCP client used in the
+        Authorization header when making the request to the MCP server.
+
+        Returns:
+            Raw access token string, or None if not the MCP server doesn't have resource server auth.
+        """
+        return self._resource_owner.access_token if self._resource_owner else None
+
     # Private helpers
     def _check_client_capability(self, capability: ClientCapabilities) -> bool:
         """Check if client has a capability."""

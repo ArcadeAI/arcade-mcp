@@ -418,6 +418,7 @@ class JWKSTokenValidator(ResourceServerValidator):
                 client_id=client_id,
                 email=email,
                 claims=decoded,
+                access_token=token,
             )
 
         except (InvalidTokenError, TokenExpiredError):
