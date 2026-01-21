@@ -23,5 +23,10 @@
   },
   "devDependencies": {
     "@types/node": "^24.10.1"
+  },
+  "pnpm": {
+    "overrides": {
+      "form-data@>=4.0.0 <4.0.4": ">=4.0.4"
+    }
   }
 }
