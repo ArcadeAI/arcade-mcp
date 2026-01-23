@@ -217,12 +217,10 @@ def _aggregate_critic_stats(
     critic_stats: dict[str, dict[str, Any]] = {}
     for critic_field in sorted(all_fields):
         weighted_scores = [
-            run_scores.get(critic_field, {}).get("score", 0.0)
-            for run_scores in run_field_scores
+            run_scores.get(critic_field, {}).get("score", 0.0) for run_scores in run_field_scores
         ]
         weights = [
-            run_scores.get(critic_field, {}).get("weight", 0.0)
-            for run_scores in run_field_scores
+            run_scores.get(critic_field, {}).get("weight", 0.0) for run_scores in run_field_scores
         ]
         normalized_scores = [
             (score / weight) if weight > 0 else 0.0
@@ -891,7 +889,8 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
         if provider == "openai":
             if seed_policy == "random":
                 run_seeds: list[int | None] = [
-                    random.randint(0, 2**31 - 1) for _ in range(num_runs)  # noqa: S311
+                    random.randint(0, 2**31 - 1)
+                    for _ in range(num_runs)  # noqa: S311
                 ]
             else:
                 run_seeds = [seed_value for _ in range(num_runs)]
@@ -910,9 +909,7 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
         for run_index in range(num_runs):
             run_seed = run_seeds[run_index]
             if provider == "anthropic":
-                predicted_args = await self._run_anthropic(
-                    client, model, case, registry=registry
-                )
+                predicted_args = await self._run_anthropic(client, model, case, registry=registry)
             else:
                 predicted_args = await self._run_openai(
                     client, model, case, registry=registry, seed=run_seed
@@ -927,15 +924,13 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
             run_warned.append(evaluation.warning)
             run_field_scores.append(self._compute_run_field_scores(evaluation))
             last_processed_calls = processed_calls
-            run_details.append(
-                {
-                    "score": evaluation.score,
-                    "passed": evaluation.passed,
-                    "warning": evaluation.warning,
-                    "failure_reason": evaluation.failure_reason,
-                    "details": evaluation.results,
-                }
-            )
+            run_details.append({
+                "score": evaluation.score,
+                "passed": evaluation.passed,
+                "warning": evaluation.warning,
+                "failure_reason": evaluation.failure_reason,
+                "details": evaluation.results,
+            })
 
         mean_score, std_dev = _compute_mean_std(run_scores)
         passed, warning = _resolve_pass_rule(run_evaluations, mean_score, pass_rule, case.rubric)

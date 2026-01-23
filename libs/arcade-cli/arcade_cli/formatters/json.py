@@ -729,8 +729,7 @@ class CaptureJsonFormatter(CaptureFormatter):
                             model_output["runs"] = [
                                 {
                                     "tool_calls": [
-                                        {"name": tc.name, "args": tc.args}
-                                        for tc in run.tool_calls
+                                        {"name": tc.name, "args": tc.args} for tc in run.tool_calls
                                     ]
                                 }
                                 for run in runs

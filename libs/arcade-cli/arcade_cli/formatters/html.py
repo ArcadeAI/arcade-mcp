@@ -371,9 +371,7 @@ class HtmlFormatter(EvalResultFormatter):
         lines.append("</tbody></table>")
         return "\n".join(lines)
 
-    def _format_run_stats_html(
-        self, run_stats: dict[str, Any] | None, evaluation: Any
-    ) -> str:
+    def _format_run_stats_html(self, run_stats: dict[str, Any] | None, evaluation: Any) -> str:
         if not run_stats or run_stats.get("num_runs", 1) < 2:
             return ""
         if evaluation.passed:
@@ -415,7 +413,7 @@ class HtmlFormatter(EvalResultFormatter):
             seeds_display = ", ".join(str(seed) for seed in run_seeds)
             seeds_html = f'<div class="run-meta-item"><span class="meta-label">🎲 Seeds</span><span class="meta-value mono">{seeds_display}</span></div>'
 
-        html = f'''<div class="run-stats-card {status_class}">
+        html = f"""<div class="run-stats-card {status_class}">
             <div class="run-stats-header">
                 <div class="run-status-badge {status_class}">
                     <span class="status-icon">{status_icon}</span>
@@ -450,7 +448,7 @@ class HtmlFormatter(EvalResultFormatter):
                 </div>
                 {seeds_html}
             </div>
-        </div>'''
+        </div>"""
         return html
 
     def _format_critic_stats_html(self, critic_stats: dict[str, Any] | None) -> str:
@@ -490,9 +488,7 @@ class HtmlFormatter(EvalResultFormatter):
         lines.append("</tbody></table></div>")
         return "\n".join(lines)
 
-    def _format_run_tabs_html(
-        self, run_stats: dict[str, Any] | None, run_id: str | None
-    ) -> str:
+    def _format_run_tabs_html(self, run_stats: dict[str, Any] | None, run_id: str | None) -> str:
         if not run_stats or run_stats.get("num_runs", 1) < 2:
             return ""
         runs = run_stats.get("runs", [])
@@ -532,9 +528,7 @@ class HtmlFormatter(EvalResultFormatter):
                 f'<div class="run-panel {status_class} {active}" data-run-group="{run_id}" '
                 f'data-run-index="{idx}">'
             )
-            panels.append(
-                f"<p><strong>Run {idx}:</strong> {status} — {score_pct:.2f}%</p>"
-            )
+            panels.append(f"<p><strong>Run {idx}:</strong> {status} — {score_pct:.2f}%</p>")
             failure_reason = run.get("failure_reason")
             if failure_reason:
                 panels.append(
@@ -784,12 +778,10 @@ class HtmlFormatter(EvalResultFormatter):
                             runs = run_stats.get("num_runs", 1)
                             html_parts.append(
                                 f'<td class="{cell_class}">{icon} '
-                                f'{score:.0f}% ± {std_pct:.0f}%<br><small>n={runs}</small></td>'
+                                f"{score:.0f}% ± {std_pct:.0f}%<br><small>n={runs}</small></td>"
                             )
                         else:
-                            html_parts.append(
-                                f'<td class="{cell_class}">{icon} {score:.0f}%</td>'
-                            )
+                            html_parts.append(f'<td class="{cell_class}">{icon} {score:.0f}%</td>')
                     else:
                         html_parts.append('<td class="no-data">-</td>')
 
@@ -3074,7 +3066,7 @@ class CaptureHtmlFormatter(CaptureFormatter):
                                 for run_index, run in enumerate(runs, start=1):
                                     html_parts.append(
                                         f'<details class="capture-run" open>'
-                                        f'<summary>Run {run_index}</summary>'
+                                        f"<summary>Run {run_index}</summary>"
                                     )
                                     if run.tool_calls:
                                         for tc in run.tool_calls:
@@ -3082,9 +3074,7 @@ class CaptureHtmlFormatter(CaptureFormatter):
                                             args_html = ""
                                             if tc.args:
                                                 args_json = json.dumps(tc.args, indent=2)
-                                                args_html = (
-                                                    f'<pre class="args">{self._escape_html(args_json)}</pre>'
-                                                )
+                                                args_html = f'<pre class="args">{self._escape_html(args_json)}</pre>'
                                             html_parts.append(
                                                 f'<div class="tool-call">'
                                                 f'<span class="tool-name">{self._escape_html(tc.name)}</span>'
@@ -3141,7 +3131,7 @@ class CaptureHtmlFormatter(CaptureFormatter):
                             for run_index, run in enumerate(runs, start=1):
                                 html_parts.append(
                                     f'<details class="capture-run" open>'
-                                    f'<summary>Run {run_index}</summary>'
+                                    f"<summary>Run {run_index}</summary>"
                                 )
                                 if run.tool_calls:
                                     for tc in run.tool_calls:
@@ -3149,9 +3139,7 @@ class CaptureHtmlFormatter(CaptureFormatter):
                                         args_html = ""
                                         if tc.args:
                                             args_json = json.dumps(tc.args, indent=2)
-                                            args_html = (
-                                                f'<pre class="args">{self._escape_html(args_json)}</pre>'
-                                            )
+                                            args_html = f'<pre class="args">{self._escape_html(args_json)}</pre>'
                                         html_parts.append(
                                             f'<div class="tool-call">'
                                             f'<span class="tool-name">{self._escape_html(tc.name)}</span>'

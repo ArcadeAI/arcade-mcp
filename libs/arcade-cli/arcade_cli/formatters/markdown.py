@@ -291,8 +291,12 @@ class MarkdownFormatter(EvalResultFormatter):
     def _format_critic_stats_summary(self, critic_stats: dict[str, Any]) -> list[str]:
         lines: list[str] = []
         lines.append("**Critic Stats (normalized & weighted):**  ")
-        lines.append("| Field | Weight | Mean (norm %) | Std (norm %) | Mean (weighted %) | Std (weighted %) |")
-        lines.append("|-------|--------|---------------|--------------|-------------------|------------------|")
+        lines.append(
+            "| Field | Weight | Mean (norm %) | Std (norm %) | Mean (weighted %) | Std (weighted %) |"
+        )
+        lines.append(
+            "|-------|--------|---------------|--------------|-------------------|------------------|"
+        )
         for field, stats in critic_stats.items():
             weight = stats.get("weight", 0.0)
             mean_norm = stats.get("mean_score_normalized", 0.0) * 100
@@ -330,7 +334,7 @@ class MarkdownFormatter(EvalResultFormatter):
             details = run.get("details", [])
             if details:
                 lines.append("")
-                lines.append(f"<details>")
+                lines.append("<details>")
                 lines.append(f"<summary>Run {idx} details</summary>")
                 lines.append("")
                 lines.extend(self._format_critic_results_table_md(details))

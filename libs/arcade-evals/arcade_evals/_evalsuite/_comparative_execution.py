@@ -42,12 +42,12 @@ class _EvalSuiteComparativeMixin:
         case: Any,
         client: Any,
         model: str,
-        provider: "ProviderName",
+        provider: ProviderName,
         *,
         num_runs: int,
         seed: str | int | None,
         pass_rule: str,
-        registry: "EvalSuiteToolRegistry | None" = None,
+        registry: EvalSuiteToolRegistry | None = None,
     ) -> dict[str, Any]:
         raise NotImplementedError  # Implemented in EvalSuite
 

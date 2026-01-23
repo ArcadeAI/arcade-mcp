@@ -136,7 +136,8 @@ class _EvalSuiteCaptureMixin:
                 if provider == "openai":
                     if seed_policy == "random":
                         run_seeds: list[int | None] = [
-                            random.randint(0, 2**31 - 1) for _ in range(num_runs)  # noqa: S311
+                            random.randint(0, 2**31 - 1)
+                            for _ in range(num_runs)  # noqa: S311
                         ]
                     else:
                         run_seeds = [seed_value for _ in range(num_runs)]
