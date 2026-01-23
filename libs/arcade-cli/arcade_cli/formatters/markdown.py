@@ -134,8 +134,15 @@ class MarkdownFormatter(EvalResultFormatter):
                 lines.append("")
 
                 # Results table
-                lines.append("| Status | Case | Score |")
-                lines.append("|--------|------|-------|")
+                has_run_stats = any(
+                    case.get("run_stats", {}).get("num_runs", 1) > 1 for case in cases
+                )
+                if has_run_stats:
+                    lines.append("| Status | Case | Score | Runs |")
+                    lines.append("|--------|------|-------|------|")
+                else:
+                    lines.append("| Status | Case | Score |")
+                    lines.append("|--------|------|-------|")
 
                 for case in cases:
                     evaluation = case["evaluation"]
@@ -148,7 +155,15 @@ class MarkdownFormatter(EvalResultFormatter):
 
                     score_pct = evaluation.score * 100
                     case_name = case["name"].replace("|", "\\|")
-                    lines.append(f"| {status} | {case_name} | {score_pct:.1f}% |")
+                    run_stats = case.get("run_stats") or {}
+                    score_display = f"{score_pct:.1f}%"
+                    if run_stats.get("num_runs", 1) > 1:
+                        std_pct = run_stats.get("std_deviation", 0.0) * 100
+                        score_display = f"{score_pct:.1f}% ± {std_pct:.1f}%"
+                        runs_value = run_stats.get("num_runs", 1)
+                        lines.append(f"| {status} | {case_name} | {score_display} | {runs_value} |")
+                    else:
+                        lines.append(f"| {status} | {case_name} | {score_display} |")
 
                 lines.append("")
 
@@ -174,6 +189,36 @@ class MarkdownFormatter(EvalResultFormatter):
                         lines.append("")
                         lines.append(f"**Input:** `{case['input']}`")
                         lines.append("")
+
+                        run_stats = case.get("run_stats")
+                        if run_stats and run_stats.get("num_runs", 1) > 1:
+                            mean_pct = run_stats.get("mean_score", 0.0) * 100
+                            std_pct = run_stats.get("std_deviation", 0.0) * 100
+                            scores = run_stats.get("scores", [])
+                            scores_display = ", ".join(f"{score * 100:.2f}%" for score in scores)
+                            lines.append("**Run Stats:**  ")
+                            lines.append(f"- Runs: {run_stats.get('num_runs', len(scores))}  ")
+                            lines.append(f"- Mean Score: {mean_pct:.2f}%  ")
+                            lines.append(f"- Std Deviation: {std_pct:.2f}%  ")
+                            if scores_display:
+                                lines.append(f"- Scores: {scores_display}  ")
+                            seed_policy = run_stats.get("seed_policy")
+                            if seed_policy:
+                                lines.append(f"- Seed Policy: {seed_policy}  ")
+                            run_seeds = run_stats.get("run_seeds")
+                            if run_seeds and any(seed is not None for seed in run_seeds):
+                                seeds_display = ", ".join(str(seed) for seed in run_seeds)
+                                lines.append(f"- Run Seeds: {seeds_display}  ")
+                            pass_rule = run_stats.get("pass_rule")
+                            if pass_rule:
+                                lines.append(f"- Pass Rule: {pass_rule}  ")
+                            lines.append("")
+
+                        lines.extend(self._format_run_details_md(run_stats))
+
+                        critic_stats = case.get("critic_stats")
+                        if critic_stats:
+                            lines.extend(self._format_critic_stats_summary(critic_stats))
 
                         # Context section (if include_context is True)
                         if include_context:
@@ -212,30 +257,87 @@ class MarkdownFormatter(EvalResultFormatter):
         if evaluation.failure_reason:
             lines.append(f"**Failure Reason:** {evaluation.failure_reason}")
         else:
-            lines.append("| Field | Match | Score | Expected | Actual |")
-            lines.append("|-------|-------|-------|----------|--------|")
-
-            for critic_result in evaluation.results:
-                is_criticized = critic_result.get("is_criticized", True)
-                field = critic_result["field"]
-                score = critic_result["score"]
-                weight = critic_result["weight"]
-                expected = str(critic_result["expected"]).replace("|", "\\|")
-                actual = str(critic_result["actual"]).replace("|", "\\|")
-
-                # Truncate long values for table readability
-                expected = truncate_field_value(expected, MD_MAX_FIELD_LENGTH)
-                actual = truncate_field_value(actual, MD_MAX_FIELD_LENGTH)
-
-                if is_criticized:
-                    match_icon = "✅" if critic_result["match"] else "❌"
-                    lines.append(
-                        f"| {field} | {match_icon} | {score:.2f}/{weight:.2f} | `{expected}` | `{actual}` |"
-                    )
-                else:
-                    lines.append(f"| {field} | — | - | `{expected}` | `{actual}` |")
+            lines.extend(self._format_critic_results_table_md(evaluation.results))
 
         return "\n".join(lines)
+
+    def _format_critic_results_table_md(self, results: list[dict[str, Any]]) -> list[str]:
+        lines: list[str] = []
+        lines.append("| Field | Match | Score | Expected | Actual |")
+        lines.append("|-------|-------|-------|----------|--------|")
+
+        for critic_result in results:
+            is_criticized = critic_result.get("is_criticized", True)
+            field = critic_result["field"]
+            score = critic_result["score"]
+            weight = critic_result["weight"]
+            expected = str(critic_result["expected"]).replace("|", "\\|")
+            actual = str(critic_result["actual"]).replace("|", "\\|")
+
+            # Truncate long values for table readability
+            expected = truncate_field_value(expected, MD_MAX_FIELD_LENGTH)
+            actual = truncate_field_value(actual, MD_MAX_FIELD_LENGTH)
+
+            if is_criticized:
+                match_icon = "✅" if critic_result["match"] else "❌"
+                lines.append(
+                    f"| {field} | {match_icon} | {score:.2f}/{weight:.2f} | `{expected}` | `{actual}` |"
+                )
+            else:
+                lines.append(f"| {field} | — | - | `{expected}` | `{actual}` |")
+
+        return lines
+
+    def _format_critic_stats_summary(self, critic_stats: dict[str, Any]) -> list[str]:
+        lines: list[str] = []
+        lines.append("**Critic Stats (normalized & weighted):**  ")
+        lines.append("| Field | Weight | Mean (norm %) | Std (norm %) | Mean (weighted %) | Std (weighted %) |")
+        lines.append("|-------|--------|---------------|--------------|-------------------|------------------|")
+        for field, stats in critic_stats.items():
+            weight = stats.get("weight", 0.0)
+            mean_norm = stats.get("mean_score_normalized", 0.0) * 100
+            std_norm = stats.get("std_deviation_normalized", 0.0) * 100
+            mean_weighted = stats.get("mean_score", 0.0) * 100
+            std_weighted = stats.get("std_deviation", 0.0) * 100
+            lines.append(
+                f"| {field} | {weight:.2f} | {mean_norm:.2f}% | {std_norm:.2f}% | "
+                f"{mean_weighted:.2f}% | {std_weighted:.2f}% |"
+            )
+        lines.append("")
+        return lines
+
+    def _format_run_details_md(self, run_stats: dict[str, Any] | None) -> list[str]:
+        if not run_stats or run_stats.get("num_runs", 1) < 2:
+            return []
+        runs = run_stats.get("runs", [])
+        if not runs:
+            return []
+        lines: list[str] = []
+        lines.append("**Run Details:**  ")
+        for idx, run in enumerate(runs, start=1):
+            if run.get("passed"):
+                status = "✅ PASSED"
+            elif run.get("warning"):
+                status = "⚠️ WARNED"
+            else:
+                status = "❌ FAILED"
+            score_pct = run.get("score", 0.0) * 100
+            line = f"- Run {idx}: {status} — {score_pct:.2f}%"
+            failure_reason = run.get("failure_reason")
+            if failure_reason:
+                line += f" ({failure_reason})"
+            lines.append(line)
+            details = run.get("details", [])
+            if details:
+                lines.append("")
+                lines.append(f"<details>")
+                lines.append(f"<summary>Run {idx} details</summary>")
+                lines.append("")
+                lines.extend(self._format_critic_results_table_md(details))
+                lines.append("")
+                lines.append("</details>")
+        lines.append("")
+        return lines
 
     # =========================================================================
     # MULTI-MODEL EVALUATION FORMATTING
@@ -371,6 +473,35 @@ class MarkdownFormatter(EvalResultFormatter):
 
                         lines.append(f"**{model}:** Score {evaluation.score * 100:.1f}%")
                         lines.append("")
+                        run_stats = case_result.get("run_stats")
+                        if run_stats and run_stats.get("num_runs", 1) > 1:
+                            mean_pct = run_stats.get("mean_score", 0.0) * 100
+                            std_pct = run_stats.get("std_deviation", 0.0) * 100
+                            scores = run_stats.get("scores", [])
+                            scores_display = ", ".join(f"{score * 100:.2f}%" for score in scores)
+                            lines.append("**Run Stats:**  ")
+                            lines.append(f"- Runs: {run_stats.get('num_runs', len(scores))}  ")
+                            lines.append(f"- Mean Score: {mean_pct:.2f}%  ")
+                            lines.append(f"- Std Deviation: {std_pct:.2f}%  ")
+                            if scores_display:
+                                lines.append(f"- Scores: {scores_display}  ")
+                            seed_policy = run_stats.get("seed_policy")
+                            if seed_policy:
+                                lines.append(f"- Seed Policy: {seed_policy}  ")
+                            run_seeds = run_stats.get("run_seeds")
+                            if run_seeds and any(seed is not None for seed in run_seeds):
+                                seeds_display = ", ".join(str(seed) for seed in run_seeds)
+                                lines.append(f"- Run Seeds: {seeds_display}  ")
+                            pass_rule = run_stats.get("pass_rule")
+                            if pass_rule:
+                                lines.append(f"- Pass Rule: {pass_rule}  ")
+                            lines.append("")
+
+                        lines.extend(self._format_run_details_md(run_stats))
+
+                        critic_stats = case_result.get("critic_stats")
+                        if critic_stats:
+                            lines.extend(self._format_critic_stats_summary(critic_stats))
                         lines.append(self._format_evaluation_details(evaluation))
                         lines.append("")
 
@@ -876,6 +1007,36 @@ class MarkdownFormatter(EvalResultFormatter):
                 lines.append("<details>")
                 lines.append(f"<summary>📋 <b>{track_name}</b> — Detailed Results</summary>")
                 lines.append("")
+                run_stats = track_result.get("run_stats")
+                if run_stats and run_stats.get("num_runs", 1) > 1:
+                    mean_pct = run_stats.get("mean_score", 0.0) * 100
+                    std_pct = run_stats.get("std_deviation", 0.0) * 100
+                    scores = run_stats.get("scores", [])
+                    scores_display = ", ".join(f"{score * 100:.2f}%" for score in scores)
+                    lines.append("**Run Stats:**  ")
+                    lines.append(f"- Runs: {run_stats.get('num_runs', len(scores))}  ")
+                    lines.append(f"- Mean Score: {mean_pct:.2f}%  ")
+                    lines.append(f"- Std Deviation: {std_pct:.2f}%  ")
+                    if scores_display:
+                        lines.append(f"- Scores: {scores_display}  ")
+                    seed_policy = run_stats.get("seed_policy")
+                    if seed_policy:
+                        lines.append(f"- Seed Policy: {seed_policy}  ")
+                    run_seeds = run_stats.get("run_seeds")
+                    if run_seeds and any(seed is not None for seed in run_seeds):
+                        seeds_display = ", ".join(str(seed) for seed in run_seeds)
+                        lines.append(f"- Run Seeds: {seeds_display}  ")
+                    pass_rule = run_stats.get("pass_rule")
+                    if pass_rule:
+                        lines.append(f"- Pass Rule: {pass_rule}  ")
+                    lines.append("")
+
+                lines.extend(self._format_run_details_md(run_stats))
+
+                critic_stats = track_result.get("critic_stats")
+                if critic_stats:
+                    lines.extend(self._format_critic_stats_summary(critic_stats))
+
                 lines.append(self._format_evaluation_details(evaluation))
                 lines.append("")
                 lines.append("</details>")
@@ -1003,7 +1164,25 @@ class CaptureMarkdownFormatter(CaptureFormatter):
                 lines.append("#### Tool Calls")
                 lines.append("")
 
-                if case.tool_calls:
+                runs = getattr(case, "runs", None)
+                if runs:
+                    for run_index, run in enumerate(runs, start=1):
+                        lines.append(f"**Run {run_index}**")
+                        lines.append("")
+                        if run.tool_calls:
+                            for tc in run.tool_calls:
+                                total_calls += 1
+                                lines.append(f"**`{tc.name}`**")
+                                if tc.args:
+                                    lines.append("")
+                                    lines.append("```json")
+                                    lines.append(json.dumps(tc.args, indent=2))
+                                    lines.append("```")
+                                lines.append("")
+                        else:
+                            lines.append("*No tool calls captured*")
+                            lines.append("")
+                elif case.tool_calls:
                     for tc in case.tool_calls:
                         total_calls += 1
                         lines.append(f"**`{tc.name}`**")
@@ -1104,7 +1283,11 @@ class CaptureMarkdownFormatter(CaptureFormatter):
                                 continue
 
                             captured_case = models_dict[model]
-                            if captured_case.tool_calls:
+                            runs = getattr(captured_case, "runs", None)
+                            if runs:
+                                tool_names = f"{len(runs)} run(s)"
+                                total_calls += sum(len(run.tool_calls) for run in runs)
+                            elif captured_case.tool_calls:
                                 tool_names = ", ".join(
                                     f"`{tc.name}`" for tc in captured_case.tool_calls
                                 )
@@ -1121,21 +1304,39 @@ class CaptureMarkdownFormatter(CaptureFormatter):
                                 continue
 
                             captured_case = models_dict[model]
-                            if not captured_case.tool_calls:
+                            runs = getattr(captured_case, "runs", None)
+                            if not runs and not captured_case.tool_calls:
                                 continue
 
                             lines.append("<details>")
                             lines.append(f"<summary>🤖 {model} - Details</summary>")
                             lines.append("")
 
-                            for tc in captured_case.tool_calls:
-                                lines.append(f"**`{tc.name}`**")
-                                if tc.args:
+                            if runs:
+                                for run_index, run in enumerate(runs, start=1):
+                                    lines.append(f"**Run {run_index}**")
                                     lines.append("")
-                                    lines.append("```json")
-                                    lines.append(json.dumps(tc.args, indent=2))
-                                    lines.append("```")
-                                lines.append("")
+                                    if run.tool_calls:
+                                        for tc in run.tool_calls:
+                                            lines.append(f"**`{tc.name}`**")
+                                            if tc.args:
+                                                lines.append("")
+                                                lines.append("```json")
+                                                lines.append(json.dumps(tc.args, indent=2))
+                                                lines.append("```")
+                                            lines.append("")
+                                    else:
+                                        lines.append("*No tool calls captured*")
+                                        lines.append("")
+                            else:
+                                for tc in captured_case.tool_calls:
+                                    lines.append(f"**`{tc.name}`**")
+                                    if tc.args:
+                                        lines.append("")
+                                        lines.append("```json")
+                                        lines.append(json.dumps(tc.args, indent=2))
+                                        lines.append("```")
+                                    lines.append("")
 
                             lines.append("</details>")
                             lines.append("")
@@ -1160,7 +1361,11 @@ class CaptureMarkdownFormatter(CaptureFormatter):
                             continue
 
                         captured_case = models_dict[model]
-                        if captured_case.tool_calls:
+                        runs = getattr(captured_case, "runs", None)
+                        if runs:
+                            tool_names = f"{len(runs)} run(s)"
+                            total_calls += sum(len(run.tool_calls) for run in runs)
+                        elif captured_case.tool_calls:
                             tool_names = ", ".join(
                                 f"`{tc.name}`" for tc in captured_case.tool_calls
                             )
@@ -1177,21 +1382,39 @@ class CaptureMarkdownFormatter(CaptureFormatter):
                             continue
 
                         captured_case = models_dict[model]
-                        if not captured_case.tool_calls:
+                        runs = getattr(captured_case, "runs", None)
+                        if not runs and not captured_case.tool_calls:
                             continue
 
                         lines.append("<details>")
                         lines.append(f"<summary>🤖 <b>{model}</b> - Tool Call Details</summary>")
                         lines.append("")
 
-                        for tc in captured_case.tool_calls:
-                            lines.append(f"**`{tc.name}`**")
-                            if tc.args:
+                        if runs:
+                            for run_index, run in enumerate(runs, start=1):
+                                lines.append(f"**Run {run_index}**")
                                 lines.append("")
-                                lines.append("```json")
-                                lines.append(json.dumps(tc.args, indent=2))
-                                lines.append("```")
-                            lines.append("")
+                                if run.tool_calls:
+                                    for tc in run.tool_calls:
+                                        lines.append(f"**`{tc.name}`**")
+                                        if tc.args:
+                                            lines.append("")
+                                            lines.append("```json")
+                                            lines.append(json.dumps(tc.args, indent=2))
+                                            lines.append("```")
+                                        lines.append("")
+                                else:
+                                    lines.append("*No tool calls captured*")
+                                    lines.append("")
+                        else:
+                            for tc in captured_case.tool_calls:
+                                lines.append(f"**`{tc.name}`**")
+                                if tc.args:
+                                    lines.append("")
+                                    lines.append("```json")
+                                    lines.append(json.dumps(tc.args, indent=2))
+                                    lines.append("```")
+                                lines.append("")
 
                         lines.append("</details>")
                         lines.append("")

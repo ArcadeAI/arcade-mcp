@@ -163,10 +163,18 @@ class HtmlFormatter(EvalResultFormatter):
 
                 # Show summary table only when NOT showing details (avoid duplication)
                 if not show_details:
-                    html_parts.append('<table class="results-table">')
-                    html_parts.append(
-                        "<thead><tr><th>Status</th><th>Case</th><th>Score</th></tr></thead>"
+                    has_run_stats = any(
+                        case.get("run_stats", {}).get("num_runs", 1) > 1 for case in cases
                     )
+                    html_parts.append('<table class="results-table">')
+                    if has_run_stats:
+                        html_parts.append(
+                            "<thead><tr><th>Status</th><th>Case</th><th>Score</th><th>Runs</th></tr></thead>"
+                        )
+                    else:
+                        html_parts.append(
+                            "<thead><tr><th>Status</th><th>Case</th><th>Score</th></tr></thead>"
+                        )
                     html_parts.append("<tbody>")
 
                     for case in cases:
@@ -183,11 +191,20 @@ class HtmlFormatter(EvalResultFormatter):
 
                         score_pct = evaluation.score * 100
                         case_name = self._escape_html(case["name"])
+                        run_stats = case.get("run_stats") or {}
+                        score_display = f"{score_pct:.1f}%"
+                        runs_display = ""
+                        if run_stats.get("num_runs", 1) > 1:
+                            std_pct = run_stats.get("std_deviation", 0.0) * 100
+                            score_display = f"{score_pct:.1f}% ± {std_pct:.1f}%"
+                            runs_display = str(run_stats.get("num_runs", 1))
 
                         html_parts.append(f'<tr class="{status_class}">')
                         html_parts.append(f'<td class="status-cell">{status_text}</td>')
                         html_parts.append(f"<td>{case_name}</td>")
-                        html_parts.append(f'<td class="score-cell">{score_pct:.1f}%</td>')
+                        html_parts.append(f'<td class="score-cell">{score_display}</td>')
+                        if has_run_stats:
+                            html_parts.append(f"<td>{runs_display or '-'}</td>")
                         html_parts.append("</tr>")
 
                     html_parts.append("</tbody></table>")
@@ -254,7 +271,15 @@ class HtmlFormatter(EvalResultFormatter):
                                 html_parts.append("</div>")
 
                         # Evaluation details
-                        html_parts.append(self._format_evaluation_details(evaluation))
+                        run_id = self._make_safe_id(suite_name, case["name"], model)
+                        html_parts.append(
+                            self._format_evaluation_details(
+                                evaluation,
+                                case.get("run_stats"),
+                                case.get("critic_stats"),
+                                run_id=run_id,
+                            )
+                        )
                         html_parts.append("</div>")
                         html_parts.append("</details>")
 
@@ -267,18 +292,50 @@ class HtmlFormatter(EvalResultFormatter):
 
         return "\n".join(html_parts)
 
-    def _format_evaluation_details(self, evaluation: Any) -> str:
+    def _format_evaluation_details(
+        self,
+        evaluation: Any,
+        run_stats: dict[str, Any] | None = None,
+        critic_stats: dict[str, Any] | None = None,
+        run_id: str | None = None,
+    ) -> str:
         """Format evaluation details as HTML table."""
-        if evaluation.failure_reason:
-            return f'<div class="failure-reason">❌ <strong>Failure Reason:</strong> {self._escape_html(evaluation.failure_reason)}</div>'
+        parts: list[str] = []
 
+        run_stats_html = self._format_run_stats_html(run_stats, evaluation)
+        if run_stats_html:
+            parts.append(run_stats_html)
+
+        run_tabs_html = self._format_run_tabs_html(run_stats, run_id)
+        if run_tabs_html:
+            parts.append(run_tabs_html)
+
+        critic_stats_html = self._format_critic_stats_html(critic_stats)
+        if critic_stats_html:
+            parts.append(critic_stats_html)
+
+        if evaluation.failure_reason:
+            parts.append(
+                f'<div class="failure-reason">❌ <strong>Failure Reason:</strong> '
+                f"{self._escape_html(evaluation.failure_reason)}</div>"
+            )
+            return "\n".join(parts)
+
+        # Only show field details table when there are NO run tabs
+        # (run tabs already show per-run field details, and Critic Stats shows the aggregation)
+        if not run_tabs_html:
+            details_table = self._format_critic_results_table(evaluation.results)
+            parts.append(details_table)
+        return "\n".join(parts)
+
+    def _format_critic_results_table(self, results: list[dict[str, Any]]) -> str:
         lines = ['<table class="detail-table">']
         lines.append(
             "<thead><tr><th>Field</th><th>Match</th><th>Score</th><th>Expected</th><th>Actual</th></tr></thead>"
         )
         lines.append("<tbody>")
 
-        for critic_result in evaluation.results:
+        for critic_result in results:
             is_criticized = critic_result.get("is_criticized", True)
             field = self._escape_html(critic_result["field"])
             score = critic_result["score"]
@@ -313,6 +370,183 @@ class HtmlFormatter(EvalResultFormatter):
 
         lines.append("</tbody></table>")
         return "\n".join(lines)
+
+    def _format_run_stats_html(
+        self, run_stats: dict[str, Any] | None, evaluation: Any
+    ) -> str:
+        if not run_stats or run_stats.get("num_runs", 1) < 2:
+            return ""
+        if evaluation.passed:
+            status_label = "PASSED"
+            status_icon = "✅"
+            status_class = "passed"
+        elif evaluation.warning:
+            status_label = "WARNED"
+            status_icon = "⚠️"
+            status_class = "warned"
+        else:
+            status_label = "FAILED"
+            status_icon = "❌"
+            status_class = "failed"
+        mean_pct = run_stats.get("mean_score", 0.0) * 100
+        std_pct = run_stats.get("std_deviation", 0.0) * 100
+        num_runs = run_stats.get("num_runs", 0)
+        scores = run_stats.get("scores", [])
+        seed_policy = run_stats.get("seed_policy", "")
+        run_seeds = run_stats.get("run_seeds") or []
+        pass_rule = run_stats.get("pass_rule", "")
+
+        # Build score pills for each run
+        score_pills = []
+        for i, score in enumerate(scores, 1):
+            score_pct = score * 100
+            if score >= 0.8:
+                pill_class = "score-pill high"
+            elif score >= 0.6:
+                pill_class = "score-pill mid"
+            else:
+                pill_class = "score-pill low"
+            score_pills.append(f'<span class="{pill_class}">R{i}: {score_pct:.0f}%</span>')
+        scores_html = " ".join(score_pills) if score_pills else ""
+
+        # Build seeds display
+        seeds_html = ""
+        if run_seeds and any(seed is not None for seed in run_seeds):
+            seeds_display = ", ".join(str(seed) for seed in run_seeds)
+            seeds_html = f'<div class="run-meta-item"><span class="meta-label">🎲 Seeds</span><span class="meta-value mono">{seeds_display}</span></div>'
+
+        html = f'''<div class="run-stats-card {status_class}">
+            <div class="run-stats-header">
+                <div class="run-status-badge {status_class}">
+                    <span class="status-icon">{status_icon}</span>
+                    <span class="status-text">{status_label}</span>
+                </div>
+                <div class="run-count">{num_runs} runs</div>
+            </div>
+            <div class="run-stats-body">
+                <div class="score-display">
+                    <div class="score-main">
+                        <span class="score-value">{mean_pct:.1f}%</span>
+                        <span class="score-label">mean score</span>
+                    </div>
+                    <div class="score-deviation">
+                        <span class="deviation-value">± {std_pct:.1f}%</span>
+                        <span class="deviation-label">std dev</span>
+                    </div>
+                </div>
+                <div class="score-bar-container">
+                    <div class="score-bar {status_class}" style="width: {min(mean_pct, 100):.1f}%"></div>
+                </div>
+                <div class="run-scores">{scores_html}</div>
+            </div>
+            <div class="run-stats-footer">
+                <div class="run-meta-item">
+                    <span class="meta-label">📋 Pass Rule</span>
+                    <span class="meta-value">{self._escape_html(pass_rule)}</span>
+                </div>
+                <div class="run-meta-item">
+                    <span class="meta-label">🌱 Seed Policy</span>
+                    <span class="meta-value">{self._escape_html(seed_policy)}</span>
+                </div>
+                {seeds_html}
+            </div>
+        </div>'''
+        return html
+
+    def _format_critic_stats_html(self, critic_stats: dict[str, Any] | None) -> str:
+        if not critic_stats:
+            return ""
+        lines = ['<div class="critic-stats"><h4>📊 Critic Stats</h4>']
+        lines.append('<table class="detail-table critic-stats-table">')
+        lines.append(
+            "<thead><tr><th>Field</th><th>Weight</th><th>Mean (norm %)</th>"
+            "<th>Std (norm %)</th><th>Mean (weighted %)</th>"
+            "<th>Std (weighted %)</th></tr></thead>"
+        )
+        lines.append("<tbody>")
+        for field, stats in critic_stats.items():
+            weight = stats.get("weight", 0.0)
+            mean_norm = stats.get("mean_score_normalized", 0.0) * 100
+            std_norm = stats.get("std_deviation_normalized", 0.0) * 100
+            mean_weighted = stats.get("mean_score", 0.0) * 100
+            std_weighted = stats.get("std_deviation", 0.0) * 100
+            # Color coding based on normalized mean: <60 red, 60-80 yellow, >80 green
+            if mean_norm < 60:
+                score_class = "score-low"
+            elif mean_norm < 80:
+                score_class = "score-mid"
+            else:
+                score_class = "score-high"
+            lines.append(
+                f'<tr class="{score_class}">'
+                f"<td>{self._escape_html(field)}</td>"
+                f"<td>{weight:.2f}</td>"
+                f'<td class="score-value">{mean_norm:.2f}%</td>'
+                f"<td>{std_norm:.2f}%</td>"
+                f"<td>{mean_weighted:.2f}%</td>"
+                f"<td>{std_weighted:.2f}%</td>"
+                "</tr>"
+            )
+        lines.append("</tbody></table></div>")
+        return "\n".join(lines)
+
+    def _format_run_tabs_html(
+        self, run_stats: dict[str, Any] | None, run_id: str | None
+    ) -> str:
+        if not run_stats or run_stats.get("num_runs", 1) < 2:
+            return ""
+        runs = run_stats.get("runs", [])
+        if not runs or run_id is None:
+            return ""
+
+        tabs = ['<div class="run-tabs">', '<div class="run-tab-list">']
+        for idx, run in enumerate(runs, start=1):
+            active = "active" if idx == 1 else ""
+            if run.get("passed"):
+                status_class = "passed"
+            elif run.get("warning"):
+                status_class = "warned"
+            else:
+                status_class = "failed"
+            tabs.append(
+                f'<button class="run-tab {status_class} {active}" data-run-group="{run_id}" '
+                f'data-run-index="{idx}">Run {idx}</button>'
+            )
+        tabs.append("</div>")
+
+        panels = ['<div class="run-panels">']
+        for idx, run in enumerate(runs, start=1):
+            active = "active" if idx == 1 else ""
+            if run.get("passed"):
+                status = "✅ PASSED"
+                status_class = "passed"
+            elif run.get("warning"):
+                status = "⚠️ WARNED"
+                status_class = "warned"
+            else:
+                status = "❌ FAILED"
+                status_class = "failed"
+            score_pct = run.get("score", 0.0) * 100
+            details = run.get("details", [])
+            panels.append(
+                f'<div class="run-panel {status_class} {active}" data-run-group="{run_id}" '
+                f'data-run-index="{idx}">'
+            )
+            panels.append(
+                f"<p><strong>Run {idx}:</strong> {status} — {score_pct:.2f}%</p>"
+            )
+            failure_reason = run.get("failure_reason")
+            if failure_reason:
+                panels.append(
+                    f'<div class="failure-reason">❌ <strong>Failure Reason:</strong> '
+                    f"{self._escape_html(str(failure_reason))}</div>"
+                )
+            if details:
+                panels.append(self._format_critic_results_table(details))
+            panels.append("</div>")
+        panels.append("</div></div>")
+
+        return "\n".join(tabs + panels)
 
     def _escape_html(self, text: str) -> str:
         """Escape HTML special characters."""
@@ -534,6 +768,7 @@ class HtmlFormatter(EvalResultFormatter):
                 for model in model_order:
                     if model in case_models:
                         evaluation = case_models[model]["evaluation"]
+                        run_stats = case_models[model].get("run_stats")
                         score = evaluation.score * 100
                         if evaluation.passed:
                             cell_class = "passed"
@@ -544,7 +779,17 @@ class HtmlFormatter(EvalResultFormatter):
                         else:
                             cell_class = "failed"
                             icon = "✗"
-                        html_parts.append(f'<td class="{cell_class}">{icon} {score:.0f}%</td>')
+                        if run_stats and run_stats.get("num_runs", 1) > 1:
+                            std_pct = run_stats.get("std_deviation", 0.0) * 100
+                            runs = run_stats.get("num_runs", 1)
+                            html_parts.append(
+                                f'<td class="{cell_class}">{icon} '
+                                f'{score:.0f}% ± {std_pct:.0f}%<br><small>n={runs}</small></td>'
+                            )
+                        else:
+                            html_parts.append(
+                                f'<td class="{cell_class}">{icon} {score:.0f}%</td>'
+                            )
                     else:
                         html_parts.append('<td class="no-data">-</td>')
 
@@ -582,7 +827,15 @@ class HtmlFormatter(EvalResultFormatter):
                         html_parts.append(
                             f"<strong>{self._escape_html(model)}</strong>: Score {evaluation.score * 100:.1f}%"
                         )
-                        html_parts.append(self._format_evaluation_details(evaluation))
+                        run_id = self._make_safe_id(suite_name, case_name, model)
+                        html_parts.append(
+                            self._format_evaluation_details(
+                                evaluation,
+                                case_result.get("run_stats"),
+                                case_result.get("critic_stats"),
+                                run_id=run_id,
+                            )
+                        )
                         html_parts.append("</div>")
 
                     html_parts.append("</div>")
@@ -609,9 +862,9 @@ class HtmlFormatter(EvalResultFormatter):
             .multi-model-summary .pass-rate { font-weight: bold; }
             .multi-model-summary .best-model { background-color: rgba(76, 175, 80, 0.1); }
             .best-overall { margin-top: 15px; padding: 10px; background: #1e1e1e; border-radius: 4px; }
-            .comparison-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-            .comparison-table th, .comparison-table td { padding: 10px; border: 1px solid #333; text-align: center; }
-            .comparison-table th { background-color: #252525; }
+        .comparison-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        .comparison-table th, .comparison-table td { padding: 10px; border: 1px solid #333; text-align: center; }
+        .comparison-table th { background: linear-gradient(90deg, rgba(137, 180, 250, 0.25), rgba(203, 166, 247, 0.25)); }
             .comparison-table .case-name { text-align: left; font-weight: bold; }
             .comparison-table .passed { background-color: rgba(76, 175, 80, 0.2); color: #4caf50; }
             .comparison-table .failed { background-color: rgba(244, 67, 54, 0.2); color: #f44336; }
@@ -1201,7 +1454,15 @@ class HtmlFormatter(EvalResultFormatter):
                         f'<span class="track-badge">{self._escape_html(track_name)}</span>'
                     )
                     lines.append("</div>")
-                    lines.append(self._format_evaluation_details(evaluation))
+                    run_id = self._make_safe_id(suite_name, case_name, f"{track_name}")
+                    lines.append(
+                        self._format_evaluation_details(
+                            evaluation,
+                            track_result.get("run_stats"),
+                            track_result.get("critic_stats"),
+                            run_id=run_id,
+                        )
+                    )
 
                 lines.append("</div>")  # track-panel
             lines.append("</div>")  # track-panels-container
@@ -1256,6 +1517,9 @@ document.querySelectorAll('.track-tab').forEach(tab => {
             --blue: #89b4fa;
             --purple: #cba6f7;
             --cyan: #94e2d5;
+            --accent: #89b4fa;
+            --accent-2: #cba6f7;
+            --shadow: rgba(0, 0, 0, 0.35);
         }
 
         * {
@@ -1281,6 +1545,23 @@ document.querySelectorAll('.track-tab').forEach(tab => {
             border-bottom: 2px solid var(--purple);
             padding-bottom: 10px;
         }
+
+        /* Critic stats score coloring: red <60%, yellow 60-80%, green >80% */
+        .critic-stats-table tr.score-low td.score-value {
+            color: var(--red);
+            font-weight: bold;
+        }
+        .critic-stats-table tr.score-mid td.score-value {
+            color: var(--yellow);
+            font-weight: bold;
+        }
+        .critic-stats-table tr.score-high td.score-value {
+            color: var(--green);
+            font-weight: bold;
+        }
+        .critic-stats-table tr.score-low { background: rgba(243, 139, 168, 0.08); }
+        .critic-stats-table tr.score-mid { background: rgba(249, 226, 175, 0.08); }
+        .critic-stats-table tr.score-high { background: rgba(166, 227, 161, 0.08); }
 
         h2 {
             color: var(--blue);
@@ -1478,6 +1759,234 @@ document.querySelectorAll('.track-tab').forEach(tab => {
 
         .detail-table {
             font-size: 0.9em;
+        }
+
+        .critic-stats {
+            margin: 10px 0;
+            padding: 10px;
+            background: #202020;
+            border-radius: 6px;
+        }
+
+        /* Run Stats Card - Modern Design */
+        .run-stats-card {
+            margin: 15px 0;
+            border-radius: 12px;
+            background: linear-gradient(145deg, #252535, #1a1a2a);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+        .run-stats-card.passed { border-left: 4px solid var(--green); }
+        .run-stats-card.warned { border-left: 4px solid var(--yellow); }
+        .run-stats-card.failed { border-left: 4px solid var(--red); }
+
+        .run-stats-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .run-status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .run-status-badge.passed { background: rgba(166, 227, 161, 0.2); color: var(--green); }
+        .run-status-badge.warned { background: rgba(249, 226, 175, 0.2); color: var(--yellow); }
+        .run-status-badge.failed { background: rgba(243, 139, 168, 0.2); color: var(--red); }
+
+        .run-count {
+            color: var(--text-color);
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .run-stats-body {
+            padding: 16px;
+        }
+
+        .score-display {
+            display: flex;
+            align-items: flex-end;
+            gap: 20px;
+            margin-bottom: 12px;
+        }
+
+        .score-main {
+            display: flex;
+            flex-direction: column;
+        }
+        .score-main .score-value {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: var(--blue);
+            line-height: 1;
+        }
+        .score-main .score-label {
+            font-size: 0.75em;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .score-deviation {
+            display: flex;
+            flex-direction: column;
+        }
+        .score-deviation .deviation-value {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: var(--purple);
+        }
+        .score-deviation .deviation-label {
+            font-size: 0.7em;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        .score-bar-container {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+        .score-bar {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        .score-bar.passed { background: linear-gradient(90deg, var(--green), #7ecf7e); }
+        .score-bar.warned { background: linear-gradient(90deg, var(--yellow), #f5d67a); }
+        .score-bar.failed { background: linear-gradient(90deg, var(--red), #e87a94); }
+
+        .run-scores {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .score-pill {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+        .score-pill.high { background: rgba(166, 227, 161, 0.2); color: var(--green); }
+        .score-pill.mid { background: rgba(249, 226, 175, 0.2); color: var(--yellow); }
+        .score-pill.low { background: rgba(243, 139, 168, 0.2); color: var(--red); }
+
+        .run-stats-footer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.15);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .run-meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .meta-label {
+            font-size: 0.7em;
+            color: #888;
+            text-transform: uppercase;
+        }
+        .meta-value {
+            font-size: 0.85em;
+            color: var(--text-color);
+        }
+        .meta-value.mono {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.75em;
+            color: var(--cyan);
+        }
+
+        .run-tabs {
+            margin: 12px 0;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: #1f1f2b;
+        }
+
+        .run-tab-list {
+            display: flex;
+            gap: 6px;
+            padding: 8px;
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+
+        .run-tab {
+            background: #2a2a3a;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 6px 10px;
+            cursor: pointer;
+        }
+
+        .run-tab.active {
+            background: var(--blue);
+            color: #111;
+            border-color: var(--blue);
+        }
+
+        .run-tab.passed {
+            border-color: var(--green);
+        }
+
+        .run-tab.warned {
+            border-color: var(--yellow);
+        }
+
+        .run-tab.failed {
+            border-color: var(--red);
+        }
+
+        .run-panels {
+            padding: 10px;
+        }
+
+        .run-panel {
+            display: none;
+        }
+
+        .run-panel.active {
+            display: block;
+        }
+
+        .run-panel.passed {
+            border-left: 3px solid var(--green);
+            padding-left: 10px;
+        }
+
+        .run-panel.warned {
+            border-left: 3px solid var(--yellow);
+            padding-left: 10px;
+        }
+
+        .run-panel.failed {
+            border-left: 3px solid var(--red);
+            padding-left: 10px;
+        }
+
+        .run-status.passed { color: var(--green); }
+        .run-status.warned { color: var(--yellow); }
+        .run-status.failed { color: var(--red); }
+
+        .aggregate-details {
+            margin-top: 10px;
         }
 
         .field-name {
@@ -1954,6 +2463,39 @@ document.querySelectorAll('.track-tab').forEach(tab => {
             margin: 8px 0;
         }
     </style>
+    <script>
+    document.addEventListener("click", (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) {
+            return;
+        }
+        const runTab = target.closest(".run-tab");
+        if (!runTab) {
+            return;
+        }
+        const container = runTab.closest(".run-tabs");
+        if (!container) {
+            return;
+        }
+        const index = runTab.dataset.runIndex;
+        if (!index) {
+            return;
+        }
+        container.querySelectorAll(".run-tab").forEach((tab) => {
+            tab.classList.remove("active");
+        });
+        container.querySelectorAll(".run-panel").forEach((panel) => {
+            panel.classList.remove("active");
+        });
+        runTab.classList.add("active");
+        const panel = container.querySelector(
+            `.run-panel[data-run-index="${index}"]`
+        );
+        if (panel) {
+            panel.classList.add("active");
+        }
+    });
+    </script>
 </head>
 <body>
 """
@@ -1994,19 +2536,48 @@ class CaptureHtmlFormatter(CaptureFormatter):
             for case in capture.captured_cases:
                 total_cases += 1
                 tool_calls_html = []
+                runs = getattr(case, "runs", None)
 
-                for tc in case.tool_calls:
-                    total_calls += 1
-                    args_html = ""
-                    if tc.args:
-                        args_json = json.dumps(tc.args, indent=2)
-                        args_html = f'<pre class="args">{self._escape_html(args_json)}</pre>'
-                    tool_calls_html.append(
-                        f'<div class="tool-call">'
-                        f'<span class="tool-name">{self._escape_html(tc.name)}</span>'
-                        f"{args_html}"
-                        f"</div>"
-                    )
+                if runs:
+                    for run_index, run in enumerate(runs, start=1):
+                        run_calls_html = []
+                        for tc in run.tool_calls:
+                            total_calls += 1
+                            args_html = ""
+                            if tc.args:
+                                args_json = json.dumps(tc.args, indent=2)
+                                args_html = (
+                                    f'<pre class="args">{self._escape_html(args_json)}</pre>'
+                                )
+                            run_calls_html.append(
+                                f'<div class="tool-call">'
+                                f'<span class="tool-name">{self._escape_html(tc.name)}</span>'
+                                f"{args_html}"
+                                f"</div>"
+                            )
+                        if not run_calls_html:
+                            run_calls_html.append(
+                                '<div class="no-calls">No tool calls captured</div>'
+                            )
+                        tool_calls_html.append(
+                            f'<details class="capture-run" open>'
+                            f'<summary>Run {run_index}</summary>'
+                            f'{"".join(run_calls_html)}'
+                            f"</details>"
+                        )
+                else:
+                    for tc in case.tool_calls:
+                        total_calls += 1
+                        args_html = ""
+                        if tc.args:
+                            args_json = json.dumps(tc.args, indent=2)
+                            args_html = f'<pre class="args">{self._escape_html(args_json)}</pre>'
+                        tool_calls_html.append(
+                            f'<div class="tool-call">'
+                            f'<span class="tool-name">{self._escape_html(tc.name)}</span>'
+                            f"{args_html}"
+                            f"</div>"
+                        )
 
                 if not tool_calls_html:
                     tool_calls_html.append('<div class="no-calls">No tool calls captured</div>')
@@ -2498,7 +3069,33 @@ class CaptureHtmlFormatter(CaptureFormatter):
                                 f'<div class="model-label">{self._escape_html(model)}</div>'
                             )
 
-                            if captured_case.tool_calls:
+                            runs = getattr(captured_case, "runs", None)
+                            if runs:
+                                for run_index, run in enumerate(runs, start=1):
+                                    html_parts.append(
+                                        f'<details class="capture-run" open>'
+                                        f'<summary>Run {run_index}</summary>'
+                                    )
+                                    if run.tool_calls:
+                                        for tc in run.tool_calls:
+                                            total_calls += 1
+                                            args_html = ""
+                                            if tc.args:
+                                                args_json = json.dumps(tc.args, indent=2)
+                                                args_html = (
+                                                    f'<pre class="args">{self._escape_html(args_json)}</pre>'
+                                                )
+                                            html_parts.append(
+                                                f'<div class="tool-call">'
+                                                f'<span class="tool-name">{self._escape_html(tc.name)}</span>'
+                                                f"{args_html}</div>"
+                                            )
+                                    else:
+                                        html_parts.append(
+                                            '<div class="no-calls">No tool calls</div>'
+                                        )
+                                    html_parts.append("</details>")
+                            elif captured_case.tool_calls:
                                 for tc in captured_case.tool_calls:
                                     total_calls += 1
                                     args_html = ""
@@ -2539,7 +3136,31 @@ class CaptureHtmlFormatter(CaptureFormatter):
                             f'<div class="model-label">{self._escape_html(model)}</div>'
                         )
 
-                        if captured_case.tool_calls:
+                        runs = getattr(captured_case, "runs", None)
+                        if runs:
+                            for run_index, run in enumerate(runs, start=1):
+                                html_parts.append(
+                                    f'<details class="capture-run" open>'
+                                    f'<summary>Run {run_index}</summary>'
+                                )
+                                if run.tool_calls:
+                                    for tc in run.tool_calls:
+                                        total_calls += 1
+                                        args_html = ""
+                                        if tc.args:
+                                            args_json = json.dumps(tc.args, indent=2)
+                                            args_html = (
+                                                f'<pre class="args">{self._escape_html(args_json)}</pre>'
+                                            )
+                                        html_parts.append(
+                                            f'<div class="tool-call">'
+                                            f'<span class="tool-name">{self._escape_html(tc.name)}</span>'
+                                            f"{args_html}</div>"
+                                        )
+                                else:
+                                    html_parts.append('<div class="no-calls">No tool calls</div>')
+                                html_parts.append("</details>")
+                        elif captured_case.tool_calls:
                             for tc in captured_case.tool_calls:
                                 total_calls += 1
                                 args_html = ""
@@ -2702,6 +3323,19 @@ document.querySelectorAll('.track-tab').forEach(tab => {{
             color: var(--text-secondary);
             font-size: 0.85rem;
             text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }}
+        .capture-run {{
+            margin-bottom: 0.75rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.5rem 0.75rem;
+        }}
+        .capture-run summary {{
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--accent);
             margin-bottom: 0.5rem;
         }}
         .tool-call {{

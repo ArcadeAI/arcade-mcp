@@ -7,9 +7,10 @@ keeping it separate from the main evaluation logic in eval.py.
 from __future__ import annotations
 
 import asyncio
+import random
 from typing import TYPE_CHECKING, Any
 
-from arcade_evals.capture import CapturedCase, CapturedToolCall, CaptureResult
+from arcade_evals.capture import CapturedCase, CapturedRun, CapturedToolCall, CaptureResult
 
 if TYPE_CHECKING:
     from arcade_evals._evalsuite._comparative import ComparativeCaseBuilder
@@ -39,6 +40,7 @@ class _EvalSuiteCaptureMixin:
         model: str,
         case: EvalCase,
         registry: EvalSuiteToolRegistry | None = None,
+        seed: int | None = None,
     ) -> list[tuple[str, dict[str, Any]]]:
         raise NotImplementedError  # Implemented in EvalSuite
 
@@ -67,6 +69,8 @@ class _EvalSuiteCaptureMixin:
         model: str,
         provider: ProviderName = "openai",
         include_context: bool = False,
+        num_runs: int = 1,
+        seed: str | int | None = "constant",
     ) -> CaptureResult:
         """
         Run the evaluation suite in capture mode - records tool calls without scoring.
@@ -86,12 +90,34 @@ class _EvalSuiteCaptureMixin:
             provider: The provider name ("openai" or "anthropic").
             include_context: Whether to include system_message and additional_messages
                            in the output.
+            num_runs: Number of runs per case.
+            seed: Seed policy ("constant", "random", or an integer seed).
 
         Returns:
             A CaptureResult containing all captured tool calls.
         """
+        if num_runs < 1:
+            raise ValueError("num_runs must be >= 1")
+
         all_captured: list[CapturedCase] = []
         semaphore = asyncio.Semaphore(self.max_concurrent)
+
+        def _resolve_seed_spec(seed_spec: str | int | None) -> tuple[str, int | None]:
+            if seed_spec is None:
+                return "constant", 42
+            if isinstance(seed_spec, int):
+                return "custom", seed_spec
+            seed_value = seed_spec.strip().lower()
+            if seed_value == "constant":
+                return "constant", 42
+            if seed_value == "random":
+                return "random", None
+            try:
+                return "custom", int(seed_value)
+            except ValueError as exc:
+                raise ValueError(
+                    "Invalid seed. Use 'constant', 'random', or an integer value."
+                ) from exc
 
         async def capture_case(
             case: EvalCase,
@@ -106,34 +132,53 @@ class _EvalSuiteCaptureMixin:
                         "No tools registered. Use add_* convenience methods or pass catalog=ToolCatalog."
                     )
 
-                # Get tool calls based on provider
-                if provider == "anthropic":
-                    predicted_args = await self._run_anthropic(
-                        client, model, case, registry=use_registry
-                    )
+                seed_policy, seed_value = _resolve_seed_spec(seed)
+                if provider == "openai":
+                    if seed_policy == "random":
+                        run_seeds: list[int | None] = [
+                            random.randint(0, 2**31 - 1) for _ in range(num_runs)  # noqa: S311
+                        ]
+                    else:
+                        run_seeds = [seed_value for _ in range(num_runs)]
                 else:
-                    predicted_args = await self._run_openai(
-                        client, model, case, registry=use_registry
+                    run_seeds = [None for _ in range(num_runs)]
+
+                runs: list[CapturedRun] = []
+                for run_index in range(num_runs):
+                    run_seed = run_seeds[run_index]
+                    # Get tool calls based on provider
+                    if provider == "anthropic":
+                        predicted_args = await self._run_anthropic(
+                            client, model, case, registry=use_registry
+                        )
+                    else:
+                        predicted_args = await self._run_openai(
+                            client, model, case, registry=use_registry, seed=run_seed
+                        )
+
+                    # Process tool calls (resolve names, fill defaults)
+                    filled_actual_tool_calls = self._process_tool_calls(
+                        predicted_args, registry=use_registry
                     )
 
-                # Process tool calls (resolve names, fill defaults)
-                filled_actual_tool_calls = self._process_tool_calls(
-                    predicted_args, registry=use_registry
-                )
+                    # Convert to CapturedToolCall objects
+                    tool_calls = [
+                        CapturedToolCall(name=name, args=args)
+                        for name, args in filled_actual_tool_calls
+                    ]
 
-                # Convert to CapturedToolCall objects
-                tool_calls = [
-                    CapturedToolCall(name=name, args=args)
-                    for name, args in filled_actual_tool_calls
-                ]
+                    runs.append(CapturedRun(tool_calls=tool_calls))
+
+                primary_tool_calls = runs[0].tool_calls if runs else []
 
                 return CapturedCase(
                     case_name=case.name,
                     user_message=case.user_message,
-                    tool_calls=tool_calls,
+                    tool_calls=primary_tool_calls,
                     system_message=case.system_message if include_context else None,
                     additional_messages=case.additional_messages if include_context else None,
                     track_name=track,
+                    runs=runs if len(runs) > 1 else [],
                 )
 
         # Capture regular cases (using default registry)

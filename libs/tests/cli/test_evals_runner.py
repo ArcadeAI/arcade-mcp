@@ -1,5 +1,6 @@
 """Tests for evals_runner error handling."""
 
+from typing import Any, cast
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -14,6 +15,9 @@ from arcade_cli.evals_runner import (
     run_evaluations,
 )
 from arcade_cli.utils import ModelSpec, Provider
+from arcade_evals import CaptureResult
+
+RUN_RULE_LAST = "last"
 
 
 class TestEvalTaskResult:
@@ -68,7 +72,13 @@ class TestCaptureTaskResult:
 
     def test_from_success(self) -> None:
         """Test creating a successful capture result."""
-        mock_captures = [MagicMock(), MagicMock()]
+        mock_captures = cast(
+            list[CaptureResult],
+            [
+                MagicMock(spec=CaptureResult),
+                MagicMock(spec=CaptureResult),
+            ],
+        )
         result = CaptureTaskResult.from_success("test_suite", "gpt-4o", "openai", mock_captures)
         assert result.success is True
         assert result.suite_name == "test_suite"
@@ -107,6 +117,9 @@ class TestRunEvalTask:
             suite_func=mock_suite,
             model_spec=model_spec,
             max_concurrent=1,
+            num_runs=1,
+            seed="constant",
+            multi_run_pass_rule=RUN_RULE_LAST,
         )
 
         assert result.success is True
@@ -126,9 +139,13 @@ class TestRunEvalTask:
             suite_func=mock_suite,
             model_spec=model_spec,
             max_concurrent=1,
+            num_runs=1,
+            seed="constant",
+            multi_run_pass_rule=RUN_RULE_LAST,
         )
 
         assert result.success is False
+        assert result.error is not None
         assert "API error" in result.error
         assert result.error_type == "ValueError"
         assert result.result is None
@@ -145,6 +162,9 @@ class TestRunEvalTask:
             model_spec=model_spec,
             max_concurrent=5,
             include_context=False,
+            num_runs=1,
+            seed="constant",
+            multi_run_pass_rule=RUN_RULE_LAST,
         )
 
         mock_suite.assert_called_once_with(
@@ -153,6 +173,9 @@ class TestRunEvalTask:
             max_concurrency=5,
             provider="anthropic",
             include_context=False,
+            num_runs=1,
+            seed="constant",
+            multi_run_pass_rule=RUN_RULE_LAST,
         )
 
 
@@ -172,6 +195,8 @@ class TestRunCaptureTask:
             model_spec=model_spec,
             max_concurrent=1,
             include_context=True,
+            num_runs=1,
+            seed="constant",
         )
 
         assert result.success is True
@@ -189,9 +214,12 @@ class TestRunCaptureTask:
             model_spec=model_spec,
             max_concurrent=1,
             include_context=False,
+            num_runs=1,
+            seed="constant",
         )
 
         assert result.success is False
+        assert result.error is not None
         assert "Network failed" in result.error
         assert result.error_type == "ConnectionError"
 
@@ -207,6 +235,8 @@ class TestRunCaptureTask:
             model_spec=model_spec,
             max_concurrent=2,
             include_context=True,
+            num_runs=1,
+            seed="constant",
         )
 
         mock_suite.assert_called_once_with(
@@ -216,6 +246,8 @@ class TestRunCaptureTask:
             provider="openai",
             capture_mode=True,
             include_context=True,
+            num_runs=1,
+            seed="constant",
         )
 
 
@@ -253,6 +285,9 @@ class TestRunEvaluationsErrorHandling:
                 output_format="txt",
                 failed_only=False,
                 console=console,
+                num_runs=1,
+                seed="constant",
+                multi_run_pass_rule=RUN_RULE_LAST,
             )
 
         # Verify both were attempted
@@ -277,6 +312,9 @@ class TestRunEvaluationsErrorHandling:
             output_format="txt",
             failed_only=False,
             console=console,
+            num_runs=1,
+            seed="constant",
+            multi_run_pass_rule=RUN_RULE_LAST,
         )
 
         # Should print "No evaluations completed successfully" (with emoji)
@@ -302,6 +340,9 @@ class TestRunEvaluationsErrorHandling:
             output_format="txt",
             failed_only=False,
             console=console,
+            num_runs=1,
+            seed="constant",
+            multi_run_pass_rule=RUN_RULE_LAST,
         )
 
         # Check that failure count is printed
@@ -327,6 +368,9 @@ class TestRunEvaluationsErrorHandling:
                 output_format="txt",
                 failed_only=False,
                 console=console,
+                num_runs=1,
+                seed="constant",
+                multi_run_pass_rule=RUN_RULE_LAST,
             )
 
         # Check that no failure warning is printed
@@ -338,7 +382,7 @@ class TestRunEvaluationsErrorHandling:
         """Test partial failure with multiple models."""
 
         # Suite that fails on one model but succeeds on another
-        async def conditional_suite(**kwargs):
+        async def conditional_suite(**kwargs: Any) -> MagicMock:
             if kwargs["model"] == "bad-model":
                 raise RuntimeError("Model not supported")
             return MagicMock()
@@ -371,6 +415,9 @@ class TestRunEvaluationsErrorHandling:
                 output_format="txt",
                 failed_only=False,
                 console=console,
+                num_runs=1,
+                seed="constant",
+                multi_run_pass_rule=RUN_RULE_LAST,
             )
 
         # Should have been called twice
@@ -397,6 +444,8 @@ class TestRunCaptureErrorHandling:
             output_file=None,
             output_format="json",
             console=console,
+            num_runs=1,
+            seed="constant",
         )
 
         # Error message includes emoji
@@ -436,6 +485,8 @@ class TestRunCaptureErrorHandling:
                 output_file=None,
                 output_format="json",
                 console=console,
+                num_runs=1,
+                seed="constant",
             )
 
         # Both should have been attempted
@@ -463,6 +514,8 @@ class TestRunCaptureErrorHandling:
             output_file=None,
             output_format="json",
             console=console,
+            num_runs=1,
+            seed="constant",
         )
 
         # Check error details are printed

@@ -57,6 +57,20 @@ def _create_mock_capture_result(
         # Explicitly set track_name to None unless specified (avoids MagicMock)
         case.track_name = case_data.get("track_name")
 
+        # Create mock runs if provided
+        runs = []
+        for run_data in case_data.get("runs", []):
+            run = MagicMock()
+            run_tool_calls = []
+            for tc_data in run_data.get("tool_calls", []):
+                tc = MagicMock()
+                tc.name = tc_data["name"]
+                tc.args = tc_data.get("args", {})
+                run_tool_calls.append(tc)
+            run.tool_calls = run_tool_calls
+            runs.append(run)
+        case.runs = runs
+
         # Create mock tool calls
         tool_calls = []
         for tc_data in case_data.get("tool_calls", []):
@@ -84,6 +98,11 @@ def _create_mock_capture_result(
                 "user_message": case.user_message,
                 "tool_calls": [{"name": tc.name, "args": tc.args} for tc in case.tool_calls],
             }
+            if case.runs:
+                case_dict["runs"] = [
+                    {"tool_calls": [{"name": tc.name, "args": tc.args} for tc in run.tool_calls]}
+                    for run in case.runs
+                ]
             if include_context:
                 case_dict["system_message"] = case.system_message
                 case_dict["additional_messages"] = case.additional_messages
@@ -169,6 +188,29 @@ class TestCaptureJsonFormatter:
         assert len(case["tool_calls"]) == 1
         assert case["tool_calls"][0]["name"] == "GetWeather"
         assert case["tool_calls"][0]["args"]["city"] == "NYC"
+
+    def test_format_includes_runs(self) -> None:
+        """Test that runs are included when present."""
+        formatter = CaptureJsonFormatter()
+        capture = _create_mock_capture_result(
+            cases=[
+                {
+                    "case_name": "multi_run_case",
+                    "user_message": "Hello",
+                    "tool_calls": [],
+                    "runs": [
+                        {"tool_calls": [{"name": "A", "args": {"x": 1}}]},
+                        {"tool_calls": [{"name": "B", "args": {"x": 2}}]},
+                    ],
+                }
+            ]
+        )
+
+        output = formatter.format([capture])
+        parsed = json.loads(output)
+        runs = parsed["captures"][0]["captured_cases"][0]["runs"]
+        assert len(runs) == 2
+        assert runs[0]["tool_calls"][0]["name"] == "A"
 
     def test_format_with_context(self) -> None:
         """Test formatting with context included."""
@@ -308,6 +350,28 @@ class TestCaptureMarkdownFormatter:
         assert "## Summary" in output
         assert "**Total Cases:** 1" in output
         assert "**Total Tool Calls:** 1" in output
+
+    def test_format_includes_runs(self) -> None:
+        """Should include per-run tool calls when runs are present."""
+        formatter = CaptureMarkdownFormatter()
+        capture = _create_mock_capture_result(
+            cases=[
+                {
+                    "case_name": "multi_run_case",
+                    "user_message": "Hello",
+                    "tool_calls": [],
+                    "runs": [
+                        {"tool_calls": [{"name": "GetWeather", "args": {"city": "NYC"}}]},
+                        {"tool_calls": [{"name": "GetWeather", "args": {"city": "SF"}}]},
+                    ],
+                }
+            ]
+        )
+
+        output = formatter.format([capture])
+        assert "Run 1" in output
+        assert "Run 2" in output
+        assert "`GetWeather`" in output
 
 
 class TestCaptureHtmlFormatter:

@@ -3,7 +3,10 @@ import functools
 import inspect
 import json
 import logging
+import random
+from collections.abc import Sequence
 from dataclasses import dataclass, field
+from statistics import mean, pstdev
 from typing import TYPE_CHECKING, Any, Callable
 
 import numpy as np
@@ -140,6 +143,107 @@ class EvaluationResult:
         self.score = total_score / total_weight if total_weight > 0 else 0.0
 
 
+DEFAULT_EVAL_SEED = 42
+PASS_RULE_LAST = "last"  # noqa: S105
+PASS_RULE_MEAN = "mean"  # noqa: S105
+PASS_RULE_MAJORITY = "majority"  # noqa: S105
+_VALID_PASS_RULES = {PASS_RULE_LAST, PASS_RULE_MEAN, PASS_RULE_MAJORITY}
+
+
+def _compute_mean_std(values: list[float]) -> tuple[float, float]:
+    if not values:
+        return 0.0, 0.0
+    avg = mean(values)
+    if len(values) < 2:
+        return avg, 0.0
+    return avg, pstdev(values)
+
+
+def _resolve_seed_spec(seed: str | int | None) -> tuple[str, int | None]:
+    if seed is None:
+        return "constant", DEFAULT_EVAL_SEED
+    if isinstance(seed, int):
+        return "custom", seed
+    seed_value = seed.strip().lower()
+    if seed_value == "constant":
+        return "constant", DEFAULT_EVAL_SEED
+    if seed_value == "random":
+        return "random", None
+    try:
+        return "custom", int(seed_value)
+    except ValueError as exc:
+        raise ValueError("Invalid seed. Use 'constant', 'random', or an integer value.") from exc
+
+
+def _resolve_pass_rule(
+    run_evaluations: list[EvaluationResult],
+    mean_score: float,
+    pass_rule: str,
+    rubric: EvalRubric,
+) -> tuple[bool, bool]:
+    if pass_rule not in _VALID_PASS_RULES:
+        raise ValueError(
+            f"Invalid multi-run pass rule '{pass_rule}'. "
+            f"Valid values: {', '.join(sorted(_VALID_PASS_RULES))}"
+        )
+    if not run_evaluations:
+        return False, False
+    if pass_rule == PASS_RULE_MEAN:
+        passed = mean_score >= rubric.fail_threshold
+        warning = not passed and mean_score >= rubric.warn_threshold
+        return passed, warning
+    if pass_rule == PASS_RULE_MAJORITY:
+        majority = len(run_evaluations) // 2 + 1
+        passed_count = sum(1 for ev in run_evaluations if ev.passed)
+        warned_count = sum(1 for ev in run_evaluations if ev.warning)
+        if passed_count >= majority:
+            return True, False
+        if (passed_count + warned_count) >= majority:
+            return False, True
+        return False, False
+    last_eval = run_evaluations[-1]
+    return last_eval.passed, last_eval.warning
+
+
+def _aggregate_critic_stats(
+    run_field_scores: list[dict[str, dict[str, float]]],
+) -> dict[str, dict[str, Any]]:
+    if not run_field_scores:
+        return {}
+    all_fields: set[str] = set()
+    for field_scores in run_field_scores:
+        all_fields.update(field_scores.keys())
+
+    critic_stats: dict[str, dict[str, Any]] = {}
+    for critic_field in sorted(all_fields):
+        weighted_scores = [
+            run_scores.get(critic_field, {}).get("score", 0.0)
+            for run_scores in run_field_scores
+        ]
+        weights = [
+            run_scores.get(critic_field, {}).get("weight", 0.0)
+            for run_scores in run_field_scores
+        ]
+        normalized_scores = [
+            (score / weight) if weight > 0 else 0.0
+            for score, weight in zip(weighted_scores, weights)
+        ]
+        avg, std_dev = _compute_mean_std(weighted_scores)
+        avg_norm, std_norm = _compute_mean_std(normalized_scores)
+        non_zero_weights = [w for w in weights if w > 0]
+        avg_weight = max(non_zero_weights) if non_zero_weights else 0.0
+        critic_stats[critic_field] = {
+            "run_scores": weighted_scores,
+            "mean_score": avg,
+            "std_deviation": std_dev,
+            "run_scores_normalized": normalized_scores,
+            "mean_score_normalized": avg_norm,
+            "std_deviation_normalized": std_norm,
+            "weight": avg_weight,
+        }
+    return critic_stats
+
+
 # Import capture mode helpers (defined in capture.py to keep this file focused)
 from arcade_evals.capture import (  # noqa: E402
     _capture_with_anthropic,
@@ -167,7 +271,7 @@ class EvalCase:
     user_message: str
     expected_tool_calls: list[NamedExpectedToolCall]
     critics: list["Critic"] | None = None
-    additional_messages: list[dict[str, str]] = field(default_factory=list)
+    additional_messages: list[dict[str, Any]] = field(default_factory=list)
     rubric: EvalRubric = field(default_factory=EvalRubric)
 
     def __post_init__(self) -> None:
@@ -520,7 +624,7 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
         expected_tool_calls: list[NamedExpectedToolCall],
         rubric: EvalRubric,
         critics: list["Critic"],
-        additional_messages: list[dict[str, str]],
+        additional_messages: list[dict[str, Any]],
     ) -> "EvalCase":
         """Factory method to create EvalCase instances.
 
@@ -540,11 +644,12 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
         self,
         name: str,
         user_message: str,
-        expected_tool_calls: list[AnyExpectedToolCall] | list[tuple[Callable, dict[str, Any]]],
+        expected_tool_calls: Sequence[AnyExpectedToolCall]
+        | Sequence[tuple[Callable, dict[str, Any]]],
         critics: list["Critic"] | None = None,
         system_message: str | None = None,
         rubric: EvalRubric | None = None,
-        additional_messages: list[dict[str, str]] | None = None,
+        additional_messages: list[dict[str, Any]] | None = None,
     ) -> None:
         """
         Add a new evaluation case to the suite.
@@ -660,7 +765,7 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
         | None = None,
         rubric: EvalRubric | None = None,
         critics: list["Critic"] | None = None,
-        additional_messages: list[dict[str, str]] | None = None,
+        additional_messages: list[dict[str, Any]] | None = None,
     ) -> None:
         """
         Extend the last added case with new information.
@@ -745,11 +850,136 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
             processed_calls.append((resolved_name, args_with_defaults))
         return processed_calls
 
+    def _compute_run_field_scores(
+        self, evaluation: EvaluationResult
+    ) -> dict[str, dict[str, float]]:
+        field_scores: dict[str, list[float]] = {}
+        field_weights: dict[str, list[float]] = {}
+        for result in evaluation.results:
+            field = result["field"]
+            if field == "tool_selection":
+                continue
+            field_scores.setdefault(field, []).append(result["score"])
+            field_weights.setdefault(field, []).append(result["weight"])
+
+        run_scores: dict[str, dict[str, float]] = {}
+        for field, scores in field_scores.items():
+            weights = field_weights.get(field, [])
+            run_scores[field] = {
+                "score": mean(scores) if scores else 0.0,
+                "weight": mean(weights) if weights else 0.0,
+            }
+        return run_scores
+
+    async def _run_case_with_stats(
+        self,
+        case: "EvalCase",
+        client: Any,
+        model: str,
+        provider: ProviderName,
+        *,
+        num_runs: int,
+        seed: str | int | None,
+        pass_rule: str,
+        registry: EvalSuiteToolRegistry | None = None,
+    ) -> dict[str, Any]:
+        if num_runs < 1:
+            raise ValueError("num_runs must be >= 1")
+
+        seed_policy, seed_value = _resolve_seed_spec(seed)
+        seed_policy_display = seed_policy
+        if provider == "openai":
+            if seed_policy == "random":
+                run_seeds: list[int | None] = [
+                    random.randint(0, 2**31 - 1) for _ in range(num_runs)  # noqa: S311
+                ]
+            else:
+                run_seeds = [seed_value for _ in range(num_runs)]
+        else:
+            seed_policy_display = f"{seed_policy} (ignored)"
+            run_seeds = [None for _ in range(num_runs)]
+
+        run_evaluations: list[EvaluationResult] = []
+        run_scores: list[float] = []
+        run_passed: list[bool] = []
+        run_warned: list[bool] = []
+        run_field_scores: list[dict[str, dict[str, float]]] = []
+        last_processed_calls: list[tuple[str, dict[str, Any]]] = []
+        run_details: list[dict[str, Any]] = []
+
+        for run_index in range(num_runs):
+            run_seed = run_seeds[run_index]
+            if provider == "anthropic":
+                predicted_args = await self._run_anthropic(
+                    client, model, case, registry=registry
+                )
+            else:
+                predicted_args = await self._run_openai(
+                    client, model, case, registry=registry, seed=run_seed
+                )
+
+            processed_calls = self._process_tool_calls(predicted_args, registry=registry)
+            evaluation = case.evaluate(processed_calls)
+
+            run_evaluations.append(evaluation)
+            run_scores.append(evaluation.score)
+            run_passed.append(evaluation.passed)
+            run_warned.append(evaluation.warning)
+            run_field_scores.append(self._compute_run_field_scores(evaluation))
+            last_processed_calls = processed_calls
+            run_details.append(
+                {
+                    "score": evaluation.score,
+                    "passed": evaluation.passed,
+                    "warning": evaluation.warning,
+                    "failure_reason": evaluation.failure_reason,
+                    "details": evaluation.results,
+                }
+            )
+
+        mean_score, std_dev = _compute_mean_std(run_scores)
+        passed, warning = _resolve_pass_rule(run_evaluations, mean_score, pass_rule, case.rubric)
+
+        aggregate = EvaluationResult(
+            score=mean_score,
+            passed=passed,
+            warning=warning,
+            results=run_evaluations[-1].results if run_evaluations else [],
+            failure_reason=(
+                run_evaluations[-1].failure_reason
+                if pass_rule == PASS_RULE_LAST and run_evaluations
+                else None
+            ),
+        )
+
+        run_stats = {
+            "num_runs": num_runs,
+            "scores": run_scores,
+            "mean_score": mean_score,
+            "std_deviation": std_dev,
+            "passed": run_passed,
+            "warned": run_warned,
+            "seed_policy": seed_policy_display,
+            "run_seeds": run_seeds,
+            "pass_rule": pass_rule,
+            "runs": run_details,
+        }
+
+        return {
+            "evaluation": aggregate,
+            "predicted_tool_calls": last_processed_calls,
+            "run_stats": run_stats,
+            "critic_stats": _aggregate_critic_stats(run_field_scores),
+        }
+
     async def run(
         self,
         client: Any,  # AsyncOpenAI | AsyncAnthropic - use Any to avoid import dependency
         model: str,
         provider: ProviderName = "openai",
+        num_runs: int = 1,
+        seed: str | int | None = "constant",
+        multi_run_pass_rule: str = PASS_RULE_LAST,
     ) -> dict[str, Any]:
         """
         Run the evaluation suite.
@@ -758,6 +988,9 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
             client: The LLM client instance (AsyncOpenAI or AsyncAnthropic).
             model: The model to evaluate.
             provider: The provider name ("openai" or "anthropic").
+            num_runs: Number of runs per case.
+            seed: Seed policy ("constant", "random", or an integer seed).
+            multi_run_pass_rule: How to determine pass/warn for multi-run cases.
 
         Returns:
             A dictionary containing the evaluation results.
@@ -779,17 +1012,15 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
                         "No tools registered. Use add_* convenience methods or pass catalog=ToolCatalog."
                     )
 
-                # Get tool calls based on provider
-                if provider == "anthropic":
-                    predicted_args = await self._run_anthropic(client, model, case)
-                else:
-                    predicted_args = await self._run_openai(client, model, case)
-
-                # Process tool calls (resolve names, fill defaults)
-                filled_actual_tool_calls = self._process_tool_calls(predicted_args)
-
-                # Evaluate the case
-                evaluation = case.evaluate(filled_actual_tool_calls)
+                case_result = await self._run_case_with_stats(
+                    case,
+                    client,
+                    model,
+                    provider,
+                    num_runs=num_runs,
+                    seed=seed,
+                    pass_rule=multi_run_pass_rule,
+                )
 
                 # Prepare the result
                 result = {
@@ -801,10 +1032,15 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
                         {"name": tc.name, "args": tc.args} for tc in case.expected_tool_calls
                     ],
                     "predicted_tool_calls": [
-                        {"name": name, "args": args} for name, args in filled_actual_tool_calls
+                        {"name": name, "args": args}
+                        for name, args in case_result["predicted_tool_calls"]
                     ],
-                    "evaluation": evaluation,
+                    "evaluation": case_result["evaluation"],
                 }
+                if num_runs > 1:
+                    result["run_stats"] = case_result["run_stats"]
+                    if case_result["critic_stats"]:
+                        result["critic_stats"] = case_result["critic_stats"]
                 return result
 
         tasks = [sem_task(case) for case in self.cases]
@@ -819,6 +1055,7 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
         model: str,
         case: "EvalCase",
         registry: EvalSuiteToolRegistry | None = None,
+        seed: int | None = None,
     ) -> list[tuple[str, dict[str, Any]]]:
         """Run evaluation using OpenAI client.
 
@@ -843,15 +1080,18 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
         tools = effective_registry.list_tools_for_model(tool_format="openai")
 
         # Get the model response
-        response = await client.chat.completions.create(  # type: ignore[arg-type]
-            model=model,
-            messages=messages,
-            tool_choice="auto",
-            tools=tools,
-            user="eval_user",
-            seed=42,
-            stream=False,
-        )
+        request_params: dict[str, Any] = {
+            "model": model,
+            "messages": messages,
+            "tool_choice": "auto",
+            "tools": tools,
+            "user": "eval_user",
+            "stream": False,
+        }
+        if seed is not None:
+            request_params["seed"] = seed
+
+        response = await client.chat.completions.create(**request_params)
 
         return get_tool_args(response, normalize_names=False)
 
@@ -985,6 +1225,9 @@ def tool_eval() -> Callable[[Callable], Callable]:
             provider: ProviderName = "openai",
             capture_mode: bool = False,
             include_context: bool = False,
+            num_runs: int = 1,
+            seed: str | int | None = "constant",
+            multi_run_pass_rule: str = PASS_RULE_LAST,
         ) -> list[Any]:
             """
             Run evaluation or capture mode.
@@ -1015,19 +1258,43 @@ def tool_eval() -> Callable[[Callable], Callable]:
                 # Run in capture mode
                 if provider == "anthropic":
                     capture_result = await _capture_with_anthropic(
-                        suite, provider_api_key, model, include_context
+                        suite,
+                        provider_api_key,
+                        model,
+                        include_context=include_context,
+                        num_runs=num_runs,
+                        seed=seed,
                     )
                 else:
                     capture_result = await _capture_with_openai(
-                        suite, provider_api_key, model, include_context
+                        suite,
+                        provider_api_key,
+                        model,
+                        include_context=include_context,
+                        num_runs=num_runs,
+                        seed=seed,
                     )
                 return [capture_result]
             else:
                 # Run in evaluation mode
                 if provider == "anthropic":
-                    eval_result = await _run_with_anthropic(suite, provider_api_key, model)
+                    eval_result = await _run_with_anthropic(
+                        suite,
+                        provider_api_key,
+                        model,
+                        num_runs=num_runs,
+                        seed=seed,
+                        multi_run_pass_rule=multi_run_pass_rule,
+                    )
                 else:
-                    eval_result = await _run_with_openai(suite, provider_api_key, model)
+                    eval_result = await _run_with_openai(
+                        suite,
+                        provider_api_key,
+                        model,
+                        num_runs=num_runs,
+                        seed=seed,
+                        multi_run_pass_rule=multi_run_pass_rule,
+                    )
 
                 # For comparative evaluations, eval_result is already a list of track results
                 # For regular evaluations, it's a single dict that needs wrapping
@@ -1042,7 +1309,13 @@ def tool_eval() -> Callable[[Callable], Callable]:
 
 
 async def _run_with_openai(
-    suite: "EvalSuite", api_key: str, model: str
+    suite: "EvalSuite",
+    api_key: str,
+    model: str,
+    *,
+    num_runs: int,
+    seed: str | int | None,
+    multi_run_pass_rule: str,
 ) -> dict[str, Any] | list[dict[str, Any]]:
     """Run evaluation suite with OpenAI client.
 
@@ -1054,16 +1327,36 @@ async def _run_with_openai(
         # Check if this suite has comparative cases
         if suite._comparative_case_builders:
             # Run comparative evaluation - returns dict[track_name, result]
-            track_results = await suite.run_comparative(client, model, provider="openai")
+            track_results = await suite.run_comparative(
+                client,
+                model,
+                provider="openai",
+                num_runs=num_runs,
+                seed=seed,
+                multi_run_pass_rule=multi_run_pass_rule,
+            )
             # Convert to list of results for consistent handling
             return list(track_results.values())
         else:
             # Run regular evaluation
-            return await suite.run(client, model, provider="openai")
+            return await suite.run(
+                client,
+                model,
+                provider="openai",
+                num_runs=num_runs,
+                seed=seed,
+                multi_run_pass_rule=multi_run_pass_rule,
+            )
 
 
 async def _run_with_anthropic(
-    suite: "EvalSuite", api_key: str, model: str
+    suite: "EvalSuite",
+    api_key: str,
+    model: str,
+    *,
+    num_runs: int,
+    seed: str | int | None,
+    multi_run_pass_rule: str,
 ) -> dict[str, Any] | list[dict[str, Any]]:
     """Run evaluation suite with Anthropic client.
 
@@ -1083,9 +1376,23 @@ async def _run_with_anthropic(
         # Check if this suite has comparative cases
         if suite._comparative_case_builders:
             # Run comparative evaluation - returns dict[track_name, result]
-            track_results = await suite.run_comparative(client, model, provider="anthropic")
+            track_results = await suite.run_comparative(
+                client,
+                model,
+                provider="anthropic",
+                num_runs=num_runs,
+                seed=seed,
+                multi_run_pass_rule=multi_run_pass_rule,
+            )
             # Convert to list of results for consistent handling
             return list(track_results.values())
         else:
             # Run regular evaluation
-            return await suite.run(client, model, provider="anthropic")
+            return await suite.run(
+                client,
+                model,
+                provider="anthropic",
+                num_runs=num_runs,
+                seed=seed,
+                multi_run_pass_rule=multi_run_pass_rule,
+            )

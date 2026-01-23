@@ -289,6 +289,77 @@ class TestMarkdownFormatter:
         assert "</details>" in output
         assert "#### detailed_case" in output
 
+    def test_markdown_run_details_include_per_run_tables(self) -> None:
+        """Should include per-run detail tables when available."""
+        cases = [
+            {
+                "name": "multi_run_case",
+                "input": "Test input",
+                "evaluation": MockEvaluation(
+                    passed=True,
+                    score=0.9,
+                    results=[
+                        {
+                            "field": "param1",
+                            "match": True,
+                            "score": 0.5,
+                            "weight": 0.5,
+                            "expected": "exp",
+                            "actual": "act",
+                            "is_criticized": True,
+                        }
+                    ],
+                ),
+                "run_stats": {
+                    "num_runs": 2,
+                    "scores": [0.9, 0.7],
+                    "mean_score": 0.8,
+                    "std_deviation": 0.1,
+                    "runs": [
+                        {
+                            "score": 0.9,
+                            "passed": True,
+                            "warning": False,
+                            "details": [
+                                {
+                                    "field": "param1",
+                                    "match": True,
+                                    "score": 0.5,
+                                    "weight": 0.5,
+                                    "expected": "exp",
+                                    "actual": "act",
+                                    "is_criticized": True,
+                                }
+                            ],
+                        },
+                        {
+                            "score": 0.7,
+                            "passed": False,
+                            "warning": False,
+                            "details": [
+                                {
+                                    "field": "param1",
+                                    "match": False,
+                                    "score": 0.0,
+                                    "weight": 0.5,
+                                    "expected": "exp",
+                                    "actual": "wrong",
+                                    "is_criticized": True,
+                                }
+                            ],
+                        },
+                    ],
+                },
+            }
+        ]
+        formatter = MarkdownFormatter()
+        output = formatter.format(make_mock_results(cases=cases), show_details=True)
+
+        assert "**Run Details:**" in output
+        assert "<summary>Run 1 details</summary>" in output
+        assert "| Field | Match | Score | Expected | Actual |" in output
+        assert "| param1 | ✅ | 0.50/0.50 | `exp` | `act` |" in output
+
     def test_format_pass_rate(self) -> None:
         """Should include pass rate percentage."""
         formatter = MarkdownFormatter()

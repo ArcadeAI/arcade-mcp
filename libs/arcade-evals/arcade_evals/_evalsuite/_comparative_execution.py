@@ -35,13 +35,28 @@ class _EvalSuiteComparativeMixin:
     _process_tool_calls: Any  # Method from EvalSuite
     _run_openai: Any  # Method from EvalSuite
     _run_anthropic: Any  # Method from EvalSuite
+    _run_case_with_stats: Any  # Method from EvalSuite
+
+    async def _run_case_with_stats(  # type: ignore[no-redef]
+        self,
+        case: Any,
+        client: Any,
+        model: str,
+        provider: "ProviderName",
+        *,
+        num_runs: int,
+        seed: str | int | None,
+        pass_rule: str,
+        registry: "EvalSuiteToolRegistry | None" = None,
+    ) -> dict[str, Any]:
+        raise NotImplementedError  # Implemented in EvalSuite
 
     def add_comparative_case(
         self,
         name: str,
         user_message: str,
         system_message: str | None = None,
-        additional_messages: list[dict[str, str]] | None = None,
+        additional_messages: list[dict[str, Any]] | None = None,
         rubric: EvalRubric | None = None,
     ) -> ComparativeCaseBuilder:
         """Create a comparative case that runs against multiple tool tracks.
@@ -90,6 +105,9 @@ class _EvalSuiteComparativeMixin:
         client: Any,
         model: str,
         provider: ProviderName = "openai",
+        num_runs: int = 1,
+        seed: str | int | None = "constant",
+        multi_run_pass_rule: str = "last",  # noqa: S107
     ) -> dict[str, dict[str, Any]]:
         """Run comparative cases across all configured tracks.
 
@@ -97,6 +115,9 @@ class _EvalSuiteComparativeMixin:
             client: The LLM client instance.
             model: The model to evaluate.
             provider: The provider name.
+            num_runs: Number of runs per case.
+            seed: Seed policy ("constant", "random", or an integer seed).
+            multi_run_pass_rule: How to determine pass/warn for multi-run cases.
 
         Returns:
             Dictionary mapping track names to their results.
@@ -184,26 +205,23 @@ class _EvalSuiteComparativeMixin:
                     async with semaphore:
                         start = time.time()
                         print(f"    [TASK START] {_case.name} @ {_t_name}", flush=True)
-                        if provider == "anthropic":
-                            predicted_args = await self._run_anthropic(
-                                client, model, _case, registry=_reg
-                            )
-                        else:
-                            predicted_args = await self._run_openai(
-                                client, model, _case, registry=_reg
-                            )
+                        case_result = await self._run_case_with_stats(
+                            _case,
+                            client,
+                            model,
+                            provider,
+                            num_runs=num_runs,
+                            seed=seed,
+                            pass_rule=multi_run_pass_rule,
+                            registry=_reg,
+                        )
                         elapsed = time.time() - start
                         print(
                             f"    [TASK DONE] {_case.name} @ {_t_name} ({elapsed:.1f}s)",
                             flush=True,
                         )
 
-                        filled_actual_tool_calls = self._process_tool_calls(
-                            predicted_args, registry=_reg
-                        )
-                        evaluation = _case.evaluate(filled_actual_tool_calls)
-
-                        return {
+                        result = {
                             "name": _case.name,
                             "track": _t_name,
                             "input": _case.user_message,
@@ -215,10 +233,15 @@ class _EvalSuiteComparativeMixin:
                             ],
                             "predicted_tool_calls": [
                                 {"name": name, "args": args}
-                                for name, args in filled_actual_tool_calls
+                                for name, args in case_result["predicted_tool_calls"]
                             ],
-                            "evaluation": evaluation,
+                            "evaluation": case_result["evaluation"],
                         }
+                        if num_runs > 1:
+                            result["run_stats"] = case_result["run_stats"]
+                            if case_result["critic_stats"]:
+                                result["critic_stats"] = case_result["critic_stats"]
+                        return result
 
                 task = run_track_case(eval_case, registry, track_name)
                 tasks.append((track_name, task))

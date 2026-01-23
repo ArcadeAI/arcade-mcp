@@ -1,6 +1,6 @@
 from ._evalsuite._providers import ProviderName
 from ._evalsuite._tool_registry import MCPToolDefinition
-from .capture import CapturedCase, CapturedToolCall, CaptureResult
+from .capture import CapturedCase, CapturedRun, CapturedToolCall, CaptureResult
 from .critic import BinaryCritic, DatetimeCritic, NoneCritic, NumericCritic, SimilarityCritic
 from .eval import (
     AnyExpectedToolCall,
@@ -25,6 +25,7 @@ __all__ = [
     "BinaryCritic",
     "CaptureResult",
     "CapturedCase",
+    "CapturedRun",
     "CapturedToolCall",
     "DatetimeCritic",
     "EvalRubric",
@@ -41,8 +42,8 @@ __all__ = [
     "Weight",
     "clear_tools_cache",
     "load_arcade_mcp_gateway_async",
-    "load_mcp_remote_async",
     "load_from_stdio_async",
+    "load_mcp_remote_async",
     "load_stdio_arcade_async",
     "tool_eval",
     "validate_and_normalize_critic_weights",
