@@ -4,7 +4,6 @@ import io
 import os
 import random
 import subprocess
-import sys
 import tarfile
 import time
 from collections import deque
@@ -22,6 +21,7 @@ from rich.spinner import Spinner
 from rich.text import Text
 from typing_extensions import Literal
 
+from arcade_cli.configure import find_python_interpreter
 from arcade_cli.secret import load_env_file
 from arcade_cli.utils import (
     compute_base_url,
@@ -388,7 +388,13 @@ def start_server_process(entrypoint: str, debug: bool = False) -> tuple[subproce
         "ARCADE_WORKER_SECRET": "temp-validation-secret",
     }
 
-    cmd = [sys.executable, entrypoint]
+    # Use the project's Python environment, not the CLI's isolated environment.
+    # find_python_interpreter() looks for .venv/bin/python in cwd, falling back to sys.executable.
+    # This ensures the server runs in the project's environment even when the CLI is installed
+    # in an isolated environment (e.g., via 'uv tool install arcade-mcp').
+    project_python = find_python_interpreter()
+    cmd = [str(project_python), entrypoint]
+
     process = subprocess.Popen(
         cmd,
         stdout=subprocess.PIPE,

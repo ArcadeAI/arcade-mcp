@@ -82,6 +82,51 @@ def start_mcp_server(
         raise ValueError(f"Invalid transport: {transport}")
 
 
+def start_mcp_server_direct_python(
+    transport: str, port: int | None = None
+) -> tuple[subprocess.Popen, int | None]:
+    """
+    Start MCP server with direct Python invocation (simulates what happens in the Engine during deployment).
+
+    Args:
+        transport: Transport type ("stdio" or "http")
+        port: Port for HTTP transport (optional, will be random if not provided)
+
+    Returns:
+        Tuple of (process, port). Port is None for stdio transport.
+    """
+    entrypoint_path = get_entrypoint_path()
+    package_path = Path(__file__).parent / "server"
+
+    # Find Python in the server's venv
+    venv_python = package_path / ".venv" / "bin" / "python"
+    if not venv_python.exists():
+        pytest.skip("Server venv not found - run 'uv sync' in integration/server first")
+
+    if port is None:
+        port = random.randint(8000, 9000)  # noqa: S311
+
+    env = {
+        **os.environ,
+        "ARCADE_SERVER_HOST": "127.0.0.1",
+        "ARCADE_SERVER_PORT": str(port),
+        "ARCADE_SERVER_TRANSPORT": transport,
+        "ARCADE_AUTH_DISABLED": "true",
+        "ARCADE_WORKER_SECRET": "test-secret-direct",
+    }
+
+    cmd = [str(venv_python), entrypoint_path, transport]
+    process = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        env=env,
+        cwd=str(package_path),
+    )
+    return process, port if transport == "http" else None
+
+
 def wait_for_http_server_ready(port: int, timeout: int = 30) -> None:
     """
     Wait for HTTP server to become healthy.
@@ -905,6 +950,63 @@ async def test_http_mixed_route_concurrent_execution():
             # Since the server should be able to execute the tools in parallel, the total time should be around 1 second
             max_expected_time = delay_seconds + 0.5  # Allow 0.5s overhead for mixed routes
             assert total_time < max_expected_time
+
+    finally:
+        process.terminate()
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
+
+
+@pytest.mark.asyncio
+async def test_http_direct_python_invocation():
+    """Test server starts correctly with direct Python (simulates what happens in the Engine during deployment)"""
+    process, port = start_mcp_server_direct_python("http")
+    assert port is not None
+
+    try:
+        wait_for_http_server_ready(port, timeout=10)
+
+        # Verify server is healthy and tools are discoverable
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        }
+        client = httpx.Client(base_url=f"http://127.0.0.1:{port}", timeout=10.0, headers=headers)
+
+        # Initialize
+        init_response = client.post(
+            "/mcp",
+            json=build_jsonrpc_request(
+                "initialize",
+                {
+                    "protocolVersion": "2025-06-18",
+                    "capabilities": {},
+                    "clientInfo": {"name": "test", "version": "1.0"},
+                },
+                request_id=1,
+            ),
+        )
+        assert init_response.status_code == 200
+
+        session_id = init_response.headers.get("mcp-session-id")
+        client.headers.update({"Mcp-Session-Id": session_id})
+
+        # Send initialized notification
+        init_notif = build_jsonrpc_request(
+            "notifications/initialized", params=None, request_id=None
+        )
+        client.post("/mcp", json=init_notif)
+
+        # List tools - should have 9 tools (including hello_world from entrypoint.py)
+        list_response = client.post("/mcp", json=build_jsonrpc_request("tools/list", request_id=2))
+        assert list_response.status_code == 200
+        tools = list_response.json()["result"]["tools"]
+        assert len(tools) == 9
+
+        client.close()
 
     finally:
         process.terminate()
