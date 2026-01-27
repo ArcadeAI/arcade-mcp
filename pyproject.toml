@@ -24,7 +24,7 @@ dependencies = [
     "typer==0.10.0",
     "rich>=14.0.0,<15.0.0",
     "Jinja2==3.1.6",
-    "authlib==1.6.5",
+    "authlib==1.6.6",
     "arcadepy==1.8.0",
     "tqdm==4.67.1",
     "click==8.1.8",
