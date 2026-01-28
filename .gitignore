@@ -3,6 +3,10 @@ credentials.yaml
 docker/credentials.yaml
 
 *.lock
+!package-lock.json
+
+# Node.js
+node_modules/
 
 # example data
 examples/data
