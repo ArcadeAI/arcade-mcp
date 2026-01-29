@@ -146,7 +146,16 @@ def get_tool_secrets() -> dict:
 
 
 def find_python_interpreter() -> Path:
-    # Find the Python interpreter in the virtual environment
+    """
+    Find the Python interpreter in the virtual environment.
+
+    NOTE: This function assumes it is called from the project root directory (where .venv lives).
+    Currently, callers like `arcade deploy` enforce this by requiring pyproject.toml in cwd.
+    If this requirement is relaxed in the future, this function should be updated to:
+      1. Accept a project_root parameter, OR
+      2. Honor VIRTUAL_ENV / UV_PROJECT_ENVIRONMENT env vars, OR
+      3. Search upward from cwd to find pyproject.toml and resolve .venv relative to that
+    """
     venv_python = None
     # Check for .venv first (uv default)
     if (Path.cwd() / ".venv").exists():
