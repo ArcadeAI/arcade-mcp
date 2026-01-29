@@ -159,6 +159,9 @@ async def _run_eval_task(
     suite_func: Callable[..., Any],
     model_spec: ModelSpec,
     max_concurrent: int,
+    num_runs: int,
+    seed: str | int,
+    multi_run_pass_rule: str,
     include_context: bool = False,
 ) -> EvalTaskResult:
     """
@@ -175,6 +178,9 @@ async def _run_eval_task(
             max_concurrency=max_concurrent,
             provider=model_spec.provider.value,
             include_context=include_context,
+            num_runs=num_runs,
+            seed=seed,
+            multi_run_pass_rule=multi_run_pass_rule,
         )
         return EvalTaskResult.from_success(
             suite_name, model_spec.model, model_spec.provider.value, result
@@ -198,6 +204,8 @@ async def _run_capture_task(
     model_spec: ModelSpec,
     max_concurrent: int,
     include_context: bool,
+    num_runs: int,
+    seed: str | int,
 ) -> CaptureTaskResult:
     """
     Run a single capture task with error handling.
@@ -214,6 +222,8 @@ async def _run_capture_task(
             provider=model_spec.provider.value,
             capture_mode=True,
             include_context=include_context,
+            num_runs=num_runs,
+            seed=seed,
         )
         return CaptureTaskResult.from_success(
             suite_name, model_spec.model, model_spec.provider.value, result
@@ -246,6 +256,9 @@ async def run_evaluations(
     output_format: str,
     failed_only: bool,
     console: Console,
+    num_runs: int,
+    seed: str | int,
+    multi_run_pass_rule: str,
     include_context: bool = False,
 ) -> None:
     """
@@ -262,6 +275,9 @@ async def run_evaluations(
         output_format: Format for file output ('txt', 'md').
         failed_only: Whether to show only failed evaluations.
         console: Rich console for output.
+        num_runs: Number of runs per case.
+        seed: Seed policy ("constant", "random", or an integer seed).
+        multi_run_pass_rule: How to determine pass/warn for multi-run cases.
         include_context: Whether to include system_message and additional_messages.
     """
     tasks = []
@@ -280,6 +296,9 @@ async def run_evaluations(
                     model_spec=model_spec,
                     max_concurrent=max_concurrent,
                     include_context=include_context,
+                    num_runs=num_runs,
+                    seed=seed,
+                    multi_run_pass_rule=multi_run_pass_rule,
                 )
             )
             tasks.append(task)
@@ -370,6 +389,8 @@ async def run_capture(
     output_file: str | None,
     output_format: str,
     console: Console,
+    num_runs: int,
+    seed: str | int,
 ) -> None:
     """
     Run evaluation suites in capture mode and output results.
@@ -385,6 +406,8 @@ async def run_capture(
         output_file: Optional file path to write results.
         output_format: Output format ('json', 'txt', 'md', 'html').
         console: Rich console for output.
+        num_runs: Number of runs per case.
+        seed: Seed policy ("constant", "random", or an integer seed).
     """
     tasks = []
 
@@ -402,6 +425,8 @@ async def run_capture(
                     model_spec=model_spec,
                     max_concurrent=max_concurrent,
                     include_context=include_context,
+                    num_runs=num_runs,
+                    seed=seed,
                 )
             )
             tasks.append(task)

@@ -349,3 +349,36 @@ def test_evals_help_shows_port_flag() -> None:
     assert result.exit_code == 0
     output = _strip_ansi(result.output)
     assert "--port" in output
+
+
+def test_evals_help_shows_use_provider_flag() -> None:
+    """Test that --use-provider flag is documented in help."""
+    result = runner.invoke(cli, ["evals", "--help"])
+    assert result.exit_code == 0
+    output = _strip_ansi(result.output)
+    assert "--use-provider" in output or "-p" in output
+    assert "repeatable" in output.lower() or "can be repeated" in output.lower()
+
+
+def test_evals_help_shows_num_runs_flag() -> None:
+    """Test that --num-runs flag is documented in help."""
+    result = runner.invoke(cli, ["evals", "--help"])
+    assert result.exit_code == 0
+    output = _strip_ansi(result.output)
+    assert "--num-runs" in output or "-n" in output
+
+
+def test_evals_help_shows_seed_flag() -> None:
+    """Test that --seed flag is documented in help."""
+    result = runner.invoke(cli, ["evals", "--help"])
+    assert result.exit_code == 0
+    output = _strip_ansi(result.output)
+    assert "--seed" in output
+
+
+def test_evals_help_shows_multi_run_pass_rule_flag() -> None:
+    """Test that --multi-run-pass-rule flag is documented in help."""
+    result = runner.invoke(cli, ["evals", "--help"])
+    assert result.exit_code == 0
+    output = _strip_ansi(result.output)
+    assert "--multi-run-pass-rule" in output

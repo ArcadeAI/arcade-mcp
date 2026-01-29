@@ -1,3 +1,6 @@
+from collections.abc import Callable
+from typing import Any
+
 from arcade_evals import (
     BinaryCritic,
     EvalRubric,
@@ -44,6 +47,9 @@ from arcade_math.tools.trigonometry import (
     rad_to_deg,
 )
 
+# Type alias for test case tuples: (function, prompt_template, params)
+TestCase = tuple[Callable[..., Any], str, dict[str, Any]]
+
 # Evaluation rubric
 rubric = EvalRubric(
     fail_threshold=0.85,
@@ -56,7 +62,7 @@ catalog.add_module(arcade_math)
 
 
 @tool_eval()
-def math_eval_suite():
+def math_eval_suite() -> EvalSuite:
     suite = EvalSuite(
         name="Math Tools Evaluation",
         system_message="You're an AI assistant with access to math tools. Use them to help the user with their math-related tasks.",
@@ -65,7 +71,7 @@ def math_eval_suite():
     )
 
     list_param = ["1", "2", "3", "4", "5"]
-    funcs_to_expression_and_params = [
+    funcs_to_expression_and_params: list[TestCase] = [
         # unary
         (sqrt, "What's the square root of {a}?", {"a": "25"}),
         (abs_val, "What's the absolute value of {a}?", {"a": "-10"}),

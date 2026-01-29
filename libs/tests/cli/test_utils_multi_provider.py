@@ -112,7 +112,7 @@ class TestExpandProviderConfigs:
     def test_single_provider_single_model(self) -> None:
         """Test expanding single provider with single model."""
         configs = [ProviderConfig(provider=Provider.OPENAI, models=["gpt-4o"])]
-        api_keys = {Provider.OPENAI: "openai-key"}
+        api_keys: dict[Provider, str | None] = {Provider.OPENAI: "openai-key"}
 
         specs = expand_provider_configs(configs, api_keys)
 
@@ -124,7 +124,7 @@ class TestExpandProviderConfigs:
     def test_single_provider_multiple_models(self) -> None:
         """Test expanding single provider with multiple models."""
         configs = [ProviderConfig(provider=Provider.OPENAI, models=["gpt-4o", "gpt-4o-mini"])]
-        api_keys = {Provider.OPENAI: "openai-key"}
+        api_keys: dict[Provider, str | None] = {Provider.OPENAI: "openai-key"}
 
         specs = expand_provider_configs(configs, api_keys)
 
@@ -138,7 +138,7 @@ class TestExpandProviderConfigs:
             ProviderConfig(provider=Provider.OPENAI, models=["gpt-4o"]),
             ProviderConfig(provider=Provider.ANTHROPIC, models=["claude-3-sonnet"]),
         ]
-        api_keys = {
+        api_keys: dict[Provider, str | None] = {
             Provider.OPENAI: "openai-key",
             Provider.ANTHROPIC: "anthropic-key",
         }
@@ -154,7 +154,7 @@ class TestExpandProviderConfigs:
     def test_missing_api_key_raises(self) -> None:
         """Test that missing API key raises ValueError."""
         configs = [ProviderConfig(provider=Provider.OPENAI, models=["gpt-4o"])]
-        api_keys = {Provider.OPENAI: None}  # No key
+        api_keys: dict[Provider, str | None] = {Provider.OPENAI: None}  # No key
 
         with pytest.raises(ValueError) as exc_info:
             expand_provider_configs(configs, api_keys)
@@ -165,7 +165,7 @@ class TestExpandProviderConfigs:
     def test_uses_default_model_when_empty(self) -> None:
         """Test that empty models list uses default."""
         configs = [ProviderConfig(provider=Provider.OPENAI, models=[])]
-        api_keys = {Provider.OPENAI: "openai-key"}
+        api_keys: dict[Provider, str | None] = {Provider.OPENAI: "openai-key"}
 
         specs = expand_provider_configs(configs, api_keys)
 
@@ -204,12 +204,13 @@ class TestResolveProviderApiKeys:
             if "ANTHROPIC_API_KEY" in env_copy:
                 del env_copy["ANTHROPIC_API_KEY"]
 
-            with patch.dict(os.environ, env_copy, clear=True):
-                with patch("dotenv.dotenv_values", return_value={}):
-                    keys = resolve_provider_api_keys()
-                    # Check structure - values should be None when not found
-                    assert Provider.OPENAI in keys
-                    assert Provider.ANTHROPIC in keys
+            with patch.dict(os.environ, env_copy, clear=True), patch(
+                "dotenv.dotenv_values", return_value={}
+            ):
+                keys = resolve_provider_api_keys()
+                # Check structure - values should be None when not found
+                assert Provider.OPENAI in keys
+                assert Provider.ANTHROPIC in keys
 
     def test_multiple_api_key_specs(self) -> None:
         """Test parsing multiple --api-key specs."""
@@ -244,10 +245,8 @@ class TestIntegration:
         config = parse_provider_spec("openai:gpt-4o")
 
         # Expand with key
-        specs = expand_provider_configs(
-            [config],
-            {Provider.OPENAI: "test-key"},
-        )
+        api_keys: dict[Provider, str | None] = {Provider.OPENAI: "test-key"}
+        specs = expand_provider_configs([config], api_keys)
 
         assert len(specs) == 1
         assert specs[0].display_name == "openai/gpt-4o"
@@ -260,7 +259,7 @@ class TestIntegration:
         configs = [parse_provider_spec(s) for s in specs_str]
 
         # Expand with keys
-        api_keys = {
+        api_keys: dict[Provider, str | None] = {
             Provider.OPENAI: "openai-key",
             Provider.ANTHROPIC: "anthropic-key",
         }
@@ -270,6 +269,30 @@ class TestIntegration:
         assert specs[0].display_name == "openai/gpt-4o"
         assert specs[1].display_name == "openai/gpt-4o-mini"
         assert specs[2].display_name == "anthropic/claude-3-sonnet"
+
+    def test_multiple_provider_flags_parsing(self) -> None:
+        """Test that multiple --use-provider flags are parsed correctly (simulating CLI behavior)."""
+        # Simulate what happens when CLI receives multiple -p flags
+        # e.g., -p openai:gpt-4o -p anthropic:claude-3-sonnet
+        provider_specs = ["openai:gpt-4o", "anthropic:claude-3-sonnet"]
+        configs = [parse_provider_spec(spec) for spec in provider_specs]
+
+        assert len(configs) == 2
+        assert configs[0].provider == Provider.OPENAI
+        assert configs[0].models == ["gpt-4o"]
+        assert configs[1].provider == Provider.ANTHROPIC
+        assert configs[1].models == ["claude-3-sonnet"]
+
+        # Expand with keys
+        api_keys: dict[Provider, str | None] = {
+            Provider.OPENAI: "openai-key",
+            Provider.ANTHROPIC: "anthropic-key",
+        }
+        specs = expand_provider_configs(configs, api_keys)
+
+        assert len(specs) == 2
+        assert specs[0].display_name == "openai/gpt-4o"
+        assert specs[1].display_name == "anthropic/claude-3-sonnet"
 
 
 class TestParseApiKeySpec:

@@ -214,11 +214,21 @@ def group_comparative_by_case(
                     }
 
                 # Store this track's result for this case
-                comparative_groups[model][base_suite][case_name]["tracks"][track_name] = {
+                track_result: dict[str, Any] = {
                     "evaluation": evaluation,
                     "name": case_name,
                     "input": case.get("input", ""),
                 }
+                run_stats = case.get("run_stats")
+                if run_stats:
+                    track_result["run_stats"] = run_stats
+                critic_stats = case.get("critic_stats")
+                if critic_stats:
+                    track_result["critic_stats"] = critic_stats
+
+                comparative_groups[model][base_suite][case_name]["tracks"][track_name] = (
+                    track_result
+                )
 
     return (
         comparative_groups,
@@ -414,11 +424,19 @@ def group_comparative_by_case_first(
                     }
 
                 # Store this track's result
-                case_groups[base_suite][case_name][model]["tracks"][track_name] = {
+                track_result: dict[str, Any] = {
                     "evaluation": evaluation,
                     "name": case_name,
                     "input": case.get("input", ""),
                 }
+                run_stats = case.get("run_stats")
+                if run_stats:
+                    track_result["run_stats"] = run_stats
+                critic_stats = case.get("critic_stats")
+                if critic_stats:
+                    track_result["critic_stats"] = critic_stats
+
+                case_groups[base_suite][case_name][model]["tracks"][track_name] = track_result
 
     return (
         case_groups,

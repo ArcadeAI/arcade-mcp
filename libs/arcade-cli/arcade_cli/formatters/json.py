@@ -249,6 +249,13 @@ class JsonFormatter(EvalResultFormatter):
                         if evaluation.failure_reason:
                             track_data["failure_reason"] = evaluation.failure_reason
 
+                        run_stats = track_result.get("run_stats")
+                        if run_stats:
+                            track_data["run_stats"] = run_stats
+                        critic_stats = track_result.get("critic_stats")
+                        if critic_stats:
+                            track_data["critic_stats"] = critic_stats
+
                         if show_details and evaluation.results:
                             track_data["details"] = self._serialize_critic_results(
                                 evaluation.results
@@ -375,6 +382,13 @@ class JsonFormatter(EvalResultFormatter):
                         if evaluation.failure_reason:
                             track_data["failure_reason"] = evaluation.failure_reason
 
+                        run_stats = track_result.get("run_stats")
+                        if run_stats:
+                            track_data["run_stats"] = run_stats
+                        critic_stats = track_result.get("critic_stats")
+                        if critic_stats:
+                            track_data["critic_stats"] = critic_stats
+
                         if show_details and evaluation.results:
                             track_data["details"] = self._serialize_critic_results(
                                 evaluation.results
@@ -496,6 +510,13 @@ class JsonFormatter(EvalResultFormatter):
                     if evaluation.failure_reason:
                         model_data["failure_reason"] = evaluation.failure_reason
 
+                    run_stats = case_result.get("run_stats")
+                    if run_stats:
+                        model_data["run_stats"] = run_stats
+                    critic_stats = case_result.get("critic_stats")
+                    if critic_stats:
+                        model_data["critic_stats"] = critic_stats
+
                     if show_details and evaluation.results:
                         model_data["details"] = self._serialize_critic_results(evaluation.results)
 
@@ -536,6 +557,13 @@ class JsonFormatter(EvalResultFormatter):
 
         if evaluation.failure_reason:
             case_data["failure_reason"] = evaluation.failure_reason
+
+        run_stats = case.get("run_stats")
+        if run_stats:
+            case_data["run_stats"] = run_stats
+        critic_stats = case.get("critic_stats")
+        if critic_stats:
+            case_data["critic_stats"] = critic_stats
 
         if show_details and evaluation.results:
             case_data["details"] = self._serialize_critic_results(evaluation.results)
@@ -657,12 +685,24 @@ class CaptureJsonFormatter(CaptureFormatter):
                                 continue
 
                             captured_case = models_dict[model]
-                            track_output["models"][model] = {
+                            model_output: dict[str, Any] = {
                                 "tool_calls": [
                                     {"name": tc.name, "args": tc.args}
                                     for tc in captured_case.tool_calls
                                 ],
                             }
+                            runs = getattr(captured_case, "runs", None)
+                            if runs:
+                                model_output["runs"] = [
+                                    {
+                                        "tool_calls": [
+                                            {"name": tc.name, "args": tc.args}
+                                            for tc in run.tool_calls
+                                        ]
+                                    }
+                                    for run in runs
+                                ]
+                            track_output["models"][model] = model_output
 
                         case_output["tracks"][track_display] = track_output
                 else:
@@ -678,12 +718,23 @@ class CaptureJsonFormatter(CaptureFormatter):
                             continue
 
                         captured_case = models_dict[model]
-                        case_output["models"][model] = {
+                        model_output = {
                             "tool_calls": [
                                 {"name": tc.name, "args": tc.args}
                                 for tc in captured_case.tool_calls
                             ],
                         }
+                        runs = getattr(captured_case, "runs", None)
+                        if runs:
+                            model_output["runs"] = [
+                                {
+                                    "tool_calls": [
+                                        {"name": tc.name, "args": tc.args} for tc in run.tool_calls
+                                    ]
+                                }
+                                for run in runs
+                            ]
+                        case_output["models"][model] = model_output
 
                 output["grouped_by_case"][suite_name][case_name] = case_output
 

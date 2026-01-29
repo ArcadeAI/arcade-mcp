@@ -6,6 +6,7 @@ eval.py and the _evalsuite submodules, avoiding circular imports.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Callable
 
@@ -117,7 +118,7 @@ class TrackConfig:
         critics: Critics to evaluate tool arguments for this track.
     """
 
-    expected_tool_calls: list[ExpectedToolCall | ExpectedMCPToolCall]
+    expected_tool_calls: Sequence[ExpectedToolCall | ExpectedMCPToolCall]
     critics: list[Critic] = field(default_factory=list)
 
 
@@ -140,14 +141,14 @@ class ComparativeCase:
     name: str
     user_message: str
     system_message: str = ""
-    additional_messages: list[dict[str, str]] = field(default_factory=list)
+    additional_messages: list[dict[str, Any]] = field(default_factory=list)
     rubric: EvalRubric | None = None
     track_configs: dict[str, TrackConfig] = field(default_factory=dict)
 
     def add_track_config(
         self,
         track_name: str,
-        expected_tool_calls: list[ExpectedToolCall | ExpectedMCPToolCall],
+        expected_tool_calls: Sequence[ExpectedToolCall | ExpectedMCPToolCall],
         critics: list[Critic] | None = None,
     ) -> None:
         """Add configuration for a track.

@@ -91,7 +91,14 @@ class TextFormatter(EvalResultFormatter):
                         status = "FAILED"
 
                     score_percentage = evaluation.score * 100
-                    lines.append(f"    {status} {case['name']} -- Score: {score_percentage:.2f}%")
+                    run_stats = case.get("run_stats") or {}
+                    stats_suffix = ""
+                    if run_stats.get("num_runs", 1) > 1:
+                        std_pct = run_stats.get("std_deviation", 0.0) * 100
+                        stats_suffix = f" (n={run_stats['num_runs']}, sd={std_pct:.2f}%)"
+                    lines.append(
+                        f"    {status} {case['name']} -- Score: {score_percentage:.2f}%{stats_suffix}"
+                    )
 
                     if show_details:
                         lines.append(f"    User Input: {case['input']}")
@@ -112,6 +119,10 @@ class TextFormatter(EvalResultFormatter):
                                 lines.append("")
 
                         lines.append("    Details:")
+                        for stat_line in self._format_run_stats(case):
+                            lines.append(f"    {stat_line}")
+                        for stat_line in self._format_critic_stats(case):
+                            lines.append(f"    {stat_line}")
                         for detail_line in self._format_evaluation(evaluation).split("\n"):
                             lines.append(f"    {detail_line}")
                         lines.append("    " + "-" * 52)
@@ -168,6 +179,66 @@ class TextFormatter(EvalResultFormatter):
                         f"{field}: Un-criticized\n     Expected: {expected}\n     Actual: {actual}"
                     )
         return "\n".join(result_lines)
+
+    def _format_run_stats(self, case: dict[str, Any]) -> list[str]:
+        run_stats = case.get("run_stats")
+        if not run_stats or run_stats.get("num_runs", 1) < 2:
+            return []
+        scores = run_stats.get("scores", [])
+        scores_display = ", ".join(f"{score * 100:.2f}%" for score in scores)
+        mean_pct = run_stats.get("mean_score", 0.0) * 100
+        std_pct = run_stats.get("std_deviation", 0.0) * 100
+        lines = [
+            "Run Stats:",
+            f"  Runs: {run_stats.get('num_runs', len(scores))}",
+            f"  Mean Score: {mean_pct:.2f}%",
+            f"  Std Deviation: {std_pct:.2f}%",
+        ]
+        if scores_display:
+            lines.append(f"  Scores: {scores_display}")
+        seed_policy = run_stats.get("seed_policy")
+        run_seeds = run_stats.get("run_seeds")
+        if seed_policy:
+            lines.append(f"  Seed Policy: {seed_policy}")
+        if run_seeds and any(seed is not None for seed in run_seeds):
+            seeds_display = ", ".join(str(seed) for seed in run_seeds)
+            lines.append(f"  Run Seeds: {seeds_display}")
+        pass_rule = run_stats.get("pass_rule")
+        if pass_rule:
+            lines.append(f"  Pass Rule: {pass_rule}")
+
+        runs = run_stats.get("runs", [])
+        if runs:
+            lines.append("  Run Results:")
+            for idx, run in enumerate(runs, start=1):
+                if run.get("passed"):
+                    status = "PASSED"
+                elif run.get("warning"):
+                    status = "WARNED"
+                else:
+                    status = "FAILED"
+                score_pct = run.get("score", 0.0) * 100
+                lines.append(f"    Run {idx}: {status} ({score_pct:.2f}%)")
+        lines.append("")
+        return lines
+
+    def _format_critic_stats(self, case: dict[str, Any]) -> list[str]:
+        critic_stats = case.get("critic_stats")
+        if not critic_stats:
+            return []
+        lines = ["Critic Stats:"]
+        for field, stats in critic_stats.items():
+            weight = stats.get("weight", 0.0)
+            mean_norm = stats.get("mean_score_normalized", 0.0) * 100
+            std_norm = stats.get("std_deviation_normalized", 0.0) * 100
+            mean_weighted = stats.get("mean_score", 0.0) * 100
+            std_weighted = stats.get("std_deviation", 0.0) * 100
+            lines.append(
+                f"  {field}: norm {mean_norm:.2f}% ± {std_norm:.2f}% | "
+                f"weighted {mean_weighted:.2f}% ± {std_weighted:.2f}% (w={weight:.2f})"
+            )
+        lines.append("")
+        return lines
 
     # =========================================================================
     # MULTI-MODEL EVALUATION FORMATTING
@@ -311,6 +382,11 @@ class TextFormatter(EvalResultFormatter):
                         evaluation = case_result["evaluation"]
 
                         lines.append(f"    [{model}] Score: {evaluation.score * 100:.1f}%")
+
+                        for stat_line in self._format_run_stats(case_result):
+                            lines.append(f"      {stat_line}")
+                        for stat_line in self._format_critic_stats(case_result):
+                            lines.append(f"      {stat_line}")
 
                         # Show evaluation details indented
                         eval_details = self._format_evaluation(evaluation)
@@ -753,6 +829,10 @@ class TextFormatter(EvalResultFormatter):
                     continue
 
                 lines.append(f"    [{track_name}] Details:")
+                for stat_line in self._format_run_stats(track_result):
+                    lines.append(f"      {stat_line}")
+                for stat_line in self._format_critic_stats(track_result):
+                    lines.append(f"      {stat_line}")
                 for detail_line in self._format_evaluation(evaluation).split("\n"):
                     lines.append(f"      {detail_line}")
                 lines.append("")
@@ -858,7 +938,22 @@ class CaptureTextFormatter(CaptureFormatter):
 
                 lines.append("")
                 lines.append("  Tool Calls:")
-                if case.tool_calls:
+                runs = getattr(case, "runs", None)
+                if runs:
+                    for run_index, run in enumerate(runs, start=1):
+                        lines.append(f"    Run {run_index}:")
+                        if run.tool_calls:
+                            for tc in run.tool_calls:
+                                total_calls += 1
+                                lines.append(f"      - {tc.name}")
+                                if tc.args:
+                                    for key, value in tc.args.items():
+                                        lines.append(
+                                            f"          {key}: {self._format_value(value)}"
+                                        )
+                        else:
+                            lines.append("      (no tool calls)")
+                elif case.tool_calls:
                     for tc in case.tool_calls:
                         total_calls += 1
                         lines.append(f"    - {tc.name}")
@@ -949,7 +1044,21 @@ class CaptureTextFormatter(CaptureFormatter):
                             captured_case = models_dict[model]
                             lines.append(f"  │   [{model}]")
 
-                            if captured_case.tool_calls:
+                            runs = getattr(captured_case, "runs", None)
+                            if runs:
+                                for run_index, run in enumerate(runs, start=1):
+                                    lines.append(f"  │     Run {run_index}:")
+                                    if run.tool_calls:
+                                        for tc in run.tool_calls:
+                                            lines.append(f"  │       - {tc.name}")
+                                            if tc.args:
+                                                for key, value in tc.args.items():
+                                                    lines.append(
+                                                        f"  │           {key}: {self._format_value(value)}"
+                                                    )
+                                    else:
+                                        lines.append("  │       (no tool calls)")
+                            elif captured_case.tool_calls:
                                 for tc in captured_case.tool_calls:
                                     lines.append(f"  │     - {tc.name}")
                                     if tc.args:
@@ -980,7 +1089,21 @@ class CaptureTextFormatter(CaptureFormatter):
                         captured_case = models_dict[model]
                         lines.append(f"    [{model}]")
 
-                        if captured_case.tool_calls:
+                        runs = getattr(captured_case, "runs", None)
+                        if runs:
+                            for run_index, run in enumerate(runs, start=1):
+                                lines.append(f"      Run {run_index}:")
+                                if run.tool_calls:
+                                    for tc in run.tool_calls:
+                                        lines.append(f"        - {tc.name}")
+                                        if tc.args:
+                                            for key, value in tc.args.items():
+                                                lines.append(
+                                                    f"          {key}: {self._format_value(value)}"
+                                                )
+                                else:
+                                    lines.append("        (no tool calls)")
+                        elif captured_case.tool_calls:
                             for tc in captured_case.tool_calls:
                                 lines.append(f"      - {tc.name}")
                                 if tc.args:
