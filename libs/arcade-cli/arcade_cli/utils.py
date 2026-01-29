@@ -394,7 +394,7 @@ def handle_cli_error(
     elif error:
         console.print(f"❌ {message}: {escape(str(error))}", style="bold red")
     else:
-        console.print(f"❌ {message}", style="bold red")
+        console.print(f"❌ {escape(message)}", style="bold red")
 
     if should_exit:
         raise CLIError(message, error)
