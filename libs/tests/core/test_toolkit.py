@@ -500,3 +500,154 @@ class TestValidPath:
     def test_invalid_paths(self, path_input):
         """Test that invalid paths are rejected."""
         assert Validate.path(path_input) is False
+
+
+class TestToolsFromDirectory:
+    """Test the tools_from_directory skip logic for entrypoint files.
+
+    It has two conditions:
+    1. File path match: module_path.resolve() == current_file
+    2. Module name match: full_import_path == current_module_name
+    """
+
+    @pytest.fixture
+    def temp_package(self, tmp_path):
+        """Create a temporary package with Python files containing tools."""
+        package_dir = tmp_path / "mypackage"
+        package_dir.mkdir()
+
+        (package_dir / "__init__.py").write_text("")
+        (package_dir / "entrypoint.py").write_text(
+            '''
+from arcade_mcp_server import tool
+
+@tool
+def my_tool():
+    """A tool."""
+    pass
+'''
+        )
+        tools_dir = package_dir / "tools"
+        tools_dir.mkdir()
+        (tools_dir / "__init__.py").write_text("")
+        (tools_dir / "helper.py").write_text(
+            '''
+from arcade_mcp_server import tool
+
+@tool
+def helper_tool():
+    """A helper tool."""
+    pass
+'''
+        )
+
+        return package_dir
+
+    @patch("arcade_core.toolkit.get_tools_from_file")
+    def test_skips_file_when_path_matches(self, mock_get_tools, temp_package):
+        """Verify skip when __main__.__file__ matches module path (original behavior)."""
+        mock_get_tools.return_value = ["some_tool"]
+        entrypoint_path = temp_package / "entrypoint.py"
+
+        # Create mock __main__ module with matching file path
+        mock_main = MagicMock()
+        mock_main.__file__ = str(entrypoint_path)
+        mock_main.__spec__ = None
+
+        with patch.dict("sys.modules", {"__main__": mock_main}):
+            result = Toolkit.tools_from_directory(temp_package, "mypackage")
+
+        # entrypoint.py should be skipped, only tools/helper.py should be included
+        assert "mypackage.entrypoint" not in result
+        assert "mypackage.tools.helper" in result
+
+    @patch("arcade_core.toolkit.get_tools_from_file")
+    def test_skips_file_when_module_name_matches(self, mock_get_tools, temp_package):
+        """Verify skip when __main__.__spec__.name matches even if paths differ.
+
+        This simulates deployment scenarios where the script runs from a bundle
+        but the package is installed in site-packages (different paths).
+        """
+        mock_get_tools.return_value = ["some_tool"]
+
+        # Create mock __main__ module with different file path but matching module name
+        mock_main = MagicMock()
+        mock_main.__file__ = "/some/other/path/entrypoint.py"  # Different path
+        mock_spec = MagicMock()
+        mock_spec.name = "mypackage.entrypoint"  # but, matches the module being scanned
+        mock_main.__spec__ = mock_spec
+
+        with patch.dict("sys.modules", {"__main__": mock_main}):
+            result = Toolkit.tools_from_directory(temp_package, "mypackage")
+
+        # entrypoint.py should be skipped due to module name match
+        assert "mypackage.entrypoint" not in result
+        assert "mypackage.tools.helper" in result
+
+    @patch("arcade_core.toolkit.get_tools_from_file")
+    def test_no_skip_when_different_module(self, mock_get_tools, temp_package):
+        """Verify unrelated modules are not skipped."""
+        mock_get_tools.return_value = ["some_tool"]
+
+        # Create mock __main__ module with completely different identity
+        mock_main = MagicMock()
+        mock_main.__file__ = "/some/other/path/other_script.py"
+        mock_spec = MagicMock()
+        mock_spec.name = "some_other_package.script"
+        mock_main.__spec__ = mock_spec
+
+        with patch.dict("sys.modules", {"__main__": mock_main}):
+            result = Toolkit.tools_from_directory(temp_package, "mypackage")
+
+        # Both files should be included since neither matches __main__
+        assert "mypackage.entrypoint" in result
+        assert "mypackage.tools.helper" in result
+
+    @patch("arcade_core.toolkit.get_tools_from_file")
+    def test_no_skip_when_no_main_module(self, mock_get_tools, temp_package):
+        """Handle case where __main__ is not in sys.modules."""
+        mock_get_tools.return_value = ["some_tool"]
+
+        # Remove __main__ from sys.modules
+        with patch.dict("sys.modules", {"__main__": None}):
+            result = Toolkit.tools_from_directory(temp_package, "mypackage")
+
+        # Both files should be included
+        assert "mypackage.entrypoint" in result
+        assert "mypackage.tools.helper" in result
+
+    @patch("arcade_core.toolkit.get_tools_from_file")
+    def test_no_skip_when_no_spec(self, mock_get_tools, temp_package):
+        """Handle case where __main__ has no __spec__ attribute."""
+        mock_get_tools.return_value = ["some_tool"]
+
+        # Create mock __main__ module with different file path and no __spec__
+        mock_main = MagicMock()
+        mock_main.__file__ = "/some/other/path/script.py"
+        mock_main.__spec__ = None
+
+        with patch.dict("sys.modules", {"__main__": mock_main}):
+            result = Toolkit.tools_from_directory(temp_package, "mypackage")
+
+        # Both files should be included since path doesn't match and no spec
+        assert "mypackage.entrypoint" in result
+        assert "mypackage.tools.helper" in result
+
+    @patch("arcade_core.toolkit.get_tools_from_file")
+    def test_no_skip_when_spec_has_no_name(self, mock_get_tools, temp_package):
+        """Handle case where __main__.__spec__ exists but has no name."""
+        mock_get_tools.return_value = ["some_tool"]
+
+        # Create mock __main__ module with __spec__ but no name
+        mock_main = MagicMock()
+        mock_main.__file__ = "/some/other/path/script.py"
+        mock_spec = MagicMock()
+        mock_spec.name = None
+        mock_main.__spec__ = mock_spec
+
+        with patch.dict("sys.modules", {"__main__": mock_main}):
+            result = Toolkit.tools_from_directory(temp_package, "mypackage")
+
+        # Both files should be included
+        assert "mypackage.entrypoint" in result
+        assert "mypackage.tools.helper" in result

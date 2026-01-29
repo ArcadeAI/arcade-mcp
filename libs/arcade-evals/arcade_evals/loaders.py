@@ -98,10 +98,10 @@ async def _get_cache_lock(cache_key: str) -> asyncio.Lock:
     return _cache_locks[cache_key]
 
 
-async def _acquire_lock_with_timeout(
-    lock: asyncio.Lock, timeout: float = LOCK_TIMEOUT_SECONDS
-) -> bool:
+async def _acquire_lock_with_timeout(lock: asyncio.Lock, timeout: float | None = None) -> bool:
     """Acquire a lock with timeout. Returns True if acquired, False on timeout."""
+    if timeout is None:
+        timeout = LOCK_TIMEOUT_SECONDS
     try:
         await asyncio.wait_for(lock.acquire(), timeout=timeout)
     except asyncio.TimeoutError:

@@ -1,6 +1,6 @@
 [project]
 name = "arcade-core"
-version = "4.2.1"
+version = "4.2.2"
 description = "Arcade Core - Core library for Arcade platform"
 readme = "README.md"
 license = { text = "MIT" }
