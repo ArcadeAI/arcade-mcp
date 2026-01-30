@@ -15,6 +15,8 @@ from typing import Any
 
 import uvicorn
 from arcade_core.catalog import ToolCatalog
+from arcade_core.discovery import discover_tools
+from arcade_core.toolkit import ToolkitLoadError
 from arcade_serve.fastapi import FastAPIWorker, TaskTrackerMiddleware
 from arcade_serve.fastapi.telemetry import OTELHandler
 from fastapi import FastAPI
@@ -23,6 +25,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.types import Receive, Scope, Send
 
+from arcade_mcp_server.__main__ import setup_logging
 from arcade_mcp_server.fastapi.auth_routes import create_auth_router
 from arcade_mcp_server.fastapi.middleware import AddTrailingSlashToPathMiddleware
 from arcade_mcp_server.resource_server.base import ResourceServerValidator
@@ -300,13 +303,12 @@ def create_arcade_mcp_factory() -> FastAPI:
     This function is called by uvicorn when using reload mode with an import string.
     It rediscovers the catalog and reads configuration from environment variables.
     """
-    import os
-
-    from arcade_core.discovery import discover_tools
-    from arcade_core.toolkit import ToolkitLoadError
-
-    # Read configuration from env vars that were set before running the server
+    # Configure logging first, before any other imports that might trigger logging.
+    # This is critical for worker subprocesses (workers > 1) where main() is not called.
     debug = os.environ.get("ARCADE_MCP_DEBUG", "false").lower() == "true"
+    log_level = "DEBUG" if debug else "INFO"
+    setup_logging(level=log_level, stdio_mode=False)
+    # Read configuration from the remaining env vars that were set before running the server
     otel_enable = os.environ.get("ARCADE_MCP_OTEL_ENABLE", "false").lower() == "true"
     tool_package = os.environ.get("ARCADE_MCP_TOOL_PACKAGE")
     discover_installed = os.environ.get("ARCADE_MCP_DISCOVER_INSTALLED", "false").lower() == "true"
