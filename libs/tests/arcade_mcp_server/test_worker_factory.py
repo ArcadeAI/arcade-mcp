@@ -1,18 +1,8 @@
-"""Tests for worker factory logging configuration.
-
-These tests verify that create_arcade_mcp_factory() properly configures logging
-for worker subprocesses (when workers > 1), ensuring:
-- Standard Python logging is intercepted by Loguru
-- DEBUG logs are filtered based on ARCADE_MCP_DEBUG env var
-- Consistent log formatting across all processes
-"""
-
 import logging
 import os
 from io import StringIO
 
 import pytest
-from arcade_mcp_server.__main__ import setup_logging
 from loguru import logger
 
 
