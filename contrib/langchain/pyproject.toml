@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "langchain-arcade"
 version = "2.0.0"
-description = "[DEPRECATED] This package is no longer maintained. Please visit https://docs.arcade.dev for the latest Arcade integrations."
+description = "This package is no longer maintained. Please visit https://docs.arcade.dev for the latest Arcade integrations."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
