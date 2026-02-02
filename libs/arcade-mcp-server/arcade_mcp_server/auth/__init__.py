@@ -1,6 +1,7 @@
 from arcade_core.auth import (
     Asana,
     Atlassian,
+    Attio,
     ClickUp,
     Discord,
     Dropbox,
@@ -25,6 +26,7 @@ from arcade_core.auth import (
 __all__ = [
     "Asana",
     "Atlassian",
+    "Attio",
     "ClickUp",
     "Discord",
     "Dropbox",
