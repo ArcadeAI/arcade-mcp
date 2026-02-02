@@ -1,8 +1,7 @@
 import warnings
 
 warnings.warn(
-    "\n"
-    "=" * 70 + "\n"
+    "\n" + "=" * 70 + "\n"
     "DEPRECATION NOTICE: langchain-arcade is no longer maintained.\n"
     "\n"
     "This package has been deprecated. Please visit https://docs.arcade.dev\n"
@@ -10,8 +9,7 @@ warnings.warn(
     "applications.\n"
     "\n"
     "Arcade now supports MCP (Model Context Protocol) and direct API\n"
-    "integration via the Arcade Python SDK.\n"
-    "=" * 70,
+    "integration via the Arcade Python SDK.\n" + "=" * 70,
     DeprecationWarning,
     stacklevel=2,
 )
