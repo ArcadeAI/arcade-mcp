@@ -1,5 +1,4 @@
 import traceback
-import warnings
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any
@@ -230,15 +229,10 @@ class ToolOutputError(ToolSerializationError):
 # 2. ------  tool-body errors ------
 class ToolExecutionError(ToolRuntimeError):
     """
-    DEPRECATED: Raised when there is an error executing a tool.
+    Raised when an error occurs during the execution of a tool's body.
 
-    ToolExecutionError is deprecated and will be removed in a future major version.
-    Use more specific error types instead:
-    - RetryableToolError for retryable errors
-    - ContextRequiredToolError for errors requiring user context
-    - FatalToolError for fatal/unexpected errors
-    - UpstreamError for upstream service errors
-    - UpstreamRateLimitError for upstream rate limiting errors
+    This is the base class for tool execution errors and should be raised when catching
+    exceptions within a tool to provide meaningful information to the tool caller.
     """
 
     def __init__(
@@ -248,14 +242,6 @@ class ToolExecutionError(ToolRuntimeError):
         *,
         extra: dict[str, Any] | None = None,
     ):
-        if type(self) is ToolExecutionError:
-            warnings.warn(
-                "ToolExecutionError is deprecated and will be removed in a future major version. "
-                "Use more specific error types instead: RetryableToolError, ContextRequiredToolError, "
-                "FatalToolError, UpstreamError, or UpstreamRateLimitError.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
         super().__init__(message, developer_message=developer_message, extra=extra)
 
 
