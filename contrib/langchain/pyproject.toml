@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "langchain-arcade"
-version = "2.0.0"
+version = "2.0.1"
 description = "This package is no longer maintained. Please visit https://docs.arcade.dev for the latest Arcade integrations."
 readme = "README.md"
 license = "MIT"
