@@ -6,14 +6,15 @@ Async-safe tool management with pre-converted MCPTool DTOs and executable materi
 
 from __future__ import annotations
 
-from typing import TypedDict
+from typing import Any, TypedDict
 
 from arcade_core.catalog import MaterializedTool, ToolCatalog
+from arcade_core.schema import ToolDefinition
 
 from arcade_mcp_server.convert import build_input_schema_from_definition
 from arcade_mcp_server.exceptions import NotFoundError
 from arcade_mcp_server.managers.base import ComponentManager
-from arcade_mcp_server.types import MCPTool
+from arcade_mcp_server.types import MCPTool, ToolAnnotations
 
 
 class ManagedTool(TypedDict):
@@ -35,19 +36,81 @@ class ToolManager(ComponentManager[Key, ManagedTool]):
     def _sanitize_name(name: str) -> str:
         return name.replace(".", "_")
 
-    def _to_dto(self, tool: MaterializedTool) -> MCPTool:
-        # Extract requirements and build meta if needed
-        requirements = tool.definition.requirements
-        meta = None
+    @staticmethod
+    def _build_arcade_meta(definition: ToolDefinition) -> dict[str, Any] | None:
+        """Build the _meta.arcade structure from tool definition.
+
+        Contains:
+        - requirements: Authorization, secrets, and metadata requirements
+        - classification: Domains and system types for tool discovery
+        - behavior: Verbs describing tool actions (hints go in annotations)
+        - extras: Arbitrary key/values for custom logic
+        """
+        arcade_meta: dict[str, Any] = {}
+
+        # Add requirements
+        requirements = definition.requirements
         if requirements.authorization or requirements.secrets or requirements.metadata:
-            meta = {"arcade_requirements": requirements.model_dump(exclude_none=True)}
+            arcade_meta["requirements"] = requirements.model_dump(exclude_none=True)
+
+        # Add tool metadata
+        tool_metadata = definition.metadata
+        if tool_metadata:
+            # Add classification
+            if tool_metadata.classification:
+                classification = tool_metadata.classification
+                classification_meta: dict[str, Any] = {}
+                if classification.domains:
+                    classification_meta["domains"] = [d.value for d in classification.domains]
+                if classification.system_types:
+                    classification_meta["systemTypes"] = [
+                        st.value for st in classification.system_types
+                    ]
+                if classification_meta:
+                    arcade_meta["classification"] = classification_meta
+
+            # Add behavior verbs (hints go in annotations, not here)
+            if tool_metadata.behavior and tool_metadata.behavior.verbs:
+                arcade_meta["behavior"] = {"verbs": [v.value for v in tool_metadata.behavior.verbs]}
+
+            # Add extras
+            if tool_metadata.extras:
+                arcade_meta["extras"] = tool_metadata.extras
+
+        return arcade_meta if arcade_meta else None
+
+    def _to_dto(self, materialized_tool: MaterializedTool) -> MCPTool:
+        """Convert a MaterializedTool to an MCPTool DTO."""
+        definition = materialized_tool.definition
+
+        # Get title from __tool_name__ which preserves:
+        # - Explicit @tool(name="...") as-is
+        # - Function name converted to PascalCase
+        title = getattr(materialized_tool.tool, "__tool_name__", definition.name)
+        tool_metadata = definition.metadata
+        if tool_metadata and tool_metadata.behavior:
+            behavior = tool_metadata.behavior
+            annotations = ToolAnnotations(
+                title=title,
+                readOnlyHint=behavior.read_only,
+                destructiveHint=behavior.destructive,
+                idempotentHint=behavior.idempotent,
+                openWorldHint=behavior.open_world,
+            )
+        else:
+            # Even without behavior metadata, we can still set the title annotation
+            annotations = ToolAnnotations(title=title)
+
+        arcade_meta = self._build_arcade_meta(definition)
+        meta = {"arcade": arcade_meta} if arcade_meta else None
 
         return MCPTool(
-            name=self._sanitize_name(tool.definition.fully_qualified_name),
-            title=f"{tool.definition.toolkit.name}_{tool.definition.name}",
-            description=tool.definition.description,
-            inputSchema=build_input_schema_from_definition(tool.definition),
-            _meta=meta,
+            name=self._sanitize_name(definition.fully_qualified_name),
+            title=title,
+            description=definition.description,
+            inputSchema=build_input_schema_from_definition(definition),
+            annotations=annotations,
+            meta=meta,
         )
 
     async def load_from_catalog(self, catalog: ToolCatalog) -> None:

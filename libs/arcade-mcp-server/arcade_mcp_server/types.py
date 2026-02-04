@@ -393,6 +393,8 @@ class MCPTool(BaseModel):
     title: str | None = None
     meta: dict[str, Any] | None = Field(alias="_meta", default=None)
 
+    model_config = ConfigDict(populate_by_name=True)
+
 
 class ListToolsRequest(PaginatedRequest):
     method: Literal["tools/list"] = Field(default="tools/list", frozen=True)
