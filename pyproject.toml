@@ -62,8 +62,7 @@ evals = [
     "pytz>=2024.1",
 ]
 
-[tool.uv]
-dev-dependencies = [
+dev = [
     # Test framework
     "pytest>=8.1.2",
     "pytest-cov>=4.0.0",
