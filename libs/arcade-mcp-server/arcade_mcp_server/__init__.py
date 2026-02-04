@@ -16,6 +16,11 @@ A FastAPI-like interface for building MCP servers.
 - auto discovery of tools and construction of the server
 - supports stdio transport only
 - run with uv or `python -m arcade_mcp`
+
+For metadata classes, use:
+    from arcade_mcp_server.metadata import (
+        Behavior, Classification, Domain, SystemType, ToolMetadata, Verb
+    )
 """
 
 from arcade_tdk import tool
