@@ -66,7 +66,7 @@ class TestToolMetadataSerialization:
         assert dto.annotations.openWorldHint is True
 
     def test_meta_arcade_includes_classification(self, tool_manager: ToolManager):
-        """_meta.arcade should include classification with domains and systemTypes."""
+        """_meta.arcade.metadata should include classification with domains and system_types."""
 
         @tool(
             desc="Test tool",
@@ -90,12 +90,13 @@ class TestToolMetadataSerialization:
 
         assert dto.meta is not None
         assert "arcade" in dto.meta
-        assert "classification" in dto.meta["arcade"]
-        assert dto.meta["arcade"]["classification"]["domains"] == ["messaging", "workflow"]
-        assert dto.meta["arcade"]["classification"]["systemTypes"] == ["saas_api"]
+        assert "metadata" in dto.meta["arcade"]
+        assert "classification" in dto.meta["arcade"]["metadata"]
+        assert dto.meta["arcade"]["metadata"]["classification"]["domains"] == ["messaging", "workflow"]
+        assert dto.meta["arcade"]["metadata"]["classification"]["system_types"] == ["saas_api"]
 
     def test_meta_arcade_includes_verbs(self, tool_manager: ToolManager):
-        """_meta.arcade.behavior should include verbs as lowercase strings."""
+        """_meta.arcade.metadata.behavior should include verbs as lowercase strings."""
 
         @tool(
             desc="Test tool",
@@ -112,11 +113,12 @@ class TestToolMetadataSerialization:
 
         assert dto.meta is not None
         assert "arcade" in dto.meta
-        assert "behavior" in dto.meta["arcade"]
-        assert dto.meta["arcade"]["behavior"]["verbs"] == ["create", "update"]
+        assert "metadata" in dto.meta["arcade"]
+        assert "behavior" in dto.meta["arcade"]["metadata"]
+        assert dto.meta["arcade"]["metadata"]["behavior"]["verbs"] == ["create", "update"]
 
     def test_meta_arcade_includes_extras(self, tool_manager: ToolManager):
-        """_meta.arcade should include extras dict unchanged."""
+        """_meta.arcade.metadata should include extras dict unchanged."""
 
         @tool(
             desc="Test tool",
@@ -133,8 +135,9 @@ class TestToolMetadataSerialization:
 
         assert dto.meta is not None
         assert "arcade" in dto.meta
-        assert "extras" in dto.meta["arcade"]
-        assert dto.meta["arcade"]["extras"] == {
+        assert "metadata" in dto.meta["arcade"]
+        assert "extras" in dto.meta["arcade"]["metadata"]
+        assert dto.meta["arcade"]["metadata"]["extras"] == {
             "idp": "entraID",
             "requires_mfa": True,
             "max_requests": 100,
@@ -197,15 +200,22 @@ class TestToolMetadataSerialization:
         assert dto.annotations.idempotentHint is False
         assert dto.annotations.openWorldHint is True
 
-        # Verify _meta.arcade structure
+        # Verify _meta.arcade structure (mirrors Arcade format)
         assert dto.meta is not None
         assert "arcade" in dto.meta
         arcade = dto.meta["arcade"]
 
-        assert arcade["classification"]["domains"] == ["messaging"]
-        assert arcade["classification"]["systemTypes"] == ["saas_api"]
-        assert arcade["behavior"]["verbs"] == ["execute"]
-        assert arcade["extras"] == {"idp": "entraID", "requires_mfa": True}
+        assert "metadata" in arcade
+        metadata = arcade["metadata"]
+
+        assert metadata["classification"]["domains"] == ["messaging"]
+        assert metadata["classification"]["system_types"] == ["saas_api"]
+        assert metadata["behavior"]["verbs"] == ["execute"]
+        assert metadata["behavior"]["read_only"] is False
+        assert metadata["behavior"]["destructive"] is False
+        assert metadata["behavior"]["idempotent"] is False
+        assert metadata["behavior"]["open_world"] is True
+        assert metadata["extras"] == {"idp": "entraID", "requires_mfa": True}
 
     def test_metadata_with_only_classification(self, tool_manager: ToolManager):
         """Tools with only classification should serialize correctly."""
@@ -232,11 +242,12 @@ class TestToolMetadataSerialization:
         # Hint fields should be None without behavior
         assert dto.annotations.readOnlyHint is None
 
-        # _meta.arcade should have classification but not behavior
+        # _meta.arcade.metadata should have classification but not behavior
         assert dto.meta is not None
         assert "arcade" in dto.meta
-        assert "classification" in dto.meta["arcade"]
-        assert "behavior" not in dto.meta["arcade"]
+        assert "metadata" in dto.meta["arcade"]
+        assert "classification" in dto.meta["arcade"]["metadata"]
+        assert "behavior" not in dto.meta["arcade"]["metadata"]
 
     def test_metadata_with_only_extras(self, tool_manager: ToolManager):
         """Tools with only extras should serialize correctly."""
@@ -254,12 +265,13 @@ class TestToolMetadataSerialization:
         materialized = self._create_materialized_tool(custom_tool)
         dto = tool_manager._to_dto(materialized)
 
-        # _meta.arcade should have only extras
+        # _meta.arcade.metadata should have only extras
         assert dto.meta is not None
         assert "arcade" in dto.meta
-        assert "classification" not in dto.meta["arcade"]
-        assert "behavior" not in dto.meta["arcade"]
-        assert dto.meta["arcade"]["extras"] == {"custom_key": "custom_value"}
+        assert "metadata" in dto.meta["arcade"]
+        assert "classification" not in dto.meta["arcade"]["metadata"]
+        assert "behavior" not in dto.meta["arcade"]["metadata"]
+        assert dto.meta["arcade"]["metadata"]["extras"] == {"custom_key": "custom_value"}
 
     def test_meta_arcade_includes_requirements(self, tool_manager: ToolManager):
         """_meta.arcade should include requirements when tool has auth."""
@@ -338,18 +350,28 @@ class TestToolMetadataSerialization:
         materialized = self._create_materialized_tool(full_tool)
         dto = tool_manager._to_dto(materialized)
 
-        # Verify all fields are present in _meta.arcade
+        # Verify structure: requirements at top level, metadata container for rest
         assert dto.meta is not None
         assert "arcade" in dto.meta
         arcade = dto.meta["arcade"]
 
+        # Requirements at top level of arcade
         assert "requirements" in arcade
-        assert "classification" in arcade
-        assert "behavior" in arcade
-        assert "extras" in arcade
+        assert arcade["requirements"]["authorization"]["id"] == "google"
+
+        # metadata container holds classification, behavior, extras
+        assert "metadata" in arcade
+        metadata = arcade["metadata"]
+
+        assert "classification" in metadata
+        assert "behavior" in metadata
+        assert "extras" in metadata
 
         # Verify specific values
-        assert arcade["requirements"]["authorization"]["id"] == "google"
-        assert arcade["classification"]["domains"] == ["messaging"]
-        assert arcade["behavior"]["verbs"] == ["execute"]
-        assert arcade["extras"] == {"idp": "google"}
+        assert metadata["classification"]["domains"] == ["messaging"]
+        assert metadata["classification"]["system_types"] == ["saas_api"]
+        assert metadata["behavior"]["verbs"] == ["execute"]
+        assert metadata["behavior"]["read_only"] is False
+        assert metadata["behavior"]["destructive"] is False
+        assert metadata["behavior"]["open_world"] is True
+        assert metadata["extras"] == {"idp": "google"}

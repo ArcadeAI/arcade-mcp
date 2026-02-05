@@ -40,22 +40,25 @@ class ToolManager(ComponentManager[Key, ManagedTool]):
     def _build_arcade_meta(definition: ToolDefinition) -> dict[str, Any] | None:
         """Build the _meta.arcade structure from tool definition.
 
-        Contains:
-        - requirements: Authorization, secrets, and metadata requirements
-        - classification: Domains and system types for tool discovery
-        - behavior: Verbs describing tool actions (hints go in annotations)
-        - extras: Arbitrary key/values for custom logic
+        Structure mirrors Arcade format:
+        - requirements: Authorization, secrets, and metadata requirements (top-level)
+        - metadata: Container for classification, behavior, and extras
+          - classification: Domains and system types for tool discovery
+          - behavior: Verbs and all behavior flags (read_only, destructive, etc.)
+          - extras: Arbitrary key/values for custom logic
         """
         arcade_meta: dict[str, Any] = {}
 
-        # Add requirements
+        # Add requirements at top level (not inside metadata)
         requirements = definition.requirements
         if requirements.authorization or requirements.secrets or requirements.metadata:
             arcade_meta["requirements"] = requirements.model_dump(exclude_none=True)
 
-        # Add tool metadata
+        # Build metadata container (mirrors Arcade format structure)
         tool_metadata = definition.metadata
         if tool_metadata:
+            metadata_container: dict[str, Any] = {}
+
             # Add classification
             if tool_metadata.classification:
                 classification = tool_metadata.classification
@@ -63,19 +66,36 @@ class ToolManager(ComponentManager[Key, ManagedTool]):
                 if classification.domains:
                     classification_meta["domains"] = [d.value for d in classification.domains]
                 if classification.system_types:
-                    classification_meta["systemTypes"] = [
+                    classification_meta["system_types"] = [
                         st.value for st in classification.system_types
                     ]
                 if classification_meta:
-                    arcade_meta["classification"] = classification_meta
+                    metadata_container["classification"] = classification_meta
 
-            # Add behavior verbs (hints go in annotations, not here)
-            if tool_metadata.behavior and tool_metadata.behavior.verbs:
-                arcade_meta["behavior"] = {"verbs": [v.value for v in tool_metadata.behavior.verbs]}
+            # Add behavior with all fields (not just verbs)
+            if tool_metadata.behavior:
+                behavior = tool_metadata.behavior
+                behavior_meta: dict[str, Any] = {}
+                if behavior.verbs:
+                    behavior_meta["verbs"] = [v.value for v in behavior.verbs]
+                if behavior.read_only is not None:
+                    behavior_meta["read_only"] = behavior.read_only
+                if behavior.destructive is not None:
+                    behavior_meta["destructive"] = behavior.destructive
+                if behavior.idempotent is not None:
+                    behavior_meta["idempotent"] = behavior.idempotent
+                if behavior.open_world is not None:
+                    behavior_meta["open_world"] = behavior.open_world
+                if behavior_meta:
+                    metadata_container["behavior"] = behavior_meta
 
             # Add extras
             if tool_metadata.extras:
-                arcade_meta["extras"] = tool_metadata.extras
+                metadata_container["extras"] = tool_metadata.extras
+
+            # Only add metadata container if it has content
+            if metadata_container:
+                arcade_meta["metadata"] = metadata_container
 
         return arcade_meta if arcade_meta else None
 
