@@ -1308,9 +1308,9 @@ async def _run_with_openai(
     api_key: str,
     model: str,
     *,
-    num_runs: int,
-    seed: str | int | None,
-    multi_run_pass_rule: str,
+    num_runs: int = 1,
+    seed: str | int | None = "constant",
+    multi_run_pass_rule: str = PASS_RULE_LAST,
 ) -> dict[str, Any] | list[dict[str, Any]]:
     """Run evaluation suite with OpenAI client.
 
@@ -1349,9 +1349,9 @@ async def _run_with_anthropic(
     api_key: str,
     model: str,
     *,
-    num_runs: int,
-    seed: str | int | None,
-    multi_run_pass_rule: str,
+    num_runs: int = 1,
+    seed: str | int | None = "constant",
+    multi_run_pass_rule: str = PASS_RULE_LAST,
 ) -> dict[str, Any] | list[dict[str, Any]]:
     """Run evaluation suite with Anthropic client.
 

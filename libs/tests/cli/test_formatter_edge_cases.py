@@ -140,11 +140,16 @@ class TestFormatterEdgeCases:
         formatter = HtmlFormatter()
         output = formatter.format(results)
 
-        # Should NOT contain raw script tags or other unescaped HTML
-        assert "<script>" not in output
-        assert "onerror" not in output or "&" in output  # Should be escaped
-        # Should contain escaped versions
+        # The template includes a legitimate <script> tag for run-tabs JS,
+        # but user-provided content must be properly escaped.
+        # Verify that injected XSS payloads are escaped (not rendered raw)
+        assert "<script>alert" not in output  # User payload must be escaped
+        assert "<script>malicious" not in output  # Failure reason must be escaped
+        # <img must be escaped to &lt;img so it doesn't render as an HTML element
+        assert "<img src=x" not in output
+        # Should contain escaped versions of user-provided content
         assert "&lt;script&gt;" in output or "&lt;" in output
+        assert "&lt;img" in output  # The img tag should be escaped
         assert "&amp;" in output  # & should be escaped
 
     def test_json_formatter_produces_valid_json_for_all_cases(self) -> None:
