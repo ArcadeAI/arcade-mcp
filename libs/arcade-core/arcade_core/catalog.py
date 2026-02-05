@@ -466,6 +466,9 @@ class ToolCatalog(BaseModel):
         deprecation_message = getattr(tool, "__tool_deprecation_message__", None)
         tool_metadata = getattr(tool, "__tool_metadata__", None)
 
+        if tool_metadata is not None:
+            tool_metadata.validate_for_tool(tool_name)
+
         return ToolDefinition(
             name=tool_name,
             fully_qualified_name=str(fully_qualified_name),

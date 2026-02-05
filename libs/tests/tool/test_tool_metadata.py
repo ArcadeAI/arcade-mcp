@@ -1,4 +1,5 @@
 import pytest
+from arcade_core.errors import ToolDefinitionError
 from arcade_core.metadata import (
     _CLOSED_WORLD_SYSTEM_TYPES,
     _MUTATING_VERBS,
@@ -88,34 +89,38 @@ class TestToolMetadataValidation:
         assert metadata is not None
 
     def test_mutating_verb_with_read_only_raises(self):
-        """Mutating verbs with read_only=True should raise."""
-        with pytest.raises(ValueError, match="mutating verbs but is marked read_only"):
-            ToolMetadata(
-                behavior=Behavior(verbs=[Verb.CREATE], read_only=True),
-            )
+        """Mutating verbs with read_only=True should raise when validated."""
+        metadata = ToolMetadata(
+            behavior=Behavior(verbs=[Verb.CREATE], read_only=True),
+        )
+        with pytest.raises(ToolDefinitionError, match="mutating verb.*but is marked read_only=True"):
+            metadata.validate_for_tool("TestTool")
 
     def test_delete_without_destructive_raises(self):
-        """DELETE verb without destructive=True should raise."""
-        with pytest.raises(ValueError, match="DELETE verb but is not marked destructive"):
-            ToolMetadata(
-                behavior=Behavior(verbs=[Verb.DELETE], destructive=False),
-            )
+        """DELETE verb without destructive=True should raise when validated."""
+        metadata = ToolMetadata(
+            behavior=Behavior(verbs=[Verb.DELETE], destructive=False),
+        )
+        with pytest.raises(ToolDefinitionError, match="'DELETE' verb.*but is not marked destructive=True"):
+            metadata.validate_for_tool("TestTool")
 
     def test_in_process_with_open_world_raises(self):
-        """IN_PROCESS only system type with open_world=True should raise."""
-        with pytest.raises(ValueError, match="IN_PROCESS only but is marked open_world"):
-            ToolMetadata(
-                classification=Classification(system_types=[SystemType.IN_PROCESS]),
-                behavior=Behavior(open_world=True),
-            )
+        """IN_PROCESS only system type with open_world=True should raise when validated."""
+        metadata = ToolMetadata(
+            classification=Classification(system_types=[SystemType.IN_PROCESS]),
+            behavior=Behavior(open_world=True),
+        )
+        with pytest.raises(ToolDefinitionError, match="closed-world system type.*but is marked open_world=True"):
+            metadata.validate_for_tool("TestTool")
 
     def test_remote_system_without_open_world_raises(self):
-        """Remote system types (SAAS_API, etc.) without open_world=True should raise."""
-        with pytest.raises(ValueError, match="external systems but is not marked open_world"):
-            ToolMetadata(
-                classification=Classification(system_types=[SystemType.SAAS_API]),
-                behavior=Behavior(open_world=False),
-            )
+        """Remote system types (SAAS_API, etc.) without open_world=True should raise when validated."""
+        metadata = ToolMetadata(
+            classification=Classification(system_types=[SystemType.SAAS_API]),
+            behavior=Behavior(open_world=False),
+        )
+        with pytest.raises(ToolDefinitionError, match="remote system type.*but is marked open_world=False"):
+            metadata.validate_for_tool("TestTool")
 
     def test_strict_false_bypasses_validation(self):
         """Setting strict=False should bypass all validation rules."""
@@ -124,7 +129,17 @@ class TestToolMetadataValidation:
             behavior=Behavior(verbs=[Verb.CREATE], read_only=True),
             strict=False,
         )
+        # No error should be raised when validate_for_tool is called
+        metadata.validate_for_tool("TestTool")  # Should not raise
         assert metadata is not None
+
+    def test_error_message_includes_tool_name(self):
+        """Error messages should include the tool name for debugging."""
+        metadata = ToolMetadata(
+            behavior=Behavior(verbs=[Verb.CREATE], read_only=True),
+        )
+        with pytest.raises(ToolDefinitionError, match="Tool has the mutating verb"):
+            metadata.validate_for_tool("MyCustomTool")
 
     def test_read_only_verb_with_read_only_true_passes(self):
         """READ verb with read_only=True should pass validation."""

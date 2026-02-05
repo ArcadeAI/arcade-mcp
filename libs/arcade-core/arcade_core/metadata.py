@@ -6,7 +6,7 @@ Defines the metadata model for Arcade tools. This module provides three layers:
 - Classification: What the tool is FOR (domains) and what it connects to (system_types).
   Used for tool discovery and search boosting.
 
-- Behavior: What effects the tool has. A superset of MCP Annotations.
+- Behavior: What effects the tool has. MCP Annotations are computed from this.
   Commonly used for policy decisions (HITL gates, retry logic, etc.)
 
 - Extras: Arbitrary key/values for custom logic (IDP routing, feature flags, etc.)
@@ -15,7 +15,9 @@ Defines the metadata model for Arcade tools. This module provides three layers:
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict
+
+from arcade_core.errors import ToolDefinitionError
 
 
 class Domain(str, Enum):
@@ -236,7 +238,7 @@ class Behavior(BaseModel):
     """
     What effects does the tool have? Arcade's data model for tool behavior.
 
-    MCP annotations are computed from the boolean flags at the gateway layer:
+    When using MCP, Behavior is project to MCP annotations.
     - read_only -> readOnlyHint
     - destructive -> destructiveHint
     - idempotent -> idempotentHint
@@ -322,11 +324,21 @@ class ToolMetadata(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    @model_validator(mode="after")
-    def validate_consistency(self) -> "ToolMetadata":
-        """Validate consistency between behavior and classification when strict=True."""
+    def validate_for_tool(self, tool_name: str) -> None:
+        """
+        Validate consistency between behavior and classification.
+
+        Called by the catalog when creating a tool definition, so we have
+        access to the tool name for better error messages.
+
+        Args:
+            tool_name: The name of the tool being validated (for error context)
+
+        Raises:
+            ToolDefinitionError: If strict=True and validation fails
+        """
         if not self.strict:
-            return self
+            return
 
         behavior = self.behavior
         classification = self.classification
@@ -335,42 +347,49 @@ class ToolMetadata(BaseModel):
             verbs = set(behavior.verbs or [])
 
             # Rule 1: Mutating verbs + read_only=True is contradictory
-            if verbs & _MUTATING_VERBS and behavior.read_only is True:
-                raise ValueError(
-                    "Tool has mutating verbs but is marked read_only. "
-                    "Set strict=False in ToolMetadata to bypass."
+            mutating_verbs = verbs & _MUTATING_VERBS
+            if mutating_verbs and behavior.read_only is True:
+                raise ToolDefinitionError(
+                    f"Tool has the mutating verb(s): '{', '.join([verb.value.upper() for verb in mutating_verbs])}' "
+                    f"in its behavior metadata, but is marked read_only=True. Fix the contradiction, or "
+                    "set strict=False in the tool's ToolMetadata to bypass this validation for legitimate edge cases."
                 )
 
             # Rule 2: DELETE verb should have destructive=True
             if Verb.DELETE in verbs and behavior.destructive is False:
-                raise ValueError(
-                    "Tool has DELETE verb but is not marked destructive. "
-                    "Set strict=False in ToolMetadata to bypass."
+                raise ToolDefinitionError(
+                    f"Tool has the '{Verb.DELETE.value.upper()}' verb in its behavior metadata, "
+                    f"but is not marked destructive=True. Fix the contradiction, or "
+                    "set strict=False in the tool's ToolMetadata to bypass this validation for legitimate edge cases."
                 )
 
         if classification and behavior:
             system_types = set(classification.system_types or [])
 
             # Rule 3: Closed-world (IN_PROCESS only) + open_world=True is contradictory
+            closed_world_types = system_types & _CLOSED_WORLD_SYSTEM_TYPES
             if (
                 system_types
                 and system_types <= _CLOSED_WORLD_SYSTEM_TYPES
                 and behavior.open_world is True
             ):
-                raise ValueError(
-                    "Tool is IN_PROCESS only but is marked open_world. "
-                    "Set strict=False in ToolMetadata to bypass."
+                raise ToolDefinitionError(
+                    "Tool has the closed-world system type(s): "
+                    f"'{', '.join([st.value.upper() for st in closed_world_types])}' "
+                    "in its classification metadata, but is marked open_world=True. Fix the contradiction, or "
+                    "set strict=False in the tool's ToolMetadata to bypass this validation for legitimate edge cases."
                 )
 
-            # Rule 4: Open-world system types (anything not purely closed-world) should have open_world=True
+            # Rule 4: Remote system types should have open_world=True
+            remote_types = system_types - _CLOSED_WORLD_SYSTEM_TYPES
             if (
                 system_types
                 and not system_types <= _CLOSED_WORLD_SYSTEM_TYPES
                 and behavior.open_world is False
             ):
-                raise ValueError(
-                    "Tool interfaces with external systems but is not marked open_world. "
-                    "Set strict=False in ToolMetadata to bypass."
+                raise ToolDefinitionError(
+                    "Tool has the remote system type(s): "
+                    f"'{', '.join([st.value.upper() for st in remote_types])}' "
+                    "in its classification metadata, but is marked open_world=False. Fix the contradiction, or "
+                    "set strict=False in the tool's ToolMetadata to bypass this validation for legitimate edge cases."
                 )
-
-        return self
