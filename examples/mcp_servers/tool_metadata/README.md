@@ -19,13 +19,13 @@ Describes *what* the tool does and *what systems* it interfaces with.
 ```python
 classification=Classification(
     domains=[Domain.DOCUMENTS],      # What capability area?
-    system_types=[SystemType.IN_PROCESS],  # What system type?
+    system_types=[SystemType.SELF_CONTAINED],  # What system type?
 )
 ```
 
 **Domains** (what the tool does): `MESSAGING`, `DOCUMENTS`, `SEARCH`, `TRANSFORM`, `ANALYTICS`, etc.
 
-**System Types** (what it connects to): `SAAS_API`, `DATABASE`, `IN_PROCESS`, `WEB`, etc.
+**System Types** (what it connects to): `SAAS_API`, `DATABASE`, `SELF_CONTAINED`, `WEB`, etc.
 
 ## Behavior
 

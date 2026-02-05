@@ -139,8 +139,8 @@ class SystemType(str, Enum):
     CUSTOM_API = "custom_api"
     """Customer's internal or private APIs. Examples: Internal microservices, proprietary systems"""
 
-    IN_PROCESS = "in_process"
-    """No external system - pure computation within the process. Examples: Math.Add, JSON.Parse, string formatting"""
+    SELF_CONTAINED = "self_contained"
+    """No external system — pure computation, fully self-contained. Examples: Math.Add, JSON.Parse, string formatting"""
 
 
 class Verb(str, Enum):
@@ -209,7 +209,7 @@ class Verb(str, Enum):
 
 _READ_ONLY_VERBS = {Verb.READ}
 _MUTATING_VERBS = {Verb.CREATE, Verb.UPDATE, Verb.DELETE, Verb.EXECUTE, Verb.AUTHORIZE}
-_CLOSED_WORLD_SYSTEM_TYPES = {SystemType.IN_PROCESS}
+_CLOSED_WORLD_SYSTEM_TYPES = {SystemType.SELF_CONTAINED}
 
 
 class Classification(BaseModel):
@@ -287,7 +287,7 @@ class ToolMetadata(BaseModel):
         By default (strict=True), the constructor validates for logical contradictions:
         - Mutating verbs + read_only=True -> Error
         - DELETE verb + destructive=False -> Error
-        - IN_PROCESS only + open_world=True -> Error
+        - SELF_CONTAINED only + open_world=True -> Error
         - Remote system types + open_world=False -> Error
 
         Set strict=False to bypass validation for valid edge cases (e.g., a "read"
@@ -362,7 +362,7 @@ class ToolMetadata(BaseModel):
         if classification and behavior:
             system_types = set(classification.system_types or [])
 
-            # Rule 3: Closed-world (IN_PROCESS only) + open_world=True is contradictory
+            # Rule 3: Closed-world (SELF_CONTAINED only) + open_world=True is contradictory
             closed_world_types = system_types & _CLOSED_WORLD_SYSTEM_TYPES
             if (
                 system_types

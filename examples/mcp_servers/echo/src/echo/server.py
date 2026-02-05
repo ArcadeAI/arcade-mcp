@@ -17,7 +17,7 @@ app = MCPApp("EchoServer")
     metadata=ToolMetadata(
         classification=Classification(
             domains=[Domain.TRANSFORM],
-            system_types=[SystemType.IN_PROCESS],
+            system_types=[SystemType.SELF_CONTAINED],
         ),
         behavior=Behavior(
             verbs=[Verb.READ],

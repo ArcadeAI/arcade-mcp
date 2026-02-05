@@ -61,10 +61,10 @@ class TestEnumCoverage:
             f"in the SystemType enum: {invalid}"
         )
 
-    def test_in_process_is_closed_world(self):
-        """IN_PROCESS should be the only closed-world system type."""
-        assert SystemType.IN_PROCESS in _CLOSED_WORLD_SYSTEM_TYPES, (
-            "SystemType.IN_PROCESS must be in _CLOSED_WORLD_SYSTEM_TYPES"
+    def test_self_contained_is_closed_world(self):
+        """SELF_CONTAINED should be the only closed-world system type."""
+        assert SystemType.SELF_CONTAINED in _CLOSED_WORLD_SYSTEM_TYPES, (
+            "SystemType.SELF_CONTAINED must be in _CLOSED_WORLD_SYSTEM_TYPES"
         )
         # Note: We intentionally don't require other system types to be excluded,
         # as new closed-world system types could theoretically be added in the future.
@@ -109,10 +109,10 @@ class TestToolMetadataValidation:
         ):
             metadata.validate_for_tool()
 
-    def test_in_process_with_open_world_raises(self):
-        """IN_PROCESS only system type with open_world=True should raise when validated."""
+    def test_self_contained_with_open_world_raises(self):
+        """SELF_CONTAINED only system type with open_world=True should raise when validated."""
         metadata = ToolMetadata(
-            classification=Classification(system_types=[SystemType.IN_PROCESS]),
+            classification=Classification(system_types=[SystemType.SELF_CONTAINED]),
             behavior=Behavior(open_world=True),
         )
         with pytest.raises(

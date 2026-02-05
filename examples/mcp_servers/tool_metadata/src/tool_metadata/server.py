@@ -30,13 +30,13 @@ _notes: dict[str, str] = {}
 
 
 # =============================================================================
-# Example 1: Pure computation tool (IN_PROCESS, read-only)
+# Example 1: Pure computation tool (SELF_CONTAINED, read-only)
 # =============================================================================
 @app.tool(
     metadata=ToolMetadata(
         classification=Classification(
             domains=[Domain.TRANSFORM],
-            system_types=[SystemType.IN_PROCESS],
+            system_types=[SystemType.SELF_CONTAINED],
         ),
         behavior=Behavior(
             verbs=[Verb.READ],
@@ -59,7 +59,7 @@ def reverse_text(text: Annotated[str, "The text to reverse"]) -> str:
     metadata=ToolMetadata(
         classification=Classification(
             domains=[Domain.SEARCH],
-            system_types=[SystemType.IN_PROCESS],
+            system_types=[SystemType.SELF_CONTAINED],
         ),
         behavior=Behavior(
             verbs=[Verb.READ],
@@ -89,7 +89,7 @@ def search_notes(
     metadata=ToolMetadata(
         classification=Classification(
             domains=[Domain.DOCUMENTS],
-            system_types=[SystemType.IN_PROCESS],
+            system_types=[SystemType.SELF_CONTAINED],
         ),
         behavior=Behavior(
             verbs=[Verb.CREATE],
@@ -118,7 +118,7 @@ def create_note(
     metadata=ToolMetadata(
         classification=Classification(
             domains=[Domain.DOCUMENTS],
-            system_types=[SystemType.IN_PROCESS],
+            system_types=[SystemType.SELF_CONTAINED],
         ),
         behavior=Behavior(
             verbs=[Verb.UPDATE],
@@ -147,7 +147,7 @@ def update_note(
     metadata=ToolMetadata(
         classification=Classification(
             domains=[Domain.DOCUMENTS],
-            system_types=[SystemType.IN_PROCESS],
+            system_types=[SystemType.SELF_CONTAINED],
         ),
         behavior=Behavior(
             verbs=[Verb.DELETE],
@@ -175,7 +175,7 @@ def delete_note(
     metadata=ToolMetadata(
         classification=Classification(
             domains=[Domain.ANALYTICS],
-            system_types=[SystemType.IN_PROCESS],
+            system_types=[SystemType.SELF_CONTAINED],
         ),
         behavior=Behavior(
             verbs=[Verb.READ],
@@ -216,7 +216,7 @@ def get_notes_stats() -> dict[str, int]:
     metadata=ToolMetadata(
         classification=Classification(
             domains=[Domain.DOCUMENTS],
-            system_types=[SystemType.IN_PROCESS],
+            system_types=[SystemType.SELF_CONTAINED],
         ),
         behavior=Behavior(
             verbs=[Verb.CREATE, Verb.UPDATE],  # Multiple verbs for compound actions
