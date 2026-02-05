@@ -40,21 +40,16 @@ class ToolManager(ComponentManager[Key, ManagedTool]):
     def _build_arcade_meta(definition: ToolDefinition) -> dict[str, Any] | None:
         """Build the _meta.arcade structure from tool definition.
 
-        Structure mirrors Arcade format:
-        - requirements: Authorization, secrets, and metadata requirements (top-level)
-        - metadata: Container for classification, behavior, and extras
-          - classification: Domains and system types for tool discovery
-          - behavior: Verbs and all behavior flags (read_only, destructive, etc.)
-          - extras: Arbitrary key/values for custom logic
+        The structure of _meta.arcade should mirror Arcade format when possible.
         """
         arcade_meta: dict[str, Any] = {}
 
-        # Add requirements at top level (not inside metadata)
+        # Add requirements at top level
         requirements = definition.requirements
         if requirements.authorization or requirements.secrets or requirements.metadata:
             arcade_meta["requirements"] = requirements.model_dump(exclude_none=True)
 
-        # Build metadata container (mirrors Arcade format structure)
+        # Build metadata container
         tool_metadata = definition.metadata
         if tool_metadata:
             metadata_container: dict[str, Any] = {}
@@ -103,9 +98,6 @@ class ToolManager(ComponentManager[Key, ManagedTool]):
         """Convert a MaterializedTool to an MCPTool DTO."""
         definition = materialized_tool.definition
 
-        # Get title from __tool_name__ which preserves:
-        # - Explicit @tool(name="...") as-is
-        # - Function name converted to PascalCase
         title = getattr(materialized_tool.tool, "__tool_name__", definition.name)
         tool_metadata = definition.metadata
         if tool_metadata and tool_metadata.behavior:
@@ -130,7 +122,7 @@ class ToolManager(ComponentManager[Key, ManagedTool]):
             description=definition.description,
             inputSchema=build_input_schema_from_definition(definition),
             annotations=annotations,
-            meta=meta,
+            _meta=meta,
         )
 
     async def load_from_catalog(self, catalog: ToolCatalog) -> None:
