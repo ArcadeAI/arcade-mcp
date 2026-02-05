@@ -1,9 +1,0 @@
-{
-  "node_version": "20",
-  "dockerfile_lines": [],
-  "dependencies": ["."],
-  "graphs": {
-    "agent": "./langgraph-with-user-auth.ts:graph"
-  },
-  "env": ".env"
-}

@@ -50,5 +50,5 @@ runs:
 
     - name: Install libs dependencies
       if: inputs.is-toolkit != 'true'
-      run: uv sync --dev --extra all
+      run: uv sync --extra all --extra dev
       shell: bash
