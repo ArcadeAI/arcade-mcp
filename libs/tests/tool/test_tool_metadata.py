@@ -1,4 +1,5 @@
 import pytest
+from arcade_core.catalog import ToolCatalog
 from arcade_core.errors import ToolDefinitionError
 from arcade_core.metadata import (
     _CLOSED_WORLD_SYSTEM_TYPES,
@@ -93,7 +94,9 @@ class TestToolMetadataValidation:
         metadata = ToolMetadata(
             behavior=Behavior(verbs=[Verb.CREATE], read_only=True),
         )
-        with pytest.raises(ToolDefinitionError, match="mutating verb.*but is marked read_only=True"):
+        with pytest.raises(
+            ToolDefinitionError, match="mutating verb.*but is marked read_only=True"
+        ):
             metadata.validate_for_tool("TestTool")
 
     def test_delete_without_destructive_raises(self):
@@ -101,7 +104,9 @@ class TestToolMetadataValidation:
         metadata = ToolMetadata(
             behavior=Behavior(verbs=[Verb.DELETE], destructive=False),
         )
-        with pytest.raises(ToolDefinitionError, match="'DELETE' verb.*but is not marked destructive=True"):
+        with pytest.raises(
+            ToolDefinitionError, match="'DELETE' verb.*but is not marked destructive=True"
+        ):
             metadata.validate_for_tool("TestTool")
 
     def test_in_process_with_open_world_raises(self):
@@ -110,7 +115,9 @@ class TestToolMetadataValidation:
             classification=Classification(system_types=[SystemType.IN_PROCESS]),
             behavior=Behavior(open_world=True),
         )
-        with pytest.raises(ToolDefinitionError, match="closed-world system type.*but is marked open_world=True"):
+        with pytest.raises(
+            ToolDefinitionError, match="closed-world system type.*but is marked open_world=True"
+        ):
             metadata.validate_for_tool("TestTool")
 
     def test_remote_system_without_open_world_raises(self):
@@ -119,7 +126,9 @@ class TestToolMetadataValidation:
             classification=Classification(system_types=[SystemType.SAAS_API]),
             behavior=Behavior(open_world=False),
         )
-        with pytest.raises(ToolDefinitionError, match="remote system type.*but is marked open_world=False"):
+        with pytest.raises(
+            ToolDefinitionError, match="remote system type.*but is marked open_world=False"
+        ):
             metadata.validate_for_tool("TestTool")
 
     def test_strict_false_bypasses_validation(self):
@@ -215,7 +224,6 @@ class TestToolDefinitionWithMetadata:
 
     def test_tool_definition_includes_metadata(self):
         """ToolDefinition.metadata should be populated from decorator."""
-        from arcade_core.catalog import ToolCatalog
 
         @tool(
             desc="Send a message",
@@ -248,7 +256,6 @@ class TestToolDefinitionWithMetadata:
 
     def test_tool_definition_without_metadata_is_none(self):
         """ToolDefinition.metadata should be None when not provided."""
-        from arcade_core.catalog import ToolCatalog
 
         @tool(desc="Simple tool")
         def simple_tool() -> str:
