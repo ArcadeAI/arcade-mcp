@@ -324,15 +324,11 @@ class ToolMetadata(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    def validate_for_tool(self, tool_name: str) -> None:
+    def validate_for_tool(self) -> None:
         """
         Validate consistency between behavior and classification.
 
-        Called by the catalog when creating a tool definition, so we have
-        access to the tool name for better error messages.
-
-        Args:
-            tool_name: The name of the tool being validated (for error context)
+        Called by the catalog when creating a tool definition
 
         Raises:
             ToolDefinitionError: If strict=True and validation fails

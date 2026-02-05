@@ -39,7 +39,7 @@ _notes: dict[str, str] = {}
             system_types=[SystemType.IN_PROCESS],
         ),
         behavior=Behavior(
-            verbs=[Verb.EXECUTE],
+            verbs=[Verb.READ],
             read_only=True,
             destructive=False,
             idempotent=True,

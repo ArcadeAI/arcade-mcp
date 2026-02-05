@@ -467,7 +467,7 @@ class ToolCatalog(BaseModel):
         tool_metadata = getattr(tool, "__tool_metadata__", None)
 
         if tool_metadata is not None:
-            tool_metadata.validate_for_tool(tool_name)
+            tool_metadata.validate_for_tool()
 
         return ToolDefinition(
             name=tool_name,
