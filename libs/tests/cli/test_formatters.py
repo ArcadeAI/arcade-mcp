@@ -2863,3 +2863,577 @@ class TestHtmlSafeId:
         assert "additional_messages" in case_data
         tool_msg = next(m for m in case_data["additional_messages"] if m.get("role") == "tool")
         assert "temp" in tool_msg["content"]
+
+
+# =====================================================================
+# Multi-run stats formatter tests
+# =====================================================================
+
+
+def _make_multi_run_case(
+    name: str = "multi_run_case",
+    score: float = 0.75,
+    passed: bool = True,
+    num_runs: int = 3,
+) -> dict:
+    """Create a case dict with multi-run stats populated."""
+    return {
+        "name": name,
+        "input": "multi run test input",
+        "evaluation": MockEvaluation(
+            passed=passed,
+            score=score,
+            results=[
+                {
+                    "field": "arg_a",
+                    "match": True,
+                    "score": score,
+                    "weight": 1.0,
+                    "expected": "foo",
+                    "actual": "foo",
+                    "is_criticized": True,
+                }
+            ],
+        ),
+        "run_stats": {
+            "num_runs": num_runs,
+            "scores": [0.8, 0.7, 0.75],
+            "mean_score": 0.75,
+            "std_deviation": 0.041,
+            "passed": [True, True, True],
+            "warned": [False, False, False],
+            "seed_policy": "constant",
+            "run_seeds": [42, 42, 42],
+            "pass_rule": "last",
+            "runs": [
+                {"score": 0.8, "passed": True, "warning": False, "failure_reason": None, "details": []},
+                {"score": 0.7, "passed": True, "warning": False, "failure_reason": None, "details": []},
+                {"score": 0.75, "passed": True, "warning": False, "failure_reason": None, "details": []},
+            ],
+        },
+        "critic_stats": {
+            "arg_a": {
+                "run_scores": [0.8, 0.7, 0.75],
+                "mean_score": 0.75,
+                "std_deviation": 0.041,
+                "run_scores_normalized": [0.8, 0.7, 0.75],
+                "mean_score_normalized": 0.75,
+                "std_deviation_normalized": 0.041,
+                "weight": 1.0,
+            },
+        },
+        "expected_tool_calls": [],
+        "predicted_tool_calls": [],
+    }
+
+
+def _make_multi_run_results() -> list[list[dict]]:
+    """Create evaluation results with multi-run stats for a single model."""
+    return [
+        [
+            {
+                "model": "gpt-4o",
+                "suite_name": "MultiRunSuite",
+                "rubric": MockEvaluation(),
+                "cases": [_make_multi_run_case()],
+            }
+        ]
+    ]
+
+
+class TestMarkdownMultiRunStats:
+    """Tests for multi-run stats in the Markdown formatter."""
+
+    def test_run_stats_summary_in_output(self) -> None:
+        """Markdown should include Run Stats summary for multi-run cases."""
+        formatter = MarkdownFormatter()
+        results = _make_multi_run_results()
+        output = formatter.format(results, show_details=True)
+        assert "**Run Stats:**" in output
+        assert "Runs: 3" in output
+        assert "Mean Score:" in output
+        assert "Std Deviation:" in output
+        assert "Seed Policy: constant" in output
+        assert "Pass Rule: last" in output
+
+    def test_runs_column_in_summary_table(self) -> None:
+        """Summary table should include a Runs column for multi-run cases."""
+        formatter = MarkdownFormatter()
+        results = _make_multi_run_results()
+        output = formatter.format(results, show_details=False)
+        assert "| Runs |" in output
+        assert "±" in output  # Score should show ± std dev
+
+    def test_no_run_stats_for_single_run(self) -> None:
+        """Single-run cases should not show Run Stats or Runs column."""
+        formatter = MarkdownFormatter()
+        results = make_mock_results()  # standard single-run mock
+        output = formatter.format(results, show_details=True)
+        assert "**Run Stats:**" not in output
+        assert "| Runs |" not in output
+
+    def test_critic_stats_in_output(self) -> None:
+        """Markdown should include Critic Stats table for multi-run cases."""
+        formatter = MarkdownFormatter()
+        results = _make_multi_run_results()
+        output = formatter.format(results, show_details=True)
+        assert "Critic Stats" in output
+        assert "arg_a" in output
+
+    def test_format_run_stats_summary_returns_empty_for_single_run(self) -> None:
+        """_format_run_stats_summary returns [] when num_runs < 2."""
+        formatter = MarkdownFormatter()
+        assert formatter._format_run_stats_summary(None) == []
+        assert formatter._format_run_stats_summary({}) == []
+        assert formatter._format_run_stats_summary({"num_runs": 1}) == []
+
+
+class TestTextMultiRunStats:
+    """Tests for multi-run stats in the Text formatter."""
+
+    def test_stats_suffix_in_score_line(self) -> None:
+        """Text score line should include (n=X, sd=Y%) for multi-run."""
+        formatter = TextFormatter()
+        results = _make_multi_run_results()
+        output = formatter.format(results, show_details=True)
+        assert "(n=3" in output
+        assert "sd=" in output
+
+    def test_no_stats_suffix_for_single_run(self) -> None:
+        """Single-run text output should not include multi-run stats suffix."""
+        formatter = TextFormatter()
+        results = make_mock_results()
+        output = formatter.format(results, show_details=True)
+        assert "(n=" not in output
+        assert "sd=" not in output
+
+    def test_run_stats_block_in_details(self) -> None:
+        """Text details should include Run Stats block for multi-run."""
+        formatter = TextFormatter()
+        results = _make_multi_run_results()
+        output = formatter.format(results, show_details=True)
+        assert "Run Stats:" in output
+        assert "Seed Policy: constant" in output
+
+
+class TestHtmlMultiRunStats:
+    """Tests for multi-run stats in the HTML formatter."""
+
+    def test_run_stats_card_in_output(self) -> None:
+        """HTML should include run-stats-card for multi-run cases."""
+        formatter = HtmlFormatter()
+        results = _make_multi_run_results()
+        output = formatter.format(results, show_details=True)
+        assert "run-stats-card" in output
+        assert "mean score" in output
+        assert "std dev" in output
+
+    def test_run_tabs_in_output(self) -> None:
+        """HTML should include run-tab for each run."""
+        formatter = HtmlFormatter()
+        results = _make_multi_run_results()
+        output = formatter.format(results, show_details=True)
+        assert "Run 1" in output
+        assert "Run 2" in output
+        assert "Run 3" in output
+
+    def test_no_run_stats_card_for_single_run(self) -> None:
+        """Single-run HTML should not include an active run-stats-card div."""
+        formatter = HtmlFormatter()
+        results = make_mock_results()
+        output = formatter.format(results, show_details=True)
+        # The CSS class definition exists in the template, but no div should use it
+        assert '<div class="run-stats-card' not in output
+
+
+class TestJsonMultiRunStats:
+    """Tests for multi-run stats in the JSON formatter."""
+
+    def test_run_stats_in_json_output(self) -> None:
+        """JSON output should include run_stats for multi-run cases."""
+        formatter = JsonFormatter()
+        results = _make_multi_run_results()
+        output = formatter.format(results, show_details=True)
+        data = json.loads(output)
+        suites = data["models"]["gpt-4o"]["suites"]["MultiRunSuite"]
+        # cases is a list in single-model format
+        case_data = suites["cases"][0]
+        assert "run_stats" in case_data
+        assert case_data["run_stats"]["num_runs"] == 3
+        assert "critic_stats" in case_data
+
+    def test_no_run_stats_in_json_for_single_run(self) -> None:
+        """JSON output should not include run_stats for single-run cases."""
+        formatter = JsonFormatter()
+        results = make_mock_results()
+        output = formatter.format(results, show_details=True)
+        data = json.loads(output)
+        suites = data["models"]["gpt-4o"]["suites"]["test_eval_suite"]
+        case_data = suites["cases"][0]
+        assert "run_stats" not in case_data
+
+
+# =====================================================================
+# Extended multi-run formatter coverage tests
+# =====================================================================
+
+
+def _make_multi_run_case_failed(
+    name: str = "failed_multi_run",
+    score: float = 0.25,
+    num_runs: int = 3,
+) -> dict:
+    """Create a failing multi-run case with failure_reason in run details."""
+    return {
+        "name": name,
+        "input": "multi run fail input",
+        "evaluation": MockEvaluation(
+            passed=False,
+            score=score,
+            failure_reason="All runs failed completely",
+            results=[
+                {
+                    "field": "arg_a",
+                    "match": False,
+                    "score": 0.25,
+                    "weight": 1.0,
+                    "expected": "bar",
+                    "actual": "baz",
+                    "is_criticized": True,
+                }
+            ],
+        ),
+        "run_stats": {
+            "num_runs": num_runs,
+            "scores": [0.3, 0.2, 0.25],
+            "mean_score": 0.25,
+            "std_deviation": 0.041,
+            "passed": [False, False, False],
+            "warned": [False, False, False],
+            "seed_policy": "random",
+            "run_seeds": [100, 200, 300],
+            "pass_rule": "majority",
+            "runs": [
+                {
+                    "score": 0.3,
+                    "passed": False,
+                    "warning": False,
+                    "failure_reason": "Tool selection mismatch",
+                    "details": [
+                        {
+                            "field": "arg_a",
+                            "match": False,
+                            "score": 0.3,
+                            "weight": 1.0,
+                            "expected": "bar",
+                            "actual": "baz",
+                            "is_criticized": True,
+                        }
+                    ],
+                },
+                {
+                    "score": 0.2,
+                    "passed": False,
+                    "warning": False,
+                    "failure_reason": "Tool selection mismatch",
+                    "details": [],
+                },
+                {
+                    "score": 0.25,
+                    "passed": False,
+                    "warning": False,
+                    "failure_reason": "Tool selection mismatch",
+                    "details": [],
+                },
+            ],
+        },
+        "critic_stats": {
+            "arg_a": {
+                "run_scores": [0.3, 0.2, 0.25],
+                "mean_score": 0.25,
+                "std_deviation": 0.041,
+                "run_scores_normalized": [0.3, 0.2, 0.25],
+                "mean_score_normalized": 0.25,
+                "std_deviation_normalized": 0.041,
+                "weight": 1.0,
+            },
+        },
+        "expected_tool_calls": [],
+        "predicted_tool_calls": [],
+    }
+
+
+def _make_multi_run_results_failed() -> list[list[dict]]:
+    """Create evaluation results with failed multi-run stats for a single model."""
+    return [
+        [
+            {
+                "model": "gpt-4o",
+                "suite_name": "FailingSuite",
+                "rubric": MockEvaluation(),
+                "cases": [_make_multi_run_case_failed()],
+            }
+        ]
+    ]
+
+
+def _make_multi_model_multi_run_results() -> list[list[dict]]:
+    """Create evaluation results with multi-run stats for TWO models."""
+    return [
+        [
+            {
+                "model": "gpt-4o",
+                "suite_name": "MultiRunSuite",
+                "rubric": MockEvaluation(),
+                "cases": [_make_multi_run_case()],
+            },
+            {
+                "model": "claude-3.5-sonnet",
+                "suite_name": "MultiRunSuite",
+                "rubric": MockEvaluation(),
+                "cases": [
+                    _make_multi_run_case(
+                        name="multi_run_case",
+                        score=0.6,
+                        passed=False,
+                        num_runs=3,
+                    )
+                ],
+            },
+        ]
+    ]
+
+
+class TestTextMultiRunCoverage:
+    """Extended text formatter tests for multi-run coverage."""
+
+    def test_run_stats_details_with_failure_reason(self) -> None:
+        """Run details should include failure_reason when present."""
+        formatter = TextFormatter()
+        results = _make_multi_run_results_failed()
+        output = formatter.format(results, show_details=True)
+        assert "Tool selection mismatch" in output
+
+    def test_run_stats_displays_seeds(self) -> None:
+        """Text should display run seeds."""
+        formatter = TextFormatter()
+        results = _make_multi_run_results_failed()
+        output = formatter.format(results, show_details=True)
+        assert "Run Seeds: 100, 200, 300" in output
+        assert "Seed Policy: random" in output
+
+    def test_run_stats_displays_pass_rule(self) -> None:
+        """Text should display the pass rule."""
+        formatter = TextFormatter()
+        results = _make_multi_run_results_failed()
+        output = formatter.format(results, show_details=True)
+        assert "Pass Rule: majority" in output
+
+    def test_critic_stats_block(self) -> None:
+        """Text should display critic stats block with ± notation."""
+        formatter = TextFormatter()
+        results = _make_multi_run_results()
+        output = formatter.format(results, show_details=True)
+        assert "Critic Stats:" in output
+        assert "arg_a:" in output
+        assert "±" in output
+
+    def test_multi_model_with_run_stats(self) -> None:
+        """Multi-model text should include run stats in detail view."""
+        formatter = TextFormatter()
+        results = _make_multi_model_multi_run_results()
+        output = formatter.format(results, show_details=True)
+        # Multi-model detail view calls _format_run_stats for each case_result
+        assert "Run Stats:" in output
+        assert "Runs: 3" in output
+        assert "gpt-4o" in output
+        assert "claude-3.5-sonnet" in output
+
+    def test_run_results_per_run_status(self) -> None:
+        """Text should show each run with status and score."""
+        formatter = TextFormatter()
+        results = _make_multi_run_results()
+        output = formatter.format(results, show_details=True)
+        assert "Run 1:" in output
+        assert "Run 2:" in output
+        assert "Run 3:" in output
+
+
+class TestMarkdownMultiRunCoverage:
+    """Extended markdown formatter tests for multi-run coverage."""
+
+    def test_run_details_with_failure_reason(self) -> None:
+        """Markdown run details should include failure_reason."""
+        formatter = MarkdownFormatter()
+        results = _make_multi_run_results_failed()
+        output = formatter.format(results, show_details=True)
+        assert "Tool selection mismatch" in output
+
+    def test_run_details_with_critic_details(self) -> None:
+        """Markdown should include per-run critic details when present."""
+        formatter = MarkdownFormatter()
+        results = _make_multi_run_results_failed()
+        output = formatter.format(results, show_details=True)
+        # The first run has details with field "arg_a"
+        assert "Run Details:" in output
+
+    def test_run_seeds_displayed(self) -> None:
+        """Markdown should display random seeds."""
+        formatter = MarkdownFormatter()
+        results = _make_multi_run_results_failed()
+        output = formatter.format(results, show_details=True)
+        assert "Run Seeds: 100, 200, 300" in output
+        assert "Seed Policy: random" in output
+
+    def test_critic_stats_table(self) -> None:
+        """Markdown should display critic stats table with all columns."""
+        formatter = MarkdownFormatter()
+        results = _make_multi_run_results()
+        output = formatter.format(results, show_details=True)
+        assert "Critic Stats" in output
+        assert "Weight" in output
+        assert "Mean" in output
+
+    def test_multi_model_with_run_stats(self) -> None:
+        """Multi-model markdown should include run stats."""
+        formatter = MarkdownFormatter()
+        results = _make_multi_model_multi_run_results()
+        output = formatter.format(results, show_details=True)
+        # Multi-model detail view calls _format_run_stats_summary for each case
+        assert "**Run Stats:**" in output
+        assert "Runs: 3" in output
+        assert "gpt-4o" in output
+        assert "claude-3.5-sonnet" in output
+
+    def test_no_duplicate_eval_details_for_multi_run(self) -> None:
+        """When run details are present, should not also show eval details."""
+        formatter = MarkdownFormatter()
+        results = _make_multi_run_results_failed()
+        output = formatter.format(results, show_details=True)
+        # "Run Details:" section should exist
+        assert "Run Details:" in output
+        # The field-level critic table should appear inside run details,
+        # not duplicated as a standalone section
+
+
+class TestHtmlMultiRunCoverage:
+    """Extended HTML formatter tests for multi-run coverage."""
+
+    def test_run_stats_card_fields(self) -> None:
+        """HTML run stats card should include mean score, std dev, pass rule."""
+        formatter = HtmlFormatter()
+        results = _make_multi_run_results()
+        output = formatter.format(results, show_details=True)
+        assert "mean score" in output
+        assert "std dev" in output
+        assert "Pass Rule" in output
+        assert "Seed Policy" in output
+
+    def test_run_tabs_with_failure_reason(self) -> None:
+        """HTML run tabs should include failure reason per run."""
+        formatter = HtmlFormatter()
+        results = _make_multi_run_results_failed()
+        output = formatter.format(results, show_details=True)
+        assert "Failure Reason" in output
+        assert "Tool selection mismatch" in output
+
+    def test_run_tabs_status_classes(self) -> None:
+        """HTML run tabs should have status classes (passed/failed)."""
+        formatter = HtmlFormatter()
+        results = _make_multi_run_results_failed()
+        output = formatter.format(results, show_details=True)
+        assert "run-tab failed" in output or "run-tab  failed" in output
+
+    def test_critic_stats_html_table(self) -> None:
+        """HTML should include critic stats table."""
+        formatter = HtmlFormatter()
+        results = _make_multi_run_results()
+        output = formatter.format(results, show_details=True)
+        assert "critic-stats" in output
+        assert "Critic Stats" in output
+
+    def test_score_pills_in_run_stats(self) -> None:
+        """HTML run stats card should show score pills for each run."""
+        formatter = HtmlFormatter()
+        results = _make_multi_run_results()
+        output = formatter.format(results, show_details=True)
+        assert "score-pill" in output
+        assert "R1:" in output
+        assert "R2:" in output
+        assert "R3:" in output
+
+    def test_multi_model_with_run_stats(self) -> None:
+        """Multi-model HTML should include run stats."""
+        formatter = HtmlFormatter()
+        results = _make_multi_model_multi_run_results()
+        output = formatter.format(results, show_details=True)
+        assert "run-stats-card" in output
+        assert "gpt-4o" in output
+        assert "claude-3.5-sonnet" in output
+
+    def test_random_seeds_in_card(self) -> None:
+        """HTML run stats card should display random seeds."""
+        formatter = HtmlFormatter()
+        results = _make_multi_run_results_failed()
+        output = formatter.format(results, show_details=True)
+        assert "100" in output
+        assert "200" in output
+        assert "300" in output
+
+
+class TestJsonMultiRunCoverage:
+    """Extended JSON formatter tests for multi-run coverage."""
+
+    def test_run_stats_fields(self) -> None:
+        """JSON run_stats should include all expected fields."""
+        formatter = JsonFormatter()
+        results = _make_multi_run_results()
+        output = formatter.format(results, show_details=True)
+        data = json.loads(output)
+        suites = data["models"]["gpt-4o"]["suites"]["MultiRunSuite"]
+        rs = suites["cases"][0]["run_stats"]
+        assert rs["num_runs"] == 3
+        assert "scores" in rs
+        assert "mean_score" in rs
+        assert "std_deviation" in rs
+        assert "seed_policy" in rs
+        assert "run_seeds" in rs
+        assert "pass_rule" in rs
+        assert "runs" in rs
+
+    def test_critic_stats_fields(self) -> None:
+        """JSON critic_stats should include all expected fields."""
+        formatter = JsonFormatter()
+        results = _make_multi_run_results()
+        output = formatter.format(results, show_details=True)
+        data = json.loads(output)
+        suites = data["models"]["gpt-4o"]["suites"]["MultiRunSuite"]
+        cs = suites["cases"][0]["critic_stats"]
+        assert "arg_a" in cs
+        assert "run_scores" in cs["arg_a"]
+        assert "mean_score" in cs["arg_a"]
+        assert "weight" in cs["arg_a"]
+
+    def test_multi_model_json_with_run_stats(self) -> None:
+        """Multi-model JSON should include run_stats for each model."""
+        formatter = JsonFormatter()
+        results = _make_multi_model_multi_run_results()
+        output = formatter.format(results, show_details=True)
+        data = json.loads(output)
+        # Multi-model JSON uses comparison structure: {suite: {case: {results_by_model: ...}}}
+        comparison = data["comparison"]
+        case_data = comparison["MultiRunSuite"]["multi_run_case"]
+        for model_name in ["gpt-4o", "claude-3.5-sonnet"]:
+            model_result = case_data["results_by_model"][model_name]
+            assert "run_stats" in model_result, f"Missing run_stats for {model_name}"
+
+    def test_per_run_details_in_json(self) -> None:
+        """JSON per-run details should include failure_reason."""
+        formatter = JsonFormatter()
+        results = _make_multi_run_results_failed()
+        output = formatter.format(results, show_details=True)
+        data = json.loads(output)
+        suites = data["models"]["gpt-4o"]["suites"]["FailingSuite"]
+        runs = suites["cases"][0]["run_stats"]["runs"]
+        assert len(runs) == 3
+        assert runs[0]["failure_reason"] == "Tool selection mismatch"

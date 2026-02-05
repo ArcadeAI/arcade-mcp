@@ -859,6 +859,7 @@ def _create_mock_capture_with_tracks(
             mock_tc.args = tc["args"]
             mock_tool_calls.append(mock_tc)
         mock_case.tool_calls = mock_tool_calls
+        mock_case.runs = []  # Explicitly set runs to empty for single-run captures
 
         captured_cases.append(mock_case)
 
@@ -988,3 +989,180 @@ class TestCaptureWithTracks:
 
         # Should include track info in markdown
         assert "[track_a]" in output or "track_a" in output
+
+
+# =====================================================================
+# Capture formatter multi-run tests
+# =====================================================================
+
+
+def _create_mock_capture_with_runs(
+    num_runs: int = 3,
+) -> "CaptureResult":
+    """Create a mock CaptureResult with multiple runs per case."""
+    cases = [
+        {
+            "case_name": "multi_run_case",
+            "user_message": "What's the weather in NYC?",
+            "tool_calls": [
+                {"name": "GetWeather", "args": {"city": "NYC"}},
+            ],
+            "system_message": "You are a weather assistant",
+            "additional_messages": [],
+            "runs": [
+                {
+                    "tool_calls": [
+                        {"name": "GetWeather", "args": {"city": "NYC", "seed": str(i)}},
+                    ]
+                }
+                for i in range(1, num_runs + 1)
+            ],
+        }
+    ]
+
+    return _create_mock_capture_result(
+        suite_name="MultiRunCaptureSuite",
+        cases=cases,
+    )
+
+
+def _create_mock_capture_no_runs() -> "CaptureResult":
+    """Create a mock CaptureResult with a case that has no tool calls and no runs."""
+    cases = [
+        {
+            "case_name": "empty_case",
+            "user_message": "Do nothing",
+            "tool_calls": [],
+            "system_message": None,
+            "additional_messages": [],
+        }
+    ]
+    return _create_mock_capture_result(
+        suite_name="EmptyCaptureSuite",
+        cases=cases,
+    )
+
+
+class TestCaptureMultiRunText:
+    """Tests for multi-run capture in the text formatter."""
+
+    def test_text_shows_run_headers(self) -> None:
+        """Text capture output should show 'Run 1', 'Run 2', etc."""
+        capture = _create_mock_capture_with_runs(num_runs=3)
+        formatter = CaptureTextFormatter()
+        output = formatter.format([capture])
+        assert "Run 1:" in output
+        assert "Run 2:" in output
+        assert "Run 3:" in output
+
+    def test_text_shows_tool_calls_per_run(self) -> None:
+        """Each run should display its tool calls."""
+        capture = _create_mock_capture_with_runs(num_runs=2)
+        formatter = CaptureTextFormatter()
+        output = formatter.format([capture])
+        assert "GetWeather" in output
+
+    def test_text_no_runs_shows_top_level_calls(self) -> None:
+        """When runs is empty, should fall through to top-level tool_calls."""
+        capture = _create_mock_capture_result()  # default: no runs
+        formatter = CaptureTextFormatter()
+        output = formatter.format([capture])
+        assert "GetWeather" in output
+
+    def test_text_empty_case_no_tool_calls(self) -> None:
+        """Case with no tool calls should show appropriate message."""
+        capture = _create_mock_capture_no_runs()
+        formatter = CaptureTextFormatter()
+        output = formatter.format([capture])
+        assert "no tool calls" in output.lower()
+
+
+class TestCaptureMultiRunMarkdown:
+    """Tests for multi-run capture in the markdown formatter."""
+
+    def test_markdown_shows_run_headers(self) -> None:
+        """Markdown capture should show run headers."""
+        capture = _create_mock_capture_with_runs(num_runs=3)
+        formatter = CaptureMarkdownFormatter()
+        output = formatter.format([capture])
+        assert "Run 1" in output
+        assert "Run 2" in output
+        assert "Run 3" in output
+
+    def test_markdown_shows_tool_call_json(self) -> None:
+        """Markdown capture should show tool call args as JSON."""
+        capture = _create_mock_capture_with_runs(num_runs=2)
+        formatter = CaptureMarkdownFormatter()
+        output = formatter.format([capture])
+        assert "```json" in output
+        assert "GetWeather" in output
+
+    def test_markdown_empty_runs_shows_no_calls(self) -> None:
+        """Markdown capture with no tool calls shows appropriate message."""
+        capture = _create_mock_capture_no_runs()
+        formatter = CaptureMarkdownFormatter()
+        output = formatter.format([capture])
+        assert "No tool calls" in output
+
+
+class TestCaptureMultiRunHTML:
+    """Tests for multi-run capture in the HTML formatter."""
+
+    def test_html_shows_capture_run_details(self) -> None:
+        """HTML capture should show capture-run details elements."""
+        capture = _create_mock_capture_with_runs(num_runs=3)
+        formatter = CaptureHtmlFormatter()
+        output = formatter.format([capture])
+        assert "capture-run" in output
+        assert "Run 1" in output
+        assert "Run 2" in output
+        assert "Run 3" in output
+
+    def test_html_tool_calls_escaped(self) -> None:
+        """HTML capture should escape tool call content."""
+        capture = _create_mock_capture_with_runs(num_runs=1)
+        formatter = CaptureHtmlFormatter()
+        output = formatter.format([capture])
+        assert "GetWeather" in output
+
+    def test_html_empty_case_no_calls(self) -> None:
+        """HTML capture with no tool calls shows appropriate message."""
+        capture = _create_mock_capture_no_runs()
+        formatter = CaptureHtmlFormatter()
+        output = formatter.format([capture])
+        assert "No tool calls" in output or "no-calls" in output
+
+
+class TestCaptureMultiRunJSON:
+    """Tests for multi-run capture in the JSON formatter."""
+
+    def test_json_includes_runs_array(self) -> None:
+        """JSON capture should include runs array for multi-run cases."""
+        capture = _create_mock_capture_with_runs(num_runs=3)
+        formatter = CaptureJsonFormatter()
+        output = formatter.format([capture])
+        data = json.loads(output)
+        captures = data["captures"]
+        assert len(captures) == 1
+        case = captures[0]["captured_cases"][0]
+        assert "runs" in case
+        assert len(case["runs"]) == 3
+
+    def test_json_no_runs_for_single_run(self) -> None:
+        """JSON capture should not include runs for single-run cases."""
+        capture = _create_mock_capture_result()  # default: no runs
+        formatter = CaptureJsonFormatter()
+        output = formatter.format([capture])
+        data = json.loads(output)
+        case = data["captures"][0]["captured_cases"][0]
+        assert "runs" not in case
+
+    def test_json_run_tool_calls_structure(self) -> None:
+        """Each run in JSON should have tool_calls with name and args."""
+        capture = _create_mock_capture_with_runs(num_runs=2)
+        formatter = CaptureJsonFormatter()
+        output = formatter.format([capture])
+        data = json.loads(output)
+        run = data["captures"][0]["captured_cases"][0]["runs"][0]
+        assert "tool_calls" in run
+        assert run["tool_calls"][0]["name"] == "GetWeather"

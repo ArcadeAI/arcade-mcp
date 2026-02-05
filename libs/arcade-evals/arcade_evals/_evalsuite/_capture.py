@@ -10,6 +10,7 @@ import asyncio
 import random
 from typing import TYPE_CHECKING, Any
 
+from arcade_evals._evalsuite._types import _resolve_seed_spec
 from arcade_evals.capture import CapturedCase, CapturedRun, CapturedToolCall, CaptureResult
 
 if TYPE_CHECKING:
@@ -101,23 +102,6 @@ class _EvalSuiteCaptureMixin:
 
         all_captured: list[CapturedCase] = []
         semaphore = asyncio.Semaphore(self.max_concurrent)
-
-        def _resolve_seed_spec(seed_spec: str | int | None) -> tuple[str, int | None]:
-            if seed_spec is None:
-                return "constant", 42
-            if isinstance(seed_spec, int):
-                return "custom", seed_spec
-            seed_value = seed_spec.strip().lower()
-            if seed_value == "constant":
-                return "constant", 42
-            if seed_value == "random":
-                return "random", None
-            try:
-                return "custom", int(seed_value)
-            except ValueError as exc:
-                raise ValueError(
-                    "Invalid seed. Use 'constant', 'random', or an integer value."
-                ) from exc
 
         async def capture_case(
             case: EvalCase,

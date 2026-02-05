@@ -218,7 +218,11 @@ class TextFormatter(EvalResultFormatter):
                 else:
                     status = "FAILED"
                 score_pct = run.get("score", 0.0) * 100
-                lines.append(f"    Run {idx}: {status} ({score_pct:.2f}%)")
+                run_line = f"    Run {idx}: {status} ({score_pct:.2f}%)"
+                failure_reason = run.get("failure_reason")
+                if failure_reason:
+                    run_line += f" -- {failure_reason}"
+                lines.append(run_line)
         lines.append("")
         return lines
 

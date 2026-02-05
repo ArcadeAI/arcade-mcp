@@ -557,11 +557,17 @@ def group_eval_for_comparison(
                     comparison_data[suite_name][case_name] = {}
 
                 # Store this model's result for this case
-                comparison_data[suite_name][case_name][model] = {
+                case_entry: dict[str, Any] = {
                     "evaluation": evaluation,
                     "input": case.get("input", ""),
                     "name": case_name,
                 }
+                # Propagate multi-run stats if present
+                if case.get("run_stats"):
+                    case_entry["run_stats"] = case["run_stats"]
+                if case.get("critic_stats"):
+                    case_entry["critic_stats"] = case["critic_stats"]
+                comparison_data[suite_name][case_name][model] = case_entry
 
     # Calculate pass rates
     for _model, stats in per_model_stats.items():

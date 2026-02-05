@@ -382,3 +382,41 @@ def test_evals_help_shows_multi_run_pass_rule_flag() -> None:
     assert result.exit_code == 0
     output = _strip_ansi(result.output)
     assert "--multi-run-pass-rule" in output
+
+
+# --- CLI Validation Tests for Multi-Run Flags ---
+
+
+def test_evals_rejects_num_runs_zero() -> None:
+    """--num-runs 0 should produce a CLI error."""
+    result = runner.invoke(cli, ["evals", "--num-runs", "0", "."])
+    output = _strip_ansi(result.output)
+    assert "--num-runs must be >= 1" in output
+
+
+def test_evals_rejects_num_runs_negative() -> None:
+    """--num-runs with a negative value should produce a CLI error."""
+    result = runner.invoke(cli, ["evals", "--num-runs", "-1", "."])
+    output = _strip_ansi(result.output)
+    assert "--num-runs must be >= 1" in output
+
+
+def test_evals_rejects_invalid_seed() -> None:
+    """--seed with an invalid string should produce a CLI error."""
+    result = runner.invoke(cli, ["evals", "--seed", "foobar", "."])
+    output = _strip_ansi(result.output)
+    assert "invalid" in output.lower() and "seed" in output.lower()
+
+
+def test_evals_rejects_negative_seed() -> None:
+    """--seed with a negative integer should produce a CLI error."""
+    result = runner.invoke(cli, ["evals", "--seed", "-5", "."])
+    output = _strip_ansi(result.output)
+    assert "seed" in output.lower() and ("non-negative" in output.lower() or "must be" in output.lower())
+
+
+def test_evals_rejects_invalid_pass_rule() -> None:
+    """--multi-run-pass-rule with an invalid value should produce a CLI error."""
+    result = runner.invoke(cli, ["evals", "--multi-run-pass-rule", "bogus", "."])
+    output = _strip_ansi(result.output)
+    assert "invalid" in output.lower() and "pass-rule" in output.lower().replace("_", "-")

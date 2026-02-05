@@ -9,6 +9,7 @@ from typing import Optional
 import click
 import typer
 from arcade_core.constants import CREDENTIALS_FILE_PATH, PROD_COORDINATOR_HOST, PROD_ENGINE_HOST
+from arcade_evals._evalsuite._types import _VALID_PASS_RULES
 from arcadepy import Arcade
 from rich.console import Console
 
@@ -492,6 +493,35 @@ def evals(
         pip_install_command=r"pip install arcade-tdk",
     )
 
+    # --- Validate multi-run parameters upfront (before any API calls) ---
+    if num_runs < 1:
+        handle_cli_error("--num-runs must be >= 1", should_exit=True)
+        return
+
+    seed_value: str | int
+    seed_lower = seed.strip().lower()
+    if seed_lower in {"constant", "random"}:
+        seed_value = seed_lower
+    else:
+        try:
+            seed_value = int(seed)
+        except ValueError:
+            handle_cli_error(
+                "Invalid --seed value. Use 'constant', 'random', or an integer.", should_exit=True
+            )
+            return
+        if seed_value < 0:
+            handle_cli_error("--seed must be a non-negative integer.", should_exit=True)
+            return
+
+    pass_rule = multi_run_pass_rule.strip().lower()
+    if pass_rule not in _VALID_PASS_RULES:
+        handle_cli_error(
+            f"Invalid --multi-run-pass-rule. Valid values: {', '.join(sorted(_VALID_PASS_RULES))}.",
+            should_exit=True,
+        )
+        return
+
     # --- Build model specs from flags ---
     model_specs: list[ModelSpec] = []
 
@@ -535,34 +565,6 @@ def evals(
 
     if not model_specs:
         handle_cli_error("No models specified. Use --use-provider to specify models.")
-        return
-
-    if num_runs < 1:
-        handle_cli_error("--num-runs must be >= 1", should_exit=True)
-        return
-
-    seed_value: str | int
-    seed_lower = seed.strip().lower()
-    if seed_lower in {"constant", "random"}:
-        seed_value = seed_lower
-    else:
-        try:
-            seed_value = int(seed)
-        except ValueError:
-            handle_cli_error(
-                "Invalid --seed value. Use 'constant', 'random', or an integer.", should_exit=True
-            )
-            return
-        if seed_value < 0:
-            handle_cli_error("--seed must be a non-negative integer.", should_exit=True)
-            return
-
-    pass_rule = multi_run_pass_rule.strip().lower()
-    if pass_rule not in {"last", "mean", "majority"}:
-        handle_cli_error(
-            "Invalid --multi-run-pass-rule. Use 'last', 'mean', or 'majority'.",
-            should_exit=True,
-        )
         return
 
     eval_files = get_eval_files(directory)

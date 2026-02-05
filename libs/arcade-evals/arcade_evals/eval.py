@@ -27,11 +27,16 @@ from arcade_evals._evalsuite._tracks import TrackManager
 
 # Import shared types from _types module (breaks circular dependencies)
 from arcade_evals._evalsuite._types import (
+    _VALID_PASS_RULES,
+    PASS_RULE_LAST,
+    PASS_RULE_MAJORITY,
+    PASS_RULE_MEAN,
     AnyExpectedToolCall,
     EvalRubric,
     ExpectedMCPToolCall,
     ExpectedToolCall,
     NamedExpectedToolCall,
+    _resolve_seed_spec,
 )
 from arcade_evals.critic import NoneCritic
 from arcade_evals.weights import validate_and_normalize_critic_weights
@@ -143,11 +148,8 @@ class EvaluationResult:
         self.score = total_score / total_weight if total_weight > 0 else 0.0
 
 
-DEFAULT_EVAL_SEED = 42
-PASS_RULE_LAST = "last"  # noqa: S105
-PASS_RULE_MEAN = "mean"  # noqa: S105
-PASS_RULE_MAJORITY = "majority"  # noqa: S105
-_VALID_PASS_RULES = {PASS_RULE_LAST, PASS_RULE_MEAN, PASS_RULE_MAJORITY}
+# PASS_RULE_LAST, PASS_RULE_MEAN, PASS_RULE_MAJORITY, and _VALID_PASS_RULES
+# are imported from _types (see top-level imports) to keep a single source of truth.
 
 
 def _compute_mean_std(values: list[float]) -> tuple[float, float]:
@@ -157,22 +159,6 @@ def _compute_mean_std(values: list[float]) -> tuple[float, float]:
     if len(values) < 2:
         return avg, 0.0
     return avg, pstdev(values)
-
-
-def _resolve_seed_spec(seed: str | int | None) -> tuple[str, int | None]:
-    if seed is None:
-        return "constant", DEFAULT_EVAL_SEED
-    if isinstance(seed, int):
-        return "custom", seed
-    seed_value = seed.strip().lower()
-    if seed_value == "constant":
-        return "constant", DEFAULT_EVAL_SEED
-    if seed_value == "random":
-        return "random", None
-    try:
-        return "custom", int(seed_value)
-    except ValueError as exc:
-        raise ValueError("Invalid seed. Use 'constant', 'random', or an integer value.") from exc
 
 
 def _resolve_pass_rule(
@@ -229,7 +215,9 @@ def _aggregate_critic_stats(
         avg, std_dev = _compute_mean_std(weighted_scores)
         avg_norm, std_norm = _compute_mean_std(normalized_scores)
         non_zero_weights = [w for w in weights if w > 0]
-        avg_weight = max(non_zero_weights) if non_zero_weights else 0.0
+        # Use mean of non-zero weights as the representative weight.
+        # Weights are typically constant across runs, but mean handles edge cases.
+        representative_weight = mean(non_zero_weights) if non_zero_weights else 0.0
         critic_stats[critic_field] = {
             "run_scores": weighted_scores,
             "mean_score": avg,
@@ -237,7 +225,7 @@ def _aggregate_critic_stats(
             "run_scores_normalized": normalized_scores,
             "mean_score_normalized": avg_norm,
             "std_deviation_normalized": std_norm,
-            "weight": avg_weight,
+            "weight": representative_weight,
         }
     return critic_stats
 
@@ -935,16 +923,31 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
         mean_score, std_dev = _compute_mean_std(run_scores)
         passed, warning = _resolve_pass_rule(run_evaluations, mean_score, pass_rule, case.rubric)
 
+        # Determine aggregate failure_reason:
+        # - PASS_RULE_LAST: use the last run's failure reason
+        # - Other rules: if ALL runs failed with the same reason, surface it
+        if not run_evaluations:
+            aggregate_failure_reason = None
+        elif pass_rule == PASS_RULE_LAST:
+            # Only surface failure_reason when the aggregate didn't pass
+            aggregate_failure_reason = run_evaluations[-1].failure_reason if not passed else None
+        elif not passed and not warning:
+            # For non-last rules, surface the failure reason if all runs share the same one
+            failure_reasons = [ev.failure_reason for ev in run_evaluations if ev.failure_reason]
+            unique_reasons = set(failure_reasons)
+            if len(unique_reasons) == 1 and len(failure_reasons) == len(run_evaluations):
+                aggregate_failure_reason = failure_reasons[0]
+            else:
+                aggregate_failure_reason = None
+        else:
+            aggregate_failure_reason = None
+
         aggregate = EvaluationResult(
             score=mean_score,
             passed=passed,
             warning=warning,
             results=run_evaluations[-1].results if run_evaluations else [],
-            failure_reason=(
-                run_evaluations[-1].failure_reason
-                if pass_rule == PASS_RULE_LAST and run_evaluations
-                else None
-            ),
+            failure_reason=aggregate_failure_reason,
         )
 
         run_stats = {
@@ -990,6 +993,15 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
         Returns:
             A dictionary containing the evaluation results.
         """
+        # Validate upfront before making any API calls
+        if num_runs < 1:
+            raise ValueError("num_runs must be >= 1")
+        if multi_run_pass_rule not in _VALID_PASS_RULES:
+            raise ValueError(
+                f"Invalid multi-run pass rule '{multi_run_pass_rule}'. "
+                f"Valid values: {', '.join(sorted(_VALID_PASS_RULES))}"
+            )
+
         results: dict[str, Any] = {
             "model": model,
             "suite_name": self.name,

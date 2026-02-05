@@ -10,6 +10,40 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Callable
 
+DEFAULT_EVAL_SEED = 42
+
+# Pass-rule constants (shared across eval.py & _comparative_execution.py)
+PASS_RULE_LAST = "last"  # noqa: S105
+PASS_RULE_MEAN = "mean"  # noqa: S105
+PASS_RULE_MAJORITY = "majority"  # noqa: S105
+_VALID_PASS_RULES: frozenset[str] = frozenset({PASS_RULE_LAST, PASS_RULE_MEAN, PASS_RULE_MAJORITY})
+
+
+def _resolve_seed_spec(seed: str | int | None) -> tuple[str, int | None]:
+    """Resolve a seed specification into a (policy, value) pair.
+
+    Args:
+        seed: 'constant', 'random', an integer, a numeric string, or None.
+
+    Returns:
+        A tuple of (policy_name, seed_value). policy_name is one of
+        'constant', 'random', or 'custom'.
+    """
+    if seed is None:
+        return "constant", DEFAULT_EVAL_SEED
+    if isinstance(seed, int):
+        return "custom", seed
+    seed_value = seed.strip().lower()
+    if seed_value == "constant":
+        return "constant", DEFAULT_EVAL_SEED
+    if seed_value == "random":
+        return "random", None
+    try:
+        return "custom", int(seed_value)
+    except ValueError as exc:
+        raise ValueError("Invalid seed. Use 'constant', 'random', or an integer value.") from exc
+
+
 if TYPE_CHECKING:
     from arcade_evals.critic import Critic
 

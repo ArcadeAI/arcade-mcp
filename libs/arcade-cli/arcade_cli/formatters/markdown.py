@@ -191,30 +191,10 @@ class MarkdownFormatter(EvalResultFormatter):
                         lines.append("")
 
                         run_stats = case.get("run_stats")
-                        if run_stats and run_stats.get("num_runs", 1) > 1:
-                            mean_pct = run_stats.get("mean_score", 0.0) * 100
-                            std_pct = run_stats.get("std_deviation", 0.0) * 100
-                            scores = run_stats.get("scores", [])
-                            scores_display = ", ".join(f"{score * 100:.2f}%" for score in scores)
-                            lines.append("**Run Stats:**  ")
-                            lines.append(f"- Runs: {run_stats.get('num_runs', len(scores))}  ")
-                            lines.append(f"- Mean Score: {mean_pct:.2f}%  ")
-                            lines.append(f"- Std Deviation: {std_pct:.2f}%  ")
-                            if scores_display:
-                                lines.append(f"- Scores: {scores_display}  ")
-                            seed_policy = run_stats.get("seed_policy")
-                            if seed_policy:
-                                lines.append(f"- Seed Policy: {seed_policy}  ")
-                            run_seeds = run_stats.get("run_seeds")
-                            if run_seeds and any(seed is not None for seed in run_seeds):
-                                seeds_display = ", ".join(str(seed) for seed in run_seeds)
-                                lines.append(f"- Run Seeds: {seeds_display}  ")
-                            pass_rule = run_stats.get("pass_rule")
-                            if pass_rule:
-                                lines.append(f"- Pass Rule: {pass_rule}  ")
-                            lines.append("")
+                        lines.extend(self._format_run_stats_summary(run_stats))
 
-                        lines.extend(self._format_run_details_md(run_stats))
+                        run_detail_lines = self._format_run_details_md(run_stats)
+                        lines.extend(run_detail_lines)
 
                         critic_stats = case.get("critic_stats")
                         if critic_stats:
@@ -239,8 +219,10 @@ class MarkdownFormatter(EvalResultFormatter):
                                     lines.append("</details>")
                                     lines.append("")
 
-                        # Evaluation details
-                        lines.append(self._format_evaluation_details(evaluation))
+                        # Only show the critic results table when there are no per-run
+                        # details (run details already include per-run field tables)
+                        if not run_detail_lines:
+                            lines.append(self._format_evaluation_details(evaluation))
                         lines.append("")
                         lines.append("---")
                         lines.append("")
@@ -307,6 +289,34 @@ class MarkdownFormatter(EvalResultFormatter):
                 f"| {field} | {weight:.2f} | {mean_norm:.2f}% | {std_norm:.2f}% | "
                 f"{mean_weighted:.2f}% | {std_weighted:.2f}% |"
             )
+        lines.append("")
+        return lines
+
+    def _format_run_stats_summary(self, run_stats: dict[str, Any] | None) -> list[str]:
+        """Format the run statistics summary as a Markdown bullet list."""
+        if not run_stats or run_stats.get("num_runs", 1) < 2:
+            return []
+        lines: list[str] = []
+        mean_pct = run_stats.get("mean_score", 0.0) * 100
+        std_pct = run_stats.get("std_deviation", 0.0) * 100
+        scores = run_stats.get("scores", [])
+        scores_display = ", ".join(f"{score * 100:.2f}%" for score in scores)
+        lines.append("**Run Stats:**  ")
+        lines.append(f"- Runs: {run_stats.get('num_runs', len(scores))}  ")
+        lines.append(f"- Mean Score: {mean_pct:.2f}%  ")
+        lines.append(f"- Std Deviation: {std_pct:.2f}%  ")
+        if scores_display:
+            lines.append(f"- Scores: {scores_display}  ")
+        seed_policy = run_stats.get("seed_policy")
+        if seed_policy:
+            lines.append(f"- Seed Policy: {seed_policy}  ")
+        run_seeds = run_stats.get("run_seeds")
+        if run_seeds and any(seed is not None for seed in run_seeds):
+            seeds_display = ", ".join(str(seed) for seed in run_seeds)
+            lines.append(f"- Run Seeds: {seeds_display}  ")
+        pass_rule = run_stats.get("pass_rule")
+        if pass_rule:
+            lines.append(f"- Pass Rule: {pass_rule}  ")
         lines.append("")
         return lines
 
@@ -478,35 +488,18 @@ class MarkdownFormatter(EvalResultFormatter):
                         lines.append(f"**{model}:** Score {evaluation.score * 100:.1f}%")
                         lines.append("")
                         run_stats = case_result.get("run_stats")
-                        if run_stats and run_stats.get("num_runs", 1) > 1:
-                            mean_pct = run_stats.get("mean_score", 0.0) * 100
-                            std_pct = run_stats.get("std_deviation", 0.0) * 100
-                            scores = run_stats.get("scores", [])
-                            scores_display = ", ".join(f"{score * 100:.2f}%" for score in scores)
-                            lines.append("**Run Stats:**  ")
-                            lines.append(f"- Runs: {run_stats.get('num_runs', len(scores))}  ")
-                            lines.append(f"- Mean Score: {mean_pct:.2f}%  ")
-                            lines.append(f"- Std Deviation: {std_pct:.2f}%  ")
-                            if scores_display:
-                                lines.append(f"- Scores: {scores_display}  ")
-                            seed_policy = run_stats.get("seed_policy")
-                            if seed_policy:
-                                lines.append(f"- Seed Policy: {seed_policy}  ")
-                            run_seeds = run_stats.get("run_seeds")
-                            if run_seeds and any(seed is not None for seed in run_seeds):
-                                seeds_display = ", ".join(str(seed) for seed in run_seeds)
-                                lines.append(f"- Run Seeds: {seeds_display}  ")
-                            pass_rule = run_stats.get("pass_rule")
-                            if pass_rule:
-                                lines.append(f"- Pass Rule: {pass_rule}  ")
-                            lines.append("")
+                        lines.extend(self._format_run_stats_summary(run_stats))
 
-                        lines.extend(self._format_run_details_md(run_stats))
+                        run_detail_lines = self._format_run_details_md(run_stats)
+                        lines.extend(run_detail_lines)
 
                         critic_stats = case_result.get("critic_stats")
                         if critic_stats:
                             lines.extend(self._format_critic_stats_summary(critic_stats))
-                        lines.append(self._format_evaluation_details(evaluation))
+                        # Only show the critic results table when there are no per-run
+                        # details (run details already include per-run field tables)
+                        if not run_detail_lines:
+                            lines.append(self._format_evaluation_details(evaluation))
                         lines.append("")
 
                     lines.append("---")
@@ -1012,36 +1005,19 @@ class MarkdownFormatter(EvalResultFormatter):
                 lines.append(f"<summary>📋 <b>{track_name}</b> — Detailed Results</summary>")
                 lines.append("")
                 run_stats = track_result.get("run_stats")
-                if run_stats and run_stats.get("num_runs", 1) > 1:
-                    mean_pct = run_stats.get("mean_score", 0.0) * 100
-                    std_pct = run_stats.get("std_deviation", 0.0) * 100
-                    scores = run_stats.get("scores", [])
-                    scores_display = ", ".join(f"{score * 100:.2f}%" for score in scores)
-                    lines.append("**Run Stats:**  ")
-                    lines.append(f"- Runs: {run_stats.get('num_runs', len(scores))}  ")
-                    lines.append(f"- Mean Score: {mean_pct:.2f}%  ")
-                    lines.append(f"- Std Deviation: {std_pct:.2f}%  ")
-                    if scores_display:
-                        lines.append(f"- Scores: {scores_display}  ")
-                    seed_policy = run_stats.get("seed_policy")
-                    if seed_policy:
-                        lines.append(f"- Seed Policy: {seed_policy}  ")
-                    run_seeds = run_stats.get("run_seeds")
-                    if run_seeds and any(seed is not None for seed in run_seeds):
-                        seeds_display = ", ".join(str(seed) for seed in run_seeds)
-                        lines.append(f"- Run Seeds: {seeds_display}  ")
-                    pass_rule = run_stats.get("pass_rule")
-                    if pass_rule:
-                        lines.append(f"- Pass Rule: {pass_rule}  ")
-                    lines.append("")
+                lines.extend(self._format_run_stats_summary(run_stats))
 
-                lines.extend(self._format_run_details_md(run_stats))
+                run_detail_lines = self._format_run_details_md(run_stats)
+                lines.extend(run_detail_lines)
 
                 critic_stats = track_result.get("critic_stats")
                 if critic_stats:
                     lines.extend(self._format_critic_stats_summary(critic_stats))
 
-                lines.append(self._format_evaluation_details(evaluation))
+                # Only show the critic results table when there are no per-run
+                # details (run details already include per-run field tables)
+                if not run_detail_lines:
+                    lines.append(self._format_evaluation_details(evaluation))
                 lines.append("")
                 lines.append("</details>")
                 lines.append("")

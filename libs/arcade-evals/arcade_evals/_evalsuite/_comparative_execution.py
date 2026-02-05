@@ -11,7 +11,12 @@ import time
 from typing import TYPE_CHECKING, Any
 
 from arcade_evals._evalsuite._comparative import ComparativeCaseBuilder
-from arcade_evals._evalsuite._types import ComparativeCase, EvalRubric
+from arcade_evals._evalsuite._types import (
+    _VALID_PASS_RULES,
+    PASS_RULE_LAST,
+    ComparativeCase,
+    EvalRubric,
+)
 
 if TYPE_CHECKING:
     from arcade_evals._evalsuite._providers import ProviderName
@@ -35,9 +40,8 @@ class _EvalSuiteComparativeMixin:
     _process_tool_calls: Any  # Method from EvalSuite
     _run_openai: Any  # Method from EvalSuite
     _run_anthropic: Any  # Method from EvalSuite
-    _run_case_with_stats: Any  # Method from EvalSuite
 
-    async def _run_case_with_stats(  # type: ignore[no-redef]
+    async def _run_case_with_stats(
         self,
         case: Any,
         client: Any,
@@ -107,7 +111,7 @@ class _EvalSuiteComparativeMixin:
         provider: ProviderName = "openai",
         num_runs: int = 1,
         seed: str | int | None = "constant",
-        multi_run_pass_rule: str = "last",  # noqa: S107
+        multi_run_pass_rule: str = PASS_RULE_LAST,
     ) -> dict[str, dict[str, Any]]:
         """Run comparative cases across all configured tracks.
 
@@ -135,6 +139,15 @@ class _EvalSuiteComparativeMixin:
         if not self._comparative_case_builders:
             raise ValueError(
                 "No comparative cases defined. Use add_comparative_case() to add cases."
+            )
+
+        # Validate upfront before making any API calls
+        if num_runs < 1:
+            raise ValueError("num_runs must be >= 1")
+        if multi_run_pass_rule not in _VALID_PASS_RULES:
+            raise ValueError(
+                f"Invalid multi-run pass rule '{multi_run_pass_rule}'. "
+                f"Valid values: {', '.join(sorted(_VALID_PASS_RULES))}"
             )
 
         # Build and validate all cases upfront
