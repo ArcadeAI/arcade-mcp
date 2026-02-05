@@ -9,7 +9,6 @@ from typing import Optional
 import click
 import typer
 from arcade_core.constants import CREDENTIALS_FILE_PATH, PROD_COORDINATOR_HOST, PROD_ENGINE_HOST
-from arcade_evals._evalsuite._types import _VALID_PASS_RULES
 from arcadepy import Arcade
 from rich.console import Console
 
@@ -515,9 +514,11 @@ def evals(
             return
 
     pass_rule = multi_run_pass_rule.strip().lower()
-    if pass_rule not in _VALID_PASS_RULES:
+    # Keep in sync with _VALID_PASS_RULES in arcade_evals._evalsuite._types
+    _valid_pass_rules = {"last", "mean", "majority"}
+    if pass_rule not in _valid_pass_rules:
         handle_cli_error(
-            f"Invalid --multi-run-pass-rule. Valid values: {', '.join(sorted(_VALID_PASS_RULES))}.",
+            f"Invalid --multi-run-pass-rule. Valid values: {', '.join(sorted(_valid_pass_rules))}.",
             should_exit=True,
         )
         return
