@@ -15,7 +15,7 @@ Defines the metadata model for Arcade tools. This module provides three layers:
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from arcade_core.errors import ToolDefinitionError
 
@@ -319,8 +319,9 @@ class ToolMetadata(BaseModel):
     extras: dict[str, Any] | None = None
     """Arbitrary key/values for custom logic."""
 
-    strict: bool = True
-    """Enable validation for logical contradictions. Set False for edge cases."""
+    strict: bool = Field(default=True, exclude=True)
+    """Enable validation for logical contradictions. Set False for edge cases.
+    Excluded from serialization - this is a validation-time config flag, not tool metadata."""
 
     model_config = ConfigDict(extra="forbid")
 

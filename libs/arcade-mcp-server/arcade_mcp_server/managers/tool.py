@@ -52,45 +52,9 @@ class ToolManager(ComponentManager[Key, ManagedTool]):
         # Build metadata container
         tool_metadata = definition.metadata
         if tool_metadata:
-            metadata_container: dict[str, Any] = {}
-
-            # Add classification
-            if tool_metadata.classification:
-                classification = tool_metadata.classification
-                classification_meta: dict[str, Any] = {}
-                if classification.domains:
-                    classification_meta["domains"] = [d.value for d in classification.domains]
-                if classification.system_types:
-                    classification_meta["system_types"] = [
-                        st.value for st in classification.system_types
-                    ]
-                if classification_meta:
-                    metadata_container["classification"] = classification_meta
-
-            # Add behavior with all fields (not just verbs)
-            if tool_metadata.behavior:
-                behavior = tool_metadata.behavior
-                behavior_meta: dict[str, Any] = {}
-                if behavior.verbs:
-                    behavior_meta["verbs"] = [v.value for v in behavior.verbs]
-                if behavior.read_only is not None:
-                    behavior_meta["read_only"] = behavior.read_only
-                if behavior.destructive is not None:
-                    behavior_meta["destructive"] = behavior.destructive
-                if behavior.idempotent is not None:
-                    behavior_meta["idempotent"] = behavior.idempotent
-                if behavior.open_world is not None:
-                    behavior_meta["open_world"] = behavior.open_world
-                if behavior_meta:
-                    metadata_container["behavior"] = behavior_meta
-
-            # Add extras
-            if tool_metadata.extras:
-                metadata_container["extras"] = tool_metadata.extras
-
-            # Only add metadata container if it has content
-            if metadata_container:
-                arcade_meta["metadata"] = metadata_container
+            metadata_dump = tool_metadata.model_dump(mode="json", exclude_none=True)
+            if metadata_dump:
+                arcade_meta["metadata"] = metadata_dump
 
         return arcade_meta if arcade_meta else None
 
