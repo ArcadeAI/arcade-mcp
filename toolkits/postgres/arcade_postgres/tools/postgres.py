@@ -1,5 +1,13 @@
 from typing import Annotated, Any
 
+from arcade_core.metadata import (
+    Behavior,
+    Classification,
+    Domain,
+    SystemType,
+    ToolMetadata,
+    Verb,
+)
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.errors import RetryableToolError
 from sqlalchemy import inspect, text
@@ -8,7 +16,22 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from ..database_engine import MAX_ROWS_RETURNED, DatabaseEngine
 
 
-@tool(requires_secrets=["POSTGRES_DATABASE_CONNECTION_STRING"])
+@tool(
+    requires_secrets=["POSTGRES_DATABASE_CONNECTION_STRING"],
+    metadata=ToolMetadata(
+        classification=Classification(
+            domains=[Domain.STORAGE],
+            system_types=[SystemType.DATABASE],
+        ),
+        behavior=Behavior(
+            verbs=[Verb.READ],
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=True,
+        ),
+    ),
+)
 async def discover_schemas(
     context: ToolContext,
 ) -> list[str]:
@@ -20,7 +43,22 @@ async def discover_schemas(
         return schemas
 
 
-@tool(requires_secrets=["POSTGRES_DATABASE_CONNECTION_STRING"])
+@tool(
+    requires_secrets=["POSTGRES_DATABASE_CONNECTION_STRING"],
+    metadata=ToolMetadata(
+        classification=Classification(
+            domains=[Domain.STORAGE],
+            system_types=[SystemType.DATABASE],
+        ),
+        behavior=Behavior(
+            verbs=[Verb.READ],
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=True,
+        ),
+    ),
+)
 async def discover_tables(
     context: ToolContext,
     schema_name: Annotated[
@@ -38,7 +76,22 @@ async def discover_tables(
         return tables
 
 
-@tool(requires_secrets=["POSTGRES_DATABASE_CONNECTION_STRING"])
+@tool(
+    requires_secrets=["POSTGRES_DATABASE_CONNECTION_STRING"],
+    metadata=ToolMetadata(
+        classification=Classification(
+            domains=[Domain.STORAGE],
+            system_types=[SystemType.DATABASE],
+        ),
+        behavior=Behavior(
+            verbs=[Verb.READ],
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=True,
+        ),
+    ),
+)
 async def get_table_schema(
     context: ToolContext,
     schema_name: Annotated[str, "The database schema to get the table schema of"],
@@ -55,7 +108,22 @@ async def get_table_schema(
         return await _get_table_schema(engine, schema_name, table_name)
 
 
-@tool(requires_secrets=["POSTGRES_DATABASE_CONNECTION_STRING"])
+@tool(
+    requires_secrets=["POSTGRES_DATABASE_CONNECTION_STRING"],
+    metadata=ToolMetadata(
+        classification=Classification(
+            domains=[Domain.STORAGE],
+            system_types=[SystemType.DATABASE],
+        ),
+        behavior=Behavior(
+            verbs=[Verb.READ],
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=True,
+        ),
+    ),
+)
 async def execute_select_query(
     context: ToolContext,
     select_clause: Annotated[

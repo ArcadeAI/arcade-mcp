@@ -2,6 +2,14 @@ import logging
 from typing import Annotated, Any
 
 import httpx
+from arcade_core.metadata import (
+    Behavior,
+    Classification,
+    Domain,
+    SystemType,
+    ToolMetadata,
+    Verb,
+)
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import OAuth2
 from arcade_tdk.errors import RetryableToolError
@@ -20,6 +28,19 @@ logger = logging.getLogger(__name__)
 @tool(
     requires_auth=OAuth2(id="zendesk", scopes=["read"]),
     requires_secrets=["ZENDESK_SUBDOMAIN"],
+    metadata=ToolMetadata(
+        classification=Classification(
+            domains=[Domain.DOCUMENTS, Domain.SEARCH],
+            system_types=[SystemType.SAAS_API],
+        ),
+        behavior=Behavior(
+            verbs=[Verb.READ],
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=True,
+        ),
+    ),
 )
 async def search_articles(
     context: ToolContext,

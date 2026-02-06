@@ -1,5 +1,13 @@
 from typing import Annotated
 
+from arcade_core.metadata import (
+    Behavior,
+    Classification,
+    Domain,
+    SystemType,
+    ToolMetadata,
+    Verb,
+)
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import LinkedIn
 from arcade_tdk.errors import ToolExecutionError
@@ -10,7 +18,20 @@ from arcade_linkedin.tools.utils import _handle_linkedin_api_error, _send_linked
 @tool(
     requires_auth=LinkedIn(
         scopes=["w_member_social"],
-    )
+    ),
+    metadata=ToolMetadata(
+        classification=Classification(
+            domains=[Domain.MESSAGING],
+            system_types=[SystemType.SAAS_API],
+        ),
+        behavior=Behavior(
+            verbs=[Verb.EXECUTE],
+            read_only=False,
+            destructive=False,
+            idempotent=False,
+            open_world=True,
+        ),
+    ),
 )
 async def create_text_post(
     context: ToolContext,

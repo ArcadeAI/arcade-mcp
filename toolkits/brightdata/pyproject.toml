@@ -4,11 +4,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade_brightdata"
-version = "0.2.0"
+version = "0.2.1"
 description = "Search, Crawl and Scrape any site, at scale, without getting blocked"
 requires-python = ">=3.10"
 dependencies = [
-    "arcade-tdk>=3.0.0,<4.0.0",
+    "arcade-tdk>=3.5.0,<4.0.0",
     "requests>=2.32.5",
 ]
 [[project.authors]]
@@ -17,7 +17,7 @@ email = "meirk@brightdata.com"
 
 [project.optional-dependencies]
 dev = [
-    "arcade-mcp[all]>=1.2.0,<2.0.0",
+    "arcade-mcp[all]>=1.9.0,<2.0.0",
     "arcade-serve>=3.0.0,<4.0.0",
     "pytest>=8.3.0,<8.4.0",
     "pytest-cov>=4.0.0,<4.1.0",

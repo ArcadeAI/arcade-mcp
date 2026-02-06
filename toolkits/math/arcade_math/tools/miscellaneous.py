@@ -3,12 +3,34 @@ import math
 from decimal import Decimal
 from typing import Annotated
 
+from arcade_core.metadata import (
+    Behavior,
+    Classification,
+    Domain,
+    SystemType,
+    ToolMetadata,
+    Verb,
+)
 from arcade_tdk import tool
 
 decimal.getcontext().prec = 100
 
 
-@tool
+@tool(
+    metadata=ToolMetadata(
+        classification=Classification(
+            domains=[Domain.TRANSFORM],
+            system_types=[SystemType.SELF_CONTAINED],
+        ),
+        behavior=Behavior(
+            verbs=[Verb.EXECUTE],
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=False,
+        ),
+    ),
+)
 def abs_val(
     a: Annotated[str, "The number as a string"],
 ) -> Annotated[str, "The absolute value of the number as a string"]:
@@ -19,7 +41,21 @@ def abs_val(
     return str(abs(Decimal(a)))
 
 
-@tool
+@tool(
+    metadata=ToolMetadata(
+        classification=Classification(
+            domains=[Domain.TRANSFORM],
+            system_types=[SystemType.SELF_CONTAINED],
+        ),
+        behavior=Behavior(
+            verbs=[Verb.EXECUTE],
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=False,
+        ),
+    ),
+)
 def factorial(
     a: Annotated[str, "The non-negative integer to compute the factorial for as a string"],
 ) -> Annotated[str, "The factorial of the number as a string"]:
@@ -30,7 +66,21 @@ def factorial(
     return str(math.factorial(int(a)))
 
 
-@tool
+@tool(
+    metadata=ToolMetadata(
+        classification=Classification(
+            domains=[Domain.TRANSFORM],
+            system_types=[SystemType.SELF_CONTAINED],
+        ),
+        behavior=Behavior(
+            verbs=[Verb.EXECUTE],
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=False,
+        ),
+    ),
+)
 def sqrt(
     a: Annotated[str, "The number to square root as a string"],
 ) -> Annotated[str, "The square root of the number as a string"]:

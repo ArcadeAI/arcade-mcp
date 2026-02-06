@@ -1,10 +1,32 @@
 import math
 from typing import Annotated
 
+from arcade_core.metadata import (
+    Behavior,
+    Classification,
+    Domain,
+    SystemType,
+    ToolMetadata,
+    Verb,
+)
 from arcade_tdk import tool
 
 
-@tool
+@tool(
+    metadata=ToolMetadata(
+        classification=Classification(
+            domains=[Domain.TRANSFORM],
+            system_types=[SystemType.SELF_CONTAINED],
+        ),
+        behavior=Behavior(
+            verbs=[Verb.EXECUTE],
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=False,
+        ),
+    ),
+)
 def gcd(
     a: Annotated[str, "First integer as a string"],
     b: Annotated[str, "Second integer as a string"],
@@ -15,7 +37,21 @@ def gcd(
     return str(math.gcd(int(a), int(b)))
 
 
-@tool
+@tool(
+    metadata=ToolMetadata(
+        classification=Classification(
+            domains=[Domain.TRANSFORM],
+            system_types=[SystemType.SELF_CONTAINED],
+        ),
+        behavior=Behavior(
+            verbs=[Verb.EXECUTE],
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=False,
+        ),
+    ),
+)
 def lcm(
     a: Annotated[str, "First integer as a string"],
     b: Annotated[str, "Second integer as a string"],

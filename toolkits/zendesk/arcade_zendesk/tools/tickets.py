@@ -1,6 +1,14 @@
 from typing import Annotated, Any
 
 import httpx
+from arcade_core.metadata import (
+    Behavior,
+    Classification,
+    Domain,
+    SystemType,
+    ToolMetadata,
+    Verb,
+)
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import OAuth2
 from arcade_tdk.errors import RetryableToolError
@@ -23,6 +31,19 @@ def _handle_ticket_not_found(response: httpx.Response, ticket_id: int) -> None:
 @tool(
     requires_auth=OAuth2(id="zendesk", scopes=["read"]),
     requires_secrets=["ZENDESK_SUBDOMAIN"],
+    metadata=ToolMetadata(
+        classification=Classification(
+            domains=[Domain.TASKS],
+            system_types=[SystemType.SAAS_API],
+        ),
+        behavior=Behavior(
+            verbs=[Verb.READ],
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=True,
+        ),
+    ),
 )
 async def list_tickets(
     context: ToolContext,
@@ -133,6 +154,19 @@ async def list_tickets(
 @tool(
     requires_auth=OAuth2(id="zendesk", scopes=["read"]),
     requires_secrets=["ZENDESK_SUBDOMAIN"],
+    metadata=ToolMetadata(
+        classification=Classification(
+            domains=[Domain.TASKS],
+            system_types=[SystemType.SAAS_API],
+        ),
+        behavior=Behavior(
+            verbs=[Verb.READ],
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=True,
+        ),
+    ),
 )
 async def get_ticket_comments(
     context: ToolContext,
@@ -184,6 +218,19 @@ async def get_ticket_comments(
 @tool(
     requires_auth=OAuth2(id="zendesk", scopes=["tickets:write"]),
     requires_secrets=["ZENDESK_SUBDOMAIN"],
+    metadata=ToolMetadata(
+        classification=Classification(
+            domains=[Domain.TASKS],
+            system_types=[SystemType.SAAS_API],
+        ),
+        behavior=Behavior(
+            verbs=[Verb.UPDATE],
+            read_only=False,
+            destructive=False,
+            idempotent=False,
+            open_world=True,
+        ),
+    ),
 )
 async def add_ticket_comment(
     context: ToolContext,
@@ -243,6 +290,19 @@ async def add_ticket_comment(
 @tool(
     requires_auth=OAuth2(id="zendesk", scopes=["tickets:write"]),
     requires_secrets=["ZENDESK_SUBDOMAIN"],
+    metadata=ToolMetadata(
+        classification=Classification(
+            domains=[Domain.TASKS],
+            system_types=[SystemType.SAAS_API],
+        ),
+        behavior=Behavior(
+            verbs=[Verb.UPDATE],
+            read_only=False,
+            destructive=False,
+            idempotent=True,
+            open_world=True,
+        ),
+    ),
 )
 async def mark_ticket_solved(
     context: ToolContext,
