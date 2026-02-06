@@ -25,7 +25,7 @@ from arcade_linkedin.tools.utils import _handle_linkedin_api_error, _send_linked
             system_types=[SystemType.SAAS_API],
         ),
         behavior=Behavior(
-            verbs=[Verb.EXECUTE],
+            verbs=[Verb.CREATE],
             read_only=False,
             destructive=False,
             idempotent=False,
