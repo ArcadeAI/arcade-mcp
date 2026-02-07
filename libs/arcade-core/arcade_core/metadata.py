@@ -32,75 +32,75 @@ class Domain(str, Enum):
 
     # === Communication ===
     MESSAGING = "messaging"
-    """Send or receive messages between parties. Examples: Gmail.SendEmail, Slack.SendMessage, Twilio.SendSMS"""
+    """Send or receive messages between parties."""
 
     # === Content ===
     DOCUMENTS = "documents"
-    """Create, read, or edit text-based content. Examples: Google Docs, Notion.CreatePage, Confluence"""
+    """Create, read, or edit text-based content."""
 
     MEDIA = "media"
-    """Create or process images, video, or audio. Examples: Figma exports, YouTube uploads, transcription"""
+    """Create or process images, video, or audio."""
 
     CODE = "code"
-    """Work with source code or software artifacts. Examples: GitHub.CreatePR, GitLab branches, code execution"""
+    """Work with source code or software artifacts."""
 
     # === Data ===
     STORAGE = "storage"
-    """Store, retrieve, or organize files. Examples: GoogleDrive.Upload, S3.PutObject, Dropbox"""
+    """Store, retrieve, or organize files."""
 
     SEARCH = "search"
-    """Find or discover information. Examples: Web search, Firecrawl.ScrapeUrl, Algolia"""
+    """Find or discover information."""
 
     TRANSFORM = "transform"
-    """Convert, compute, or reshape data. Examples: Math operations, JSON parsing, format conversion"""
+    """Convert, compute, or reshape data."""
 
     ANALYTICS = "analytics"
-    """Measure, aggregate, or report on data. Examples: Mixpanel.GetMetrics, PostHog, dashboards"""
+    """Measure, aggregate, or report on data."""
 
     # === Planning ===
     SCHEDULING = "scheduling"
-    """Manage calendars, appointments, or bookings. Examples: GoogleCalendar.CreateEvent, Calendly"""
+    """Manage calendars, appointments, or bookings."""
 
     TASKS = "tasks"
-    """Track work items, issues, or tickets. Examples: Jira.CreateIssue, Asana, Linear, Zendesk tickets"""
+    """Track work items, issues, or tickets."""
 
     WORKFLOW = "workflow"
-    """Orchestrate or automate multi-step processes. Examples: Zapier.TriggerZap, Temporal, Airflow"""
+    """Orchestrate or automate multi-step processes."""
 
     # === Transactions ===
     COMMERCE = "commerce"
-    """Manage orders, deals, or inventory. Examples: Shopify orders, Salesforce opportunities"""
+    """Manage orders, deals, or inventory."""
 
     PAYMENTS = "payments"
-    """Process payments or invoices. Examples: Stripe.CreatePayment, QuickBooks, PayPal"""
+    """Process payments or invoices."""
 
     # === Records ===
     RECORDS = "records"
-    """Manage entity records (contacts, accounts, etc.). Examples: Salesforce.CreateContact, HubSpot, Airtable"""
+    """Manage entity records (contacts, accounts, etc.)."""
 
     IDENTITY = "identity"
-    """Manage authentication, users, or permissions. Examples: Okta.CreateUser, Auth0, AWS IAM"""
+    """Manage authentication, users, or permissions."""
 
     # === Operations ===
     MONITORING = "monitoring"
-    """Observe system health or manage incidents. Examples: Datadog.CreateMonitor, PagerDuty, CloudWatch"""
+    """Observe system health or manage incidents."""
 
     DEPLOYMENT = "deployment"
-    """Release software or provision infrastructure. Examples: Vercel.Deploy, GitHub Actions, Terraform"""
+    """Release software or provision infrastructure."""
 
     # === Physical ===
     SENSING = "sensing"
-    """Capture data from the physical environment. Examples: Cameras, temperature sensors, screenshots"""
+    """Capture data from the physical environment."""
 
     ACTUATION = "actuation"
-    """Cause physical effects or control interfaces. Examples: Robot arms, smart plugs, browser clicks"""
+    """Cause physical effects or control interfaces."""
 
     LOCATION = "location"
-    """Work with position or geospatial data. Examples: GPS, Google Maps, geocoding"""
+    """Work with position or geospatial data."""
 
     # === AI ===
     REASONING = "reasoning"
-    """AI planning, decision-making, or autonomous agents. Examples: AI agents, planners, decision engines"""
+    """AI planning, decision-making, or autonomous agents."""
 
 
 class SystemType(str, Enum):
@@ -113,34 +113,34 @@ class SystemType(str, Enum):
     """
 
     SAAS_API = "saas_api"
-    """Third-party SaaS platforms accessed via their APIs. Examples: Slack, Salesforce, GitHub, Stripe"""
+    """Third-party SaaS platforms accessed via their APIs."""
 
     DATABASE = "database"
-    """Data storage systems with query interfaces. Examples: PostgreSQL, MongoDB, Redis, Elasticsearch"""
+    """Data storage systems with query interfaces."""
 
     FILE_SYSTEM = "file_system"
-    """File storage systems (local or cloud). Examples: Local disk, S3, Google Drive, Dropbox"""
+    """File storage systems (local or cloud)."""
 
     WEB = "web"
-    """Web pages, browsers, or web scraping. Examples: Firecrawl, Playwright, web search"""
+    """Web pages, browsers, or web scraping."""
 
     OPERATING_SYSTEM = "operating_system"
-    """OS-level operations including browser/computer automation. Examples: Shell commands, browser automation, file operations"""
+    """OS-level operations including browser/computer automation."""
 
     HARDWARE = "hardware"
-    """IoT devices, sensors, robotics, or physical devices. Examples: Thermostats, robot arms, cameras, smart plugs"""
+    """IoT devices, sensors, robotics, or physical devices."""
 
     AI_MODEL = "ai_model"
-    """LLM or ML model invocation. Examples: Claude, GPT, embeddings models, image generators"""
+    """LLM or ML model invocation."""
 
     AI_AGENT = "ai_agent"
-    """Autonomous AI agents that perform multi-step tasks. Examples: Research agents, planning agents"""
+    """Autonomous AI agents that perform multi-step tasks."""
 
     CUSTOM_API = "custom_api"
-    """Customer's internal or private APIs. Examples: Internal microservices, proprietary systems"""
+    """Customer's internal or private APIs."""
 
     SELF_CONTAINED = "self_contained"
-    """No external system — pure computation, fully self-contained. Examples: Math.Add, JSON.Parse, string formatting"""
+    """No external system — pure computation, fully self-contained."""
 
 
 class Verb(str, Enum):
