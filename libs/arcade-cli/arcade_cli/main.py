@@ -9,7 +9,6 @@ from typing import Optional
 import click
 import typer
 from arcade_core.constants import CREDENTIALS_FILE_PATH, PROD_COORDINATOR_HOST, PROD_ENGINE_HOST
-from arcade_evals._evalsuite._types import _VALID_PASS_RULES
 from arcadepy import Arcade
 from rich.console import Console
 
@@ -515,6 +514,10 @@ def evals(
             return
 
     pass_rule = multi_run_pass_rule.strip().lower()
+    # Lazy import: arcade_evals requires optional deps (openai) that aren't
+    # available when the CLI is installed without the [evals] extra.
+    from arcade_evals._evalsuite._types import _VALID_PASS_RULES
+
     if pass_rule not in _VALID_PASS_RULES:
         handle_cli_error(
             f"Invalid --multi-run-pass-rule. Valid values: {', '.join(sorted(_VALID_PASS_RULES))}.",
