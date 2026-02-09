@@ -732,7 +732,7 @@ class TestToolEvalCaptureMode:
 
             # Verify include_context was passed
             call_args = mock_capture.call_args
-            assert call_args[0][3] is True  # include_context is 4th positional arg
+            assert call_args.kwargs["include_context"] is True
 
 
 # --- Multiple Tool Calls per Case Tests ---

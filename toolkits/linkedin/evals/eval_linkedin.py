@@ -21,7 +21,7 @@ catalog.add_module(arcade_linkedin)
 
 
 @tool_eval()
-def linkedin_eval_suite():
+def linkedin_eval_suite() -> EvalSuite:
     suite = EvalSuite(
         name="LinkedIn Tools Evaluation",
         system_message="You are an AI assistant with access to LinkedIn tools. Use them to help the user with their tasks.",

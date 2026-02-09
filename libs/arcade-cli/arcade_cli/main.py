@@ -405,13 +405,29 @@ def evals(
         "-c",
         help="Maximum number of concurrent evaluations (default: 1)",
     ),
-    use_provider: Optional[str] = typer.Option(
+    num_runs: int = typer.Option(
+        1,
+        "--num-runs",
+        "-n",
+        help="Number of runs per case (default: 1).",
+    ),
+    seed: str = typer.Option(
+        "constant",
+        "--seed",
+        help="Seed policy for OpenAI runs (ignored for Anthropic): "
+        "'constant' (default), 'random', or an integer.",
+    ),
+    multi_run_pass_rule: str = typer.Option(
+        "last",
+        "--multi-run-pass-rule",
+        help="Pass/fail aggregation for multi-run cases: 'last' (default), 'mean', or 'majority'.",
+    ),
+    use_provider: Optional[list[str]] = typer.Option(
         None,
         "--use-provider",
         "-p",
         help="Provider(s) and models to use. Format: 'provider' or 'provider:model1,model2'. "
-        "Multiple providers: separate with spaces. "
-        "Examples: 'openai' or 'openai:gpt-4o anthropic:claude-sonnet-4-5-20250929'",
+        "Can be repeated. Examples: --use-provider openai or --use-provider openai:gpt-4o --use-provider anthropic:claude-sonnet-4-5-20250929",
     ),
     api_key: Optional[list[str]] = typer.Option(
         None,
@@ -476,6 +492,39 @@ def evals(
         pip_install_command=r"pip install arcade-tdk",
     )
 
+    # --- Validate multi-run parameters upfront (before any API calls) ---
+    if num_runs < 1:
+        handle_cli_error("--num-runs must be >= 1", should_exit=True)
+        return
+
+    seed_value: str | int
+    seed_lower = seed.strip().lower()
+    if seed_lower in {"constant", "random"}:
+        seed_value = seed_lower
+    else:
+        try:
+            seed_value = int(seed)
+        except ValueError:
+            handle_cli_error(
+                "Invalid --seed value. Use 'constant', 'random', or an integer.", should_exit=True
+            )
+            return
+        if seed_value < 0:
+            handle_cli_error("--seed must be a non-negative integer.", should_exit=True)
+            return
+
+    pass_rule = multi_run_pass_rule.strip().lower()
+    # Lazy import: arcade_evals requires optional deps (openai) that aren't
+    # available when the CLI is installed without the [evals] extra.
+    from arcade_evals._evalsuite._types import _VALID_PASS_RULES
+
+    if pass_rule not in _VALID_PASS_RULES:
+        handle_cli_error(
+            f"Invalid --multi-run-pass-rule. Valid values: {', '.join(sorted(_VALID_PASS_RULES))}.",
+            should_exit=True,
+        )
+        return
+
     # --- Build model specs from flags ---
     model_specs: list[ModelSpec] = []
 
@@ -483,11 +532,10 @@ def evals(
     api_keys = resolve_provider_api_keys(api_keys_specs=api_key)
 
     if use_provider:
-        # Parse provider specs - supports space-separated values
-        # e.g., "openai:gpt-4o anthropic:claude"
-        provider_specs = use_provider.split()
+        # Parse provider specs - supports multiple --use-provider flags
+        # e.g., --use-provider openai:gpt-4o --use-provider anthropic:claude
         try:
-            provider_configs = [parse_provider_spec(spec) for spec in provider_specs]
+            provider_configs = [parse_provider_spec(spec) for spec in use_provider]
         except ValueError as e:
             handle_cli_error(str(e), should_exit=True)
             return  # For type checker
@@ -594,6 +642,8 @@ def evals(
                     output_file=final_output_file,
                     output_format=",".join(final_output_formats) if final_output_formats else "txt",
                     console=console,
+                    num_runs=num_runs,
+                    seed=seed_value,
                 )
             )
         else:
@@ -608,6 +658,9 @@ def evals(
                     failed_only=only_failed,
                     include_context=include_context,
                     console=console,
+                    num_runs=num_runs,
+                    seed=seed_value,
+                    multi_run_pass_rule=pass_rule,
                 )
             )
     except Exception as e:
