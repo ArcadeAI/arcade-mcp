@@ -89,37 +89,16 @@ class MarkdownFormatter(EvalResultFormatter):
         lines.append("## Summary")
         lines.append("")
 
-        if failed_only and original_counts:
-            orig_total, orig_passed, orig_failed, orig_warned = original_counts
-            lines.append(f"> ⚠️ **Note:** Showing only {total_cases} failed evaluation(s)")
-            lines.append("")
-            lines.append("| Metric | Count |")
-            lines.append("|--------|-------|")
-            lines.append(f"| **Total** | {orig_total} |")
-            lines.append(f"| ✅ Passed | {orig_passed} |")
-            if orig_warned > 0:
-                lines.append(f"| ⚠️ Warnings | {orig_warned} |")
-            lines.append(f"| ❌ Failed | {orig_failed} |")
-        else:
-            lines.append("| Metric | Count |")
-            lines.append("|--------|-------|")
-            lines.append(f"| **Total** | {total_cases} |")
-            lines.append(f"| ✅ Passed | {total_passed} |")
-            if total_warned > 0:
-                lines.append(f"| ⚠️ Warnings | {total_warned} |")
-            if total_failed > 0:
-                lines.append(f"| ❌ Failed | {total_failed} |")
-
-        # Pass rate
-        if total_cases > 0:
-            if failed_only and original_counts and original_counts[0] > 0:
-                pass_rate = (original_counts[1] / original_counts[0]) * 100
-            else:
-                pass_rate = (total_passed / total_cases) * 100
-            lines.append("")
-            lines.append(f"**Pass Rate:** {pass_rate:.1f}%")
-
-        lines.append("")
+        lines.extend(
+            self._format_summary_table_md(
+                total_cases,
+                total_passed,
+                total_failed,
+                total_warned,
+                failed_only,
+                original_counts,
+            )
+        )
 
         # Results by model
         lines.append("## Results by Model")
@@ -599,37 +578,16 @@ class MarkdownFormatter(EvalResultFormatter):
         lines.append(f"**Tracks compared:** {', '.join(f'`{t}`' for t in all_tracks)}")
         lines.append("")
 
-        if failed_only and original_counts:
-            orig_total, orig_passed, orig_failed, orig_warned = original_counts
-            lines.append(f"> ⚠️ **Note:** Showing only {total_cases} failed evaluation(s)")
-            lines.append("")
-            lines.append("| Metric | Count |")
-            lines.append("|--------|-------|")
-            lines.append(f"| **Total** | {orig_total} |")
-            lines.append(f"| ✅ Passed | {orig_passed} |")
-            if orig_warned > 0:
-                lines.append(f"| ⚠️ Warnings | {orig_warned} |")
-            lines.append(f"| ❌ Failed | {orig_failed} |")
-        else:
-            lines.append("| Metric | Count |")
-            lines.append("|--------|-------|")
-            lines.append(f"| **Total** | {total_cases} |")
-            lines.append(f"| ✅ Passed | {total_passed} |")
-            if total_warned > 0:
-                lines.append(f"| ⚠️ Warnings | {total_warned} |")
-            if total_failed > 0:
-                lines.append(f"| ❌ Failed | {total_failed} |")
-
-        # Pass rate
-        if total_cases > 0:
-            if failed_only and original_counts and original_counts[0] > 0:
-                pass_rate = (original_counts[1] / original_counts[0]) * 100
-            else:
-                pass_rate = (total_passed / total_cases) * 100
-            lines.append("")
-            lines.append(f"**Pass Rate:** {pass_rate:.1f}%")
-
-        lines.append("")
+        lines.extend(
+            self._format_summary_table_md(
+                total_cases,
+                total_passed,
+                total_failed,
+                total_warned,
+                failed_only,
+                original_counts,
+            )
+        )
 
         # Results by model
         lines.append("## Results by Model")
@@ -650,77 +608,13 @@ class MarkdownFormatter(EvalResultFormatter):
 
                 # List all cases with summary comparison
                 for case_name, case_data in cases.items():
-                    # Context section (if include_context is True)
                     if include_context:
-                        system_msg = case_data.get("system_message")
-                        addl_msgs = case_data.get("additional_messages")
-                        if system_msg or addl_msgs:
-                            lines.append("<details>")
-                            lines.append("<summary>📋 <strong>Context</strong></summary>")
-                            lines.append("")
-                            if system_msg:
-                                lines.append(f"**System Message:** {system_msg}")
-                                lines.append("")
-                            if addl_msgs:
-                                lines.append(f"**💬 Conversation ({len(addl_msgs)} messages):**")
-                                lines.append("")
-                                for msg in addl_msgs:
-                                    role = msg.get("role", "unknown")
-                                    content = msg.get("content", "")
-                                    name = msg.get("name", "")
-                                    role_icons = {
-                                        "user": "👤",
-                                        "assistant": "🤖",
-                                        "tool": "🔧",
-                                        "system": "⚙️",
-                                    }
-                                    icon = role_icons.get(role, "💬")
-                                    label = (
-                                        f"{icon} **{role.title()}**"
-                                        if not name
-                                        else f"{icon} **{role.title()}** (`{name}`)"
-                                    )
-                                    lines.append(f"> {label}")
-                                    if content:
-                                        if role == "tool":
-                                            try:
-                                                import json
-
-                                                parsed = json.loads(content)
-                                                formatted = json.dumps(parsed, indent=2)
-                                                lines.append("> ```json")
-                                                for json_line in formatted.split("\n"):
-                                                    lines.append(f"> {json_line}")
-                                                lines.append("> ```")
-                                            except (json.JSONDecodeError, TypeError):
-                                                lines.append(f"> {content}")
-                                        else:
-                                            lines.append(f"> {content}")
-                                    tool_calls = msg.get("tool_calls", [])
-                                    if tool_calls:
-                                        for tc in tool_calls:
-                                            func = tc.get("function", {})
-                                            tc_name = func.get("name", "unknown")
-                                            tc_args = func.get("arguments", "{}")
-                                            lines.append(f"> 🔧 **{tc_name}**")
-                                            try:
-                                                import json
-
-                                                args_dict = (
-                                                    json.loads(tc_args)
-                                                    if isinstance(tc_args, str)
-                                                    else tc_args
-                                                )
-                                                formatted = json.dumps(args_dict, indent=2)
-                                                lines.append("> ```json")
-                                                for arg_line in formatted.split("\n"):
-                                                    lines.append(f"> {arg_line}")
-                                                lines.append("> ```")
-                                            except (json.JSONDecodeError, TypeError):
-                                                lines.append(f"> `{tc_args}`")
-                                    lines.append(">")
-                            lines.append("</details>")
-                            lines.append("")
+                        lines.extend(
+                            self._format_context_section_md(
+                                case_data.get("system_message"),
+                                case_data.get("additional_messages"),
+                            )
+                        )
 
                     lines.extend(
                         self._format_comparative_case(
@@ -775,37 +669,16 @@ class MarkdownFormatter(EvalResultFormatter):
         lines.append("## Summary")
         lines.append("")
 
-        if failed_only and original_counts:
-            orig_total, orig_passed, orig_failed, orig_warned = original_counts
-            lines.append(f"> ⚠️ **Note:** Showing only {total_cases} failed evaluation(s)")
-            lines.append("")
-            lines.append("| Metric | Count |")
-            lines.append("|--------|-------|")
-            lines.append(f"| **Total** | {orig_total} |")
-            lines.append(f"| ✅ Passed | {orig_passed} |")
-            if orig_warned > 0:
-                lines.append(f"| ⚠️ Warnings | {orig_warned} |")
-            lines.append(f"| ❌ Failed | {orig_failed} |")
-        else:
-            lines.append("| Metric | Count |")
-            lines.append("|--------|-------|")
-            lines.append(f"| **Total** | {total_cases} |")
-            lines.append(f"| ✅ Passed | {total_passed} |")
-            if total_warned > 0:
-                lines.append(f"| ⚠️ Warnings | {total_warned} |")
-            if total_failed > 0:
-                lines.append(f"| ❌ Failed | {total_failed} |")
-
-        # Pass rate
-        if total_cases > 0:
-            if failed_only and original_counts and original_counts[0] > 0:
-                pass_rate = (original_counts[1] / original_counts[0]) * 100
-            else:
-                pass_rate = (total_passed / total_cases) * 100
-            lines.append("")
-            lines.append(f"**Pass Rate:** {pass_rate:.1f}%")
-
-        lines.append("")
+        lines.extend(
+            self._format_summary_table_md(
+                total_cases,
+                total_passed,
+                total_failed,
+                total_warned,
+                failed_only,
+                original_counts,
+            )
+        )
 
         # Results grouped by case
         lines.append("## Results by Case")
@@ -833,77 +706,12 @@ class MarkdownFormatter(EvalResultFormatter):
 
                 # Context section (if include_context is True)
                 if include_context:
-                    system_msg = first_model_data.get("system_message")
-                    addl_msgs = first_model_data.get("additional_messages")
-                    if system_msg or addl_msgs:
-                        lines.append("<details>")
-                        lines.append("<summary>📋 <strong>Context</strong></summary>")
-                        lines.append("")
-                        if system_msg:
-                            lines.append(f"**System Message:** {system_msg}")
-                            lines.append("")
-                        if addl_msgs:
-                            lines.append(f"**💬 Conversation ({len(addl_msgs)} messages):**")
-                            lines.append("")
-                            for msg in addl_msgs:
-                                role = msg.get("role", "unknown")
-                                content = msg.get("content", "")
-                                name = msg.get("name", "")
-                                role_icons = {
-                                    "user": "👤",
-                                    "assistant": "🤖",
-                                    "tool": "🔧",
-                                    "system": "⚙️",
-                                }
-                                icon = role_icons.get(role, "💬")
-                                label = (
-                                    f"{icon} **{role.title()}**"
-                                    if not name
-                                    else f"{icon} **{role.title()}** (`{name}`)"
-                                )
-                                lines.append(f"> {label}")
-                                if content:
-                                    # For tool responses, format as JSON code block
-                                    if role == "tool":
-                                        try:
-                                            import json
-
-                                            parsed = json.loads(content)
-                                            formatted = json.dumps(parsed, indent=2)
-                                            lines.append("> ```json")
-                                            for json_line in formatted.split("\n"):
-                                                lines.append(f"> {json_line}")
-                                            lines.append("> ```")
-                                        except (json.JSONDecodeError, TypeError):
-                                            lines.append(f"> {content}")
-                                    else:
-                                        lines.append(f"> {content}")
-                                # Handle tool calls
-                                tool_calls = msg.get("tool_calls", [])
-                                if tool_calls:
-                                    for tc in tool_calls:
-                                        func = tc.get("function", {})
-                                        tc_name = func.get("name", "unknown")
-                                        tc_args = func.get("arguments", "{}")
-                                        lines.append(f"> 🔧 **{tc_name}**")
-                                        try:
-                                            import json
-
-                                            args_dict = (
-                                                json.loads(tc_args)
-                                                if isinstance(tc_args, str)
-                                                else tc_args
-                                            )
-                                            formatted = json.dumps(args_dict, indent=2)
-                                            lines.append("> ```json")
-                                            for arg_line in formatted.split("\n"):
-                                                lines.append(f"> {arg_line}")
-                                            lines.append("> ```")
-                                        except (json.JSONDecodeError, TypeError):
-                                            lines.append(f"> `{tc_args}`")
-                                lines.append(">")
-                        lines.append("</details>")
-                        lines.append("")
+                    lines.extend(
+                        self._format_context_section_md(
+                            first_model_data.get("system_message"),
+                            first_model_data.get("additional_messages"),
+                        )
+                    )
 
                 # Show each model's results for this case
                 for model in model_order:
@@ -1025,6 +833,81 @@ class MarkdownFormatter(EvalResultFormatter):
         lines.append("---")
         lines.append("")
 
+        return lines
+
+    def _format_summary_table_md(
+        self,
+        total_cases: int,
+        total_passed: int,
+        total_failed: int,
+        total_warned: int,
+        failed_only: bool,
+        original_counts: tuple[int, int, int, int] | None,
+    ) -> list[str]:
+        """Build the summary table and pass rate used by regular and comparative formatters."""
+        lines: list[str] = []
+        if failed_only and original_counts:
+            orig_total, orig_passed, orig_failed, orig_warned = original_counts
+            lines.append(f"> ⚠️ **Note:** Showing only {total_cases} failed evaluation(s)")
+            lines.append("")
+            lines.append("| Metric | Count |")
+            lines.append("|--------|-------|")
+            lines.append(f"| **Total** | {orig_total} |")
+            lines.append(f"| ✅ Passed | {orig_passed} |")
+            if orig_warned > 0:
+                lines.append(f"| ⚠️ Warnings | {orig_warned} |")
+            lines.append(f"| ❌ Failed | {orig_failed} |")
+        else:
+            lines.append("| Metric | Count |")
+            lines.append("|--------|-------|")
+            lines.append(f"| **Total** | {total_cases} |")
+            lines.append(f"| ✅ Passed | {total_passed} |")
+            if total_warned > 0:
+                lines.append(f"| ⚠️ Warnings | {total_warned} |")
+            if total_failed > 0:
+                lines.append(f"| ❌ Failed | {total_failed} |")
+
+        # Pass rate
+        if total_cases > 0:
+            if failed_only and original_counts and original_counts[0] > 0:
+                pass_rate = (original_counts[1] / original_counts[0]) * 100
+            else:
+                pass_rate = (total_passed / total_cases) * 100
+            lines.append("")
+            lines.append(f"**Pass Rate:** {pass_rate:.1f}%")
+
+        lines.append("")
+        return lines
+
+    def _format_context_section_md(
+        self,
+        system_msg: str | None,
+        additional_messages: list[dict] | None,
+    ) -> list[str]:
+        """Build a collapsible context section for comparative display.
+
+        Args:
+            system_msg: The system message, if any.
+            additional_messages: Conversation messages, if any.
+
+        Returns:
+            List of formatted markdown lines (empty if no context data).
+        """
+        if not system_msg and not additional_messages:
+            return []
+        lines: list[str] = []
+        lines.append("<details>")
+        lines.append("<summary>📋 <strong>Context</strong></summary>")
+        lines.append("")
+        if system_msg:
+            lines.append(f"**System Message:** {system_msg}")
+            lines.append("")
+        if additional_messages:
+            lines.append(f"**💬 Conversation ({len(additional_messages)} messages):**")
+            lines.append("")
+            lines.extend(self._format_conversation_md(additional_messages))
+        lines.append("</details>")
+        lines.append("")
         return lines
 
     def _format_conversation_md(self, messages: list[dict]) -> list[str]:

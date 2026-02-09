@@ -1548,7 +1548,7 @@ class TestMcpServerComparison:
         assert "linear_arcade" in tracks
         assert "linear_community" in tracks
 
-        # Should have 6 total cases (2 cases × 3 servers)
+        # Should have 6 total cases (2 cases x 3 servers)
         assert total == 6
 
         # Community server has failures (score-based, not all passed)
@@ -1887,8 +1887,8 @@ class TestComparativeJsonFormatter:
 
         parsed = json.loads(output)
         # Find the suite
-        suite_data = list(parsed["models"].values())[0]["suites"]
-        suite = list(suite_data.values())[0]
+        suite_data = next(iter(parsed["models"].values()))["suites"]
+        suite = next(iter(suite_data.values()))
 
         # Cases should be grouped
         assert "cases" in suite
@@ -1901,9 +1901,9 @@ class TestComparativeJsonFormatter:
         output = formatter.format(results)
 
         parsed = json.loads(output)
-        suite_data = list(parsed["models"].values())[0]["suites"]
-        suite = list(suite_data.values())[0]
-        case = list(suite["cases"].values())[0]
+        suite_data = next(iter(parsed["models"].values()))["suites"]
+        suite = next(iter(suite_data.values()))
+        case = next(iter(suite["cases"].values()))
 
         assert "tracks" in case
         # Should have track1 and track2
@@ -1916,12 +1916,12 @@ class TestComparativeJsonFormatter:
         output = formatter.format(results, show_details=True)
 
         parsed = json.loads(output)
-        suite_data = list(parsed["models"].values())[0]["suites"]
-        suite = list(suite_data.values())[0]
-        case = list(suite["cases"].values())[0]
+        suite_data = next(iter(parsed["models"].values()))["suites"]
+        suite = next(iter(suite_data.values()))
+        case = next(iter(suite["cases"].values()))
 
         # Each track should have details
-        for track_name, track_data in case["tracks"].items():
+        for _track_name, track_data in case["tracks"].items():
             assert "details" in track_data
 
 
@@ -2215,8 +2215,8 @@ class TestMultiModelJsonFormatter:
         data = json.loads(output)
 
         # Each case in comparison should have best_model
-        for suite_name, cases in data["comparison"].items():
-            for case_name, case_data in cases.items():
+        for _suite_name, cases in data["comparison"].items():
+            for _case_name, case_data in cases.items():
                 assert "best_model" in case_data
                 assert "best_score" in case_data
 
@@ -2906,9 +2906,27 @@ def _make_multi_run_case(
             "run_seeds": [42, 42, 42],
             "pass_rule": "last",
             "runs": [
-                {"score": 0.8, "passed": True, "warning": False, "failure_reason": None, "details": []},
-                {"score": 0.7, "passed": True, "warning": False, "failure_reason": None, "details": []},
-                {"score": 0.75, "passed": True, "warning": False, "failure_reason": None, "details": []},
+                {
+                    "score": 0.8,
+                    "passed": True,
+                    "warning": False,
+                    "failure_reason": None,
+                    "details": [],
+                },
+                {
+                    "score": 0.7,
+                    "passed": True,
+                    "warning": False,
+                    "failure_reason": None,
+                    "details": [],
+                },
+                {
+                    "score": 0.75,
+                    "passed": True,
+                    "warning": False,
+                    "failure_reason": None,
+                    "details": [],
+                },
             ],
         },
         "critic_stats": {
@@ -3437,3 +3455,322 @@ class TestJsonMultiRunCoverage:
         runs = suites["cases"][0]["run_stats"]["runs"]
         assert len(runs) == 3
         assert runs[0]["failure_reason"] == "Tool selection mismatch"
+
+
+# =====================================================================
+# Coverage gap tests — TextFormatter
+# =====================================================================
+
+
+class TestTextFormatterCoverageGaps:
+    """Tests for TextFormatter methods that lacked coverage."""
+
+    def test_format_evaluation_uncriticized_field(self) -> None:
+        """_format_evaluation should show 'Un-criticized' for is_criticized=False."""
+        formatter = TextFormatter()
+        evaluation = MockEvaluation(
+            passed=True,
+            score=1.0,
+            results=[
+                {
+                    "field": "optional_param",
+                    "match": False,
+                    "score": 0.0,
+                    "weight": 0.0,
+                    "expected": "abc",
+                    "actual": "xyz",
+                    "is_criticized": False,
+                },
+            ],
+        )
+        output = formatter._format_evaluation(evaluation)
+        assert "Un-criticized" in output
+        assert "optional_param" in output
+        assert "Expected: abc" in output
+        assert "Actual: xyz" in output
+
+    def test_format_evaluation_mixed_criticized_and_uncriticized(self) -> None:
+        """_format_evaluation should handle a mix of criticized and uncriticized fields."""
+        formatter = TextFormatter()
+        evaluation = MockEvaluation(
+            passed=True,
+            score=0.5,
+            results=[
+                {
+                    "field": "required_field",
+                    "match": True,
+                    "score": 1.0,
+                    "weight": 1.0,
+                    "expected": "foo",
+                    "actual": "foo",
+                    "is_criticized": True,
+                },
+                {
+                    "field": "info_field",
+                    "match": False,
+                    "score": 0.0,
+                    "weight": 0.0,
+                    "expected": "bar",
+                    "actual": "baz",
+                    "is_criticized": False,
+                },
+            ],
+        )
+        output = formatter._format_evaluation(evaluation)
+        assert "Match" in output
+        assert "Un-criticized" in output
+        assert "required_field" in output
+        assert "info_field" in output
+
+    def test_format_conversation_text_standalone(self) -> None:
+        """_format_conversation_text should format conversation messages correctly."""
+        formatter = TextFormatter()
+        messages = [
+            {"role": "user", "content": "Hello"},
+            {"role": "assistant", "content": "Hi there!"},
+            {
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [{"function": {"name": "search", "arguments": '{"q": "test"}'}}],
+            },
+            {
+                "role": "tool",
+                "name": "search",
+                "content": '{"results": [1, 2]}',
+            },
+        ]
+        lines = formatter._format_conversation_text(messages)
+        text = "\n".join(lines)
+
+        assert "[USER]" in text
+        assert "[ASSISTANT]" in text
+        assert "[TOOL: search]" in text
+        assert "Hello" in text
+        assert "Hi there!" in text
+        assert "search" in text
+        assert "results" in text
+
+    def test_format_conversation_text_invalid_json_tool_content(self) -> None:
+        """_format_conversation_text should handle non-JSON tool content gracefully."""
+        formatter = TextFormatter()
+        messages = [
+            {"role": "tool", "name": "raw", "content": "not valid json"},
+        ]
+        lines = formatter._format_conversation_text(messages)
+        text = "\n".join(lines)
+
+        assert "not valid json" in text
+
+    def test_format_conversation_text_invalid_json_tool_call_args(self) -> None:
+        """_format_conversation_text should handle non-JSON tool call args gracefully."""
+        formatter = TextFormatter()
+        messages = [
+            {
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [{"function": {"name": "broken", "arguments": "not json"}}],
+            },
+        ]
+        lines = formatter._format_conversation_text(messages)
+        text = "\n".join(lines)
+
+        assert "broken" in text
+        assert "not json" in text
+
+    def test_multi_model_failed_only_with_original_counts(self) -> None:
+        """TextFormatter multi-model output should show original counts with --only-failed."""
+        formatter = TextFormatter()
+        results = make_multi_model_results()
+        output = formatter.format(results, failed_only=True, original_counts=(20, 15, 5, 0))
+
+        assert "Note: Showing only failed evaluations" in output
+        assert "Total: 20" in output
+        assert "Passed: 15" in output
+        assert "Failed: 5" in output
+
+    def test_multi_model_details_with_run_and_critic_stats(self) -> None:
+        """TextFormatter multi-model detail view should show run/critic stats per model."""
+        formatter = TextFormatter()
+        results = _make_multi_model_multi_run_results()
+        output = formatter.format(results, show_details=True)
+
+        # Should show per-model detail sections with run stats
+        assert "Run Stats:" in output
+        assert "Critic Stats:" in output
+        assert "gpt-4o" in output
+        assert "claude-3.5-sonnet" in output
+
+    def test_comparative_single_model_with_context_conversation(self) -> None:
+        """Comparative single-model should render context with conversation formatting."""
+        formatter = TextFormatter()
+        results = make_comparative_results_with_context()
+        output = formatter.format(results, show_details=True, include_context=True)
+
+        # Context section should be present
+        assert "You are a weather bot" in output
+        # Tool responses should be JSON-formatted
+        assert "temp" in output
+        assert "I need weather info" in output
+
+    def test_comparative_case_first_with_context_conversation(self) -> None:
+        """Comparative case-first (multi-model) should render context with conversation."""
+        # Create multi-model comparative results with context
+        results = make_comparative_results_with_context()
+        # Add another model to trigger case-first grouping
+        results[0].append({
+            "model": "gpt-4o-mini",
+            "suite_name": "weather_suite [track_a]",
+            "track_name": "track_a",
+            "rubric": "Test",
+            "cases": [
+                {
+                    "name": "weather_test",
+                    "input": "Get weather for NYC",
+                    "system_message": "You are a weather bot.",
+                    "additional_messages": [
+                        {"role": "user", "content": "I need weather info"},
+                    ],
+                    "evaluation": MockEvaluation(passed=True, score=0.95),
+                }
+            ],
+        })
+
+        formatter = TextFormatter()
+        output = formatter.format(results, show_details=True, include_context=True)
+
+        assert "MULTI-MODEL" in output
+        assert "You are a weather bot" in output
+        assert "I need weather info" in output
+
+
+# =====================================================================
+# Coverage gap tests — MarkdownFormatter
+# =====================================================================
+
+
+class TestMarkdownFormatterCoverageGaps:
+    """Tests for MarkdownFormatter methods that lacked coverage."""
+
+    def test_format_conversation_md_standalone(self) -> None:
+        """_format_conversation_md should format messages as markdown blockquotes."""
+        formatter = MarkdownFormatter()
+        messages = [
+            {"role": "user", "content": "Hello"},
+            {"role": "assistant", "content": "Hi!"},
+            {
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [{"function": {"name": "search", "arguments": '{"q": "test"}'}}],
+            },
+            {
+                "role": "tool",
+                "name": "search",
+                "content": '{"results": [1]}',
+            },
+        ]
+        lines = formatter._format_conversation_md(messages)
+        text = "\n".join(lines)
+
+        assert "👤" in text
+        assert "🤖" in text
+        assert "🔧" in text
+        assert "Hello" in text
+        assert "search" in text
+
+    def test_format_conversation_md_invalid_json(self) -> None:
+        """_format_conversation_md should handle non-JSON tool content gracefully."""
+        formatter = MarkdownFormatter()
+        messages = [
+            {"role": "tool", "name": "raw", "content": "plain text"},
+        ]
+        lines = formatter._format_conversation_md(messages)
+        text = "\n".join(lines)
+
+        assert "plain text" in text
+
+    def test_format_conversation_md_invalid_json_args(self) -> None:
+        """_format_conversation_md should handle non-JSON tool call args gracefully."""
+        formatter = MarkdownFormatter()
+        messages = [
+            {
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [{"function": {"name": "broken", "arguments": "not json"}}],
+            },
+        ]
+        lines = formatter._format_conversation_md(messages)
+        text = "\n".join(lines)
+
+        assert "broken" in text
+
+    def test_comparative_single_model_with_context_uses_conversation(self) -> None:
+        """Comparative single-model should render context including tool/assistant messages."""
+        formatter = MarkdownFormatter()
+        results = make_comparative_results_with_context()
+        output = formatter.format(results, show_details=True, include_context=True)
+
+        # Context should be rendered
+        assert "You are a weather bot" in output
+        assert "I need weather info" in output
+        # Tool response should be JSON-formatted
+        assert "temp" in output
+
+    def test_comparative_case_first_with_context_uses_conversation(self) -> None:
+        """Comparative case-first should render context with conversation messages."""
+        results = make_comparative_results_with_context()
+        results[0].append({
+            "model": "gpt-4o-mini",
+            "suite_name": "weather_suite [track_a]",
+            "track_name": "track_a",
+            "rubric": "Test",
+            "cases": [
+                {
+                    "name": "weather_test",
+                    "input": "Get weather for NYC",
+                    "system_message": "You are a weather bot.",
+                    "additional_messages": [
+                        {"role": "user", "content": "I need weather info"},
+                    ],
+                    "evaluation": MockEvaluation(passed=True, score=0.95),
+                }
+            ],
+        })
+
+        formatter = MarkdownFormatter()
+        output = formatter.format(results, show_details=True, include_context=True)
+
+        assert "Multi-Model" in output
+        assert "You are a weather bot" in output
+        assert "I need weather info" in output
+
+    def test_multi_model_failed_only_with_original_counts(self) -> None:
+        """MarkdownFormatter multi-model should show original counts with --only-failed."""
+        formatter = MarkdownFormatter()
+        results = make_multi_model_results()
+        output = formatter.format(results, failed_only=True, original_counts=(20, 15, 5, 0))
+
+        assert "Showing only failed evaluations" in output
+        assert "20" in output
+        assert "15" in output
+
+    def test_evaluation_details_uncriticized_field(self) -> None:
+        """_format_evaluation_details should show dash for uncriticized fields."""
+        formatter = MarkdownFormatter()
+        evaluation = MockEvaluation(
+            passed=True,
+            score=1.0,
+            results=[
+                {
+                    "field": "optional",
+                    "match": False,
+                    "score": 0.0,
+                    "weight": 0.0,
+                    "expected": "abc",
+                    "actual": "xyz",
+                    "is_criticized": False,
+                },
+            ],
+        )
+        output = formatter._format_evaluation_details(evaluation)
+        assert "—" in output  # un-criticized uses em-dash
+        assert "optional" in output

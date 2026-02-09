@@ -7,6 +7,7 @@ allowing the same cases to be run against multiple tool tracks.
 from __future__ import annotations
 
 import asyncio
+import logging
 import time
 from typing import TYPE_CHECKING, Any
 
@@ -22,6 +23,8 @@ if TYPE_CHECKING:
     from arcade_evals._evalsuite._providers import ProviderName
     from arcade_evals._evalsuite._tool_registry import EvalSuiteToolRegistry
     from arcade_evals._evalsuite._tracks import TrackManager
+
+logger = logging.getLogger(__name__)
 
 
 class _EvalSuiteComparativeMixin:
@@ -217,7 +220,7 @@ class _EvalSuiteComparativeMixin:
                 ) -> dict[str, Any]:
                     async with semaphore:
                         start = time.time()
-                        print(f"    [TASK START] {_case.name} @ {_t_name}", flush=True)
+                        logger.debug("[TASK START] %s @ %s", _case.name, _t_name)
                         case_result = await self._run_case_with_stats(
                             _case,
                             client,
@@ -229,10 +232,7 @@ class _EvalSuiteComparativeMixin:
                             registry=_reg,
                         )
                         elapsed = time.time() - start
-                        print(
-                            f"    [TASK DONE] {_case.name} @ {_t_name} ({elapsed:.1f}s)",
-                            flush=True,
-                        )
+                        logger.debug("[TASK DONE] %s @ %s (%.1fs)", _case.name, _t_name, elapsed)
 
                         result = {
                             "name": _case.name,

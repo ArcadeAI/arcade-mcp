@@ -132,23 +132,16 @@ class TextFormatter(EvalResultFormatter):
             lines.append("")
 
         # Summary
-        if failed_only and original_counts:
-            orig_total, orig_passed, orig_failed, orig_warned = original_counts
-            lines.append(f"Note: Showing only {total_cases} failed evaluation(s) (--only-failed)")
-            summary = f"Summary -- Total: {orig_total} -- Passed: {orig_passed}"
-            if orig_warned > 0:
-                summary += f" -- Warnings: {orig_warned}"
-            if orig_failed > 0:
-                summary += f" -- Failed: {orig_failed}"
-        else:
-            summary = f"Summary -- Total: {total_cases} -- Passed: {total_passed}"
-            if total_warned > 0:
-                summary += f" -- Warnings: {total_warned}"
-            if total_failed > 0:
-                summary += f" -- Failed: {total_failed}"
-
-        lines.append(summary)
-        lines.append("")
+        lines.extend(
+            self._format_summary_lines(
+                total_cases,
+                total_passed,
+                total_failed,
+                total_warned,
+                failed_only,
+                original_counts,
+            )
+        )
 
         return "\n".join(lines)
 
@@ -500,60 +493,13 @@ class TextFormatter(EvalResultFormatter):
                 lines.append("  " + "-" * 72)
 
                 for case_name, case_data in cases.items():
-                    # Context section (if include_context is True)
                     if include_context:
-                        system_msg = case_data.get("system_message")
-                        addl_msgs = case_data.get("additional_messages")
-                        if system_msg or addl_msgs:
-                            lines.append("  " + "-" * 40)
-                            lines.append("  📋 CONTEXT")
-                            lines.append("  " + "-" * 40)
-                            if system_msg:
-                                lines.append(f"  System Message: {system_msg}")
-                            if addl_msgs:
-                                lines.append(f"  💬 Conversation ({len(addl_msgs)} messages):")
-                                for msg in addl_msgs:
-                                    role = msg.get("role", "unknown").upper()
-                                    content = msg.get("content", "")
-                                    name = msg.get("name", "")
-                                    role_label = f"[{role}]" if not name else f"[{role}: {name}]"
-                                    lines.append(f"    {role_label}")
-                                    if content:
-                                        # For tool responses, try to format JSON
-                                        if role.lower() == "tool":
-                                            try:
-                                                import json
-
-                                                parsed = json.loads(content)
-                                                formatted = json.dumps(parsed, indent=2)
-                                                for json_line in formatted.split("\n"):
-                                                    lines.append(f"      {json_line}")
-                                            except (json.JSONDecodeError, TypeError):
-                                                lines.append(f"      {content}")
-                                        else:
-                                            lines.append(f"      {content}")
-                                    # Handle tool calls
-                                    tool_calls = msg.get("tool_calls", [])
-                                    if tool_calls:
-                                        for tc in tool_calls:
-                                            func = tc.get("function", {})
-                                            tc_name = func.get("name", "unknown")
-                                            tc_args = func.get("arguments", "{}")
-                                            lines.append(f"      🔧 {tc_name}")
-                                            try:
-                                                import json
-
-                                                args_dict = (
-                                                    json.loads(tc_args)
-                                                    if isinstance(tc_args, str)
-                                                    else tc_args
-                                                )
-                                                formatted = json.dumps(args_dict, indent=2)
-                                                for arg_line in formatted.split("\n"):
-                                                    lines.append(f"        {arg_line}")
-                                            except (json.JSONDecodeError, TypeError):
-                                                lines.append(f"        {tc_args}")
-                            lines.append("  " + "-" * 40)
+                        lines.extend(
+                            self._format_context_block(
+                                case_data.get("system_message"),
+                                case_data.get("additional_messages"),
+                            )
+                        )
 
                     lines.extend(
                         self._format_comparative_case_text(
@@ -564,23 +510,16 @@ class TextFormatter(EvalResultFormatter):
             lines.append("")
 
         # Summary
-        if failed_only and original_counts:
-            orig_total, orig_passed, orig_failed, orig_warned = original_counts
-            lines.append(f"Note: Showing only {total_cases} failed evaluation(s) (--only-failed)")
-            summary = f"Summary -- Total: {orig_total} -- Passed: {orig_passed}"
-            if orig_warned > 0:
-                summary += f" -- Warnings: {orig_warned}"
-            if orig_failed > 0:
-                summary += f" -- Failed: {orig_failed}"
-        else:
-            summary = f"Summary -- Total: {total_cases} -- Passed: {total_passed}"
-            if total_warned > 0:
-                summary += f" -- Warnings: {total_warned}"
-            if total_failed > 0:
-                summary += f" -- Failed: {total_failed}"
-
-        lines.append(summary)
-        lines.append("")
+        lines.extend(
+            self._format_summary_lines(
+                total_cases,
+                total_passed,
+                total_failed,
+                total_warned,
+                failed_only,
+                original_counts,
+            )
+        )
 
         return "\n".join(lines)
 
@@ -643,61 +582,14 @@ class TextFormatter(EvalResultFormatter):
                 if case_input:
                     lines.append(f"  Input: {case_input}")
 
-                # Context section (if include_context is True)
                 if include_context:
-                    system_msg = first_model_data.get("system_message")
-                    addl_msgs = first_model_data.get("additional_messages")
-                    if system_msg or addl_msgs:
+                    context_lines = self._format_context_block(
+                        first_model_data.get("system_message"),
+                        first_model_data.get("additional_messages"),
+                    )
+                    if context_lines:
                         lines.append("")
-                        lines.append("  " + "-" * 40)
-                        lines.append("  📋 CONTEXT")
-                        lines.append("  " + "-" * 40)
-                        if system_msg:
-                            lines.append(f"  System Message: {system_msg}")
-                        if addl_msgs:
-                            lines.append(f"  💬 Conversation ({len(addl_msgs)} messages):")
-                            for msg in addl_msgs:
-                                role = msg.get("role", "unknown").upper()
-                                content = msg.get("content", "")
-                                name = msg.get("name", "")
-                                role_label = f"[{role}]" if not name else f"[{role}: {name}]"
-                                lines.append(f"    {role_label}")
-                                if content:
-                                    # For tool responses, try to format JSON
-                                    if role.lower() == "tool":
-                                        try:
-                                            import json
-
-                                            parsed = json.loads(content)
-                                            formatted = json.dumps(parsed, indent=2)
-                                            for json_line in formatted.split("\n"):
-                                                lines.append(f"      {json_line}")
-                                        except (json.JSONDecodeError, TypeError):
-                                            lines.append(f"      {content}")
-                                    else:
-                                        lines.append(f"      {content}")
-                                # Handle tool calls in assistant messages
-                                tool_calls = msg.get("tool_calls", [])
-                                if tool_calls:
-                                    for tc in tool_calls:
-                                        func = tc.get("function", {})
-                                        tc_name = func.get("name", "unknown")
-                                        tc_args = func.get("arguments", "{}")
-                                        lines.append(f"      🔧 {tc_name}")
-                                        try:
-                                            import json
-
-                                            args_dict = (
-                                                json.loads(tc_args)
-                                                if isinstance(tc_args, str)
-                                                else tc_args
-                                            )
-                                            formatted = json.dumps(args_dict, indent=2)
-                                            for arg_line in formatted.split("\n"):
-                                                lines.append(f"        {arg_line}")
-                                        except (json.JSONDecodeError, TypeError):
-                                            lines.append(f"        {tc_args}")
-                        lines.append("  " + "-" * 40)
+                        lines.extend(context_lines)
 
                 lines.append("")
 
@@ -723,23 +615,16 @@ class TextFormatter(EvalResultFormatter):
 
         # Summary
         lines.append("=" * 78)
-        if failed_only and original_counts:
-            orig_total, orig_passed, orig_failed, orig_warned = original_counts
-            lines.append(f"Note: Showing only {total_cases} failed evaluation(s) (--only-failed)")
-            summary = f"Summary -- Total: {orig_total} -- Passed: {orig_passed}"
-            if orig_warned > 0:
-                summary += f" -- Warnings: {orig_warned}"
-            if orig_failed > 0:
-                summary += f" -- Failed: {orig_failed}"
-        else:
-            summary = f"Summary -- Total: {total_cases} -- Passed: {total_passed}"
-            if total_warned > 0:
-                summary += f" -- Warnings: {total_warned}"
-            if total_failed > 0:
-                summary += f" -- Failed: {total_failed}"
-
-        lines.append(summary)
-        lines.append("")
+        lines.extend(
+            self._format_summary_lines(
+                total_cases,
+                total_passed,
+                total_failed,
+                total_warned,
+                failed_only,
+                original_counts,
+            )
+        )
 
         return "\n".join(lines)
 
@@ -841,6 +726,66 @@ class TextFormatter(EvalResultFormatter):
                     lines.append(f"      {detail_line}")
                 lines.append("")
 
+        return lines
+
+    def _format_summary_lines(
+        self,
+        total_cases: int,
+        total_passed: int,
+        total_failed: int,
+        total_warned: int,
+        failed_only: bool,
+        original_counts: tuple[int, int, int, int] | None,
+    ) -> list[str]:
+        """Build the summary lines used by regular and comparative formatters."""
+        lines: list[str] = []
+        if failed_only and original_counts:
+            orig_total, orig_passed, orig_failed, orig_warned = original_counts
+            lines.append(f"Note: Showing only {total_cases} failed evaluation(s) (--only-failed)")
+            summary = f"Summary -- Total: {orig_total} -- Passed: {orig_passed}"
+            if orig_warned > 0:
+                summary += f" -- Warnings: {orig_warned}"
+            if orig_failed > 0:
+                summary += f" -- Failed: {orig_failed}"
+        else:
+            summary = f"Summary -- Total: {total_cases} -- Passed: {total_passed}"
+            if total_warned > 0:
+                summary += f" -- Warnings: {total_warned}"
+            if total_failed > 0:
+                summary += f" -- Failed: {total_failed}"
+        lines.append(summary)
+        lines.append("")
+        return lines
+
+    def _format_context_block(
+        self,
+        system_msg: str | None,
+        additional_messages: list[dict] | None,
+        indent: str = "  ",
+    ) -> list[str]:
+        """Build the context section lines for comparative display.
+
+        Args:
+            system_msg: The system message, if any.
+            additional_messages: Conversation messages, if any.
+            indent: Base indentation prefix for each line.
+
+        Returns:
+            List of formatted lines (empty if no context data).
+        """
+        if not system_msg and not additional_messages:
+            return []
+        lines: list[str] = []
+        lines.append(indent + "-" * 40)
+        lines.append(indent + "📋 CONTEXT")
+        lines.append(indent + "-" * 40)
+        if system_msg:
+            lines.append(f"{indent}System Message: {system_msg}")
+        if additional_messages:
+            lines.append(f"{indent}💬 Conversation ({len(additional_messages)} messages):")
+            for conv_line in self._format_conversation_text(additional_messages):
+                lines.append(f"{indent}{conv_line}")
+        lines.append(indent + "-" * 40)
         return lines
 
     def _format_conversation_text(self, messages: list[dict]) -> list[str]:
