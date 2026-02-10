@@ -103,15 +103,31 @@ class StdioTransport:
 
         # Set up signal handlers
         loop = asyncio.get_running_loop()
+        _win_signal_logged = False
         for sig in (signal.SIGINT, signal.SIGTERM):
             try:
                 loop.add_signal_handler(sig, lambda: asyncio.create_task(self.stop()))
             except NotImplementedError:
-                # Windows doesn't support POSIX signals
+                # Windows doesn't support asyncio signal handlers.
+                # Log the informational message only once (not per-signal).
                 if sys.platform == "win32":
-                    logger.warning("Signal handling not fully supported on Windows")
+                    if not _win_signal_logged:
+                        _win_signal_logged = True
+                        logger.info(
+                            "Windows does not support asyncio signal handlers. "
+                            "Use Ctrl+C or close the terminal to stop the server."
+                        )
                 else:
                     logger.warning(f"Failed to set up signal handler for {sig}")
+
+        if sys.platform == "win32":
+            # On Windows, asyncio signal handlers don't work but the stdlib
+            # signal.signal(SIGINT) *does* receive Ctrl+C.  Register a
+            # fallback so that a Ctrl+C schedules a clean stop on the loop.
+            def _win_ctrl_c(signum: int, frame: object) -> None:
+                loop.call_soon_threadsafe(lambda: asyncio.ensure_future(self.stop()))
+
+            signal.signal(signal.SIGINT, _win_ctrl_c)
 
     async def stop(self) -> None:
         """Stop the transport."""

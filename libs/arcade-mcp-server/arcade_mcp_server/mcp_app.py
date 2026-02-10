@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import os
 import re
+import signal
 import subprocess
 import sys
 from pathlib import Path
@@ -365,15 +366,43 @@ class MCPApp:
             env = os.environ.copy()
             env["ARCADE_MCP_CHILD_PROCESS"] = "1"
 
+            creationflags = 0
+            if sys.platform == "win32":
+                # CREATE_NO_WINDOW: suppress phantom console window.
+                # CREATE_NEW_PROCESS_GROUP: allows us to send CTRL_BREAK_EVENT
+                # for graceful shutdown instead of hard-killing the child.
+                creationflags = (
+                    subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP
+                )
+
             return subprocess.Popen(
                 [sys.executable, *sys.argv],
                 env=env,
+                creationflags=creationflags,
             )
 
         def shutdown_server_process(process: subprocess.Popen, reason: str = "reload") -> None:
-            """Shutdown server process gracefully with fallback to force kill."""
+            """Shutdown server process gracefully with fallback to force kill.
+
+            On Windows, ``process.terminate()`` calls ``TerminateProcess`` which
+            kills the child immediately — there is no graceful shutdown.  To
+            allow the child to clean up we first try sending ``CTRL_BREAK_EVENT``
+            (requires ``CREATE_NEW_PROCESS_GROUP``), which Python's default
+            ``SIGINT`` handler will catch as ``KeyboardInterrupt``.  If that
+            doesn't work we fall back to ``terminate()`` / ``kill()``.
+            """
             logger.info(f"Shutting down server for {reason}...")
-            process.terminate()
+
+            if sys.platform == "win32":
+                # Try graceful: send Ctrl+Break to the child's process group.
+                try:
+                    process.send_signal(signal.CTRL_BREAK_EVENT)  # type: ignore[attr-defined]
+                except (OSError, AttributeError):
+                    # send_signal may fail if process already exited or if
+                    # CTRL_BREAK_EVENT is not available.
+                    process.terminate()
+            else:
+                process.terminate()
 
             try:
                 process.wait(timeout=5)

@@ -17,6 +17,7 @@ from rich.console import Console
 from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn
 from rich.text import Text
 
+from arcade_cli.console import console as _default_console
 from arcade_cli.display import display_eval_results
 from arcade_cli.formatters import get_capture_formatter
 from arcade_cli.utils import ModelSpec, filter_failed_evaluations

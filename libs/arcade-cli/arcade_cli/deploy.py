@@ -1,9 +1,12 @@
 import asyncio
 import base64
 import io
+import logging
 import os
 import random
+import signal
 import subprocess
+import sys
 import tarfile
 import time
 from collections import deque
@@ -14,7 +17,8 @@ import httpx
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 from rich.columns import Columns
-from rich.console import Console, Group
+from arcade_cli.console import console
+from rich.console import Group
 from rich.live import Live
 from rich.prompt import Confirm
 from rich.spinner import Spinner
@@ -30,7 +34,8 @@ from arcade_cli.utils import (
     validate_and_get_config,
 )
 
-console = Console()
+logger = logging.getLogger(__name__)
+
 
 # Models
 
@@ -362,6 +367,48 @@ def create_package_archive(package_dir: Path) -> str:
     return package_bytes_b64
 
 
+def _graceful_terminate(process: subprocess.Popen) -> None:
+    """Terminate a subprocess, preferring graceful shutdown on Windows.
+
+    On Windows, ``process.terminate()`` calls ``TerminateProcess`` which kills
+    the child immediately.  If the child was started with
+    ``CREATE_NEW_PROCESS_GROUP`` we can send ``CTRL_BREAK_EVENT`` first so
+    Python's default handler raises ``KeyboardInterrupt`` — giving the child
+    a chance to clean up.
+    """
+    if sys.platform == "win32":
+        try:
+            process.send_signal(signal.CTRL_BREAK_EVENT)  # type: ignore[attr-defined]
+            return
+        except (OSError, AttributeError) as exc:
+            logger.debug(
+                "CTRL_BREAK_EVENT failed during graceful shutdown; "
+                "falling back to terminate(): %s",
+                exc,
+            )
+    try:
+        process.terminate()
+    except OSError as exc:
+        logger.debug("terminate() failed during graceful shutdown: %s", exc)
+
+
+def _resolve_server_process_stdio(debug: bool) -> tuple[int | None, int | None]:
+    """Choose stdio strategy for the temporary validation server process.
+
+    When stdout/stderr are both PIPEs and no reader drains them, a chatty child
+    process can block on write before it reaches healthy startup. That manifests
+    as intermittent health-check timeouts on Windows in particular.
+    """
+    if debug:
+        # In debug mode, inherit parent streams so users can see live startup
+        # output directly in their terminal.
+        return None, None
+
+    # In normal mode we don't need child logs. Route output to DEVNULL so the
+    # child can never block on a full pipe buffer.
+    return subprocess.DEVNULL, subprocess.DEVNULL
+
+
 def start_server_process(entrypoint: str, debug: bool = False) -> tuple[subprocess.Popen, int]:
     """
     Start the MCP server process on a random port.
@@ -395,20 +442,34 @@ def start_server_process(entrypoint: str, debug: bool = False) -> tuple[subproce
     project_python = find_python_interpreter()
     cmd = [str(project_python), entrypoint]
 
+    creationflags = 0
+    if sys.platform == "win32":
+        # CREATE_NO_WINDOW: suppress phantom console window.
+        # CREATE_NEW_PROCESS_GROUP: allows sending CTRL_BREAK_EVENT for
+        # graceful shutdown instead of hard-killing the child.
+        creationflags = subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP
+
+    stdout_target, stderr_target = _resolve_server_process_stdio(debug)
+
     process = subprocess.Popen(
         cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stdout=stdout_target,
+        stderr=stderr_target,
         text=True,
         env=env,
+        creationflags=creationflags,
     )
 
     # Check for immediate failure on start up
     time.sleep(0.5)
     if process.poll() is not None:
         _, stderr = process.communicate()
-        error_msg = stderr.strip() if stderr else "Unknown error"
-        raise ValueError(f"Server process exited immediately: {error_msg}")
+        if stderr and stderr.strip():
+            error_msg = stderr.strip()
+            raise ValueError(f"Server process exited immediately: {error_msg}")
+        raise ValueError(
+            "Server process exited immediately. Re-run with --debug to show server startup logs."
+        )
 
     return process, port
 
@@ -442,7 +503,7 @@ def wait_for_health(base_url: str, process: subprocess.Popen, timeout: int = 30)
         time.sleep(0.5)
 
     if not is_healthy:
-        process.terminate()
+        _graceful_terminate(process)
         try:
             _, stderr = process.communicate(timeout=2)
             error_msg = stderr.strip() if stderr else "Server failed to become healthy"
@@ -586,7 +647,7 @@ def verify_server_and_get_metadata(
 
     finally:
         # Always stop the server
-        process.terminate()
+        _graceful_terminate(process)
         try:
             process.wait(timeout=5)
         except subprocess.TimeoutExpired:

@@ -10,9 +10,8 @@ from pathlib import Path
 
 import typer
 from dotenv import dotenv_values
-from rich.console import Console
+from arcade_cli.console import console
 
-console = Console()
 
 
 def is_wsl() -> bool:
@@ -23,7 +22,7 @@ def is_wsl() -> bool:
 
     # Check /proc/version for WSL indicators
     try:
-        with open("/proc/version") as f:
+        with open("/proc/version", encoding="utf-8") as f:
             version_info = f.read().lower()
             return "microsoft" in version_info or "wsl" in version_info
     except (FileNotFoundError, PermissionError):
@@ -53,6 +52,73 @@ def get_windows_username() -> str | None:
     return None
 
 
+def _resolve_windows_appdata_with_platformdirs() -> Path | None:
+    """Resolve Windows roaming AppData via optional ``platformdirs``.
+
+    ``platformdirs`` is the de-facto standard Python library for OS-specific
+    user directory resolution. We import it lazily and treat it as optional so
+    existing environments keep working without new hard dependencies.
+    """
+    try:
+        from platformdirs import user_data_dir
+    except ImportError:
+        return None
+
+    try:
+        candidate = user_data_dir(appname=None, appauthor=False, roaming=True)
+    except TypeError:
+        # Compatibility with older signatures that rely on positional args.
+        candidate = user_data_dir(None, False, roaming=True)
+
+    if not candidate:
+        return None
+    return Path(candidate)
+
+
+def _resolve_windows_appdata() -> Path:
+    """Resolve the Windows roaming AppData directory with fallbacks."""
+    appdata = os.environ.get("APPDATA")
+    if appdata:
+        return Path(appdata)
+
+    # Prefer platformdirs when available.
+    if platformdirs_path := _resolve_windows_appdata_with_platformdirs():
+        return platformdirs_path
+
+    local_appdata = os.environ.get("LOCALAPPDATA")
+    if local_appdata:
+        roaming_candidate = Path(local_appdata).parent / "Roaming"
+        if roaming_candidate.exists():
+            return roaming_candidate
+        return Path(local_appdata)
+
+    user_profile = os.environ.get("USERPROFILE")
+    if user_profile:
+        return Path(user_profile) / "AppData" / "Roaming"
+
+    # Final fallback: best-effort guess using HOME.
+    return Path.home() / "AppData" / "Roaming"
+
+
+def _format_path_for_display(path: Path, platform_system: str | None = None) -> str:
+    path_str = str(path)
+    if " " in path_str:
+        system = platform_system or platform.system()
+        if system == "Windows":
+            return f'"{path_str}"'
+        return path_str.replace(" ", "\\ ")
+    return path_str
+
+
+def _warn_overwrite(config: dict, section: str, server_name: str, config_path: Path) -> None:
+    if section in config and server_name in config[section]:
+        config_display = _format_path_for_display(config_path)
+        console.print(
+            f"[yellow]Warning: MCP server '{server_name}' already exists in {config_display}. "
+            "This will overwrite the existing entry. Use --name to keep both.[/yellow]"
+        )
+
+
 def get_claude_config_path() -> Path:
     """Get the Claude Desktop configuration file path."""
     system = platform.system()
@@ -65,7 +131,7 @@ def get_claude_config_path() -> Path:
             / "claude_desktop_config.json"
         )
     elif system == "Windows":
-        return Path(os.environ["APPDATA"]) / "Claude" / "claude_desktop_config.json"
+        return _resolve_windows_appdata() / "Claude" / "claude_desktop_config.json"
     else:  # Linux
         # Check if we're in WSL - if so, use Windows path
         if is_wsl():
@@ -90,7 +156,7 @@ def get_cursor_config_path() -> Path:
     if system == "Darwin":  # macOS
         return Path.home() / ".cursor" / "mcp.json"
     elif system == "Windows":
-        return Path(os.environ["APPDATA"]) / "Cursor" / "mcp.json"
+        return _resolve_windows_appdata() / "Cursor" / "mcp.json"
     else:  # Linux
         # Check if we're in WSL - if so, use Windows path
         if is_wsl():
@@ -114,7 +180,7 @@ def get_vscode_config_path() -> Path:
     if system == "Darwin":  # macOS
         return Path.home() / "Library" / "Application Support" / "Code" / "User" / "mcp.json"
     elif system == "Windows":
-        return Path(os.environ["APPDATA"]) / "Code" / "User" / "mcp.json"
+        return _resolve_windows_appdata() / "Code" / "User" / "mcp.json"
     else:  # Linux
         # Check if we're in WSL - if so, use Windows path
         if is_wsl():
@@ -218,27 +284,32 @@ def configure_claude_local(
     # Load existing config or create new one
     config = {}
     if config_path.exists():
-        with open(config_path) as f:
+        with open(config_path, encoding="utf-8") as f:
             config = json.load(f)
 
     # Add or update MCP servers configuration
     if "mcpServers" not in config:
         config["mcpServers"] = {}
 
+    _warn_overwrite(config, "mcpServers", server_name, config_path)
+
     # Claude Desktop uses stdio transport
     config["mcpServers"][server_name] = get_stdio_config(entrypoint_file, server_name)
 
     # Write updated config
-    with open(config_path, "w") as f:
+    with open(config_path, "w", encoding="utf-8") as f:
         json.dump(config, f, indent=2)
 
     console.print(
         f"✅ Configured Claude Desktop by adding local MCP server '{server_name}' to the configuration",
         style="green",
     )
-    config_file_path = config_path.as_posix().replace(" ", "\\ ")
+    config_file_path = _format_path_for_display(config_path)
     console.print(f"   MCP client config file: {config_file_path}", style="dim")
-    console.print(f"   Server file: {Path.cwd() / entrypoint_file}", style="dim")
+    console.print(
+        f"   Server file: {_format_path_for_display(Path.cwd() / entrypoint_file)}",
+        style="dim",
+    )
     if is_uv_installed():
         console.print("   Using uv to run server", style="dim")
     else:
@@ -282,12 +353,14 @@ def configure_cursor_local(
     # Load existing config or create new one
     config = {}
     if config_path.exists():
-        with open(config_path) as f:
+        with open(config_path, encoding="utf-8") as f:
             config = json.load(f)
 
     # Add or update MCP servers configuration
     if "mcpServers" not in config:
         config["mcpServers"] = {}
+
+    _warn_overwrite(config, "mcpServers", server_name, config_path)
 
     config["mcpServers"][server_name] = (
         get_stdio_config(entrypoint_file, server_name)
@@ -296,14 +369,14 @@ def configure_cursor_local(
     )
 
     # Write updated config
-    with open(config_path, "w") as f:
+    with open(config_path, "w", encoding="utf-8") as f:
         json.dump(config, f, indent=2)
 
     console.print(
         f"✅ Configured Cursor by adding local MCP server '{server_name}' to the configuration",
         style="green",
     )
-    config_file_path = config_path.as_posix().replace(" ", "\\ ")
+    config_file_path = _format_path_for_display(config_path)
     console.print(f"   MCP client config file: {config_file_path}", style="dim")
     if transport == "http":
         console.print(f"   MCP Server URL: http://localhost:{port}/mcp", style="dim")
@@ -347,12 +420,12 @@ def configure_vscode_local(
     # Load existing config or create new one
     config = {}
     if config_path.exists():
-        with open(config_path) as f:
+        with open(config_path, encoding="utf-8") as f:
             try:
                 config = json.load(f)
             except json.JSONDecodeError as e:
                 raise ValueError(
-                    f"\n\tFailed to load MCP configuration file at {config_path.as_posix()} "
+                    f"\n\tFailed to load MCP configuration file at {_format_path_for_display(config_path)} "
                     f"\n\tThe file contains invalid JSON: {e}. "
                     "\n\tPlease check the file format or delete it to create a new configuration."
                 )
@@ -361,6 +434,8 @@ def configure_vscode_local(
     if "servers" not in config:
         config["servers"] = {}
 
+    _warn_overwrite(config, "servers", server_name, config_path)
+
     config["servers"][server_name] = (
         get_stdio_config(entrypoint_file, server_name)
         if transport == "stdio"
@@ -368,14 +443,14 @@ def configure_vscode_local(
     )
 
     # Write updated config
-    with open(config_path, "w") as f:
+    with open(config_path, "w", encoding="utf-8") as f:
         json.dump(config, f, indent=2)
 
     console.print(
         f"✅ Configured VS Code by adding local MCP server '{server_name}' to the configuration",
         style="green",
     )
-    config_file_path = config_path.as_posix().replace(" ", "\\ ")
+    config_file_path = _format_path_for_display(config_path)
     console.print(f"   MCP client config file: {config_file_path}", style="dim")
     if transport == "http":
         console.print(f"   MCP Server URL: http://localhost:{port}/mcp", style="dim")

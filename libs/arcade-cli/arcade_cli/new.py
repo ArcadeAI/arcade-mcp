@@ -7,11 +7,10 @@ from typing import Optional
 
 import typer
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-from rich.console import Console
+from arcade_cli.console import console
 
 from arcade_cli.templates import get_full_template_directory, get_minimal_template_directory
 
-console = Console()
 
 # Retrieve the installed version of arcade-mcp
 try:
@@ -144,7 +143,13 @@ def remove_toolkit(toolkit_directory: Path, toolkit_name: str) -> None:
     """Teardown logic for when creating a new toolkit fails."""
     toolkit_path = toolkit_directory / toolkit_name
     if toolkit_path.exists():
-        shutil.rmtree(toolkit_path)
+        try:
+            shutil.rmtree(toolkit_path)
+        except (PermissionError, OSError) as e:
+            # On Windows, files may still be locked by another process.
+            console.print(
+                f"[yellow]Warning: Could not fully remove '{toolkit_path}': {e}[/yellow]"
+            )
 
 
 def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
@@ -271,9 +276,14 @@ def create_new_toolkit_minimal(output_directory: str, toolkit_name: str) -> None
 
     try:
         create_package(env, template_directory, toolkit_directory, context, ignore_pattern)
+        console.print("")
         console.print(
             f"[green]Server '{toolkit_name}' created successfully at '{toolkit_directory}'.[/green]"
         )
+        console.print("Next steps:", style="bold")
+        console.print(f"  cd {toolkit_directory / toolkit_name / 'src' / toolkit_name}")
+        console.print("  uv run server.py")
+        console.print("")
     except Exception:
         remove_toolkit(toolkit_directory, toolkit_name)
         raise

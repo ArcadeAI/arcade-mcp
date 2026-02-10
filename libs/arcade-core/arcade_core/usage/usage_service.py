@@ -78,16 +78,20 @@ class UsageService:
         env[ARCADE_USAGE_EVENT_DATA] = event_data
 
         if sys.platform == "win32":
-            # Windows: Use DETACHED_PROCESS to fully detach from parent console
+            # Windows: Use DETACHED_PROCESS + CREATE_NO_WINDOW to fully
+            # detach from the parent console *and* prevent allocation of a
+            # new console window.  CREATE_NEW_PROCESS_GROUP allows the child
+            # to be signaled independently.
             DETACHED_PROCESS = 0x00000008
             CREATE_NEW_PROCESS_GROUP = 0x00000200
+            CREATE_NO_WINDOW = 0x08000000
 
             subprocess.Popen(
                 cmd,
                 stdin=subprocess.DEVNULL,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
-                creationflags=DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP,
+                creationflags=DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW,
                 close_fds=True,
                 env=env,
             )

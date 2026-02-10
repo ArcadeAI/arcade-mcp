@@ -10,11 +10,13 @@ import click
 import typer
 from arcade_core.constants import CREDENTIALS_FILE_PATH, PROD_COORDINATOR_HOST, PROD_ENGINE_HOST
 from arcadepy import Arcade
-from rich.console import Console
+from arcade_cli.console import console
 
 from arcade_cli.authn import (
+    DEFAULT_OAUTH_TIMEOUT_SECONDS,
     OAuthLoginError,
     _credentials_file_contains_legacy,
+    _open_browser,
     build_coordinator_url,
     check_existing_login,
     perform_oauth_login,
@@ -73,7 +75,6 @@ cli.add_typer(
 )
 
 
-console = Console()
 
 
 @cli.command(help="Log in to Arcade", rich_help_panel="User")
@@ -89,6 +90,11 @@ def login(
         "-p",
         "--port",
         help="The port of the Arcade Coordinator host (if running locally).",
+    ),
+    timeout: int = typer.Option(
+        DEFAULT_OAUTH_TIMEOUT_SECONDS,
+        "--timeout",
+        help="Seconds to wait for the local login callback.",
     ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
@@ -107,6 +113,7 @@ def login(
         result = perform_oauth_login(
             coordinator_url,
             on_status=lambda msg: console.print(msg, style="dim"),
+            callback_timeout_seconds=timeout,
         )
 
         # Save credentials
@@ -144,7 +151,16 @@ def logout(
     try:
         # If the credentials file exists, delete it
         if os.path.exists(CREDENTIALS_FILE_PATH):
-            os.remove(CREDENTIALS_FILE_PATH)
+            try:
+                os.remove(CREDENTIALS_FILE_PATH)
+            except PermissionError:
+                # On Windows, the file may be locked by another process.
+                handle_cli_error(
+                    "Could not remove credentials file — it may be in use by another process. "
+                    "Close other Arcade instances and try again.",
+                    should_exit=False,
+                )
+                return
             console.print("You're now logged out.", style="bold")
         else:
             console.print("You're not logged in.", style="bold red")
@@ -311,8 +327,15 @@ def mcp(
         if debug:
             console.print(f"[dim]Running: {' '.join(cmd)}[/dim]")
 
-        # Execute the command and pass through all output
-        result = subprocess.run(cmd, check=False)
+        # Execute the command and pass through all output.
+        # On Windows, set CREATE_NO_WINDOW to prevent a phantom console
+        # window from appearing (e.g. when an MCP client spawns this
+        # command without an attached console).  The child process still
+        # inherits stdin/stdout/stderr for stdio transport communication.
+        run_kwargs: dict[str, object] = {"check": False}
+        if sys.platform == "win32":
+            run_kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
+        result = subprocess.run(cmd, **run_kwargs)
 
         # Exit with the same code as the subprocess
         if result.returncode != 0:
@@ -918,7 +941,7 @@ def dashboard(
 
         # Open the dashboard in a browser
         console.print(f"Opening Arcade Dashboard at {dashboard_url}")
-        if not webbrowser.open(dashboard_url):
+        if not _open_browser(dashboard_url):
             console.print(
                 f"If a browser doesn't open automatically, copy this URL and paste it into your browser: {dashboard_url}",
                 style="dim",

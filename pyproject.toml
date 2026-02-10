@@ -1,6 +1,6 @@
 [project]
 name = "arcade-mcp"
-version = "1.9.0"
+version = "1.10.0"
 description = "Arcade.dev - Tool Calling platform for Agents"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -19,7 +19,7 @@ requires-python = ">=3.10"
 
 dependencies = [
     # CLI dependencies
-    "arcade-mcp-server>=1.15.1,<2.0.0",
+    "arcade-mcp-server>=1.15.3,<2.0.0",
     "arcade-core>=4.2.2,<5.0.0",
     "typer==0.10.0",
     "rich>=14.0.0,<15.0.0",
@@ -42,8 +42,10 @@ all = [
     "numpy>=2.0.0",
     "scikit-learn>=1.5.0",
     "pytz>=2024.1",
+    # platform-aware user directories (optional Windows path resolution)
+    "platformdirs>=4.3.6",
     # mcp server
-    "arcade-mcp-server>=1.14.0,<2.0.0",
+    "arcade-mcp-server>=1.15.3,<2.0.0",
     # serve
     "arcade-serve>=3.2.0,<4.0.0",
     # tdk
@@ -60,6 +62,10 @@ evals = [
     "numpy>=2.0.0",
     "scikit-learn>=1.5.0",
     "pytz>=2024.1",
+]
+
+windows = [
+    "platformdirs>=4.3.6",
 ]
 
 dev = [

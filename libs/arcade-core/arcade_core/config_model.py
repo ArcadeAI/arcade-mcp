@@ -1,10 +1,42 @@
+import logging
 import os
+import subprocess
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
 import yaml
 from pydantic import BaseModel, ConfigDict, ValidationError
+
+logger = logging.getLogger(__name__)
+
+
+def _set_windows_owner_acl(config_file_path: Path) -> None:
+    """Apply owner-only style ACLs on Windows using ``icacls``.
+
+    This mirrors the intent of POSIX ``chmod 600`` more closely than
+    ``Path.chmod(0o600)`` on Windows, where chmod mostly toggles the
+    read-only attribute.
+    """
+    username = os.environ.get("USERNAME")
+    if not username:
+        raise OSError("USERNAME is not set; cannot apply Windows ACL restrictions")
+
+    # Remove inherited ACEs, then grant the current user read/write.
+    subprocess.run(
+        ["icacls", str(config_file_path), "/inheritance:r"],
+        check=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    subprocess.run(
+        ["icacls", str(config_file_path), "/grant:r", f"{username}:(R,W)"],
+        check=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
 
 
 class BaseConfig(BaseModel):
@@ -182,7 +214,7 @@ class Config(BaseConfig):
                 "Please run 'arcade login' to create your configuration."
             )
 
-        config_data = yaml.safe_load(config_file_path.read_text())
+        config_data = yaml.safe_load(config_file_path.read_text(encoding="utf-8"))
 
         if config_data is None:
             raise ValueError(
@@ -230,7 +262,18 @@ class Config(BaseConfig):
 
         # Convert to dict, excluding None values for cleaner output
         data = {"cloud": self.model_dump(exclude_none=True, mode="json")}
-        config_file_path.write_text(yaml.dump(data, default_flow_style=False))
+        config_file_path.write_text(yaml.dump(data, default_flow_style=False), encoding="utf-8")
 
-        # Set restrictive permissions (owner read/write only)
-        config_file_path.chmod(0o600)
+        # Set restrictive permissions (owner read/write only).
+        # On Windows, prefer ACL hardening via icacls.
+        try:
+            if os.name == "nt":
+                _set_windows_owner_acl(config_file_path)
+            else:
+                config_file_path.chmod(0o600)
+        except (OSError, subprocess.SubprocessError) as exc:
+            logger.warning(
+                "Unable to apply restrictive permissions to %s: %s",
+                config_file_path,
+                exc,
+            )

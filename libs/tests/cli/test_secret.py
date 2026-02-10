@@ -36,7 +36,7 @@ KEY2=value2
 # This is a comment
 KEY3=value3
 """
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".env", delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".env", delete=False, encoding="utf-8") as f:
             f.write(env_content)
             f.flush()
 
@@ -56,7 +56,7 @@ KEY2='single quoted'
 KEY3="value with = sign"
 KEY4="value with # comment inside"
 """
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".env", delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".env", delete=False, encoding="utf-8") as f:
             f.write(env_content)
             f.flush()
 
@@ -76,7 +76,7 @@ KEY1=value1 # inline comment
 KEY2="quoted value" # comment after quote
 KEY3=value3# no space before comment
 """
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".env", delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".env", delete=False, encoding="utf-8") as f:
             f.write(env_content)
             f.flush()
 
@@ -100,7 +100,7 @@ KEY3=value3
 invalid_line_without_equals
 KEY4=value4
 """
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".env", delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".env", delete=False, encoding="utf-8") as f:
             f.write(env_content)
             f.flush()
 

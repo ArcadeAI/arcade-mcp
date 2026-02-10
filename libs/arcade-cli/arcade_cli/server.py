@@ -10,7 +10,7 @@ from arcade_core.constants import PROD_ENGINE_HOST
 from arcadepy import NotFoundError
 from arcadepy.types import WorkerHealthResponse, WorkerResponse
 from dateutil import parser
-from rich.console import Console
+from arcade_cli.console import console
 from rich.table import Table
 
 from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
@@ -22,7 +22,6 @@ from arcade_cli.utils import (
     handle_cli_error,
 )
 
-console = Console()
 
 
 def _format_timestamp_to_local(timestamp_str: str) -> str:
@@ -325,7 +324,7 @@ def _display_deployment_logs(
             logs = response.json()
             for log in logs:
                 formatted_timestamp = _format_timestamp_to_local(log["timestamp"])
-                print(f"[{formatted_timestamp}] {log['line']}")
+                console.print(f"[{formatted_timestamp}] {log['line']}")
     except httpx.HTTPStatusError as e:
         handle_cli_error(
             f"Failed to fetch logs: {e.response.status_code} {e.response.text}", debug=debug
@@ -359,11 +358,11 @@ async def _stream_deployment_logs(
                         timestamp_str = data.get("Timestamp", "")
                         log_line = data.get("Line", "")
                         formatted_timestamp = _format_timestamp_to_local(timestamp_str)
-                        print(f"[{formatted_timestamp}] {log_line}")
+                        console.print(f"[{formatted_timestamp}] {log_line}")
                     except (json.JSONDecodeError, KeyError, IndexError):
-                        print(line)
+                        console.print(line)
                 else:
-                    print(line)
+                    console.print(line)
     except httpx.HTTPStatusError as e:
         handle_cli_error(f"Failed to stream logs: {e.response.status_code}", debug=debug)
     except Exception as e:

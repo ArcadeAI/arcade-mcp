@@ -35,12 +35,11 @@ from arcadepy import (
 )
 from arcadepy.types import AuthorizationResponse
 from pydantic import ValidationError
-from rich.console import Console
+from arcade_cli.console import console
 from rich.markup import escape
 from typer.core import TyperGroup
 from typer.models import Context
 
-console = Console()
 
 
 # -----------------------------------------------------------------------------
@@ -1084,7 +1083,7 @@ def load_dotenv(path: str | Path, *, override: bool = False) -> dict[str, str]:
 
     loaded: dict[str, str] = {}
 
-    for raw in path.read_text().splitlines():
+    for raw in path.read_text(encoding="utf-8").splitlines():
         parsed = _parse_line(raw.strip())
         if parsed is None:
             continue
