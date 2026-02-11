@@ -2,7 +2,6 @@ import asyncio
 import os
 import subprocess
 import sys
-import webbrowser
 from pathlib import Path
 from typing import Optional
 
@@ -10,7 +9,6 @@ import click
 import typer
 from arcade_core.constants import CREDENTIALS_FILE_PATH, PROD_COORDINATOR_HOST, PROD_ENGINE_HOST
 from arcadepy import Arcade
-from arcade_cli.console import console
 
 from arcade_cli.authn import (
     DEFAULT_OAUTH_TIMEOUT_SECONDS,
@@ -22,6 +20,7 @@ from arcade_cli.authn import (
     perform_oauth_login,
     save_credentials_from_whoami,
 )
+from arcade_cli.console import console
 from arcade_cli.evals_runner import run_capture, run_evaluations
 from arcade_cli.org import app as org_app
 from arcade_cli.project import app as project_app
@@ -73,8 +72,6 @@ cli.add_typer(
     help="Manage tool secrets in the cloud (set, unset, list)",
     rich_help_panel="Manage",
 )
-
-
 
 
 @cli.command(help="Log in to Arcade", rich_help_panel="User")

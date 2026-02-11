@@ -17,7 +17,6 @@ import httpx
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 from rich.columns import Columns
-from arcade_cli.console import console
 from rich.console import Group
 from rich.live import Live
 from rich.prompt import Confirm
@@ -26,6 +25,7 @@ from rich.text import Text
 from typing_extensions import Literal
 
 from arcade_cli.configure import find_python_interpreter
+from arcade_cli.console import console
 from arcade_cli.secret import load_env_file
 from arcade_cli.utils import (
     compute_base_url,
@@ -379,7 +379,7 @@ def _graceful_terminate(process: subprocess.Popen) -> None:
     if sys.platform == "win32":
         try:
             process.send_signal(signal.CTRL_BREAK_EVENT)  # type: ignore[attr-defined]
-            return
+            return  # noqa: TRY300
         except (OSError, AttributeError) as exc:
             logger.debug(
                 "CTRL_BREAK_EVENT failed during graceful shutdown; "

@@ -22,8 +22,6 @@ from pathlib import Path
 from typing import Any, Callable
 from urllib.parse import parse_qs
 
-logger = logging.getLogger(__name__)
-
 import httpx
 import yaml
 from arcade_core.auth_tokens import (
@@ -37,7 +35,10 @@ from arcade_core.constants import ARCADE_CONFIG_PATH, CREDENTIALS_FILE_PATH
 from authlib.integrations.httpx_client import OAuth2Client
 from jinja2 import Environment, FileSystemLoader
 from pydantic import AliasChoices, BaseModel, Field
+
 from arcade_cli.console import console
+
+logger = logging.getLogger(__name__)
 
 # Set up Jinja2 templates
 _TEMPLATES_DIR = Path(__file__).parent / "templates"
@@ -50,7 +51,6 @@ def _render_template(template_name: str, **context: Any) -> bytes:
     return template.render(**context).encode("utf-8")
 
 
-
 # OAuth constants
 DEFAULT_SCOPES = "openid offline_access"
 LOCAL_CALLBACK_PORT = 9905
@@ -61,7 +61,7 @@ def _get_default_oauth_timeout_seconds() -> int:
     value = os.environ.get("ARCADE_LOGIN_TIMEOUT_SECONDS", str(DEFAULT_OAUTH_TIMEOUT_SECONDS))
     try:
         parsed = int(value)
-        return parsed if parsed > 0 else DEFAULT_OAUTH_TIMEOUT_SECONDS
+        return parsed if parsed > 0 else DEFAULT_OAUTH_TIMEOUT_SECONDS  # noqa: TRY300
     except ValueError:
         return DEFAULT_OAUTH_TIMEOUT_SECONDS
 
@@ -396,7 +396,11 @@ class OAuthCallbackServer:
         """
         server_address = ("127.0.0.1", self.port)
         handler = lambda *args, **kwargs: OAuthCallbackHandler(
-            *args, state=self.state, result_holder=self.result, result_event=self.result_event, **kwargs
+            *args,
+            state=self.state,
+            result_holder=self.result,
+            result_event=self.result_event,
+            **kwargs,
         )
         self.httpd = HTTPServer(server_address, handler)
         self.port = self.httpd.server_port
@@ -537,17 +541,17 @@ def _open_browser(url: str) -> bool:
 
         SW_SHOWNORMAL = 1
         result = ctypes.windll.shell32.ShellExecuteW(  # type: ignore[attr-defined]
-            None,   # hwnd
+            None,  # hwnd
             "open",  # operation
-            url,    # file/URL
-            None,   # parameters
-            None,   # directory
+            url,  # file/URL
+            None,  # parameters
+            None,  # directory
             SW_SHOWNORMAL,
         )
         # ShellExecuteW returns > 32 on success.
         if result > 32:
             return True
-    except Exception:
+    except Exception:  # noqa: S110
         pass
 
     # Attempt 2: rundll32 url.dll — a GUI-subsystem binary, no console.
@@ -556,19 +560,19 @@ def _open_browser(url: str) -> bool:
         si.dwFlags |= subprocess.STARTF_USESHOWWINDOW  # type: ignore[attr-defined]
         si.wShowWindow = 0  # SW_HIDE
         subprocess.Popen(
-            ["rundll32", "url.dll,FileProtocolHandler", url],
+            ["rundll32", "url.dll,FileProtocolHandler", url],  # noqa: S607
             startupinfo=si,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
-        return True
-    except Exception:
+        return True  # noqa: TRY300
+    except Exception:  # noqa: S110
         pass
 
     # Attempt 3: os.startfile — CPython's ShellExecuteExW wrapper.
     try:
-        os.startfile(url)  # type: ignore[attr-defined]  # Windows-only
-        return True
+        os.startfile(url)  # type: ignore[attr-defined]  # Windows-only  # noqa: S606
+        return True  # noqa: TRY300
     except OSError:
         pass
 
@@ -717,7 +721,9 @@ def perform_oauth_login(
             browser_opened = _open_browser(auth_url)
 
             if not browser_opened:
-                status(f"Could not open a browser automatically.\nCopy this URL into your browser:\n{auth_url}")
+                status(
+                    f"Could not open a browser automatically.\nCopy this URL into your browser:\n{auth_url}"
+                )
             else:
                 # Always show the URL so users have a fallback if the browser
                 # didn't navigate correctly or opened the wrong profile.

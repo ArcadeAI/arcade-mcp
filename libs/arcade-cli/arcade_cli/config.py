@@ -5,9 +5,9 @@ Configuration utilities for the Arcade CLI.
 from dataclasses import dataclass
 from typing import Any
 
-from arcade_cli.console import console
 from rich.table import Table
 
+from arcade_cli.console import console
 
 
 @dataclass

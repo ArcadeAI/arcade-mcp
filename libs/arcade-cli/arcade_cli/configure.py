@@ -10,8 +10,8 @@ from pathlib import Path
 
 import typer
 from dotenv import dotenv_values
-from arcade_cli.console import console
 
+from arcade_cli.console import console
 
 
 def is_wsl() -> bool:

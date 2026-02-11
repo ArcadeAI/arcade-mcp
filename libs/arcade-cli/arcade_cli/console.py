@@ -30,7 +30,7 @@ def _configure_windows_utf8() -> None:
             sys.stdout.reconfigure(encoding="utf-8", errors="replace")
         if hasattr(sys.stderr, "reconfigure"):
             sys.stderr.reconfigure(encoding="utf-8", errors="replace")
-    except Exception:
+    except Exception:  # noqa: S110
         # Fall back to environment hint for child processes.
         pass
 

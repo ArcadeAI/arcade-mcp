@@ -166,3 +166,4 @@ ignore = ["E501", "S105"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
+"tests/**/*.py" = ["C901"]

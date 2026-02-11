@@ -166,7 +166,7 @@ class TestRunner:
 
         return True
 
-    def test_cli_configure(self) -> bool:
+    def test_cli_configure(self) -> bool:  # noqa: C901
         """Run arcade configure against temp config files."""
         print("\n" + "=" * 60)
         print("CLI Configure Tests")

@@ -7,10 +7,9 @@ from typing import Optional
 
 import typer
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+
 from arcade_cli.console import console
-
 from arcade_cli.templates import get_full_template_directory, get_minimal_template_directory
-
 
 # Retrieve the installed version of arcade-mcp
 try:
@@ -147,9 +146,7 @@ def remove_toolkit(toolkit_directory: Path, toolkit_name: str) -> None:
             shutil.rmtree(toolkit_path)
         except (PermissionError, OSError) as e:
             # On Windows, files may still be locked by another process.
-            console.print(
-                f"[yellow]Warning: Could not fully remove '{toolkit_path}': {e}[/yellow]"
-            )
+            console.print(f"[yellow]Warning: Could not fully remove '{toolkit_path}': {e}[/yellow]")
 
 
 def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:

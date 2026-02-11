@@ -24,14 +24,14 @@ def _set_windows_owner_acl(config_file_path: Path) -> None:
 
     # Remove inherited ACEs, then grant the current user read/write.
     subprocess.run(
-        ["icacls", str(config_file_path), "/inheritance:r"],
+        ["icacls", str(config_file_path), "/inheritance:r"],  # noqa: S607
         check=True,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.PIPE,
         text=True,
     )
     subprocess.run(
-        ["icacls", str(config_file_path), "/grant:r", f"{username}:(R,W)"],
+        ["icacls", str(config_file_path), "/grant:r", f"{username}:(R,W)"],  # noqa: S607
         check=True,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.PIPE,

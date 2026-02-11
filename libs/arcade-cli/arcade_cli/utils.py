@@ -35,12 +35,11 @@ from arcadepy import (
 )
 from arcadepy.types import AuthorizationResponse
 from pydantic import ValidationError
-from arcade_cli.console import console
 from rich.markup import escape
 from typer.core import TyperGroup
 from typer.models import Context
 
-
+from arcade_cli.console import console
 
 # -----------------------------------------------------------------------------
 # Shared helpers for the CLI

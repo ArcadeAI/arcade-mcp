@@ -1,15 +1,13 @@
 import typer
 from arcade_core.constants import PROD_COORDINATOR_HOST
-from arcade_cli.console import console
 
 from arcade_cli.authn import fetch_projects
+from arcade_cli.console import console
 from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
     compute_base_url,
     handle_cli_error,
 )
-
-
 
 app = TrackedTyper(
     cls=TrackedTyperGroup,

@@ -10,9 +10,9 @@ from arcade_core.constants import PROD_ENGINE_HOST
 from arcadepy import NotFoundError
 from arcadepy.types import WorkerHealthResponse, WorkerResponse
 from dateutil import parser
-from arcade_cli.console import console
 from rich.table import Table
 
+from arcade_cli.console import console
 from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
     compute_base_url,
@@ -21,7 +21,6 @@ from arcade_cli.utils import (
     get_org_scoped_url,
     handle_cli_error,
 )
-
 
 
 def _format_timestamp_to_local(timestamp_str: str) -> str:

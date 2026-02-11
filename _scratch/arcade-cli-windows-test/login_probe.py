@@ -15,7 +15,6 @@ from arcade_cli.authn import (
     save_credentials_from_whoami,
 )
 
-
 LOG_PATH = Path(__file__).with_name("login_probe.log")
 CALLBACK_PORT = 9905
 
@@ -56,7 +55,7 @@ def main() -> None:
             self.end_headers()
             self.wfile.write(body.encode("utf-8"))
 
-        def do_GET(self) -> None:  # noqa: N802
+        def do_GET(self) -> None:
             parsed = urlparse(self.path)
             params = parse_qs(parsed.query)
             state = params.get("state", [None])[0]

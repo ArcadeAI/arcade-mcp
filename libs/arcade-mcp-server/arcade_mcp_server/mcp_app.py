@@ -371,9 +371,7 @@ class MCPApp:
                 # CREATE_NO_WINDOW: suppress phantom console window.
                 # CREATE_NEW_PROCESS_GROUP: allows us to send CTRL_BREAK_EVENT
                 # for graceful shutdown instead of hard-killing the child.
-                creationflags = (
-                    subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP
-                )
+                creationflags = subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP
 
             return subprocess.Popen(
                 [sys.executable, *sys.argv],

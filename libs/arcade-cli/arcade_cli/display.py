@@ -2,10 +2,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional
 
 from arcade_core.schema import ToolDefinition
-from arcade_cli.console import console
+from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
+
+from arcade_cli.console import console
 
 if TYPE_CHECKING:
     from arcade_evals.eval import EvaluationResult
