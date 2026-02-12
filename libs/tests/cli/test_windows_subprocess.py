@@ -37,15 +37,24 @@ class TestDeployCreateNoWindow:
         mock_proc.poll.return_value = None  # Process is running
         mock_popen.return_value = mock_proc
 
+        # On non-Windows, CREATE_NO_WINDOW doesn't exist; patch deploy's subprocess
+        create_no_window = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
+        create_new_pg = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0x00000200)
+
         with patch.object(sys, "platform", "win32"):
-            from arcade_cli.deploy import start_server_process
-            start_server_process("server.py")
+            with patch.object(
+                subprocess, "CREATE_NO_WINDOW", create_no_window, create=True
+            ), patch.object(
+                subprocess, "CREATE_NEW_PROCESS_GROUP", create_new_pg, create=True
+            ):
+                from arcade_cli.deploy import start_server_process
+                start_server_process("server.py")
 
         _, kwargs = mock_popen.call_args
         flags = kwargs.get("creationflags", 0)
         # Both flags must be present
-        assert flags & subprocess.CREATE_NO_WINDOW, "CREATE_NO_WINDOW must be set"
-        assert flags & subprocess.CREATE_NEW_PROCESS_GROUP, "CREATE_NEW_PROCESS_GROUP must be set"
+        assert flags & create_no_window, "CREATE_NO_WINDOW must be set"
+        assert flags & create_new_pg, "CREATE_NEW_PROCESS_GROUP must be set"
 
     @patch("arcade_cli.deploy.find_python_interpreter")
     @patch("arcade_cli.deploy.subprocess.Popen")
@@ -75,10 +84,17 @@ class TestDeployCreateNoWindow:
         mock_proc.poll.return_value = None
         mock_popen.return_value = mock_proc
 
-        with patch.object(sys, "platform", "win32"):
-            from arcade_cli.deploy import start_server_process
+        create_no_window = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
+        create_new_pg = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0x00000200)
 
-            start_server_process("server.py", debug=False)
+        with patch.object(sys, "platform", "win32"):
+            with patch.object(
+                subprocess, "CREATE_NO_WINDOW", create_no_window, create=True
+            ), patch.object(
+                subprocess, "CREATE_NEW_PROCESS_GROUP", create_new_pg, create=True
+            ):
+                from arcade_cli.deploy import start_server_process
+                start_server_process("server.py", debug=False)
 
         _, kwargs = mock_popen.call_args
         assert kwargs.get("stdout") == subprocess.DEVNULL
@@ -95,10 +111,17 @@ class TestDeployCreateNoWindow:
         mock_proc.poll.return_value = None
         mock_popen.return_value = mock_proc
 
-        with patch.object(sys, "platform", "win32"):
-            from arcade_cli.deploy import start_server_process
+        create_no_window = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
+        create_new_pg = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0x00000200)
 
-            start_server_process("server.py", debug=True)
+        with patch.object(sys, "platform", "win32"):
+            with patch.object(
+                subprocess, "CREATE_NO_WINDOW", create_no_window, create=True
+            ), patch.object(
+                subprocess, "CREATE_NEW_PROCESS_GROUP", create_new_pg, create=True
+            ):
+                from arcade_cli.deploy import start_server_process
+                start_server_process("server.py", debug=True)
 
         _, kwargs = mock_popen.call_args
         assert kwargs.get("stdout") is None
@@ -119,11 +142,15 @@ class TestGracefulTerminate:
 
         mock_proc = MagicMock()
 
+        # On non-Windows, CTRL_BREAK_EVENT doesn't exist; provide constant
+        ctrl_break = getattr(signal, "CTRL_BREAK_EVENT", 1)
+
         with patch.object(sys, "platform", "win32"):
-            _graceful_terminate(mock_proc)
+            with patch.object(signal, "CTRL_BREAK_EVENT", ctrl_break, create=True):
+                _graceful_terminate(mock_proc)
 
         # Should try send_signal with CTRL_BREAK_EVENT (not terminate)
-        mock_proc.send_signal.assert_called_once_with(signal.CTRL_BREAK_EVENT)
+        mock_proc.send_signal.assert_called_once_with(ctrl_break)
         mock_proc.terminate.assert_not_called()
 
     def test_falls_back_to_terminate_on_win32_oserror(self) -> None:

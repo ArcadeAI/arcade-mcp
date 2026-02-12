@@ -37,10 +37,14 @@ class TestRunner:
         self.test_results: list[tuple[str, bool]] = []
 
     def _find_arcade_command(self) -> list[str]:
-        """Find the arcade command (either direct or via uv run)."""
+        """Find the arcade command (either direct or via uv run).
+
+        When using uv run, always pass --directory so arcade is found
+        even when running from temp dirs (e.g. configure tests).
+        """
         if shutil.which("arcade"):
             return ["arcade"]
-        return ["uv", "run", "arcade"]
+        return ["uv", "run", "--directory", str(self.project_root), "arcade"]
 
     def run_command(
         self,

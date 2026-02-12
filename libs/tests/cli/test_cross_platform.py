@@ -202,14 +202,23 @@ class TestSubprocessFlags:
         mock_proc.poll.return_value = None
         mock_popen.return_value = mock_proc
 
+        # On non-Windows, these constants don't exist; patch subprocess
+        create_no_window = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
+        create_new_pg = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0x00000200)
+
         with patch.object(sys, "platform", "win32"):
-            from arcade_cli.deploy import start_server_process
-            start_server_process("server.py")
+            with patch.object(
+                subprocess, "CREATE_NO_WINDOW", create_no_window, create=True
+            ), patch.object(
+                subprocess, "CREATE_NEW_PROCESS_GROUP", create_new_pg, create=True
+            ):
+                from arcade_cli.deploy import start_server_process
+                start_server_process("server.py")
 
         _, kwargs = mock_popen.call_args
         flags = kwargs.get("creationflags", 0)
-        assert flags & subprocess.CREATE_NO_WINDOW
-        assert flags & subprocess.CREATE_NEW_PROCESS_GROUP
+        assert flags & create_no_window
+        assert flags & create_new_pg
 
     @patch("arcade_cli.deploy.find_python_interpreter")
     @patch("arcade_cli.deploy.subprocess.Popen")
@@ -452,14 +461,16 @@ class TestOpenBrowser:
         """If ctypes fails, attempt 2 is rundll32 url.dll."""
         from arcade_cli.authn import _open_browser
 
-        import ctypes as real_ctypes
+        import ctypes
+
+        mock_shell32 = MagicMock()
+        mock_shell32.ShellExecuteW = MagicMock(side_effect=Exception("ctypes failed"))
+        mock_windll = MagicMock()
+        mock_windll.shell32 = mock_shell32
 
         with (
             patch.object(sys, "platform", "win32"),
-            patch.object(
-                real_ctypes.windll.shell32, "ShellExecuteW",
-                side_effect=Exception("ctypes failed"), create=True,
-            ),
+            patch.object(ctypes, "windll", mock_windll, create=True),
             patch("arcade_cli.authn.subprocess.Popen") as mock_popen,
             patch("arcade_cli.authn.subprocess.STARTUPINFO", create=True) as mock_si_cls,
             patch("arcade_cli.authn.subprocess.STARTF_USESHOWWINDOW", 1, create=True),
@@ -480,14 +491,16 @@ class TestOpenBrowser:
         """If both ctypes and rundll32 fail, attempt 3 is os.startfile."""
         from arcade_cli.authn import _open_browser
 
-        import ctypes as real_ctypes
+        import ctypes
+
+        mock_shell32 = MagicMock()
+        mock_shell32.ShellExecuteW = MagicMock(side_effect=Exception("ctypes failed"))
+        mock_windll = MagicMock()
+        mock_windll.shell32 = mock_shell32
 
         with (
             patch.object(sys, "platform", "win32"),
-            patch.object(
-                real_ctypes.windll.shell32, "ShellExecuteW",
-                side_effect=Exception("ctypes failed"), create=True,
-            ),
+            patch.object(ctypes, "windll", mock_windll, create=True),
             patch("arcade_cli.authn.subprocess.Popen", side_effect=Exception("popen failed")),
             patch("arcade_cli.authn.subprocess.STARTUPINFO", create=True, return_value=MagicMock()),
             patch("arcade_cli.authn.subprocess.STARTF_USESHOWWINDOW", 1, create=True),
@@ -501,14 +514,16 @@ class TestOpenBrowser:
         """If ctypes, rundll32, and startfile all fail, use webbrowser.open."""
         from arcade_cli.authn import _open_browser
 
-        import ctypes as real_ctypes
+        import ctypes
+
+        mock_shell32 = MagicMock()
+        mock_shell32.ShellExecuteW = MagicMock(side_effect=Exception("ctypes failed"))
+        mock_windll = MagicMock()
+        mock_windll.shell32 = mock_shell32
 
         with (
             patch.object(sys, "platform", "win32"),
-            patch.object(
-                real_ctypes.windll.shell32, "ShellExecuteW",
-                side_effect=Exception("ctypes failed"), create=True,
-            ),
+            patch.object(ctypes, "windll", mock_windll, create=True),
             patch("arcade_cli.authn.subprocess.Popen", side_effect=Exception("fail")),
             patch("arcade_cli.authn.subprocess.STARTUPINFO", create=True, return_value=MagicMock()),
             patch("arcade_cli.authn.subprocess.STARTF_USESHOWWINDOW", 1, create=True),

@@ -261,28 +261,32 @@ class TestOpenBrowser:
 
     def test_tries_ctypes_shellexecute_first_on_windows(self) -> None:
         """On Windows, _open_browser should try ctypes ShellExecuteW first."""
-        import ctypes as real_ctypes
+        import ctypes
 
-        with (
-            patch.object(sys, "platform", "win32"),
-            patch.object(
-                real_ctypes.windll.shell32, "ShellExecuteW",
-                return_value=42, create=True,
-            ),
+        # On non-Windows, ctypes.windll doesn't exist; provide a mock
+        mock_shell32 = MagicMock()
+        mock_shell32.ShellExecuteW = MagicMock(return_value=42)
+        mock_windll = MagicMock()
+        mock_windll.shell32 = mock_shell32
+
+        with patch.object(sys, "platform", "win32"), patch.object(
+            ctypes, "windll", mock_windll, create=True
         ):
             result = _open_browser("https://example.com")
             assert result is True
 
     def test_falls_back_to_rundll32_on_windows(self) -> None:
         """If ctypes fails, try rundll32 url.dll."""
-        import ctypes as real_ctypes
+        import ctypes
+
+        mock_shell32 = MagicMock()
+        mock_shell32.ShellExecuteW = MagicMock(side_effect=Exception("ctypes failed"))
+        mock_windll = MagicMock()
+        mock_windll.shell32 = mock_shell32
 
         with (
             patch.object(sys, "platform", "win32"),
-            patch.object(
-                real_ctypes.windll.shell32, "ShellExecuteW",
-                side_effect=Exception("ctypes failed"), create=True,
-            ),
+            patch.object(ctypes, "windll", mock_windll, create=True),
             patch("arcade_cli.authn.subprocess.Popen") as mock_popen,
             patch("arcade_cli.authn.subprocess.STARTUPINFO", create=True) as mock_si_cls,
             patch("arcade_cli.authn.subprocess.STARTF_USESHOWWINDOW", 1, create=True),
@@ -301,14 +305,16 @@ class TestOpenBrowser:
 
     def test_falls_back_to_startfile_on_windows(self) -> None:
         """If ctypes and rundll32 fail, try os.startfile."""
-        import ctypes as real_ctypes
+        import ctypes
+
+        mock_shell32 = MagicMock()
+        mock_shell32.ShellExecuteW = MagicMock(side_effect=Exception("ctypes failed"))
+        mock_windll = MagicMock()
+        mock_windll.shell32 = mock_shell32
 
         with (
             patch.object(sys, "platform", "win32"),
-            patch.object(
-                real_ctypes.windll.shell32, "ShellExecuteW",
-                side_effect=Exception("ctypes failed"), create=True,
-            ),
+            patch.object(ctypes, "windll", mock_windll, create=True),
             patch("arcade_cli.authn.subprocess.Popen", side_effect=Exception("fail")),
             patch("arcade_cli.authn.subprocess.STARTUPINFO", create=True, return_value=MagicMock()),
             patch("arcade_cli.authn.subprocess.STARTF_USESHOWWINDOW", 1, create=True),
@@ -321,14 +327,16 @@ class TestOpenBrowser:
 
     def test_falls_back_to_webbrowser_if_all_else_fails_on_windows(self) -> None:
         """If ctypes, rundll32, and startfile all fail, use webbrowser.open."""
-        import ctypes as real_ctypes
+        import ctypes
+
+        mock_shell32 = MagicMock()
+        mock_shell32.ShellExecuteW = MagicMock(side_effect=Exception("ctypes failed"))
+        mock_windll = MagicMock()
+        mock_windll.shell32 = mock_shell32
 
         with (
             patch.object(sys, "platform", "win32"),
-            patch.object(
-                real_ctypes.windll.shell32, "ShellExecuteW",
-                side_effect=Exception("ctypes failed"), create=True,
-            ),
+            patch.object(ctypes, "windll", mock_windll, create=True),
             patch("arcade_cli.authn.subprocess.Popen", side_effect=Exception("fail")),
             patch("arcade_cli.authn.subprocess.STARTUPINFO", create=True, return_value=MagicMock()),
             patch("arcade_cli.authn.subprocess.STARTF_USESHOWWINDOW", 1, create=True),
