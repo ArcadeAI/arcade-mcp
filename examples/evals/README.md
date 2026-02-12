@@ -40,7 +40,8 @@ arcade evals examples/evals/eval_arcade_gateway.py \
 
 # Compare multiple models
 arcade evals examples/evals/eval_stdio_mcp_server.py \
-    -p "openai:gpt-4o anthropic:claude-sonnet-4-5-20250929" \
+    -p openai:gpt-4o \
+    -p anthropic:claude-sonnet-4-5-20250929 \
     -k openai:YOUR_OPENAI_KEY \
     -k anthropic:YOUR_ANTHROPIC_KEY
 
@@ -205,7 +206,8 @@ export ARCADE_API_KEY=your_key
 export ARCADE_USER_ID=your_user_id
 
 arcade evals examples/evals/eval_comprehensive_comparison.py \
-    -p "openai:gpt-4o anthropic:claude-sonnet-4-5-20250929" \
+    -p openai:gpt-4o \
+    -p anthropic:claude-sonnet-4-5-20250929 \
     -k openai:YOUR_KEY \
     -k anthropic:YOUR_KEY \
     -o comparison.html -d
@@ -213,19 +215,22 @@ arcade evals examples/evals/eval_comprehensive_comparison.py \
 
 ## 🎯 CLI Reference
 
-### New v2.0.0 Flags
+### Flags
 
 
-| Flag                | Short | Description                                      | Example                                         |
-| --------------------- | ------- | -------------------------------------------------- | ------------------------------------------------- |
-| `--use-provider`    | `-p`  | Provider(s) and models (space-separated)         | `-p "openai:gpt-4o anthropic:claude-sonnet"`    |
-| `--api-key`         | `-k`  | API key in`provider:key` format (repeatable)     | `-k openai:sk-... -k anthropic:sk-ant-...`      |
-| `--output`          | `-o`  | Output file (auto-detects format from extension) | `-o results.html` or `-o results` (all formats) |
-| `--only-failed`     | `-f`  | Show only failed evaluations                     | `--only-failed`                                 |
-| `--include-context` |       | Include system messages and conversation history | `--include-context`                             |
-| `--details`         | `-d`  | Show detailed output                             | `-d`                                            |
-| `--max-concurrent`  |       | Max concurrent evaluations                       | `--max-concurrent 5`                            |
-| `--capture`         |       | Capture mode (record tool calls without scoring) | `--capture`                                     |
+| Flag                    | Short | Description                                           | Example                                             |
+| ----------------------- | ----- | ----------------------------------------------------- | --------------------------------------------------- |
+| `--use-provider`        | `-p`  | Provider and models (repeatable)                      | `-p openai:gpt-4o -p anthropic:claude-sonnet`       |
+| `--api-key`             | `-k`  | API key in `provider:key` format (repeatable)         | `-k openai:sk-... -k anthropic:sk-ant-...`          |
+| `--output`              | `-o`  | Output file (auto-detects format from extension)      | `-o results.html` or `-o results` (all formats)     |
+| `--only-failed`         | `-f`  | Show only failed evaluations                          | `--only-failed`                                     |
+| `--include-context`     |       | Include system messages and conversation history      | `--include-context`                                 |
+| `--details`             | `-d`  | Show detailed output                                  | `-d`                                                |
+| `--max-concurrent`      |       | Max concurrent evaluations                            | `--max-concurrent 5`                                |
+| `--capture`             |       | Capture mode (record tool calls without scoring)      | `--capture`                                         |
+| `--num-runs`            | `-n`  | Number of runs per case (default: 1)                  | `-n 5`                                              |
+| `--seed`                |       | Seed policy: `constant`, `random`, or an integer      | `--seed random` or `--seed 42`                      |
+| `--multi-run-pass-rule` |       | Aggregation rule: `last` (default), `mean`, `majority`| `--multi-run-pass-rule majority`                    |
 
 ### Provider & Model Selection
 
@@ -238,14 +243,15 @@ arcade evals eval_file.py -p openai -k openai:YOUR_KEY
 **Single provider with specific models:**
 
 ```bash
-arcade evals eval_file.py -p "openai:gpt-4o,gpt-4o-mini" -k openai:YOUR_KEY
+arcade evals eval_file.py -p openai:gpt-4o,gpt-4o-mini -k openai:YOUR_KEY
 ```
 
-**Multiple providers (space-separated):**
+**Multiple providers (use separate `-p` flags):**
 
 ```bash
 arcade evals eval_file.py \
-    -p "openai:gpt-4o anthropic:claude-sonnet-4-5-20250929" \
+    -p openai:gpt-4o \
+    -p anthropic:claude-sonnet-4-5-20250929 \
     -k openai:YOUR_KEY \
     -k anthropic:YOUR_KEY
 ```
@@ -279,7 +285,7 @@ arcade evals eval_file.py \
 
 ```bash
 arcade evals examples/evals/eval_arcade_gateway.py \
-    -p "openai:gpt-4o,gpt-4o-mini,gpt-3.5-turbo" \
+    -p openai:gpt-4o,gpt-4o-mini \
     -k openai:YOUR_KEY \
     -o comparison.html -d
 ```
@@ -288,7 +294,8 @@ arcade evals examples/evals/eval_arcade_gateway.py \
 
 ```bash
 arcade evals examples/evals/eval_stdio_mcp_server.py \
-    -p "openai:gpt-4o anthropic:claude-sonnet-4-5-20250929" \
+    -p openai:gpt-4o \
+    -p anthropic:claude-sonnet-4-5-20250929 \
     -k openai:YOUR_OPENAI_KEY \
     -k anthropic:YOUR_ANTHROPIC_KEY \
     -o battle.html -d
@@ -307,7 +314,8 @@ arcade evals examples/evals/eval_http_mcp_server.py \
 ```bash
 # Compare performance across multiple tool sources
 arcade evals examples/evals/eval_comprehensive_comparison.py \
-    -p "openai:gpt-4o anthropic:claude-sonnet-4-5-20250929" \
+    -p openai:gpt-4o \
+    -p anthropic:claude-sonnet-4-5-20250929 \
     -k openai:YOUR_KEY \
     -k anthropic:YOUR_KEY \
     -o comparison.html -d
@@ -330,6 +338,46 @@ arcade evals examples/evals/eval_stdio_mcp_server.py \
     --api-key openai:YOUR_KEY \
     --include-context \
     -o full_results.html -d
+```
+
+### Pattern 7: Multi-Run Evaluation
+
+Run each case multiple times to measure consistency and reduce variance:
+
+```bash
+# Run each case 5 times with random seeds, pass if majority of runs pass
+arcade evals examples/evals/eval_arcade_gateway.py \
+    --api-key openai:YOUR_KEY \
+    --num-runs 5 \
+    --seed random \
+    --multi-run-pass-rule majority \
+    -o stability.html -d
+```
+
+The output will include per-case statistics: mean score, standard deviation,
+individual run results, and per-critic field breakdowns.
+
+**Seed policies:**
+- `constant` (default) — Uses a fixed seed (42) for reproducible results
+- `random` — Uses a different random seed per run for variance testing
+- An integer (e.g., `--seed 123`) — Uses the given seed for all runs
+
+**Pass rules:**
+- `last` (default) — Uses the last run's pass/fail result
+- `mean` — Passes if mean score meets the rubric threshold
+- `majority` — Passes if more than half of the runs pass
+
+### Pattern 8: Multi-Run Capture Mode
+
+Capture mode also supports multiple runs:
+
+```bash
+arcade evals examples/evals/eval_arcade_gateway.py \
+    --capture \
+    --num-runs 3 \
+    --seed random \
+    --api-key openai:YOUR_KEY \
+    -o captured.json
 ```
 
 ## 🐛 Troubleshooting
