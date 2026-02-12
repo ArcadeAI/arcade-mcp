@@ -4,12 +4,12 @@ version = "0.1.0"
 description = "Example MCP Server demonstrating tool metadata (classification, behavior, extras)"
 requires-python = ">=3.10"
 dependencies = [
-    "arcade-mcp-server>=1.16.0,<2.0.0",
+    "arcade-mcp-server>=1.17.0,<2.0.0",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "arcade-mcp[all]>=1.9.0,<2.0.0",
+    "arcade-mcp[all]>=1.10.0,<2.0.0",
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
     "mypy>=1.0.0",
