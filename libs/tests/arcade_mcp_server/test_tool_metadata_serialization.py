@@ -5,10 +5,9 @@ from arcade_core.catalog import MaterializedTool, ToolCatalog, ToolMeta, create_
 from arcade_core.metadata import (
     Behavior,
     Classification,
-    Domain,
-    SystemType,
+    Operation,
+    ServiceDomain,
     ToolMetadata,
-    Verb,
 )
 from arcade_mcp_server.managers.tool import ToolManager
 from arcade_tdk import tool
@@ -43,7 +42,7 @@ class TestToolMetadataSerialization:
             desc="Test tool",
             metadata=ToolMetadata(
                 behavior=Behavior(
-                    verbs=[Verb.CREATE],
+                    operations=[Operation.CREATE],
                     read_only=False,
                     destructive=False,
                     idempotent=True,
@@ -66,17 +65,16 @@ class TestToolMetadataSerialization:
         assert dto.annotations.openWorldHint is True
 
     def test_meta_arcade_includes_classification(self, tool_manager: ToolManager):
-        """_meta.arcade.metadata should include classification with domains and system_types."""
+        """_meta.arcade.metadata should include classification with service_domains."""
 
         @tool(
             desc="Test tool",
             metadata=ToolMetadata(
                 classification=Classification(
-                    domains=[Domain.MESSAGING, Domain.WORKFLOW],
-                    system_types=[SystemType.SAAS_API],
+                    service_domains=[ServiceDomain.MESSAGING, ServiceDomain.DOCUMENTS],
                 ),
                 behavior=Behavior(
-                    verbs=[Verb.EXECUTE],
+                    operations=[Operation.CREATE],
                     open_world=True,
                 ),
             ),
@@ -92,16 +90,18 @@ class TestToolMetadataSerialization:
         assert "arcade" in dto.meta
         assert "metadata" in dto.meta["arcade"]
         assert "classification" in dto.meta["arcade"]["metadata"]
-        assert dto.meta["arcade"]["metadata"]["classification"]["domains"] == ["messaging", "workflow"]
-        assert dto.meta["arcade"]["metadata"]["classification"]["system_types"] == ["saas_api"]
+        assert dto.meta["arcade"]["metadata"]["classification"]["service_domains"] == [
+            "messaging",
+            "documents",
+        ]
 
-    def test_meta_arcade_includes_verbs(self, tool_manager: ToolManager):
-        """_meta.arcade.metadata.behavior should include verbs as lowercase strings."""
+    def test_meta_arcade_includes_operations(self, tool_manager: ToolManager):
+        """_meta.arcade.metadata.behavior should include operations as lowercase strings."""
 
         @tool(
             desc="Test tool",
             metadata=ToolMetadata(
-                behavior=Behavior(verbs=[Verb.CREATE, Verb.UPDATE]),
+                behavior=Behavior(operations=[Operation.CREATE, Operation.UPDATE]),
             ),
         )
         def upsert_record() -> str:
@@ -115,7 +115,7 @@ class TestToolMetadataSerialization:
         assert "arcade" in dto.meta
         assert "metadata" in dto.meta["arcade"]
         assert "behavior" in dto.meta["arcade"]["metadata"]
-        assert dto.meta["arcade"]["metadata"]["behavior"]["verbs"] == ["create", "update"]
+        assert dto.meta["arcade"]["metadata"]["behavior"]["operations"] == ["create", "update"]
 
     def test_meta_arcade_includes_extras(self, tool_manager: ToolManager):
         """_meta.arcade.metadata should include extras dict unchanged."""
@@ -172,11 +172,10 @@ class TestToolMetadataSerialization:
             desc="Send an email using the Gmail API",
             metadata=ToolMetadata(
                 classification=Classification(
-                    domains=[Domain.MESSAGING],
-                    system_types=[SystemType.SAAS_API],
+                    service_domains=[ServiceDomain.EMAIL],
                 ),
                 behavior=Behavior(
-                    verbs=[Verb.EXECUTE],
+                    operations=[Operation.CREATE],
                     read_only=False,
                     destructive=False,
                     idempotent=False,
@@ -208,9 +207,8 @@ class TestToolMetadataSerialization:
         assert "metadata" in arcade
         metadata = arcade["metadata"]
 
-        assert metadata["classification"]["domains"] == ["messaging"]
-        assert metadata["classification"]["system_types"] == ["saas_api"]
-        assert metadata["behavior"]["verbs"] == ["execute"]
+        assert metadata["classification"]["service_domains"] == ["email"]
+        assert metadata["behavior"]["operations"] == ["create"]
         assert metadata["behavior"]["read_only"] is False
         assert metadata["behavior"]["destructive"] is False
         assert metadata["behavior"]["idempotent"] is False
@@ -224,8 +222,7 @@ class TestToolMetadataSerialization:
             desc="Test tool",
             metadata=ToolMetadata(
                 classification=Classification(
-                    domains=[Domain.SEARCH],
-                    system_types=[SystemType.WEB],
+                    service_domains=[ServiceDomain.WEB_SCRAPING],
                 ),
             ),
         )
@@ -331,11 +328,10 @@ class TestToolMetadataSerialization:
             ),
             metadata=ToolMetadata(
                 classification=Classification(
-                    domains=[Domain.MESSAGING],
-                    system_types=[SystemType.SAAS_API],
+                    service_domains=[ServiceDomain.EMAIL],
                 ),
                 behavior=Behavior(
-                    verbs=[Verb.EXECUTE],
+                    operations=[Operation.CREATE],
                     read_only=False,
                     destructive=False,
                     open_world=True,
@@ -368,9 +364,8 @@ class TestToolMetadataSerialization:
         assert "extras" in metadata
 
         # Verify specific values
-        assert metadata["classification"]["domains"] == ["messaging"]
-        assert metadata["classification"]["system_types"] == ["saas_api"]
-        assert metadata["behavior"]["verbs"] == ["execute"]
+        assert metadata["classification"]["service_domains"] == ["email"]
+        assert metadata["behavior"]["operations"] == ["create"]
         assert metadata["behavior"]["read_only"] is False
         assert metadata["behavior"]["destructive"] is False
         assert metadata["behavior"]["open_world"] is True

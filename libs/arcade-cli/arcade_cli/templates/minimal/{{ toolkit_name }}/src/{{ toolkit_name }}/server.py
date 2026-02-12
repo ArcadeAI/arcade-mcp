@@ -10,10 +10,9 @@ from arcade_mcp_server.auth import Reddit
 from arcade_mcp_server.metadata import (
     Behavior,
     Classification,
-    Domain,
-    SystemType,
+    Operation,
+    ServiceDomain,
     ToolMetadata,
-    Verb,
 )
 
 app = MCPApp(name="{{ toolkit_name }}", version="1.0.0", log_level="DEBUG")
@@ -45,11 +44,10 @@ def whisper_secret(context: Context) -> Annotated[str, "The last 4 characters of
     requires_auth=Reddit(scopes=["read"]),
     metadata=ToolMetadata(
         classification=Classification(
-            domains=[Domain.SEARCH],
-            system_types=[SystemType.SAAS_API],
+            service_domains=[ServiceDomain.SOCIAL_MEDIA],
         ),
         behavior=Behavior(
-            verbs=[Verb.READ],
+            operations=[Operation.READ],
             read_only=True,
             destructive=False,
             idempotent=True,

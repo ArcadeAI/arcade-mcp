@@ -2,15 +2,14 @@ import pytest
 from arcade_core.catalog import ToolCatalog
 from arcade_core.errors import ToolDefinitionError
 from arcade_core.metadata import (
-    _CLOSED_WORLD_SYSTEM_TYPES,
-    _MUTATING_VERBS,
-    _READ_ONLY_VERBS,
+    _INDETERMINATE_OPERATIONS,
+    _MUTATING_OPERATIONS,
+    _READ_ONLY_OPERATIONS,
     Behavior,
     Classification,
-    Domain,
-    SystemType,
+    Operation,
+    ServiceDomain,
     ToolMetadata,
-    Verb,
 )
 from arcade_tdk import tool
 
@@ -24,50 +23,45 @@ class TestEnumCoverage:
     categorize new values.
     """
 
-    def test_all_verbs_are_categorized(self):
-        """Every Verb must be in either _READ_ONLY_VERBS or _MUTATING_VERBS."""
-        all_verbs = set(Verb)
-        categorized_verbs = _READ_ONLY_VERBS | _MUTATING_VERBS
+    def test_all_operations_are_categorized(self):
+        """Every Operation must be in _READ_ONLY_OPERATIONS, _MUTATING_OPERATIONS, or _INDETERMINATE_OPERATIONS."""
+        all_operations = set(Operation)
+        categorized_operations = _READ_ONLY_OPERATIONS | _MUTATING_OPERATIONS | _INDETERMINATE_OPERATIONS
 
-        # Check that every verb is categorized
-        uncategorized = all_verbs - categorized_verbs
+        # Check that every operation is categorized
+        uncategorized = all_operations - categorized_operations
         assert not uncategorized, (
-            f"The following Verb values are not categorized in _READ_ONLY_VERBS or "
-            f"_MUTATING_VERBS: {uncategorized}. Please add them to the appropriate set "
-            f"in arcade_core/metadata.py"
+            f"The following Operation values are not categorized in _READ_ONLY_OPERATIONS, "
+            f"_MUTATING_OPERATIONS, or _INDETERMINATE_OPERATIONS: {uncategorized}. "
+            f"Please add them to the appropriate set in arcade_core/metadata.py"
         )
 
-        # Check that there are no extra verbs in the sets that don't exist in the enum
-        extra = categorized_verbs - all_verbs
+        # Check that there are no extra operations in the sets that don't exist in the enum
+        extra = categorized_operations - all_operations
         assert not extra, (
-            f"The following values are in _READ_ONLY_VERBS or _MUTATING_VERBS but "
-            f"don't exist in the Verb enum: {extra}"
+            f"The following values are in _READ_ONLY_OPERATIONS, _MUTATING_OPERATIONS, or "
+            f"_INDETERMINATE_OPERATIONS but don't exist in the Operation enum: {extra}"
         )
 
-    def test_verb_categories_are_disjoint(self):
-        """_READ_ONLY_VERBS and _MUTATING_VERBS should not overlap."""
-        overlap = _READ_ONLY_VERBS & _MUTATING_VERBS
-        assert not overlap, (
-            f"The following Verb values appear in both _READ_ONLY_VERBS and "
-            f"_MUTATING_VERBS: {overlap}. A verb should be in exactly one category."
+    def test_operation_categories_are_disjoint(self):
+        """_READ_ONLY_OPERATIONS, _MUTATING_OPERATIONS, and _INDETERMINATE_OPERATIONS should not overlap."""
+        ro_mut = _READ_ONLY_OPERATIONS & _MUTATING_OPERATIONS
+        assert not ro_mut, (
+            f"The following Operation values appear in both _READ_ONLY_OPERATIONS and "
+            f"_MUTATING_OPERATIONS: {ro_mut}. An operation should be in exactly one category."
         )
 
-    def test_closed_world_system_types_are_valid(self):
-        """All values in _CLOSED_WORLD_SYSTEM_TYPES must be valid SystemType values."""
-        all_system_types = set(SystemType)
-        invalid = _CLOSED_WORLD_SYSTEM_TYPES - all_system_types
-        assert not invalid, (
-            f"The following values are in _CLOSED_WORLD_SYSTEM_TYPES but don't exist "
-            f"in the SystemType enum: {invalid}"
+        ro_ind = _READ_ONLY_OPERATIONS & _INDETERMINATE_OPERATIONS
+        assert not ro_ind, (
+            f"The following Operation values appear in both _READ_ONLY_OPERATIONS and "
+            f"_INDETERMINATE_OPERATIONS: {ro_ind}. An operation should be in exactly one category."
         )
 
-    def test_self_contained_is_closed_world(self):
-        """SELF_CONTAINED should be the only closed-world system type."""
-        assert SystemType.SELF_CONTAINED in _CLOSED_WORLD_SYSTEM_TYPES, (
-            "SystemType.SELF_CONTAINED must be in _CLOSED_WORLD_SYSTEM_TYPES"
+        mut_ind = _MUTATING_OPERATIONS & _INDETERMINATE_OPERATIONS
+        assert not mut_ind, (
+            f"The following Operation values appear in both _MUTATING_OPERATIONS and "
+            f"_INDETERMINATE_OPERATIONS: {mut_ind}. An operation should be in exactly one category."
         )
-        # Note: We intentionally don't require other system types to be excluded,
-        # as new closed-world system types could theoretically be added in the future.
 
 
 class TestToolMetadataValidation:
@@ -77,11 +71,10 @@ class TestToolMetadataValidation:
         """Valid metadata with consistent values should not raise."""
         metadata = ToolMetadata(
             classification=Classification(
-                domains=[Domain.MESSAGING],
-                system_types=[SystemType.SAAS_API],
+                service_domains=[ServiceDomain.EMAIL],
             ),
             behavior=Behavior(
-                verbs=[Verb.EXECUTE],
+                operations=[Operation.CREATE],
                 read_only=False,
                 destructive=False,
                 open_world=True,
@@ -89,45 +82,44 @@ class TestToolMetadataValidation:
         )
         assert metadata is not None
 
-    def test_mutating_verb_with_read_only_raises(self):
-        """Mutating verbs with read_only=True should raise when validated."""
+    def test_mutating_operation_with_read_only_raises(self):
+        """Mutating operations with read_only=True should raise when validated."""
         metadata = ToolMetadata(
-            behavior=Behavior(verbs=[Verb.CREATE], read_only=True),
+            behavior=Behavior(operations=[Operation.CREATE], read_only=True),
         )
         with pytest.raises(
-            ToolDefinitionError, match="mutating verb.*but is marked read_only=True"
+            ToolDefinitionError, match="mutating operation.*but is marked read_only=True"
+        ):
+            metadata.validate_for_tool()
+
+    def test_opaque_with_read_only_raises(self):
+        """OPAQUE operation with read_only=True should raise when validated."""
+        metadata = ToolMetadata(
+            behavior=Behavior(operations=[Operation.OPAQUE], read_only=True),
+        )
+        with pytest.raises(
+            ToolDefinitionError, match="OPAQUE operation but is marked read_only=True"
         ):
             metadata.validate_for_tool()
 
     def test_delete_without_destructive_raises(self):
-        """DELETE verb without destructive=True should raise when validated."""
+        """DELETE operation without destructive=True should raise when validated."""
         metadata = ToolMetadata(
-            behavior=Behavior(verbs=[Verb.DELETE], destructive=False),
+            behavior=Behavior(operations=[Operation.DELETE], destructive=False),
         )
         with pytest.raises(
-            ToolDefinitionError, match="'DELETE' verb.*but is not marked destructive=True"
+            ToolDefinitionError, match="'DELETE' operation.*but is not marked destructive=True"
         ):
             metadata.validate_for_tool()
 
-    def test_self_contained_with_open_world_raises(self):
-        """SELF_CONTAINED only system type with open_world=True should raise when validated."""
+    def test_service_domain_with_open_world_false_raises(self):
+        """ServiceDomain present with open_world=False should raise when validated."""
         metadata = ToolMetadata(
-            classification=Classification(system_types=[SystemType.SELF_CONTAINED]),
-            behavior=Behavior(open_world=True),
-        )
-        with pytest.raises(
-            ToolDefinitionError, match="closed-world system type.*but is marked open_world=True"
-        ):
-            metadata.validate_for_tool()
-
-    def test_remote_system_without_open_world_raises(self):
-        """Remote system types (SAAS_API, etc.) without open_world=True should raise when validated."""
-        metadata = ToolMetadata(
-            classification=Classification(system_types=[SystemType.SAAS_API]),
+            classification=Classification(service_domains=[ServiceDomain.EMAIL]),
             behavior=Behavior(open_world=False),
         )
         with pytest.raises(
-            ToolDefinitionError, match="remote system type.*but is marked open_world=False"
+            ToolDefinitionError, match="ServiceDomain.*but is marked open_world=False"
         ):
             metadata.validate_for_tool()
 
@@ -135,50 +127,38 @@ class TestToolMetadataValidation:
         """Setting strict=False should bypass all validation rules."""
         # This would normally raise due to contradiction
         metadata = ToolMetadata(
-            behavior=Behavior(verbs=[Verb.CREATE], read_only=True),
+            behavior=Behavior(operations=[Operation.CREATE], read_only=True),
             strict=False,
         )
         # No error should be raised when validate_for_tool is called
         metadata.validate_for_tool()  # Should not raise
         assert metadata is not None
 
-    def test_error_message_includes_tool_name(self):
-        """Error messages should include the tool name for debugging."""
+    def test_error_message_includes_operation_name(self):
+        """Error messages should include the operation name for debugging."""
         metadata = ToolMetadata(
-            behavior=Behavior(verbs=[Verb.CREATE], read_only=True),
+            behavior=Behavior(operations=[Operation.CREATE], read_only=True),
         )
-        with pytest.raises(ToolDefinitionError, match="Tool has the mutating verb"):
+        with pytest.raises(ToolDefinitionError, match="Tool has the mutating operation"):
             metadata.validate_for_tool()
 
-    def test_read_only_verb_with_read_only_true_passes(self):
-        """READ verb with read_only=True should pass validation."""
+    def test_read_only_operation_with_read_only_true_passes(self):
+        """READ operation with read_only=True should pass validation."""
         metadata = ToolMetadata(
-            behavior=Behavior(verbs=[Verb.READ], read_only=True),
+            behavior=Behavior(operations=[Operation.READ], read_only=True),
         )
         assert metadata is not None
         assert metadata.behavior.read_only is True
 
-    def test_multiple_domains_allowed(self):
-        """Tools can have multiple domains."""
+    def test_multiple_service_domains_allowed(self):
+        """Tools can have multiple service domains."""
         metadata = ToolMetadata(
             classification=Classification(
-                domains=[Domain.CODE, Domain.SEARCH],
-                system_types=[SystemType.SAAS_API],
+                service_domains=[ServiceDomain.CLOUD_STORAGE, ServiceDomain.DOCUMENTS],
             ),
-            behavior=Behavior(verbs=[Verb.READ], read_only=True, open_world=True),
+            behavior=Behavior(operations=[Operation.READ], read_only=True, open_world=True),
         )
-        assert len(metadata.classification.domains) == 2
-
-    def test_multiple_system_types_allowed(self):
-        """Tools can have multiple system types."""
-        metadata = ToolMetadata(
-            classification=Classification(
-                domains=[Domain.CODE],
-                system_types=[SystemType.SAAS_API, SystemType.FILE_SYSTEM],
-            ),
-            behavior=Behavior(verbs=[Verb.READ], read_only=True, open_world=True),
-        )
-        assert len(metadata.classification.system_types) == 2
+        assert len(metadata.classification.service_domains) == 2
 
     def test_extras_accepts_arbitrary_dict(self):
         """Extras field accepts arbitrary key/value pairs."""
@@ -199,15 +179,15 @@ class TestToolDecoratorWithMetadata:
         @tool(
             desc="Test tool",
             metadata=ToolMetadata(
-                classification=Classification(domains=[Domain.MESSAGING]),
-                behavior=Behavior(verbs=[Verb.EXECUTE]),
+                classification=Classification(service_domains=[ServiceDomain.MESSAGING]),
+                behavior=Behavior(operations=[Operation.CREATE], open_world=True),
             ),
         )
         def my_tool() -> str:
             return "test"
 
         assert hasattr(my_tool, "__tool_metadata__")
-        assert my_tool.__tool_metadata__.classification.domains == [Domain.MESSAGING]
+        assert my_tool.__tool_metadata__.classification.service_domains == [ServiceDomain.MESSAGING]
 
     def test_decorator_without_metadata_is_backward_compatible(self):
         """Decorator should work without metadata (existing tools unchanged)."""
@@ -229,11 +209,10 @@ class TestToolDefinitionWithMetadata:
             desc="Send a message",
             metadata=ToolMetadata(
                 classification=Classification(
-                    domains=[Domain.MESSAGING],
-                    system_types=[SystemType.SAAS_API],
+                    service_domains=[ServiceDomain.MESSAGING],
                 ),
                 behavior=Behavior(
-                    verbs=[Verb.EXECUTE],
+                    operations=[Operation.CREATE],
                     read_only=False,
                     destructive=False,
                     open_world=True,
@@ -250,8 +229,8 @@ class TestToolDefinitionWithMetadata:
         )
 
         assert definition.metadata is not None
-        assert definition.metadata.classification.domains == [Domain.MESSAGING]
-        assert definition.metadata.behavior.verbs == [Verb.EXECUTE]
+        assert definition.metadata.classification.service_domains == [ServiceDomain.MESSAGING]
+        assert definition.metadata.behavior.operations == [Operation.CREATE]
         assert definition.metadata.extras == {"idp": "entraID"}
 
     def test_tool_definition_without_metadata_is_none(self):

@@ -3,10 +3,11 @@ Tool Metadata
 
 Defines the metadata model for Arcade tools. This module provides three layers:
 
-- Classification: What the tool is FOR (domains) and what it connects to (system_types).
+- Classification: What type of service the tool interfaces with (ServiceDomain).
   Used for tool discovery and search boosting.
 
-- Behavior: What effects the tool has. MCP Annotations are computed from this.
+- Behavior: What effects the tool has (operations, MCP-aligned flags).
+  MCP Annotations are computed from this.
   Commonly used for policy decisions (HITL gates, retry logic, etc.)
 
 - Extras: Arbitrary key/values for custom logic (IDP routing, feature flags, etc.)
@@ -20,143 +21,110 @@ from pydantic import BaseModel, ConfigDict, Field
 from arcade_core.errors import ToolDefinitionError
 
 
-class Domain(str, Enum):
+class ServiceDomain(str, Enum):
     """
-    The capability areas this tool operates in.
+    The type of service a tool interfaces with.
 
-    Used for Arcade tool selection boosting.
-    Tools can specify multiple domains to accurately represent their capabilities.
+    Classifies the target service whose data or functionality the tool provides
+    access to -- not the infrastructure used to access it.
 
-    Choose the domain that answers: "What is this tool fundamentally FOR?"
+    Assignment is based on how the service self-identifies and is broadly
+    recognized in its market. For tools that interact with no external service
+    (open_world=False), ServiceDomain is None..
     """
 
-    # === Communication ===
+    PROJECT_MANAGEMENT = "project_management"
+    """Project tracking, issue management, and work item software."""
+
+    CRM = "crm"
+    """Customer relationship management - contacts, deals, pipelines, sales activities."""
+
+    EMAIL = "email"
+    """Email services for sending, receiving, and managing messages."""
+
+    CALENDAR = "calendar"
+    """Calendar and scheduling services."""
+
     MESSAGING = "messaging"
-    """Send or receive messages between parties."""
+    """Real-time team and business messaging platforms."""
 
-    # === Content ===
     DOCUMENTS = "documents"
-    """Create, read, or edit text-based content."""
+    """Document editing, wikis, and knowledge base platforms."""
 
-    MEDIA = "media"
-    """Create or process images, video, or audio."""
+    CLOUD_STORAGE = "cloud_storage"
+    """Cloud file storage and sharing services."""
 
-    CODE = "code"
-    """Work with source code or software artifacts."""
+    SPREADSHEETS = "spreadsheets"
+    """Spreadsheet and tabular data software."""
 
-    # === Data ===
-    STORAGE = "storage"
-    """Store, retrieve, or organize files."""
+    PRESENTATIONS = "presentations"
+    """Presentation and slideshow software."""
 
-    SEARCH = "search"
-    """Find or discover information."""
+    DESIGN = "design"
+    """UI/UX design and prototyping tools."""
 
-    TRANSFORM = "transform"
-    """Convert, compute, or reshape data."""
-
-    ANALYTICS = "analytics"
-    """Measure, aggregate, or report on data."""
-
-    # === Planning ===
-    SCHEDULING = "scheduling"
-    """Manage calendars, appointments, or bookings."""
-
-    TASKS = "tasks"
-    """Track work items, issues, or tickets."""
-
-    WORKFLOW = "workflow"
-    """Orchestrate or automate multi-step processes."""
-
-    # === Transactions ===
-    COMMERCE = "commerce"
-    """Manage orders, deals, or inventory."""
+    SOURCE_CODE = "source_code"
+    """Source code management, version control, and code review."""
 
     PAYMENTS = "payments"
-    """Process payments or invoices."""
+    """Payment processing, invoicing, and billing."""
 
-    # === Records ===
-    RECORDS = "records"
-    """Manage entity records (contacts, accounts, etc.)."""
+    SOCIAL_MEDIA = "social_media"
+    """Platforms where users publish content to a public audience through a social feed."""
 
-    IDENTITY = "identity"
-    """Manage authentication, users, or permissions."""
+    VIDEO_HOSTING = "video_hosting"
+    """Video hosting, streaming, and distribution platforms."""
 
-    # === Operations ===
-    MONITORING = "monitoring"
-    """Observe system health or manage incidents."""
+    MUSIC_STREAMING = "music_streaming"
+    """Music streaming and playback platforms."""
 
-    DEPLOYMENT = "deployment"
-    """Release software or provision infrastructure."""
+    CUSTOMER_SUPPORT = "customer_support"
+    """Help desk, ticketing, and customer service software."""
 
-    # === Physical ===
-    SENSING = "sensing"
-    """Capture data from the physical environment."""
+    ECOMMERCE = "ecommerce"
+    """Online shopping, product catalogs, and retail platforms."""
 
-    ACTUATION = "actuation"
-    """Cause physical effects or control interfaces."""
+    INCIDENT_MANAGEMENT = "incident_management"
+    """Incident response, on-call management, and operational alerting."""
 
-    LOCATION = "location"
-    """Work with position or geospatial data."""
+    WEB_SCRAPING = "web_scraping"
+    """Web data extraction and crawling services."""
 
-    # === AI ===
-    REASONING = "reasoning"
-    """AI planning, decision-making, or autonomous agents."""
+    CODE_SANDBOX = "code_sandbox"
+    """Cloud code execution and sandboxed runtime environments."""
+
+    VIDEO_CONFERENCING = "video_conferencing"
+    """Video meeting and conferencing platforms."""
+
+    GEOSPATIAL = "geospatial"
+    """Maps, navigation, directions, and geocoding services."""
+
+    FINANCIAL_DATA = "financial_data"
+    """Financial market data and stock information services."""
+
+    TRAVEL = "travel"
+    """Travel search, flight and hotel booking platforms."""
 
 
-class SystemType(str, Enum):
+class Operation(str, Enum):
     """
-    The type of system this tool interfaces with.
+    Classifies the tool's effect on resources in the target system.
 
-    Provides orthogonal signal that disambiguates tools with the same domain.
-    For example, "read temperature" could match IoT sensors (HARDWARE) or
-    web weather scrapers (WEB) - SystemType helps distinguish them.
-    """
+    The concrete values represent the four fundamental resource lifecycle
+    operations (read, create, update, delete). OPAQUE indicates the effect
+    cannot be determined from the tool's definition because it depends
+    on runtime inputs such as "ExecuteBashCommand(command="...")".
 
-    SAAS_API = "saas_api"
-    """Third-party SaaS platforms accessed via their APIs."""
-
-    DATABASE = "database"
-    """Data storage systems with query interfaces."""
-
-    FILE_SYSTEM = "file_system"
-    """File storage systems (local or cloud)."""
-
-    WEB = "web"
-    """Web pages, browsers, or web scraping."""
-
-    OPERATING_SYSTEM = "operating_system"
-    """OS-level operations including browser/computer automation."""
-
-    HARDWARE = "hardware"
-    """IoT devices, sensors, robotics, or physical devices."""
-
-    AI_MODEL = "ai_model"
-    """LLM or ML model invocation."""
-
-    AI_AGENT = "ai_agent"
-    """Autonomous AI agents that perform multi-step tasks."""
-
-    CUSTOM_API = "custom_api"
-    """Customer's internal or private APIs."""
-
-    SELF_CONTAINED = "self_contained"
-    """No external system — pure computation, fully self-contained."""
-
-
-class Verb(str, Enum):
-    """
-    The action(s) the tool performs.
-
-    Can be used for policy decisions and to infer behavior flags.
+    Can be used for policy decisions (e.g., "require human approval for DELETE tools").
     """
 
     READ = "read"
     """
-    Retrieves, queries, or observes data without modifying system state.
+    Observes resources without changing state in the target system.
 
-    When to use: Any operation that only returns information - fetching records,
+    When to use: Any operation that only returns information -- fetching records,
     searching, listing resources, watching/subscribing to events, validating data,
-    dry-run previews. Tools with only READ verb should have read_only=True.
+    dry-run previews. Tools with only READ should have read_only=True.
     """
 
     CREATE = "create"
@@ -164,17 +132,18 @@ class Verb(str, Enum):
     Brings a new resource or record into existence.
 
     When to use: Inserting new records, uploading files, provisioning resources,
-    scheduling jobs, posting messages, instantiating new entities.
+    scheduling jobs, posting messages, sending emails, instantiating new entities.
     The resource did not exist before the operation.
     """
 
     UPDATE = "update"
     """
-    Modifies an existing resource's state or content.
+    Modifies an existing resource's state, permissions, metadata, or content.
 
     When to use: Editing records, changing configuration, renaming, archiving/restoring,
     patching, associating/disassociating resources (linking), changing lifecycle state
-    (start/stop/pause). The resource identity persists after the operation.
+    (start/stop/pause), sharing resources, modifying access permissions.
+    The resource identity persists after the operation.
     """
 
     DELETE = "delete"
@@ -187,49 +156,37 @@ class Verb(str, Enum):
     destructive=True.
     """
 
-    EXECUTE = "execute"
+    OPAQUE = "opaque"
     """
-    Performs an action or runs a process with side effects beyond data manipulation.
+    Effect cannot be determined from the tool's definition because behavior
+    depends entirely on runtime inputs.
 
-    When to use: Running code, invoking functions, triggering webhooks, sending messages,
-    calling external APIs that "do something," browser automation, shell commands,
-    AI model inference. Use when the operation has effects but isn't fundamentally
-    about CRUD on a resource.
-    """
-
-    AUTHORIZE = "authorize"
-    """
-    Grants, revokes, or modifies access rights and permissions.
-
-    When to use: Role assignment, permission changes, sharing resources, generating
-    access tokens, API key management, OAuth consent, modifying ACLs. These are
-    security-critical operations that change who can do what.
+    When to use: Tools like Bash.ExecuteCommand(command="...") or E2b.RunCode(code="...")
+    where the actual operation is unknowable at definition time. OPAQUE signals to
+    policy engines that this tool's effects are indeterminate and should be treated
+    with caution.
     """
 
 
-_READ_ONLY_VERBS = {Verb.READ}
-_MUTATING_VERBS = {Verb.CREATE, Verb.UPDATE, Verb.DELETE, Verb.EXECUTE, Verb.AUTHORIZE}
-_CLOSED_WORLD_SYSTEM_TYPES = {SystemType.SELF_CONTAINED}
+# Operation categories for validation
+_READ_ONLY_OPERATIONS = {Operation.READ}
+_MUTATING_OPERATIONS = {Operation.CREATE, Operation.UPDATE, Operation.DELETE}
+_INDETERMINATE_OPERATIONS = {Operation.OPAQUE}
 
 
 class Classification(BaseModel):
     """
-    What the tool is FOR and what it connects to.
+    What type of service does this tool interface with?
 
     Used for tool discovery and search boosting.
 
-    Example:
-        Classification(
-            domains=[Domain.CODE, Domain.SEARCH],  # GitHub.SearchCode spans both
-            system_types=[SystemType.SAAS_API],
-        )
+    Examples:
+        Classification(service_domains=[ServiceDomain.EMAIL])
+        Classification(service_domains=[ServiceDomain.CLOUD_STORAGE, ServiceDomain.DOCUMENTS])
     """
 
-    domains: list[Domain] | None = None
-    """The capability areas this tool operates in. Multi-select."""
-
-    system_types: list[SystemType] | None = None
-    """The types of systems this tool interfaces with. Multi-select."""
+    service_domains: list[ServiceDomain] | None = None
+    """The service category/categories the tool's backing service belongs to. Multi-select."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -238,18 +195,18 @@ class Behavior(BaseModel):
     """
     What effects does the tool have? Arcade's data model for tool behavior.
 
-    When using MCP, Behavior is project to MCP annotations.
+    When using MCP, Behavior is projected to MCP annotations:
     - read_only -> readOnlyHint
     - destructive -> destructiveHint
     - idempotent -> idempotentHint
     - open_world -> openWorldHint
 
-    Verbs describe actions and can be used for policy decisions (e.g., "require
-    human approval for DELETE tools").
+    Operations classify the tool's effect on resources and can be used for
+    policy decisions (e.g., "require human approval for DELETE tools").
 
     Example:
         Behavior(
-            verbs=[Verb.DELETE],
+            operations=[Operation.DELETE],
             read_only=False,
             destructive=True,   # DELETE should be destructive
             idempotent=True,    # Deleting twice has same effect
@@ -257,8 +214,8 @@ class Behavior(BaseModel):
         )
     """
 
-    verbs: list[Verb] | None = None
-    """The actions the tool performs. Multi-select for compound operations."""
+    operations: list[Operation] | None = None
+    """The tool's effect on resources in the target system. Multi-select for compound operations."""
 
     read_only: bool | None = None
     """Tool only reads data, no mutations. Maps to MCP readOnlyHint."""
@@ -279,16 +236,16 @@ class ToolMetadata(BaseModel):
     """
     Container for metadata about a tool.
 
-    - classification: What is this tool for? What does it connect to? (for discovery/boosting)
+    - classification: What type of service does this tool interface with? (for discovery/boosting)
     - behavior: What effects does it have? (for policy, filtering, MCP annotations)
     - extras: Arbitrary key/values for custom logic (e.g., IDP routing, feature flags)
 
     Strict Mode Validation:
         By default (strict=True), the constructor validates for logical contradictions:
-        - Mutating verbs + read_only=True -> Error
-        - DELETE verb + destructive=False -> Error
-        - SELF_CONTAINED only + open_world=True -> Error
-        - Remote system types + open_world=False -> Error
+        - Mutating operations + read_only=True -> Error
+        - OPAQUE operation + read_only=True -> Error
+        - DELETE operation + destructive=False -> Error
+        - ServiceDomain present + open_world=False -> Error
 
         Set strict=False to bypass validation for valid edge cases (e.g., a "read"
         tool that increments a view count as a side effect).
@@ -296,11 +253,10 @@ class ToolMetadata(BaseModel):
     Example:
         ToolMetadata(
             classification=Classification(
-                domains=[Domain.MESSAGING],
-                system_types=[SystemType.SAAS_API],
+                service_domains=[ServiceDomain.EMAIL],
             ),
             behavior=Behavior(
-                verbs=[Verb.EXECUTE],
+                operations=[Operation.CREATE],
                 read_only=False,
                 destructive=False,
                 idempotent=False,
@@ -311,7 +267,7 @@ class ToolMetadata(BaseModel):
     """
 
     classification: Classification | None = None
-    """What the tool is for and what it connects to."""
+    """What type of service the tool interfaces with."""
 
     behavior: Behavior | None = None
     """What effects the tool has."""
@@ -329,7 +285,7 @@ class ToolMetadata(BaseModel):
         """
         Validate consistency between behavior and classification.
 
-        Called by the catalog when creating a tool definition
+        Called by the catalog when creating a tool definition.
 
         Raises:
             ToolDefinitionError: If strict=True and validation fails
@@ -341,52 +297,41 @@ class ToolMetadata(BaseModel):
         classification = self.classification
 
         if behavior:
-            verbs = set(behavior.verbs or [])
+            operations = set(behavior.operations or [])
 
-            # Rule 1: Mutating verbs + read_only=True is contradictory
-            mutating_verbs = verbs & _MUTATING_VERBS
-            if mutating_verbs and behavior.read_only is True:
+            # Rule 1: Mutating operations + read_only=True is contradictory
+            mutating_ops = operations & _MUTATING_OPERATIONS
+            if mutating_ops and behavior.read_only is True:
                 raise ToolDefinitionError(
-                    f"Tool has the mutating verb(s): '{', '.join([verb.value.upper() for verb in mutating_verbs])}' "
-                    f"in its behavior metadata, but is marked read_only=True. Fix the contradiction, or "
-                    "set strict=False in the tool's ToolMetadata to bypass this validation for legitimate edge cases."
+                    f"Tool has the mutating operation(s): "
+                    f"'{', '.join([op.value.upper() for op in mutating_ops])}' "
+                    f"in its behavior metadata, but is marked read_only=True. "
+                    "Fix the contradiction, or set strict=False to bypass."
                 )
 
-            # Rule 2: DELETE verb should have destructive=True
-            if Verb.DELETE in verbs and behavior.destructive is False:
+            # Rule 2: OPAQUE + read_only=True is contradictory
+            if Operation.OPAQUE in operations and behavior.read_only is True:
                 raise ToolDefinitionError(
-                    f"Tool has the '{Verb.DELETE.value.upper()}' verb in its behavior metadata, "
-                    f"but is not marked destructive=True. Fix the contradiction, or "
-                    "set strict=False in the tool's ToolMetadata to bypass this validation for legitimate edge cases."
+                    "Tool has OPAQUE operation but is marked read_only=True. "
+                    "Cannot guarantee read-only when the operation is indeterminate. "
+                    "Fix the contradiction, or set strict=False to bypass."
+                )
+
+            # Rule 3: DELETE should have destructive=True
+            if Operation.DELETE in operations and behavior.destructive is False:
+                raise ToolDefinitionError(
+                    f"Tool has the '{Operation.DELETE.value.upper()}' operation "
+                    "but is not marked destructive=True. "
+                    "Fix the contradiction, or set strict=False to bypass."
                 )
 
         if classification and behavior:
-            system_types = set(classification.system_types or [])
+            service_domains = classification.service_domains or []
 
-            # Rule 3: Closed-world (SELF_CONTAINED only) + open_world=True is contradictory
-            closed_world_types = system_types & _CLOSED_WORLD_SYSTEM_TYPES
-            if (
-                system_types
-                and system_types <= _CLOSED_WORLD_SYSTEM_TYPES
-                and behavior.open_world is True
-            ):
+            # Rule 4: ServiceDomain present implies open_world=True
+            if len(service_domains) > 0 and behavior.open_world is False:
                 raise ToolDefinitionError(
-                    "Tool has the closed-world system type(s): "
-                    f"'{', '.join([st.value.upper() for st in closed_world_types])}' "
-                    "in its classification metadata, but is marked open_world=True. Fix the contradiction, or "
-                    "set strict=False in the tool's ToolMetadata to bypass this validation for legitimate edge cases."
-                )
-
-            # Rule 4: Remote system types should have open_world=True
-            remote_types = system_types - _CLOSED_WORLD_SYSTEM_TYPES
-            if (
-                system_types
-                and not system_types <= _CLOSED_WORLD_SYSTEM_TYPES
-                and behavior.open_world is False
-            ):
-                raise ToolDefinitionError(
-                    "Tool has the remote system type(s): "
-                    f"'{', '.join([st.value.upper() for st in remote_types])}' "
-                    "in its classification metadata, but is marked open_world=False. Fix the contradiction, or "
-                    "set strict=False in the tool's ToolMetadata to bypass this validation for legitimate edge cases."
+                    "Tool has a ServiceDomain (implying an external service) "
+                    "but is marked open_world=False. "
+                    "Fix the contradiction, or set strict=False to bypass."
                 )

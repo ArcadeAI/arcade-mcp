@@ -1,17 +1,15 @@
 from arcade_core.metadata import (
     Behavior,
     Classification,
-    Domain,
-    SystemType,
+    Operation,
+    ServiceDomain,
     ToolMetadata,
-    Verb,
 )
 
 __all__ = [
     "Behavior",
     "Classification",
-    "Domain",
-    "SystemType",
+    "Operation",
+    "ServiceDomain",
     "ToolMetadata",
-    "Verb",
 ]

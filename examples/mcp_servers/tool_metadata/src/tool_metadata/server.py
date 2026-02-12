@@ -16,11 +16,8 @@ from typing import Annotated
 from arcade_mcp_server import MCPApp
 from arcade_mcp_server.metadata import (
     Behavior,
-    Classification,
-    Domain,
-    SystemType,
+    Operation,
     ToolMetadata,
-    Verb,
 )
 
 app = MCPApp(name="ToolMetadataDemo", version="1.0.0", log_level="DEBUG")
@@ -30,16 +27,12 @@ _notes: dict[str, str] = {}
 
 
 # =============================================================================
-# Example 1: Pure computation tool (SELF_CONTAINED, read-only)
+# Example 1: Pure computation tool (read-only, no external service)
 # =============================================================================
 @app.tool(
     metadata=ToolMetadata(
-        classification=Classification(
-            domains=[Domain.TRANSFORM],
-            system_types=[SystemType.SELF_CONTAINED],
-        ),
         behavior=Behavior(
-            verbs=[Verb.READ],
+            operations=[Operation.READ],
             read_only=True,
             destructive=False,
             idempotent=True,
@@ -57,12 +50,8 @@ def reverse_text(text: Annotated[str, "The text to reverse"]) -> str:
 # =============================================================================
 @app.tool(
     metadata=ToolMetadata(
-        classification=Classification(
-            domains=[Domain.SEARCH],
-            system_types=[SystemType.SELF_CONTAINED],
-        ),
         behavior=Behavior(
-            verbs=[Verb.READ],
+            operations=[Operation.READ],
             read_only=True,
             destructive=False,
             idempotent=True,
@@ -87,12 +76,8 @@ def search_notes(
 # =============================================================================
 @app.tool(
     metadata=ToolMetadata(
-        classification=Classification(
-            domains=[Domain.DOCUMENTS],
-            system_types=[SystemType.SELF_CONTAINED],
-        ),
         behavior=Behavior(
-            verbs=[Verb.CREATE],
+            operations=[Operation.CREATE],
             read_only=False,
             destructive=False,  # Creating is not destructive
             idempotent=False,  # Creating twice may have different effects
@@ -116,12 +101,8 @@ def create_note(
 # =============================================================================
 @app.tool(
     metadata=ToolMetadata(
-        classification=Classification(
-            domains=[Domain.DOCUMENTS],
-            system_types=[SystemType.SELF_CONTAINED],
-        ),
         behavior=Behavior(
-            verbs=[Verb.UPDATE],
+            operations=[Operation.UPDATE],
             read_only=False,
             destructive=False,
             idempotent=True,  # Updating with same content is idempotent
@@ -145,12 +126,8 @@ def update_note(
 # =============================================================================
 @app.tool(
     metadata=ToolMetadata(
-        classification=Classification(
-            domains=[Domain.DOCUMENTS],
-            system_types=[SystemType.SELF_CONTAINED],
-        ),
         behavior=Behavior(
-            verbs=[Verb.DELETE],
+            operations=[Operation.DELETE],
             read_only=False,
             destructive=True,  # Deletion is destructive - data is lost
             idempotent=True,  # Deleting twice has same effect as once
@@ -173,12 +150,8 @@ def delete_note(
 # =============================================================================
 @app.tool(
     metadata=ToolMetadata(
-        classification=Classification(
-            domains=[Domain.ANALYTICS],
-            system_types=[SystemType.SELF_CONTAINED],
-        ),
         behavior=Behavior(
-            verbs=[Verb.READ],
+            operations=[Operation.READ],
             read_only=True,
             destructive=False,
             idempotent=True,
@@ -210,16 +183,15 @@ def get_notes_stats() -> dict[str, int]:
 
 
 # =============================================================================
-# Example 7: Multi-verb tool (upsert = CREATE + UPDATE)
+# Example 7: Multi-operation tool (upsert = CREATE + UPDATE)
 # =============================================================================
 @app.tool(
     metadata=ToolMetadata(
-        classification=Classification(
-            domains=[Domain.DOCUMENTS],
-            system_types=[SystemType.SELF_CONTAINED],
-        ),
         behavior=Behavior(
-            verbs=[Verb.CREATE, Verb.UPDATE],  # Multiple verbs for compound actions
+            operations=[
+                Operation.CREATE,
+                Operation.UPDATE,
+            ],  # Multiple operations for compound actions
             read_only=False,
             destructive=False,
             idempotent=True,  # Upsert is idempotent

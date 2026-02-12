@@ -3,11 +3,8 @@ from typing import Annotated
 from arcade_mcp_server import MCPApp
 from arcade_mcp_server.metadata import (
     Behavior,
-    Classification,
-    Domain,
-    SystemType,
+    Operation,
     ToolMetadata,
-    Verb,
 )
 
 app = MCPApp("EchoServer")
@@ -15,12 +12,8 @@ app = MCPApp("EchoServer")
 
 @app.tool(
     metadata=ToolMetadata(
-        classification=Classification(
-            domains=[Domain.TRANSFORM],
-            system_types=[SystemType.SELF_CONTAINED],
-        ),
         behavior=Behavior(
-            verbs=[Verb.READ],
+            operations=[Operation.READ],
             read_only=True,
             destructive=False,
             idempotent=True,
