@@ -75,47 +75,10 @@ def test_format_path_for_display_posix_escapes() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_resolve_windows_appdata_prefers_appdata(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("APPDATA", r"C:\Users\Alice\AppData\Roaming")
-    monkeypatch.delenv("LOCALAPPDATA", raising=False)
-    monkeypatch.delenv("USERPROFILE", raising=False)
-    assert _resolve_windows_appdata() == Path(r"C:\Users\Alice\AppData\Roaming")
-
-
-def test_resolve_windows_appdata_from_localappdata(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    # Simulate a realistic AppData layout so the Roaming sibling exists.
-    local_dir = tmp_path / "AppData" / "Local"
-    roaming_dir = tmp_path / "AppData" / "Roaming"
-    local_dir.mkdir(parents=True)
-    roaming_dir.mkdir(parents=True)
-
-    monkeypatch.delenv("APPDATA", raising=False)
-    import arcade_cli.configure as configure_mod
-
-    monkeypatch.setattr(configure_mod, "_resolve_windows_appdata_with_platformdirs", lambda: None)
-    monkeypatch.setenv("LOCALAPPDATA", str(local_dir))
-    monkeypatch.delenv("USERPROFILE", raising=False)
-    assert _resolve_windows_appdata() == roaming_dir
-
-
-def test_resolve_windows_appdata_from_userprofile(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """Falls back to USERPROFILE when APPDATA and LOCALAPPDATA are unset."""
-    monkeypatch.delenv("APPDATA", raising=False)
-    import arcade_cli.configure as configure_mod
-
-    monkeypatch.setattr(configure_mod, "_resolve_windows_appdata_with_platformdirs", lambda: None)
-    monkeypatch.delenv("LOCALAPPDATA", raising=False)
-    monkeypatch.setenv("USERPROFILE", str(tmp_path))
-    assert _resolve_windows_appdata() == tmp_path / "AppData" / "Roaming"
-
-
-def test_resolve_windows_appdata_uses_platformdirs_when_available(
+def test_resolve_windows_appdata_delegates_to_platformdirs(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """_resolve_windows_appdata returns whatever platformdirs resolves."""
     monkeypatch.delenv("APPDATA", raising=False)
     monkeypatch.delenv("LOCALAPPDATA", raising=False)
     monkeypatch.delenv("USERPROFILE", raising=False)
@@ -129,23 +92,20 @@ def test_resolve_windows_appdata_uses_platformdirs_when_available(
     assert _resolve_windows_appdata() == Path(r"C:\Users\Alice\AppData\Roaming")
 
 
-def test_resolve_windows_appdata_platformdirs_empty_falls_back_to_localappdata(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+def test_resolve_windows_appdata_handles_older_platformdirs(
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    local_dir = tmp_path / "AppData" / "Local"
-    roaming_dir = tmp_path / "AppData" / "Roaming"
-    local_dir.mkdir(parents=True)
-    roaming_dir.mkdir(parents=True)
-
-    monkeypatch.delenv("APPDATA", raising=False)
-    monkeypatch.setenv("LOCALAPPDATA", str(local_dir))
-    monkeypatch.delenv("USERPROFILE", raising=False)
+    """Falls back to positional args when platformdirs raises TypeError."""
+    def strict_user_data_dir(*args: object, **kwargs: object) -> str:
+        if kwargs:
+            raise TypeError("keyword args not supported")
+        return r"C:\Users\Bob\AppData\Roaming"
 
     fake_platformdirs = types.ModuleType("platformdirs")
-    fake_platformdirs.user_data_dir = lambda *args, **kwargs: ""
+    fake_platformdirs.user_data_dir = strict_user_data_dir
     monkeypatch.setitem(sys.modules, "platformdirs", fake_platformdirs)
 
-    assert _resolve_windows_appdata() == roaming_dir
+    assert _resolve_windows_appdata() == Path(r"C:\Users\Bob\AppData\Roaming")
 
 
 # ---------------------------------------------------------------------------
@@ -153,17 +113,26 @@ def test_resolve_windows_appdata_platformdirs_empty_falls_back_to_localappdata(
 # ---------------------------------------------------------------------------
 
 
-def test_warn_overwrite_prints_when_entry_exists(capsys: pytest.CaptureFixture) -> None:
+def test_warn_overwrite_prints_when_entry_exists() -> None:
     """Should print a yellow warning when the server entry already exists."""
-    config = {"mcpServers": {"demo": {"command": "old"}}}
-    config_path = Path("/fake/cursor.json")
-    _warn_overwrite(config, "mcpServers", "demo", config_path)
-    # The warning uses Rich console, so check the captured output from the
-    # console (which writes to stdout).  Rich may strip markup but the text
-    # content should be present.
-    # Because Rich writes directly via its Console, we read from the console's
-    # file object.  Just ensure no exception was raised — the visual output
-    # is verified below via a buffer-based approach.
+    from arcade_cli.console import Console
+
+    buf = StringIO()
+    test_console = Console(file=buf, force_terminal=False)
+
+    import arcade_cli.configure as configure_mod
+
+    orig = configure_mod.console
+    configure_mod.console = test_console
+    try:
+        config = {"mcpServers": {"demo": {"command": "old"}}}
+        _warn_overwrite(config, "mcpServers", "demo", Path("/fake/cursor.json"))
+    finally:
+        configure_mod.console = orig
+
+    output = buf.getvalue()
+    assert "demo" in output
+    assert "already exists" in output
 
 
 def test_warn_overwrite_silent_when_no_entry() -> None:

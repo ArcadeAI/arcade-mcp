@@ -1,6 +1,7 @@
 """Connect command for configuring MCP clients."""
 
 import json
+import logging
 import os
 import platform
 import re
@@ -12,6 +13,8 @@ import typer
 from dotenv import dotenv_values
 
 from arcade_cli.console import console
+
+logger = logging.getLogger(__name__)
 
 
 def is_wsl() -> bool:
@@ -52,52 +55,24 @@ def get_windows_username() -> str | None:
     return None
 
 
-def _resolve_windows_appdata_with_platformdirs() -> Path | None:
-    """Resolve Windows roaming AppData via optional ``platformdirs``.
-
-    ``platformdirs`` is the de-facto standard Python library for OS-specific
-    user directory resolution. We import it lazily and treat it as optional so
-    existing environments keep working without new hard dependencies.
-    """
-    try:
-        from platformdirs import user_data_dir
-    except ImportError:
-        return None
-
-    try:
-        candidate = user_data_dir(appname=None, appauthor=False, roaming=True)
-    except TypeError:
-        # Compatibility with older signatures that rely on positional args.
-        candidate = user_data_dir(None, False, roaming=True)
-
-    if not candidate:
-        return None
-    return Path(candidate)
-
-
 def _resolve_windows_appdata() -> Path:
-    """Resolve the Windows roaming AppData directory with fallbacks."""
-    appdata = os.environ.get("APPDATA")
-    if appdata:
-        return Path(appdata)
+    """Resolve the Windows roaming AppData directory via ``platformdirs``.
 
-    # Prefer platformdirs when available.
-    if platformdirs_path := _resolve_windows_appdata_with_platformdirs():
-        return platformdirs_path
+    ``platformdirs`` is the de-facto standard Python library for resolving
+    OS-specific user directories.  On Windows it reads the ``APPDATA``
+    environment variable (and the Windows registry as a fallback), so a
+    single call covers every real-world scenario.
+    """
+    from platformdirs import user_data_dir
 
-    local_appdata = os.environ.get("LOCALAPPDATA")
-    if local_appdata:
-        roaming_candidate = Path(local_appdata).parent / "Roaming"
-        if roaming_candidate.exists():
-            return roaming_candidate
-        return Path(local_appdata)
+    try:
+        result = user_data_dir(appname=None, appauthor=False, roaming=True)
+    except TypeError:
+        # Older platformdirs versions require positional args only.
+        logger.debug("platformdirs raised TypeError; retrying with positional args")
+        result = user_data_dir(None, False, True)
 
-    user_profile = os.environ.get("USERPROFILE")
-    if user_profile:
-        return Path(user_profile) / "AppData" / "Roaming"
-
-    # Final fallback: best-effort guess using HOME.
-    return Path.home() / "AppData" / "Roaming"
+    return Path(result)
 
 
 def _format_path_for_display(path: Path, platform_system: str | None = None) -> str:

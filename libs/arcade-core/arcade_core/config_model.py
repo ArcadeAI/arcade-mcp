@@ -12,17 +12,29 @@ logger = logging.getLogger(__name__)
 
 
 def _set_windows_owner_acl(config_file_path: Path) -> None:
-    """Apply owner-only style ACLs on Windows using ``icacls``.
+    """Restrict a file so only the current user can read/write it on Windows.
 
-    This mirrors the intent of POSIX ``chmod 600`` more closely than
-    ``Path.chmod(0o600)`` on Windows, where chmod mostly toggles the
-    read-only attribute.
+    On POSIX systems ``chmod 600`` removes group/other access.  On Windows,
+    ``Path.chmod()`` only toggles the read-only flag and does **not** change
+    who can access the file.  To get equivalent protection we use the built-in
+    ``icacls`` command to manipulate NTFS Access Control Lists (ACLs):
+
+    1. ``/inheritance:r`` — remove all inherited Access Control Entries (ACEs).
+       By default every file inherits broad permissions from its parent folder
+       (e.g. ``Users:(RX)``).  Stripping inheritance leaves the file with an
+       empty ACL, meaning *no one* can access it yet.
+    2. ``/grant:r USERNAME:(R,W)`` — add a single explicit ACE that grants
+       the current user Read and Write access.  The ``:r`` flag replaces any
+       existing ACE for that user rather than merging.
+
+    The net effect is that only the logged-in Windows user can read or modify
+    the credentials file — the same security posture as ``chmod 600`` on Unix.
     """
     username = os.environ.get("USERNAME")
     if not username:
         raise OSError("USERNAME is not set; cannot apply Windows ACL restrictions")
 
-    # Remove inherited ACEs, then grant the current user read/write.
+    # Step 1: Strip inherited permissions so the file starts with an empty ACL.
     subprocess.run(
         ["icacls", str(config_file_path), "/inheritance:r"],  # noqa: S607
         check=True,
@@ -30,6 +42,7 @@ def _set_windows_owner_acl(config_file_path: Path) -> None:
         stderr=subprocess.PIPE,
         text=True,
     )
+    # Step 2: Grant only the current user read + write access.
     subprocess.run(
         ["icacls", str(config_file_path), "/grant:r", f"{username}:(R,W)"],  # noqa: S607
         check=True,
@@ -264,8 +277,12 @@ class Config(BaseConfig):
         data = {"cloud": self.model_dump(exclude_none=True, mode="json")}
         config_file_path.write_text(yaml.dump(data, default_flow_style=False), encoding="utf-8")
 
-        # Set restrictive permissions (owner read/write only).
-        # On Windows, prefer ACL hardening via icacls.
+        # Restrict the credentials file so only the current user can read it.
+        # - Unix:    chmod 600 (removes group/other access via file-mode bits).
+        # - Windows: icacls to strip inherited ACEs and grant only the current
+        #            user R/W access (see _set_windows_owner_acl for details).
+        # Failure is non-fatal: the file is still written, but a warning is
+        # logged so the user knows the permissions could not be tightened.
         try:
             if os.name == "nt":
                 _set_windows_owner_acl(config_file_path)

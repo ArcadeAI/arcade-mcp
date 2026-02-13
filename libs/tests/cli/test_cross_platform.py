@@ -24,6 +24,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import types
 from io import StringIO
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -646,43 +647,38 @@ class TestPathFormatting:
 
 
 class TestAppDataResolution:
-    """Verify _resolve_windows_appdata on various env configurations."""
+    """Verify _resolve_windows_appdata delegates to platformdirs."""
 
-    def test_prefers_appdata(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_delegates_to_platformdirs(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """_resolve_windows_appdata returns whatever platformdirs resolves."""
         from arcade_cli.configure import _resolve_windows_appdata
-        monkeypatch.setenv("APPDATA", r"C:\Users\Alice\AppData\Roaming")
+
+        monkeypatch.delenv("APPDATA", raising=False)
         monkeypatch.delenv("LOCALAPPDATA", raising=False)
         monkeypatch.delenv("USERPROFILE", raising=False)
+
+        fake_platformdirs = types.ModuleType("platformdirs")
+        fake_platformdirs.user_data_dir = (
+            lambda *args, **kwargs: r"C:\Users\Alice\AppData\Roaming"
+        )
+        monkeypatch.setitem(sys.modules, "platformdirs", fake_platformdirs)
+
         assert _resolve_windows_appdata() == Path(r"C:\Users\Alice\AppData\Roaming")
 
-    def test_derives_roaming_from_localappdata(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_handles_older_platformdirs(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Falls back to positional args when platformdirs raises TypeError."""
         from arcade_cli.configure import _resolve_windows_appdata
-        import arcade_cli.configure as configure_mod
 
-        monkeypatch.setattr(configure_mod, "_resolve_windows_appdata_with_platformdirs", lambda: None)
-        local_dir = tmp_path / "AppData" / "Local"
-        roaming_dir = tmp_path / "AppData" / "Roaming"
-        local_dir.mkdir(parents=True)
-        roaming_dir.mkdir(parents=True)
+        def strict_user_data_dir(*args: object, **kwargs: object) -> str:
+            if kwargs:
+                raise TypeError("keyword args not supported")
+            return r"C:\Users\Bob\AppData\Roaming"
 
-        monkeypatch.delenv("APPDATA", raising=False)
-        monkeypatch.setenv("LOCALAPPDATA", str(local_dir))
-        monkeypatch.delenv("USERPROFILE", raising=False)
-        assert _resolve_windows_appdata() == roaming_dir
+        fake_platformdirs = types.ModuleType("platformdirs")
+        fake_platformdirs.user_data_dir = strict_user_data_dir
+        monkeypatch.setitem(sys.modules, "platformdirs", fake_platformdirs)
 
-    def test_falls_back_to_userprofile(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        from arcade_cli.configure import _resolve_windows_appdata
-        import arcade_cli.configure as configure_mod
-
-        monkeypatch.setattr(configure_mod, "_resolve_windows_appdata_with_platformdirs", lambda: None)
-        monkeypatch.delenv("APPDATA", raising=False)
-        monkeypatch.delenv("LOCALAPPDATA", raising=False)
-        monkeypatch.setenv("USERPROFILE", str(tmp_path))
-        assert _resolve_windows_appdata() == tmp_path / "AppData" / "Roaming"
+        assert _resolve_windows_appdata() == Path(r"C:\Users\Bob\AppData\Roaming")
 
 
 # =========================================================================

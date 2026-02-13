@@ -384,6 +384,14 @@ class OAuthCallbackServer:
         self.port = port
         self.httpd: HTTPServer | None = None
         self.result: dict[str, Any] = {}
+
+        # Threading events used on *all* platforms (not Windows-specific).
+        # result_event: signalled by the HTTP handler once the OAuth callback
+        #   has been processed (success or error).  Callers block on this via
+        #   wait_for_result() instead of polling.
+        # ready_event: signalled by run_server() once the HTTPServer is bound
+        #   and listening.  Callers block on this via wait_until_ready() so
+        #   they don't race the browser redirect against server startup.
         self.result_event = threading.Event()
         self.ready_event = threading.Event()
 
@@ -646,6 +654,10 @@ def oauth_callback_server(
         # After the with block, the server has been shut down
     """
     server = OAuthCallbackServer(state, port=port)
+    # daemon=True ensures the thread is killed automatically when the main
+    # process exits (e.g. user presses Ctrl-C during login).  Without it the
+    # blocking serve_forever() call would keep the process alive until the
+    # HTTP timeout expires, even after the CLI has printed an error.
     server_thread = threading.Thread(target=server.run_server, daemon=True)
     server_thread.start()
     if not server.wait_until_ready(timeout=2.0):

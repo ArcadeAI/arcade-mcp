@@ -393,19 +393,28 @@ def _graceful_terminate(process: subprocess.Popen) -> None:
 
 
 def _resolve_server_process_stdio(debug: bool) -> tuple[int | None, int | None]:
-    """Choose stdio strategy for the temporary validation server process.
+    """Choose stdout/stderr targets for the temporary validation server process.
 
-    When stdout/stderr are both PIPEs and no reader drains them, a chatty child
-    process can block on write before it reaches healthy startup. That manifests
-    as intermittent health-check timeouts on Windows in particular.
+    ``arcade deploy`` starts a short-lived child server to validate the
+    entrypoint before uploading.  The child's stdout/stderr must be handled
+    carefully:
+
+    * **Normal mode** (``debug=False``): the CLI doesn't display child output,
+      so both streams are sent to ``subprocess.DEVNULL``.  This prevents a
+      chatty child from filling the OS pipe buffer and blocking — which
+      manifests as intermittent health-check timeouts, especially on Windows
+      where the default pipe buffer is only 4 KiB.
+    * **Debug mode** (``debug=True``): both streams are inherited from the
+      parent process (``None``), so the user sees live startup logs in their
+      terminal for troubleshooting.
+
+    Returns:
+        ``(stdout_target, stderr_target)`` — each is either
+        ``subprocess.DEVNULL`` or ``None`` (inherit).
     """
     if debug:
-        # In debug mode, inherit parent streams so users can see live startup
-        # output directly in their terminal.
         return None, None
 
-    # In normal mode we don't need child logs. Route output to DEVNULL so the
-    # child can never block on a full pipe buffer.
     return subprocess.DEVNULL, subprocess.DEVNULL
 
 
