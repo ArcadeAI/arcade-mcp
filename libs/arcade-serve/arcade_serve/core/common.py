@@ -5,9 +5,26 @@ from arcade_core.schema import ToolCallRequest, ToolCallResponse, ToolDefinition
 from pydantic import BaseModel
 
 CatalogResponse = list[ToolDefinition]
-HealthCheckResponse = dict[str, str]
+HealthCheckResponse = dict[str, Any]
 JSONResponse = dict[str, Any]
 ResponseData = CatalogResponse | ToolCallResponse | HealthCheckResponse
+
+
+class ToolNotFoundError(Exception):
+    """Raised when a tool is not found in the worker's catalog.
+
+    This exception is mapped to HTTP 404 by the framework integration layer,
+    allowing the engine to distinguish 'tool not found' from other errors
+    and retry on a different worker replica during rolling deployments.
+    """
+
+    def __init__(self, tool_name: str, version: str | None = None) -> None:
+        self.tool_name = tool_name
+        self.version = version
+        msg = f"Tool {tool_name} not found in catalog"
+        if version:
+            msg += f" with toolkit version {version}"
+        super().__init__(msg)
 
 
 class RequestData(BaseModel):

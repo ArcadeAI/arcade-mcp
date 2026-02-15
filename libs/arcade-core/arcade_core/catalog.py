@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import inspect
 import logging
 import os
@@ -426,6 +427,33 @@ class ToolCatalog(BaseModel):
         Get the number of tools in the catalog.
         """
         return len(self._tools)
+
+    def compute_hash(self) -> str:
+        """
+        Compute a deterministic SHA-256 hash of all tool definitions in the catalog.
+
+        The hash is computed by:
+        1. Serializing each ToolDefinition to JSON with sorted keys
+        2. Sorting the serialized definitions by fully qualified name
+        3. Concatenating and hashing with SHA-256
+
+        This ensures the hash is stable regardless of insertion order
+        and only changes when tool definitions actually change.
+        """
+        serialized_definitions: list[tuple[str, str]] = []
+        for fq_name, materialized_tool in self._tools.items():
+            key = str(fq_name)
+            json_str = materialized_tool.definition.model_dump_json(exclude_none=False)
+            serialized_definitions.append((key, json_str))
+
+        serialized_definitions.sort(key=lambda x: x[0])
+
+        hasher = hashlib.sha256()
+        for key, json_str in serialized_definitions:
+            hasher.update(key.encode("utf-8"))
+            hasher.update(json_str.encode("utf-8"))
+
+        return hasher.hexdigest()
 
     @staticmethod
     def create_tool_definition(
