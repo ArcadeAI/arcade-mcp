@@ -32,6 +32,10 @@ from arcade_cli.utils import (
 
 console = Console()
 
+# Constants
+
+DEPLOY_TIMEOUT_SECONDS = 360
+
 # Models
 
 
@@ -107,7 +111,7 @@ def _get_deployment_status(engine_url: str, server_name: str) -> str:
         Possible values are: "pending", "updating", "unknown", "running", "failed".
     """
     url = get_org_scoped_url(engine_url, f"/deployments/{server_name}/status")
-    client = httpx.Client(headers=get_auth_headers(), timeout=360)
+    client = httpx.Client(headers=get_auth_headers(), timeout=DEPLOY_TIMEOUT_SECONDS)
     response = client.get(url)
     response.raise_for_status()
     status = cast(str, response.json().get("status", "unknown"))
@@ -296,12 +300,48 @@ def update_deployment(
     engine_url: str,
     server_name: str,
     update_deployment_request: dict,
+    debug: bool = False,
 ) -> None:
-    """Update a deployment in the Arcade Engine."""
+    """Update a deployment in the Arcade Engine.
+
+    Args:
+        engine_url: The base URL of the Arcade Engine
+        server_name: The name of the server to update
+        update_deployment_request: The update deployment request payload
+        debug: Whether to show debug information
+
+    Raises:
+        httpx.HTTPStatusError: If the deployment request fails
+        httpx.ConnectError: If connection to the engine fails
+    """
     url = get_org_scoped_url(engine_url, f"/deployments/{server_name}")
-    client = httpx.Client(headers=get_auth_headers())
-    response = client.put(url, json=update_deployment_request)
-    response.raise_for_status()
+    client = httpx.Client(headers=get_auth_headers(), timeout=DEPLOY_TIMEOUT_SECONDS)
+
+    try:
+        response = client.put(url, json=update_deployment_request)
+        response.raise_for_status()
+    except httpx.TimeoutException as e:
+        raise ValueError(
+            f"Deployment update timed out. This is often caused by a large deployment "
+            f"package. Try reducing package size by removing unnecessary files "
+            f"(data files, large assets, etc.) from your project directory. "
+            f"Current timeout: {DEPLOY_TIMEOUT_SECONDS}s. Details: {e}"
+        ) from e
+    except httpx.ConnectError as e:
+        raise ValueError(f"Failed to connect to Arcade Engine at {engine_url}: {e}") from e
+    except httpx.HTTPStatusError as e:
+        error_detail = ""
+        try:
+            error_json = e.response.json()
+            error_detail = f": {error_json}"
+        except Exception:
+            error_detail = f": {e.response.text}"
+
+        raise ValueError(
+            f"Deployment update failed with HTTP {e.response.status_code}{error_detail}"
+        ) from e
+    finally:
+        client.close()
 
 
 def create_package_archive(package_dir: Path) -> str:
@@ -674,12 +714,19 @@ def deploy_server_to_engine(
         httpx.ConnectError: If connection to the engine fails
     """
     url = get_org_scoped_url(engine_url, "/deployments")
-    client = httpx.Client(headers=get_auth_headers(), timeout=360)
+    client = httpx.Client(headers=get_auth_headers(), timeout=DEPLOY_TIMEOUT_SECONDS)
 
     try:
         response = client.post(url, json=deployment_request)
         response.raise_for_status()
         return cast(dict, response.json())
+    except httpx.TimeoutException as e:
+        raise ValueError(
+            f"Deployment request timed out. This is often caused by a large deployment "
+            f"package. Try reducing package size by removing unnecessary files "
+            f"(data files, large assets, etc.) from your project directory. "
+            f"Current timeout: {DEPLOY_TIMEOUT_SECONDS}s. Details: {e}"
+        ) from e
     except httpx.ConnectError as e:
         raise ValueError(f"Failed to connect to Arcade Engine at {engine_url}: {e}") from e
     except httpx.HTTPStatusError as e:
@@ -842,7 +889,7 @@ def deploy_server_logic(
                 description="MCP Server deployed via CLI",
                 toolkits=deployment_toolkits,
             )
-            update_deployment(engine_url, server_name, update_request.model_dump())
+            update_deployment(engine_url, server_name, update_request.model_dump(), debug)
         else:
             create_request = CreateDeploymentRequest(
                 name=server_name,
