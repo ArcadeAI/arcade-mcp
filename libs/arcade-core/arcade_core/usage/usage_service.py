@@ -2,6 +2,7 @@ import json
 import os
 import subprocess
 import sys
+from pathlib import Path
 
 from arcade_core.usage.constants import (
     ARCADE_USAGE_EVENT_DATA,
@@ -71,7 +72,15 @@ class UsageService:
             "is_anon": is_anon,
         })
 
-        cmd = [sys.executable, "-m", "arcade_core.usage"]
+        cmd_executable = sys.executable
+        if sys.platform == "win32":
+            # Prefer pythonw.exe for background usage tracking on Windows to
+            # avoid flashing a console window after CLI commands complete.
+            pythonw = Path(sys.executable).with_name("pythonw.exe")
+            if pythonw.exists():
+                cmd_executable = str(pythonw)
+
+        cmd = [cmd_executable, "-m", "arcade_core.usage"]
 
         # Pass data via environment variable (works on all platforms)
         env = os.environ.copy()
@@ -82,9 +91,16 @@ class UsageService:
             # detach from the parent console *and* prevent allocation of a
             # new console window.  CREATE_NEW_PROCESS_GROUP allows the child
             # to be signaled independently.
-            DETACHED_PROCESS = 0x00000008
-            CREATE_NEW_PROCESS_GROUP = 0x00000200
-            CREATE_NO_WINDOW = 0x08000000
+            DETACHED_PROCESS = getattr(subprocess, "DETACHED_PROCESS", 0x00000008)
+            CREATE_NEW_PROCESS_GROUP = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0x00000200)
+            CREATE_NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
+
+            startupinfo = None
+            startupinfo_cls = getattr(subprocess, "STARTUPINFO", None)
+            if startupinfo_cls is not None:
+                startupinfo = startupinfo_cls()
+                startupinfo.dwFlags |= getattr(subprocess, "STARTF_USESHOWWINDOW", 0x00000001)
+                startupinfo.wShowWindow = 0  # SW_HIDE
 
             subprocess.Popen(
                 cmd,
@@ -92,6 +108,7 @@ class UsageService:
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
                 creationflags=DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW,
+                startupinfo=startupinfo,
                 close_fds=True,
                 env=env,
             )
