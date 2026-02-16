@@ -729,17 +729,16 @@ def perform_oauth_login(
                 oauth_client, cli_config, redirect_uri, state
             )
 
+            # Always print the auth link first so users can click/copy it
+            # immediately, even if automatic browser launch fails.
+            status("Use this authorization link if needed:\n" f"{auth_url}")
             status("Opening a browser to log you in...")
             browser_opened = _open_browser(auth_url)
 
             if not browser_opened:
-                status(
-                    f"Could not open a browser automatically.\nCopy this URL into your browser:\n{auth_url}"
-                )
+                status("Could not open a browser automatically. Use the authorization link above.")
             else:
-                # Always show the URL so users have a fallback if the browser
-                # didn't navigate correctly or opened the wrong profile.
-                status(f"If the browser didn't open, copy this URL:\n{auth_url}")
+                status("If the browser did not continue login, use the authorization link above.")
 
             status(f"Waiting for login to complete (timeout: {timeout_seconds}s)...")
             server.wait_for_result(timeout_seconds)

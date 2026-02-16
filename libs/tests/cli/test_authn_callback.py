@@ -143,6 +143,7 @@ def test_perform_oauth_login_always_shows_auth_url() -> None:
     assert len(url_messages) >= 1, (
         f"Auth URL should appear in status messages. Got: {status_messages}"
     )
+    assert any("Use this authorization link if needed" in m for m in status_messages)
 
 
 def test_perform_oauth_login_shows_url_when_browser_fails() -> None:
@@ -183,6 +184,7 @@ def test_perform_oauth_login_shows_url_when_browser_fails() -> None:
 
     url_messages = [m for m in status_messages if "https://example.com/auth" in m]
     assert len(url_messages) >= 1
+    assert any("Use this authorization link if needed" in m for m in status_messages)
     # When browser fails, the message should say "Could not open a browser"
     browser_fail_msgs = [m for m in status_messages if "Could not open a browser" in m]
     assert len(browser_fail_msgs) >= 1
