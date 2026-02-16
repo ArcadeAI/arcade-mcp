@@ -247,14 +247,15 @@ class TestSubprocessFlags:
         assert "CREATE_NO_WINDOW" in source
         assert 'sys.platform == "win32"' in source or "sys.platform == 'win32'" in source
 
-    def test_usage_service_uses_detached_process_on_windows(self) -> None:
-        """usage_service.py must use DETACHED_PROCESS + CREATE_NO_WINDOW on Windows."""
+    def test_usage_service_uses_hidden_background_flags_on_windows(self) -> None:
+        """usage_service.py must hide windows for background tracking on Windows."""
         import inspect
         import arcade_core.usage.usage_service as us_mod
 
         source = inspect.getsource(us_mod)
-        assert "DETACHED_PROCESS" in source
+        assert "CREATE_NEW_PROCESS_GROUP" in source
         assert "CREATE_NO_WINDOW" in source
+        assert "SW_HIDE" in source
         assert 'sys.platform == "win32"' in source or "sys.platform == 'win32'" in source
 
     def test_config_model_uses_icacls_on_windows(self) -> None:

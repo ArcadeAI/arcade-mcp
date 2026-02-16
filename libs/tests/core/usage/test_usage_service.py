@@ -20,10 +20,11 @@ def test_capture_windows_prefers_pythonw_and_hides_window() -> None:
         patch("arcade_core.usage.usage_service.is_tracking_enabled", return_value=True),
         patch.object(sys, "platform", "win32"),
         patch.object(sys, "executable", r"C:\Python\python.exe"),
+        patch.object(sys, "base_prefix", r"C:\Python", create=True),
         patch("arcade_core.usage.usage_service.Path.exists", return_value=True),
+        patch("arcade_core.usage.usage_service.shutil.which", return_value=None),
         patch.object(subprocess, "STARTUPINFO", _DummyStartupInfo, create=True),
         patch.object(subprocess, "STARTF_USESHOWWINDOW", 0x00000001, create=True),
-        patch.object(subprocess, "DETACHED_PROCESS", 0x00000008, create=True),
         patch.object(subprocess, "CREATE_NEW_PROCESS_GROUP", 0x00000200, create=True),
         patch.object(subprocess, "CREATE_NO_WINDOW", 0x08000000, create=True),
         patch("arcade_core.usage.usage_service.subprocess.Popen") as mock_popen,
@@ -37,9 +38,9 @@ def test_capture_windows_prefers_pythonw_and_hides_window() -> None:
     assert cmd[1:] == ["-m", "arcade_core.usage"]
 
     flags = kwargs["creationflags"]
-    assert flags & 0x00000008  # DETACHED_PROCESS
     assert flags & 0x00000200  # CREATE_NEW_PROCESS_GROUP
     assert flags & 0x08000000  # CREATE_NO_WINDOW
+    assert not (flags & 0x00000008)  # DETACHED_PROCESS should not be used
 
     startupinfo = kwargs["startupinfo"]
     assert startupinfo is not None
@@ -54,10 +55,11 @@ def test_capture_windows_falls_back_to_python_when_pythonw_missing() -> None:
         patch("arcade_core.usage.usage_service.is_tracking_enabled", return_value=True),
         patch.object(sys, "platform", "win32"),
         patch.object(sys, "executable", r"C:\Python\python.exe"),
+        patch.object(sys, "base_prefix", r"C:\Python", create=True),
         patch("arcade_core.usage.usage_service.Path.exists", return_value=False),
+        patch("arcade_core.usage.usage_service.shutil.which", return_value=None),
         patch.object(subprocess, "STARTUPINFO", _DummyStartupInfo, create=True),
         patch.object(subprocess, "STARTF_USESHOWWINDOW", 0x00000001, create=True),
-        patch.object(subprocess, "DETACHED_PROCESS", 0x00000008, create=True),
         patch.object(subprocess, "CREATE_NEW_PROCESS_GROUP", 0x00000200, create=True),
         patch.object(subprocess, "CREATE_NO_WINDOW", 0x08000000, create=True),
         patch("arcade_core.usage.usage_service.subprocess.Popen") as mock_popen,
@@ -76,6 +78,7 @@ def test_capture_non_windows_uses_start_new_session() -> None:
     with (
         patch("arcade_core.usage.usage_service.is_tracking_enabled", return_value=True),
         patch.object(sys, "platform", "linux"),
+        patch("arcade_core.usage.usage_service.shutil.which", return_value=None),
         patch("arcade_core.usage.usage_service.subprocess.Popen") as mock_popen,
     ):
         service.capture("event", "distinct-id", {"k": "v"})
@@ -90,8 +93,59 @@ def test_capture_noop_when_tracking_disabled() -> None:
 
     with (
         patch("arcade_core.usage.usage_service.is_tracking_enabled", return_value=False),
+        patch("arcade_core.usage.usage_service.shutil.which", return_value=None),
         patch("arcade_core.usage.usage_service.subprocess.Popen") as mock_popen,
     ):
         service.capture("event", "distinct-id", {"k": "v"})
 
     mock_popen.assert_not_called()
+
+
+def test_capture_windows_uses_base_prefix_pythonw_when_venv_pythonw_missing() -> None:
+    service = UsageService()
+
+    base_pythonw = r"C:\BasePython\pythonw.exe"
+
+    with (
+        patch("arcade_core.usage.usage_service.is_tracking_enabled", return_value=True),
+        patch.object(sys, "platform", "win32"),
+        patch.object(sys, "executable", r"C:\Venv\Scripts\python.exe"),
+        patch.object(sys, "base_prefix", r"C:\BasePython", create=True),
+        patch("arcade_core.usage.usage_service.Path.exists", side_effect=[False, True]),
+        patch("arcade_core.usage.usage_service.shutil.which", return_value=None),
+        patch.object(subprocess, "STARTUPINFO", _DummyStartupInfo, create=True),
+        patch.object(subprocess, "STARTF_USESHOWWINDOW", 0x00000001, create=True),
+        patch.object(subprocess, "CREATE_NEW_PROCESS_GROUP", 0x00000200, create=True),
+        patch.object(subprocess, "CREATE_NO_WINDOW", 0x08000000, create=True),
+        patch("arcade_core.usage.usage_service.subprocess.Popen") as mock_popen,
+    ):
+        service.capture("event", "distinct-id", {"k": "v"})
+
+    args, _kwargs = mock_popen.call_args
+    cmd = args[0]
+    assert cmd[0] == base_pythonw
+
+
+def test_capture_windows_uses_pythonw_from_path_when_available() -> None:
+    service = UsageService()
+
+    path_pythonw = r"C:\Tools\pythonw.exe"
+
+    with (
+        patch("arcade_core.usage.usage_service.is_tracking_enabled", return_value=True),
+        patch.object(sys, "platform", "win32"),
+        patch.object(sys, "executable", r"C:\Venv\Scripts\python.exe"),
+        patch.object(sys, "base_prefix", r"C:\BasePython", create=True),
+        patch("arcade_core.usage.usage_service.Path.exists", side_effect=[False, False, True]),
+        patch("arcade_core.usage.usage_service.shutil.which", return_value=path_pythonw),
+        patch.object(subprocess, "STARTUPINFO", _DummyStartupInfo, create=True),
+        patch.object(subprocess, "STARTF_USESHOWWINDOW", 0x00000001, create=True),
+        patch.object(subprocess, "CREATE_NEW_PROCESS_GROUP", 0x00000200, create=True),
+        patch.object(subprocess, "CREATE_NO_WINDOW", 0x08000000, create=True),
+        patch("arcade_core.usage.usage_service.subprocess.Popen") as mock_popen,
+    ):
+        service.capture("event", "distinct-id", {"k": "v"})
+
+    args, _kwargs = mock_popen.call_args
+    cmd = args[0]
+    assert cmd[0] == path_pythonw
