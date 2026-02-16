@@ -75,6 +75,29 @@ def _resolve_windows_appdata() -> Path:
     return Path(result)
 
 
+def _dedupe_paths(paths: list[Path]) -> list[Path]:
+    """Return paths in order, removing duplicates (case-insensitive on Windows)."""
+    deduped: list[Path] = []
+    seen: set[str] = set()
+    for path in paths:
+        key = os.path.normcase(str(path))
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(path)
+    return deduped
+
+
+def _get_windows_cursor_config_paths() -> list[Path]:
+    """Return known Windows Cursor config locations (primary first)."""
+    return _dedupe_paths(
+        [
+            _resolve_windows_appdata() / "Cursor" / "mcp.json",
+            Path.home() / ".cursor" / "mcp.json",
+        ]
+    )
+
+
 def _format_path_for_display(path: Path, platform_system: str | None = None) -> str:
     path_str = str(path)
     if " " in path_str:
@@ -131,7 +154,11 @@ def get_cursor_config_path() -> Path:
     if system == "Darwin":  # macOS
         return Path.home() / ".cursor" / "mcp.json"
     elif system == "Windows":
-        return _resolve_windows_appdata() / "Cursor" / "mcp.json"
+        candidates = _get_windows_cursor_config_paths()
+        for path in candidates:
+            if path.exists():
+                return path
+        return candidates[0]
     else:  # Linux
         # Check if we're in WSL - if so, use Windows path
         if is_wsl():
@@ -220,9 +247,12 @@ def get_stdio_config(entrypoint_file: str, server_name: str) -> dict:
     """Get the appropriate stdio configuration based on whether uv is installed."""
     server_file = Path.cwd() / entrypoint_file
 
-    if is_uv_installed():
+    uv_executable = shutil.which("uv")
+    if uv_executable:
         return {
-            "command": "uv",
+            # Use the absolute uv path so GUI clients can launch reliably even
+            # when they were started with a different PATH than the shell.
+            "command": uv_executable,
             "args": [
                 "run",
                 "--directory",
@@ -317,42 +347,64 @@ def configure_cursor_local(
             "url": f"http://localhost:{port}/mcp",
         }
 
-    config_path = config_path or get_cursor_config_path()
+    if config_path is not None:
+        target_paths = [config_path]
+    elif platform.system() == "Windows":
+        primary_path = get_cursor_config_path()
+        target_paths = _dedupe_paths([primary_path, *_get_windows_cursor_config_paths()])
+    else:
+        target_paths = [get_cursor_config_path()]
 
-    # Handle both absolute and relative config paths
-    if config_path and not config_path.is_absolute():
-        config_path = Path.cwd() / config_path
+    # Handle both absolute and relative config paths.
+    resolved_target_paths: list[Path] = []
+    for path in target_paths:
+        resolved_target_paths.append(path if path.is_absolute() else Path.cwd() / path)
 
-    config_path.parent.mkdir(parents=True, exist_ok=True)
-
-    # Load existing config or create new one
-    config = {}
-    if config_path.exists():
-        with open(config_path, encoding="utf-8") as f:
-            config = json.load(f)
-
-    # Add or update MCP servers configuration
-    if "mcpServers" not in config:
-        config["mcpServers"] = {}
-
-    _warn_overwrite(config, "mcpServers", server_name, config_path)
-
-    config["mcpServers"][server_name] = (
+    server_config = (
         get_stdio_config(entrypoint_file, server_name)
         if transport == "stdio"
         else http_config(server_name, port)
     )
 
-    # Write updated config
-    with open(config_path, "w", encoding="utf-8") as f:
-        json.dump(config, f, indent=2)
+    for idx, config_path in enumerate(resolved_target_paths):
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Load existing config or create new one
+        config = {}
+        if config_path.exists():
+            with open(config_path, encoding="utf-8") as f:
+                config = json.load(f)
+
+        # Add or update MCP servers configuration
+        if "mcpServers" not in config:
+            config["mcpServers"] = {}
+
+        if idx == 0:
+            _warn_overwrite(config, "mcpServers", server_name, config_path)
+
+        config["mcpServers"][server_name] = server_config
+
+        # Write updated config
+        with open(config_path, "w", encoding="utf-8") as f:
+            json.dump(config, f, indent=2)
+
+    primary_config_path = resolved_target_paths[0]
 
     console.print(
         f"✅ Configured Cursor by adding local MCP server '{server_name}' to the configuration",
         style="green",
     )
-    config_file_path = _format_path_for_display(config_path)
+    config_file_path = _format_path_for_display(primary_config_path)
     console.print(f"   MCP client config file: {config_file_path}", style="dim")
+    compatibility_paths = resolved_target_paths[1:]
+    if compatibility_paths:
+        compatibility_display = ", ".join(
+            _format_path_for_display(path) for path in compatibility_paths
+        )
+        console.print(
+            f"   Also updated compatibility config file(s): {compatibility_display}",
+            style="dim",
+        )
     if transport == "http":
         console.print(f"   MCP Server URL: http://localhost:{port}/mcp", style="dim")
     elif transport == "stdio":

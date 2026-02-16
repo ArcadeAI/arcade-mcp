@@ -108,6 +108,27 @@ def test_resolve_windows_appdata_handles_older_platformdirs(
     assert _resolve_windows_appdata() == Path(r"C:\Users\Bob\AppData\Roaming")
 
 
+def test_get_cursor_config_path_windows_prefers_existing_candidate(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import arcade_cli.configure as configure_mod
+
+    appdata_path = tmp_path / "AppData" / "Roaming" / "Cursor" / "mcp.json"
+    home_path = tmp_path / ".cursor" / "mcp.json"
+    home_path.parent.mkdir(parents=True, exist_ok=True)
+    home_path.write_text("{}", encoding="utf-8")
+
+    monkeypatch.setattr(configure_mod.platform, "system", lambda: "Windows")
+    monkeypatch.setattr(
+        configure_mod,
+        "_get_windows_cursor_config_paths",
+        lambda: [appdata_path, home_path],
+    )
+
+    assert configure_mod.get_cursor_config_path() == home_path
+
+
 # ---------------------------------------------------------------------------
 # _warn_overwrite()
 # ---------------------------------------------------------------------------
@@ -269,6 +290,118 @@ def test_cursor_config_stdio_and_http(tmp_path: Path, monkeypatch: pytest.Monkey
     entry = config["mcpServers"]["demo"]
     assert entry["type"] == "stream"
     assert entry["url"] == "http://localhost:8123/mcp"
+
+
+def test_cursor_config_stdio_uses_absolute_uv_path(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import arcade_cli.configure as configure_mod
+
+    monkeypatch.chdir(tmp_path)
+    _write_entrypoint(tmp_path)
+    config_path = tmp_path / "cursor.json"
+    monkeypatch.setattr(
+        configure_mod.shutil,
+        "which",
+        lambda executable: r"C:\Tools\uv.exe" if executable == "uv" else None,
+    )
+
+    configure_client(
+        client="cursor",
+        entrypoint_file="server.py",
+        server_name="demo",
+        transport="stdio",
+        host="local",
+        port=8000,
+        config_path=config_path,
+    )
+
+    config = _load_json(config_path)
+    assert config["mcpServers"]["demo"]["command"] == r"C:\Tools\uv.exe"
+
+
+def test_cursor_windows_writes_compatibility_paths(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import arcade_cli.configure as configure_mod
+
+    monkeypatch.chdir(tmp_path)
+    _write_entrypoint(tmp_path)
+
+    appdata_path = tmp_path / "AppData" / "Roaming" / "Cursor" / "mcp.json"
+    home_path = tmp_path / ".cursor" / "mcp.json"
+    appdata_path.parent.mkdir(parents=True, exist_ok=True)
+    home_path.parent.mkdir(parents=True, exist_ok=True)
+    appdata_path.write_text(
+        json.dumps({"mcpServers": {"appdata_only": {"command": "x"}}}),
+        encoding="utf-8",
+    )
+    home_path.write_text(
+        json.dumps({"mcpServers": {"home_only": {"command": "y"}}}),
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(configure_mod.platform, "system", lambda: "Windows")
+    monkeypatch.setattr(configure_mod, "get_cursor_config_path", lambda: appdata_path)
+    monkeypatch.setattr(
+        configure_mod,
+        "_get_windows_cursor_config_paths",
+        lambda: [appdata_path, home_path],
+    )
+
+    configure_client(
+        client="cursor",
+        entrypoint_file="server.py",
+        server_name="demo",
+        transport="stdio",
+        host="local",
+        port=8000,
+    )
+
+    appdata_config = _load_json(appdata_path)
+    home_config = _load_json(home_path)
+    assert "demo" in appdata_config["mcpServers"]
+    assert "demo" in home_config["mcpServers"]
+    assert "appdata_only" in appdata_config["mcpServers"]
+    assert "home_only" in home_config["mcpServers"]
+
+
+def test_cursor_windows_explicit_config_does_not_write_compatibility_paths(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import arcade_cli.configure as configure_mod
+
+    monkeypatch.chdir(tmp_path)
+    _write_entrypoint(tmp_path)
+
+    explicit_path = tmp_path / "custom" / "cursor.json"
+    appdata_path = tmp_path / "AppData" / "Roaming" / "Cursor" / "mcp.json"
+    home_path = tmp_path / ".cursor" / "mcp.json"
+
+    monkeypatch.setattr(configure_mod.platform, "system", lambda: "Windows")
+    monkeypatch.setattr(configure_mod, "get_cursor_config_path", lambda: appdata_path)
+    monkeypatch.setattr(
+        configure_mod,
+        "_get_windows_cursor_config_paths",
+        lambda: [appdata_path, home_path],
+    )
+
+    configure_client(
+        client="cursor",
+        entrypoint_file="server.py",
+        server_name="demo",
+        transport="stdio",
+        host="local",
+        port=8000,
+        config_path=explicit_path,
+    )
+
+    assert explicit_path.exists()
+    assert not appdata_path.exists()
+    assert not home_path.exists()
 
 
 def test_vscode_config_stdio_and_http(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

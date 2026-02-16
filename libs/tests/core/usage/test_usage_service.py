@@ -95,4 +95,3 @@ def test_capture_noop_when_tracking_disabled() -> None:
         service.capture("event", "distinct-id", {"k": "v"})
 
     mock_popen.assert_not_called()
-
