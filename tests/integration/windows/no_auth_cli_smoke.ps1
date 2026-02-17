@@ -20,7 +20,9 @@ function Start-BackgroundProcess {
         [Parameter(Mandatory = $true)]
         [string]$WorkingDirectory,
         [Parameter(Mandatory = $true)]
-        [string[]]$Arguments
+        [string[]]$Arguments,
+        [Parameter(Mandatory = $false)]
+        [switch]$AllowEarlyExit
     )
 
     $unique = [Guid]::NewGuid().ToString("N")
@@ -39,7 +41,20 @@ function Start-BackgroundProcess {
     if ($process.HasExited) {
         $stdout = if (Test-Path $stdoutPath) { Get-Content -Raw $stdoutPath } else { "" }
         $stderr = if (Test-Path $stderrPath) { Get-Content -Raw $stderrPath } else { "" }
-        throw "Process '$Name' exited early.`nSTDOUT:`n$stdout`nSTDERR:`n$stderr"
+        $exitCode = $process.ExitCode
+
+        if ($AllowEarlyExit -and $exitCode -eq 0) {
+            $combinedOutput = "$stdout`n$stderr"
+            if ($combinedOutput -match "(?i)started successfully") {
+                return @{
+                    Process = $process
+                    Stdout  = $stdoutPath
+                    Stderr  = $stderrPath
+                }
+            }
+        }
+
+        throw "Process '$Name' exited early (exit code: $exitCode).`nSTDOUT:`n$stdout`nSTDERR:`n$stderr"
     }
 
     return @{
@@ -212,7 +227,8 @@ try {
     $stdioHandle = Start-BackgroundProcess `
         -Name "arcade-generated-stdio" `
         -WorkingDirectory $generatedServerDir `
-        -Arguments @("run", "server.py")
+        -Arguments @("run", "server.py") `
+        -AllowEarlyExit
 } finally {
     Stop-BackgroundProcess -Handle $stdioHandle
 }

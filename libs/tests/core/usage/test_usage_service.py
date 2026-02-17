@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import subprocess
 import sys
+from pathlib import PureWindowsPath
 from unittest.mock import MagicMock, patch
 
 from arcade_core.usage.usage_service import UsageService
@@ -123,7 +124,7 @@ def test_capture_windows_uses_base_prefix_pythonw_when_venv_pythonw_missing() ->
 
     args, _kwargs = mock_popen.call_args
     cmd = args[0]
-    assert cmd[0] == base_pythonw
+    assert str(PureWindowsPath(cmd[0])) == base_pythonw
 
 
 def test_capture_windows_uses_pythonw_from_path_when_available() -> None:
