@@ -110,6 +110,42 @@ function Get-FreeTcpPort {
     }
 }
 
+function Convert-ToTomlPath {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$PathValue
+    )
+
+    return ($PathValue -replace "\\", "/")
+}
+
+function Add-LocalArcadeUvSources {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$PyprojectPath,
+        [Parameter(Mandatory = $true)]
+        [string]$RepoRootPath
+    )
+
+    $pyproject = Get-Content -Raw $PyprojectPath
+    if ($pyproject -match "(?m)^\[tool\.uv\.sources\]\s*$") {
+        return
+    }
+
+    $repoRootTomlPath = Convert-ToTomlPath -PathValue $RepoRootPath
+    $sourcesBlock = @(
+        "[tool.uv.sources]"
+        "arcade-mcp = { path = `"$repoRootTomlPath`", editable = true }"
+        "arcade-mcp-server = { path = `"$repoRootTomlPath/libs/arcade-mcp-server`", editable = true }"
+        "arcade-core = { path = `"$repoRootTomlPath/libs/arcade-core`", editable = true }"
+        "arcade-serve = { path = `"$repoRootTomlPath/libs/arcade-serve`", editable = true }"
+        "arcade-tdk = { path = `"$repoRootTomlPath/libs/arcade-tdk`", editable = true }"
+    ) -join "`n"
+
+    $updatedPyproject = $pyproject.TrimEnd() + "`n`n" + $sourcesBlock + "`n"
+    Set-Content -Path $PyprojectPath -Value $updatedPyproject -Encoding utf8
+}
+
 $RepoRoot = (Get-Location).Path
 $env:Path = "$env:USERPROFILE\.local\bin;$env:Path"
 
@@ -163,6 +199,8 @@ Assert-PathExists -PathToCheck (Join-Path $serverRoot "src\my_server\server.py")
 Assert-PathExists -PathToCheck (Join-Path $serverRoot "src\my_server\.env.example")
 
 # Ensure generated project is runnable without auth flows.
+$generatedPyproject = Join-Path $serverRoot "pyproject.toml"
+Add-LocalArcadeUvSources -PyprojectPath $generatedPyproject -RepoRootPath $RepoRoot
 Set-Location (Join-Path $serverRoot "src\my_server")
 uv run python -c "import server; print('generated server import ok')"
 
@@ -181,13 +219,26 @@ try {
 
 # Validate HTTP transport starts and responds on health endpoint.
 $httpHandle = $null
+$httpRunnerPath = $null
+$hadWorkerSecret = Test-Path Env:ARCADE_WORKER_SECRET
+$previousWorkerSecret = $null
+if ($hadWorkerSecret) {
+    $previousWorkerSecret = $env:ARCADE_WORKER_SECRET
+}
+$env:ARCADE_WORKER_SECRET = "arcade-smoke-worker-secret"
 try {
     $httpPort = Get-FreeTcpPort
-    $pythonCmd = "from server import app; app.run(transport='http', host='127.0.0.1', port=$httpPort)"
+    $httpRunnerFileName = "__arcade_http_smoke_runner.py"
+    $httpRunnerPath = Join-Path $generatedServerDir $httpRunnerFileName
+    @(
+        "from server import app"
+        "app.run(transport='http', host='127.0.0.1', port=$httpPort)"
+    ) | Set-Content -Path $httpRunnerPath -Encoding utf8
+
     $httpHandle = Start-BackgroundProcess `
         -Name "arcade-generated-http" `
         -WorkingDirectory $generatedServerDir `
-        -Arguments @("run", "python", "-c", $pythonCmd)
+        -Arguments @("run", "python", $httpRunnerFileName)
 
     $healthUrl = "http://127.0.0.1:$httpPort/worker/health"
     if (-not (Wait-ForHttpHealth -Url $healthUrl -TimeoutSeconds 30)) {
@@ -197,6 +248,14 @@ try {
     }
 } finally {
     Stop-BackgroundProcess -Handle $httpHandle
+    if ($null -ne $httpRunnerPath -and (Test-Path $httpRunnerPath)) {
+        Remove-Item -Path $httpRunnerPath -Force
+    }
+    if ($hadWorkerSecret) {
+        $env:ARCADE_WORKER_SECRET = $previousWorkerSecret
+    } else {
+        Remove-Item Env:ARCADE_WORKER_SECRET -ErrorAction SilentlyContinue
+    }
 }
 
 Write-Host "Windows no-auth CLI smoke checks passed."
