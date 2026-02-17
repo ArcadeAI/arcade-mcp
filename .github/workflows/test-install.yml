@@ -40,6 +40,8 @@ jobs:
                   uv pip install -e .
 
             - name: Run installation test
+              env:
+                  ARCADE_USAGE_TRACKING: "0"
               run: |
                   python tests/install/test_install.py
 
