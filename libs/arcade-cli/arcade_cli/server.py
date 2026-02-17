@@ -323,7 +323,7 @@ def _display_deployment_logs(
             logs = response.json()
             for log in logs:
                 formatted_timestamp = _format_timestamp_to_local(log["timestamp"])
-                console.print(f"[{formatted_timestamp}] {log['line']}")
+                console.print(f"[{formatted_timestamp}] {log['line']}", markup=False)
     except httpx.HTTPStatusError as e:
         handle_cli_error(
             f"Failed to fetch logs: {e.response.status_code} {e.response.text}", debug=debug
@@ -357,11 +357,11 @@ async def _stream_deployment_logs(
                         timestamp_str = data.get("Timestamp", "")
                         log_line = data.get("Line", "")
                         formatted_timestamp = _format_timestamp_to_local(timestamp_str)
-                        console.print(f"[{formatted_timestamp}] {log_line}")
+                        console.print(f"[{formatted_timestamp}] {log_line}", markup=False)
                     except (json.JSONDecodeError, KeyError, IndexError):
-                        console.print(line)
+                        console.print(line, markup=False)
                 else:
-                    console.print(line)
+                    console.print(line, markup=False)
     except httpx.HTTPStatusError as e:
         handle_cli_error(f"Failed to stream logs: {e.response.status_code}", debug=debug)
     except Exception as e:
