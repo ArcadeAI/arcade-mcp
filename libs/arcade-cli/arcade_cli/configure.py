@@ -90,12 +90,10 @@ def _dedupe_paths(paths: list[Path]) -> list[Path]:
 
 def _get_windows_cursor_config_paths() -> list[Path]:
     """Return known Windows Cursor config locations (primary first)."""
-    return _dedupe_paths(
-        [
-            _resolve_windows_appdata() / "Cursor" / "mcp.json",
-            Path.home() / ".cursor" / "mcp.json",
-        ]
-    )
+    return _dedupe_paths([
+        _resolve_windows_appdata() / "Cursor" / "mcp.json",
+        Path.home() / ".cursor" / "mcp.json",
+    ])
 
 
 def _format_path_for_display(path: Path, platform_system: str | None = None) -> str:

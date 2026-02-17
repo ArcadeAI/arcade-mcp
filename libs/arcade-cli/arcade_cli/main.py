@@ -176,8 +176,11 @@ def whoami(
 
     try:
         config = Config.load_from_file()
+    except FileNotFoundError:
+        console.print("Not logged in. Run 'arcade login' to authenticate.", style="bold red")
+        return
     except Exception as e:
-        handle_cli_error("Failed to read credentials", e, debug)
+        handle_cli_error("Failed to read credentials", e, debug, should_exit=False)
         return
 
     # Defensive - should not happen, because the main() callback prevents this:
@@ -963,6 +966,7 @@ def main_callback(
     public_commands = {
         login.__name__,
         logout.__name__,
+        whoami.__name__,
         dashboard.__name__,
         evals.__name__,
         mcp.__name__,

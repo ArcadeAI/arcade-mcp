@@ -15,6 +15,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from typing import Any, cast
 
 # Ensure UTF-8 encoding for cross-platform compatibility (especially Windows)
 if sys.platform == "win32":
@@ -39,12 +40,13 @@ class TestRunner:
     def _find_arcade_command(self) -> list[str]:
         """Find the arcade command (either direct or via uv run).
 
-        When using uv run, always pass --directory so arcade is found
-        even when running from temp dirs (e.g. configure tests).
+        When using uv run from temp dirs (e.g. configure tests), use
+        ``--project`` instead of ``--directory`` so uv resolves the project
+        environment without changing the subprocess working directory.
         """
         if shutil.which("arcade"):
             return ["arcade"]
-        return ["uv", "run", "--directory", str(self.project_root), "arcade"]
+        return ["uv", "run", "--project", str(self.project_root), "arcade"]
 
     def run_command(
         self,
@@ -180,8 +182,8 @@ class TestRunner:
             tmp_path = Path(tmpdir)
             (tmp_path / "server.py").write_text("print('ok')\n", encoding="utf-8")
 
-            def load_config(path: Path) -> dict:
-                return json.loads(path.read_text(encoding="utf-8"))
+            def load_config(path: Path) -> dict[str, Any]:
+                return cast(dict[str, Any], json.loads(path.read_text(encoding="utf-8")))
 
             def assert_stdio_entry(entry: dict) -> bool:
                 if "command" not in entry:
