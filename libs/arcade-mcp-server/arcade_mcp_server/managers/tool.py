@@ -6,15 +6,14 @@ Async-safe tool management with pre-converted MCPTool DTOs and executable materi
 
 from __future__ import annotations
 
-from typing import Any, TypedDict
+from typing import TypedDict
 
 from arcade_core.catalog import MaterializedTool, ToolCatalog
-from arcade_core.schema import ToolDefinition
 
-from arcade_mcp_server.convert import build_input_schema_from_definition
+from arcade_mcp_server.convert import create_mcp_tool
 from arcade_mcp_server.exceptions import NotFoundError
 from arcade_mcp_server.managers.base import ComponentManager
-from arcade_mcp_server.types import MCPTool, ToolAnnotations
+from arcade_mcp_server.types import MCPTool
 
 
 class ManagedTool(TypedDict):
@@ -37,57 +36,12 @@ class ToolManager(ComponentManager[Key, ManagedTool]):
         return name.replace(".", "_")
 
     @staticmethod
-    def _build_arcade_meta(definition: ToolDefinition) -> dict[str, Any] | None:
-        """Build the _meta.arcade structure from tool definition.
+    def _to_dto(materialized_tool: MaterializedTool) -> MCPTool:
+        """Convert a MaterializedTool to an MCPTool DTO.
 
-        The structure of _meta.arcade should mirror Arcade format when possible.
+        Delegates to :func:`arcade_mcp_server.convert.create_mcp_tool`.
         """
-        arcade_meta: dict[str, Any] = {}
-
-        # Add requirements at top level
-        requirements = definition.requirements
-        if requirements.authorization or requirements.secrets or requirements.metadata:
-            arcade_meta["requirements"] = requirements.model_dump(exclude_none=True)
-
-        # Build metadata container
-        tool_metadata = definition.metadata
-        if tool_metadata:
-            metadata_dump = tool_metadata.model_dump(mode="json", exclude_none=True)
-            if metadata_dump:
-                arcade_meta["metadata"] = metadata_dump
-
-        return arcade_meta if arcade_meta else None
-
-    def _to_dto(self, materialized_tool: MaterializedTool) -> MCPTool:
-        """Convert a MaterializedTool to an MCPTool DTO."""
-        definition = materialized_tool.definition
-
-        title = getattr(materialized_tool.tool, "__tool_name__", definition.name)
-        tool_metadata = definition.metadata
-        if tool_metadata and tool_metadata.behavior:
-            behavior = tool_metadata.behavior
-            annotations = ToolAnnotations(
-                title=title,
-                readOnlyHint=behavior.read_only,
-                destructiveHint=behavior.destructive,
-                idempotentHint=behavior.idempotent,
-                openWorldHint=behavior.open_world,
-            )
-        else:
-            # Even without behavior metadata, we can still set the title annotation
-            annotations = ToolAnnotations(title=title)
-
-        arcade_meta = self._build_arcade_meta(definition)
-        meta = {"arcade": arcade_meta} if arcade_meta else None
-
-        return MCPTool(
-            name=self._sanitize_name(definition.fully_qualified_name),
-            title=title,
-            description=definition.description,
-            inputSchema=build_input_schema_from_definition(definition),
-            annotations=annotations,
-            _meta=meta,
-        )
+        return create_mcp_tool(materialized_tool)
 
     async def load_from_catalog(self, catalog: ToolCatalog) -> None:
         pairs: list[tuple[Key, ManagedTool]] = []

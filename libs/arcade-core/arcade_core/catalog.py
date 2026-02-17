@@ -33,6 +33,7 @@ from arcade_core.errors import (
     ToolkitLoadError,
     ToolOutputSchemaError,
 )
+from arcade_core.metadata import ToolMetadata
 from arcade_core.schema import (
     TOOL_NAME_SEPARATOR,
     FullyQualifiedName,
@@ -467,6 +468,11 @@ class ToolCatalog(BaseModel):
         tool_metadata = getattr(tool, "__tool_metadata__", None)
 
         if tool_metadata is not None:
+            if not isinstance(tool_metadata, ToolMetadata):
+                raise ToolDefinitionError(
+                    f"Expected a ToolMetadata instance for 'metadata', "
+                    f"but got {type(tool_metadata).__name__}. "
+                )
             tool_metadata.validate_for_tool()
 
         return ToolDefinition(
