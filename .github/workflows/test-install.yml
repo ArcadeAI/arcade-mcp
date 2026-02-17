@@ -43,6 +43,10 @@ jobs:
               run: |
                   python tests/install/test_install.py
 
+            - name: Restore full test environment
+              run: |
+                  uv sync --extra all --extra dev
+
             - name: Run CLI unit tests
               run: |
                   uv run python -m pytest libs/tests/cli/ -v --tb=short --ignore=libs/tests/cli/test_display.py --ignore=libs/tests/cli/test_main_evals.py --ignore=libs/tests/cli/deploy/
