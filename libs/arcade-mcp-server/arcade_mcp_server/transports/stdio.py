@@ -103,21 +103,11 @@ class StdioTransport:
 
         # Set up signal handlers
         loop = asyncio.get_running_loop()
-        _win_signal_logged = False
         for sig in (signal.SIGINT, signal.SIGTERM):
             try:
                 loop.add_signal_handler(sig, lambda: asyncio.create_task(self.stop()))
             except NotImplementedError:
-                # Windows doesn't support asyncio signal handlers.
-                # Log the informational message only once (not per-signal).
-                if sys.platform == "win32":
-                    if not _win_signal_logged:
-                        _win_signal_logged = True
-                        logger.info(
-                            "Windows does not support asyncio signal handlers. "
-                            "Use Ctrl+C or close the terminal to stop the server."
-                        )
-                else:
+                if sys.platform != "win32":
                     logger.warning(f"Failed to set up signal handler for {sig}")
 
         if sys.platform == "win32":

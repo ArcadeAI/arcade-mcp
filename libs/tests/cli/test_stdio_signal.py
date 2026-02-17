@@ -1,9 +1,8 @@
 """Tests for Windows signal handling in stdio transport.
 
 Verifies that:
-- The signal handler on Windows logs at INFO level (not WARNING).
-- The message contains actionable guidance (Ctrl+C / close terminal).
-- The message is logged only ONCE (not once per signal).
+- The signal-handler support message is suppressed on Windows.
+- No noisy "Failed to set up signal handler" warning is logged on Windows.
 - A stdlib signal.signal(SIGINT) fallback is registered on Windows.
 """
 
@@ -18,8 +17,8 @@ import pytest
 
 
 @pytest.mark.asyncio
-async def test_signal_handler_logs_info_on_windows() -> None:
-    """On Windows, the signal handler warning should be logged at INFO level."""
+async def test_signal_handler_support_message_is_suppressed_on_windows() -> None:
+    """On Windows, don't log a user-facing signal-support message."""
     from arcade_mcp_server.transports.stdio import StdioTransport
 
     transport = StdioTransport(name="test-stdio")
@@ -56,31 +55,18 @@ async def test_signal_handler_logs_info_on_windows() -> None:
                     loop.add_signal_handler = original_add  # type: ignore[assignment]
                     await transport.stop()
 
-        # Find the Windows-specific log message
-        win_records = [
-            r for r in log_records
-            if "Windows" in r.getMessage() and "signal" in r.getMessage().lower()
-        ]
-        assert len(win_records) >= 1, (
-            f"Expected a Windows signal info message. Got: {[r.getMessage() for r in log_records]}"
+        messages = [r.getMessage() for r in log_records]
+        assert not any("Windows does not support asyncio signal handlers" in m for m in messages), (
+            "Windows signal support message should be suppressed."
         )
-        for rec in win_records:
-            assert rec.levelno == logging.INFO, (
-                f"Expected INFO level but got {rec.levelname}: {rec.getMessage()}"
-            )
-            # Should contain actionable guidance
-            msg = rec.getMessage()
-            assert "Ctrl+C" in msg or "close the terminal" in msg.lower(), (
-                f"Message should contain actionable guidance: {msg}"
-            )
     finally:
         logger.removeHandler(handler)
         logger.setLevel(original_level)
 
 
 @pytest.mark.asyncio
-async def test_signal_handler_logs_once_on_windows() -> None:
-    """The Windows info message should appear only once, not once per signal."""
+async def test_signal_handler_no_failed_setup_warning_on_windows() -> None:
+    """On Windows, avoid warning noise when asyncio signal handlers are unavailable."""
     from arcade_mcp_server.transports.stdio import StdioTransport
 
     transport = StdioTransport(name="test-stdio-once")
@@ -114,18 +100,11 @@ async def test_signal_handler_logs_once_on_windows() -> None:
                     loop.add_signal_handler = original_add  # type: ignore[assignment]
                     await transport.stop()
 
-        # The message "Windows does not support asyncio signal handlers" should
-        # appear exactly ONCE, even though we try to register for both SIGINT
-        # and SIGTERM.
-        win_records = [
-            r for r in log_records
-            if "Windows" in r.getMessage()
-            and "signal" in r.getMessage().lower()
-            and r.levelno == logging.INFO
+        failed_setup_warnings = [
+            r for r in log_records if "Failed to set up signal handler" in r.getMessage()
         ]
-        assert len(win_records) == 1, (
-            f"Expected exactly 1 Windows signal message but got {len(win_records)}: "
-            f"{[r.getMessage() for r in win_records]}"
+        assert len(failed_setup_warnings) == 0, (
+            "Should not emit setup warnings for expected Windows asyncio limitations."
         )
     finally:
         logger.removeHandler(handler)

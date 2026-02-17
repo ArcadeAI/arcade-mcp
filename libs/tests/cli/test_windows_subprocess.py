@@ -230,10 +230,10 @@ class TestStdioSignalFallback:
             "stdio.py should register the fallback for SIGINT"
         )
 
-    def test_logs_once_not_twice(self) -> None:
-        """The Windows info message should be logged only once, not per-signal."""
+    def test_suppresses_windows_signal_support_message(self) -> None:
+        """Source should suppress noisy Windows signal-support messages."""
         import arcade_mcp_server.transports.stdio as stdio_mod
         source = inspect.getsource(stdio_mod)
-        assert "_win_signal_logged" in source, (
-            "stdio.py should use a flag to prevent duplicate logging"
+        assert "Windows does not support asyncio signal handlers" not in source, (
+            "stdio.py should not emit this user-facing Windows support message"
         )

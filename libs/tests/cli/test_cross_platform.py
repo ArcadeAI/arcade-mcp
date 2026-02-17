@@ -779,11 +779,11 @@ class TestOAuthCallbackServer:
 
 
 class TestSignalHandling:
-    """Verify signal handler logging on Windows."""
+    """Verify quiet Windows signal-handler fallback behavior."""
 
     @pytest.mark.asyncio
-    async def test_signal_logs_info_on_windows(self) -> None:
-        """On Windows, signal handler fallback should log at INFO level."""
+    async def test_signal_support_message_is_suppressed_on_windows(self) -> None:
+        """On Windows, suppress noisy signal-support log messages."""
         import asyncio
         import logging
         from arcade_mcp_server.transports.stdio import StdioTransport
@@ -816,13 +816,11 @@ class TestSignalHandling:
                     loop.add_signal_handler = original_add  # type: ignore[assignment]
                     await transport.stop()
 
-            win_records = [
-                r for r in log_records
-                if "Windows" in r.getMessage() and "signal" in r.getMessage().lower()
-            ]
-            assert len(win_records) >= 1
-            for rec in win_records:
-                assert rec.levelno == logging.INFO
+            messages = [r.getMessage() for r in log_records]
+            assert not any(
+                "Windows does not support asyncio signal handlers" in m for m in messages
+            )
+            assert not any("Failed to set up signal handler" in m for m in messages)
         finally:
             logger.removeHandler(handler)
             logger.setLevel(original_level)
