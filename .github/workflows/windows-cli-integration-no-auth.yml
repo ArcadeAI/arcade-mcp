@@ -1,0 +1,33 @@
+name: Windows CLI Integration (No Auth)
+
+on:
+    pull_request:
+        branches: [main]
+    push:
+        branches: [main]
+    workflow_dispatch:
+
+jobs:
+    windows-cli-no-auth:
+        name: Windows CLI No-Auth Smoke (Python 3.12)
+        runs-on: windows-latest
+        timeout-minutes: 35
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Install uv
+              uses: astral-sh/setup-uv@v5
+              with:
+                  version: "0.7.21"
+
+            - name: Set up Python 3.12
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.12"
+
+            - name: Run Windows no-auth CLI smoke checks
+              shell: pwsh
+              run: |
+                  ./tests/integration/windows/no_auth_cli_smoke.ps1
