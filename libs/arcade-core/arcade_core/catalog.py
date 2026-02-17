@@ -33,6 +33,7 @@ from arcade_core.errors import (
     ToolkitLoadError,
     ToolOutputSchemaError,
 )
+from arcade_core.metadata import ToolMetadata
 from arcade_core.schema import (
     TOOL_NAME_SEPARATOR,
     FullyQualifiedName,
@@ -464,6 +465,15 @@ class ToolCatalog(BaseModel):
         tool_name = snake_to_pascal_case(raw_tool_name)
         fully_qualified_name = FullyQualifiedName.from_toolkit(tool_name, toolkit_definition)
         deprecation_message = getattr(tool, "__tool_deprecation_message__", None)
+        tool_metadata = getattr(tool, "__tool_metadata__", None)
+
+        if tool_metadata is not None:
+            if not isinstance(tool_metadata, ToolMetadata):
+                raise ToolDefinitionError(
+                    f"Expected a ToolMetadata instance for 'metadata', "
+                    f"but got {type(tool_metadata).__name__}. "
+                )
+            tool_metadata.validate_for_tool()
 
         return ToolDefinition(
             name=tool_name,
@@ -478,6 +488,7 @@ class ToolCatalog(BaseModel):
                 metadata=metadata_requirement,
             ),
             deprecation_message=deprecation_message,
+            metadata=tool_metadata,
         )
 
 

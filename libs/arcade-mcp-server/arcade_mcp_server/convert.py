@@ -1,8 +1,7 @@
 import base64
 import json
 import logging
-from enum import Enum
-from typing import Any, get_args, get_origin
+from typing import Any
 
 from arcade_core.catalog import MaterializedTool
 from arcade_core.schema import ToolDefinition
@@ -12,95 +11,83 @@ from arcade_mcp_server.types import MCPContent, MCPTool, TextContent, ToolAnnota
 logger = logging.getLogger("arcade.mcp")
 
 
-def create_mcp_tool(tool: MaterializedTool) -> MCPTool | None:
+def _build_arcade_meta(definition: ToolDefinition) -> dict[str, Any] | None:
+    """Build the _meta.arcade structure from a tool definition.
+
+    The structure of _meta.arcade mirrors Arcade format when possible.
     """
-    Create an MCP-compatible tool definition from an Arcade tool.
+    arcade_meta: dict[str, Any] = {}
+
+    requirements = definition.requirements
+    if requirements.authorization or requirements.secrets or requirements.metadata:
+        arcade_meta["requirements"] = requirements.model_dump(exclude_none=True)
+
+    tool_metadata = definition.metadata
+    if tool_metadata:
+        metadata_dump = tool_metadata.model_dump(mode="json", exclude_none=True)
+        if metadata_dump:
+            arcade_meta["metadata"] = metadata_dump
+
+    return arcade_meta if arcade_meta else None
+
+
+def create_mcp_tool(materialized_tool: MaterializedTool) -> MCPTool:
+    """
+    Create an MCP-compatible tool definition from a MaterializedTool.
+
+    Computes MCP annotations from tool metadata behavior fields and builds
+    the ``_meta.arcade`` structure with requirements and metadata.
 
     Args:
-        tool: An Arcade tool object
+        materialized_tool: A materialized Arcade tool
 
     Returns:
-        An MCP tool definition or None if the tool cannot be converted
+        An MCP tool definition
     """
-    try:
-        # Get the tool name from the definition
-        tool_name = getattr(tool.definition, "name", "unknown")
-        fully_qualified_name = getattr(tool.definition, "fully_qualified_name", None)
+    definition = materialized_tool.definition
+    name = definition.fully_qualified_name.replace(".", "_")
 
-        # Use fully qualified name for MCP tool name (replacing dots with underscores)
-        name = fully_qualified_name.replace(".", "_") if fully_qualified_name else tool_name
+    # Build the tool's description
+    description = definition.description
+    deprecation_msg = getattr(definition, "deprecation_message", None)
+    if deprecation_msg:
+        description = f"[DEPRECATED: {deprecation_msg}] {description}"
 
-        description = getattr(tool.definition, "description", "No description available")
+    # Build the tool's output schema
+    output_schema = None
+    if hasattr(definition, "output") and definition.output:
+        output_def = definition.output
+        if getattr(output_def, "value_schema", None):
+            output_schema = _build_value_schema_json(output_def.value_schema)
 
-        # Check for deprecation
-        deprecation_msg = getattr(tool.definition, "deprecation_message", None)
-        if deprecation_msg:
-            description = f"[DEPRECATED: {deprecation_msg}] {description}"
-
-        # Build input schema using authoritative ToolDefinition when available
-        try:
-            if getattr(tool.definition, "input", None):
-                input_schema = build_input_schema_from_definition(tool.definition)
-            else:
-                # Fallback to input_model if definition input is missing
-                input_schema = _build_input_schema_from_model(tool)
-        except Exception:
-            logger.exception("Error while constructing input schema; proceeding with empty schema")
-            input_schema = {"type": "object", "properties": {}, "additionalProperties": False}
-
-        # Create output schema if available
-        output_schema = None
-        try:
-            if hasattr(tool.definition, "output") and tool.definition.output:
-                output_def = tool.definition.output
-                if getattr(output_def, "value_schema", None):
-                    output_schema = _build_value_schema_json(output_def.value_schema)
-        except Exception:
-            logger.exception("Error while constructing output schema; omitting output schema")
-
-        requirements = tool.definition.requirements
-
-        # Build annotations using model for stricter typing
+    # Build MCP tool annotations from metadata behavior fields
+    title = getattr(materialized_tool.tool, "__tool_name__", definition.name)
+    tool_metadata = definition.metadata
+    if tool_metadata and tool_metadata.behavior:
+        behavior = tool_metadata.behavior
         annotations = ToolAnnotations(
-            readOnlyHint=not (
-                requirements.authorization or requirements.secrets or requirements.metadata
-            ),
-            openWorldHint=requirements.authorization is not None,
+            title=title,
+            readOnlyHint=behavior.read_only,
+            destructiveHint=behavior.destructive,
+            idempotentHint=behavior.idempotent,
+            openWorldHint=behavior.open_world,
         )
+    else:
+        annotations = ToolAnnotations(title=title)
 
-        # Build meta with requirements if any exist
-        meta = None
-        if requirements.authorization or requirements.secrets or requirements.metadata:
-            meta = {"arcade_requirements": requirements.model_dump(exclude_none=True)}
+    # Build _meta.arcade structure
+    arcade_meta = _build_arcade_meta(definition)
+    meta = {"arcade": arcade_meta} if arcade_meta else None
 
-        # Instantiate MCPTool model to ensure shape correctness
-        return MCPTool(
-            name=name,
-            title=tool.definition.toolkit.name + "_" + tool_name,
-            description=str(description),
-            inputSchema=input_schema,
-            outputSchema=output_schema if output_schema else None,
-            annotations=annotations,
-            _meta=meta,
-        )
-
-    except Exception:
-        logger.exception(
-            f"Error creating MCP tool definition for {getattr(tool, 'name', str(tool))}"
-        )
-        try:
-            # Fallback minimal tool to avoid None in callers
-            fallback_name = getattr(tool.definition, "fully_qualified_name", "unknown").replace(
-                ".", "_"
-            )
-            return MCPTool(
-                name=fallback_name,
-                title=fallback_name,
-                description="",
-                inputSchema={"type": "object", "properties": {}, "additionalProperties": False},
-            )
-        except Exception:
-            return None
+    return MCPTool(
+        name=name,
+        title=title,
+        description=str(description),
+        inputSchema=build_input_schema_from_definition(definition),
+        outputSchema=output_schema if output_schema else None,
+        annotations=annotations,
+        _meta=meta,
+    )
 
 
 def convert_to_mcp_content(value: Any) -> list[MCPContent]:
@@ -230,116 +217,6 @@ def build_input_schema_from_definition(definition: ToolDefinition) -> dict[str, 
             properties[param.name] = schema
             if getattr(param, "required", False):
                 required.append(param.name)
-
-    input_schema: dict[str, Any] = {
-        "type": "object",
-        "properties": properties,
-        "additionalProperties": False,
-    }
-    if required:
-        input_schema["required"] = required
-    return input_schema
-
-
-def _build_input_schema_from_model(tool: MaterializedTool) -> dict[str, Any]:
-    """Build input schema from a tool's input_model as a fallback."""
-    properties: dict[str, Any] = {}
-    required: list[str] = []
-
-    context_param_name = None
-    tool_input = getattr(tool.definition, "input", None)
-    if tool_input is not None:
-        context_param_name = getattr(tool_input, "tool_context_parameter_name", None)
-
-    if (
-        hasattr(tool, "input_model")
-        and tool.input_model is not None
-        and hasattr(tool.input_model, "model_fields")
-    ):
-        for field_name, field in tool.input_model.model_fields.items():
-            if field_name == context_param_name:
-                continue
-
-            field_type = getattr(field, "annotation", None)
-            field_type_name = "string"  # default
-
-            if field_type is int:
-                field_type_name = "integer"
-            elif field_type is float:
-                field_type_name = "number"
-            elif field_type is bool:
-                field_type_name = "boolean"
-            elif field_type is list or (getattr(field_type, "__origin__", None) is list):
-                field_type_name = "array"
-            elif field_type is dict or (getattr(field_type, "__origin__", None) is dict):
-                field_type_name = "object"
-
-            field_description = getattr(field, "description", None) or f"Parameter: {field_name}"
-
-            param_def: dict[str, Any] = {
-                "type": field_type_name,
-                "description": field_description,
-            }
-
-            # Enum support: Enum classes or typing.Annotated[...] with Enum
-            enum_type = None
-            ann = getattr(field, "annotation", None)
-            if ann is not None:
-                origin = get_origin(ann)
-                args = get_args(ann)
-                # typing.Annotated[Enum, ...]
-                if origin is not None and args:
-                    for arg in args:
-                        if isinstance(arg, type) and issubclass(arg, Enum):
-                            enum_type = arg
-                            break
-                elif isinstance(ann, type) and issubclass(ann, Enum):
-                    enum_type = ann
-            if enum_type is not None:
-                param_def["enum"] = [e.value for e in enum_type]
-
-            # Literal[...] support for enum-like constraints
-            if ann is not None and get_origin(ann) is None:
-                pass  # no-op, handled above
-            elif ann is not None and get_origin(ann) is Any:
-                pass
-            else:
-                if get_origin(ann) is None:
-                    ...
-
-            # Attempt to infer inner list item types for list[T]
-            if field_type_name == "array":
-                inner = None
-                if get_origin(field_type) is list and get_args(field_type):
-                    inner = get_args(field_type)[0]
-                if inner is int:
-                    param_def["items"] = {"type": "integer"}
-                elif inner is float:
-                    param_def["items"] = {"type": "number"}
-                elif inner is bool:
-                    param_def["items"] = {"type": "boolean"}
-                elif inner is str:
-                    param_def["items"] = {"type": "string"}
-
-            properties[field_name] = param_def
-
-            # Required detection with multiple strategies
-            is_required_attr = getattr(field, "is_required", None)
-            try:
-                if callable(is_required_attr):
-                    if is_required_attr():
-                        required.append(field_name)
-                elif isinstance(is_required_attr, bool) and is_required_attr:
-                    required.append(field_name)
-                else:
-                    has_default = getattr(field, "default", None) is not None
-                    has_factory = getattr(field, "default_factory", None) is not None
-                    if not (has_default or has_factory):
-                        required.append(field_name)
-            except Exception:
-                logger.debug(
-                    f"Could not determine if field {field_name} is required, assuming optional"
-                )
 
     input_schema: dict[str, Any] = {
         "type": "object",
