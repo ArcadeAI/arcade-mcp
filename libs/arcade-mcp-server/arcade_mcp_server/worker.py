@@ -25,9 +25,9 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.types import Receive, Scope, Send
 
-from arcade_mcp_server.__main__ import setup_logging
 from arcade_mcp_server.fastapi.auth_routes import create_auth_router
 from arcade_mcp_server.fastapi.middleware import AddTrailingSlashToPathMiddleware
+from arcade_mcp_server.logging_utils import setup_logging
 from arcade_mcp_server.resource_server.base import ResourceServerValidator
 from arcade_mcp_server.resource_server.middleware import ResourceServerMiddleware
 from arcade_mcp_server.server import MCPServer

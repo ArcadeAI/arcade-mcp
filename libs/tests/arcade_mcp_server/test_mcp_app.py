@@ -513,7 +513,7 @@ class TestMCPApp:
 
     def test_run_stdio_unaffected_by_reload(self, mcp_app: MCPApp):
         """Test run() with stdio transport is unaffected by reload flag."""
-        with patch("arcade_mcp_server.__main__.run_stdio_server") as mock_stdio:
+        with patch("arcade_mcp_server.stdio_runner.run_stdio_server") as mock_stdio:
             # Test with reload=True
             mcp_app.run(reload=True, transport="stdio")
             mock_stdio.assert_called_once()
