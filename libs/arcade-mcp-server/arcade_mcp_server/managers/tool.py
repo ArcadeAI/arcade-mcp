@@ -10,7 +10,7 @@ from typing import TypedDict
 
 from arcade_core.catalog import MaterializedTool, ToolCatalog
 
-from arcade_mcp_server.convert import build_input_schema_from_definition
+from arcade_mcp_server.convert import create_mcp_tool
 from arcade_mcp_server.exceptions import NotFoundError
 from arcade_mcp_server.managers.base import ComponentManager
 from arcade_mcp_server.types import MCPTool
@@ -35,20 +35,13 @@ class ToolManager(ComponentManager[Key, ManagedTool]):
     def _sanitize_name(name: str) -> str:
         return name.replace(".", "_")
 
-    def _to_dto(self, tool: MaterializedTool) -> MCPTool:
-        # Extract requirements and build meta if needed
-        requirements = tool.definition.requirements
-        meta = None
-        if requirements.authorization or requirements.secrets or requirements.metadata:
-            meta = {"arcade_requirements": requirements.model_dump(exclude_none=True)}
+    @staticmethod
+    def _to_dto(materialized_tool: MaterializedTool) -> MCPTool:
+        """Convert a MaterializedTool to an MCPTool DTO.
 
-        return MCPTool(
-            name=self._sanitize_name(tool.definition.fully_qualified_name),
-            title=f"{tool.definition.toolkit.name}_{tool.definition.name}",
-            description=tool.definition.description,
-            inputSchema=build_input_schema_from_definition(tool.definition),
-            _meta=meta,
-        )
+        Delegates to :func:`arcade_mcp_server.convert.create_mcp_tool`.
+        """
+        return create_mcp_tool(materialized_tool)
 
     async def load_from_catalog(self, catalog: ToolCatalog) -> None:
         pairs: list[tuple[Key, ManagedTool]] = []

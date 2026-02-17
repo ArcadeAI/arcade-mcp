@@ -16,6 +16,7 @@ from types import ModuleType
 from typing import Any, Callable, Literal, ParamSpec, TypeVar, cast
 
 from arcade_core.catalog import MaterializedTool, ToolCatalog, ToolDefinitionError
+from arcade_core.metadata import ToolMetadata
 from arcade_tdk.auth import ToolAuthorization
 from arcade_tdk.error_adapters import ErrorAdapter
 from arcade_tdk.tool import tool as tool_decorator
@@ -225,6 +226,7 @@ class MCPApp:
         requires_secrets: list[str] | None = None,
         requires_metadata: list[str] | None = None,
         adapters: list[ErrorAdapter] | None = None,
+        metadata: ToolMetadata | None = None,
     ) -> Callable[P, T]:
         """Add a tool for build-time materialization (pre-server)."""
         if not hasattr(func, "__tool_name__"):
@@ -236,6 +238,7 @@ class MCPApp:
                 requires_secrets=requires_secrets,
                 requires_metadata=requires_metadata,
                 adapters=adapters,
+                metadata=metadata,
             )
         try:
             self._catalog.add_tool(
@@ -264,6 +267,7 @@ class MCPApp:
         requires_secrets: list[str] | None = None,
         requires_metadata: list[str] | None = None,
         adapters: list[ErrorAdapter] | None = None,
+        metadata: ToolMetadata | None = None,
     ) -> Callable[[Callable[P, T]], Callable[P, T]] | Callable[P, T]:
         """Decorator for adding tools with optional parameters."""
 
@@ -276,6 +280,7 @@ class MCPApp:
                 requires_secrets=requires_secrets,
                 requires_metadata=requires_metadata,
                 adapters=adapters,
+                metadata=metadata,
             )
 
         if func is not None:

@@ -24,6 +24,7 @@ from typing import Any, Literal, Protocol
 from pydantic import BaseModel, Field
 
 from arcade_core.errors import ErrorKind
+from arcade_core.metadata import ToolMetadata
 
 # allow for custom tool name separator
 TOOL_NAME_SEPARATOR = os.getenv("ARCADE_TOOL_NAME_SEPARATOR", ".")
@@ -326,6 +327,9 @@ class ToolDefinition(BaseModel):
 
     deprecation_message: str | None = None
     """The message to display when the tool is deprecated."""
+
+    metadata: ToolMetadata | None = None
+    """Metadata about the tool"""
 
     def get_fully_qualified_name(self) -> FullyQualifiedName:
         return FullyQualifiedName(self.name, self.toolkit.name, self.toolkit.version)
