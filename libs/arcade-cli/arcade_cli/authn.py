@@ -302,12 +302,12 @@ class OAuthCallbackHandler(BaseHTTPRequestHandler):
 
     def __init__(
         self,
-        *args,
+        *args: Any,
         state: str,
         result_holder: dict,
         result_event: threading.Event,
-        **kwargs,
-    ):  # type: ignore[no-untyped-def]
+        **kwargs: Any,
+    ):
         self.state = state
         self.result_holder = result_holder
         self.result_event = result_event
@@ -548,7 +548,7 @@ def _open_browser(url: str) -> bool:
         import ctypes
 
         SW_SHOWNORMAL = 1
-        result = ctypes.windll.shell32.ShellExecuteW(  # type: ignore[attr-defined]
+        result = ctypes.windll.shell32.ShellExecuteW(
             None,  # hwnd
             "open",  # operation
             url,  # file/URL
@@ -564,8 +564,8 @@ def _open_browser(url: str) -> bool:
 
     # Attempt 2: rundll32 url.dll — a GUI-subsystem binary, no console.
     try:
-        si = subprocess.STARTUPINFO()  # type: ignore[attr-defined]
-        si.dwFlags |= subprocess.STARTF_USESHOWWINDOW  # type: ignore[attr-defined]
+        si = subprocess.STARTUPINFO()
+        si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         si.wShowWindow = 0  # SW_HIDE
         subprocess.Popen(
             ["rundll32", "url.dll,FileProtocolHandler", url],  # noqa: S607
@@ -579,7 +579,7 @@ def _open_browser(url: str) -> bool:
 
     # Attempt 3: os.startfile — CPython's ShellExecuteExW wrapper.
     try:
-        os.startfile(url)  # type: ignore[attr-defined]  # Windows-only  # noqa: S606
+        os.startfile(url)  # Windows-only  # noqa: S606
         return True  # noqa: TRY300
     except OSError:
         pass
@@ -660,8 +660,10 @@ def oauth_callback_server(
     # HTTP timeout expires, even after the CLI has printed an error.
     server_thread = threading.Thread(target=server.run_server, daemon=True)
     server_thread.start()
-    if not server.wait_until_ready(timeout=2.0):
+    # Give slower CI runners enough time to schedule the server thread and bind.
+    if not server.wait_until_ready(timeout=5.0):
         server.shutdown_server()
+        server_thread.join(timeout=2)
         raise RuntimeError("Failed to start local callback server.")
     try:
         yield server
