@@ -13,6 +13,7 @@ Defines the metadata model for Arcade tools. This module provides three layers:
 - Extras: Arbitrary key/values for custom logic (IDP routing, feature flags, etc.)
 """
 
+import math
 from enum import Enum
 from typing import Any
 
@@ -390,6 +391,12 @@ def _find_json_violations(obj: Any, path: str) -> list[str]:
     elif isinstance(obj, list):
         for i, item in enumerate(obj):
             errors.extend(_find_json_violations(item, f"{path}[{i}]"))
+    # non-finite floats
+    elif isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
+        errors.append(
+            f"{path} has a non-JSON-safe float value {obj!r} — "
+            f"NaN and Infinity are not valid JSON numbers"
+        )
     # json primitive types
     elif not isinstance(obj, (str, int, float, bool, type(None))):
         errors.append(

@@ -243,6 +243,10 @@ class TestExtrasJsonSafety:
             pytest.param({"v": frozenset([1, 2])}, "JSON-safe", id="frozenset_value"),
             pytest.param({"v": (1, 2)}, "JSON-safe", id="tuple_value"),
             pytest.param({"v": b"hello"}, "JSON-safe", id="bytes_value"),
+            # Non-finite floats (not valid JSON per RFC 8259)
+            pytest.param({"v": float("nan")}, "JSON-safe", id="float_nan"),
+            pytest.param({"v": float("inf")}, "JSON-safe", id="float_inf"),
+            pytest.param({"v": float("-inf")}, "JSON-safe", id="float_neg_inf"),
             # Non-JSON-native values nested
             pytest.param(
                 {"o": {"i": datetime.datetime(2023, 1, 1)}},
