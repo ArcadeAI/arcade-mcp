@@ -1,11 +1,9 @@
 """Tests for worker tool sync: health endpoint hash/started_at and ToolNotFoundError."""
 
 from typing import Annotated
-from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from arcade_core.catalog import ToolCatalog
-from arcade_core.schema import FullyQualifiedName, ToolCallRequest, ToolName
+from arcade_core.schema import ToolCallRequest, ToolReference
 from arcade_tdk import tool
 
 from arcade_serve.core.base import BaseWorker
@@ -89,7 +87,7 @@ class TestToolNotFoundError:
         worker.register_tool(hello_tool, "TestToolkit")
 
         request = ToolCallRequest(
-            tool=ToolName(
+            tool=ToolReference(
                 name="NonexistentTool",
                 toolkit="TestToolkit",
             ),
@@ -106,7 +104,7 @@ class TestToolNotFoundError:
         worker.register_tool(hello_tool, "TestToolkit")
 
         request = ToolCallRequest(
-            tool=ToolName(
+            tool=ToolReference(
                 name="HelloTool",
                 toolkit="TestToolkit",
             ),
