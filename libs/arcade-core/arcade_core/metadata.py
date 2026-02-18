@@ -16,7 +16,7 @@ Defines the metadata model for Arcade tools. This module provides three layers:
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, ValidatorFunctionWrapHandler, field_validator
 
 from arcade_core.errors import ToolDefinitionError
 
@@ -273,7 +273,28 @@ class ToolMetadata(BaseModel):
     """What effects the tool has."""
 
     extras: dict[str, Any] | None = None
-    """Arbitrary key/values for custom logic."""
+    """Arbitrary key/values for custom logic. Must contain only JSON-native types
+    (str, int, float, bool, None, dict with string keys, list) at all depths."""
+
+    @field_validator("extras", mode="wrap")
+    @classmethod
+    def _validate_extras_top_level_keys(
+        cls, v: dict[str, Any] | None, handler: ValidatorFunctionWrapHandler
+    ) -> dict[str, Any] | None:
+        """Intercept Pydantic's type validation to give a clear error for
+        non-string top-level keys. Full recursive JSON-safety validation
+        (nested keys + value types) is deferred to validate_for_tool()
+        which is called when the tool definition is created for the catalog."""
+        if v is not None and isinstance(v, dict):
+            bad_keys = {k: type(k).__name__ for k in v if not isinstance(k, str)}
+            if bad_keys:
+                examples = ", ".join(f"{k!r} ({t})" for k, t in bad_keys.items())
+                raise ToolDefinitionError(
+                    f"All keys in ToolMetadata.extras must be strings. "
+                    f"Found non-string key(s): {examples}. "
+                )
+        result: dict[str, Any] | None = handler(v)
+        return result
 
     strict: bool = Field(default=True, exclude=True)
     """Enable validation for logical contradictions. Set False for edge cases.
@@ -283,13 +304,26 @@ class ToolMetadata(BaseModel):
 
     def validate_for_tool(self) -> None:
         """
-        Validate consistency between behavior and classification.
+        Validate metadata consistency and JSON-safety of extras.
 
         Called by the catalog when creating a tool definition.
 
         Raises:
             ToolDefinitionError: If strict=True and validation fails
         """
+        # JSON-safety check on extras
+        if self.extras is not None:
+            errors = _find_json_violations(self.extras, "extras")
+            if errors:
+                formatted = "; ".join(errors)
+                raise ToolDefinitionError(
+                    f"ToolMetadata.extras must contain only JSON-safe "
+                    f"types (str, int, float, bool, None, dict, list). "
+                    f"Found violations: {formatted}. "
+                    f"All dict keys must be strings, and all values must be "
+                    f"JSON-native types."
+                )
+
         if not self.strict:
             return
 
@@ -335,3 +369,30 @@ class ToolMetadata(BaseModel):
                     "but is marked open_world=False. "
                     "Fix the contradiction, or set strict=False to bypass."
                 )
+
+
+def _find_json_violations(obj: Any, path: str) -> list[str]:
+    """Walk a nested structure and return human-readable descriptions of
+    any non-JSON-native keys or values.
+
+    JSON-native: str, int, float, bool, None, dict (string keys only), list.
+    """
+    errors: list[str] = []
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            key_path = f"{path}[{k!r}]"
+            if not isinstance(k, str):
+                errors.append(
+                    f"{key_path} has a non-string key of type {type(k).__name__} — "
+                    f"all dict keys must be strings"
+                )
+            errors.extend(_find_json_violations(v, key_path))
+    elif isinstance(obj, list):
+        for i, item in enumerate(obj):
+            errors.extend(_find_json_violations(item, f"{path}[{i}]"))
+    # json primitive types
+    elif not isinstance(obj, (str, int, float, bool, type(None))):
+        errors.append(
+            f"{path} has a non-JSON-safe value of type {type(obj).__name__} (got {obj!r})"
+        )
+    return errors

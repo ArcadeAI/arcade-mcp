@@ -1,3 +1,5 @@
+import datetime
+
 import pytest
 from arcade_core.catalog import ToolCatalog
 from arcade_core.errors import ToolDefinitionError
@@ -26,7 +28,9 @@ class TestEnumCoverage:
     def test_all_operations_are_categorized(self):
         """Every Operation must be in _READ_ONLY_OPERATIONS, _MUTATING_OPERATIONS, or _INDETERMINATE_OPERATIONS."""
         all_operations = set(Operation)
-        categorized_operations = _READ_ONLY_OPERATIONS | _MUTATING_OPERATIONS | _INDETERMINATE_OPERATIONS
+        categorized_operations = (
+            _READ_ONLY_OPERATIONS | _MUTATING_OPERATIONS | _INDETERMINATE_OPERATIONS
+        )
 
         # Check that every operation is categorized
         uncategorized = all_operations - categorized_operations
@@ -160,14 +164,127 @@ class TestToolMetadataValidation:
         )
         assert len(metadata.classification.service_domains) == 2
 
-    def test_extras_accepts_arbitrary_dict(self):
-        """Extras field accepts arbitrary key/value pairs."""
+    def test_extras_accepts_json_native_values(self):
+        """Extras field accepts JSON-native key/value pairs."""
         metadata = ToolMetadata(
             extras={"idp": "entraID", "requires_mfa": True, "max_requests": 100},
         )
         assert metadata.extras["idp"] == "entraID"
         assert metadata.extras["requires_mfa"] is True
         assert metadata.extras["max_requests"] == 100
+
+
+class TestExtrasJsonSafety:
+    """Test that ToolMetadata.extras enforces JSON-native types at all depths.
+
+    JSON-native types: str, int, float, bool, None, dict (str keys), list.
+
+    Top-level non-string keys are caught at construction time (field_validator).
+    Nested keys and non-JSON-native values are caught at registration time
+    (validate_for_tool) where the tool name is available for error context.
+    """
+
+    @pytest.mark.parametrize(
+        "extras",
+        [
+            pytest.param(None, id="none"),
+            pytest.param({}, id="empty_dict"),
+            pytest.param(
+                {"string": "hello", "int": 42, "float": 3.14, "bool": True, "null": None},
+                id="flat_json_native_values",
+            ),
+            pytest.param({"config": {"api_key": "abc", "retries": 3}}, id="nested_dict"),
+            pytest.param({"tags": ["a", "b"], "counts": [1, 2, 3]}, id="lists"),
+            pytest.param(
+                {"l1": {"l2": [{"l3": [1, "two", None, True, 3.0]}]}},
+                id="deeply_nested",
+            ),
+            pytest.param(
+                {"empty_dict": {}, "empty_list": [], "nested": {"also_empty": []}},
+                id="empty_nested_structures",
+            ),
+        ],
+    )
+    def test_valid_json_safe_extras(self, extras: dict | None):
+        metadata = ToolMetadata(extras=extras)
+        assert metadata.extras == extras
+        metadata.validate_for_tool()
+
+    # --- Top-level non-string keys: caught at construction time ---
+
+    @pytest.mark.parametrize(
+        "extras",
+        [
+            pytest.param({3: "three"}, id="int_key"),
+            pytest.param({True: "yes"}, id="bool_key"),
+            pytest.param({None: "null key"}, id="none_key"),
+        ],
+    )
+    def test_non_string_top_level_key_rejected_at_construction(self, extras: dict):
+        with pytest.raises(ToolDefinitionError, match="must be strings"):
+            ToolMetadata(extras=extras)
+
+    # --- Nested non-string keys + non-JSON values: caught by validate_for_tool ---
+
+    @pytest.mark.parametrize(
+        "extras, match",
+        [
+            # Non-string keys nested in dicts/lists
+            pytest.param({"o": {42: "v"}}, "must be strings", id="int_key_nested"),
+            pytest.param({"o": {True: "v"}}, "must be strings", id="bool_key_nested"),
+            pytest.param({"o": {(1, 2): "v"}}, "must be strings", id="tuple_key_nested"),
+            pytest.param({"a": {"b": {42: "v"}}}, "must be strings", id="int_key_deep"),
+            pytest.param({"items": [{True: "v"}]}, "must be strings", id="bool_key_in_list"),
+            # Non-JSON-native values at top level
+            pytest.param({"v": datetime.datetime(2023, 1, 1)}, "JSON-safe", id="datetime_value"),
+            pytest.param({"v": datetime.date(2023, 1, 1)}, "JSON-safe", id="date_value"),
+            pytest.param({"v": datetime.timedelta(seconds=60)}, "JSON-safe", id="timedelta_value"),
+            pytest.param({"v": {1, 2, 3}}, "JSON-safe", id="set_value"),
+            pytest.param({"v": frozenset([1, 2])}, "JSON-safe", id="frozenset_value"),
+            pytest.param({"v": (1, 2)}, "JSON-safe", id="tuple_value"),
+            pytest.param({"v": b"hello"}, "JSON-safe", id="bytes_value"),
+            # Non-JSON-native values nested
+            pytest.param(
+                {"o": {"i": datetime.datetime(2023, 1, 1)}},
+                "JSON-safe",
+                id="datetime_nested_in_dict",
+            ),
+            pytest.param({"items": [1, "ok", {3, 4}]}, "JSON-safe", id="set_nested_in_list"),
+            pytest.param(
+                {"a": [{"b": [datetime.date(2023, 1, 1)]}]},
+                "JSON-safe",
+                id="date_deeply_nested",
+            ),
+        ],
+    )
+    def test_rejects_non_json_safe_extras_at_validation(self, extras: dict, match: str):
+        metadata = ToolMetadata(extras=extras)
+        with pytest.raises(ToolDefinitionError, match=match):
+            metadata.validate_for_tool()
+
+    # --- Error message quality ---
+
+    def test_error_includes_path_for_nested_violations(self):
+        metadata = ToolMetadata(extras={"outer": {42: "bad"}})
+        with pytest.raises(ToolDefinitionError, match=r"extras\['outer'\]"):
+            metadata.validate_for_tool()
+
+        metadata = ToolMetadata(extras={"outer": datetime.datetime(2023, 1, 1)})
+        with pytest.raises(ToolDefinitionError, match=r"extras\['outer'\]"):
+            metadata.validate_for_tool()
+
+    def test_error_includes_type_name(self):
+        metadata = ToolMetadata(extras={"ts": datetime.datetime(2023, 1, 1)})
+        with pytest.raises(ToolDefinitionError, match="datetime"):
+            metadata.validate_for_tool()
+
+    def test_error_reports_all_violations(self):
+        metadata = ToolMetadata(extras={"ok_key": {True: "bool key"}, "bad": (1, 2)})
+        with pytest.raises(ToolDefinitionError) as exc_info:
+            metadata.validate_for_tool()
+        msg = str(exc_info.value)
+        assert "True" in msg
+        assert "tuple" in msg
 
 
 class TestToolDecoratorWithMetadata:
