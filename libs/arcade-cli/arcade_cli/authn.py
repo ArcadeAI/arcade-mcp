@@ -8,6 +8,7 @@ Uses authlib for OAuth protocol handling.
 import logging
 import os
 import secrets
+import socketserver
 import subprocess
 import sys
 import threading
@@ -297,6 +298,28 @@ def fetch_projects(coordinator_url: str, org_id: str) -> list[ProjectInfo]:
     return [ProjectInfo.model_validate(item) for item in data.get("data", {}).get("items", [])]
 
 
+class _LoopbackHTTPServer(HTTPServer):
+    """HTTPServer that skips the potentially slow ``getfqdn()`` reverse-DNS
+    lookup in ``server_bind()``.
+
+    ``HTTPServer.server_bind()`` calls ``socket.getfqdn(host)`` which invokes
+    ``gethostbyaddr("127.0.0.1")`` via the system resolver.  On macOS CI
+    runners (Apple Silicon / macOS 14) the mDNSResponder can take 5-30 s to
+    resolve the loopback PTR record when the DNS cache is cold, causing the
+    daemon thread to block inside the constructor and ``ready_event`` to never
+    fire within the timeout window.
+
+    We only listen on ``127.0.0.1`` for the OAuth callback, so we hard-set
+    ``server_name`` to ``"127.0.0.1"`` and skip the DNS round-trip entirely.
+    """
+
+    def server_bind(self) -> None:
+        socketserver.TCPServer.server_bind(self)
+        host, port = self.server_address[:2]
+        self.server_name = host
+        self.server_port = port
+
+
 class OAuthCallbackHandler(BaseHTTPRequestHandler):
     """HTTP request handler for OAuth callback."""
 
@@ -410,7 +433,7 @@ class OAuthCallbackServer:
             result_event=self.result_event,
             **kwargs,
         )
-        self.httpd = HTTPServer(server_address, handler)
+        self.httpd = _LoopbackHTTPServer(server_address, handler)
         self.port = self.httpd.server_port
         self.ready_event.set()
         self.httpd.serve_forever()
