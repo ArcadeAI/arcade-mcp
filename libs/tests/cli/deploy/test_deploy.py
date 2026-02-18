@@ -4,6 +4,7 @@ import socket
 import subprocess
 import tarfile
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import pytest
 from arcade_cli.deploy import (
@@ -306,3 +307,67 @@ def test_verify_server_and_get_metadata_with_debug(valid_server_path: str, capsy
     assert server_name == "simpleserver"
     assert server_version == "1.0.0"
     assert "MY_SECRET_KEY" in required_secrets
+
+
+# ---------------------------------------------------------------------------
+# Debug-aware error messages
+# ---------------------------------------------------------------------------
+
+
+@patch("arcade_cli.deploy.find_python_interpreter")
+@patch("arcade_cli.deploy.subprocess.Popen")
+def test_start_server_process_non_debug_message(
+    mock_popen: MagicMock, mock_python: MagicMock
+) -> None:
+    """Non-debug mode error should hint at --debug flag."""
+    mock_python.return_value = Path("python3")
+    mock_proc = MagicMock()
+    mock_proc.poll.return_value = 1  # Process exited immediately
+    mock_popen.return_value = mock_proc
+
+    with pytest.raises(ValueError, match="--debug"):
+        start_server_process("server.py", debug=False)
+
+
+@patch("arcade_cli.deploy.find_python_interpreter")
+@patch("arcade_cli.deploy.subprocess.Popen")
+def test_start_server_process_debug_message(
+    mock_popen: MagicMock, mock_python: MagicMock
+) -> None:
+    """Debug mode error should NOT tell user to run with --debug (already in debug mode)."""
+    mock_python.return_value = Path("python3")
+    mock_proc = MagicMock()
+    mock_proc.poll.return_value = 1  # Process exited immediately
+    mock_popen.return_value = mock_proc
+
+    with pytest.raises(ValueError) as exc_info:
+        start_server_process("server.py", debug=True)
+
+    msg = str(exc_info.value)
+    assert "--debug" not in msg, "Debug mode error must not tell user to re-run with --debug"
+    assert "above" in msg.lower() or "output" in msg.lower()
+
+
+def test_wait_for_health_non_debug_message(reserved_unreachable_local_url: str) -> None:
+    """Non-debug health timeout should hint at --debug flag."""
+    mock_proc = MagicMock()
+    mock_proc.communicate.return_value = (None, None)
+
+    with pytest.raises(ValueError, match="--debug"):
+        wait_for_health(reserved_unreachable_local_url, mock_proc, timeout=1, debug=False)
+
+
+def test_wait_for_health_debug_message(reserved_unreachable_local_url: str) -> None:
+    """Debug health timeout should NOT tell user to run with --debug,
+    and SHOULD reference checking the output already shown above."""
+    mock_proc = MagicMock()
+    mock_proc.communicate.return_value = (None, None)
+
+    with pytest.raises(ValueError) as exc_info:
+        wait_for_health(reserved_unreachable_local_url, mock_proc, timeout=1, debug=True)
+
+    msg = str(exc_info.value)
+    assert "--debug" not in msg, "Debug mode error must not tell user to re-run with --debug"
+    assert "above" in msg.lower() or "output" in msg.lower(), (
+        f"Debug mode error should reference checking output above; got: {msg!r}"
+    )

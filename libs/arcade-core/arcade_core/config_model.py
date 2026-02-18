@@ -27,6 +27,10 @@ def _set_windows_owner_acl(config_file_path: Path) -> None:
        the current user Read and Write access.  The ``:r`` flag replaces any
        existing ACE for that user rather than merging.
 
+    Both flags are passed in a **single** ``icacls`` invocation so there is no
+    window where the file has an empty ACL (which would make it temporarily
+    inaccessible to everyone, including the owner).
+
     The net effect is that only the logged-in Windows user can read or modify
     the credentials file — the same security posture as ``chmod 600`` on Unix.
     """
@@ -34,17 +38,18 @@ def _set_windows_owner_acl(config_file_path: Path) -> None:
     if not username:
         raise OSError("USERNAME is not set; cannot apply Windows ACL restrictions")
 
-    # Step 1: Strip inherited permissions so the file starts with an empty ACL.
+    # Strip inherited permissions and grant only the current user R+W access in
+    # a single icacls call.  Using two separate calls would leave the file with
+    # an empty ACL (nobody can access it) between the first and second call; if
+    # the second call were to fail the file would be permanently inaccessible.
     subprocess.run(
-        ["icacls", str(config_file_path), "/inheritance:r"],  # noqa: S607
-        check=True,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.PIPE,
-        text=True,
-    )
-    # Step 2: Grant only the current user read + write access.
-    subprocess.run(
-        ["icacls", str(config_file_path), "/grant:r", f"{username}:(R,W)"],  # noqa: S607
+        [  # noqa: S607
+            "icacls",
+            str(config_file_path),
+            "/inheritance:r",
+            "/grant:r",
+            f"{username}:(R,W)",
+        ],
         check=True,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.PIPE,

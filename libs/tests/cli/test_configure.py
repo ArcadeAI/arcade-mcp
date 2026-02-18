@@ -95,17 +95,35 @@ def test_resolve_windows_appdata_delegates_to_platformdirs(
 def test_resolve_windows_appdata_handles_older_platformdirs(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Falls back to positional args when platformdirs raises TypeError."""
+    """Falls back to positional args when platformdirs raises TypeError.
+
+    The positional signature is user_data_dir(appname, appauthor, version, roaming).
+    The fallback call must pass roaming=True as the *fourth* positional arg, not
+    the third (which would be ``version``).
+    """
+    received_args: list[tuple] = []
+
     def strict_user_data_dir(*args: object, **kwargs: object) -> str:
         if kwargs:
             raise TypeError("keyword args not supported")
+        received_args.append(args)
         return r"C:\Users\Bob\AppData\Roaming"
 
     fake_platformdirs = types.ModuleType("platformdirs")
     fake_platformdirs.user_data_dir = strict_user_data_dir
     monkeypatch.setitem(sys.modules, "platformdirs", fake_platformdirs)
 
-    assert _resolve_windows_appdata() == Path(r"C:\Users\Bob\AppData\Roaming")
+    result = _resolve_windows_appdata()
+    assert result == Path(r"C:\Users\Bob\AppData\Roaming")
+
+    # First call raises TypeError (has kwargs), second call uses positional args.
+    # Verify the fallback used the correct signature: (appname, appauthor, version, roaming)
+    assert len(received_args) == 1, "Fallback must make exactly one positional call"
+    fallback_args = received_args[0]
+    # args: (None, False, None, True) — roaming is the 4th positional arg
+    assert len(fallback_args) == 4, f"Expected 4 positional args, got {len(fallback_args)}: {fallback_args}"
+    assert fallback_args[3] is True, f"4th arg (roaming) must be True, got {fallback_args[3]}"
+    assert fallback_args[2] is None, f"3rd arg (version) must be None, got {fallback_args[2]}"
 
 
 def test_get_cursor_config_path_windows_prefers_existing_candidate(

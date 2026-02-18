@@ -246,8 +246,10 @@ class TestOpenBrowser:
     On Windows the priority order is:
       1. ctypes ShellExecuteW (direct Win32 API, no console)
       2. rundll32 url.dll (GUI binary, no console)
-      3. os.startfile (CPython wrapper)
-      4. webbrowser.open (stdlib fallback)
+      3. webbrowser.open (stdlib fallback)
+
+    os.startfile is intentionally omitted: it is a thin CPython wrapper around
+    ShellExecuteExW, making it redundant with step 1.
     """
 
     def test_delegates_to_webbrowser_on_non_windows(self) -> None:
@@ -305,30 +307,8 @@ class TestOpenBrowser:
             cmd = mock_popen.call_args[0][0]
             assert cmd[0] == "rundll32"
 
-    def test_falls_back_to_startfile_on_windows(self) -> None:
-        """If ctypes and rundll32 fail, try os.startfile."""
-        import ctypes
-
-        mock_shell32 = MagicMock()
-        mock_shell32.ShellExecuteW = MagicMock(side_effect=Exception("ctypes failed"))
-        mock_windll = MagicMock()
-        mock_windll.shell32 = mock_shell32
-
-        with (
-            patch.object(sys, "platform", "win32"),
-            patch.object(ctypes, "windll", mock_windll, create=True),
-            patch("arcade_cli.authn.subprocess.Popen", side_effect=Exception("fail")),
-            patch("arcade_cli.authn.subprocess.STARTUPINFO", create=True, return_value=MagicMock()),
-            patch("arcade_cli.authn.subprocess.STARTF_USESHOWWINDOW", 1, create=True),
-            patch("arcade_cli.authn.subprocess.DEVNULL", -1),
-            patch("arcade_cli.authn.os.startfile", create=True) as mock_sf,
-        ):
-            result = _open_browser("https://example.com")
-            assert result is True
-            mock_sf.assert_called_once_with("https://example.com")
-
     def test_falls_back_to_webbrowser_if_all_else_fails_on_windows(self) -> None:
-        """If ctypes, rundll32, and startfile all fail, use webbrowser.open."""
+        """If ctypes and rundll32 both fail, use webbrowser.open (step 3)."""
         import ctypes
 
         mock_shell32 = MagicMock()
@@ -343,7 +323,6 @@ class TestOpenBrowser:
             patch("arcade_cli.authn.subprocess.STARTUPINFO", create=True, return_value=MagicMock()),
             patch("arcade_cli.authn.subprocess.STARTF_USESHOWWINDOW", 1, create=True),
             patch("arcade_cli.authn.subprocess.DEVNULL", -1),
-            patch("arcade_cli.authn.os.startfile", side_effect=OSError, create=True),
             patch("arcade_cli.authn.webbrowser") as mock_wb,
         ):
             mock_wb.open.return_value = True

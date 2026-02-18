@@ -69,8 +69,9 @@ def _resolve_windows_appdata() -> Path:
         result = user_data_dir(appname=None, appauthor=False, roaming=True)
     except TypeError:
         # Older platformdirs versions require positional args only.
+        # Signature: user_data_dir(appname, appauthor, version, roaming)
         logger.debug("platformdirs raised TypeError; retrying with positional args")
-        result = user_data_dir(None, False, True)
+        result = user_data_dir(None, False, None, True)
 
     return Path(result)
 

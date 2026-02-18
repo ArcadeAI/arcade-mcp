@@ -469,21 +469,26 @@ def start_server_process(entrypoint: str, debug: bool = False) -> tuple[subproce
         creationflags=creationflags,
     )
 
-    # Check for immediate failure on start up
+    # Check for immediate failure on startup.
+    # stdout/stderr are either DEVNULL (non-debug) or inherited (debug), so
+    # communicate() returns (None, None) in both cases — there is nothing to
+    # capture.  Surface a context-appropriate hint to the user instead.
     time.sleep(0.5)
     if process.poll() is not None:
-        _, stderr = process.communicate()
-        if stderr and stderr.strip():
-            error_msg = stderr.strip()
-            raise ValueError(f"Server process exited immediately: {error_msg}")
+        if debug:
+            raise ValueError(
+                "Server process exited immediately. " "Check the server output above for details."
+            )
         raise ValueError(
-            "Server process exited immediately. Re-run with --debug to show server startup logs."
+            "Server process exited immediately. " "Re-run with --debug to see server startup logs."
         )
 
     return process, port
 
 
-def wait_for_health(base_url: str, process: subprocess.Popen, timeout: int = 30) -> None:
+def wait_for_health(
+    base_url: str, process: subprocess.Popen, timeout: int = 30, debug: bool = False
+) -> None:
     """
     Wait for the server to become healthy.
 
@@ -491,6 +496,7 @@ def wait_for_health(base_url: str, process: subprocess.Popen, timeout: int = 30)
         base_url: Base URL of the server
         process: The server process
         timeout: Maximum time to wait in seconds
+        debug: Whether debug mode is active (affects the hint in the error message)
 
     Raises:
         ValueError: If the server doesn't become healthy within timeout
@@ -514,11 +520,22 @@ def wait_for_health(base_url: str, process: subprocess.Popen, timeout: int = 30)
     if not is_healthy:
         _graceful_terminate(process)
         try:
-            _, stderr = process.communicate(timeout=2)
-            error_msg = stderr.strip() if stderr else "Server failed to become healthy"
+            process.communicate(timeout=2)
         except subprocess.TimeoutExpired:
             process.kill()
-            error_msg = f"Server failed to become healthy within {timeout} seconds"
+
+        # stdout/stderr are DEVNULL (non-debug) or inherited (debug), so
+        # communicate() never captures output — build a context-appropriate message.
+        if debug:
+            error_msg = (
+                f"Server failed to become healthy within {timeout} seconds. "
+                "Check the server output above for details."
+            )
+        else:
+            error_msg = (
+                f"Server failed to become healthy within {timeout} seconds. "
+                "Re-run with --debug to see server startup logs."
+            )
         raise ValueError(error_msg)
 
     console.print("✓ Server is healthy", style="green")
@@ -645,7 +662,7 @@ def verify_server_and_get_metadata(
     base_url = f"http://127.0.0.1:{port}"
 
     try:
-        wait_for_health(base_url, process)
+        wait_for_health(base_url, process, debug=debug)
 
         server_name, server_version = get_server_info(base_url)
 

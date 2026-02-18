@@ -267,6 +267,37 @@ class TestSubprocessFlags:
         assert "icacls" in source
         assert "os.name == \"nt\"" in source or "os.name == 'nt'" in source
 
+    def test_config_model_acl_uses_single_subprocess_call(self, tmp_path: Path) -> None:
+        """ACL hardening must use a single icacls call to avoid a window with empty DACL."""
+        from arcade_core.config_model import Config
+
+        config_dir = tmp_path / ".arcade"
+        config_dir.mkdir()
+        config_file = config_dir / "credentials.yaml"
+
+        run_calls: list = []
+
+        def record_run(cmd, **kwargs):  # type: ignore[no-untyped-def]
+            run_calls.append(cmd)
+            mock_result = MagicMock()
+            mock_result.returncode = 0
+            return mock_result
+
+        with (
+            patch.object(Config, "get_config_file_path", return_value=config_file),
+            patch.object(Config, "ensure_config_dir_exists"),
+            patch("arcade_core.config_model.os.name", "nt"),
+            patch("arcade_core.config_model.os.environ", {"USERNAME": "TestUser"}),
+            patch("arcade_core.config_model.subprocess.run", side_effect=record_run),
+        ):
+            cfg = Config(coordinator_url="https://test.example.com")
+            cfg.save_to_file()
+
+        assert len(run_calls) == 1, "ACL setup must use exactly one subprocess.run call"
+        icacls_cmd = run_calls[0]
+        assert "/inheritance:r" in icacls_cmd
+        assert "/grant:r" in icacls_cmd
+
 
 # =========================================================================
 # 3. CONSOLE ENCODING SAFETY
@@ -414,8 +445,10 @@ class TestOpenBrowser:
     On Windows, the priority order is:
       1. ctypes ShellExecuteW
       2. rundll32 url.dll
-      3. os.startfile
-      4. webbrowser.open
+      3. webbrowser.open
+
+    os.startfile is intentionally omitted as it is a redundant ShellExecuteW
+    wrapper (equivalent to attempt 1).
     """
 
     def test_uses_webbrowser_on_linux(self) -> None:
@@ -489,31 +522,8 @@ class TestOpenBrowser:
             assert cmd[0] == "rundll32"
             assert "url.dll,FileProtocolHandler" in cmd[1]
 
-    def test_falls_back_to_startfile_on_win32(self) -> None:
-        """If both ctypes and rundll32 fail, attempt 3 is os.startfile."""
-        from arcade_cli.authn import _open_browser
-
-        import ctypes
-
-        mock_shell32 = MagicMock()
-        mock_shell32.ShellExecuteW = MagicMock(side_effect=Exception("ctypes failed"))
-        mock_windll = MagicMock()
-        mock_windll.shell32 = mock_shell32
-
-        with (
-            patch.object(sys, "platform", "win32"),
-            patch.object(ctypes, "windll", mock_windll, create=True),
-            patch("arcade_cli.authn.subprocess.Popen", side_effect=Exception("popen failed")),
-            patch("arcade_cli.authn.subprocess.STARTUPINFO", create=True, return_value=MagicMock()),
-            patch("arcade_cli.authn.subprocess.STARTF_USESHOWWINDOW", 1, create=True),
-            patch("arcade_cli.authn.subprocess.DEVNULL", -1),
-            patch("arcade_cli.authn.os.startfile", create=True) as mock_sf,
-        ):
-            assert _open_browser("https://example.com") is True
-            mock_sf.assert_called_once_with("https://example.com")
-
     def test_falls_back_to_webbrowser_on_win32_when_all_else_fails(self) -> None:
-        """If ctypes, rundll32, and startfile all fail, use webbrowser.open."""
+        """If ctypes and rundll32 both fail, use webbrowser.open."""
         from arcade_cli.authn import _open_browser
 
         import ctypes
@@ -530,7 +540,6 @@ class TestOpenBrowser:
             patch("arcade_cli.authn.subprocess.STARTUPINFO", create=True, return_value=MagicMock()),
             patch("arcade_cli.authn.subprocess.STARTF_USESHOWWINDOW", 1, create=True),
             patch("arcade_cli.authn.subprocess.DEVNULL", -1),
-            patch("arcade_cli.authn.os.startfile", side_effect=OSError, create=True),
             patch("arcade_cli.authn.webbrowser") as mock_wb,
         ):
             mock_wb.open.return_value = True
@@ -667,12 +676,19 @@ class TestAppDataResolution:
         assert _resolve_windows_appdata() == Path(r"C:\Users\Alice\AppData\Roaming")
 
     def test_handles_older_platformdirs(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Falls back to positional args when platformdirs raises TypeError."""
+        """Falls back to positional args when platformdirs raises TypeError.
+
+        Roaming must be the 4th positional arg (not 3rd), matching the signature:
+        user_data_dir(appname, appauthor, version, roaming).
+        """
         from arcade_cli.configure import _resolve_windows_appdata
+
+        received_args: list[tuple] = []
 
         def strict_user_data_dir(*args: object, **kwargs: object) -> str:
             if kwargs:
                 raise TypeError("keyword args not supported")
+            received_args.append(args)
             return r"C:\Users\Bob\AppData\Roaming"
 
         fake_platformdirs = types.ModuleType("platformdirs")
@@ -680,6 +696,12 @@ class TestAppDataResolution:
         monkeypatch.setitem(sys.modules, "platformdirs", fake_platformdirs)
 
         assert _resolve_windows_appdata() == Path(r"C:\Users\Bob\AppData\Roaming")
+        # Verify roaming is passed as the 4th positional arg, not 3rd (which is version)
+        assert len(received_args) == 1
+        args = received_args[0]
+        assert len(args) == 4 and args[3] is True, (
+            f"roaming must be the 4th positional arg (True); got args={args}"
+        )
 
 
 # =========================================================================

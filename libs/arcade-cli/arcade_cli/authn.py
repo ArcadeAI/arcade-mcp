@@ -552,9 +552,12 @@ def _open_browser(url: str) -> bool:
        involved, so no console window should appear.
     2. **rundll32 url.dll** — a well-known Windows technique to open URLs
        via a pure-GUI helper DLL.  ``rundll32.exe`` is a GUI subsystem
-       binary so it never allocates a console.
-    3. **os.startfile** — CPython's wrapper around ``ShellExecuteExW``.
-    4. **webbrowser.open** — stdlib last-resort fallback.
+       binary so it never allocates a console.  Used as a fallback when
+       ctypes is unavailable or ShellExecuteW returns an error code.
+    3. **webbrowser.open** — stdlib last-resort fallback.
+
+    ``os.startfile`` is intentionally omitted: it is another thin wrapper
+    around ``ShellExecuteExW`` and therefore redundant with attempt 1.
 
     On non-Windows platforms this simply delegates to ``webbrowser.open``.
     """
@@ -600,14 +603,7 @@ def _open_browser(url: str) -> bool:
     except Exception:  # noqa: S110
         pass
 
-    # Attempt 3: os.startfile — CPython's ShellExecuteExW wrapper.
-    try:
-        os.startfile(url)  # Windows-only  # noqa: S606
-        return True  # noqa: TRY300
-    except OSError:
-        pass
-
-    # Attempt 4: stdlib fallback.
+    # Attempt 3: stdlib fallback.
     try:
         return webbrowser.open(url)
     except Exception:
