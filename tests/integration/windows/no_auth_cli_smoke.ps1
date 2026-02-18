@@ -221,6 +221,17 @@ uv run python -c "import server; print('generated server import ok')"
 
 $generatedServerDir = (Get-Location).Path
 
+# --------------------------------------------------------------------------
+# MCP protocol smoke (real JSON-RPC request/response flows)
+# --------------------------------------------------------------------------
+$mcpSmokePy = Join-Path $RepoRoot "tests\integration\windows\mcp_protocol_smoke.py"
+
+Write-Host "Running MCP protocol smoke (stdio)..."
+uv run python $mcpSmokePy --server-dir $generatedServerDir --transport stdio
+
+Write-Host "Running MCP protocol smoke (http)..."
+uv run python $mcpSmokePy --server-dir $generatedServerDir --transport http
+
 # Validate stdio transport starts and stays alive briefly.
 $stdioHandle = $null
 try {
