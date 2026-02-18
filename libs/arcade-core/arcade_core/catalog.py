@@ -151,6 +151,7 @@ class ToolCatalog(BaseModel):
     """Singleton class that holds all tools for a given worker"""
 
     _tools: dict[FullyQualifiedName, MaterializedTool] = {}
+    _cached_hash: str | None = None
 
     _disabled_tools: set[str] = set()
     _disabled_toolkits: set[str] = set()
@@ -266,6 +267,7 @@ class ToolCatalog(BaseModel):
             input_model=input_model,
             output_model=output_model,
         )
+        self._cached_hash = None
 
     def add_module(
         self,
@@ -432,7 +434,8 @@ class ToolCatalog(BaseModel):
         """
         Compute a deterministic SHA-256 hash of all tool definitions in the catalog.
 
-        The hash is computed by:
+        The result is cached and only recomputed when the catalog is mutated
+        (i.e. when tools are added). The hash is computed by:
         1. Serializing each ToolDefinition to JSON with sorted keys
         2. Sorting the serialized definitions by fully qualified name
         3. Concatenating and hashing with SHA-256
@@ -440,6 +443,9 @@ class ToolCatalog(BaseModel):
         This ensures the hash is stable regardless of insertion order
         and only changes when tool definitions actually change.
         """
+        if self._cached_hash is not None:
+            return self._cached_hash
+
         serialized_definitions: list[tuple[str, str]] = []
         for fq_name, materialized_tool in self._tools.items():
             key = str(fq_name)
@@ -453,7 +459,8 @@ class ToolCatalog(BaseModel):
             hasher.update(key.encode("utf-8"))
             hasher.update(json_str.encode("utf-8"))
 
-        return hasher.hexdigest()
+        self._cached_hash = hasher.hexdigest()
+        return self._cached_hash
 
     @staticmethod
     def create_tool_definition(

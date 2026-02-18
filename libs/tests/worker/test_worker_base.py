@@ -10,7 +10,7 @@ from arcade_core.schema import (
     ToolReference,
 )
 from arcade_serve.core.base import BaseWorker
-from arcade_serve.core.common import RequestData, Router
+from arcade_serve.core.common import RequestData, Router, ToolNotFoundError
 from arcade_serve.core.components import (
     CallToolComponent,
     CatalogComponent,
@@ -104,7 +104,10 @@ def test_get_catalog(base_worker_no_auth):
 def test_health_check(base_worker_no_auth):
     base_worker_no_auth.register_tool(sample_tool, toolkit_name="test_kit")
     health = base_worker_no_auth.health_check()
-    assert health == {"status": "ok", "tool_count": "1"}
+    assert health["status"] == "ok"
+    assert health["tool_count"] == "1"
+    assert "tool_definitions_hash" in health
+    assert "started_at" in health
 
 
 @pytest.mark.asyncio
@@ -160,8 +163,7 @@ async def test_call_tool_not_found(base_worker_no_auth):
         inputs={},
     )
 
-    # Update regex to match actual error format
-    with pytest.raises(ValueError):
+    with pytest.raises(ToolNotFoundError):
         await base_worker_no_auth.call_tool(tool_request)
 
 
@@ -228,4 +230,7 @@ async def test_health_check_component_call(base_worker_no_auth):
     mock_request = MagicMock(spec=RequestData)
     health_response = await component(mock_request)
 
-    assert health_response == {"status": "ok", "tool_count": "0"}
+    assert health_response["status"] == "ok"
+    assert health_response["tool_count"] == "0"
+    assert "tool_definitions_hash" in health_response
+    assert "started_at" in health_response
