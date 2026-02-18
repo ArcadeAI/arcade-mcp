@@ -23,10 +23,13 @@ import contextlib
 import json
 import os
 import platform
+import queue
 import shutil
 import socket
 import subprocess
 import sys
+import tempfile
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -137,6 +140,18 @@ def _drain_stderr(proc: subprocess.Popen, max_chars: int = 2000) -> str:
     return ""
 
 
+def _tail_text_file(path: str | None, max_chars: int = 4000) -> str:
+    """Return the tail of a UTF-8 log file for diagnostics."""
+    if not path or not os.path.exists(path):
+        return ""
+    try:
+        with open(path, encoding="utf-8", errors="replace") as f:
+            data = f.read()
+        return data[-max_chars:]
+    except Exception:
+        return ""
+
+
 # ---------------------------------------------------------------------------
 # Stdio transport
 # ---------------------------------------------------------------------------
@@ -149,6 +164,19 @@ class StdioClient:
         self.proc = proc
         self.timeout = timeout
         self._next_id = 1
+        self._stdout_queue: queue.Queue[str | None] = queue.Queue()
+        self._stdout_reader = threading.Thread(target=self._read_stdout_loop, daemon=True)
+        self._stdout_reader.start()
+
+    def _read_stdout_loop(self) -> None:
+        if self.proc.stdout is None:
+            self._stdout_queue.put(None)
+            return
+        try:
+            for raw in self.proc.stdout:
+                self._stdout_queue.put(raw)
+        finally:
+            self._stdout_queue.put(None)
 
     def _next(self) -> int:
         rid = self._next_id
@@ -172,12 +200,19 @@ class StdioClient:
     def read_response(self, expected_id: int) -> dict[str, Any]:
         """Read lines until we get a JSON-RPC message with the expected id."""
         deadline = time.monotonic() + self.timeout
-        assert self.proc.stdout is not None
         while time.monotonic() < deadline:
-            # readline() blocks until data or EOF; if server exits, returns ""
-            raw = self.proc.stdout.readline()
-            if raw == "":
-                # EOF — server exited
+            if self.proc.poll() is not None:
+                stderr_snippet = _drain_stderr(self.proc)
+                raise RuntimeError(
+                    f"Server exited (code={self.proc.returncode}) while waiting for id={expected_id}.\n"
+                    f"STDERR snippet:\n{stderr_snippet}"
+                )
+            timeout = min(0.5, max(0.0, deadline - time.monotonic()))
+            try:
+                raw = self._stdout_queue.get(timeout=timeout)
+            except queue.Empty:
+                continue
+            if raw is None:
                 stderr_snippet = _drain_stderr(self.proc)
                 raise RuntimeError(
                     f"Server stdout closed (EOF) while waiting for id={expected_id}.\n"
@@ -199,16 +234,27 @@ class StdioClient:
 def run_stdio(server_dir: str, timeout: float) -> None:
     print("\n=== Stdio transport MCP protocol smoke ===", flush=True)
     proc: subprocess.Popen | None = None
+    stderr_sink = None
+    stderr_log_path: str | None = None
     step = "startup"
     last_response: dict[str, Any] = {}
     try:
         uv = shutil.which("uv") or "uv"
+        stderr_sink = tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            prefix="arcade-mcp-stdio-",
+            suffix=".log",
+            buffering=1,
+            delete=False,
+        )
+        stderr_log_path = stderr_sink.name
         proc = subprocess.Popen(
             [uv, "run", "server.py"],
             cwd=server_dir,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stderr=stderr_sink,
             text=True,
             bufsize=1,
         )
@@ -292,7 +338,10 @@ def run_stdio(server_dir: str, timeout: float) -> None:
         print("\nStdio transport smoke PASSED.", flush=True)
 
     except Exception as exc:
-        stderr_snippet = _drain_stderr(proc) if proc else ""
+        if stderr_sink is not None:
+            with contextlib.suppress(Exception):
+                stderr_sink.flush()
+        stderr_snippet = _tail_text_file(stderr_log_path) if stderr_log_path else ""
         print(
             f"\nSTDIO SMOKE FAILED at step '{step}'.\n"
             f"  Error: {exc}\n"
@@ -303,6 +352,9 @@ def run_stdio(server_dir: str, timeout: float) -> None:
         )
         raise
     finally:
+        if stderr_sink is not None:
+            with contextlib.suppress(Exception):
+                stderr_sink.close()
         if proc is not None:
             _kill_process(proc)
 
@@ -317,6 +369,7 @@ def _http_post(
     payload: dict[str, Any],
     extra_headers: dict[str, str] | None = None,
     read_response_headers: bool = False,
+    timeout_seconds: float = 30.0,
 ) -> tuple[int, dict[str, str], dict[str, Any]]:
     """POST JSON payload, return (status, response_headers, body_dict)."""
     body = json.dumps(payload).encode("utf-8")
@@ -327,7 +380,7 @@ def _http_post(
         for k, v in extra_headers.items():
             req.add_header(k, v)
     try:
-        with urllib.request.urlopen(req, timeout=30) as resp:  # noqa: S310
+        with urllib.request.urlopen(req, timeout=timeout_seconds) as resp:  # noqa: S310
             status: int = resp.status
             # http.client.HTTPMessage supports case-insensitive get()
             resp_headers: dict[str, str] = {}
@@ -362,6 +415,10 @@ def run_http(server_dir: str, timeout: float) -> None:
     print("\n=== HTTP transport MCP protocol smoke ===", flush=True)
     port = _find_free_port()
     proc: subprocess.Popen | None = None
+    stdout_sink = None
+    stderr_sink = None
+    stdout_log_path: str | None = None
+    stderr_log_path: str | None = None
     step = "startup"
     last_response: dict[str, Any] = {}
     try:
@@ -372,11 +429,29 @@ def run_http(server_dir: str, timeout: float) -> None:
             "ARCADE_WORKER_SECRET": "arcade-smoke-worker-secret",
         }
         uv = shutil.which("uv") or "uv"
+        stdout_sink = tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            prefix="arcade-mcp-http-out-",
+            suffix=".log",
+            buffering=1,
+            delete=False,
+        )
+        stdout_log_path = stdout_sink.name
+        stderr_sink = tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            prefix="arcade-mcp-http-err-",
+            suffix=".log",
+            buffering=1,
+            delete=False,
+        )
+        stderr_log_path = stderr_sink.name
         proc = subprocess.Popen(
             [uv, "run", "server.py", "http"],
             cwd=server_dir,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stdout=stdout_sink,
+            stderr=stderr_sink,
             text=True,
             env=env,
         )
@@ -410,7 +485,7 @@ def run_http(server_dir: str, timeout: float) -> None:
             req_id=1,
         )
         init_status, init_hdrs, last_response = _http_post(
-            mcp_url, init_req, read_response_headers=True
+            mcp_url, init_req, read_response_headers=True, timeout_seconds=timeout
         )
         assert (
             init_status == 200
@@ -439,7 +514,10 @@ def run_http(server_dir: str, timeout: float) -> None:
         step = "ping"
         print(f"Step 3: {step}", flush=True)
         ping_status, _, last_response = _http_post(
-            mcp_url, _build_request("ping", req_id=2), extra_headers=session_headers
+            mcp_url,
+            _build_request("ping", req_id=2),
+            extra_headers=session_headers,
+            timeout_seconds=timeout,
         )
         assert ping_status == 200, f"[{step}] expected 200, got {ping_status}: {last_response}"
         assert last_response.get("jsonrpc") == "2.0", f"[{step}] jsonrpc: {last_response}"
@@ -451,7 +529,10 @@ def run_http(server_dir: str, timeout: float) -> None:
         step = "tools/list"
         print(f"Step 4: {step}", flush=True)
         list_status, _, last_response = _http_post(
-            mcp_url, _build_request("tools/list", req_id=3), extra_headers=session_headers
+            mcp_url,
+            _build_request("tools/list", req_id=3),
+            extra_headers=session_headers,
+            timeout_seconds=timeout,
         )
         assert list_status == 200, f"[{step}] expected 200, got {list_status}: {last_response}"
         _assert_ok(last_response, 3, step)
@@ -473,6 +554,7 @@ def run_http(server_dir: str, timeout: float) -> None:
                 req_id=4,
             ),
             extra_headers=session_headers,
+            timeout_seconds=timeout,
         )
         assert call_status == 200, f"[{step}] expected 200, got {call_status}: {last_response}"
         _assert_ok(last_response, 4, step)
@@ -489,17 +571,31 @@ def run_http(server_dir: str, timeout: float) -> None:
         print("\nHTTP transport smoke PASSED.", flush=True)
 
     except Exception as exc:
-        stderr_snippet = _drain_stderr(proc) if proc else ""
+        if stdout_sink is not None:
+            with contextlib.suppress(Exception):
+                stdout_sink.flush()
+        if stderr_sink is not None:
+            with contextlib.suppress(Exception):
+                stderr_sink.flush()
+        stdout_tail = _tail_text_file(stdout_log_path) if stdout_log_path else ""
+        stderr_tail = _tail_text_file(stderr_log_path) if stderr_log_path else ""
         print(
             f"\nHTTP SMOKE FAILED at step '{step}'.\n"
             f"  Error: {exc}\n"
             f"  Last response: {json.dumps(last_response) if last_response else 'n/a'}\n"
-            f"  Server STDERR snippet:\n{stderr_snippet}",
+            f"  Server STDOUT snippet:\n{stdout_tail}\n"
+            f"  Server STDERR snippet:\n{stderr_tail}",
             file=sys.stderr,
             flush=True,
         )
         raise
     finally:
+        if stdout_sink is not None:
+            with contextlib.suppress(Exception):
+                stdout_sink.close()
+        if stderr_sink is not None:
+            with contextlib.suppress(Exception):
+                stderr_sink.close()
         if proc is not None:
             _kill_process(proc)
 
