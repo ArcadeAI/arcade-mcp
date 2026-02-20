@@ -5,33 +5,30 @@
   >
 </h3>
 <div align="center">
-  <h3>CrewAI Integration</h3>
-    <a href="https://github.com/arcadeai/arcade-mcp/blob/main/LICENSE">
-  <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-</a>
-    <a href="https://pepy.tech/project/crewai-arcade">
-  <img src="https://static.pepy.tech/badge/crewai-arcade" alt="Downloads">
-</a>
-
+  <h1>⚠️ DEPRECATED ⚠️</h1>
+  <h3>crewai-arcade is no longer maintained</h3>
 </div>
 
+---
+
+## Important Notice
+
+**This package has been deprecated and is no longer maintained.**
+
+The `crewai-arcade` package is no longer needed. Arcade now provides better ways to integrate with your AI applications.
+
+## What Should I Use Instead?
+
+Please visit **[docs.arcade.dev](https://docs.arcade.dev)** for the latest documentation on how to integrate Arcade tools into your applications.
+
+## Migration Guide
+
+If you were previously using `crewai-arcade`, we recommend:
+
+1. Visit [docs.arcade.dev](https://docs.arcade.dev) to learn about the new integration options
+
+---
+
 <p align="center">
-    <a href="https://docs.arcade.dev" target="_blank">Docs</a> •
-    <a href="https://docs.arcade.dev/en/resources/integrations" target="_blank">Servers</a> •
-    <a href="https://github.com/ArcadeAI/arcade-py" target="_blank">Python Client</a> •
-    <a href="https://github.com/ArcadeAI/arcade-js" target="_blank">JavaScript Client</a>
+  Thank you for using crewai-arcade. We hope to see you using Arcade's new integrations!
 </p>
-
-## Overview
-
-`crewai-arcade` allows you to use Arcade tools in your CrewAI applications.
-
-## Installation
-
-```bash
-pip install crewai-arcade
-```
-
-## Usage
-
-See the [examples](https://github.com/ArcadeAI/arcade-mcp/tree/main/examples/crewai) for usage examples
