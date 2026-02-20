@@ -5,6 +5,13 @@ from typing import Annotated, Any, cast
 
 import requests
 from arcade_core.errors import RetryableToolError
+from arcade_mcp_server.metadata import (
+    Behavior,
+    Classification,
+    Operation,
+    ServiceDomain,
+    ToolMetadata,
+)
 from arcade_tdk import ToolContext, tool
 
 from arcade_brightdata.bright_data_client import BrightDataClient
@@ -51,7 +58,21 @@ class SourceType(str, Enum):
     YOUTUBE_VIDEOS = "youtube_videos"
 
 
-@tool(requires_secrets=["BRIGHTDATA_API_KEY", "BRIGHTDATA_ZONE"])
+@tool(
+    requires_secrets=["BRIGHTDATA_API_KEY", "BRIGHTDATA_ZONE"],
+    metadata=ToolMetadata(
+        classification=Classification(
+            service_domains=[ServiceDomain.WEB_SCRAPING],
+        ),
+        behavior=Behavior(
+            operations=[Operation.READ],
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=True,
+        ),
+    ),
+)
 def scrape_as_markdown(
     context: ToolContext,
     url: Annotated[str, "URL to scrape"],
@@ -71,7 +92,21 @@ def scrape_as_markdown(
     return client.make_request(payload)
 
 
-@tool(requires_secrets=["BRIGHTDATA_API_KEY", "BRIGHTDATA_ZONE"])
+@tool(
+    requires_secrets=["BRIGHTDATA_API_KEY", "BRIGHTDATA_ZONE"],
+    metadata=ToolMetadata(
+        classification=Classification(
+            service_domains=[ServiceDomain.WEB_SCRAPING],
+        ),
+        behavior=Behavior(
+            operations=[Operation.READ],
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=True,
+        ),
+    ),
+)
 def search_engine(  # noqa: C901
     context: ToolContext,
     query: Annotated[str, "Search query"],
@@ -167,7 +202,21 @@ def search_engine(  # noqa: C901
     return client.make_request(payload)
 
 
-@tool(requires_secrets=["BRIGHTDATA_API_KEY"])
+@tool(
+    requires_secrets=["BRIGHTDATA_API_KEY"],
+    metadata=ToolMetadata(
+        classification=Classification(
+            service_domains=[ServiceDomain.WEB_SCRAPING],
+        ),
+        behavior=Behavior(
+            operations=[Operation.READ],
+            read_only=True,
+            destructive=False,
+            idempotent=False,
+            open_world=True,
+        ),
+    ),
+)
 def web_data_feed(
     context: ToolContext,
     source_type: Annotated[SourceType, "Type of data source"],

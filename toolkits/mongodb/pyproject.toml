@@ -9,6 +9,7 @@ description = "Tools to query and explore a MongoDB database"
 requires-python = ">=3.10"
 dependencies = [
     "arcade-tdk>=3.0.0,<4.0.0",
+    "arcade-mcp-server>=1.17.0,<2.0.0",
     "pymongo>=4.10.1",
     "pydantic>=2.11.7",
     "motor>=3.6.0",
@@ -37,6 +38,7 @@ dev = [
 arcade-mcp = { path = "../../", editable = true }
 arcade-serve = { path = "../../libs/arcade-serve/", editable = true }
 arcade-tdk = { path = "../../libs/arcade-tdk/", editable = true }
+arcade-mcp-server = { path = "../../libs/arcade-mcp-server/", editable = true }
 
 
 [tool.mypy]

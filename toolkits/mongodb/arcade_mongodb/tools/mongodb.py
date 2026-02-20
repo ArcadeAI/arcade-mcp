@@ -1,6 +1,7 @@
 import json
 from typing import Annotated, Any
 
+from arcade_mcp_server.metadata import Behavior, Operation, ToolMetadata
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.errors import RetryableToolError
 
@@ -20,7 +21,18 @@ from .utils import (
 #     BANNED = "banned"
 
 
-@tool(requires_secrets=["MONGODB_CONNECTION_STRING"])
+@tool(
+    requires_secrets=["MONGODB_CONNECTION_STRING"],
+    metadata=ToolMetadata(
+        behavior=Behavior(
+            operations=[Operation.READ],
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=True,
+        ),
+    ),
+)
 async def discover_databases(
     context: ToolContext,
 ) -> list[str]:
@@ -32,7 +44,18 @@ async def discover_databases(
     return databases
 
 
-@tool(requires_secrets=["MONGODB_CONNECTION_STRING"])
+@tool(
+    requires_secrets=["MONGODB_CONNECTION_STRING"],
+    metadata=ToolMetadata(
+        behavior=Behavior(
+            operations=[Operation.READ],
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=True,
+        ),
+    ),
+)
 async def discover_collections(
     context: ToolContext,
     database_name: Annotated[str, "The database name to discover collections in"],
@@ -48,7 +71,18 @@ async def discover_collections(
     return list(collections)
 
 
-@tool(requires_secrets=["MONGODB_CONNECTION_STRING"])
+@tool(
+    requires_secrets=["MONGODB_CONNECTION_STRING"],
+    metadata=ToolMetadata(
+        behavior=Behavior(
+            operations=[Operation.READ],
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=True,
+        ),
+    ),
+)
 async def get_collection_schema(
     context: ToolContext,
     database_name: Annotated[str, "The database name to get the collection schema of"],
@@ -90,7 +124,18 @@ async def get_collection_schema(
     }
 
 
-@tool(requires_secrets=["MONGODB_CONNECTION_STRING"])
+@tool(
+    requires_secrets=["MONGODB_CONNECTION_STRING"],
+    metadata=ToolMetadata(
+        behavior=Behavior(
+            operations=[Operation.READ],
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=True,
+        ),
+    ),
+)
 async def find_documents(
     context: ToolContext,
     database_name: Annotated[str, "The database name to query"],
@@ -193,7 +238,18 @@ async def find_documents(
         ) from e
 
 
-@tool(requires_secrets=["MONGODB_CONNECTION_STRING"])
+@tool(
+    requires_secrets=["MONGODB_CONNECTION_STRING"],
+    metadata=ToolMetadata(
+        behavior=Behavior(
+            operations=[Operation.READ],
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=True,
+        ),
+    ),
+)
 async def count_documents(
     context: ToolContext,
     database_name: Annotated[str, "The database name to query"],
@@ -230,7 +286,18 @@ async def count_documents(
         ) from e
 
 
-@tool(requires_secrets=["MONGODB_CONNECTION_STRING"])
+@tool(
+    requires_secrets=["MONGODB_CONNECTION_STRING"],
+    metadata=ToolMetadata(
+        behavior=Behavior(
+            operations=[Operation.READ],
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=True,
+        ),
+    ),
+)
 async def aggregate_documents(
     context: ToolContext,
     database_name: Annotated[str, "The database name to query"],

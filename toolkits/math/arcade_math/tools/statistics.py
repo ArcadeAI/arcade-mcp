@@ -3,12 +3,22 @@ from decimal import Decimal
 from statistics import median as stats_median
 from typing import Annotated
 
+from arcade_mcp_server.metadata import Behavior, ToolMetadata
 from arcade_tdk import tool
 
 decimal.getcontext().prec = 100
 
 
-@tool
+@tool(
+    metadata=ToolMetadata(
+        behavior=Behavior(
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=False,
+        ),
+    ),
+)
 def avg(
     numbers: Annotated[list[str], "The list of numbers as strings"],
 ) -> Annotated[str, "The average (mean) of the numbers in the list as a string"]:
@@ -21,7 +31,16 @@ def avg(
     return str(sum(d_numbers) / len(d_numbers)) if d_numbers else "0.0"
 
 
-@tool
+@tool(
+    metadata=ToolMetadata(
+        behavior=Behavior(
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=False,
+        ),
+    ),
+)
 def median(
     numbers: Annotated[list[str], "A list of numbers as strings"],
 ) -> Annotated[str, "The median value of the numbers in the list as a string"]:

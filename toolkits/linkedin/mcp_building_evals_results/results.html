@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluation Results</title>
+    <style>
+        :root {
+            --bg-color: #1e1e2e;
+            --text-color: #cdd6f4;
+            --card-bg: #313244;
+            --border-color: #45475a;
+            --green: #a6e3a1;
+            --yellow: #f9e2af;
+            --red: #f38ba8;
+            --blue: #89b4fa;
+            --purple: #cba6f7;
+            --cyan: #94e2d5;
+            --accent: #89b4fa;
+            --accent-2: #cba6f7;
+            --shadow: rgba(0, 0, 0, 0.35);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: var(--purple);
+            border-bottom: 2px solid var(--purple);
+            padding-bottom: 10px;
+        }
+
+        /* Critic stats score coloring: red <60%, yellow 60-80%, green >80% */
+        .critic-stats-table tr.score-low td.score-value {
+            color: var(--red);
+            font-weight: bold;
+        }
+        .critic-stats-table tr.score-mid td.score-value {
+            color: var(--yellow);
+            font-weight: bold;
+        }
+        .critic-stats-table tr.score-high td.score-value {
+            color: var(--green);
+            font-weight: bold;
+        }
+        .critic-stats-table tr.score-low { background: rgba(243, 139, 168, 0.08); }
+        .critic-stats-table tr.score-mid { background: rgba(249, 226, 175, 0.08); }
+        .critic-stats-table tr.score-high { background: rgba(166, 227, 161, 0.08); }
+
+        h2 {
+            color: var(--blue);
+            margin-top: 30px;
+        }
+
+        h3 {
+            color: var(--cyan);
+        }
+
+        h4 {
+            color: var(--text-color);
+            margin-bottom: 10px;
+        }
+
+        .timestamp {
+            color: #6c7086;
+            font-size: 0.9em;
+        }
+
+        .summary-section {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .stats-grid {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+
+        .stat-card {
+            background: var(--bg-color);
+            padding: 15px 25px;
+            border-radius: 8px;
+            text-align: center;
+            min-width: 100px;
+            border: 2px solid;
+        }
+
+        .stat-card .label {
+            display: block;
+            font-size: 0.85em;
+            color: #a6adc8;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .value {
+            display: block;
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+
+        .stat-card.total { border-color: var(--blue); }
+        .stat-card.total .value { color: var(--blue); }
+
+        .stat-card.passed { border-color: var(--green); }
+        .stat-card.passed .value { color: var(--green); }
+
+        .stat-card.warned { border-color: var(--yellow); }
+        .stat-card.warned .value { color: var(--yellow); }
+
+        .stat-card.failed { border-color: var(--red); }
+        .stat-card.failed .value { color: var(--red); }
+
+        .pass-rate {
+            font-size: 1.2em;
+            margin-top: 15px;
+        }
+
+        .pass-rate strong {
+            color: var(--green);
+        }
+
+        .warning-banner {
+            background: #45475a;
+            color: var(--yellow);
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--yellow);
+        }
+
+        .model-section {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .suite-section {
+            background: rgba(0, 0, 0, 0.15);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 3px solid var(--cyan);
+        }
+
+        .suite-header {
+            color: var(--cyan);
+            margin: 0 0 15px 0;
+            font-size: 1.1em;
+        }
+
+        .expand-hint {
+            color: #6c7086;
+            font-size: 0.85em;
+            font-style: italic;
+            margin: 10px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--bg-color);
+            color: var(--purple);
+            font-weight: 600;
+        }
+
+        .results-table tr.passed { background: rgba(166, 227, 161, 0.1); }
+        .results-table tr.warned { background: rgba(249, 226, 175, 0.1); }
+        .results-table tr.failed { background: rgba(243, 139, 168, 0.1); }
+
+        .results-table tr.passed .status-cell { color: var(--green); }
+        .results-table tr.warned .status-cell { color: var(--yellow); }
+        .results-table tr.failed .status-cell { color: var(--red); }
+
+        .score-cell {
+            font-weight: bold;
+            color: var(--blue);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .badge.passed { background: var(--green); color: #1e1e2e; }
+        .badge.warned { background: var(--yellow); color: #1e1e2e; }
+        .badge.failed { background: var(--red); color: #1e1e2e; }
+
+        .case-detail {
+            background: var(--bg-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid;
+        }
+
+        .case-detail.passed { border-left-color: var(--green); }
+        .case-detail.warned { border-left-color: var(--yellow); }
+        .case-detail.failed { border-left-color: var(--red); }
+
+        code {
+            background: var(--bg-color);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+            color: var(--cyan);
+        }
+
+        details {
+            margin-top: 15px;
+        }
+
+        summary {
+            cursor: pointer;
+            padding: 10px;
+            background: var(--bg-color);
+            border-radius: 5px;
+            font-weight: bold;
+            color: var(--blue);
+        }
+
+        summary:hover {
+            background: #45475a;
+        }
+
+        .detail-table {
+            font-size: 0.9em;
+        }
+
+        .critic-stats {
+            margin: 10px 0;
+            padding: 10px;
+            background: #202020;
+            border-radius: 6px;
+        }
+
+        /* Run Stats Card - Modern Design */
+        .run-stats-card {
+            margin: 15px 0;
+            border-radius: 12px;
+            background: linear-gradient(145deg, #252535, #1a1a2a);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+        .run-stats-card.passed { border-left: 4px solid var(--green); }
+        .run-stats-card.warned { border-left: 4px solid var(--yellow); }
+        .run-stats-card.failed { border-left: 4px solid var(--red); }
+
+        .run-stats-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .run-status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .run-status-badge.passed { background: rgba(166, 227, 161, 0.2); color: var(--green); }
+        .run-status-badge.warned { background: rgba(249, 226, 175, 0.2); color: var(--yellow); }
+        .run-status-badge.failed { background: rgba(243, 139, 168, 0.2); color: var(--red); }
+
+        .run-count {
+            color: var(--text-color);
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .run-stats-body {
+            padding: 16px;
+        }
+
+        .score-display {
+            display: flex;
+            align-items: flex-end;
+            gap: 20px;
+            margin-bottom: 12px;
+        }
+
+        .score-main {
+            display: flex;
+            flex-direction: column;
+        }
+        .score-main .score-value {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: var(--blue);
+            line-height: 1;
+        }
+        .score-main .score-label {
+            font-size: 0.75em;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .score-deviation {
+            display: flex;
+            flex-direction: column;
+        }
+        .score-deviation .deviation-value {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: var(--purple);
+        }
+        .score-deviation .deviation-label {
+            font-size: 0.7em;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        .score-bar-container {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+        .score-bar {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        .score-bar.passed { background: linear-gradient(90deg, var(--green), #7ecf7e); }
+        .score-bar.warned { background: linear-gradient(90deg, var(--yellow), #f5d67a); }
+        .score-bar.failed { background: linear-gradient(90deg, var(--red), #e87a94); }
+
+        .run-scores {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .score-pill {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+        .score-pill.high { background: rgba(166, 227, 161, 0.2); color: var(--green); }
+        .score-pill.mid { background: rgba(249, 226, 175, 0.2); color: var(--yellow); }
+        .score-pill.low { background: rgba(243, 139, 168, 0.2); color: var(--red); }
+
+        .run-stats-footer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.15);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .run-meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .meta-label {
+            font-size: 0.7em;
+            color: #888;
+            text-transform: uppercase;
+        }
+        .meta-value {
+            font-size: 0.85em;
+            color: var(--text-color);
+        }
+        .meta-value.mono {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.75em;
+            color: var(--cyan);
+        }
+
+        .run-tabs {
+            margin: 12px 0;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: #1f1f2b;
+        }
+
+        .run-tab-list {
+            display: flex;
+            gap: 6px;
+            padding: 8px;
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+
+        .run-tab {
+            background: #2a2a3a;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 6px 10px;
+            cursor: pointer;
+        }
+
+        .run-tab.active {
+            background: var(--blue);
+            color: #111;
+            border-color: var(--blue);
+        }
+
+        .run-tab.passed {
+            border-color: var(--green);
+        }
+
+        .run-tab.warned {
+            border-color: var(--yellow);
+        }
+
+        .run-tab.failed {
+            border-color: var(--red);
+        }
+
+        .run-panels {
+            padding: 10px;
+        }
+
+        .run-panel {
+            display: none;
+        }
+
+        .run-panel.active {
+            display: block;
+        }
+
+        .run-panel.passed {
+            border-left: 3px solid var(--green);
+            padding-left: 10px;
+        }
+
+        .run-panel.warned {
+            border-left: 3px solid var(--yellow);
+            padding-left: 10px;
+        }
+
+        .run-panel.failed {
+            border-left: 3px solid var(--red);
+            padding-left: 10px;
+        }
+
+        .run-status.passed { color: var(--green); }
+        .run-status.warned { color: var(--yellow); }
+        .run-status.failed { color: var(--red); }
+
+        .aggregate-details {
+            margin-top: 10px;
+        }
+
+        .field-name {
+            color: var(--purple);
+            font-weight: 600;
+        }
+
+        .match-yes { color: var(--green); font-weight: bold; }
+        .match-no { color: var(--red); font-weight: bold; }
+        .uncriticized { color: var(--yellow); }
+
+        .match-row { background: rgba(166, 227, 161, 0.05); }
+        .nomatch-row { background: rgba(243, 139, 168, 0.1); }
+        .uncriticized-row { background: rgba(249, 226, 175, 0.05); }
+
+        .failure-reason {
+            background: rgba(243, 139, 168, 0.2);
+            border: 1px solid var(--red);
+            padding: 15px;
+            border-radius: 8px;
+            color: var(--red);
+        }
+
+        /* Expandable case results */
+        .details-header {
+            color: var(--blue);
+            margin-bottom: 15px;
+        }
+
+        .case-expandable {
+            margin: 8px 0;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .case-expandable.passed { border-left: 4px solid var(--green); }
+        .case-expandable.warned { border-left: 4px solid var(--yellow); }
+        .case-expandable.failed { border-left: 4px solid var(--red); }
+
+        .case-summary {
+            padding: 12px 15px;
+            background: var(--bg-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: normal;
+        }
+
+        .case-summary:hover {
+            background: #45475a;
+        }
+
+        .case-expandable.passed .case-summary { border-left-color: var(--green); }
+        .case-expandable.warned .case-summary { border-left-color: var(--yellow); }
+        .case-expandable.failed .case-summary { border-left-color: var(--red); }
+
+        .score-inline {
+            color: var(--blue);
+            font-weight: bold;
+            margin-left: auto;
+            margin-right: 10px;
+        }
+
+        .case-content {
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .case-expandable[open] .case-summary {
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                flex-direction: column;
+            }
+            .stat-card {
+                width: 100%;
+            }
+            table {
+                font-size: 0.85em;
+            }
+        }
+
+        /* Comparative evaluation styles */
+        .comparative-badge {
+            background: var(--purple);
+            color: #1e1e2e;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .tracks-list {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+
+        .track-badge {
+            background: var(--card-bg);
+            border: 1px solid var(--cyan);
+            color: var(--cyan);
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .comparative-case {
+            background: var(--bg-color);
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .comparative-case-header {
+            background: var(--card-bg);
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .comparative-case-header h5 {
+            margin: 0 0 10px 0;
+            color: var(--purple);
+        }
+
+        .case-input {
+            font-size: 0.9em;
+            color: #a6adc8;
+        }
+
+        .comparison-table {
+            width: 100%;
+            margin: 0;
+        }
+
+        .comparison-table th {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .comparison-table tr.baseline td:first-child::after {
+            content: " (baseline)";
+            font-size: 0.8em;
+            color: #6c7086;
+        }
+
+        .diff-field {
+            background: rgba(249, 226, 175, 0.2);
+            color: var(--yellow);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 0.85em;
+            margin: 0 2px;
+        }
+
+        .track-tabs {
+            display: flex;
+            gap: 4px;
+            padding: 0 15px;
+            padding-top: 12px;
+            background: transparent;
+            margin-bottom: -1px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .track-tab {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 10px 20px;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            font-family: monospace;
+            font-weight: 500;
+            transition: all 0.15s ease;
+            opacity: 0.6;
+            position: relative;
+        }
+
+        .track-tab:hover {
+            background: #45475a;
+            opacity: 0.9;
+        }
+
+        .track-tab.active {
+            background: var(--bg-color);
+            border-color: var(--purple);
+            border-bottom-color: var(--bg-color);
+            color: var(--purple);
+            font-weight: 700;
+            opacity: 1;
+            z-index: 2;
+        }
+
+        .track-tab.has-diff {
+            border-color: var(--yellow);
+        }
+
+        .track-tab.has-diff.active {
+            border-color: var(--purple);
+            border-bottom-color: var(--bg-color);
+        }
+
+        .track-tab.na-track {
+            opacity: 0.6;
+            background: #2a2a3a;
+            color: #888;
+            border-style: dashed;
+        }
+
+        .track-tab.na-track:hover {
+            background: #3a3a4a;
+            opacity: 0.8;
+            color: #aaa;
+        }
+
+        .track-tab.na-track.active {
+            background: var(--bg-color);
+            border-bottom-color: var(--bg-color);
+            opacity: 1;
+            color: #999;
+        }
+
+        .track-panels-container {
+            border: 1px solid var(--purple);
+            border-radius: 0 6px 6px 6px;
+            background: var(--bg-color);
+        }
+
+        .track-panel {
+            display: none;
+            padding: 15px;
+        }
+
+        .track-panel.active {
+            display: block;
+            animation: fadeIn 0.15s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .track-panel-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .track-panel-header .track-badge {
+            background: var(--purple);
+            color: #1e1e2e;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .track-panel-header .track-label {
+            color: var(--text-muted);
+            font-size: 0.85em;
+        }
+
+        .track-panel-header .na-badge {
+            background: #4a4a5a;
+            color: #999;
+            border: 1px dashed #666;
+        }
+
+        /* N/A Panel Content Styles */
+        .na-panel-content {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--text-muted);
+        }
+
+        .na-panel-content .na-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            opacity: 0.8;
+        }
+
+        .na-panel-content h4 {
+            color: var(--text-color);
+            margin: 0 0 10px 0;
+            font-size: 1.2em;
+        }
+
+        .na-panel-content p {
+            margin: 10px auto;
+            max-width: 500px;
+            line-height: 1.5;
+        }
+
+        .na-panel-content .na-explanation {
+            font-size: 0.9em;
+            color: #666;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            margin: 15px auto;
+            max-width: 550px;
+        }
+
+        .na-panel-content .na-hint {
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px auto;
+            max-width: 400px;
+            text-align: left;
+        }
+
+        .na-panel-content .na-hint strong {
+            color: var(--purple);
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .na-panel-content .na-hint pre {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 4px;
+            margin: 0;
+            overflow-x: auto;
+            font-size: 0.85em;
+        }
+
+        .na-panel-content .na-hint code {
+            color: var(--cyan);
+        }
+
+        .no-diff {
+            color: #6c7086;
+        }
+
+        /* Context section styles for --include-context */
+        .context-section {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 3px solid var(--purple);
+        }
+
+        .context-section h4 {
+            margin: 0 0 10px 0;
+            color: var(--purple);
+        }
+
+        .context-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: var(--card-bg);
+            border-radius: 5px;
+        }
+
+        .context-item code {
+            display: block;
+            white-space: pre-wrap;
+            word-break: break-word;
+            margin-top: 5px;
+        }
+
+        .conversation-context summary {
+            background: var(--card-bg);
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            color: var(--cyan);
+        }
+
+        /* Conversation message styles */
+        .conversation {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 10px;
+        }
+
+        .msg {
+            padding: 12px 15px;
+            border-radius: 8px;
+            background: var(--card-bg);
+            border-left: 3px solid var(--border-color);
+        }
+
+        .msg-user {
+            border-left-color: var(--blue);
+            background: rgba(137, 180, 250, 0.1);
+        }
+
+        .msg-assistant {
+            border-left-color: var(--green);
+            background: rgba(166, 227, 161, 0.1);
+        }
+
+        .msg-tool {
+            border-left-color: var(--yellow);
+            background: rgba(249, 226, 175, 0.1);
+        }
+
+        .msg-system {
+            border-left-color: var(--purple);
+            background: rgba(203, 166, 247, 0.1);
+        }
+
+        .msg-role {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .msg-content {
+            color: var(--text-color);
+            line-height: 1.5;
+        }
+
+        .tool-calls {
+            margin-top: 10px;
+        }
+
+        .tool-call-item {
+            background: var(--bg-color);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 8px;
+        }
+
+        .tool-call-name {
+            font-family: monospace;
+            color: var(--cyan);
+            font-weight: bold;
+        }
+
+        .tool-call-args {
+            background: var(--bg-color);
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            margin-top: 5px;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+        }
+
+        .tool-response {
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(39, 174, 96, 0.05));
+            border: 1px solid rgba(46, 204, 113, 0.3);
+            border-left: 3px solid var(--green);
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            overflow-x: auto;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            margin: 8px 0;
+        }
+    </style>
+    <script>
+    document.addEventListener("click", (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) {
+            return;
+        }
+        const runTab = target.closest(".run-tab");
+        if (!runTab) {
+            return;
+        }
+        const container = runTab.closest(".run-tabs");
+        if (!container) {
+            return;
+        }
+        const index = runTab.dataset.runIndex;
+        if (!index) {
+            return;
+        }
+        container.querySelectorAll(".run-tab").forEach((tab) => {
+            tab.classList.remove("active");
+        });
+        container.querySelectorAll(".run-panel").forEach((panel) => {
+            panel.classList.remove("active");
+        });
+        runTab.classList.add("active");
+        const panel = container.querySelector(
+            `.run-panel[data-run-index="${index}"]`
+        );
+        if (panel) {
+            panel.classList.add("active");
+        }
+    });
+    </script>
+</head>
+<body>
+
+
+        <style>
+            .models-info { color: #888; margin-bottom: 20px; }
+            .multi-model-summary .model-name { font-weight: bold; }
+            .multi-model-summary .passed { color: #4caf50; }
+            .multi-model-summary .failed { color: #f44336; }
+            .multi-model-summary .warned { color: #ff9800; }
+            .multi-model-summary .pass-rate { font-weight: bold; }
+            .multi-model-summary .best-model { background-color: rgba(76, 175, 80, 0.1); }
+            .best-overall { margin-top: 15px; padding: 10px; background: #1e1e1e; border-radius: 4px; }
+        .comparison-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        .comparison-table th, .comparison-table td { padding: 10px; border: 1px solid #333; text-align: center; }
+        .comparison-table th { background: linear-gradient(90deg, rgba(137, 180, 250, 0.25), rgba(203, 166, 247, 0.25)); }
+            .comparison-table .case-name { text-align: left; font-weight: bold; }
+            .comparison-table .passed { background-color: rgba(76, 175, 80, 0.2); color: #4caf50; }
+            .comparison-table .failed { background-color: rgba(244, 67, 54, 0.2); color: #f44336; }
+            .comparison-table .warned { background-color: rgba(255, 152, 0, 0.2); color: #ff9800; }
+            .comparison-table .no-data { color: #666; }
+            .comparison-table .best { color: #ffc107; font-weight: bold; }
+            .comparison-table .tie { color: #9e9e9e; }
+            .suite-section { margin-bottom: 30px; }
+            .details-section { margin-top: 20px; padding: 15px; background: #1a1a1a; border-radius: 4px; }
+            .case-details { margin-bottom: 20px; padding: 15px; background: #202020; border-radius: 4px; }
+            .model-result { margin: 10px 0; padding: 10px; background: #252525; border-radius: 4px; }
+        </style>
+
+<div class="container">
+<h1>🔄 Multi-Model Evaluation Results</h1>
+<p class="timestamp">Generated: 2026-02-06 21:01:43 UTC</p>
+<p class="models-info">Models: gpt-4o, gpt-4o-mini, claude-sonnet-4-20250514</p>
+<div class="section">
+<h2>📊 Per-Model Summary</h2>
+<table class="summary-table multi-model-summary">
+<thead><tr>
+<th>Model</th><th>Passed</th><th>Failed</th><th>Warned</th><th>Total</th><th>Pass Rate</th>
+</tr></thead><tbody>
+<tr class="best-model">
+<td class="model-name">gpt-4o</td>
+<td class="passed">1</td>
+<td class="failed">0</td>
+<td class="warned">0</td>
+<td>1</td>
+<td class="pass-rate">100.0%</td>
+</tr>
+<tr class="">
+<td class="model-name">gpt-4o-mini</td>
+<td class="passed">1</td>
+<td class="failed">0</td>
+<td class="warned">0</td>
+<td>1</td>
+<td class="pass-rate">100.0%</td>
+</tr>
+<tr class="">
+<td class="model-name">claude-sonnet-4-20250514</td>
+<td class="passed">1</td>
+<td class="failed">0</td>
+<td class="warned">0</td>
+<td>1</td>
+<td class="pass-rate">100.0%</td>
+</tr>
+</tbody></table>
+<p class="best-overall">🏆 Best Overall: <strong>gpt-4o</strong> (100.0% pass rate)</p>
+</div>
+<div class="section">
+<h2>⚔️ Cross-Model Comparison</h2>
+<div class="suite-section">
+<h3>Suite: LinkedIn Tools Evaluation</h3>
+<table class="comparison-table">
+<thead><tr>
+<th>Case</th>
+<th>gpt-4o</th>
+<th>gpt-4o-mini</th>
+<th>claude-sonnet-4-20250514</th>
+<th>Best</th>
+</tr></thead><tbody>
+<tr>
+<td class="case-name">Run code</td>
+<td class="passed">✓ 100% ± 0%<br><small>n=3</small></td>
+<td class="passed">✓ 89% ± 4%<br><small>n=3</small></td>
+<td class="passed">✓ 100% ± 0%<br><small>n=3</small></td>
+<td class="tie">🤝 Tie</td>
+</tr>
+</tbody></table>
+</div>
+<div class="details-section">
+<h4>Detailed Results</h4>
+<div class="case-details">
+<h5>Run code</h5>
+<div class="model-result">
+<strong>gpt-4o</strong>: Score 100.0%
+<div class="run-stats-card passed">
+            <div class="run-stats-header">
+                <div class="run-status-badge passed">
+                    <span class="status-icon">✅</span>
+                    <span class="status-text">PASSED</span>
+                </div>
+                <div class="run-count">3 runs</div>
+            </div>
+            <div class="run-stats-body">
+                <div class="score-display">
+                    <div class="score-main">
+                        <span class="score-value">100.0%</span>
+                        <span class="score-label">mean score</span>
+                    </div>
+                    <div class="score-deviation">
+                        <span class="deviation-value">± 0.0%</span>
+                        <span class="deviation-label">std dev</span>
+                    </div>
+                </div>
+                <div class="score-bar-container">
+                    <div class="score-bar passed" style="width: 100.0%"></div>
+                </div>
+                <div class="run-scores"><span class="score-pill high">R1: 100%</span> <span class="score-pill high">R2: 100%</span> <span class="score-pill high">R3: 100%</span></div>
+            </div>
+            <div class="run-stats-footer">
+                <div class="run-meta-item">
+                    <span class="meta-label">📋 Pass Rule</span>
+                    <span class="meta-value">majority</span>
+                </div>
+                <div class="run-meta-item">
+                    <span class="meta-label">🌱 Seed Policy</span>
+                    <span class="meta-value">random</span>
+                </div>
+                <div class="run-meta-item"><span class="meta-label">🎲 Seeds</span><span class="meta-value mono">1211275093, 681762892, 1626801149</span></div>
+            </div>
+        </div>
+<div class="run-tabs">
+<div class="run-tab-list">
+<button class="run-tab passed active" data-run-group="gpt_4o__LinkedIn_Tools_Evaluation__Run_code" data-run-index="1">Run 1</button>
+<button class="run-tab passed " data-run-group="gpt_4o__LinkedIn_Tools_Evaluation__Run_code" data-run-index="2">Run 2</button>
+<button class="run-tab passed " data-run-group="gpt_4o__LinkedIn_Tools_Evaluation__Run_code" data-run-index="3">Run 3</button>
+</div>
+<div class="run-panels">
+<div class="run-panel passed active" data-run-group="gpt_4o__LinkedIn_Tools_Evaluation__Run_code" data-run-index="1">
+<p><strong>Run 1:</strong> ✅ PASSED — 100.00%</p>
+<table class="detail-table">
+<thead><tr><th>Field</th><th>Match</th><th>Score</th><th>Expected</th><th>Actual</th></tr></thead>
+<tbody>
+<tr class="match-row">
+<td class="field-name">tool_selection</td>
+<td><span class="match-yes">✅ Match</span></td>
+<td class="score">1.00/1.00</td>
+<td><code>Linkedin_CreateTextPost</code></td>
+<td><code>Linkedin_CreateTextPost</code></td>
+</tr>
+<tr class="match-row">
+<td class="field-name">text</td>
+<td><span class="match-yes">✅ Match</span></td>
+<td class="score">1.00/1.00</td>
+<td><code>It is with great pleasure that I announce that I am now a...</code></td>
+<td><code>It is with great pleasure that I announce that I am now a...</code></td>
+</tr>
+<tr class="uncriticized-row">
+<td class="field-name">context</td>
+<td><span class="uncriticized">— Un-criticized</span></td>
+<td class="score">-</td>
+<td><code>None</code></td>
+<td><code>None</code></td>
+</tr>
+</tbody></table>
+</div>
+<div class="run-panel passed " data-run-group="gpt_4o__LinkedIn_Tools_Evaluation__Run_code" data-run-index="2">
+<p><strong>Run 2:</strong> ✅ PASSED — 100.00%</p>
+<table class="detail-table">
+<thead><tr><th>Field</th><th>Match</th><th>Score</th><th>Expected</th><th>Actual</th></tr></thead>
+<tbody>
+<tr class="match-row">
+<td class="field-name">tool_selection</td>
+<td><span class="match-yes">✅ Match</span></td>
+<td class="score">1.00/1.00</td>
+<td><code>Linkedin_CreateTextPost</code></td>
+<td><code>Linkedin_CreateTextPost</code></td>
+</tr>
+<tr class="match-row">
+<td class="field-name">text</td>
+<td><span class="match-yes">✅ Match</span></td>
+<td class="score">1.00/1.00</td>
+<td><code>It is with great pleasure that I announce that I am now a...</code></td>
+<td><code>It is with great pleasure that I announce that I am now a...</code></td>
+</tr>
+<tr class="uncriticized-row">
+<td class="field-name">context</td>
+<td><span class="uncriticized">— Un-criticized</span></td>
+<td class="score">-</td>
+<td><code>None</code></td>
+<td><code>None</code></td>
+</tr>
+</tbody></table>
+</div>
+<div class="run-panel passed " data-run-group="gpt_4o__LinkedIn_Tools_Evaluation__Run_code" data-run-index="3">
+<p><strong>Run 3:</strong> ✅ PASSED — 100.00%</p>
+<table class="detail-table">
+<thead><tr><th>Field</th><th>Match</th><th>Score</th><th>Expected</th><th>Actual</th></tr></thead>
+<tbody>
+<tr class="match-row">
+<td class="field-name">tool_selection</td>
+<td><span class="match-yes">✅ Match</span></td>
+<td class="score">1.00/1.00</td>
+<td><code>Linkedin_CreateTextPost</code></td>
+<td><code>Linkedin_CreateTextPost</code></td>
+</tr>
+<tr class="match-row">
+<td class="field-name">text</td>
+<td><span class="match-yes">✅ Match</span></td>
+<td class="score">1.00/1.00</td>
+<td><code>It is with great pleasure that I announce that I am now a...</code></td>
+<td><code>It is with great pleasure that I announce that I am now a...</code></td>
+</tr>
+<tr class="uncriticized-row">
+<td class="field-name">context</td>
+<td><span class="uncriticized">— Un-criticized</span></td>
+<td class="score">-</td>
+<td><code>None</code></td>
+<td><code>None</code></td>
+</tr>
+</tbody></table>
+</div>
+</div></div>
+<div class="critic-stats"><h4>📊 Critic Stats</h4>
+<table class="detail-table critic-stats-table">
+<thead><tr><th>Field</th><th>Weight</th><th>Mean (norm %)</th><th>Std (norm %)</th><th>Mean (weighted %)</th><th>Std (weighted %)</th></tr></thead>
+<tbody>
+<tr class="score-low"><td>context</td><td>0.00</td><td class="score-value">0.00%</td><td>0.00%</td><td>0.00%</td><td>0.00%</td></tr>
+<tr class="score-high"><td>text</td><td>1.00</td><td class="score-value">100.00%</td><td>0.00%</td><td>100.00%</td><td>0.00%</td></tr>
+</tbody></table></div>
+</div>
+<div class="model-result">
+<strong>gpt-4o-mini</strong>: Score 89.3%
+<div class="run-stats-card passed">
+            <div class="run-stats-header">
+                <div class="run-status-badge passed">
+                    <span class="status-icon">✅</span>
+                    <span class="status-text">PASSED</span>
+                </div>
+                <div class="run-count">3 runs</div>
+            </div>
+            <div class="run-stats-body">
+                <div class="score-display">
+                    <div class="score-main">
+                        <span class="score-value">89.3%</span>
+                        <span class="score-label">mean score</span>
+                    </div>
+                    <div class="score-deviation">
+                        <span class="deviation-value">± 3.7%</span>
+                        <span class="deviation-label">std dev</span>
+                    </div>
+                </div>
+                <div class="score-bar-container">
+                    <div class="score-bar passed" style="width: 89.3%"></div>
+                </div>
+                <div class="run-scores"><span class="score-pill high">R1: 87%</span> <span class="score-pill high">R2: 87%</span> <span class="score-pill high">R3: 95%</span></div>
+            </div>
+            <div class="run-stats-footer">
+                <div class="run-meta-item">
+                    <span class="meta-label">📋 Pass Rule</span>
+                    <span class="meta-value">majority</span>
+                </div>
+                <div class="run-meta-item">
+                    <span class="meta-label">🌱 Seed Policy</span>
+                    <span class="meta-value">random</span>
+                </div>
+                <div class="run-meta-item"><span class="meta-label">🎲 Seeds</span><span class="meta-value mono">1028755920, 655606574, 1811611459</span></div>
+            </div>
+        </div>
+<div class="run-tabs">
+<div class="run-tab-list">
+<button class="run-tab passed active" data-run-group="gpt_4o_mini__LinkedIn_Tools_Evaluation__Run_code" data-run-index="1">Run 1</button>
+<button class="run-tab passed " data-run-group="gpt_4o_mini__LinkedIn_Tools_Evaluation__Run_code" data-run-index="2">Run 2</button>
+<button class="run-tab passed " data-run-group="gpt_4o_mini__LinkedIn_Tools_Evaluation__Run_code" data-run-index="3">Run 3</button>
+</div>
+<div class="run-panels">
+<div class="run-panel passed active" data-run-group="gpt_4o_mini__LinkedIn_Tools_Evaluation__Run_code" data-run-index="1">
+<p><strong>Run 1:</strong> ✅ PASSED — 86.67%</p>
+<table class="detail-table">
+<thead><tr><th>Field</th><th>Match</th><th>Score</th><th>Expected</th><th>Actual</th></tr></thead>
+<tbody>
+<tr class="match-row">
+<td class="field-name">tool_selection</td>
+<td><span class="match-yes">✅ Match</span></td>
+<td class="score">1.00/1.00</td>
+<td><code>Linkedin_CreateTextPost</code></td>
+<td><code>Linkedin_CreateTextPost</code></td>
+</tr>
+<tr class="nomatch-row">
+<td class="field-name">text</td>
+<td><span class="match-no">❌ No Match</span></td>
+<td class="score">0.73/1.00</td>
+<td><code>It is with great pleasure that I announce that I am now a...</code></td>
+<td><code>I am excited to announce that I am now a member of the Li...</code></td>
+</tr>
+<tr class="uncriticized-row">
+<td class="field-name">context</td>
+<td><span class="uncriticized">— Un-criticized</span></td>
+<td class="score">-</td>
+<td><code>None</code></td>
+<td><code>None</code></td>
+</tr>
+</tbody></table>
+</div>
+<div class="run-panel passed " data-run-group="gpt_4o_mini__LinkedIn_Tools_Evaluation__Run_code" data-run-index="2">
+<p><strong>Run 2:</strong> ✅ PASSED — 86.67%</p>
+<table class="detail-table">
+<thead><tr><th>Field</th><th>Match</th><th>Score</th><th>Expected</th><th>Actual</th></tr></thead>
+<tbody>
+<tr class="match-row">
+<td class="field-name">tool_selection</td>
+<td><span class="match-yes">✅ Match</span></td>
+<td class="score">1.00/1.00</td>
+<td><code>Linkedin_CreateTextPost</code></td>
+<td><code>Linkedin_CreateTextPost</code></td>
+</tr>
+<tr class="nomatch-row">
+<td class="field-name">text</td>
+<td><span class="match-no">❌ No Match</span></td>
+<td class="score">0.73/1.00</td>
+<td><code>It is with great pleasure that I announce that I am now a...</code></td>
+<td><code>I am excited to announce that I am now a member of the Li...</code></td>
+</tr>
+<tr class="uncriticized-row">
+<td class="field-name">context</td>
+<td><span class="uncriticized">— Un-criticized</span></td>
+<td class="score">-</td>
+<td><code>None</code></td>
+<td><code>None</code></td>
+</tr>
+</tbody></table>
+</div>
+<div class="run-panel passed " data-run-group="gpt_4o_mini__LinkedIn_Tools_Evaluation__Run_code" data-run-index="3">
+<p><strong>Run 3:</strong> ✅ PASSED — 94.53%</p>
+<table class="detail-table">
+<thead><tr><th>Field</th><th>Match</th><th>Score</th><th>Expected</th><th>Actual</th></tr></thead>
+<tbody>
+<tr class="match-row">
+<td class="field-name">tool_selection</td>
+<td><span class="match-yes">✅ Match</span></td>
+<td class="score">1.00/1.00</td>
+<td><code>Linkedin_CreateTextPost</code></td>
+<td><code>Linkedin_CreateTextPost</code></td>
+</tr>
+<tr class="match-row">
+<td class="field-name">text</td>
+<td><span class="match-yes">✅ Match</span></td>
+<td class="score">0.89/1.00</td>
+<td><code>It is with great pleasure that I announce that I am now a...</code></td>
+<td><code>It is with great pleasure that I announce I am now a memb...</code></td>
+</tr>
+<tr class="uncriticized-row">
+<td class="field-name">context</td>
+<td><span class="uncriticized">— Un-criticized</span></td>
+<td class="score">-</td>
+<td><code>None</code></td>
+<td><code>None</code></td>
+</tr>
+</tbody></table>
+</div>
+</div></div>
+<div class="critic-stats"><h4>📊 Critic Stats</h4>
+<table class="detail-table critic-stats-table">
+<thead><tr><th>Field</th><th>Weight</th><th>Mean (norm %)</th><th>Std (norm %)</th><th>Mean (weighted %)</th><th>Std (weighted %)</th></tr></thead>
+<tbody>
+<tr class="score-low"><td>context</td><td>0.00</td><td class="score-value">0.00%</td><td>0.00%</td><td>0.00%</td><td>0.00%</td></tr>
+<tr class="score-mid"><td>text</td><td>1.00</td><td class="score-value">78.58%</td><td>7.41%</td><td>78.58%</td><td>7.41%</td></tr>
+</tbody></table></div>
+</div>
+<div class="model-result">
+<strong>claude-sonnet-4-20250514</strong>: Score 100.0%
+<div class="run-stats-card passed">
+            <div class="run-stats-header">
+                <div class="run-status-badge passed">
+                    <span class="status-icon">✅</span>
+                    <span class="status-text">PASSED</span>
+                </div>
+                <div class="run-count">3 runs</div>
+            </div>
+            <div class="run-stats-body">
+                <div class="score-display">
+                    <div class="score-main">
+                        <span class="score-value">100.0%</span>
+                        <span class="score-label">mean score</span>
+                    </div>
+                    <div class="score-deviation">
+                        <span class="deviation-value">± 0.0%</span>
+                        <span class="deviation-label">std dev</span>
+                    </div>
+                </div>
+                <div class="score-bar-container">
+                    <div class="score-bar passed" style="width: 100.0%"></div>
+                </div>
+                <div class="run-scores"><span class="score-pill high">R1: 100%</span> <span class="score-pill high">R2: 100%</span> <span class="score-pill high">R3: 100%</span></div>
+            </div>
+            <div class="run-stats-footer">
+                <div class="run-meta-item">
+                    <span class="meta-label">📋 Pass Rule</span>
+                    <span class="meta-value">majority</span>
+                </div>
+                <div class="run-meta-item">
+                    <span class="meta-label">🌱 Seed Policy</span>
+                    <span class="meta-value">random (ignored)</span>
+                </div>
+
+            </div>
+        </div>
+<div class="run-tabs">
+<div class="run-tab-list">
+<button class="run-tab passed active" data-run-group="claude_sonnet_4_20250514__LinkedIn_Tools_Evaluation__Run_code" data-run-index="1">Run 1</button>
+<button class="run-tab passed " data-run-group="claude_sonnet_4_20250514__LinkedIn_Tools_Evaluation__Run_code" data-run-index="2">Run 2</button>
+<button class="run-tab passed " data-run-group="claude_sonnet_4_20250514__LinkedIn_Tools_Evaluation__Run_code" data-run-index="3">Run 3</button>
+</div>
+<div class="run-panels">
+<div class="run-panel passed active" data-run-group="claude_sonnet_4_20250514__LinkedIn_Tools_Evaluation__Run_code" data-run-index="1">
+<p><strong>Run 1:</strong> ✅ PASSED — 100.00%</p>
+<table class="detail-table">
+<thead><tr><th>Field</th><th>Match</th><th>Score</th><th>Expected</th><th>Actual</th></tr></thead>
+<tbody>
+<tr class="match-row">
+<td class="field-name">tool_selection</td>
+<td><span class="match-yes">✅ Match</span></td>
+<td class="score">1.00/1.00</td>
+<td><code>Linkedin_CreateTextPost</code></td>
+<td><code>Linkedin_CreateTextPost</code></td>
+</tr>
+<tr class="match-row">
+<td class="field-name">text</td>
+<td><span class="match-yes">✅ Match</span></td>
+<td class="score">1.00/1.00</td>
+<td><code>It is with great pleasure that I announce that I am now a...</code></td>
+<td><code>It is with great pleasure that I announce that I am now a...</code></td>
+</tr>
+<tr class="uncriticized-row">
+<td class="field-name">context</td>
+<td><span class="uncriticized">— Un-criticized</span></td>
+<td class="score">-</td>
+<td><code>None</code></td>
+<td><code>None</code></td>
+</tr>
+</tbody></table>
+</div>
+<div class="run-panel passed " data-run-group="claude_sonnet_4_20250514__LinkedIn_Tools_Evaluation__Run_code" data-run-index="2">
+<p><strong>Run 2:</strong> ✅ PASSED — 100.00%</p>
+<table class="detail-table">
+<thead><tr><th>Field</th><th>Match</th><th>Score</th><th>Expected</th><th>Actual</th></tr></thead>
+<tbody>
+<tr class="match-row">
+<td class="field-name">tool_selection</td>
+<td><span class="match-yes">✅ Match</span></td>
+<td class="score">1.00/1.00</td>
+<td><code>Linkedin_CreateTextPost</code></td>
+<td><code>Linkedin_CreateTextPost</code></td>
+</tr>
+<tr class="match-row">
+<td class="field-name">text</td>
+<td><span class="match-yes">✅ Match</span></td>
+<td class="score">1.00/1.00</td>
+<td><code>It is with great pleasure that I announce that I am now a...</code></td>
+<td><code>It is with great pleasure that I announce that I am now a...</code></td>
+</tr>
+<tr class="uncriticized-row">
+<td class="field-name">context</td>
+<td><span class="uncriticized">— Un-criticized</span></td>
+<td class="score">-</td>
+<td><code>None</code></td>
+<td><code>None</code></td>
+</tr>
+</tbody></table>
+</div>
+<div class="run-panel passed " data-run-group="claude_sonnet_4_20250514__LinkedIn_Tools_Evaluation__Run_code" data-run-index="3">
+<p><strong>Run 3:</strong> ✅ PASSED — 100.00%</p>
+<table class="detail-table">
+<thead><tr><th>Field</th><th>Match</th><th>Score</th><th>Expected</th><th>Actual</th></tr></thead>
+<tbody>
+<tr class="match-row">
+<td class="field-name">tool_selection</td>
+<td><span class="match-yes">✅ Match</span></td>
+<td class="score">1.00/1.00</td>
+<td><code>Linkedin_CreateTextPost</code></td>
+<td><code>Linkedin_CreateTextPost</code></td>
+</tr>
+<tr class="match-row">
+<td class="field-name">text</td>
+<td><span class="match-yes">✅ Match</span></td>
+<td class="score">1.00/1.00</td>
+<td><code>It is with great pleasure that I announce that I am now a...</code></td>
+<td><code>It is with great pleasure that I announce that I am now a...</code></td>
+</tr>
+<tr class="uncriticized-row">
+<td class="field-name">context</td>
+<td><span class="uncriticized">— Un-criticized</span></td>
+<td class="score">-</td>
+<td><code>None</code></td>
+<td><code>None</code></td>
+</tr>
+</tbody></table>
+</div>
+</div></div>
+<div class="critic-stats"><h4>📊 Critic Stats</h4>
+<table class="detail-table critic-stats-table">
+<thead><tr><th>Field</th><th>Weight</th><th>Mean (norm %)</th><th>Std (norm %)</th><th>Mean (weighted %)</th><th>Std (weighted %)</th></tr></thead>
+<tbody>
+<tr class="score-low"><td>context</td><td>0.00</td><td class="score-value">0.00%</td><td>0.00%</td><td>0.00%</td><td>0.00%</td></tr>
+<tr class="score-high"><td>text</td><td>1.00</td><td class="score-value">100.00%</td><td>0.00%</td><td>100.00%</td><td>0.00%</td></tr>
+</tbody></table></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body></html>
