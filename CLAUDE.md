@@ -1,0 +1,100 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## What This Is
+
+Arcade MCP is a Python tool-calling platform for building MCP (Model Context Protocol) servers. It's a monorepo containing 5 interdependent libraries, 30+ prebuilt toolkit integrations, and a CLI.
+
+## Commands
+
+| Task | Command |
+|------|---------|
+| Install all packages | `make install` (runs `uv sync --extra all --extra dev`) |
+| Run all lib tests | `make test` |
+| Run a single test | `uv run pytest libs/tests/core/test_toolkit.py::TestClass::test_method` |
+| Run tests for one lib | `cd libs/arcade-core && uv run pytest` |
+| Lint + type check | `make check` (pre-commit + mypy) |
+| Build all wheels | `make build` |
+| Run toolkit tests | `make test-toolkits` |
+
+Package manager is **uv** — always use `uv run` to execute Python commands, never bare `pip` or `python`. Python 3.10+. Build system is Hatchling.
+
+## Library Dependency Graph
+
+```
+arcade-core          (base: config, errors, catalog, telemetry)
+├── arcade-tdk       (tool decorators, auth providers, annotations)
+├── arcade-serve     (FastAPI worker infrastructure, MCP server)
+│   └── arcade-mcp-server  (MCPApp class, FastAPI-like interface)
+│       └── arcade-mcp CLI (depends on all above)
+└── arcade-evals     (evaluation framework, critics, test suites)
+```
+
+## Versioning Rules
+
+- Use semver. ALWAYS bump the version in `pyproject.toml` when modifying a library's code.
+- ALWAYS bump the minimum required dependency version when making breaking changes between libraries.
+
+## Key Patterns
+
+### Tool Definition (arcade-tdk)
+
+```python
+from typing import Annotated
+from arcade_tdk import tool
+
+@tool
+def my_tool(param: Annotated[str, "Description"]) -> str:
+    """Docstring becomes the tool description."""
+    return "result"
+
+# With auth
+@tool(requires_auth=Reddit(scopes=["read"]))
+async def auth_tool(context: Context) -> str:
+    token = context.get_auth_token_or_empty()
+
+# With secrets
+@tool(requires_secrets=["MY_SECRET_KEY"])
+def secret_tool(context: Context) -> str:
+    secret = context.get_secret("MY_SECRET_KEY")
+```
+
+### MCP Server (arcade-mcp-server)
+
+```python
+from arcade_mcp_server import MCPApp
+
+app = MCPApp(name="my_server", version="1.0.0")
+
+@app.tool
+def greet(name: str) -> str:
+    """Greet a person."""
+    return f"Hello, {name}!"
+
+if __name__ == "__main__":
+    transport = sys.argv[1] if len(sys.argv) > 1 else "stdio"
+    app.run(transport=transport, host="127.0.0.1", port=8000)
+```
+
+Transports: `stdio` (default, for Claude Desktop/CLI) and `http` (for Cursor/VS Code).
+
+## Project Layout
+
+- `libs/arcade-*/` — Core libraries (each has its own `pyproject.toml`)
+- `libs/tests/` — All library tests, grouped by component (core, cli, arcade_mcp_server, tool, sdk, worker)
+- `toolkits/` — 30+ prebuilt API integrations (github, slack, airtable, etc.), each a standalone package
+- `examples/mcp_servers/` — Example MCP server implementations
+- `contrib/` — Community integrations (e.g., crewai)
+
+## Development Rules
+
+- **All changes must have tests.** Every new feature, bug fix, or behavioral change needs a corresponding test in `libs/tests/`.
+- **Always use uv.** Never use `pip`, `pip install`, `python`, or `python -m` directly. Use `uv run`, `uv sync`, `uv build`, etc.
+
+## Code Quality
+
+- **ruff** for linting/formatting (line length 100)
+- **mypy** with strict settings (`disallow_untyped_defs`, `disallow_any_unimported`)
+- **pre-commit** hooks run automatically
+- CI tests on Python 3.10, 3.11, 3.12 across Ubuntu/Windows/macOS
