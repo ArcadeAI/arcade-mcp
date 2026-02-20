@@ -13,7 +13,6 @@ Arcade MCP is a Python tool-calling platform for building MCP (Model Context Pro
 | Install all packages | `make install` (runs `uv sync --extra all --extra dev`) |
 | Run all lib tests | `make test` |
 | Run a single test | `uv run pytest libs/tests/core/test_toolkit.py::TestClass::test_method` |
-| Run tests for one lib | `cd libs/arcade-core && uv run pytest` |
 | Lint + type check | `make check` (pre-commit + mypy) |
 | Build all wheels | `make build` |
 | Run toolkit tests | `make test-toolkits` |
