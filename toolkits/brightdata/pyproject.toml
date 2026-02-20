@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade_brightdata"
-version = "0.2.0"
+version = "0.3.0"
 description = "Search, Crawl and Scrape any site, at scale, without getting blocked"
 requires-python = ">=3.10"
 dependencies = [
