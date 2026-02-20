@@ -37,28 +37,6 @@ arcade-core          (base: config, errors, catalog, telemetry)
 
 ## Key Patterns
 
-### Tool Definition (arcade-tdk)
-
-```python
-from typing import Annotated
-from arcade_tdk import tool
-
-@tool
-def my_tool(param: Annotated[str, "Description"]) -> str:
-    """Docstring becomes the tool description."""
-    return "result"
-
-# With auth
-@tool(requires_auth=Reddit(scopes=["read"]))
-async def auth_tool(context: Context) -> str:
-    token = context.get_auth_token_or_empty()
-
-# With secrets
-@tool(requires_secrets=["MY_SECRET_KEY"])
-def secret_tool(context: Context) -> str:
-    secret = context.get_secret("MY_SECRET_KEY")
-```
-
 ### MCP Server (arcade-mcp-server)
 
 ```python
