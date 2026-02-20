@@ -62,7 +62,6 @@ Transports: `stdio` (default) and `http` (tools that require auth or secrets nee
 
 - `libs/arcade-*/` — Core libraries. Most have their own `pyproject.toml`. libs/arcade-cli and arcade-evals use the top-level `pyproject.toml`.
 - `libs/tests/` — All library tests, grouped by component (core, cli, arcade_mcp_server, tool, sdk, worker)
-- `toolkits/` — 30+ prebuilt API integrations (github, slack, airtable, etc.), each a standalone package
 - `examples/mcp_servers/` — Example MCP server implementations
 - `contrib/` — Community integrations (e.g., crewai)
 
