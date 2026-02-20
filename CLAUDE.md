@@ -62,12 +62,14 @@ def secret_tool(context: Context) -> str:
 ### MCP Server (arcade-mcp-server)
 
 ```python
+from typing import Annotated
+
 from arcade_mcp_server import MCPApp
 
 app = MCPApp(name="my_server", version="1.0.0")
 
 @app.tool
-def greet(name: str) -> str:
+def greet(name: Annotated[str, "The name of the person to greet"]) -> str:
     """Greet a person."""
     return f"Hello, {name}!"
 
@@ -76,11 +78,11 @@ if __name__ == "__main__":
     app.run(transport=transport, host="127.0.0.1", port=8000)
 ```
 
-Transports: `stdio` (default, for Claude Desktop/CLI) and `http` (for Cursor/VS Code).
+Transports: `stdio` (default) and `http` (tools that require auth or secrets need resource server auth provided by arcade-mcp-server)
 
 ## Project Layout
 
-- `libs/arcade-*/` — Core libraries (each has its own `pyproject.toml`)
+- `libs/arcade-*/` — Core libraries. Most have their own `pyproject.toml`. libs/arcade-cli and arcade-evals use the top-level `pyproject.toml`.
 - `libs/tests/` — All library tests, grouped by component (core, cli, arcade_mcp_server, tool, sdk, worker)
 - `toolkits/` — 30+ prebuilt API integrations (github, slack, airtable, etc.), each a standalone package
 - `examples/mcp_servers/` — Example MCP server implementations
@@ -88,12 +90,12 @@ Transports: `stdio` (default, for Claude Desktop/CLI) and `http` (for Cursor/VS 
 
 ## Development Rules
 
-- **All changes must have tests.** Every new feature, bug fix, or behavioral change needs a corresponding test in `libs/tests/`.
+- **All changes must have tests and follow TDD.** Every new feature, bug fix, or behavioral change needs a corresponding test in `libs/tests/`.
 - **Always use uv.** Never use `pip`, `pip install`, `python`, or `python -m` directly. Use `uv run`, `uv sync`, `uv build`, etc.
 
 ## Code Quality
 
-- **ruff** for linting/formatting (line length 100)
+- **ruff** for linting/formatting
 - **mypy** with strict settings (`disallow_untyped_defs`, `disallow_any_unimported`)
 - **pre-commit** hooks run automatically
 - CI tests on Python 3.10, 3.11, 3.12 across Ubuntu/Windows/macOS
