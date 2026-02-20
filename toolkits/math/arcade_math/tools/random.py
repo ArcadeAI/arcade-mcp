@@ -10,7 +10,7 @@ from arcade_tdk import tool
         behavior=Behavior(
             read_only=True,
             destructive=False,
-            idempotent=True,
+            idempotent=False,
             open_world=False,
         ),
     ),
@@ -36,7 +36,7 @@ def generate_random_int(
         behavior=Behavior(
             read_only=True,
             destructive=False,
-            idempotent=True,
+            idempotent=False,
             open_world=False,
         ),
     ),
