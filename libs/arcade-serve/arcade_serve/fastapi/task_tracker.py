@@ -1,5 +1,4 @@
 import asyncio
-import threading
 from collections.abc import Awaitable, Callable
 
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -14,7 +13,12 @@ class TaskTrackerMiddleware(BaseHTTPMiddleware):
     def __init__(self, app: ASGIApp) -> None:
         super().__init__(app)
         self._active_tasks: set[asyncio.Task] = set()
-        self._lock = threading.Lock()
+        # Note: No lock needed because:
+        # 1. dispatch() runs in the single-threaded event loop
+        # 2. cancel_all_tasks() is called from the same event loop thread
+        # 3. Python set.add/discard are atomic operations
+        # Using threading.Lock here would block the event loop and cause
+        # latency issues when OTEL background threads hold the GIL.
 
     async def dispatch(
         self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
@@ -22,17 +26,15 @@ class TaskTrackerMiddleware(BaseHTTPMiddleware):
         """Track the current task while handling the request."""
         task = asyncio.current_task()
 
-        with self._lock:
-            if task:
-                self._active_tasks.add(task)
+        if task:
+            self._active_tasks.add(task)
 
         try:
             response = await call_next(request)
             return response
         finally:
-            with self._lock:
-                if task:
-                    self._active_tasks.discard(task)
+            if task:
+                self._active_tasks.discard(task)
 
     def cancel_all_tasks(self) -> int:
         """
@@ -45,8 +47,7 @@ class TaskTrackerMiddleware(BaseHTTPMiddleware):
             int: Number of tasks successfully cancelled.
         """
         # Make a copy to avoid mutation during iteration
-        with self._lock:
-            tasks_to_cancel = list(self._active_tasks)
+        tasks_to_cancel = list(self._active_tasks)
 
         cancelled_count = 0
         for task in tasks_to_cancel:
