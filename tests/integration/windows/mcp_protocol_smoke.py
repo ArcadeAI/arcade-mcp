@@ -12,9 +12,11 @@ This smoke test serves a **different purpose**:
 1. **Tests ``arcade new`` scaffolded output** — validates that a *generated* project's
    ``server.py`` works end-to-end, catching template regressions that library tests
    cannot detect.
-2. **Windows CI entry point** — invoked by ``no_auth_cli_smoke.ps1`` on ``windows-latest``
-   runners. It contains Windows-specific process management (``taskkill /T /F``, non-
-   ``select()`` stderr draining) that the pytest suite does not exercise.
+2. **Cross-platform CI entry point** — invoked by
+   ``tests/integration/no_auth_cli_smoke.py`` across the OS matrix. It includes
+   platform-aware process management (e.g., ``taskkill /T /F`` on Windows and
+   non-``select()`` stderr draining for Windows pipes) that the pytest suite
+   does not exercise.
 3. **Stdlib-only / zero external deps** — runs with nothing beyond a ``uv run python``
    invocation so it works on fresh CI images before any ``pip install``.
 4. **Standalone CLI** — uses ``argparse`` so PowerShell/bash scripts can invoke it

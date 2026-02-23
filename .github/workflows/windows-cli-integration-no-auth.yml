@@ -1,4 +1,4 @@
-name: Windows CLI Integration (No Auth)
+name: CLI Integration (No Auth)
 
 on:
     pull_request:
@@ -8,13 +8,14 @@ on:
     workflow_dispatch:
 
 jobs:
-    windows-cli-no-auth:
-        name: Windows CLI No-Auth Smoke (Python ${{ matrix.python-version }})
-        runs-on: windows-latest
+    cli-integration-no-auth:
+        name: CLI Integration No-Auth (${{ matrix.os }}, Python ${{ matrix.python-version }})
+        runs-on: ${{ matrix.os }}
         timeout-minutes: 35
 
         strategy:
             matrix:
+                os: [ubuntu-latest, windows-latest, macos-latest]
                 python-version: ["3.10", "3.11", "3.12"]
             fail-fast: false
 
@@ -22,17 +23,15 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v4
 
-            - name: Install uv
-              uses: astral-sh/setup-uv@v5
-              with:
-                  version: "0.7.21"
-
-            - name: Set up Python ${{ matrix.python-version }}
-              uses: actions/setup-python@v5
+            - name: Set up environment
+              uses: ./.github/actions/setup-uv-env
               with:
                   python-version: ${{ matrix.python-version }}
 
-            - name: Run Windows no-auth CLI smoke checks
-              shell: pwsh
+            - name: Install arcade-mcp from source
               run: |
-                  ./tests/integration/windows/no_auth_cli_smoke.ps1
+                  uv pip install -e .
+
+            - name: Run no-auth CLI smoke checks
+              run: |
+                  uv run python tests/integration/no_auth_cli_smoke.py
