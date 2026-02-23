@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import cast
 
 import httpx
+from arcade_core.subprocess_utils import get_windows_no_window_creationflags
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 from rich.columns import Columns
@@ -451,12 +452,7 @@ def start_server_process(entrypoint: str, debug: bool = False) -> tuple[subproce
     project_python = find_python_interpreter()
     cmd = [str(project_python), entrypoint]
 
-    creationflags = 0
-    if sys.platform == "win32":
-        # CREATE_NO_WINDOW: suppress phantom console window.
-        # CREATE_NEW_PROCESS_GROUP: allows sending CTRL_BREAK_EVENT for
-        # graceful shutdown instead of hard-killing the child.
-        creationflags = subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP
+    creationflags = get_windows_no_window_creationflags(new_process_group=True)
 
     stdout_target, stderr_target = _resolve_server_process_stdio(debug)
 

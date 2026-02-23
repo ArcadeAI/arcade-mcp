@@ -18,6 +18,7 @@ from typing import Any, Callable, Literal, ParamSpec, TypeVar, cast
 
 from arcade_core.catalog import MaterializedTool, ToolCatalog, ToolDefinitionError
 from arcade_core.metadata import ToolMetadata
+from arcade_core.subprocess_utils import get_windows_no_window_creationflags
 from arcade_tdk.auth import ToolAuthorization
 from arcade_tdk.error_adapters import ErrorAdapter
 from arcade_tdk.tool import tool as tool_decorator
@@ -371,12 +372,7 @@ class MCPApp:
             env = os.environ.copy()
             env["ARCADE_MCP_CHILD_PROCESS"] = "1"
 
-            creationflags = 0
-            if sys.platform == "win32":
-                # CREATE_NO_WINDOW: suppress phantom console window.
-                # CREATE_NEW_PROCESS_GROUP: allows us to send CTRL_BREAK_EVENT
-                # for graceful shutdown instead of hard-killing the child.
-                creationflags = subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP
+            creationflags = get_windows_no_window_creationflags(new_process_group=True)
 
             return subprocess.Popen(
                 [sys.executable, *sys.argv],

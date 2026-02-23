@@ -141,7 +141,7 @@ class UsageIdentity:
             return None
 
         try:
-            with open(CREDENTIALS_FILE_PATH) as f:
+            with open(CREDENTIALS_FILE_PATH, encoding="utf-8") as f:
                 config = yaml.safe_load(f) or {}
 
             cloud_config = config.get("cloud", {}) if isinstance(config, dict) else {}

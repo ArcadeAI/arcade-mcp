@@ -2,9 +2,8 @@ from io import StringIO
 from pathlib import Path
 
 import pytest
-from rich.console import Console
-
 from arcade_cli.new import create_new_toolkit_minimal
+from rich.console import Console
 
 
 def test_create_new_toolkit_minimal_with_spaces(tmp_path: Path) -> None:

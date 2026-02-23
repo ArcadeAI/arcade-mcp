@@ -489,5 +489,16 @@ def main() -> int:
     return runner.run_all_tests()
 
 
+def test_installation() -> None:
+    """Pytest entry point for the installation test suite.
+
+    Delegates to the existing TestRunner so the full install validation
+    runs under pytest (picks up conftest.py fixtures such as
+    disable_usage_tracking) without changing the internal test logic.
+    """
+    exit_code = main()
+    assert exit_code == 0, "One or more installation tests failed — see output above."
+
+
 if __name__ == "__main__":
     sys.exit(main())

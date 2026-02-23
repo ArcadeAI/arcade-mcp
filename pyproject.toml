@@ -1,6 +1,6 @@
 [project]
 name = "arcade-mcp"
-version = "1.10.1"
+version = "1.10.2"
 description = "Arcade.dev - Tool Calling platform for Agents"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -19,7 +19,7 @@ requires-python = ">=3.10"
 
 dependencies = [
     # CLI dependencies
-    "arcade-mcp-server>=1.17.0,<2.0.0",
+    "arcade-mcp-server>=1.17.2,<2.0.0",
     "arcade-core>=4.4.2,<5.0.0",
     "typer==0.10.0",
     "rich>=14.0.0,<15.0.0",
@@ -45,12 +45,6 @@ all = [
     "pytz>=2024.1",
     # platform-aware user directories (optional Windows path resolution)
     "platformdirs>=4.3.6",
-    # mcp server
-    "arcade-mcp-server>=1.15.3,<2.0.0",
-    # serve
-    "arcade-serve>=3.2.0,<4.0.0",
-    # tdk
-    "arcade-tdk>=3.4.0,<4.0.0",
 ]
 
 evals = [
@@ -163,8 +157,10 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "UP", "RUF"]
+extend-select = ["PLW1514"]
+preview = true
+explicit-preview-rules = true
 ignore = ["E501", "S105"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
-"tests/**/*.py" = ["C901"]

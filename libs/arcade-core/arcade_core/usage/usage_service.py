@@ -5,6 +5,10 @@ import subprocess
 import sys
 from pathlib import Path
 
+from arcade_core.subprocess_utils import (
+    build_windows_hidden_startupinfo,
+    get_windows_no_window_creationflags,
+)
 from arcade_core.usage.constants import (
     ARCADE_USAGE_EVENT_DATA,
     MAX_RETRIES_POSTHOG,
@@ -85,22 +89,15 @@ class UsageService:
             # Windows: use CREATE_NO_WINDOW + SW_HIDE so the tracking worker
             # never flashes a console window. CREATE_NEW_PROCESS_GROUP keeps
             # it isolated from Ctrl+C signals sent to the parent group.
-            CREATE_NEW_PROCESS_GROUP = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0x00000200)
-            CREATE_NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
-
-            startupinfo = None
-            startupinfo_cls = getattr(subprocess, "STARTUPINFO", None)
-            if startupinfo_cls is not None:
-                startupinfo = startupinfo_cls()
-                startupinfo.dwFlags |= getattr(subprocess, "STARTF_USESHOWWINDOW", 0x00000001)
-                startupinfo.wShowWindow = 0  # SW_HIDE
+            creationflags = get_windows_no_window_creationflags(new_process_group=True)
+            startupinfo = build_windows_hidden_startupinfo()
 
             subprocess.Popen(
                 cmd,
                 stdin=subprocess.DEVNULL,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
-                creationflags=CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW,
+                creationflags=creationflags,
                 startupinfo=startupinfo,
                 close_fds=True,
                 env=env,

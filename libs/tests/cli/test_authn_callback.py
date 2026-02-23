@@ -97,16 +97,14 @@ def test_oauth_callback_server_wait_until_ready_timeout() -> None:
     assert server.wait_until_ready(timeout=0.05) is False
 
 
-def test_perform_oauth_login_always_shows_auth_url() -> None:
-    """perform_oauth_login should always surface the auth URL via on_status,
-    even when _open_browser succeeds."""
+def test_perform_oauth_login_hides_auth_url_when_browser_succeeds() -> None:
+    """When browser launch succeeds, status output should not include auth URL."""
     status_messages: list[str] = []
 
     def capture_status(msg: str) -> None:
         status_messages.append(msg)
 
     # We need to mock the entire OAuth flow since we can't hit a real coordinator.
-    # The key thing to verify is that on_status receives the auth URL.
     with (
         patch("arcade_cli.authn.fetch_cli_config") as mock_config,
         patch("arcade_cli.authn.create_oauth_client"),
@@ -114,15 +112,13 @@ def test_perform_oauth_login_always_shows_auth_url() -> None:
         patch("arcade_cli.authn._open_browser") as mock_browser,
         patch("arcade_cli.authn.oauth_callback_server") as mock_server_ctx,
     ):
-        # Set up mocks
         mock_config.return_value = MagicMock()
         mock_gen_url.return_value = ("https://example.com/auth?state=abc", "verifier123")
-        mock_browser.return_value = True  # Browser "succeeded"
+        mock_browser.return_value = True
 
-        # Mock the callback server context manager
         mock_server = MagicMock()
         mock_server.get_redirect_uri.return_value = "http://localhost:9999/callback"
-        mock_server.result = {"error": "timeout for test"}  # Force an error exit
+        mock_server.result = {"error": "timeout for test"}
         mock_server.wait_for_result.return_value = False
         mock_server_ctx.return_value.__enter__ = MagicMock(return_value=mock_server)
         mock_server_ctx.return_value.__exit__ = MagicMock(return_value=False)
@@ -136,14 +132,13 @@ def test_perform_oauth_login_always_shows_auth_url() -> None:
                 callback_timeout_seconds=1,
             )
         except OAuthLoginError:
-            pass  # Expected — our mock returns an error result.
+            pass
 
-    # Verify the auth URL was shown even though browser.open returned True.
     url_messages = [m for m in status_messages if "https://example.com/auth" in m]
-    assert len(url_messages) >= 1, (
-        f"Auth URL should appear in status messages. Got: {status_messages}"
+    assert len(url_messages) == 0, (
+        "Auth URL should be hidden when browser launch succeeds. "
+        f"Got status messages: {status_messages}"
     )
-    assert any("Use this authorization link if needed" in m for m in status_messages)
 
 
 def test_perform_oauth_login_shows_url_when_browser_fails() -> None:
@@ -184,7 +179,7 @@ def test_perform_oauth_login_shows_url_when_browser_fails() -> None:
 
     url_messages = [m for m in status_messages if "https://example.com/auth" in m]
     assert len(url_messages) >= 1
-    assert any("Use this authorization link if needed" in m for m in status_messages)
+    assert any("Open this link to log in" in m for m in status_messages)
     # When browser fails, the message should say "Could not open a browser"
     browser_fail_msgs = [m for m in status_messages if "Could not open a browser" in m]
     assert len(browser_fail_msgs) >= 1

@@ -5,7 +5,6 @@ from io import StringIO
 from pathlib import Path
 
 import pytest
-
 from arcade_cli.configure import (
     _format_path_for_display,
     _resolve_windows_appdata,

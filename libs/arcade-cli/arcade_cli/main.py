@@ -8,6 +8,7 @@ from typing import Optional
 import click
 import typer
 from arcade_core.constants import CREDENTIALS_FILE_PATH, PROD_COORDINATOR_HOST, PROD_ENGINE_HOST
+from arcade_core.subprocess_utils import get_windows_no_window_creationflags
 from arcadepy import Arcade
 
 from arcade_cli.authn import (
@@ -131,7 +132,7 @@ def login(
     except OAuthLoginError as e:
         if debug:
             console.print(f"Debug: {e.__cause__}", style="dim")
-        handle_cli_error(str(e), should_exit=False)
+        handle_cli_error(str(e), should_exit=True)
     except KeyboardInterrupt:
         console.print("\nLogin cancelled.", style="yellow")
     except Exception as e:
@@ -155,7 +156,7 @@ def logout(
                 handle_cli_error(
                     "Could not remove credentials file — it may be in use by another process. "
                     "Close other Arcade instances and try again.",
-                    should_exit=False,
+                    should_exit=True,
                 )
                 return
             console.print("You're now logged out.", style="bold")
@@ -180,7 +181,7 @@ def whoami(
         console.print("Not logged in. Run 'arcade login' to authenticate.", style="bold red")
         return
     except Exception as e:
-        handle_cli_error("Failed to read credentials", e, debug, should_exit=False)
+        handle_cli_error("Failed to read credentials", e, debug, should_exit=True)
         return
 
     # Defensive - should not happen, because the main() callback prevents this:
@@ -333,8 +334,9 @@ def mcp(
         # command without an attached console).  The child process still
         # inherits stdin/stdout/stderr for stdio transport communication.
         run_kwargs: dict[str, object] = {"check": False}
-        if sys.platform == "win32":
-            run_kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
+        creation_flags = get_windows_no_window_creationflags()
+        if creation_flags:
+            run_kwargs["creationflags"] = creation_flags
         result = subprocess.run(cmd, **run_kwargs)
 
         # Exit with the same code as the subprocess
@@ -966,7 +968,6 @@ def main_callback(
     public_commands = {
         login.__name__,
         logout.__name__,
-        whoami.__name__,
         dashboard.__name__,
         evals.__name__,
         mcp.__name__,

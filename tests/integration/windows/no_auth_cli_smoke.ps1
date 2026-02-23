@@ -166,7 +166,7 @@ $env:Path = "$env:USERPROFILE\.local\bin;$env:Path"
 
 Write-Host "Repo root: $RepoRoot"
 uv --version
-uv sync --dev
+uv sync --extra dev
 uv pip install -e .
 
 $ArcadeCli = Join-Path $RepoRoot ".venv\Scripts\arcade.exe"

@@ -33,6 +33,7 @@ from arcade_core.auth_tokens import (
 )
 from arcade_core.config_model import AuthConfig, Config, ContextConfig, UserConfig
 from arcade_core.constants import ARCADE_CONFIG_PATH, CREDENTIALS_FILE_PATH
+from arcade_core.subprocess_utils import build_windows_hidden_startupinfo
 from authlib.integrations.httpx_client import OAuth2Client
 from jinja2 import Environment, FileSystemLoader
 from pydantic import AliasChoices, BaseModel, Field
@@ -55,16 +56,19 @@ def _render_template(template_name: str, **context: Any) -> bytes:
 # OAuth constants
 DEFAULT_SCOPES = "openid offline_access"
 LOCAL_CALLBACK_PORT = 9905
-DEFAULT_OAUTH_TIMEOUT_SECONDS = 600
+_DEFAULT_OAUTH_TIMEOUT_FALLBACK_SECONDS = 600
 
 
 def _get_default_oauth_timeout_seconds() -> int:
-    value = os.environ.get("ARCADE_LOGIN_TIMEOUT_SECONDS", str(DEFAULT_OAUTH_TIMEOUT_SECONDS))
+    value = os.environ.get(
+        "ARCADE_LOGIN_TIMEOUT_SECONDS", str(_DEFAULT_OAUTH_TIMEOUT_FALLBACK_SECONDS)
+    )
     try:
         parsed = int(value)
-        return parsed if parsed > 0 else DEFAULT_OAUTH_TIMEOUT_SECONDS  # noqa: TRY300
     except ValueError:
-        return DEFAULT_OAUTH_TIMEOUT_SECONDS
+        return _DEFAULT_OAUTH_TIMEOUT_FALLBACK_SECONDS
+    else:
+        return parsed if parsed > 0 else _DEFAULT_OAUTH_TIMEOUT_FALLBACK_SECONDS
 
 
 DEFAULT_OAUTH_TIMEOUT_SECONDS = _get_default_oauth_timeout_seconds()
@@ -585,23 +589,24 @@ def _open_browser(url: str) -> bool:
         # ShellExecuteW returns > 32 on success.
         if result > 32:
             return True
-    except Exception:  # noqa: S110
-        pass
+    except Exception as exc:
+        logger.debug("_open_browser: ShellExecuteW failed: %s", exc)
 
     # Attempt 2: rundll32 url.dll — a GUI-subsystem binary, no console.
     try:
-        si = subprocess.STARTUPINFO()
-        si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        si.wShowWindow = 0  # SW_HIDE
-        subprocess.Popen(
-            ["rundll32", "url.dll,FileProtocolHandler", url],  # noqa: S607
-            startupinfo=si,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-        return True  # noqa: TRY300
-    except Exception:  # noqa: S110
-        pass
+        startupinfo = build_windows_hidden_startupinfo()
+        popen_kwargs: dict[str, Any] = {
+            "stdout": subprocess.DEVNULL,
+            "stderr": subprocess.DEVNULL,
+        }
+        if startupinfo is not None:
+            popen_kwargs["startupinfo"] = startupinfo
+
+        subprocess.Popen(["rundll32", "url.dll,FileProtocolHandler", url], **popen_kwargs)  # noqa: S607
+    except Exception as exc:
+        logger.debug("_open_browser: rundll32 fallback failed: %s", exc)
+    else:
+        return True
 
     # Attempt 3: stdlib fallback.
     try:
@@ -750,19 +755,19 @@ def perform_oauth_login(
                 oauth_client, cli_config, redirect_uri, state
             )
 
-            # Always print the auth link first so users can click/copy it
-            # immediately, even if automatic browser launch fails.
-            status("Use this authorization link if needed:\n" f"{auth_url}")
             status("Opening a browser to log you in...")
             browser_opened = _open_browser(auth_url)
 
             if not browser_opened:
-                status("Could not open a browser automatically. Use the authorization link above.")
-            else:
-                status("If the browser did not continue login, use the authorization link above.")
+                status(
+                    "Could not open a browser automatically.\n"
+                    f"Open this link to log in:\n{auth_url}"
+                )
 
             status(f"Waiting for login to complete (timeout: {timeout_seconds}s)...")
             server.wait_for_result(timeout_seconds)
+    except OAuthLoginError:
+        raise
     except Exception as e:
         raise OAuthLoginError(str(e)) from e
 

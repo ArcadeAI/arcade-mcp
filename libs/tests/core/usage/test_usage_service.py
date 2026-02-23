@@ -3,7 +3,7 @@ from __future__ import annotations
 import subprocess
 import sys
 from pathlib import PureWindowsPath
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from arcade_core.usage.usage_service import UsageService
 

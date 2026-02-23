@@ -5,9 +5,8 @@ from datetime import datetime
 from io import StringIO
 from unittest.mock import MagicMock, patch
 
-from rich.console import Console
-
 from arcade_cli.server import _display_deployment_logs, _stream_deployment_logs
+from rich.console import Console
 
 
 def test_display_deployment_logs_preserves_square_bracket_content() -> None:

@@ -72,7 +72,7 @@ class Toolkit(BaseModel):
             raise ToolkitLoadError(f"pyproject.toml not found in {directory}")
 
         try:
-            with open(pyproject_path) as f:
+            with open(pyproject_path, encoding="utf-8") as f:
                 pyproject_data = toml.load(f)
 
             project_data = pyproject_data.get("project", {})

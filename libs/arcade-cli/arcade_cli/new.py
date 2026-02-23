@@ -226,6 +226,15 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
         console.print(
             f"[green]Toolkit '{toolkit_name}' created successfully at '{toolkit_directory}'.[/green]"
         )
+        console.print("\nNext steps:", style="bold")
+        console.print(f"  cd {toolkit_directory / toolkit_name}")
+        console.print("")
+        console.print("  Run with stdio transport (for MCP clients):", style="dim")
+        console.print("    uv run server.py")
+        console.print("")
+        console.print("  Run with HTTP transport (for development/testing):", style="dim")
+        console.print("    uv run server.py --transport http --port 8000")
+        console.print("")
         create_deployment(toolkit_directory, toolkit_name)
     except Exception:
         remove_toolkit(toolkit_directory, toolkit_name)
@@ -277,9 +286,15 @@ def create_new_toolkit_minimal(output_directory: str, toolkit_name: str) -> None
         console.print(
             f"[green]Server '{toolkit_name}' created successfully at '{toolkit_directory}'.[/green]"
         )
-        console.print("Next steps:", style="bold")
-        console.print(f"  cd {toolkit_directory / toolkit_name / 'src' / toolkit_name}")
-        console.print("  uv run server.py")
+        server_dir = toolkit_directory / toolkit_name / "src" / toolkit_name
+        console.print("\nNext steps:", style="bold")
+        console.print(f"  cd {server_dir}")
+        console.print("")
+        console.print("  Run with stdio transport (for MCP clients):", style="dim")
+        console.print("    uv run server.py")
+        console.print("")
+        console.print("  Run with HTTP transport (for development/testing):", style="dim")
+        console.print("    uv run server.py --transport http --port 8000")
         console.print("")
     except Exception:
         remove_toolkit(toolkit_directory, toolkit_name)

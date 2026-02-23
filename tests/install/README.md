@@ -54,7 +54,7 @@ python3 tests/install/test_install.py
    - Verifies `uv` is installed and available
 
 2. **Installs Package**
-   - Syncs dependencies with `uv sync --dev`
+   - Syncs dependencies with `uv sync --extra dev`
    - Installs `arcade-mcp` in editable mode from source
 
 3. **Tests CLI**
@@ -189,7 +189,7 @@ chmod +x tests/install/test_install.py
 If you see import errors, make sure you're running from the project root and that dependencies are installed:
 
 ```bash
-uv sync --dev
+uv sync --extra dev
 ```
 
 ### Optional eval/display test dependencies
@@ -199,7 +199,7 @@ dependencies such as `openai`, `pytz`, and `numpy`. Install the eval extras
 before running those suites:
 
 ```bash
-uv sync --dev --extra evals
+uv sync --extra dev --extra evals
 ```
 
 ## Related Files

@@ -15,7 +15,6 @@ from unittest.mock import patch
 import pytest
 from arcade_cli.console import _configure_windows_utf8, _needs_utf8
 
-
 # ---------------------------------------------------------------------------
 # _needs_utf8()
 # ---------------------------------------------------------------------------
