@@ -43,8 +43,6 @@ all = [
     "numpy>=2.0.0",
     "scikit-learn>=1.5.0",
     "pytz>=2024.1",
-    # platform-aware user directories (optional Windows path resolution)
-    "platformdirs>=4.3.6",
 ]
 
 evals = [
