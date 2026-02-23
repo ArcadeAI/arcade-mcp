@@ -7,8 +7,10 @@ including initialize, ping, list tools, and tool execution with all key features
 import asyncio
 import json
 import os
+import queue
 import random
 import subprocess
+import threading
 import time
 from pathlib import Path
 from typing import Any
@@ -251,6 +253,41 @@ class StdioClient:
     def __init__(self, process: subprocess.Popen):
         self.process = process
         self._next_id = 1
+        self._stdout_messages: queue.Queue[dict[str, Any]] = queue.Queue()
+        self._stdout_reader_error: Exception | None = None
+        self._stderr_lines: list[str] = []
+        self._stdout_reader = threading.Thread(target=self._stdout_reader_loop, daemon=True)
+        self._stderr_reader = threading.Thread(target=self._stderr_reader_loop, daemon=True)
+        self._stdout_reader.start()
+        self._stderr_reader.start()
+
+    def _stdout_reader_loop(self) -> None:
+        """Continuously drain stdout so timeout checks are not blocked by readline()."""
+        if self.process.stdout is None:
+            return
+
+        try:
+            for line in self.process.stdout:
+                message = parse_jsonrpc_message(line)
+                if message:
+                    self._stdout_messages.put(message)
+        except Exception as exc:
+            self._stdout_reader_error = exc
+
+    def _stderr_reader_loop(self) -> None:
+        """Drain stderr to avoid Windows pipe backpressure deadlocks."""
+        if self.process.stderr is None:
+            return
+
+        try:
+            for line in self.process.stderr:
+                self._stderr_lines.append(line.rstrip())
+                # Keep only the most recent lines for debugging.
+                if len(self._stderr_lines) > 25:
+                    self._stderr_lines = self._stderr_lines[-25:]
+        except Exception:
+            # Best-effort diagnostics reader; failures here should not hide test results.
+            pass
 
     def send_request(self, method: str, params: dict | None = None) -> int:
         """Send a request and return the request ID."""
@@ -290,18 +327,28 @@ class StdioClient:
 
     def read_response(self, timeout: float = 10.0) -> dict:
         """Read a response from the server."""
-        start_time = time.time()
+        deadline = time.monotonic() + timeout
 
-        while time.time() - start_time < timeout:
-            if self.process.stdout:
-                line = self.process.stdout.readline()
-                if line:
-                    message = parse_jsonrpc_message(line)
-                    if message:
-                        return message
-            time.sleep(0.01)
+        while time.monotonic() < deadline:
+            if self._stdout_reader_error is not None:
+                raise RuntimeError("Failed while reading stdio response") from self._stdout_reader_error
 
-        raise TimeoutError("Timeout waiting for response")
+            try:
+                return self._stdout_messages.get(timeout=0.1)
+            except queue.Empty:
+                if self.process.poll() is not None and self._stdout_messages.empty():
+                    stderr_tail = "\n".join(self._stderr_lines[-5:])
+                    details = (
+                        f"\nLast stderr lines:\n{stderr_tail}" if stderr_tail else "\nNo stderr captured."
+                    )
+                    raise RuntimeError(
+                        f"MCP server exited with code {self.process.returncode} while waiting for response."
+                        f"{details}"
+                    ) from None
+
+        stderr_tail = "\n".join(self._stderr_lines[-5:])
+        details = f"\nLast stderr lines:\n{stderr_tail}" if stderr_tail else "\nNo stderr captured."
+        raise TimeoutError(f"Timeout waiting for response after {timeout:.1f}s.{details}")
 
     def handle_bidirectional_request(self, message: dict) -> None:
         """Handle a server-initiated request by sending appropriate mock response."""
