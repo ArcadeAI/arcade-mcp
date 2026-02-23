@@ -24,6 +24,32 @@ class TestPrintSecretTable:
         captured = capsys.readouterr()
         assert "Tool Secrets" in captured.out
 
+    def test_print_secret_table_with_secrets(self, capsys):
+        """Test printing a table with secrets (no hint field)."""
+        secrets = [
+            {
+                "key": "MY_API_KEY",
+                "binding": {"type": "env"},
+                "description": "API key for testing",
+                "last_accessed_at": "2026-01-15T10:00:00Z",
+                "created_at": "2026-01-01T00:00:00Z",
+            },
+            {
+                "key": "DB_PASSWORD",
+                "binding": {"type": "env"},
+                "description": "Database password",
+                "last_accessed_at": None,
+                "created_at": "2026-01-02T00:00:00Z",
+            },
+        ]
+        print_secret_table(secrets)
+
+        captured = capsys.readouterr()
+        assert "MY_API_KEY" in captured.out
+        assert "DB_PASSWORD" in captured.out
+        assert "Never" in captured.out
+        assert "Hint" not in captured.out
+
 
 class TestLoadEnvFile:
     """Tests for load_env_file function."""

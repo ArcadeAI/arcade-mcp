@@ -163,7 +163,6 @@ def print_secret_table(secrets: list[dict]) -> None:
     table.add_column("Key", style="cyan")
     table.add_column("Type", style="green")
     table.add_column("Description", style="green")
-    table.add_column("Hint", style="green")
     table.add_column("Last Accessed", style="green")
     table.add_column("Created At", style="green")
     for secret in secrets:
@@ -171,7 +170,6 @@ def print_secret_table(secrets: list[dict]) -> None:
             secret["key"],
             secret["binding"]["type"],
             secret["description"],
-            "..." + secret["hint"] if secret["hint"] else "-",
             secret["last_accessed_at"] if secret["last_accessed_at"] else "Never",
             secret["created_at"],
         )
