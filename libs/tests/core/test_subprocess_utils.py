@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+import signal
 import subprocess
 import sys
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from arcade_core.subprocess_utils import (
     build_windows_hidden_startupinfo,
     get_windows_no_window_creationflags,
+    graceful_terminate_process,
 )
 
 
@@ -75,3 +77,50 @@ def test_hidden_startupinfo_returns_none_if_startupinfo_missing() -> None:
         patch.object(subprocess, "STARTUPINFO", None, create=True),
     ):
         assert build_windows_hidden_startupinfo() is None
+
+
+def test_graceful_terminate_uses_ctrl_break_on_windows() -> None:
+    ctrl_break_event = 1
+    process = MagicMock()
+
+    with (
+        patch.object(sys, "platform", "win32"),
+        patch.object(signal, "CTRL_BREAK_EVENT", ctrl_break_event, create=True),
+    ):
+        graceful_terminate_process(process)
+
+    process.send_signal.assert_called_once_with(ctrl_break_event)
+    process.terminate.assert_not_called()
+
+
+def test_graceful_terminate_falls_back_to_terminate_on_windows_signal_error() -> None:
+    ctrl_break_event = 1
+    process = MagicMock()
+    process.send_signal.side_effect = OSError("already exited")
+
+    with (
+        patch.object(sys, "platform", "win32"),
+        patch.object(signal, "CTRL_BREAK_EVENT", ctrl_break_event, create=True),
+    ):
+        graceful_terminate_process(process)
+
+    process.send_signal.assert_called_once_with(ctrl_break_event)
+    process.terminate.assert_called_once()
+
+
+def test_graceful_terminate_calls_terminate_on_non_windows() -> None:
+    process = MagicMock()
+
+    with patch.object(sys, "platform", "linux"):
+        graceful_terminate_process(process)
+
+    process.send_signal.assert_not_called()
+    process.terminate.assert_called_once()
+
+
+def test_graceful_terminate_swallows_terminate_oserror() -> None:
+    process = MagicMock()
+    process.terminate.side_effect = OSError("already exited")
+
+    with patch.object(sys, "platform", "linux"):
+        graceful_terminate_process(process)

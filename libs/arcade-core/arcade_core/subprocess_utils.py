@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import contextlib
+import signal
 import subprocess
 import sys
 from typing import Any
@@ -44,3 +46,23 @@ def build_windows_hidden_startupinfo() -> Any | None:
     startupinfo.dwFlags |= getattr(subprocess, "STARTF_USESHOWWINDOW", 0x00000001)
     startupinfo.wShowWindow = 0
     return startupinfo
+
+
+def graceful_terminate_process(process: subprocess.Popen[Any]) -> None:
+    """Terminate a process with Windows-friendly graceful fallback behavior.
+
+    On Windows, try ``CTRL_BREAK_EVENT`` first (when supported) so child
+    processes can exit cleanly. If signaling fails, fall back to
+    ``process.terminate()``. Any ``OSError`` during termination is swallowed
+    because the process may already have exited.
+    """
+    if sys.platform == "win32":
+        try:
+            process.send_signal(signal.CTRL_BREAK_EVENT)
+        except (OSError, AttributeError):
+            pass
+        else:
+            return
+
+    with contextlib.suppress(OSError):
+        process.terminate()

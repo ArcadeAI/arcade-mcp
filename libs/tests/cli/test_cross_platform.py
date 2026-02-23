@@ -76,7 +76,9 @@ class TestUtf8FileIO:
 
         assert config_file.exists()
 
-    def test_configure_client_writes_utf8(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_configure_client_writes_utf8(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         from arcade_cli.configure import configure_client
 
         monkeypatch.chdir(tmp_path)
@@ -167,6 +169,21 @@ class TestFileLockingErrorHandling:
             mock_error.assert_called_once()
             message = mock_error.call_args[0][0].lower()
             assert "in use" in message or "lock" in message
+
+    def test_logout_permission_error_does_not_double_report(self) -> None:
+        from arcade_cli.utils import CLIError
+
+        with (
+            patch("arcade_cli.main.os.path.exists", return_value=True),
+            patch("arcade_cli.main.os.remove", side_effect=PermissionError("Locked")),
+            patch("arcade_cli.main.handle_cli_error", side_effect=CLIError("locked")) as mock_error,
+        ):
+            from arcade_cli.main import logout
+
+            with pytest.raises(CLIError):
+                logout(debug=False)
+
+        mock_error.assert_called_once()
 
     def test_remove_toolkit_handles_permission_error(self, tmp_path: Path) -> None:
         from arcade_cli.new import remove_toolkit

@@ -4,9 +4,7 @@ import io
 import logging
 import os
 import random
-import signal
 import subprocess
-import sys
 import tarfile
 import time
 from collections import deque
@@ -14,7 +12,10 @@ from pathlib import Path
 from typing import cast
 
 import httpx
-from arcade_core.subprocess_utils import get_windows_no_window_creationflags
+from arcade_core.subprocess_utils import (
+    get_windows_no_window_creationflags,
+    graceful_terminate_process,
+)
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 from rich.columns import Columns
@@ -369,28 +370,8 @@ def create_package_archive(package_dir: Path) -> str:
 
 
 def _graceful_terminate(process: subprocess.Popen) -> None:
-    """Terminate a subprocess, preferring graceful shutdown on Windows.
-
-    On Windows, ``process.terminate()`` calls ``TerminateProcess`` which kills
-    the child immediately.  If the child was started with
-    ``CREATE_NEW_PROCESS_GROUP`` we can send ``CTRL_BREAK_EVENT`` first so
-    Python's default handler raises ``KeyboardInterrupt`` — giving the child
-    a chance to clean up.
-    """
-    if sys.platform == "win32":
-        try:
-            process.send_signal(signal.CTRL_BREAK_EVENT)  # type: ignore[attr-defined]
-            return  # noqa: TRY300
-        except (OSError, AttributeError) as exc:
-            logger.debug(
-                "CTRL_BREAK_EVENT failed during graceful shutdown; "
-                "falling back to terminate(): %s",
-                exc,
-            )
-    try:
-        process.terminate()
-    except OSError as exc:
-        logger.debug("terminate() failed during graceful shutdown: %s", exc)
+    """Terminate a subprocess using shared graceful shutdown semantics."""
+    graceful_terminate_process(process)
 
 
 def _resolve_server_process_stdio(debug: bool) -> tuple[int | None, int | None]:

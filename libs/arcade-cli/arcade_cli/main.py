@@ -149,19 +149,17 @@ def logout(
     try:
         # If the credentials file exists, delete it
         if os.path.exists(CREDENTIALS_FILE_PATH):
-            try:
-                os.remove(CREDENTIALS_FILE_PATH)
-            except PermissionError:
-                # On Windows, the file may be locked by another process.
-                handle_cli_error(
-                    "Could not remove credentials file — it may be in use by another process. "
-                    "Close other Arcade instances and try again.",
-                    should_exit=True,
-                )
-                return
+            os.remove(CREDENTIALS_FILE_PATH)
             console.print("You're now logged out.", style="bold")
         else:
             console.print("You're not logged in.", style="bold red")
+    except PermissionError:
+        # On Windows, the file may be locked by another process.
+        handle_cli_error(
+            "Could not remove credentials file — it may be in use by another process. "
+            "Close other Arcade instances and try again.",
+            should_exit=True,
+        )
     except Exception as e:
         handle_cli_error("Logout failed", e, debug)
 

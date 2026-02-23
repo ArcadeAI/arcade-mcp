@@ -9,7 +9,6 @@ from __future__ import annotations
 import asyncio
 import os
 import re
-import signal
 import subprocess
 import sys
 from pathlib import Path
@@ -18,7 +17,10 @@ from typing import Any, Callable, Literal, ParamSpec, TypeVar, cast
 
 from arcade_core.catalog import MaterializedTool, ToolCatalog, ToolDefinitionError
 from arcade_core.metadata import ToolMetadata
-from arcade_core.subprocess_utils import get_windows_no_window_creationflags
+from arcade_core.subprocess_utils import (
+    get_windows_no_window_creationflags,
+    graceful_terminate_process,
+)
 from arcade_tdk.auth import ToolAuthorization
 from arcade_tdk.error_adapters import ErrorAdapter
 from arcade_tdk.tool import tool as tool_decorator
@@ -392,16 +394,7 @@ class MCPApp:
             """
             logger.info(f"Shutting down server for {reason}...")
 
-            if sys.platform == "win32":
-                # Try graceful: send Ctrl+Break to the child's process group.
-                try:
-                    process.send_signal(signal.CTRL_BREAK_EVENT)  # type: ignore[attr-defined]
-                except (OSError, AttributeError):
-                    # send_signal may fail if process already exited or if
-                    # CTRL_BREAK_EVENT is not available.
-                    process.terminate()
-            else:
-                process.terminate()
+            graceful_terminate_process(process)
 
             try:
                 process.wait(timeout=5)

@@ -15,6 +15,7 @@ import shutil
 import subprocess
 import tempfile
 from pathlib import Path
+from typing import Any, cast
 
 
 def _run(
@@ -41,6 +42,30 @@ def _run(
 def _ensure_exists(path: Path) -> None:
     if not path.exists():
         raise RuntimeError(f"Expected path to exist: {path}")
+
+
+def _load_json_object(path: Path) -> dict[str, Any]:
+    parsed = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(parsed, dict):
+        raise TypeError(f"Expected JSON object in {path}, got {type(parsed).__name__}")
+    return cast(dict[str, Any], parsed)
+
+
+def _expect_dict(value: Any, context: str) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise TypeError(f"Expected object for {context}, got {type(value).__name__}")
+    return cast(dict[str, Any], value)
+
+
+def _assert_stdio_entry(entry: dict[str, Any], context: str) -> None:
+    if "command" not in entry:
+        raise RuntimeError(f"{context}: missing 'command'")
+
+    args = entry.get("args")
+    if not isinstance(args, list):
+        raise TypeError(f"{context}: missing or invalid 'args' list")
+    if not any(str(arg).endswith("server.py") for arg in args):
+        raise RuntimeError(f"{context}: expected entrypoint in args ending with 'server.py'")
 
 
 def _add_local_uv_sources(pyproject_path: Path, repo_root: Path) -> None:
@@ -88,6 +113,11 @@ def _run_configure_smoke(repo_root: Path) -> None:
             ],
             cwd=config_tmp,
         )
+        cursor_data = _load_json_object(cursor_cfg)
+        cursor_mcp_servers = _expect_dict(cursor_data.get("mcpServers"), "Cursor stdio mcpServers")
+        _assert_stdio_entry(
+            _expect_dict(cursor_mcp_servers.get("demo"), "Cursor stdio demo server"), "Cursor stdio"
+        )
 
         overwrite = _run(
             [
@@ -116,6 +146,13 @@ def _run_configure_smoke(repo_root: Path) -> None:
                 "Expected overwrite warning when configuring cursor with same --name.\n"
                 f"Output:\n{overwrite_output}"
             )
+        cursor_data = _load_json_object(cursor_cfg)
+        cursor_mcp_servers = _expect_dict(cursor_data.get("mcpServers"), "Cursor http mcpServers")
+        cursor_http_demo = _expect_dict(cursor_mcp_servers.get("demo"), "Cursor http demo server")
+        if cursor_http_demo.get("type") != "stream":
+            raise RuntimeError("Cursor http config type mismatch")
+        if cursor_http_demo.get("url") != "http://localhost:8123/mcp":
+            raise RuntimeError("Cursor http config URL mismatch")
 
         _run(
             [
@@ -133,6 +170,40 @@ def _run_configure_smoke(repo_root: Path) -> None:
             ],
             cwd=config_tmp,
         )
+        vscode_data = _load_json_object(vscode_cfg)
+        vscode_servers = _expect_dict(vscode_data.get("servers"), "VS Code stdio servers")
+        _assert_stdio_entry(
+            _expect_dict(vscode_servers.get("demo"), "VS Code stdio demo server"), "VS Code stdio"
+        )
+
+        _run(
+            [
+                "uv",
+                "run",
+                "--project",
+                str(repo_root),
+                "arcade",
+                "configure",
+                "vscode",
+                "--transport",
+                "http",
+                "--port",
+                "8123",
+                "--name",
+                "demo",
+                "--config",
+                str(vscode_cfg),
+            ],
+            cwd=config_tmp,
+        )
+        vscode_data = _load_json_object(vscode_cfg)
+        vscode_servers = _expect_dict(vscode_data.get("servers"), "VS Code http servers")
+        vscode_http_demo = _expect_dict(vscode_servers.get("demo"), "VS Code http demo server")
+        if vscode_http_demo.get("type") != "http":
+            raise RuntimeError("VS Code http config type mismatch")
+        if vscode_http_demo.get("url") != "http://localhost:8123/mcp":
+            raise RuntimeError("VS Code http config URL mismatch")
+
         _run(
             [
                 "uv",
@@ -149,10 +220,11 @@ def _run_configure_smoke(repo_root: Path) -> None:
             ],
             cwd=config_tmp,
         )
-
-        json.loads(cursor_cfg.read_text(encoding="utf-8"))
-        json.loads(vscode_cfg.read_text(encoding="utf-8"))
-        json.loads(claude_cfg.read_text(encoding="utf-8"))
+        claude_data = _load_json_object(claude_cfg)
+        claude_mcp_servers = _expect_dict(claude_data.get("mcpServers"), "Claude stdio mcpServers")
+        _assert_stdio_entry(
+            _expect_dict(claude_mcp_servers.get("demo"), "Claude stdio demo server"), "Claude stdio"
+        )
     finally:
         shutil.rmtree(config_tmp, ignore_errors=True)
 
