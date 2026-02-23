@@ -29,15 +29,15 @@ def test_oauth_callback_server_timeout() -> None:
 
 def test_oauth_callback_server_binds_to_loopback() -> None:
     """The callback server must bind to 127.0.0.1 (loopback) to avoid
-    Windows Firewall prompts and ensure localhost is always reachable."""
+    Windows Firewall prompts and keep redirect host aligned with bind host."""
     state = "test-bind"
     with oauth_callback_server(state, port=0) as server:
         assert server.httpd is not None
         host, _port = server.httpd.server_address
         assert host == "127.0.0.1", f"Expected 127.0.0.1 but got {host}"
-        # Also confirm the redirect URI uses localhost.
+        # Also confirm the redirect URI host matches the bound loopback host.
         redirect = server.get_redirect_uri()
-        assert redirect.startswith("http://localhost:")
+        assert redirect.startswith("http://127.0.0.1:")
         server.shutdown_server()
 
 

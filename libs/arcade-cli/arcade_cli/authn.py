@@ -55,6 +55,7 @@ def _render_template(template_name: str, **context: Any) -> bytes:
 
 # OAuth constants
 DEFAULT_SCOPES = "openid offline_access"
+LOCAL_CALLBACK_HOST = "127.0.0.1"
 LOCAL_CALLBACK_PORT = 9905
 _DEFAULT_OAUTH_TIMEOUT_FALLBACK_SECONDS = 600
 
@@ -426,10 +427,10 @@ class OAuthCallbackServer:
         """Start the callback server.
 
         Binds to 127.0.0.1 (loopback only) rather than 0.0.0.0 to avoid
-        Windows Firewall prompts and ensure the redirect URI
-        (http://localhost:<port>/callback) is always reachable.
+        Windows Firewall prompts and keep the redirect URI host aligned
+        with the actual bind host.
         """
-        server_address = ("127.0.0.1", self.port)
+        server_address = (LOCAL_CALLBACK_HOST, self.port)
         handler = lambda *args, **kwargs: OAuthCallbackHandler(
             *args,
             state=self.state,
@@ -467,7 +468,7 @@ class OAuthCallbackServer:
 
     def get_redirect_uri(self) -> str:
         """Get the redirect URI for this server."""
-        return f"http://localhost:{self.port}/callback"
+        return f"http://{LOCAL_CALLBACK_HOST}:{self.port}/callback"
 
 
 def save_credentials_from_whoami(
