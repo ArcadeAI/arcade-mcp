@@ -11,6 +11,7 @@ CI operating systems:
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 import tempfile
@@ -270,7 +271,7 @@ def _run_scaffold_and_protocol_smoke(repo_root: Path) -> None:
                 "uv",
                 "run",
                 "python",
-                "tests/integration/windows/mcp_protocol_smoke.py",
+                "tests/integration/mcp_protocol_smoke.py",
                 "--server-dir",
                 str(generated_server_dir),
                 "--transport",
@@ -285,6 +286,7 @@ def _run_scaffold_and_protocol_smoke(repo_root: Path) -> None:
 def main() -> None:
     repo_root = Path.cwd().resolve()
     print(f"Repo root: {repo_root}")
+    os.environ["ARCADE_USAGE_TRACKING"] = "0"
     _run(["uv", "--version"], cwd=repo_root)
 
     _run_configure_smoke(repo_root)

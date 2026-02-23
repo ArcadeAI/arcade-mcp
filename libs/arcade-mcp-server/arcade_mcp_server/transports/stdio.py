@@ -81,6 +81,7 @@ class StdioTransport:
         self._shutdown_event = asyncio.Event()
         self._running = False
         self._sessions: dict[str, ServerSession] = {}
+        self._stop_task: asyncio.Task[None] | None = None
 
     async def start(self) -> None:
         """Start the transport."""
@@ -114,8 +115,11 @@ class StdioTransport:
             # On Windows, asyncio signal handlers don't work but the stdlib
             # signal.signal(SIGINT) *does* receive Ctrl+C.  Register a
             # fallback so that a Ctrl+C schedules a clean stop on the loop.
+            def _schedule_stop() -> None:
+                self._stop_task = loop.create_task(self.stop())
+
             def _win_ctrl_c(signum: int, frame: object) -> None:
-                loop.call_soon_threadsafe(lambda: asyncio.ensure_future(self.stop()))
+                loop.call_soon_threadsafe(_schedule_stop)
 
             signal.signal(signal.SIGINT, _win_ctrl_c)
 

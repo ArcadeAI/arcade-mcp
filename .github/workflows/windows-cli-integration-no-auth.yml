@@ -12,6 +12,8 @@ jobs:
         name: CLI Integration No-Auth (${{ matrix.os }}, Python ${{ matrix.python-version }})
         runs-on: ${{ matrix.os }}
         timeout-minutes: 35
+        env:
+            ARCADE_USAGE_TRACKING: "0"
 
         strategy:
             matrix:

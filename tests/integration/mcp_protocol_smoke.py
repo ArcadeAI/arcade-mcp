@@ -28,7 +28,7 @@ and the need to run outside the project's virtualenv make shared helpers impract
 
 Usage::
 
-    uv run python tests/integration/windows/mcp_protocol_smoke.py \\
+    uv run python tests/integration/mcp_protocol_smoke.py \\
         --server-dir "<path-to>/src/my_server" \\
         --transport both
 
