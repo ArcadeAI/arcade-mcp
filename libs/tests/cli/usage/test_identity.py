@@ -51,7 +51,7 @@ class TestLoadOrCreate:
         """Test that load_or_create loads existing usage.json file."""
         existing_data = {"anon_id": str(uuid.uuid4()), "linked_principal_id": "user-123"}
         usage_file = temp_config_path / "usage.json"
-        usage_file.write_text(json.dumps(existing_data))
+        usage_file.write_text(json.dumps(existing_data), encoding="utf-8")
 
         data = identity.load_or_create()
 
@@ -71,7 +71,7 @@ class TestLoadOrCreate:
     ) -> None:
         """Test that load_or_create creates new data if JSON is corrupted."""
         usage_file = temp_config_path / "usage.json"
-        usage_file.write_text("{ invalid json }")
+        usage_file.write_text("{ invalid json }", encoding="utf-8")
 
         data = identity.load_or_create()
 
@@ -83,7 +83,7 @@ class TestLoadOrCreate:
     ) -> None:
         """Test that load_or_create creates new data if anon_id is missing."""
         usage_file = temp_config_path / "usage.json"
-        usage_file.write_text(json.dumps({"some_other_key": "value"}))
+        usage_file.write_text(json.dumps({"some_other_key": "value"}), encoding="utf-8")
 
         data = identity.load_or_create()
 
@@ -95,7 +95,7 @@ class TestLoadOrCreate:
     ) -> None:
         """Test that load_or_create creates new data if JSON is not a dict."""
         usage_file = temp_config_path / "usage.json"
-        usage_file.write_text(json.dumps(["not", "a", "dict"]))
+        usage_file.write_text(json.dumps(["not", "a", "dict"]), encoding="utf-8")
 
         data = identity.load_or_create()
 
@@ -147,7 +147,8 @@ class TestGetDistinctId:
         """Test that get_distinct_id returns persisted linked_principal_id."""
         usage_file = temp_config_path / "usage.json"
         usage_file.write_text(
-            json.dumps({"anon_id": str(uuid.uuid4()), "linked_principal_id": "persisted-user-123"})
+            json.dumps({"anon_id": str(uuid.uuid4()), "linked_principal_id": "persisted-user-123"}),
+            encoding="utf-8",
         )
 
         distinct_id = identity.get_distinct_id()
@@ -195,7 +196,7 @@ class TestGetPrincipalId:
         """Test that get_principal_id returns principal_id from API."""
         # Create credentials file
         credentials_file = temp_config_path / "credentials.yaml"
-        credentials_file.write_text(yaml.dump({"cloud": {"api": {"key": "test-api-key"}}}))
+        credentials_file.write_text(yaml.dump({"cloud": {"api": {"key": "test-api-key"}}}), encoding="utf-8")
 
         # Mock API response
         mock_response = MagicMock()
@@ -218,7 +219,7 @@ class TestGetPrincipalId:
     ) -> None:
         """Test that get_principal_id returns None on API failure."""
         credentials_file = temp_config_path / "credentials.yaml"
-        credentials_file.write_text(yaml.dump({"cloud": {"api": {"key": "test-api-key"}}}))
+        credentials_file.write_text(yaml.dump({"cloud": {"api": {"key": "test-api-key"}}}), encoding="utf-8")
 
         mock_get.side_effect = Exception("Network error")
 
@@ -231,7 +232,7 @@ class TestGetPrincipalId:
     ) -> None:
         """Test that get_principal_id returns None when API key is missing."""
         credentials_file = temp_config_path / "credentials.yaml"
-        credentials_file.write_text(yaml.dump({"cloud": {}}))
+        credentials_file.write_text(yaml.dump({"cloud": {}}), encoding="utf-8")
 
         principal_id = identity.get_principal_id()
 
@@ -243,7 +244,7 @@ class TestGetPrincipalId:
     ) -> None:
         """Test that get_principal_id returns None on non-200 status code."""
         credentials_file = temp_config_path / "credentials.yaml"
-        credentials_file.write_text(yaml.dump({"cloud": {"api": {"key": "test-api-key"}}}))
+        credentials_file.write_text(yaml.dump({"cloud": {"api": {"key": "test-api-key"}}}), encoding="utf-8")
 
         mock_response = MagicMock()
         mock_response.status_code = 401
@@ -260,7 +261,8 @@ class TestGetPrincipalId:
         """Test that get_principal_id returns account_id using OAuth access token."""
         credentials_file = temp_config_path / "credentials.yaml"
         credentials_file.write_text(
-            yaml.dump({"cloud": {"auth": {"access_token": "oauth-token", "refresh_token": "x"}}})
+            yaml.dump({"cloud": {"auth": {"access_token": "oauth-token", "refresh_token": "x"}}}),
+            encoding="utf-8",
         )
 
         mock_response = MagicMock()
@@ -302,7 +304,8 @@ class TestShouldAlias:
 
         usage_file = temp_config_path / "usage.json"
         usage_file.write_text(
-            json.dumps({"anon_id": str(uuid.uuid4()), "linked_principal_id": principal_id})
+            json.dumps({"anon_id": str(uuid.uuid4()), "linked_principal_id": principal_id}),
+            encoding="utf-8",
         )
 
         should_alias = identity.should_alias()

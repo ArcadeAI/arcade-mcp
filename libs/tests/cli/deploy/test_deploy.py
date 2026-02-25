@@ -1,8 +1,10 @@
 import base64
 import io
+import socket
 import subprocess
 import tarfile
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import pytest
 from arcade_cli.deploy import (
@@ -58,8 +60,22 @@ version = "0.1.0"
 description = "Test project"
 requires-python = ">=3.10"
 """
-    (project_dir / "pyproject.toml").write_text(pyproject_content)
+    (project_dir / "pyproject.toml").write_text(pyproject_content, encoding="utf-8")
     return project_dir
+
+
+@pytest.fixture
+def reserved_unreachable_local_url():
+    """Yield a localhost URL that is guaranteed not to have an HTTP listener.
+
+    Keeps a TCP socket bound (without listen()) so no other process can claim
+    the port during the test, avoiding flaky collisions with long-lived local
+    dev servers.
+    """
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind(("127.0.0.1", 0))
+        port = sock.getsockname()[1]
+        yield f"http://127.0.0.1:{port}"
 
 
 # Tests for create_package_archive
@@ -97,7 +113,7 @@ def test_create_package_archive_nonexistent_dir(tmp_path: Path) -> None:
 def test_create_package_archive_file_not_dir(tmp_path: Path) -> None:
     """Test that archiving a file instead of directory raises ValueError."""
     test_file = tmp_path / "test_file.txt"
-    test_file.write_text("test content")
+    test_file.write_text("test content", encoding="utf-8")
 
     with pytest.raises(ValueError, match="Package path must be a directory"):
         create_package_archive(test_file)
@@ -109,18 +125,18 @@ def test_create_package_archive_excludes_files(tmp_path: Path) -> None:
     test_dir.mkdir()
 
     # Create files that should be excluded
-    (test_dir / ".hidden").write_text("hidden")
+    (test_dir / ".hidden").write_text("hidden", encoding="utf-8")
     (test_dir / "__pycache__").mkdir()
-    (test_dir / "__pycache__" / "cache.pyc").write_text("cache")
-    (test_dir / "requirements.lock").write_text("lock")
+    (test_dir / "__pycache__" / "cache.pyc").write_text("cache", encoding="utf-8")
+    (test_dir / "requirements.lock").write_text("lock", encoding="utf-8")
     (test_dir / "dist").mkdir()
-    (test_dir / "dist" / "package.tar.gz").write_text("dist")
+    (test_dir / "dist" / "package.tar.gz").write_text("dist", encoding="utf-8")
     (test_dir / "build").mkdir()
-    (test_dir / "build" / "lib").write_text("build")
+    (test_dir / "build" / "lib").write_text("build", encoding="utf-8")
 
     # Create files that should be included
-    (test_dir / "main.py").write_text("main")
-    (test_dir / "pyproject.toml").write_text("project")
+    (test_dir / "main.py").write_text("main", encoding="utf-8")
+    (test_dir / "pyproject.toml").write_text("project", encoding="utf-8")
 
     archive_base64 = create_package_archive(test_dir)
     archive_bytes = base64.b64decode(archive_base64)
@@ -202,9 +218,9 @@ def test_get_server_info_success(valid_server_path: str, capsys) -> None:
             process.wait()
 
 
-def test_get_server_info_invalid_url() -> None:
+def test_get_server_info_invalid_url(reserved_unreachable_local_url: str) -> None:
     """Test that invalid URL raises ValueError."""
-    invalid_url = "http://127.0.0.1:9999"
+    invalid_url = reserved_unreachable_local_url
 
     with pytest.raises(ValueError):
         get_server_info(invalid_url)
@@ -256,9 +272,9 @@ def test_get_required_secrets_no_secrets(valid_server_path: str) -> None:
             process.wait()
 
 
-def test_get_required_secrets_invalid_url() -> None:
+def test_get_required_secrets_invalid_url(reserved_unreachable_local_url: str) -> None:
     """Test that invalid URL raises ValueError."""
-    invalid_url = "http://127.0.0.1:9999"
+    invalid_url = reserved_unreachable_local_url
 
     with pytest.raises(
         ValueError, match="Failed to extract tool secrets from /worker/tools endpoint"
@@ -291,3 +307,67 @@ def test_verify_server_and_get_metadata_with_debug(valid_server_path: str, capsy
     assert server_name == "simpleserver"
     assert server_version == "1.0.0"
     assert "MY_SECRET_KEY" in required_secrets
+
+
+# ---------------------------------------------------------------------------
+# Debug-aware error messages
+# ---------------------------------------------------------------------------
+
+
+@patch("arcade_cli.deploy.find_python_interpreter")
+@patch("arcade_cli.deploy.subprocess.Popen")
+def test_start_server_process_non_debug_message(
+    mock_popen: MagicMock, mock_python: MagicMock
+) -> None:
+    """Non-debug mode error should hint at --debug flag."""
+    mock_python.return_value = Path("python3")
+    mock_proc = MagicMock()
+    mock_proc.poll.return_value = 1  # Process exited immediately
+    mock_popen.return_value = mock_proc
+
+    with pytest.raises(ValueError, match="--debug"):
+        start_server_process("server.py", debug=False)
+
+
+@patch("arcade_cli.deploy.find_python_interpreter")
+@patch("arcade_cli.deploy.subprocess.Popen")
+def test_start_server_process_debug_message(
+    mock_popen: MagicMock, mock_python: MagicMock
+) -> None:
+    """Debug mode error should NOT tell user to run with --debug (already in debug mode)."""
+    mock_python.return_value = Path("python3")
+    mock_proc = MagicMock()
+    mock_proc.poll.return_value = 1  # Process exited immediately
+    mock_popen.return_value = mock_proc
+
+    with pytest.raises(ValueError) as exc_info:
+        start_server_process("server.py", debug=True)
+
+    msg = str(exc_info.value)
+    assert "--debug" not in msg, "Debug mode error must not tell user to re-run with --debug"
+    assert "above" in msg.lower() or "output" in msg.lower()
+
+
+def test_wait_for_health_non_debug_message(reserved_unreachable_local_url: str) -> None:
+    """Non-debug health timeout should hint at --debug flag."""
+    mock_proc = MagicMock()
+    mock_proc.communicate.return_value = (None, None)
+
+    with pytest.raises(ValueError, match="--debug"):
+        wait_for_health(reserved_unreachable_local_url, mock_proc, timeout=1, debug=False)
+
+
+def test_wait_for_health_debug_message(reserved_unreachable_local_url: str) -> None:
+    """Debug health timeout should NOT tell user to run with --debug,
+    and SHOULD reference checking the output already shown above."""
+    mock_proc = MagicMock()
+    mock_proc.communicate.return_value = (None, None)
+
+    with pytest.raises(ValueError) as exc_info:
+        wait_for_health(reserved_unreachable_local_url, mock_proc, timeout=1, debug=True)
+
+    msg = str(exc_info.value)
+    assert "--debug" not in msg, "Debug mode error must not tell user to re-run with --debug"
+    assert "above" in msg.lower() or "output" in msg.lower(), (
+        f"Debug mode error should reference checking output above; got: {msg!r}"
+    )

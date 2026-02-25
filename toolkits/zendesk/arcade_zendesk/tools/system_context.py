@@ -1,5 +1,12 @@
 from typing import Annotated, Any
 
+from arcade_mcp_server.metadata import (
+    Behavior,
+    Classification,
+    Operation,
+    ServiceDomain,
+    ToolMetadata,
+)
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import OAuth2
 
@@ -9,6 +16,18 @@ from arcade_zendesk.who_am_i_util import build_who_am_i_response
 @tool(
     requires_auth=OAuth2(id="zendesk", scopes=["read"]),
     requires_secrets=["ZENDESK_SUBDOMAIN"],
+    metadata=ToolMetadata(
+        classification=Classification(
+            service_domains=[ServiceDomain.CUSTOMER_SUPPORT],
+        ),
+        behavior=Behavior(
+            operations=[Operation.READ],
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=True,
+        ),
+    ),
 )
 async def who_am_i(
     context: ToolContext,

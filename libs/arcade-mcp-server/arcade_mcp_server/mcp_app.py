@@ -17,6 +17,10 @@ from typing import Any, Callable, Literal, ParamSpec, TypeVar, cast
 
 from arcade_core.catalog import MaterializedTool, ToolCatalog, ToolDefinitionError
 from arcade_core.metadata import ToolMetadata
+from arcade_core.subprocess_utils import (
+    get_windows_no_window_creationflags,
+    graceful_terminate_process,
+)
 from arcade_tdk.auth import ToolAuthorization
 from arcade_tdk.error_adapters import ErrorAdapter
 from arcade_tdk.tool import tool as tool_decorator
@@ -370,15 +374,27 @@ class MCPApp:
             env = os.environ.copy()
             env["ARCADE_MCP_CHILD_PROCESS"] = "1"
 
+            creationflags = get_windows_no_window_creationflags(new_process_group=True)
+
             return subprocess.Popen(
                 [sys.executable, *sys.argv],
                 env=env,
+                creationflags=creationflags,
             )
 
         def shutdown_server_process(process: subprocess.Popen, reason: str = "reload") -> None:
-            """Shutdown server process gracefully with fallback to force kill."""
+            """Shutdown server process gracefully with fallback to force kill.
+
+            On Windows, ``process.terminate()`` calls ``TerminateProcess`` which
+            kills the child immediately — there is no graceful shutdown.  To
+            allow the child to clean up we first try sending ``CTRL_BREAK_EVENT``
+            (requires ``CREATE_NEW_PROCESS_GROUP``), which Python's default
+            ``SIGINT`` handler will catch as ``KeyboardInterrupt``.  If that
+            doesn't work we fall back to ``terminate()`` / ``kill()``.
+            """
             logger.info(f"Shutting down server for {reason}...")
-            process.terminate()
+
+            graceful_terminate_process(process)
 
             try:
                 process.wait(timeout=5)

@@ -7,6 +7,7 @@ from importlib import metadata
 from typing import Any
 
 import typer
+from arcade_cli.console import console
 from arcade_cli.usage.constants import (
     EVENT_CLI_COMMAND_EXECUTED,
     EVENT_CLI_COMMAND_FAILED,
@@ -27,11 +28,8 @@ from arcade_core.usage.constants import (
     PROP_RUNTIME_LANGUAGE,
     PROP_RUNTIME_VERSION,
 )
-from rich.console import Console
 from typer.core import TyperCommand, TyperGroup
 from typer.models import Context
-
-console = Console()
 
 
 class CommandTracker:

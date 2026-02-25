@@ -1,18 +1,15 @@
 import httpx
 import typer
 from arcade_core.constants import PROD_ENGINE_HOST
-from rich.console import Console
 from rich.table import Table
 
+from arcade_cli.console import console
 from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
     compute_base_url,
     get_auth_headers,
     get_org_scoped_url,
 )
-
-console = Console()
-
 
 app = TrackedTyper(
     cls=TrackedTyperGroup,
@@ -166,7 +163,6 @@ def print_secret_table(secrets: list[dict]) -> None:
     table.add_column("Key", style="cyan")
     table.add_column("Type", style="green")
     table.add_column("Description", style="green")
-    table.add_column("Hint", style="green")
     table.add_column("Last Accessed", style="green")
     table.add_column("Created At", style="green")
     for secret in secrets:
@@ -174,7 +170,6 @@ def print_secret_table(secrets: list[dict]) -> None:
             secret["key"],
             secret["binding"]["type"],
             secret["description"],
-            "..." + secret["hint"] if secret["hint"] else "-",
             secret["last_accessed_at"] if secret["last_accessed_at"] else "Never",
             secret["created_at"],
         )
@@ -184,7 +179,7 @@ def print_secret_table(secrets: list[dict]) -> None:
 def load_env_file(env_file_path: str) -> dict[str, str]:
     """Load tool secrets from a .env file."""
     secrets = {}
-    with open(env_file_path) as file:
+    with open(env_file_path, encoding="utf-8") as file:
         for line in file:
             line = line.strip()
             if line.startswith("#") or not line:
