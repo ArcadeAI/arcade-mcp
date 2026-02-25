@@ -1,8 +1,8 @@
 from typing import Annotated, Any
 
+from arcade_mcp_server import Context, tool
+from arcade_mcp_server.exceptions import RetryableToolError
 from arcade_mcp_server.metadata import Behavior, Operation, ToolMetadata
-from arcade_tdk import ToolContext, tool
-from arcade_tdk.errors import RetryableToolError
 from sqlalchemy import inspect, text
 from sqlalchemy.ext.asyncio import AsyncEngine
 
@@ -22,7 +22,7 @@ from ..database_engine import MAX_ROWS_RETURNED, DatabaseEngine
     ),
 )
 async def discover_schemas(
-    context: ToolContext,
+    context: Context,
 ) -> list[str]:
     """Discover all the schemas in the postgres database."""
     async with await DatabaseEngine.get_engine(
@@ -45,7 +45,7 @@ async def discover_schemas(
     ),
 )
 async def discover_tables(
-    context: ToolContext,
+    context: Context,
     schema_name: Annotated[
         str, "The database schema to discover tables in (default value: 'public')"
     ] = "public",
@@ -74,7 +74,7 @@ async def discover_tables(
     ),
 )
 async def get_table_schema(
-    context: ToolContext,
+    context: Context,
     schema_name: Annotated[str, "The database schema to get the table schema of"],
     table_name: Annotated[str, "The table to get the schema of"],
 ) -> list[str]:
@@ -102,7 +102,7 @@ async def get_table_schema(
     ),
 )
 async def execute_select_query(
-    context: ToolContext,
+    context: Context,
     select_clause: Annotated[
         str,
         "This is the part of the SQL query that comes after the SELECT keyword wish a comma separated list of columns you wish to return.  Do not include the SELECT keyword.",

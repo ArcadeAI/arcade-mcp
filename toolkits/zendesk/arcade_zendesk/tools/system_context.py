@@ -1,5 +1,7 @@
 from typing import Annotated, Any
 
+from arcade_mcp_server import Context, tool
+from arcade_mcp_server.auth import OAuth2
 from arcade_mcp_server.metadata import (
     Behavior,
     Classification,
@@ -7,8 +9,6 @@ from arcade_mcp_server.metadata import (
     ServiceDomain,
     ToolMetadata,
 )
-from arcade_tdk import ToolContext, tool
-from arcade_tdk.auth import OAuth2
 
 from arcade_zendesk.who_am_i_util import build_who_am_i_response
 
@@ -30,7 +30,7 @@ from arcade_zendesk.who_am_i_util import build_who_am_i_response
     ),
 )
 async def who_am_i(
-    context: ToolContext,
+    context: Context,
 ) -> Annotated[
     dict[str, Any],
     "Get comprehensive user profile and Zendesk account information.",

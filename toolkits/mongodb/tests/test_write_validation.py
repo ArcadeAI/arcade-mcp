@@ -1,18 +1,16 @@
+from unittest.mock import MagicMock
+
 import pytest
+from arcade_mcp_server.exceptions import RetryableToolError
 from arcade_mongodb.tools.mongodb import aggregate_documents, count_documents, find_documents
-from arcade_tdk import ToolContext, ToolSecretItem
-from arcade_tdk.errors import RetryableToolError
 
 from .conftest import TEST_MONGODB_CONNECTION_STRING
 
 
 @pytest.fixture
 def mock_context():
-    context = ToolContext()
-    context.secrets = []
-    context.secrets.append(
-        ToolSecretItem(key="MONGODB_CONNECTION_STRING", value=TEST_MONGODB_CONNECTION_STRING)
-    )
+    context = MagicMock()
+    context.get_secret = MagicMock(return_value=TEST_MONGODB_CONNECTION_STRING)
     return context
 
 

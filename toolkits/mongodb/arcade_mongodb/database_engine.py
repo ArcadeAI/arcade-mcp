@@ -1,6 +1,6 @@
 from typing import Any, ClassVar
 
-from arcade_tdk.errors import RetryableToolError
+from arcade_mcp_server.exceptions import RetryableToolError
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from pymongo.errors import ServerSelectionTimeoutError
 

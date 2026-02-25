@@ -1,8 +1,10 @@
 import os
 from os import environ
+from unittest.mock import MagicMock
 
 import pytest
 import pytest_asyncio
+from arcade_mcp_server.exceptions import RetryableToolError
 from arcade_postgres.tools.postgres import (
     DatabaseEngine,
     discover_schemas,
@@ -10,8 +12,6 @@ from arcade_postgres.tools.postgres import (
     execute_select_query,
     get_table_schema,
 )
-from arcade_tdk import ToolContext, ToolSecretItem
-from arcade_tdk.errors import RetryableToolError
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
 
@@ -23,14 +23,8 @@ POSTGRES_DATABASE_CONNECTION_STRING = (
 
 @pytest.fixture
 def mock_context():
-    context = ToolContext()
-    context.secrets = []
-    context.secrets.append(
-        ToolSecretItem(
-            key="POSTGRES_DATABASE_CONNECTION_STRING", value=POSTGRES_DATABASE_CONNECTION_STRING
-        )
-    )
-
+    context = MagicMock()
+    context.get_secret = MagicMock(return_value=POSTGRES_DATABASE_CONNECTION_STRING)
     return context
 
 

@@ -5,6 +5,7 @@ from typing import Annotated, Any, cast
 
 import requests
 from arcade_core.errors import RetryableToolError
+from arcade_mcp_server import Context, tool
 from arcade_mcp_server.metadata import (
     Behavior,
     Classification,
@@ -12,7 +13,6 @@ from arcade_mcp_server.metadata import (
     ServiceDomain,
     ToolMetadata,
 )
-from arcade_tdk import ToolContext, tool
 
 from arcade_brightdata.bright_data_client import BrightDataClient
 
@@ -74,7 +74,7 @@ class SourceType(str, Enum):
     ),
 )
 def scrape_as_markdown(
-    context: ToolContext,
+    context: Context,
     url: Annotated[str, "URL to scrape"],
 ) -> Annotated[str, "Scraped webpage content as Markdown"]:
     """
@@ -108,7 +108,7 @@ def scrape_as_markdown(
     ),
 )
 def search_engine(  # noqa: C901
-    context: ToolContext,
+    context: Context,
     query: Annotated[str, "Search query"],
     engine: Annotated[SearchEngine, "Search engine to use"] = SearchEngine.GOOGLE,
     language: Annotated[str | None, "Two-letter language code"] = None,
@@ -218,7 +218,7 @@ def search_engine(  # noqa: C901
     ),
 )
 def web_data_feed(
-    context: ToolContext,
+    context: Context,
     source_type: Annotated[SourceType, "Type of data source"],
     url: Annotated[str, "URL of the web resource to extract data from"],
     num_of_reviews: Annotated[

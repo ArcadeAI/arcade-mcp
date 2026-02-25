@@ -2,6 +2,9 @@ import logging
 from typing import Annotated, Any
 
 import httpx
+from arcade_mcp_server import Context, tool
+from arcade_mcp_server.auth import OAuth2
+from arcade_mcp_server.exceptions import RetryableToolError
 from arcade_mcp_server.metadata import (
     Behavior,
     Classification,
@@ -9,9 +12,6 @@ from arcade_mcp_server.metadata import (
     ServiceDomain,
     ToolMetadata,
 )
-from arcade_tdk import ToolContext, tool
-from arcade_tdk.auth import OAuth2
-from arcade_tdk.errors import RetryableToolError
 
 from arcade_zendesk.enums import ArticleSortBy, SortOrder
 from arcade_zendesk.utils import (
@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
     ),
 )
 async def search_articles(
-    context: ToolContext,
+    context: Context,
     query: Annotated[
         str | None,
         "Search text to match against articles. Supports quoted expressions for exact matching",

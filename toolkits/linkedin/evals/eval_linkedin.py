@@ -1,3 +1,4 @@
+from arcade_core import ToolCatalog
 from arcade_evals import (
     EvalRubric,
     EvalSuite,
@@ -5,7 +6,6 @@ from arcade_evals import (
     SimilarityCritic,
     tool_eval,
 )
-from arcade_tdk import ToolCatalog
 
 import arcade_linkedin
 from arcade_linkedin.tools.share import create_text_post

@@ -1,6 +1,7 @@
 # RUN ME WITH `uv run arcade evals evals --host api.arcade.dev`
 
 import arcade_mongodb
+from arcade_core import ToolCatalog
 from arcade_evals import (
     BinaryCritic,
     EvalRubric,
@@ -17,7 +18,6 @@ from arcade_mongodb.tools.mongodb import (
     find_documents,
     get_collection_schema,
 )
-from arcade_tdk import ToolCatalog
 
 # Evaluation rubric
 rubric = EvalRubric(

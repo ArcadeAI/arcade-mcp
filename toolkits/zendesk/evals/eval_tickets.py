@@ -1,3 +1,4 @@
+from arcade_core import ToolCatalog
 from arcade_evals import (
     BinaryCritic,
     EvalRubric,
@@ -6,7 +7,6 @@ from arcade_evals import (
     SimilarityCritic,
     tool_eval,
 )
-from arcade_tdk import ToolCatalog
 
 import arcade_zendesk
 from arcade_zendesk.enums import SortOrder, TicketStatus

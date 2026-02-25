@@ -1,13 +1,12 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from arcade_tdk import ToolContext
 
 
 @pytest.fixture
 def mock_context():
     """Standard mock context fixture used across all arcade toolkits."""
-    context = MagicMock(spec=ToolContext)
+    context = MagicMock()
 
     context.get_auth_token_or_empty = MagicMock(return_value="fake-token")
     context.get_secret = MagicMock()

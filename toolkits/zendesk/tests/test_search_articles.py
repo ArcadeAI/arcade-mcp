@@ -1,5 +1,5 @@
 import pytest
-from arcade_tdk.errors import RetryableToolError, ToolExecutionError
+from arcade_mcp_server.exceptions import RetryableToolError, ToolExecutionError
 
 from arcade_zendesk.enums import ArticleSortBy, SortOrder
 from arcade_zendesk.tools.search_articles import search_articles

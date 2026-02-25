@@ -8,7 +8,6 @@ version = "0.2.0"
 description = "Tools to query and explore a MongoDB database"
 requires-python = ">=3.10"
 dependencies = [
-    "arcade-tdk>=3.0.0,<4.0.0",
     "arcade-mcp-server>=1.17.0,<2.0.0",
     "pymongo>=4.10.1",
     "pydantic>=2.11.7",
@@ -18,11 +17,9 @@ dependencies = [
 name = "evantahler"
 email = "support@arcade.dev"
 
-
 [project.optional-dependencies]
 dev = [
     "arcade-mcp[all]>=1.2.0,<2.0.0",
-    "arcade-serve>=3.0.0,<4.0.0",
     "pytest>=8.3.0,<8.4.0",
     "pytest-cov>=4.0.0,<4.1.0",
     "pytest-mock>=3.11.1,<3.12.0",
@@ -33,13 +30,14 @@ dev = [
     "ruff>=0.7.4,<0.8.0",
 ]
 
+[project.scripts]
+arcade-mongodb = "arcade_mongodb.__main__:main"
+arcade_mongodb = "arcade_mongodb.__main__:main"
+
 # Use local path sources for arcade libs when working locally
 [tool.uv.sources]
 arcade-mcp = { path = "../../", editable = true }
-arcade-serve = { path = "../../libs/arcade-serve/", editable = true }
-arcade-tdk = { path = "../../libs/arcade-tdk/", editable = true }
 arcade-mcp-server = { path = "../../libs/arcade-mcp-server/", editable = true }
-
 
 [tool.mypy]
 files = [ "arcade_mongodb/**/*.py",]

@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 from typing import Any
 
-from arcade_tdk.errors import RetryableToolError
+from arcade_mcp_server.exceptions import RetryableToolError
 from bson import ObjectId
 
 

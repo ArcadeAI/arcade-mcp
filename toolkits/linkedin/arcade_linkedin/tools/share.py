@@ -1,5 +1,8 @@
 from typing import Annotated
 
+from arcade_mcp_server import Context, tool
+from arcade_mcp_server.auth import LinkedIn
+from arcade_mcp_server.exceptions import ToolExecutionError
 from arcade_mcp_server.metadata import (
     Behavior,
     Classification,
@@ -7,9 +10,6 @@ from arcade_mcp_server.metadata import (
     ServiceDomain,
     ToolMetadata,
 )
-from arcade_tdk import ToolContext, tool
-from arcade_tdk.auth import LinkedIn
-from arcade_tdk.errors import ToolExecutionError
 
 from arcade_linkedin.tools.utils import _handle_linkedin_api_error, _send_linkedin_request
 
@@ -32,7 +32,7 @@ from arcade_linkedin.tools.utils import _handle_linkedin_api_error, _send_linked
     ),
 )
 async def create_text_post(
-    context: ToolContext,
+    context: Context,
     text: Annotated[str, "The text content of the post"],
 ) -> Annotated[str, "URL of the shared post"]:
     """Share a new text post to LinkedIn."""
