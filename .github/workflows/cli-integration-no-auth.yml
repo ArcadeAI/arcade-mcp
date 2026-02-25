@@ -1,0 +1,39 @@
+name: CLI Integration (No Auth)
+
+on:
+    pull_request:
+        branches: [main]
+    push:
+        branches: [main]
+    workflow_dispatch:
+
+jobs:
+    cli-integration-no-auth:
+        name: CLI Integration No-Auth (${{ matrix.os }}, Python ${{ matrix.python-version }})
+        runs-on: ${{ matrix.os }}
+        timeout-minutes: 35
+        env:
+            ARCADE_USAGE_TRACKING: "0"
+
+        strategy:
+            matrix:
+                os: [ubuntu-latest, windows-latest, macos-latest]
+                python-version: ["3.10", "3.11", "3.12"]
+            fail-fast: false
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Set up environment
+              uses: ./.github/actions/setup-uv-env
+              with:
+                  python-version: ${{ matrix.python-version }}
+
+            - name: Install arcade-mcp from source
+              run: |
+                  uv pip install -e .
+
+            - name: Run no-auth CLI smoke checks
+              run: |
+                  uv run python tests/integration/no_auth_cli_smoke.py

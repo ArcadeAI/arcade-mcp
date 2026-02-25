@@ -39,6 +39,22 @@ class CapturedToolCall:
 
 
 @dataclass
+class CapturedRun:
+    """
+    A single capture run for a case, containing tool calls.
+
+    Attributes:
+        tool_calls: List of tool calls made by the model in this run.
+    """
+
+    tool_calls: list[CapturedToolCall] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to dictionary for JSON serialization."""
+        return {"tool_calls": [tc.to_dict() for tc in self.tool_calls]}
+
+
+@dataclass
 class CapturedCase:
     """
     Result of running a single case in capture mode.
@@ -50,6 +66,7 @@ class CapturedCase:
         system_message: The system message (included if include_context is True).
         additional_messages: Additional messages (included if include_context is True).
         track_name: The track name for comparative captures (None for regular cases).
+        runs: Optional list of runs (populated when num_runs > 1).
     """
 
     case_name: str
@@ -58,6 +75,7 @@ class CapturedCase:
     system_message: str | None = None
     additional_messages: list[dict[str, Any]] | None = None
     track_name: str | None = None
+    runs: list[CapturedRun] = field(default_factory=list)
 
     @staticmethod
     def _try_parse_json(value: str) -> Any:
@@ -109,6 +127,8 @@ class CapturedCase:
             "user_message": self.user_message,
             "tool_calls": [tc.to_dict() for tc in self.tool_calls],
         }
+        if self.runs:
+            result["runs"] = [run.to_dict() for run in self.runs]
         if self.track_name:
             result["track_name"] = self.track_name
         if include_context:
@@ -151,7 +171,7 @@ class CaptureResult:
 
     def write_to_file(self, file_path: str, include_context: bool = False, indent: int = 2) -> None:
         """Write capture results to a JSON file."""
-        with open(file_path, "w") as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             f.write(self.to_json(include_context, indent))
 
 
@@ -159,17 +179,32 @@ class CaptureResult:
 
 
 async def _capture_with_openai(
-    suite: EvalSuite, api_key: str, model: str, include_context: bool = False
+    suite: EvalSuite,
+    api_key: str,
+    model: str,
+    include_context: bool = False,
+    num_runs: int = 1,
+    seed: str | int | None = "constant",
 ) -> CaptureResult:
     """Run capture mode with OpenAI client."""
     async with AsyncOpenAI(api_key=api_key) as client:
         return await suite.capture(
-            client, model, provider="openai", include_context=include_context
+            client,
+            model,
+            provider="openai",
+            include_context=include_context,
+            num_runs=num_runs,
+            seed=seed,
         )
 
 
 async def _capture_with_anthropic(
-    suite: EvalSuite, api_key: str, model: str, include_context: bool = False
+    suite: EvalSuite,
+    api_key: str,
+    model: str,
+    include_context: bool = False,
+    num_runs: int = 1,
+    seed: str | int | None = "constant",
 ) -> CaptureResult:
     """Run capture mode with Anthropic client."""
     try:
@@ -182,5 +217,10 @@ async def _capture_with_anthropic(
 
     async with AsyncAnthropic(api_key=api_key) as client:
         return await suite.capture(
-            client, model, provider="anthropic", include_context=include_context
+            client,
+            model,
+            provider="anthropic",
+            include_context=include_context,
+            num_runs=num_runs,
+            seed=seed,
         )

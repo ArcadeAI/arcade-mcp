@@ -1,10 +1,20 @@
 import math
 from typing import Annotated
 
+from arcade_mcp_server.metadata import Behavior, ToolMetadata
 from arcade_tdk import tool
 
 
-@tool
+@tool(
+    metadata=ToolMetadata(
+        behavior=Behavior(
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=False,
+        ),
+    ),
+)
 def gcd(
     a: Annotated[str, "First integer as a string"],
     b: Annotated[str, "Second integer as a string"],
@@ -15,7 +25,16 @@ def gcd(
     return str(math.gcd(int(a), int(b)))
 
 
-@tool
+@tool(
+    metadata=ToolMetadata(
+        behavior=Behavior(
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=False,
+        ),
+    ),
+)
 def lcm(
     a: Annotated[str, "First integer as a string"],
     b: Annotated[str, "Second integer as a string"],

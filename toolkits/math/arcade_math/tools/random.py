@@ -1,10 +1,20 @@
 import random
 from typing import Annotated
 
+from arcade_mcp_server.metadata import Behavior, ToolMetadata
 from arcade_tdk import tool
 
 
-@tool
+@tool(
+    metadata=ToolMetadata(
+        behavior=Behavior(
+            read_only=True,
+            destructive=False,
+            idempotent=False,
+            open_world=False,
+        ),
+    ),
+)
 def generate_random_int(
     min_value: Annotated[str, "The minimum value of the random integer as a string"],
     max_value: Annotated[str, "The maximum value of the random integer as a string"],
@@ -21,7 +31,16 @@ def generate_random_int(
     return str(random.randint(int(min_value), int(max_value)))  # noqa: S311
 
 
-@tool
+@tool(
+    metadata=ToolMetadata(
+        behavior=Behavior(
+            read_only=True,
+            destructive=False,
+            idempotent=False,
+            open_world=False,
+        ),
+    ),
+)
 def generate_random_float(
     min_value: Annotated[str, "The minimum value of the random float as a string"],
     max_value: Annotated[str, "The maximum value of the random float as a string"],

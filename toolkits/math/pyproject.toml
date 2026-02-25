@@ -4,11 +4,12 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade_math"
-version = "1.0.5"
+version = "1.1.0"
 description = "Arcade.dev LLM tools for doing math"
 requires-python = ">=3.10"
 dependencies = [
     "arcade-tdk>=3.0.0,<4.0.0",
+    "arcade-mcp-server>=1.17.0,<2.0.0",
 ]
 [[project.authors]]
 name = "Arcade"
@@ -33,6 +34,7 @@ dev = [
 arcade-mcp = {path = "../../", editable = true}
 arcade-tdk = { path = "../../libs/arcade-tdk/", editable = true }
 arcade-serve = { path = "../../libs/arcade-serve/", editable = true }
+arcade-mcp-server = { path = "../../libs/arcade-mcp-server/", editable = true }
 
 [tool.mypy]
 files = [ "arcade_math/**/*.py",]

@@ -21,19 +21,10 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v4
 
-            - name: Install uv
-              uses: astral-sh/setup-uv@v5
-              with:
-                  version: "latest"
-
-            - name: Set up Python ${{ matrix.python-version }}
-              uses: actions/setup-python@v5
+            - name: Set up environment
+              uses: ./.github/actions/setup-uv-env
               with:
                   python-version: ${{ matrix.python-version }}
-
-            - name: Install dependencies
-              run: |
-                  uv sync --dev
 
             - name: Install arcade-mcp from source
               run: |
@@ -41,7 +32,7 @@ jobs:
 
             - name: Run installation test
               run: |
-                  python tests/install/test_install.py
+                  uv run pytest tests/install/ -v --tb=short
 
             - name: Verify arcade CLI is available
               run: |

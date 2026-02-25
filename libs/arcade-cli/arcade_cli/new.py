@@ -7,11 +7,9 @@ from typing import Optional
 
 import typer
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-from rich.console import Console
 
+from arcade_cli.console import console
 from arcade_cli.templates import get_full_template_directory, get_minimal_template_directory
-
-console = Console()
 
 # Retrieve the installed version of arcade-mcp
 try:
@@ -19,14 +17,14 @@ try:
     ARCADE_MCP_MAX_VERSION = str(int(ARCADE_MCP_MIN_VERSION.split(".")[0]) + 1) + ".0.0"
 except Exception as e:
     console.print(f"[red]Failed to get arcade-mcp version: {e}[/red]")
-    ARCADE_MCP_MIN_VERSION = "1.9.0"  # Default version if unable to fetch
+    ARCADE_MCP_MIN_VERSION = "1.10.0"  # Default version if unable to fetch
     ARCADE_MCP_MAX_VERSION = "2.0.0"
 
-ARCADE_TDK_MIN_VERSION = "3.2.2"
+ARCADE_TDK_MIN_VERSION = "3.6.0"
 ARCADE_TDK_MAX_VERSION = "4.0.0"
 ARCADE_SERVE_MIN_VERSION = "3.1.5"
 ARCADE_SERVE_MAX_VERSION = "4.0.0"
-ARCADE_MCP_SERVER_MIN_VERSION = "1.15.0"
+ARCADE_MCP_SERVER_MIN_VERSION = "1.17.0"
 ARCADE_MCP_SERVER_MAX_VERSION = "2.0.0"
 
 
@@ -144,7 +142,11 @@ def remove_toolkit(toolkit_directory: Path, toolkit_name: str) -> None:
     """Teardown logic for when creating a new toolkit fails."""
     toolkit_path = toolkit_directory / toolkit_name
     if toolkit_path.exists():
-        shutil.rmtree(toolkit_path)
+        try:
+            shutil.rmtree(toolkit_path)
+        except (PermissionError, OSError) as e:
+            # On Windows, files may still be locked by another process.
+            console.print(f"[yellow]Warning: Could not fully remove '{toolkit_path}': {e}[/yellow]")
 
 
 def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
@@ -224,6 +226,15 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
         console.print(
             f"[green]Toolkit '{toolkit_name}' created successfully at '{toolkit_directory}'.[/green]"
         )
+        console.print("\nNext steps:", style="bold")
+        console.print(f"  cd {toolkit_directory / toolkit_name}")
+        console.print("")
+        console.print("  Run with stdio transport (for MCP clients):", style="dim")
+        console.print("    uv run server.py")
+        console.print("")
+        console.print("  Run with HTTP transport (for development/testing):", style="dim")
+        console.print("    uv run server.py --transport http --port 8000")
+        console.print("")
         create_deployment(toolkit_directory, toolkit_name)
     except Exception:
         remove_toolkit(toolkit_directory, toolkit_name)
@@ -271,9 +282,20 @@ def create_new_toolkit_minimal(output_directory: str, toolkit_name: str) -> None
 
     try:
         create_package(env, template_directory, toolkit_directory, context, ignore_pattern)
+        console.print("")
         console.print(
             f"[green]Server '{toolkit_name}' created successfully at '{toolkit_directory}'.[/green]"
         )
+        server_dir = toolkit_directory / toolkit_name / "src" / toolkit_name
+        console.print("\nNext steps:", style="bold")
+        console.print(f"  cd {server_dir}")
+        console.print("")
+        console.print("  Run with stdio transport (for MCP clients):", style="dim")
+        console.print("    uv run server.py")
+        console.print("")
+        console.print("  Run with HTTP transport (for development/testing):", style="dim")
+        console.print("    uv run server.py --transport http --port 8000")
+        console.print("")
     except Exception:
         remove_toolkit(toolkit_directory, toolkit_name)
         raise

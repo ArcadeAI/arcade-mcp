@@ -57,6 +57,20 @@ def _create_mock_capture_result(
         # Explicitly set track_name to None unless specified (avoids MagicMock)
         case.track_name = case_data.get("track_name")
 
+        # Create mock runs if provided
+        runs = []
+        for run_data in case_data.get("runs", []):
+            run = MagicMock()
+            run_tool_calls = []
+            for tc_data in run_data.get("tool_calls", []):
+                tc = MagicMock()
+                tc.name = tc_data["name"]
+                tc.args = tc_data.get("args", {})
+                run_tool_calls.append(tc)
+            run.tool_calls = run_tool_calls
+            runs.append(run)
+        case.runs = runs
+
         # Create mock tool calls
         tool_calls = []
         for tc_data in case_data.get("tool_calls", []):
@@ -84,6 +98,11 @@ def _create_mock_capture_result(
                 "user_message": case.user_message,
                 "tool_calls": [{"name": tc.name, "args": tc.args} for tc in case.tool_calls],
             }
+            if case.runs:
+                case_dict["runs"] = [
+                    {"tool_calls": [{"name": tc.name, "args": tc.args} for tc in run.tool_calls]}
+                    for run in case.runs
+                ]
             if include_context:
                 case_dict["system_message"] = case.system_message
                 case_dict["additional_messages"] = case.additional_messages
@@ -169,6 +188,29 @@ class TestCaptureJsonFormatter:
         assert len(case["tool_calls"]) == 1
         assert case["tool_calls"][0]["name"] == "GetWeather"
         assert case["tool_calls"][0]["args"]["city"] == "NYC"
+
+    def test_format_includes_runs(self) -> None:
+        """Test that runs are included when present."""
+        formatter = CaptureJsonFormatter()
+        capture = _create_mock_capture_result(
+            cases=[
+                {
+                    "case_name": "multi_run_case",
+                    "user_message": "Hello",
+                    "tool_calls": [],
+                    "runs": [
+                        {"tool_calls": [{"name": "A", "args": {"x": 1}}]},
+                        {"tool_calls": [{"name": "B", "args": {"x": 2}}]},
+                    ],
+                }
+            ]
+        )
+
+        output = formatter.format([capture])
+        parsed = json.loads(output)
+        runs = parsed["captures"][0]["captured_cases"][0]["runs"]
+        assert len(runs) == 2
+        assert runs[0]["tool_calls"][0]["name"] == "A"
 
     def test_format_with_context(self) -> None:
         """Test formatting with context included."""
@@ -308,6 +350,28 @@ class TestCaptureMarkdownFormatter:
         assert "## Summary" in output
         assert "**Total Cases:** 1" in output
         assert "**Total Tool Calls:** 1" in output
+
+    def test_format_includes_runs(self) -> None:
+        """Should include per-run tool calls when runs are present."""
+        formatter = CaptureMarkdownFormatter()
+        capture = _create_mock_capture_result(
+            cases=[
+                {
+                    "case_name": "multi_run_case",
+                    "user_message": "Hello",
+                    "tool_calls": [],
+                    "runs": [
+                        {"tool_calls": [{"name": "GetWeather", "args": {"city": "NYC"}}]},
+                        {"tool_calls": [{"name": "GetWeather", "args": {"city": "SF"}}]},
+                    ],
+                }
+            ]
+        )
+
+        output = formatter.format([capture])
+        assert "Run 1" in output
+        assert "Run 2" in output
+        assert "`GetWeather`" in output
 
 
 class TestCaptureHtmlFormatter:
@@ -607,14 +671,26 @@ class TestMultiModelTextCaptureFormatter:
     def test_text_multi_model_output(self) -> None:
         """Should produce multi-model text output."""
         capture1 = _create_mock_capture_result(
-            suite_name="TestSuite", model="gpt-4o", cases=[
-                {"case_name": "case1", "user_message": "Hi", "tool_calls": [{"name": "Tool1", "args": {}}]}
-            ]
+            suite_name="TestSuite",
+            model="gpt-4o",
+            cases=[
+                {
+                    "case_name": "case1",
+                    "user_message": "Hi",
+                    "tool_calls": [{"name": "Tool1", "args": {}}],
+                }
+            ],
         )
         capture2 = _create_mock_capture_result(
-            suite_name="TestSuite", model="gpt-4-turbo", cases=[
-                {"case_name": "case1", "user_message": "Hi", "tool_calls": [{"name": "Tool2", "args": {}}]}
-            ]
+            suite_name="TestSuite",
+            model="gpt-4-turbo",
+            cases=[
+                {
+                    "case_name": "case1",
+                    "user_message": "Hi",
+                    "tool_calls": [{"name": "Tool2", "args": {}}],
+                }
+            ],
         )
 
         formatter = CaptureTextFormatter()
@@ -647,14 +723,26 @@ class TestMultiModelHtmlCaptureFormatter:
     def test_html_multi_model_output(self) -> None:
         """Should produce multi-model HTML output."""
         capture1 = _create_mock_capture_result(
-            suite_name="TestSuite", model="gpt-4o", cases=[
-                {"case_name": "case1", "user_message": "Hi", "tool_calls": [{"name": "Tool1", "args": {}}]}
-            ]
+            suite_name="TestSuite",
+            model="gpt-4o",
+            cases=[
+                {
+                    "case_name": "case1",
+                    "user_message": "Hi",
+                    "tool_calls": [{"name": "Tool1", "args": {}}],
+                }
+            ],
         )
         capture2 = _create_mock_capture_result(
-            suite_name="TestSuite", model="gpt-4-turbo", cases=[
-                {"case_name": "case1", "user_message": "Hi", "tool_calls": [{"name": "Tool2", "args": {}}]}
-            ]
+            suite_name="TestSuite",
+            model="gpt-4-turbo",
+            cases=[
+                {
+                    "case_name": "case1",
+                    "user_message": "Hi",
+                    "tool_calls": [{"name": "Tool2", "args": {}}],
+                }
+            ],
         )
 
         formatter = CaptureHtmlFormatter()
@@ -687,14 +775,26 @@ class TestMultiModelJsonCaptureFormatter:
     def test_json_multi_model_output(self) -> None:
         """Should produce structured multi-model JSON."""
         capture1 = _create_mock_capture_result(
-            suite_name="TestSuite", model="gpt-4o", cases=[
-                {"case_name": "case1", "user_message": "Hi", "tool_calls": [{"name": "Tool1", "args": {}}]}
-            ]
+            suite_name="TestSuite",
+            model="gpt-4o",
+            cases=[
+                {
+                    "case_name": "case1",
+                    "user_message": "Hi",
+                    "tool_calls": [{"name": "Tool1", "args": {}}],
+                }
+            ],
         )
         capture2 = _create_mock_capture_result(
-            suite_name="TestSuite", model="gpt-4-turbo", cases=[
-                {"case_name": "case1", "user_message": "Hi", "tool_calls": [{"name": "Tool2", "args": {}}]}
-            ]
+            suite_name="TestSuite",
+            model="gpt-4-turbo",
+            cases=[
+                {
+                    "case_name": "case1",
+                    "user_message": "Hi",
+                    "tool_calls": [{"name": "Tool2", "args": {}}],
+                }
+            ],
         )
 
         formatter = CaptureJsonFormatter()
@@ -795,6 +895,7 @@ def _create_mock_capture_with_tracks(
             mock_tc.args = tc["args"]
             mock_tool_calls.append(mock_tc)
         mock_case.tool_calls = mock_tool_calls
+        mock_case.runs = []  # Explicitly set runs to empty for single-run captures
 
         captured_cases.append(mock_case)
 
@@ -924,3 +1025,365 @@ class TestCaptureWithTracks:
 
         # Should include track info in markdown
         assert "[track_a]" in output or "track_a" in output
+
+
+# =====================================================================
+# Capture formatter multi-run tests
+# =====================================================================
+
+
+def _create_mock_capture_with_runs(
+    num_runs: int = 3,
+) -> CaptureResult:
+    """Create a mock CaptureResult with multiple runs per case."""
+    cases = [
+        {
+            "case_name": "multi_run_case",
+            "user_message": "What's the weather in NYC?",
+            "tool_calls": [
+                {"name": "GetWeather", "args": {"city": "NYC"}},
+            ],
+            "system_message": "You are a weather assistant",
+            "additional_messages": [],
+            "runs": [
+                {
+                    "tool_calls": [
+                        {"name": "GetWeather", "args": {"city": "NYC", "seed": str(i)}},
+                    ]
+                }
+                for i in range(1, num_runs + 1)
+            ],
+        }
+    ]
+
+    return _create_mock_capture_result(
+        suite_name="MultiRunCaptureSuite",
+        cases=cases,
+    )
+
+
+def _create_mock_capture_no_runs() -> CaptureResult:
+    """Create a mock CaptureResult with a case that has no tool calls and no runs."""
+    cases = [
+        {
+            "case_name": "empty_case",
+            "user_message": "Do nothing",
+            "tool_calls": [],
+            "system_message": None,
+            "additional_messages": [],
+        }
+    ]
+    return _create_mock_capture_result(
+        suite_name="EmptyCaptureSuite",
+        cases=cases,
+    )
+
+
+class TestCaptureMultiRunText:
+    """Tests for multi-run capture in the text formatter."""
+
+    def test_text_shows_run_headers(self) -> None:
+        """Text capture output should show 'Run 1', 'Run 2', etc."""
+        capture = _create_mock_capture_with_runs(num_runs=3)
+        formatter = CaptureTextFormatter()
+        output = formatter.format([capture])
+        assert "Run 1:" in output
+        assert "Run 2:" in output
+        assert "Run 3:" in output
+
+    def test_text_shows_tool_calls_per_run(self) -> None:
+        """Each run should display its tool calls."""
+        capture = _create_mock_capture_with_runs(num_runs=2)
+        formatter = CaptureTextFormatter()
+        output = formatter.format([capture])
+        assert "GetWeather" in output
+
+    def test_text_no_runs_shows_top_level_calls(self) -> None:
+        """When runs is empty, should fall through to top-level tool_calls."""
+        capture = _create_mock_capture_result()  # default: no runs
+        formatter = CaptureTextFormatter()
+        output = formatter.format([capture])
+        assert "GetWeather" in output
+
+    def test_text_empty_case_no_tool_calls(self) -> None:
+        """Case with no tool calls should show appropriate message."""
+        capture = _create_mock_capture_no_runs()
+        formatter = CaptureTextFormatter()
+        output = formatter.format([capture])
+        assert "no tool calls" in output.lower()
+
+
+class TestCaptureMultiRunMarkdown:
+    """Tests for multi-run capture in the markdown formatter."""
+
+    def test_markdown_shows_run_headers(self) -> None:
+        """Markdown capture should show run headers."""
+        capture = _create_mock_capture_with_runs(num_runs=3)
+        formatter = CaptureMarkdownFormatter()
+        output = formatter.format([capture])
+        assert "Run 1" in output
+        assert "Run 2" in output
+        assert "Run 3" in output
+
+    def test_markdown_shows_tool_call_json(self) -> None:
+        """Markdown capture should show tool call args as JSON."""
+        capture = _create_mock_capture_with_runs(num_runs=2)
+        formatter = CaptureMarkdownFormatter()
+        output = formatter.format([capture])
+        assert "```json" in output
+        assert "GetWeather" in output
+
+    def test_markdown_empty_runs_shows_no_calls(self) -> None:
+        """Markdown capture with no tool calls shows appropriate message."""
+        capture = _create_mock_capture_no_runs()
+        formatter = CaptureMarkdownFormatter()
+        output = formatter.format([capture])
+        assert "No tool calls" in output
+
+
+class TestCaptureMultiRunHTML:
+    """Tests for multi-run capture in the HTML formatter."""
+
+    def test_html_shows_capture_run_details(self) -> None:
+        """HTML capture should show capture-run details elements."""
+        capture = _create_mock_capture_with_runs(num_runs=3)
+        formatter = CaptureHtmlFormatter()
+        output = formatter.format([capture])
+        assert "capture-run" in output
+        assert "Run 1" in output
+        assert "Run 2" in output
+        assert "Run 3" in output
+
+    def test_html_tool_calls_escaped(self) -> None:
+        """HTML capture should escape tool call content."""
+        capture = _create_mock_capture_with_runs(num_runs=1)
+        formatter = CaptureHtmlFormatter()
+        output = formatter.format([capture])
+        assert "GetWeather" in output
+
+    def test_html_empty_case_no_calls(self) -> None:
+        """HTML capture with no tool calls shows appropriate message."""
+        capture = _create_mock_capture_no_runs()
+        formatter = CaptureHtmlFormatter()
+        output = formatter.format([capture])
+        assert "No tool calls" in output or "no-calls" in output
+
+
+class TestCaptureMultiRunJSON:
+    """Tests for multi-run capture in the JSON formatter."""
+
+    def test_json_includes_runs_array(self) -> None:
+        """JSON capture should include runs array for multi-run cases."""
+        capture = _create_mock_capture_with_runs(num_runs=3)
+        formatter = CaptureJsonFormatter()
+        output = formatter.format([capture])
+        data = json.loads(output)
+        captures = data["captures"]
+        assert len(captures) == 1
+        case = captures[0]["captured_cases"][0]
+        assert "runs" in case
+        assert len(case["runs"]) == 3
+
+    def test_json_no_runs_for_single_run(self) -> None:
+        """JSON capture should not include runs for single-run cases."""
+        capture = _create_mock_capture_result()  # default: no runs
+        formatter = CaptureJsonFormatter()
+        output = formatter.format([capture])
+        data = json.loads(output)
+        case = data["captures"][0]["captured_cases"][0]
+        assert "runs" not in case
+
+    def test_json_run_tool_calls_structure(self) -> None:
+        """Each run in JSON should have tool_calls with name and args."""
+        capture = _create_mock_capture_with_runs(num_runs=2)
+        formatter = CaptureJsonFormatter()
+        output = formatter.format([capture])
+        data = json.loads(output)
+        run = data["captures"][0]["captured_cases"][0]["runs"][0]
+        assert "tool_calls" in run
+        assert run["tool_calls"][0]["name"] == "GetWeather"
+
+
+# =====================================================================
+# Coverage gap tests — CaptureTextFormatter
+# =====================================================================
+
+
+class TestCaptureTextFormatterCoverageGaps:
+    """Tests for CaptureTextFormatter methods that lacked coverage."""
+
+    def test_format_value_truncation(self) -> None:
+        """_format_value should truncate values longer than 60 chars."""
+        formatter = CaptureTextFormatter()
+        short = formatter._format_value("hello")
+        assert short == "hello"
+
+        long_val = "x" * 100
+        truncated = formatter._format_value(long_val)
+        assert len(truncated) == 60
+        assert truncated.endswith("...")
+
+    def test_format_value_exactly_60(self) -> None:
+        """_format_value should NOT truncate values of exactly 60 chars."""
+        formatter = CaptureTextFormatter()
+        exact = "a" * 60
+        result = formatter._format_value(exact)
+        assert result == exact
+
+    def test_conversation_text_format(self) -> None:
+        """CaptureTextFormatter._format_conversation_text should format messages."""
+        formatter = CaptureTextFormatter()
+        messages = [
+            {"role": "user", "content": "Hello"},
+            {"role": "assistant", "content": "Hi!"},
+            {
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [{"function": {"name": "get_data", "arguments": '{"id": 1}'}}],
+            },
+            {"role": "tool", "name": "get_data", "content": '{"result": "ok"}'},
+        ]
+        lines = formatter._format_conversation_text(messages)
+        text = "\n".join(lines)
+
+        assert "[USER]" in text
+        assert "[ASSISTANT]" in text
+        assert "[TOOL]" in text
+        assert "get_data" in text
+        assert "Hello" in text
+
+    def test_conversation_text_invalid_json_content(self) -> None:
+        """Should gracefully handle non-JSON tool content."""
+        formatter = CaptureTextFormatter()
+        messages = [
+            {"role": "tool", "name": "raw", "content": "plain text output"},
+        ]
+        lines = formatter._format_conversation_text(messages)
+        text = "\n".join(lines)
+
+        assert "plain text output" in text
+
+    def test_conversation_text_invalid_json_args(self) -> None:
+        """Should gracefully handle non-JSON tool call arguments."""
+        formatter = CaptureTextFormatter()
+        messages = [
+            {
+                "role": "assistant",
+                "content": "",
+                "tool_calls": [{"function": {"name": "broken", "arguments": "not json"}}],
+            },
+        ]
+        lines = formatter._format_conversation_text(messages)
+        text = "\n".join(lines)
+
+        assert "broken" in text
+        assert "not json" in text
+
+    def test_conversation_text_separator_between_messages(self) -> None:
+        """Should add separator between messages (not before first)."""
+        formatter = CaptureTextFormatter()
+        messages = [
+            {"role": "user", "content": "First"},
+            {"role": "assistant", "content": "Second"},
+        ]
+        lines = formatter._format_conversation_text(messages)
+        text = "\n".join(lines)
+
+        # Separator should appear between messages
+        assert "----" in text
+
+    def test_multi_model_with_tracks_and_context(self) -> None:
+        """Multi-model capture with tracks should render correctly with context."""
+        capture1 = _create_mock_capture_with_tracks(model="gpt-4o")
+        capture2 = _create_mock_capture_with_tracks(model="gpt-4-turbo")
+
+        formatter = CaptureTextFormatter()
+        output = formatter.format([capture1, capture2], include_context=True)
+
+        assert "MULTI-MODEL CAPTURE RESULTS" in output
+        assert "gpt-4o" in output
+        assert "gpt-4-turbo" in output
+        # Should show track sections
+        assert "TRACK:" in output or "track_a" in output
+
+    def test_multi_model_no_data_model(self) -> None:
+        """Multi-model capture should handle a model with no data for a case."""
+        # Model A has case1, model B has case1 with different tools
+        capture1 = _create_mock_capture_result(
+            suite_name="Suite",
+            model="model-a",
+            cases=[
+                {
+                    "case_name": "case1",
+                    "user_message": "Hi",
+                    "tool_calls": [{"name": "T1", "args": {}}],
+                }
+            ],
+        )
+        capture2 = _create_mock_capture_result(
+            suite_name="Suite",
+            model="model-b",
+            cases=[{"case_name": "case1", "user_message": "Hi", "tool_calls": []}],
+        )
+
+        formatter = CaptureTextFormatter()
+        output = formatter.format([capture1, capture2])
+
+        assert "model-a" in output
+        assert "model-b" in output
+        assert "MULTI-MODEL CAPTURE RESULTS" in output
+
+
+# =====================================================================
+# Coverage gap tests — CaptureMarkdownFormatter
+# =====================================================================
+
+
+class TestCaptureMarkdownFormatterCoverageGaps:
+    """Tests for CaptureMarkdownFormatter methods that lacked coverage."""
+
+    def test_multi_model_with_tracks_and_context(self) -> None:
+        """Multi-model markdown capture with tracks should render correctly."""
+        capture1 = _create_mock_capture_with_tracks(model="gpt-4o")
+        capture2 = _create_mock_capture_with_tracks(model="gpt-4-turbo")
+
+        formatter = CaptureMarkdownFormatter()
+        output = formatter.format([capture1, capture2], include_context=True)
+
+        assert "Multi-Model Capture Results" in output
+        assert "gpt-4o" in output
+        assert "gpt-4-turbo" in output
+
+    def test_conversation_md_standalone(self) -> None:
+        """CaptureMarkdownFormatter._format_conversation_md should format messages."""
+        formatter = CaptureMarkdownFormatter()
+        messages = [
+            {"role": "user", "content": "Hello"},
+            {"role": "assistant", "content": "Hi!"},
+            {
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [{"function": {"name": "search", "arguments": '{"q": "x"}'}}],
+            },
+            {"role": "tool", "name": "search", "content": '{"r": 1}'},
+        ]
+        lines = formatter._format_conversation_md(messages)
+        text = "\n".join(lines)
+
+        assert "👤" in text or "User" in text
+        assert "search" in text
+
+    def test_conversation_md_invalid_json(self) -> None:
+        """Should handle invalid JSON in tool call args."""
+        formatter = CaptureMarkdownFormatter()
+        messages = [
+            {
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [{"function": {"name": "broken", "arguments": "not json"}}],
+            },
+        ]
+        lines = formatter._format_conversation_md(messages)
+        text = "\n".join(lines)
+
+        assert "broken" in text

@@ -1,10 +1,10 @@
 import asyncio
 import base64
 import io
+import logging
 import os
 import random
 import subprocess
-import sys
 import tarfile
 import time
 from collections import deque
@@ -12,17 +12,23 @@ from pathlib import Path
 from typing import cast
 
 import httpx
+from arcade_core.subprocess_utils import (
+    get_windows_no_window_creationflags,
+    graceful_terminate_process,
+)
 from arcade_mcp_server.settings import find_env_file
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 from rich.columns import Columns
-from rich.console import Console, Group
+from rich.console import Group
 from rich.live import Live
 from rich.prompt import Confirm
 from rich.spinner import Spinner
 from rich.text import Text
 from typing_extensions import Literal
 
+from arcade_cli.configure import find_python_interpreter
+from arcade_cli.console import console
 from arcade_cli.secret import load_env_file
 from arcade_cli.utils import (
     compute_base_url,
@@ -31,7 +37,8 @@ from arcade_cli.utils import (
     validate_and_get_config,
 )
 
-console = Console()
+logger = logging.getLogger(__name__)
+
 
 # Models
 
@@ -363,6 +370,37 @@ def create_package_archive(package_dir: Path) -> str:
     return package_bytes_b64
 
 
+def _graceful_terminate(process: subprocess.Popen) -> None:
+    """Terminate a subprocess using shared graceful shutdown semantics."""
+    graceful_terminate_process(process)
+
+
+def _resolve_server_process_stdio(debug: bool) -> tuple[int | None, int | None]:
+    """Choose stdout/stderr targets for the temporary validation server process.
+
+    ``arcade deploy`` starts a short-lived child server to validate the
+    entrypoint before uploading.  The child's stdout/stderr must be handled
+    carefully:
+
+    * **Normal mode** (``debug=False``): the CLI doesn't display child output,
+      so both streams are sent to ``subprocess.DEVNULL``.  This prevents a
+      chatty child from filling the OS pipe buffer and blocking — which
+      manifests as intermittent health-check timeouts, especially on Windows
+      where the default pipe buffer is only 4 KiB.
+    * **Debug mode** (``debug=True``): both streams are inherited from the
+      parent process (``None``), so the user sees live startup logs in their
+      terminal for troubleshooting.
+
+    Returns:
+        ``(stdout_target, stderr_target)`` — each is either
+        ``subprocess.DEVNULL`` or ``None`` (inherit).
+    """
+    if debug:
+        return None, None
+
+    return subprocess.DEVNULL, subprocess.DEVNULL
+
+
 def start_server_process(entrypoint: str, debug: bool = False) -> tuple[subprocess.Popen, int]:
     """
     Start the MCP server process on a random port.
@@ -389,26 +427,46 @@ def start_server_process(entrypoint: str, debug: bool = False) -> tuple[subproce
         "ARCADE_WORKER_SECRET": "temp-validation-secret",
     }
 
-    cmd = [sys.executable, entrypoint]
+    # Use the project's Python environment, not the CLI's isolated environment.
+    # find_python_interpreter() looks for .venv/bin/python in cwd, falling back to sys.executable.
+    # This ensures the server runs in the project's environment even when the CLI is installed
+    # in an isolated environment (e.g., via 'uv tool install arcade-mcp').
+    project_python = find_python_interpreter()
+    cmd = [str(project_python), entrypoint]
+
+    creationflags = get_windows_no_window_creationflags(new_process_group=True)
+
+    stdout_target, stderr_target = _resolve_server_process_stdio(debug)
+
     process = subprocess.Popen(
         cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stdout=stdout_target,
+        stderr=stderr_target,
         text=True,
         env=env,
+        creationflags=creationflags,
     )
 
-    # Check for immediate failure on start up
+    # Check for immediate failure on startup.
+    # stdout/stderr are either DEVNULL (non-debug) or inherited (debug), so
+    # communicate() returns (None, None) in both cases — there is nothing to
+    # capture.  Surface a context-appropriate hint to the user instead.
     time.sleep(0.5)
     if process.poll() is not None:
-        _, stderr = process.communicate()
-        error_msg = stderr.strip() if stderr else "Unknown error"
-        raise ValueError(f"Server process exited immediately: {error_msg}")
+        if debug:
+            raise ValueError(
+                "Server process exited immediately. " "Check the server output above for details."
+            )
+        raise ValueError(
+            "Server process exited immediately. " "Re-run with --debug to see server startup logs."
+        )
 
     return process, port
 
 
-def wait_for_health(base_url: str, process: subprocess.Popen, timeout: int = 30) -> None:
+def wait_for_health(
+    base_url: str, process: subprocess.Popen, timeout: int = 30, debug: bool = False
+) -> None:
     """
     Wait for the server to become healthy.
 
@@ -416,6 +474,7 @@ def wait_for_health(base_url: str, process: subprocess.Popen, timeout: int = 30)
         base_url: Base URL of the server
         process: The server process
         timeout: Maximum time to wait in seconds
+        debug: Whether debug mode is active (affects the hint in the error message)
 
     Raises:
         ValueError: If the server doesn't become healthy within timeout
@@ -437,13 +496,24 @@ def wait_for_health(base_url: str, process: subprocess.Popen, timeout: int = 30)
         time.sleep(0.5)
 
     if not is_healthy:
-        process.terminate()
+        _graceful_terminate(process)
         try:
-            _, stderr = process.communicate(timeout=2)
-            error_msg = stderr.strip() if stderr else "Server failed to become healthy"
+            process.communicate(timeout=2)
         except subprocess.TimeoutExpired:
             process.kill()
-            error_msg = f"Server failed to become healthy within {timeout} seconds"
+
+        # stdout/stderr are DEVNULL (non-debug) or inherited (debug), so
+        # communicate() never captures output — build a context-appropriate message.
+        if debug:
+            error_msg = (
+                f"Server failed to become healthy within {timeout} seconds. "
+                "Check the server output above for details."
+            )
+        else:
+            error_msg = (
+                f"Server failed to become healthy within {timeout} seconds. "
+                "Re-run with --debug to see server startup logs."
+            )
         raise ValueError(error_msg)
 
     console.print("✓ Server is healthy", style="green")
@@ -570,7 +640,7 @@ def verify_server_and_get_metadata(
     base_url = f"http://127.0.0.1:{port}"
 
     try:
-        wait_for_health(base_url, process)
+        wait_for_health(base_url, process, debug=debug)
 
         server_name, server_version = get_server_info(base_url)
 
@@ -581,7 +651,7 @@ def verify_server_and_get_metadata(
 
     finally:
         # Always stop the server
-        process.terminate()
+        _graceful_terminate(process)
         try:
             process.wait(timeout=5)
         except subprocess.TimeoutExpired:

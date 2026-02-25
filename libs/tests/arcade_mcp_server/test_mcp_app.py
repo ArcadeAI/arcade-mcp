@@ -415,8 +415,13 @@ class TestMCPApp:
             # Verify both processes were created
             assert mock_popen.call_count == 2
 
-            # Verify first process was terminated
-            mock_process1.terminate.assert_called_once()
+            # Verify first process was shut down.
+            # On Windows, shutdown uses send_signal(CTRL_BREAK_EVENT) instead
+            # of terminate() for graceful shutdown.
+            if sys.platform == "win32":
+                mock_process1.send_signal.assert_called_once()
+            else:
+                mock_process1.terminate.assert_called_once()
             mock_process1.wait.assert_called()
 
     def test_run_with_reload_graceful_shutdown(self, mcp_app: MCPApp):
@@ -433,8 +438,13 @@ class TestMCPApp:
 
             mcp_app._run_with_reload("127.0.0.1", 8000)
 
-            # Verify graceful shutdown
-            mock_process.terminate.assert_called()
+            # Verify graceful shutdown.
+            # On Windows, send_signal(CTRL_BREAK_EVENT) is used instead of
+            # terminate() to allow graceful child cleanup.
+            if sys.platform == "win32":
+                mock_process.send_signal.assert_called()
+            else:
+                mock_process.terminate.assert_called()
             mock_process.wait.assert_called()
             mock_process.kill.assert_not_called()
 
@@ -453,8 +463,12 @@ class TestMCPApp:
 
             mcp_app._run_with_reload("127.0.0.1", 8000)
 
-            # Verify terminate -> wait -> kill -> wait sequence
-            mock_process.terminate.assert_called()
+            # Verify shutdown -> wait -> kill -> wait sequence.
+            # On Windows, send_signal is used instead of terminate.
+            if sys.platform == "win32":
+                mock_process.send_signal.assert_called()
+            else:
+                mock_process.terminate.assert_called()
             assert mock_process.wait.call_count == 2
             mock_process.kill.assert_called_once()
 
@@ -472,8 +486,11 @@ class TestMCPApp:
             # Should not raise exception
             mcp_app._run_with_reload("127.0.0.1", 8000)
 
-            # Verify process was shut down
-            mock_process.terminate.assert_called_once()
+            # Verify process was shut down.
+            if sys.platform == "win32":
+                mock_process.send_signal.assert_called_once()
+            else:
+                mock_process.terminate.assert_called_once()
 
     def test_run_routes_to_reload_method(self, mcp_app: MCPApp):
         """Test run() routes to _run_with_reload when reload=True."""
@@ -513,7 +530,7 @@ class TestMCPApp:
 
     def test_run_stdio_unaffected_by_reload(self, mcp_app: MCPApp):
         """Test run() with stdio transport is unaffected by reload flag."""
-        with patch("arcade_mcp_server.__main__.run_stdio_server") as mock_stdio:
+        with patch("arcade_mcp_server.stdio_runner.run_stdio_server") as mock_stdio:
             # Test with reload=True
             mcp_app.run(reload=True, transport="stdio")
             mock_stdio.assert_called_once()

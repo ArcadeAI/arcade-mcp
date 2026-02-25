@@ -36,13 +36,11 @@ from arcadepy import (
 )
 from arcadepy.types import AuthorizationResponse
 from pydantic import ValidationError
-from rich.console import Console
 from rich.markup import escape
 from typer.core import TyperGroup
 from typer.models import Context
 
-console = Console()
-
+from arcade_cli.console import console
 
 # -----------------------------------------------------------------------------
 # Shared helpers for the CLI
@@ -395,7 +393,7 @@ def handle_cli_error(
     elif error:
         console.print(f"❌ {message}: {escape(str(error))}", style="bold red")
     else:
-        console.print(f"❌ {message}", style="bold red")
+        console.print(f"❌ {escape(message)}", style="bold red")
 
     if should_exit:
         raise CLIError(message, error)
@@ -1085,7 +1083,7 @@ def load_dotenv(path: str | Path, *, override: bool = False) -> dict[str, str]:
 
     loaded: dict[str, str] = {}
 
-    for raw in path.read_text().splitlines():
+    for raw in path.read_text(encoding="utf-8").splitlines():
         parsed = _parse_line(raw.strip())
         if parsed is None:
             continue

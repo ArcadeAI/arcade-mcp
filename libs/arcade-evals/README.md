@@ -9,7 +9,10 @@ Arcade Evals provides comprehensive evaluation capabilities for Arcade tools:
 - **Evaluation Framework**: Cases, suites, and rubrics for systematic testing
 - **Critics**: Different types of comparisons (binary, numeric, similarity, datetime)
 - **Tool Evaluation**: Decorators and utilities for evaluating tool performance
-- **Result Analysis**: Comprehensive evaluation results and reporting
+- **Multi-Run Statistics**: Run each case multiple times with configurable seed policies and pass rules to measure consistency
+- **Comparative Evaluation**: Compare tool performance across multiple sources/tracks side-by-side
+- **Capture Mode**: Record model tool calls without scoring for debugging and baseline generation
+- **Result Analysis**: Comprehensive evaluation results and reporting in multiple formats (text, markdown, HTML, JSON)
 
 ## Installation
 
@@ -80,6 +83,31 @@ rubric = EvalRubric(
 # Evaluate with rubric
 suite = EvalSuite(cases=[case1], rubric=rubric)
 ```
+
+### Multi-Run Evaluation
+
+Run each case multiple times to measure consistency:
+
+```python
+# Run via the CLI
+# arcade evals eval_file.py --num-runs 5 --seed random --multi-run-pass-rule majority
+
+# Or programmatically
+result = await suite.run(
+    client,
+    model="gpt-4o",
+    num_runs=5,            # Run each case 5 times
+    seed="random",         # Different seed per run
+    multi_run_pass_rule="majority",  # Pass if >50% of runs pass
+)
+```
+
+Multi-run results include per-case statistics:
+- **Mean score** and **standard deviation** across runs
+- **Per-run pass/fail** with individual scores
+- **Per-critic field** score breakdowns across runs
+- Configurable **pass rules**: `last` (default), `mean`, or `majority`
+- Configurable **seed policies**: `constant` (fixed seed 42), `random`, or a specific integer
 
 ## License
 

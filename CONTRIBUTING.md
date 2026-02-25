@@ -72,7 +72,7 @@ uv venv --python 3.11.6
 
 ```bash
 # Install all packages and development dependencies via uv workspace
-uv sync --extra all --dev
+uv sync --extra all --extra dev
 
 # Install pre-commit hooks for code quality
 uv run pre-commit install

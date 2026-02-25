@@ -72,7 +72,7 @@ class Toolkit(BaseModel):
             raise ToolkitLoadError(f"pyproject.toml not found in {directory}")
 
         try:
-            with open(pyproject_path) as f:
+            with open(pyproject_path, encoding="utf-8") as f:
                 pyproject_data = toml.load(f)
 
             project_data = pyproject_data.get("project", {})
@@ -299,32 +299,50 @@ class Toolkit(BaseModel):
         # Skipping this file is necessary because tools are discovered via AST parsing, but those tools
         # aren't in the module's namespace yet since the file is still executing.
         current_file = None
+        current_module_name = None
         main_module = sys.modules.get("__main__")
-        if main_module and hasattr(main_module, "__file__") and main_module.__file__:
-            with contextlib.suppress(Exception):
-                current_file = Path(main_module.__file__).resolve()
+        if main_module:
+            if hasattr(main_module, "__file__") and main_module.__file__:
+                with contextlib.suppress(Exception):
+                    current_file = Path(main_module.__file__).resolve()
+            # Get module name from __spec__ if available (used when paths don't match,
+            # e.g., script runs from bundle but package is in site-packages)
+            main_spec = getattr(main_module, "__spec__", None)
+            if main_spec and main_spec.name:
+                current_module_name = main_spec.name
 
         tools: dict[str, list[str]] = {}
 
         for module_path in modules:
-            # Skip adding tools from the currently executing file
-            if current_file:
-                try:
-                    module_path_resolved = module_path.resolve()
-                    if module_path_resolved == current_file:
-                        continue
-                except Exception:  # noqa: S110
-                    pass
-
+            # Build import path first (needed for module name comparison in skip logic)
             relative_path = module_path.relative_to(package_dir)
-            cls.validate_file(module_path)
-            # Build import path and avoid duplicating the package prefix if it already exists
             relative_parts = relative_path.with_suffix("").parts
             import_path = ".".join(relative_parts)
             if relative_parts and relative_parts[0] == package_name:
                 full_import_path = import_path
             else:
                 full_import_path = f"{package_name}.{import_path}" if import_path else package_name
+
+            # Skip logic: check by file path OR by module name
+            # This handles cases where the script is run from a different location than
+            # where the package is installed (e.g., deployment scenarios)
+            should_skip = False
+            if current_file:
+                try:
+                    module_path_resolved = module_path.resolve()
+                    if module_path_resolved == current_file:
+                        should_skip = True
+                except Exception:  # noqa: S110
+                    pass
+
+            # Secondary check: compare module names when paths don't match
+            if not should_skip and current_module_name and full_import_path == current_module_name:
+                should_skip = True
+
+            if should_skip:
+                continue
+
+            cls.validate_file(module_path)
             tools[full_import_path] = get_tools_from_file(str(module_path))
 
         if not tools:

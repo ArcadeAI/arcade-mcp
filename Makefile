@@ -2,7 +2,7 @@
 .PHONY: install
 install: ## Install the uv environment and all packages with dependencies
 	@echo "🚀 Creating virtual environment and installing all packages using uv workspace"
-	@uv sync --dev --extra all
+	@uv sync --extra all --extra dev
 	@uv run pre-commit install
 	@echo "✅ All packages and dependencies installed via uv workspace"
 

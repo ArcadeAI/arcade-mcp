@@ -6,6 +6,7 @@ multiple tool tracks with track-specific expected results and critics.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any
 
 from arcade_evals._evalsuite._types import (
@@ -45,7 +46,7 @@ class ComparativeCaseBuilder:
         name: str,
         user_message: str,
         system_message: str = "",
-        additional_messages: list[dict[str, str]] | None = None,
+        additional_messages: list[dict[str, Any]] | None = None,
         rubric: EvalRubric | None = None,
     ) -> None:
         """Initialize the builder.
@@ -70,7 +71,7 @@ class ComparativeCaseBuilder:
     def for_track(
         self,
         track_name: str,
-        expected_tool_calls: list[ExpectedToolCall | ExpectedMCPToolCall],
+        expected_tool_calls: Sequence[ExpectedToolCall | ExpectedMCPToolCall],
         critics: list[Critic] | None = None,
     ) -> ComparativeCaseBuilder:
         """Add track-specific configuration.

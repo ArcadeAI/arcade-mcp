@@ -7,8 +7,11 @@ including initialize, ping, list tools, and tool execution with all key features
 import asyncio
 import json
 import os
-import random
+import queue
+import socket
 import subprocess
+import sys
+import threading
 import time
 from pathlib import Path
 from typing import Any
@@ -22,6 +25,43 @@ import pytest
 def get_entrypoint_path() -> str:
     """Get the path to the test server entrypoint."""
     return str(Path(__file__).parent / "server" / "src" / "server" / "entrypoint.py")
+
+
+HTTP_STARTUP_TIMEOUT_SECONDS = 30 if sys.platform == "win32" else 10
+
+
+def _find_open_tcp_port() -> int:
+    """Reserve a free loopback TCP port and return it."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind(("127.0.0.1", 0))
+        return int(sock.getsockname()[1])
+
+
+def _cleanup_process(process: subprocess.Popen, timeout: float = 5.0) -> None:
+    """Terminate subprocesses reliably, including uv child trees on Windows."""
+    if process.poll() is not None:
+        return
+
+    if sys.platform == "win32":
+        subprocess.run(
+            ["taskkill", "/PID", str(process.pid), "/T", "/F"],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        try:
+            process.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
+        return
+
+    process.terminate()
+    try:
+        process.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait()
 
 
 def start_mcp_server(
@@ -56,7 +96,7 @@ def start_mcp_server(
 
     elif transport == "http":
         if port is None:
-            port = random.randint(8000, 9000)  # noqa: S311
+            port = _find_open_tcp_port()
 
         env = {
             **os.environ,
@@ -70,8 +110,8 @@ def start_mcp_server(
         cmd = ["uv", "run", entrypoint_path, "http"]
         process = subprocess.Popen(
             cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
             text=True,
             env=env,
             cwd=str(package_path),
@@ -82,21 +122,77 @@ def start_mcp_server(
         raise ValueError(f"Invalid transport: {transport}")
 
 
-def wait_for_http_server_ready(port: int, timeout: int = 30) -> None:
+def start_mcp_server_direct_python(
+    transport: str, port: int | None = None
+) -> tuple[subprocess.Popen, int | None]:
+    """
+    Start MCP server with direct Python invocation (simulates what happens in the Engine during deployment).
+
+    Args:
+        transport: Transport type ("stdio" or "http")
+        port: Port for HTTP transport (optional, will be random if not provided)
+
+    Returns:
+        Tuple of (process, port). Port is None for stdio transport.
+    """
+    entrypoint_path = get_entrypoint_path()
+    package_path = Path(__file__).parent / "server"
+
+    # Find Python in the server's venv
+    venv_python = package_path / ".venv" / "bin" / "python"
+    if not venv_python.exists():
+        pytest.skip("Server venv not found - run 'uv sync' in integration/server first")
+
+    if port is None:
+        port = _find_open_tcp_port()
+
+    env = {
+        **os.environ,
+        "ARCADE_SERVER_HOST": "127.0.0.1",
+        "ARCADE_SERVER_PORT": str(port),
+        "ARCADE_SERVER_TRANSPORT": transport,
+        "ARCADE_AUTH_DISABLED": "true",
+        "ARCADE_WORKER_SECRET": "test-secret-direct",
+    }
+
+    cmd = [str(venv_python), entrypoint_path, transport]
+    process = subprocess.Popen(
+        cmd,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        text=True,
+        env=env,
+        cwd=str(package_path),
+    )
+    return process, port if transport == "http" else None
+
+
+def wait_for_http_server_ready(
+    port: int,
+    timeout: int = HTTP_STARTUP_TIMEOUT_SECONDS,
+    process: subprocess.Popen | None = None,
+) -> None:
     """
     Wait for HTTP server to become healthy.
 
     Args:
         port: Server port
         timeout: Maximum time to wait in seconds
+        process: Optional subprocess handle for early-exit detection
 
     Raises:
         TimeoutError: If server doesn't become healthy within timeout
+        RuntimeError: If process exits before becoming healthy
     """
     health_url = f"http://127.0.0.1:{port}/worker/health"
-    start_time = time.time()
+    deadline = time.monotonic() + timeout
 
-    while time.time() - start_time < timeout:
+    while time.monotonic() < deadline:
+        if process is not None and process.poll() is not None:
+            raise RuntimeError(
+                f"Server process exited with code {process.returncode} "
+                f"before becoming healthy on port {port}"
+            )
         try:
             response = httpx.get(health_url, timeout=2.0)
             if response.status_code == 200:
@@ -206,6 +302,41 @@ class StdioClient:
     def __init__(self, process: subprocess.Popen):
         self.process = process
         self._next_id = 1
+        self._stdout_messages: queue.Queue[dict[str, Any]] = queue.Queue()
+        self._stdout_reader_error: Exception | None = None
+        self._stderr_lines: list[str] = []
+        self._stdout_reader = threading.Thread(target=self._stdout_reader_loop, daemon=True)
+        self._stderr_reader = threading.Thread(target=self._stderr_reader_loop, daemon=True)
+        self._stdout_reader.start()
+        self._stderr_reader.start()
+
+    def _stdout_reader_loop(self) -> None:
+        """Continuously drain stdout so timeout checks are not blocked by readline()."""
+        if self.process.stdout is None:
+            return
+
+        try:
+            for line in self.process.stdout:
+                message = parse_jsonrpc_message(line)
+                if message:
+                    self._stdout_messages.put(message)
+        except Exception as exc:
+            self._stdout_reader_error = exc
+
+    def _stderr_reader_loop(self) -> None:
+        """Drain stderr to avoid Windows pipe backpressure deadlocks."""
+        if self.process.stderr is None:
+            return
+
+        try:
+            for line in self.process.stderr:
+                self._stderr_lines.append(line.rstrip())
+                # Keep only the most recent lines for debugging.
+                if len(self._stderr_lines) > 25:
+                    self._stderr_lines = self._stderr_lines[-25:]
+        except Exception:
+            # Best-effort diagnostics reader; failures here should not hide test results.
+            pass
 
     def send_request(self, method: str, params: dict | None = None) -> int:
         """Send a request and return the request ID."""
@@ -245,18 +376,28 @@ class StdioClient:
 
     def read_response(self, timeout: float = 10.0) -> dict:
         """Read a response from the server."""
-        start_time = time.time()
+        deadline = time.monotonic() + timeout
 
-        while time.time() - start_time < timeout:
-            if self.process.stdout:
-                line = self.process.stdout.readline()
-                if line:
-                    message = parse_jsonrpc_message(line)
-                    if message:
-                        return message
-            time.sleep(0.01)
+        while time.monotonic() < deadline:
+            if self._stdout_reader_error is not None:
+                raise RuntimeError("Failed while reading stdio response") from self._stdout_reader_error
 
-        raise TimeoutError("Timeout waiting for response")
+            try:
+                return self._stdout_messages.get(timeout=0.1)
+            except queue.Empty:
+                if self.process.poll() is not None and self._stdout_messages.empty():
+                    stderr_tail = "\n".join(self._stderr_lines[-5:])
+                    details = (
+                        f"\nLast stderr lines:\n{stderr_tail}" if stderr_tail else "\nNo stderr captured."
+                    )
+                    raise RuntimeError(
+                        f"MCP server exited with code {self.process.returncode} while waiting for response."
+                        f"{details}"
+                    ) from None
+
+        stderr_tail = "\n".join(self._stderr_lines[-5:])
+        details = f"\nLast stderr lines:\n{stderr_tail}" if stderr_tail else "\nNo stderr captured."
+        raise TimeoutError(f"Timeout waiting for response after {timeout:.1f}s.{details}")
 
     def handle_bidirectional_request(self, message: dict) -> None:
         """Handle a server-initiated request by sending appropriate mock response."""
@@ -481,12 +622,7 @@ async def test_stdio_e2e():
 
     finally:
         # Clean shutdown
-        process.terminate()
-        try:
-            process.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            process.kill()
-            process.wait()
+        _cleanup_process(process)
 
 
 @pytest.mark.asyncio
@@ -498,7 +634,11 @@ async def test_http_e2e():
     base_url = f"http://127.0.0.1:{port}"
 
     try:
-        wait_for_http_server_ready(port, timeout=10)
+        wait_for_http_server_ready(
+            port,
+            timeout=HTTP_STARTUP_TIMEOUT_SECONDS,
+            process=process,
+        )
 
         headers = {
             "Content-Type": "application/json",
@@ -623,12 +763,7 @@ async def test_http_e2e():
         client.close()
 
     finally:
-        process.terminate()
-        try:
-            process.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            process.kill()
-            process.wait()
+        _cleanup_process(process)
 
 
 @pytest.mark.asyncio
@@ -640,7 +775,11 @@ async def test_http_mcp_concurrent_tool_execution():
     base_url = f"http://127.0.0.1:{port}"
 
     try:
-        wait_for_http_server_ready(port, timeout=10)
+        wait_for_http_server_ready(
+            port,
+            timeout=HTTP_STARTUP_TIMEOUT_SECONDS,
+            process=process,
+        )
 
         headers = {
             "Content-Type": "application/json",
@@ -723,12 +862,7 @@ async def test_http_mcp_concurrent_tool_execution():
             assert total_time < max_expected_time
 
     finally:
-        process.terminate()
-        try:
-            process.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            process.kill()
-            process.wait()
+        _cleanup_process(process)
 
 
 @pytest.mark.asyncio
@@ -740,7 +874,11 @@ async def test_http_worker_concurrent_tool_execution():
     base_url = f"http://127.0.0.1:{port}"
 
     try:
-        wait_for_http_server_ready(port, timeout=10)
+        wait_for_http_server_ready(
+            port,
+            timeout=HTTP_STARTUP_TIMEOUT_SECONDS,
+            process=process,
+        )
 
         headers = {
             "Content-Type": "application/json",
@@ -799,12 +937,7 @@ async def test_http_worker_concurrent_tool_execution():
             assert total_time < max_expected_time
 
     finally:
-        process.terminate()
-        try:
-            process.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            process.kill()
-            process.wait()
+        _cleanup_process(process)
 
 
 @pytest.mark.asyncio
@@ -816,7 +949,11 @@ async def test_http_mixed_route_concurrent_execution():
     base_url = f"http://127.0.0.1:{port}"
 
     try:
-        wait_for_http_server_ready(port, timeout=10)
+        wait_for_http_server_ready(
+            port,
+            timeout=HTTP_STARTUP_TIMEOUT_SECONDS,
+            process=process,
+        )
 
         headers = {
             "Content-Type": "application/json",
@@ -907,9 +1044,60 @@ async def test_http_mixed_route_concurrent_execution():
             assert total_time < max_expected_time
 
     finally:
-        process.terminate()
-        try:
-            process.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            process.kill()
-            process.wait()
+        _cleanup_process(process)
+
+
+@pytest.mark.asyncio
+async def test_http_direct_python_invocation():
+    """Test server starts correctly with direct Python (simulates what happens in the Engine during deployment)"""
+    process, port = start_mcp_server_direct_python("http")
+    assert port is not None
+
+    try:
+        wait_for_http_server_ready(
+            port,
+            timeout=HTTP_STARTUP_TIMEOUT_SECONDS,
+            process=process,
+        )
+
+        # Verify server is healthy and tools are discoverable
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        }
+        client = httpx.Client(base_url=f"http://127.0.0.1:{port}", timeout=10.0, headers=headers)
+
+        # Initialize
+        init_response = client.post(
+            "/mcp",
+            json=build_jsonrpc_request(
+                "initialize",
+                {
+                    "protocolVersion": "2025-06-18",
+                    "capabilities": {},
+                    "clientInfo": {"name": "test", "version": "1.0"},
+                },
+                request_id=1,
+            ),
+        )
+        assert init_response.status_code == 200
+
+        session_id = init_response.headers.get("mcp-session-id")
+        client.headers.update({"Mcp-Session-Id": session_id})
+
+        # Send initialized notification
+        init_notif = build_jsonrpc_request(
+            "notifications/initialized", params=None, request_id=None
+        )
+        client.post("/mcp", json=init_notif)
+
+        # List tools - should have 9 tools (including hello_world from entrypoint.py)
+        list_response = client.post("/mcp", json=build_jsonrpc_request("tools/list", request_id=2))
+        assert list_response.status_code == 200
+        tools = list_response.json()["result"]["tools"]
+        assert len(tools) == 9
+
+        client.close()
+
+    finally:
+        _cleanup_process(process)
