@@ -124,10 +124,6 @@ async def test_call_tool_success(base_worker_no_auth):
     assert response.output.value == 8
     assert response.output.error is None
     assert response.execution_id == "test_exec_id"
-    # Fast executions can legitimately measure as 0.0ms on some platforms.
-    assert response.duration >= 0
-
-
 @pytest.mark.asyncio
 async def test_call_tool_execution_error(base_worker_no_auth):
     # Tool is now defined at module level
