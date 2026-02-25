@@ -399,7 +399,7 @@ class TestCaptureResult:
 
             # Verify file was created and has valid content
             assert filepath.exists()
-            with open(filepath) as f:
+            with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
             assert data["suite_name"] == "Suite"
             assert len(data["captured_cases"]) == 1
@@ -425,7 +425,7 @@ class TestCaptureResult:
             filepath = Path(tmpdir) / "capture_output.json"
             result.write_to_file(str(filepath), include_context=True)
 
-            with open(filepath) as f:
+            with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
             assert data["captured_cases"][0]["system_message"] == "System"
 

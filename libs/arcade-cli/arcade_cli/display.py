@@ -7,9 +7,10 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
+from arcade_cli.console import console
+
 if TYPE_CHECKING:
     from arcade_evals.eval import EvaluationResult
-console = Console()
 
 
 def display_tools_table(tools: list[ToolDefinition]) -> None:
