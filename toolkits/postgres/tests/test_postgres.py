@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 import pytest_asyncio
+from arcade_mcp_server import Context
 from arcade_mcp_server.exceptions import RetryableToolError
 from arcade_postgres.tools.postgres import (
     DatabaseEngine,
@@ -23,7 +24,7 @@ POSTGRES_DATABASE_CONNECTION_STRING = (
 
 @pytest.fixture
 def mock_context():
-    context = MagicMock()
+    context = MagicMock(spec=Context)
     context.get_secret = MagicMock(return_value=POSTGRES_DATABASE_CONNECTION_STRING)
     return context
 

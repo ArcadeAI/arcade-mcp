@@ -1,12 +1,13 @@
 from unittest.mock import MagicMock
 
 import pytest
+from arcade_mcp_server import Context
 
 
 @pytest.fixture
 def tool_context():
     """Fixture for the tool Context with mock authorization."""
-    context = MagicMock()
+    context = MagicMock(spec=Context)
     context.authorization.token = "test_token"  # noqa: S105
     context.authorization.user_info = {"sub": "test_user"}
     return context

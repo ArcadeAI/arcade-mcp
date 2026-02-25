@@ -2,6 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from arcade_core.errors import ToolExecutionError
+from arcade_mcp_server import Context
 from arcade_mcp_server.exceptions import RetryableToolError
 from arcade_mongodb.tools.mongodb import aggregate_documents, count_documents, find_documents
 
@@ -10,7 +11,7 @@ from .conftest import TEST_MONGODB_CONNECTION_STRING
 
 @pytest.fixture
 def mock_context():
-    context = MagicMock()
+    context = MagicMock(spec=Context)
     context.get_secret = MagicMock(return_value=TEST_MONGODB_CONNECTION_STRING)
     return context
 

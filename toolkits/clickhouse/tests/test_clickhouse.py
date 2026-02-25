@@ -11,6 +11,7 @@ from arcade_clickhouse.tools.clickhouse import (
     execute_select_query,
     get_table_schema,
 )
+from arcade_mcp_server import Context
 from arcade_mcp_server.exceptions import RetryableToolError
 
 CLICKHOUSE_DATABASE_CONNECTION_STRING = (
@@ -21,7 +22,7 @@ CLICKHOUSE_DATABASE_CONNECTION_STRING = (
 
 @pytest.fixture
 def mock_context():
-    context = MagicMock()
+    context = MagicMock(spec=Context)
     context.get_secret = MagicMock(return_value=CLICKHOUSE_DATABASE_CONNECTION_STRING)
     return context
 

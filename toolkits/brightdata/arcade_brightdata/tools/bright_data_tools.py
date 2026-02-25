@@ -4,8 +4,8 @@ from enum import Enum
 from typing import Annotated, Any, cast
 
 import requests
-from arcade_core.errors import RetryableToolError
 from arcade_mcp_server import Context, tool
+from arcade_mcp_server.exceptions import RetryableToolError
 from arcade_mcp_server.metadata import (
     Behavior,
     Classification,

@@ -1,12 +1,13 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from arcade_mcp_server import Context
 
 
 @pytest.fixture
 def mock_context():
     """Standard mock context fixture used across all arcade toolkits."""
-    context = MagicMock()
+    context = MagicMock(spec=Context)
 
     context.get_auth_token_or_empty = MagicMock(return_value="fake-token")
     context.get_secret = MagicMock()
