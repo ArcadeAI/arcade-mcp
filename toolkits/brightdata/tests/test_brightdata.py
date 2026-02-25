@@ -1,10 +1,11 @@
 from os import environ
+from unittest.mock import MagicMock as _MagicMock
 from unittest.mock import Mock, patch
 
 import pytest
 import requests
-from arcade_tdk import ToolContext, ToolSecretItem
-from arcade_tdk.errors import ToolExecutionError
+from arcade_mcp_server import Context
+from arcade_mcp_server.exceptions import ToolExecutionError
 
 from arcade_brightdata.bright_data_client import BrightDataClient
 from arcade_brightdata.tools.bright_data_tools import (
@@ -21,10 +22,13 @@ BRIGHTDATA_ZONE = environ.get("TEST_BRIGHTDATA_ZONE") or "unblocker"
 
 @pytest.fixture
 def mock_context():
-    context = ToolContext()
-    context.secrets = []
-    context.secrets.append(ToolSecretItem(key="BRIGHTDATA_API_KEY", value=BRIGHTDATA_API_KEY))
-    context.secrets.append(ToolSecretItem(key="BRIGHTDATA_ZONE", value=BRIGHTDATA_ZONE))
+    context = _MagicMock(spec=Context)
+    context.get_secret = _MagicMock(
+        side_effect=lambda key: {
+            "BRIGHTDATA_API_KEY": BRIGHTDATA_API_KEY,
+            "BRIGHTDATA_ZONE": BRIGHTDATA_ZONE,
+        }[key]
+    )
     return context
 
 

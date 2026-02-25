@@ -1,7 +1,7 @@
 from typing import Any, TypedDict
 
 import httpx
-from arcade_tdk import ToolContext
+from arcade_mcp_server import Context
 
 
 class WhoAmIResponse(TypedDict, total=False):
@@ -19,7 +19,7 @@ class WhoAmIResponse(TypedDict, total=False):
     zendesk_access: bool
 
 
-async def build_who_am_i_response(context: ToolContext) -> WhoAmIResponse:
+async def build_who_am_i_response(context: Context) -> WhoAmIResponse:
     """Build comprehensive who am I response for Zendesk."""
     user_info = await _get_current_user(context)
     organization_info = await _get_organization_info(context, user_info.get("organization_id"))
@@ -32,7 +32,7 @@ async def build_who_am_i_response(context: ToolContext) -> WhoAmIResponse:
     return response_data  # type: ignore[return-value]
 
 
-async def _get_current_user(context: ToolContext) -> dict[str, Any]:
+async def _get_current_user(context: Context) -> dict[str, Any]:
     """Get current user information from Zendesk API."""
     subdomain = context.get_secret("ZENDESK_SUBDOMAIN")
     base_url = f"https://{subdomain}.zendesk.com"
@@ -48,9 +48,7 @@ async def _get_current_user(context: ToolContext) -> dict[str, Any]:
         return response.json().get("user", {})  # type: ignore[no-any-return]
 
 
-async def _get_organization_info(
-    context: ToolContext, organization_id: int | None
-) -> dict[str, Any]:
+async def _get_organization_info(context: Context, organization_id: int | None) -> dict[str, Any]:
     """Get organization information from Zendesk API."""
     if not organization_id:
         return {}

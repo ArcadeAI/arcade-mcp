@@ -1,7 +1,7 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from arcade_tdk.errors import ToolExecutionError
+from arcade_mcp_server.exceptions import ToolExecutionError
 
 from arcade_linkedin.tools.share import create_text_post
 

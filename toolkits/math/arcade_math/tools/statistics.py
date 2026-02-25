@@ -3,8 +3,8 @@ from decimal import Decimal
 from statistics import median as stats_median
 from typing import Annotated
 
+from arcade_mcp_server import tool
 from arcade_mcp_server.metadata import Behavior, ToolMetadata
-from arcade_tdk import tool
 
 decimal.getcontext().prec = 100
 

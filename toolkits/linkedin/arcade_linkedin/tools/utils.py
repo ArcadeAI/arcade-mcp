@@ -1,12 +1,12 @@
 import httpx
-from arcade_tdk import ToolContext
-from arcade_tdk.errors import ToolExecutionError
+from arcade_mcp_server import Context
+from arcade_mcp_server.exceptions import ToolExecutionError
 
 from arcade_linkedin.tools.constants import LINKEDIN_BASE_URL
 
 
 async def _send_linkedin_request(
-    context: ToolContext,
+    context: Context,
     method: str,
     endpoint: str,
     params: dict | None = None,

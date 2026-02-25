@@ -1,6 +1,7 @@
 from collections.abc import Callable
 from typing import Any
 
+from arcade_core import ToolCatalog
 from arcade_evals import (
     BinaryCritic,
     EvalRubric,
@@ -8,7 +9,6 @@ from arcade_evals import (
     ExpectedToolCall,
     tool_eval,
 )
-from arcade_tdk import ToolCatalog
 
 import arcade_math
 from arcade_math.tools.arithmetic import (

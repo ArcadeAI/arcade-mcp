@@ -3,7 +3,7 @@ from typing import Any, ClassVar
 from urllib.parse import urlparse
 
 import clickhouse_connect
-from arcade_tdk.errors import RetryableToolError
+from arcade_mcp_server.exceptions import RetryableToolError
 
 MAX_ROWS_RETURNED = 1000
 TEST_QUERY = "SELECT 1"

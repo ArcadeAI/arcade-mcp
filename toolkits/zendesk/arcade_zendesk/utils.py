@@ -3,8 +3,8 @@ import re
 from typing import Any
 
 import httpx
-from arcade_tdk import ToolContext
-from arcade_tdk.errors import ToolExecutionError
+from arcade_mcp_server import Context
+from arcade_mcp_server.exceptions import ToolExecutionError
 from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
@@ -189,7 +189,7 @@ def validate_date_format(date_string: str) -> bool:
         return False
 
 
-def get_zendesk_subdomain(context: ToolContext) -> str:
+def get_zendesk_subdomain(context: Context) -> str:
     """
     Get the Zendesk subdomain from secrets with proper error handling.
 

@@ -1,5 +1,6 @@
 import os
 from os import environ
+from unittest.mock import MagicMock
 
 import pytest
 import pytest_asyncio
@@ -10,8 +11,8 @@ from arcade_clickhouse.tools.clickhouse import (
     execute_select_query,
     get_table_schema,
 )
-from arcade_tdk import ToolContext, ToolSecretItem
-from arcade_tdk.errors import RetryableToolError
+from arcade_mcp_server import Context
+from arcade_mcp_server.exceptions import RetryableToolError
 
 CLICKHOUSE_DATABASE_CONNECTION_STRING = (
     environ.get("TEST_CLICKHOUSE_DATABASE_CONNECTION_STRING")
@@ -21,14 +22,8 @@ CLICKHOUSE_DATABASE_CONNECTION_STRING = (
 
 @pytest.fixture
 def mock_context():
-    context = ToolContext()
-    context.secrets = []
-    context.secrets.append(
-        ToolSecretItem(
-            key="CLICKHOUSE_DATABASE_CONNECTION_STRING", value=CLICKHOUSE_DATABASE_CONNECTION_STRING
-        )
-    )
-
+    context = MagicMock(spec=Context)
+    context.get_secret = MagicMock(return_value=CLICKHOUSE_DATABASE_CONNECTION_STRING)
     return context
 
 

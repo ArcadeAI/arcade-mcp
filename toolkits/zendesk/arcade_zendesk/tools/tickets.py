@@ -1,6 +1,9 @@
 from typing import Annotated, Any
 
 import httpx
+from arcade_mcp_server import Context, tool
+from arcade_mcp_server.auth import OAuth2
+from arcade_mcp_server.exceptions import RetryableToolError
 from arcade_mcp_server.metadata import (
     Behavior,
     Classification,
@@ -8,9 +11,6 @@ from arcade_mcp_server.metadata import (
     ServiceDomain,
     ToolMetadata,
 )
-from arcade_tdk import ToolContext, tool
-from arcade_tdk.auth import OAuth2
-from arcade_tdk.errors import RetryableToolError
 
 from arcade_zendesk.enums import SortOrder, TicketStatus
 from arcade_zendesk.utils import fetch_paginated_results, get_zendesk_subdomain
@@ -44,7 +44,7 @@ def _handle_ticket_not_found(response: httpx.Response, ticket_id: int) -> None:
     ),
 )
 async def list_tickets(
-    context: ToolContext,
+    context: Context,
     status: Annotated[
         TicketStatus,
         "The status of tickets to filter by. Defaults to 'open'",
@@ -166,7 +166,7 @@ async def list_tickets(
     ),
 )
 async def get_ticket_comments(
-    context: ToolContext,
+    context: Context,
     ticket_id: Annotated[int, "The ID of the ticket to get comments for"],
 ) -> Annotated[
     dict[str, Any], "A dictionary containing the ticket comments, metadata, and ticket URL"
@@ -229,7 +229,7 @@ async def get_ticket_comments(
     ),
 )
 async def add_ticket_comment(
-    context: ToolContext,
+    context: Context,
     ticket_id: Annotated[int, "The ID of the ticket to comment on"],
     comment_body: Annotated[str, "The text of the comment"],
     public: Annotated[
@@ -300,7 +300,7 @@ async def add_ticket_comment(
     ),
 )
 async def mark_ticket_solved(
-    context: ToolContext,
+    context: Context,
     ticket_id: Annotated[int, "The ID of the ticket to mark as solved"],
     comment_body: Annotated[
         str | None,

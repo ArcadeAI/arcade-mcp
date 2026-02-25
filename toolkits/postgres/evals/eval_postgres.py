@@ -1,4 +1,5 @@
 import arcade_postgres
+from arcade_core import ToolCatalog
 from arcade_evals import (
     BinaryCritic,
     EvalRubric,
@@ -12,7 +13,6 @@ from arcade_postgres.tools.postgres import (
     execute_query,
     get_table_schema,
 )
-from arcade_tdk import ToolCatalog
 
 # Evaluation rubric
 rubric = EvalRubric(

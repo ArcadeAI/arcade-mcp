@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from arcade_core import ToolCatalog
 from arcade_evals import (
     DatetimeCritic,
     EvalRubric,
@@ -8,7 +9,6 @@ from arcade_evals import (
     tool_eval,
 )
 from arcade_evals.critic import BinaryCritic, SimilarityCritic
-from arcade_tdk import ToolCatalog
 
 import arcade_zendesk
 from arcade_zendesk.enums import ArticleSortBy, SortOrder

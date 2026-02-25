@@ -1,9 +1,9 @@
 import json
 from typing import Annotated, Any
 
+from arcade_mcp_server import Context, tool
+from arcade_mcp_server.exceptions import RetryableToolError
 from arcade_mcp_server.metadata import Behavior, Operation, ToolMetadata
-from arcade_tdk import ToolContext, tool
-from arcade_tdk.errors import RetryableToolError
 
 from ..database_engine import MAX_RECORDS_RETURNED, DatabaseEngine
 from .utils import (
@@ -34,7 +34,7 @@ from .utils import (
     ),
 )
 async def discover_databases(
-    context: ToolContext,
+    context: Context,
 ) -> list[str]:
     """Discover all the databases in the MongoDB instance."""
     client = await DatabaseEngine.get_instance(context.get_secret("MONGODB_CONNECTION_STRING"))
@@ -57,7 +57,7 @@ async def discover_databases(
     ),
 )
 async def discover_collections(
-    context: ToolContext,
+    context: Context,
     database_name: Annotated[str, "The database name to discover collections in"],
 ) -> list[str]:
     """Discover all the collections in the MongoDB database when the list of collections is not known.
@@ -84,7 +84,7 @@ async def discover_collections(
     ),
 )
 async def get_collection_schema(
-    context: ToolContext,
+    context: Context,
     database_name: Annotated[str, "The database name to get the collection schema of"],
     collection_name: Annotated[str, "The collection to get the schema of"],
     sample_size: Annotated[
@@ -137,7 +137,7 @@ async def get_collection_schema(
     ),
 )
 async def find_documents(
-    context: ToolContext,
+    context: Context,
     database_name: Annotated[str, "The database name to query"],
     collection_name: Annotated[str, "The collection name to query"],
     filter_dict: Annotated[
@@ -251,7 +251,7 @@ async def find_documents(
     ),
 )
 async def count_documents(
-    context: ToolContext,
+    context: Context,
     database_name: Annotated[str, "The database name to query"],
     collection_name: Annotated[str, "The collection name to query"],
     filter_dict: Annotated[
@@ -299,7 +299,7 @@ async def count_documents(
     ),
 )
 async def aggregate_documents(
-    context: ToolContext,
+    context: Context,
     database_name: Annotated[str, "The database name to query"],
     collection_name: Annotated[str, "The collection name to query"],
     pipeline: Annotated[
