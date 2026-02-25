@@ -22,7 +22,7 @@ class TestFindEnvFile:
     def test_finds_env_in_parent_directory(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Should traverse upward to find .env in parent."""
+        """Should traverse upward to find .env in parent (no pyproject.toml boundary)."""
         subdir = tmp_path / "a" / "b" / "c"
         subdir.mkdir(parents=True)
         env_file = tmp_path / ".env"
@@ -57,10 +57,55 @@ class TestFindEnvFile:
     def test_stop_at_limits_traversal(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """stop_at should prevent traversing past specified directory."""
+        """Explicit stop_at should prevent traversing past specified directory."""
         project = tmp_path / "project" / "src"
         project.mkdir(parents=True)
         (tmp_path / ".env").write_text("OUTSIDE=1")
         monkeypatch.chdir(project)
 
         assert find_env_file(stop_at=tmp_path / "project") is None
+
+    def test_stops_at_pyproject_toml_boundary(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Should not traverse past directory containing pyproject.toml."""
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+        (project_root / "pyproject.toml").write_text("[project]\nname = 'test'")
+        src = project_root / "src"
+        src.mkdir()
+        # .env is above the project root — should NOT be found
+        (tmp_path / ".env").write_text("OUTSIDE=1")
+        monkeypatch.chdir(src)
+
+        assert find_env_file() is None
+
+    def test_finds_env_at_pyproject_toml_level(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Should find .env at the same level as pyproject.toml."""
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+        (project_root / "pyproject.toml").write_text("[project]\nname = 'test'")
+        env_file = project_root / ".env"
+        env_file.write_text("SECRET=value")
+        src = project_root / "src"
+        src.mkdir()
+        monkeypatch.chdir(src)
+
+        assert find_env_file() == env_file
+
+    def test_finds_env_below_pyproject_toml(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Should find .env in a subdirectory within the project."""
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+        (project_root / "pyproject.toml").write_text("[project]\nname = 'test'")
+        src = project_root / "src"
+        src.mkdir()
+        env_file = src / ".env"
+        env_file.write_text("SECRET=value")
+        monkeypatch.chdir(src)
+
+        assert find_env_file() == env_file

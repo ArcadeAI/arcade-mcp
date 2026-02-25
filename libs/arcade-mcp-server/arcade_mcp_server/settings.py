@@ -12,6 +12,28 @@ from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
 
 
+def _find_project_root(start_dir: Path) -> Path | None:
+    """Find the nearest ancestor directory containing pyproject.toml.
+
+    This is used as a default boundary for upward directory traversal
+    to prevent accidentally loading files from unrelated parent directories.
+
+    Args:
+        start_dir: Directory to start searching from (must be resolved).
+
+    Returns:
+        Path to the project root directory, or None if no pyproject.toml is found.
+    """
+    current = start_dir
+    while True:
+        if (current / "pyproject.toml").is_file():
+            return current
+        parent = current.parent
+        if parent == current:
+            return None
+        current = parent
+
+
 def find_env_file(
     start_dir: Path | None = None,
     stop_at: Path | None = None,
@@ -21,33 +43,38 @@ def find_env_file(
 
     Starts at the specified directory (or current working directory) and
     traverses upward through parent directories until a .env file is found
-    or the filesystem root (or stop_at directory) is reached.
+    or a boundary is reached.
+
+    By default, traversal stops at the nearest ancestor directory containing
+    ``pyproject.toml`` (the project root). This prevents accidentally loading
+    an unrelated ``.env`` file from ``~/`` or other parent directories.
+    Pass an explicit ``stop_at`` to override this behavior.
 
     Args:
         start_dir: Directory to start searching from. Defaults to current working directory.
         stop_at: Directory to stop traversal at (inclusive). If specified, the search
                  will not continue past this directory. The stop_at directory itself
-                 is still checked for the .env file.
+                 is still checked for the .env file. When not specified, the nearest
+                 ancestor containing ``pyproject.toml`` is used as the boundary.
         filename: Name of the env file to find. Defaults to ".env".
 
     Returns:
         Path to the .env file if found, None otherwise.
 
     Example:
-        # Find .env starting from current directory
+        # Find .env starting from current directory (bounded by pyproject.toml)
         env_path = find_env_file()
 
         # Find .env starting from a specific directory
         env_path = find_env_file(start_dir=Path("/path/to/project/src"))
 
-        # Find .env but don't search above project root
+        # Find .env but don't search above a specific directory
         env_path = find_env_file(stop_at=Path("/path/to/project"))
     """
     current = start_dir or Path.cwd()
     current = current.resolve()
 
-    if stop_at is not None:
-        stop_at = stop_at.resolve()
+    stop_at = stop_at.resolve() if stop_at is not None else _find_project_root(current)
 
     while True:
         env_path = current / filename
