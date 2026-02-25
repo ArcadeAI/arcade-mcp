@@ -33,8 +33,9 @@ def test_create_new_toolkit_prints_next_steps(tmp_path: Path, monkeypatch: pytes
     output = buf.getvalue()
     assert "Next steps:" in output
     assert "1. cd " in output
-    assert "2. Run with stdio transport" in output
-    assert "3. Run with HTTP transport" in output
+    assert "2. Run the server (choose one transport):" in output
+    assert "- stdio: uv run server.py" in output
+    assert "- http:  uv run server.py --transport http --port 8000" in output
     assert "uv run server.py" in output
     assert "my_server" in output
 
@@ -72,8 +73,13 @@ def test_create_new_toolkit_minimal_prints_next_steps(tmp_path: Path) -> None:
     output = buf.getvalue()
     assert "Next steps:" in output, f"Expected 'Next steps:' in output:\n{output}"
     assert "1. cd " in output, f"Expected numbered step 1 in output:\n{output}"
-    assert "2. Run with stdio transport" in output, f"Expected numbered step 2 in output:\n{output}"
-    assert "3. Run with HTTP transport" in output, f"Expected numbered step 3 in output:\n{output}"
+    assert "2. Run the server (choose one transport):" in output, (
+        f"Expected numbered step 2 in output:\n{output}"
+    )
+    assert "- stdio: uv run server.py" in output, f"Expected stdio option in output:\n{output}"
+    assert "- http:  uv run server.py --transport http --port 8000" in output, (
+        f"Expected HTTP option in output:\n{output}"
+    )
     assert "uv run server.py" in output, f"Expected 'uv run server.py' in output:\n{output}"
     assert "demo_srv" in output, f"Expected toolkit name in output:\n{output}"
 
