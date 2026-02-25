@@ -2,7 +2,7 @@
 
 Verifies that:
 - Background subprocess calls set CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP on Windows.
-- _graceful_terminate sends CTRL_BREAK_EVENT on Windows, falls back to terminate().
+- graceful_terminate_process sends CTRL_BREAK_EVENT on Windows, falls back to terminate().
 - MCPApp._run_with_reload shutdown uses CTRL_BREAK_EVENT on Windows.
 - stdio transport registers a stdlib signal.signal fallback on Windows.
 
@@ -138,22 +138,22 @@ class TestDeployCreateNoWindow:
 
 
 # ---------------------------------------------------------------------------
-# deploy.py — _graceful_terminate()
+# subprocess_utils.py — graceful_terminate_process()
 # ---------------------------------------------------------------------------
 
 
 class TestGracefulTerminate:
-    """Verify _graceful_terminate uses CTRL_BREAK_EVENT on Windows."""
+    """Verify graceful_terminate_process uses CTRL_BREAK_EVENT on Windows."""
 
     def test_sends_ctrl_break_on_win32(self) -> None:
-        """On Windows, _graceful_terminate should send CTRL_BREAK_EVENT."""
-        from arcade_cli.deploy import _graceful_terminate
+        """On Windows, graceful_terminate_process should send CTRL_BREAK_EVENT."""
+        from arcade_core.subprocess_utils import graceful_terminate_process
 
         mock_proc = MagicMock()
 
         # sys.platform mock: verifies CTRL_BREAK_EVENT dispatch with mocked process.
         with _patch_win32_ctrl_break():
-            _graceful_terminate(mock_proc)
+            graceful_terminate_process(mock_proc)
 
         # Should try send_signal with CTRL_BREAK_EVENT (not terminate)
         mock_proc.send_signal.assert_called_once_with(WIN_CTRL_BREAK_EVENT)
@@ -161,25 +161,25 @@ class TestGracefulTerminate:
 
     def test_falls_back_to_terminate_on_win32_oserror(self) -> None:
         """If send_signal fails on Windows, fall back to terminate."""
-        from arcade_cli.deploy import _graceful_terminate
+        from arcade_core.subprocess_utils import graceful_terminate_process
 
         mock_proc = MagicMock()
         mock_proc.send_signal.side_effect = OSError("Process exited")
 
         # sys.platform mock: exercises OSError fallback with mocked process.
         with _patch_win32_ctrl_break():
-            _graceful_terminate(mock_proc)
+            graceful_terminate_process(mock_proc)
 
         mock_proc.terminate.assert_called_once()
 
     @pytest.mark.skipif(sys.platform == "win32", reason="Non-Windows terminate() path")
     def test_calls_terminate_on_linux(self) -> None:
-        """On Linux/macOS, _graceful_terminate should call terminate() directly."""
-        from arcade_cli.deploy import _graceful_terminate
+        """On Linux/macOS, graceful_terminate_process should call terminate() directly."""
+        from arcade_core.subprocess_utils import graceful_terminate_process
 
         mock_proc = MagicMock()
 
-        _graceful_terminate(mock_proc)
+        graceful_terminate_process(mock_proc)
 
         mock_proc.terminate.assert_called_once()
         mock_proc.send_signal.assert_not_called()

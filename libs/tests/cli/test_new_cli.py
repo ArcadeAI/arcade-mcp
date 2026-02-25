@@ -38,6 +38,9 @@ def test_create_new_toolkit_minimal_prints_next_steps(tmp_path: Path) -> None:
 
     output = buf.getvalue()
     assert "Next steps:" in output, f"Expected 'Next steps:' in output:\n{output}"
+    assert "1. cd " in output, f"Expected numbered step 1 in output:\n{output}"
+    assert "2. Run with stdio transport" in output, f"Expected numbered step 2 in output:\n{output}"
+    assert "3. Run with HTTP transport" in output, f"Expected numbered step 3 in output:\n{output}"
     assert "uv run server.py" in output, f"Expected 'uv run server.py' in output:\n{output}"
     assert "demo_srv" in output, f"Expected toolkit name in output:\n{output}"
 

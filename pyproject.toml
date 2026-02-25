@@ -1,6 +1,6 @@
 [project]
 name = "arcade-mcp"
-version = "1.11.1"
+version = "1.11.2"
 description = "Arcade.dev - Tool Calling platform for Agents"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -55,10 +55,6 @@ evals = [
     "numpy>=2.0.0",
     "scikit-learn>=1.5.0",
     "pytz>=2024.1",
-]
-
-windows = [
-    "platformdirs>=4.3.6",
 ]
 
 dev = [

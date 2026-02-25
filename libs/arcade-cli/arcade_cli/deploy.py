@@ -369,11 +369,6 @@ def create_package_archive(package_dir: Path) -> str:
     return package_bytes_b64
 
 
-def _graceful_terminate(process: subprocess.Popen) -> None:
-    """Terminate a subprocess using shared graceful shutdown semantics."""
-    graceful_terminate_process(process)
-
-
 def _resolve_server_process_stdio(debug: bool) -> tuple[int | None, int | None]:
     """Choose stdout/stderr targets for the temporary validation server process.
 
@@ -495,7 +490,7 @@ def wait_for_health(
         time.sleep(0.5)
 
     if not is_healthy:
-        _graceful_terminate(process)
+        graceful_terminate_process(process)
         try:
             process.communicate(timeout=2)
         except subprocess.TimeoutExpired:
@@ -650,7 +645,7 @@ def verify_server_and_get_metadata(
 
     finally:
         # Always stop the server
-        _graceful_terminate(process)
+        graceful_terminate_process(process)
         try:
             process.wait(timeout=5)
         except subprocess.TimeoutExpired:
