@@ -340,7 +340,7 @@ class MCPApp:
             else:
                 self._create_and_run_server(host, port)
         elif transport == "stdio":
-            from arcade_mcp_server.__main__ import run_stdio_server
+            from arcade_mcp_server.stdio_runner import run_stdio_server
 
             tracker = ServerTracker()
             tracker.track_server_start(
