@@ -255,7 +255,7 @@ def _run_scaffold_and_protocol_smoke(repo_root: Path) -> None:
         generated_root = scaffold_dir / "my_server"
         _ensure_exists(generated_root / "pyproject.toml")
         _ensure_exists(generated_root / "src" / "my_server" / "server.py")
-        _ensure_exists(generated_root / "src" / "my_server" / ".env.example")
+        _ensure_exists(generated_root / ".env.example")
 
         generated_pyproject = generated_root / "pyproject.toml"
         _add_local_uv_sources(generated_pyproject, repo_root)

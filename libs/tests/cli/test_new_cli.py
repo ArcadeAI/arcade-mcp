@@ -15,7 +15,7 @@ def test_create_new_toolkit_minimal_with_spaces(tmp_path: Path) -> None:
     server_root = output_dir / "my_server"
     assert (server_root / "pyproject.toml").is_file()
     assert (server_root / "src" / "my_server" / "server.py").is_file()
-    assert (server_root / "src" / "my_server" / ".env.example").is_file()
+    assert (server_root / ".env.example").is_file()
 
 
 def test_create_new_toolkit_minimal_prints_next_steps(tmp_path: Path) -> None:
