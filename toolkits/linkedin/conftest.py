@@ -8,8 +8,10 @@ from arcade_mcp_server import Context
 def tool_context():
     """Fixture for the tool Context with mock authorization."""
     context = MagicMock(spec=Context)
-    context.authorization.token = "test_token"  # noqa: S105
-    context.authorization.user_info = {"sub": "test_user"}
+    authorization = MagicMock()
+    authorization.token = "test_token"  # noqa: S105
+    authorization.user_info = {"sub": "test_user"}
+    context.authorization = authorization
     return context
 
 
