@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade_mongodb"
-version = "0.2.0"
+version = "0.3.0"
 description = "Tools to query and explore a MongoDB database"
 requires-python = ">=3.10"
 dependencies = [
