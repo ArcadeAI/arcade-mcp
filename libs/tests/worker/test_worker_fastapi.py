@@ -90,13 +90,21 @@ def test_fastapi_worker_registers_routes(client, fastapi_worker):
 def test_health_check_route(client, worker_secret):
     response = client.get("/worker/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok", "tool_count": "1"}
+    data = response.json()
+    assert data["status"] == "ok"
+    assert data["tool_count"] == "1"
+    assert "tool_definitions_hash" in data
+    assert "started_at" in data
 
 
 def test_health_check_route_no_auth(client_no_auth):
     response = client_no_auth.get("/worker/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok", "tool_count": "1"}
+    data = response.json()
+    assert data["status"] == "ok"
+    assert data["tool_count"] == "1"
+    assert "tool_definitions_hash" in data
+    assert "started_at" in data
 
 
 # Catalog
@@ -157,15 +165,11 @@ def test_call_tool_route_tool_not_found(client_no_auth, call_tool_payload):
     call_tool_payload["tool"]["name"] = "NonExistentTool"
     call_tool_payload["tool"]["toolkit"] = "FastapiKit"
 
-    with pytest.raises(ValueError):
-        _ = client_no_auth.post(
-            "/worker/tools/invoke",
-            json=call_tool_payload,
-        )
-        # The handler catches the ValueError and returns a 500 internal server error
-        # Ideally, this might be a 404 or 400, but BaseWorker.call_tool raises ValueError
-        # which isn't automatically mapped to a 4xx by FastAPI unless handled explicitly.
-        # TODO fix this.
+    response = client_no_auth.post(
+        "/worker/tools/invoke",
+        json=call_tool_payload,
+    )
+    assert response.status_code == 404
 
 
 def test_client_disconnect_returns_499(client_no_auth, call_tool_payload):
