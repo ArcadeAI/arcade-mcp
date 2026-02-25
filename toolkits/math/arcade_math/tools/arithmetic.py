@@ -2,12 +2,22 @@ import decimal
 from decimal import Decimal
 from typing import Annotated
 
+from arcade_mcp_server.metadata import Behavior, ToolMetadata
 from arcade_tdk import tool
 
 decimal.getcontext().prec = 100
 
 
-@tool
+@tool(
+    metadata=ToolMetadata(
+        behavior=Behavior(
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=False,
+        ),
+    ),
+)
 def add(
     a: Annotated[str, "The first number as a string"],
     b: Annotated[str, "The second number as a string"],
@@ -21,7 +31,16 @@ def add(
     return str(a_decimal + b_decimal)
 
 
-@tool
+@tool(
+    metadata=ToolMetadata(
+        behavior=Behavior(
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=False,
+        ),
+    ),
+)
 def subtract(
     a: Annotated[str, "The first number as a string"],
     b: Annotated[str, "The second number as a string"],
@@ -35,7 +54,16 @@ def subtract(
     return str(a_decimal - b_decimal)
 
 
-@tool
+@tool(
+    metadata=ToolMetadata(
+        behavior=Behavior(
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=False,
+        ),
+    ),
+)
 def multiply(
     a: Annotated[str, "The first number as a string"],
     b: Annotated[str, "The second number as a string"],
@@ -49,7 +77,16 @@ def multiply(
     return str(a_decimal * b_decimal)
 
 
-@tool
+@tool(
+    metadata=ToolMetadata(
+        behavior=Behavior(
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=False,
+        ),
+    ),
+)
 def divide(
     a: Annotated[str, "The first number as a string"],
     b: Annotated[str, "The second number as a string"],
@@ -63,7 +100,16 @@ def divide(
     return str(a_decimal / b_decimal)
 
 
-@tool
+@tool(
+    metadata=ToolMetadata(
+        behavior=Behavior(
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=False,
+        ),
+    ),
+)
 def sum_list(
     numbers: Annotated[list[str], "The list of numbers as strings"],
 ) -> Annotated[str, "The sum of the numbers in the list as a string"]:
@@ -74,7 +120,16 @@ def sum_list(
     return str(sum([Decimal(n) for n in numbers]))
 
 
-@tool
+@tool(
+    metadata=ToolMetadata(
+        behavior=Behavior(
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=False,
+        ),
+    ),
+)
 def sum_range(
     start: Annotated[str, "The start of the range to sum as a string"],
     end: Annotated[str, "The end of the range to sum as a string"],
@@ -85,7 +140,16 @@ def sum_range(
     return str(sum(list(range(int(start), int(end) + 1))))
 
 
-@tool
+@tool(
+    metadata=ToolMetadata(
+        behavior=Behavior(
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=False,
+        ),
+    ),
+)
 def mod(
     a: Annotated[str, "The dividend as a string"],
     b: Annotated[str, "The divisor as a string"],

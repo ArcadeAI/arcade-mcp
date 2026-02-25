@@ -4,11 +4,12 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade_brightdata"
-version = "0.2.0"
+version = "0.3.0"
 description = "Search, Crawl and Scrape any site, at scale, without getting blocked"
 requires-python = ">=3.10"
 dependencies = [
     "arcade-tdk>=3.0.0,<4.0.0",
+    "arcade-mcp-server>=1.17.0,<2.0.0",
     "requests>=2.32.5",
 ]
 [[project.authors]]
@@ -49,6 +50,7 @@ ignore_missing_imports = "True"
 arcade-mcp = { path = "../../", editable = true }
 arcade-serve = { path = "../../libs/arcade-serve/", editable = true }
 arcade-tdk = { path = "../../libs/arcade-tdk/", editable = true }
+arcade-mcp-server = { path = "../../libs/arcade-mcp-server/", editable = true }
 
 [tool.pytest.ini_options]
 testpaths = [ "tests",]
