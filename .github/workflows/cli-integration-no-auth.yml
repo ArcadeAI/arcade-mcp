@@ -1,21 +1,25 @@
-name: Test Installation (Cross-Platform)
+name: CLI Integration (No Auth)
 
 on:
-    push:
-        branches: [main]
     pull_request:
+        branches: [main]
+    push:
         branches: [main]
     workflow_dispatch:
 
 jobs:
-    test-install:
-        name: Test Installation on ${{ matrix.os }} with Python ${{ matrix.python-version }}
+    cli-integration-no-auth:
+        name: CLI Integration No-Auth (${{ matrix.os }}, Python ${{ matrix.python-version }})
         runs-on: ${{ matrix.os }}
+        timeout-minutes: 35
+        env:
+            ARCADE_USAGE_TRACKING: "0"
+
         strategy:
-            fail-fast: false
             matrix:
                 os: [ubuntu-latest, windows-latest, macos-latest]
-                python-version: ["3.10", "3.12"]
+                python-version: ["3.10", "3.11", "3.12"]
+            fail-fast: false
 
         steps:
             - name: Checkout repository
@@ -30,10 +34,6 @@ jobs:
               run: |
                   uv pip install -e .
 
-            - name: Run installation test
+            - name: Run no-auth CLI smoke checks
               run: |
-                  uv run pytest tests/install/ -v --tb=short
-
-            - name: Verify arcade CLI is available
-              run: |
-                  uv run arcade --help
+                  uv run python tests/integration/no_auth_cli_smoke.py

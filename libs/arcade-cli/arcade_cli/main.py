@@ -2,24 +2,26 @@ import asyncio
 import os
 import subprocess
 import sys
-import webbrowser
 from pathlib import Path
 from typing import Optional
 
 import click
 import typer
 from arcade_core.constants import CREDENTIALS_FILE_PATH, PROD_COORDINATOR_HOST, PROD_ENGINE_HOST
+from arcade_core.subprocess_utils import get_windows_no_window_creationflags
 from arcadepy import Arcade
-from rich.console import Console
 
 from arcade_cli.authn import (
+    DEFAULT_OAUTH_TIMEOUT_SECONDS,
     OAuthLoginError,
     _credentials_file_contains_legacy,
+    _open_browser,
     build_coordinator_url,
     check_existing_login,
     perform_oauth_login,
     save_credentials_from_whoami,
 )
+from arcade_cli.console import console
 from arcade_cli.evals_runner import run_capture, run_evaluations
 from arcade_cli.org import app as org_app
 from arcade_cli.project import app as project_app
@@ -73,9 +75,6 @@ cli.add_typer(
 )
 
 
-console = Console()
-
-
 @cli.command(help="Log in to Arcade", rich_help_panel="User")
 def login(
     host: str = typer.Option(
@@ -89,6 +88,11 @@ def login(
         "-p",
         "--port",
         help="The port of the Arcade Coordinator host (if running locally).",
+    ),
+    timeout: int = typer.Option(
+        DEFAULT_OAUTH_TIMEOUT_SECONDS,
+        "--timeout",
+        help="Seconds to wait for the local login callback.",
     ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
@@ -107,6 +111,7 @@ def login(
         result = perform_oauth_login(
             coordinator_url,
             on_status=lambda msg: console.print(msg, style="dim"),
+            callback_timeout_seconds=timeout,
         )
 
         # Save credentials
@@ -127,7 +132,7 @@ def login(
     except OAuthLoginError as e:
         if debug:
             console.print(f"Debug: {e.__cause__}", style="dim")
-        handle_cli_error(str(e), should_exit=False)
+        handle_cli_error(str(e), should_exit=True)
     except KeyboardInterrupt:
         console.print("\nLogin cancelled.", style="yellow")
     except Exception as e:
@@ -148,6 +153,13 @@ def logout(
             console.print("You're now logged out.", style="bold")
         else:
             console.print("You're not logged in.", style="bold red")
+    except PermissionError:
+        # On Windows, the file may be locked by another process.
+        handle_cli_error(
+            "Could not remove credentials file — it may be in use by another process. "
+            "Close other Arcade instances and try again.",
+            should_exit=True,
+        )
     except Exception as e:
         handle_cli_error("Logout failed", e, debug)
 
@@ -163,8 +175,11 @@ def whoami(
 
     try:
         config = Config.load_from_file()
+    except FileNotFoundError:
+        console.print("Not logged in. Run 'arcade login' to authenticate.", style="bold red")
+        return
     except Exception as e:
-        handle_cli_error("Failed to read credentials", e, debug)
+        handle_cli_error("Failed to read credentials", e, debug, should_exit=True)
         return
 
     # Defensive - should not happen, because the main() callback prevents this:
@@ -311,8 +326,16 @@ def mcp(
         if debug:
             console.print(f"[dim]Running: {' '.join(cmd)}[/dim]")
 
-        # Execute the command and pass through all output
-        result = subprocess.run(cmd, check=False)
+        # Execute the command and pass through all output.
+        # On Windows, set CREATE_NO_WINDOW to prevent a phantom console
+        # window from appearing (e.g. when an MCP client spawns this
+        # command without an attached console).  The child process still
+        # inherits stdin/stdout/stderr for stdio transport communication.
+        run_kwargs: dict[str, object] = {"check": False}
+        creation_flags = get_windows_no_window_creationflags()
+        if creation_flags:
+            run_kwargs["creationflags"] = creation_flags
+        result = subprocess.run(cmd, **run_kwargs)
 
         # Exit with the same code as the subprocess
         if result.returncode != 0:
@@ -918,7 +941,7 @@ def dashboard(
 
         # Open the dashboard in a browser
         console.print(f"Opening Arcade Dashboard at {dashboard_url}")
-        if not webbrowser.open(dashboard_url):
+        if not _open_browser(dashboard_url):
             console.print(
                 f"If a browser doesn't open automatically, copy this URL and paste it into your browser: {dashboard_url}",
                 style="dim",

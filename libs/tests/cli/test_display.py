@@ -4,6 +4,13 @@ from unittest.mock import Mock
 
 import pytest
 from arcade_cli.display import display_eval_results
+
+# test_display exercises eval-formatting paths that depend on optional extras.
+# Skip cleanly when those extras are not installed in the active environment.
+pytest.importorskip("openai")
+pytest.importorskip("pytz")
+pytest.importorskip("numpy")
+pytest.importorskip("scipy")
 from arcade_evals.eval import EvaluationResult
 
 # Mark all tests in this module as requiring evals dependencies
@@ -118,7 +125,7 @@ def test_display_eval_results_with_output_file() -> None:
         assert output_file.exists()
 
         # Verify file contains some expected content
-        content = output_file.read_text()
+        content = output_file.read_text(encoding="utf-8")
         assert "Model:" in content or "gpt-4o" in content
 
 
@@ -160,7 +167,7 @@ def test_display_eval_results_with_output_file_and_failed_only() -> None:
         assert output_file.exists()
 
         # Verify file contains disclaimer and summary
-        content = output_file.read_text()
+        content = output_file.read_text(encoding="utf-8")
         assert "failed-only" in content.lower() or "failed evaluation" in content.lower()
         assert "Total: 5" in content  # Should show original total
 
@@ -515,7 +522,7 @@ def test_display_eval_results_failed_only_with_warnings_in_summary() -> None:
             output_formats=["txt"],
         )
 
-        content = output_file.read_text()
+        content = output_file.read_text(encoding="utf-8")
         # Should show warnings in summary
         assert "Warnings: 1" in content or "Warnings" in content
 
@@ -562,7 +569,7 @@ def test_display_eval_results_with_details_and_output() -> None:
         )
 
         assert output_file.exists()
-        content = output_file.read_text()
+        content = output_file.read_text(encoding="utf-8")
         assert "User Input:" in content
         assert "Details:" in content
 
@@ -603,11 +610,11 @@ def test_display_eval_results_multi_format_output() -> None:
         assert (Path(tmpdir) / "results.html").exists()
 
         # Verify each file has appropriate content
-        txt_content = (Path(tmpdir) / "results.txt").read_text()
+        txt_content = (Path(tmpdir) / "results.txt").read_text(encoding="utf-8")
         assert "Test Case" in txt_content
 
-        md_content = (Path(tmpdir) / "results.md").read_text()
+        md_content = (Path(tmpdir) / "results.md").read_text(encoding="utf-8")
         assert "# " in md_content  # Markdown header
 
-        html_content = (Path(tmpdir) / "results.html").read_text()
+        html_content = (Path(tmpdir) / "results.html").read_text(encoding="utf-8")
         assert "<html" in html_content

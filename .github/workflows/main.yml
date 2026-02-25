@@ -26,9 +26,11 @@ jobs:
         run: make check
 
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
     strategy:
       matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ["3.10", "3.11", "3.12"]
       fail-fast: false
     steps:
@@ -41,9 +43,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Test libs
-        run: make test
+        run: uv run pytest -W ignore -v libs/tests --cov=libs --cov-config=pyproject.toml --cov-report=xml
       - name: Upload coverage reports to Codecov with GitHub Action on Python 3.10
         uses: codecov/codecov-action@v4.0.1
-        if: ${{ matrix.python-version == '3.10' }}
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.python-version == '3.10' }}
         with:
           token: ${{ secrets.CODECOV_TOKEN }}

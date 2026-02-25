@@ -171,7 +171,7 @@ class CaptureResult:
 
     def write_to_file(self, file_path: str, include_context: bool = False, indent: int = 2) -> None:
         """Write capture results to a JSON file."""
-        with open(file_path, "w") as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             f.write(self.to_json(include_context, indent))
 
 
