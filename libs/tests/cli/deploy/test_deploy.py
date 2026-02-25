@@ -3,13 +3,18 @@ import io
 import subprocess
 import tarfile
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
+import httpx
 import pytest
 from arcade_cli.deploy import (
+    DEPLOY_TIMEOUT_SECONDS,
     create_package_archive,
+    deploy_server_to_engine,
     get_required_secrets,
     get_server_info,
     start_server_process,
+    update_deployment,
     verify_server_and_get_metadata,
     wait_for_health,
 )
@@ -291,3 +296,100 @@ def test_verify_server_and_get_metadata_with_debug(valid_server_path: str, capsy
     assert server_name == "simpleserver"
     assert server_version == "1.0.0"
     assert "MY_SECRET_KEY" in required_secrets
+
+
+# Tests for deploy_server_to_engine
+
+
+@patch("arcade_cli.deploy.get_auth_headers", return_value={"Authorization": "Bearer test"})
+@patch("arcade_cli.deploy.get_org_scoped_url", return_value="http://engine/v1/orgs/1/projects/1/deployments")
+def test_deploy_server_to_engine_timeout_raises_helpful_error(
+    mock_url: MagicMock, mock_auth: MagicMock
+) -> None:
+    """Test that a timeout during deployment raises a clear, actionable error."""
+    with patch("arcade_cli.deploy.httpx.Client") as mock_client_cls:
+        mock_client = MagicMock()
+        mock_client_cls.return_value = mock_client
+        mock_client.post.side_effect = httpx.WriteTimeout("The write operation timed out")
+
+        with pytest.raises(ValueError, match="Deployment request timed out"):
+            deploy_server_to_engine("http://engine", {"test": "payload"})
+
+
+@patch("arcade_cli.deploy.get_auth_headers", return_value={"Authorization": "Bearer test"})
+@patch("arcade_cli.deploy.get_org_scoped_url", return_value="http://engine/v1/orgs/1/projects/1/deployments")
+def test_deploy_server_to_engine_timeout_mentions_package_size(
+    mock_url: MagicMock, mock_auth: MagicMock
+) -> None:
+    """Test that the timeout error message mentions package size as a likely cause."""
+    with patch("arcade_cli.deploy.httpx.Client") as mock_client_cls:
+        mock_client = MagicMock()
+        mock_client_cls.return_value = mock_client
+        mock_client.post.side_effect = httpx.ReadTimeout("timed out")
+
+        with pytest.raises(ValueError, match="large deployment package"):
+            deploy_server_to_engine("http://engine", {"test": "payload"})
+
+
+@patch("arcade_cli.deploy.get_auth_headers", return_value={"Authorization": "Bearer test"})
+@patch("arcade_cli.deploy.get_org_scoped_url", return_value="http://engine/v1/orgs/1/projects/1/deployments")
+def test_deploy_server_to_engine_uses_deploy_timeout(
+    mock_url: MagicMock, mock_auth: MagicMock
+) -> None:
+    """Test that deploy_server_to_engine uses the DEPLOY_TIMEOUT_SECONDS constant."""
+    with patch("arcade_cli.deploy.httpx.Client") as mock_client_cls:
+        mock_client = MagicMock()
+        mock_client_cls.return_value = mock_client
+        mock_response = MagicMock()
+        mock_response.json.return_value = {"status": "ok"}
+        mock_client.post.return_value = mock_response
+
+        deploy_server_to_engine("http://engine", {"test": "payload"})
+
+        mock_client_cls.assert_called_once_with(
+            headers={"Authorization": "Bearer test"},
+            timeout=DEPLOY_TIMEOUT_SECONDS,
+        )
+
+
+# Tests for update_deployment
+
+
+@patch("arcade_cli.deploy.get_auth_headers", return_value={"Authorization": "Bearer test"})
+@patch("arcade_cli.deploy.get_org_scoped_url", return_value="http://engine/v1/orgs/1/projects/1/deployments/myserver")
+def test_update_deployment_timeout_raises_helpful_error(
+    mock_url: MagicMock, mock_auth: MagicMock
+) -> None:
+    """Test that a timeout during deployment update raises a clear, actionable error."""
+    with patch("arcade_cli.deploy.httpx.Client") as mock_client_cls:
+        mock_client = MagicMock()
+        mock_client_cls.return_value = mock_client
+        mock_client.put.side_effect = httpx.WriteTimeout("The write operation timed out")
+
+        with pytest.raises(ValueError, match="Deployment update timed out"):
+            update_deployment("http://engine", "myserver", {"test": "payload"})
+
+
+@patch("arcade_cli.deploy.get_auth_headers", return_value={"Authorization": "Bearer test"})
+@patch("arcade_cli.deploy.get_org_scoped_url", return_value="http://engine/v1/orgs/1/projects/1/deployments/myserver")
+def test_update_deployment_uses_deploy_timeout(
+    mock_url: MagicMock, mock_auth: MagicMock
+) -> None:
+    """Test that update_deployment uses the DEPLOY_TIMEOUT_SECONDS constant."""
+    with patch("arcade_cli.deploy.httpx.Client") as mock_client_cls:
+        mock_client = MagicMock()
+        mock_client_cls.return_value = mock_client
+
+        update_deployment("http://engine", "myserver", {"test": "payload"})
+
+        mock_client_cls.assert_called_once_with(
+            headers={"Authorization": "Bearer test"},
+            timeout=DEPLOY_TIMEOUT_SECONDS,
+        )
+
+
+
+
+def test_deploy_timeout_constant() -> None:
+    """Test that the deploy timeout constant is correctly defined."""
+    assert DEPLOY_TIMEOUT_SECONDS == 360
