@@ -83,14 +83,6 @@ docker: ## Build and run the Docker container
 	@cd docker && make docker-build
 	@cd docker && make docker-run
 
-.PHONY: docker-base
-docker-base: ## Build and run the Docker container
-	@echo "🚀 Building lib packages..."
-	@make full-dist
-	@echo "🚀 Building Docker image"
-	@cd docker && make docker-build
-	@cd docker && make docker-run
-
 .PHONY: publish-ghcr
 publish-ghcr: ## Publish to the GHCR
 	@cd docker && make publish-ghcr
