@@ -6,18 +6,6 @@ inputs:
     required: false
     description: "The python version to use"
     default: "3.11"
-  is-contrib:
-    required: false
-    description: "Whether this is a contrib package"
-    default: "false"
-  is-lib:
-    required: false
-    description: "Whether this is a library package"
-    default: "false"
-  working-directory:
-    required: false
-    description: "Working directory for the installation"
-    default: "."
 
 runs:
   using: "composite"
@@ -25,18 +13,8 @@ runs:
     - name: Install uv
       uses: astral-sh/setup-uv@v6
       with:
-        working-directory: ${{ inputs.working-directory }}
         python-version: ${{ inputs.python-version }}
 
-    - name: Install contrib dependencies
-      if: inputs.is-contrib == 'true'
-      working-directory: ${{ inputs.working-directory }}
-      run: |
-        echo "Installing dependencies for ${{ inputs.working-directory }}"
-        make install
-      shell: bash
-
-    - name: Install libs dependencies
-      if: inputs.is-contrib != 'true'
+    - name: Install dependencies
       run: uv sync --extra all --extra dev
       shell: bash
