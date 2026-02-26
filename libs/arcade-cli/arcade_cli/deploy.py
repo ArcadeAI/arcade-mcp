@@ -16,6 +16,7 @@ from arcade_core.subprocess_utils import (
     get_windows_no_window_creationflags,
     graceful_terminate_process,
 )
+from arcade_mcp_server.settings import find_env_file
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 from rich.columns import Columns
@@ -817,14 +818,14 @@ def deploy_server_logic(
         )
     console.print(f"✓ Entrypoint file found at {entrypoint_path}", style="green")
 
-    # Step 3: Load .env file from current directory if it exists
-    console.print("\nLoading .env file from current directory if it exists...", style="dim")
-    env_path = current_dir / ".env"
-    if env_path.exists():
+    # Step 3: Load .env file if it exists (searches upward through parent directories)
+    console.print("\nSearching for .env file...", style="dim")
+    env_path = find_env_file()
+    if env_path is not None:
         load_dotenv(env_path, override=False)
         console.print(f"✓ Loaded environment from {env_path}", style="green")
     else:
-        console.print(f"[!] No .env file found at {env_path}", style="yellow")
+        console.print("[!] No .env file found in current or parent directories", style="yellow")
 
     # Step 4: Verify server and extract metadata (or skip if --skip-validate)
     required_secrets_from_validation: set[str] = set()
@@ -860,7 +861,7 @@ def deploy_server_logic(
 
     if secrets == "skip":
         console.print("\n[!] Skipping secret upload (--secrets skip)", style="yellow")
-    elif secrets == "all":
+    elif secrets == "all" and env_path is not None:
         console.print("\nUploading ALL secrets from .env file...", style="dim")
         secrets_to_upsert = set(load_env_file(str(env_path)).keys())
         if secrets_to_upsert:

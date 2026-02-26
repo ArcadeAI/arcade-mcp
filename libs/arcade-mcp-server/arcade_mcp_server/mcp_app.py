@@ -31,7 +31,7 @@ from arcade_mcp_server.exceptions import ServerError
 from arcade_mcp_server.logging_utils import intercept_standard_logging
 from arcade_mcp_server.resource_server.base import ResourceServerValidator
 from arcade_mcp_server.server import MCPServer
-from arcade_mcp_server.settings import MCPSettings, ServerSettings
+from arcade_mcp_server.settings import MCPSettings, ServerSettings, find_env_file
 from arcade_mcp_server.types import Prompt, PromptMessage, Resource
 from arcade_mcp_server.usage import ServerTracker
 from arcade_mcp_server.worker import create_arcade_mcp, serve_with_force_quit
@@ -367,7 +367,7 @@ class MCPApp:
         This method runs as the parent process that watches for file changes
         and spawns/restarts child processes to run the actual server.
         """
-        env_file_path = Path.cwd() / ".env"
+        env_file_path = find_env_file()
 
         def start_server_process() -> subprocess.Popen:
             """Start a child process running the server."""
@@ -414,9 +414,17 @@ class MCPApp:
         try:
 
             def watch_filter(change: Any, path: str) -> bool:
-                return path.endswith(".py") or (Path(path) == env_file_path)
+                # Watch Python files and the .env file (if one was found)
+                return path.endswith(".py") or (
+                    env_file_path is not None and Path(path) == env_file_path
+                )
 
-            for changes in watch(".", watch_filter=watch_filter):
+            # Watch current directory, plus the .env file if it's outside cwd
+            paths_to_watch: list[str] = ["."]
+            if env_file_path is not None:
+                paths_to_watch.append(str(env_file_path))
+
+            for changes in watch(*paths_to_watch, watch_filter=watch_filter):
                 logger.info(f"Detected changes in {len(changes)} file(s), restarting server...")
                 shutdown_server_process(process, reason="reload")
                 process = start_server_process()

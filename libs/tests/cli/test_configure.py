@@ -1,3 +1,5 @@
+"""Tests for get_tool_secrets() in arcade configure."""
+
 import json
 import sys
 import types
@@ -10,6 +12,7 @@ from arcade_cli.configure import (
     _resolve_windows_appdata,
     _warn_overwrite,
     configure_client,
+    get_tool_secrets,
 )
 
 
@@ -28,6 +31,28 @@ def _assert_stdio_entry(entry: dict) -> None:
     assert "args" in entry
     assert any(str(arg).endswith("server.py") for arg in entry["args"])
     assert "env" in entry
+
+
+def test_get_tool_secrets_loads_from_env_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Should load secrets from .env file."""
+    env_file = tmp_path / ".env"
+    env_file.write_text("SECRET_ONE=value1\nSECRET_TWO=value2")
+    monkeypatch.chdir(tmp_path)
+
+    secrets = get_tool_secrets()
+    assert secrets.get("SECRET_ONE") == "value1"
+    assert secrets.get("SECRET_TWO") == "value2"
+
+
+def test_get_tool_secrets_returns_empty_when_no_env(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Should return empty dict when no .env exists."""
+    monkeypatch.chdir(tmp_path)
+
+    assert get_tool_secrets() == {}
 
 
 # ---------------------------------------------------------------------------

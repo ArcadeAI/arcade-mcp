@@ -10,6 +10,7 @@ import subprocess
 from pathlib import Path
 
 import typer
+from arcade_mcp_server.settings import find_env_file
 from dotenv import dotenv_values
 
 from arcade_cli.console import console
@@ -204,10 +205,16 @@ def is_uv_installed() -> bool:
 
 
 def get_tool_secrets() -> dict:
-    """Only useful for stdio servers, because HTTP servers load in envvars at runtime"""
-    # TODO: Allow for a custom .env file to be used
-    env_path = Path.cwd() / ".env"
-    if env_path.exists():
+    """Get tool secrets from .env file for stdio servers.
+
+    Discovers .env file by traversing upward from the current directory
+    through parent directories until a .env file is found.
+
+    Returns:
+        Dictionary of environment variables from the .env file, or empty dict if not found.
+    """
+    env_path = find_env_file()
+    if env_path is not None:
         return dotenv_values(env_path)
     return {}
 
