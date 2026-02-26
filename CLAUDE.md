@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Is
 
-Arcade MCP is a Python tool-calling platform for building MCP (Model Context Protocol) servers. It's a monorepo containing 5 interdependent libraries, 30+ prebuilt toolkit integrations, and a CLI.
+Arcade MCP is a Python tool-calling platform for building MCP (Model Context Protocol) servers. It's a monorepo containing 5 interdependent libraries and a CLI.
 
 ## Commands
 
@@ -15,7 +15,6 @@ Arcade MCP is a Python tool-calling platform for building MCP (Model Context Pro
 | Run a single test | `uv run pytest libs/tests/core/test_toolkit.py::TestClass::test_method` |
 | Lint + type check | `make check` (pre-commit + mypy) |
 | Build all wheels | `make build` |
-| Run toolkit tests | `make test-toolkits` |
 
 Package manager is **uv** — always use `uv run` to execute Python commands, never bare `pip` or `python`. Python 3.10+. Build system is Hatchling.
 

@@ -83,14 +83,11 @@ jobs:
         uses: ./.github/actions/setup-uv-env
         with:
           python-version: "3.10"
-          is-toolkit: ${{ startsWith(matrix.package, 'toolkits/') }}
           is-contrib: ${{ startsWith(matrix.package, 'contrib/') }}
           is-lib: ${{ startsWith(matrix.package, 'libs/') }}
           working-directory: ${{ matrix.package }}
 
       - name: Run tests
-        # Skip tests for toolkits - tests are run on every PR commit for toolkits
-        if: ${{ !startsWith(matrix.package, 'toolkits/') }}
         working-directory: ${{ matrix.package }}
         run: |
           # Run tests if they exist

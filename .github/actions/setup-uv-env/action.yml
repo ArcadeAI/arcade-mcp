@@ -6,10 +6,6 @@ inputs:
     required: false
     description: "The python version to use"
     default: "3.11"
-  is-toolkit:
-    required: false
-    description: "Whether this is a toolkit package"
-    default: "false"
   is-contrib:
     required: false
     description: "Whether this is a contrib package"
@@ -20,7 +16,7 @@ inputs:
     default: "false"
   working-directory:
     required: false
-    description: "Working directory for the installation (used for toolkits)"
+    description: "Working directory for the installation"
     default: "."
 
 runs:
@@ -32,14 +28,6 @@ runs:
         working-directory: ${{ inputs.working-directory }}
         python-version: ${{ inputs.python-version }}
 
-    - name: Install toolkit dependencies
-      if: inputs.is-toolkit == 'true'
-      working-directory: ${{ inputs.working-directory }}
-      run: |
-        echo "Installing dependencies for ${{ inputs.working-directory }}"
-        make install-local
-      shell: bash
-
     - name: Install contrib dependencies
       if: inputs.is-contrib == 'true'
       working-directory: ${{ inputs.working-directory }}
@@ -49,6 +37,6 @@ runs:
       shell: bash
 
     - name: Install libs dependencies
-      if: inputs.is-toolkit != 'true'
+      if: inputs.is-contrib != 'true'
       run: uv sync --extra all --extra dev
       shell: bash
