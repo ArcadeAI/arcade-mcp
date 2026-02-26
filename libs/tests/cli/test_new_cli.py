@@ -1,9 +1,43 @@
 from io import StringIO
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
-from arcade_cli.new import create_new_toolkit_minimal
+from arcade_cli.new import create_new_toolkit, create_new_toolkit_minimal
 from rich.console import Console
+
+
+def test_create_new_toolkit_prints_next_steps(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """create_new_toolkit (full template) should print numbered next steps."""
+    output_dir = tmp_path / "full_test"
+    output_dir.mkdir()
+
+    # Use a cwd that does not trigger community/official toolkit prompts
+    fake_cwd = tmp_path / "cwd"
+    fake_cwd.mkdir()
+    monkeypatch.chdir(fake_cwd)
+
+    # Mock prompts: description, author, email, evals (yes)
+    with patch("arcade_cli.new.typer.prompt", side_effect=["", "", "", "y"]):
+        buf = StringIO()
+        test_console = Console(file=buf, force_terminal=False)
+        import arcade_cli.new as new_mod
+
+        orig = new_mod.console
+        new_mod.console = test_console
+        try:
+            create_new_toolkit(str(output_dir), "my_server")
+        finally:
+            new_mod.console = orig
+
+    output = buf.getvalue()
+    assert "Next steps:" in output
+    assert "1. cd " in output
+    assert "2. Run the server (choose one transport):" in output
+    assert "- stdio: uv run server.py" in output
+    assert "- http:  uv run server.py --transport http --port 8000" in output
+    assert "uv run server.py" in output
+    assert "my_server" in output
 
 
 def test_create_new_toolkit_minimal_with_spaces(tmp_path: Path) -> None:
@@ -38,6 +72,14 @@ def test_create_new_toolkit_minimal_prints_next_steps(tmp_path: Path) -> None:
 
     output = buf.getvalue()
     assert "Next steps:" in output, f"Expected 'Next steps:' in output:\n{output}"
+    assert "1. cd " in output, f"Expected numbered step 1 in output:\n{output}"
+    assert "2. Run the server (choose one transport):" in output, (
+        f"Expected numbered step 2 in output:\n{output}"
+    )
+    assert "- stdio: uv run server.py" in output, f"Expected stdio option in output:\n{output}"
+    assert "- http:  uv run server.py --transport http --port 8000" in output, (
+        f"Expected HTTP option in output:\n{output}"
+    )
     assert "uv run server.py" in output, f"Expected 'uv run server.py' in output:\n{output}"
     assert "demo_srv" in output, f"Expected toolkit name in output:\n{output}"
 

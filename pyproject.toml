@@ -57,10 +57,6 @@ evals = [
     "pytz>=2024.1",
 ]
 
-windows = [
-    "platformdirs>=4.3.6",
-]
-
 dev = [
     # Test framework
     "pytest>=8.1.2",
