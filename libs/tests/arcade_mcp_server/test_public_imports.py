@@ -41,9 +41,37 @@ def test_transport_imports():
     assert HTTPSessionManager is not None
 
 
+def test_auth_provider_imports():
+    """Test auth provider imports including well-known OAuth2 providers."""
+    from arcade_mcp_server.auth import (
+        Asana,
+        Attio,
+        Canva,
+        Dropbox,
+        GitHub,
+        Google,
+        Slack,
+        Spotify,
+    )
+
+    assert Canva is not None
+    assert Canva().provider_id == "canva"
+    assert Canva(scopes=["design:meta:read"]).scopes == ["design:meta:read"]
+
+    # Spot-check a few others still work
+    assert Google is not None
+    assert Slack is not None
+    assert Spotify is not None
+    assert Asana is not None
+    assert Attio is not None
+    assert Dropbox is not None
+    assert GitHub is not None
+
+
 if __name__ == "__main__":
     test_basic_imports()
     test_manager_imports()
     test_middleware_imports()
     test_transport_imports()
+    test_auth_provider_imports()
     print("All imports successful!")
