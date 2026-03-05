@@ -157,7 +157,7 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
 
     toolkit_name_title = toolkit_name.replace("_", " ").title()
     toolkit_name_hyphenated = toolkit_name.replace("_", "-")
-    toolkit_description = f"interact with {toolkit_name_title}"
+    toolkit_description = f"Arcade.dev tools for interacting with {toolkit_name_title}"
 
     context = {
         "package_name": "arcade_" + toolkit_name,

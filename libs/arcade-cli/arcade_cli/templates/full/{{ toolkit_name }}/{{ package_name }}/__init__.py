@@ -1,3 +1,3 @@
-from {{ package_name }}.tools.sample import say_hello
+from {{ package_name }}.tools.sample import RedditUserProfile, get_my_reddit_profile
 
-__all__ = ["say_hello"]
+__all__ = ["RedditUserProfile", "get_my_reddit_profile"]
