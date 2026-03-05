@@ -7,6 +7,7 @@ help: ## Show this help message
 
 install: ## Install dependencies, then overlay any ../.local-overrides
 	uv sync --all-extras
+	uv run pre-commit install
 	@if [ -f ../.local-overrides ]; then \
 		while IFS= read -r pkg || [ -n "$$pkg" ]; do \
 			case "$$pkg" in \#*|"") continue ;; esac; \

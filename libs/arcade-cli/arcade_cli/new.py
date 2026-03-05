@@ -3,9 +3,7 @@ import shutil
 from datetime import datetime
 from importlib.metadata import version as get_version
 from pathlib import Path
-from typing import Optional
 
-import typer
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from arcade_cli.console import console
@@ -22,40 +20,6 @@ except Exception as e:
 
 ARCADE_MCP_SERVER_MIN_VERSION = "1.17.0"
 ARCADE_MCP_SERVER_MAX_VERSION = "2.0.0"
-
-
-def ask_question(question: str, default: Optional[str] = None) -> str:
-    """
-    Ask a question via input() and return the answer.
-    """
-    answer = typer.prompt(question, default=default, show_default=False)
-    if not answer and default:
-        return default
-    return str(answer)
-
-
-def ask_yes_no_question(question: str, default: bool = True) -> bool:
-    """
-    Ask a yes/no question via input() and return the bool answer.
-    """
-    default_str = "Y/n" if default else "y/N"
-    answer = typer.prompt(
-        f"{question} ({default_str})", default="y" if default else "n", show_default=False
-    )
-    return answer.lower() in [
-        "y",
-        "y/",
-        "yes",
-        "true",
-        "1",
-        "ye",
-        "yes",
-        "yeah",
-        "yep",
-        "sure",
-        "ok",
-        "yup",
-    ]
 
 
 def render_template(env: Environment, template_string: str, context: dict) -> str:
