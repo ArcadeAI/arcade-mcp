@@ -1,4 +1,4 @@
-from arcade_tdk import ToolCatalog
+from arcade_core import ToolCatalog
 from arcade_evals import (
     EvalRubric,
     EvalSuite,
@@ -8,7 +8,7 @@ from arcade_evals import (
 from arcade_evals.critic import SimilarityCritic
 
 import {{ package_name }}
-from {{ package_name }}.tools.hello import say_hello
+from {{ package_name }}.tools.sample import say_hello
 
 # Evaluation rubric
 rubric = EvalRubric(
