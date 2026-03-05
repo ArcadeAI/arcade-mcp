@@ -1,6 +1,5 @@
 from io import StringIO
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 from arcade_cli.new import create_new_toolkit, create_new_toolkit_minimal
