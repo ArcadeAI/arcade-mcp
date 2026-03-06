@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -15,7 +15,7 @@ async def test_get_my_reddit_profile(mock_context) -> None:
     }
 
     with patch("{{ package_name }}.tools.sample.httpx.AsyncClient") as mock_client:
-        mock_client.return_value.__aenter__.return_value.get.return_value = mock_response
+        mock_client.return_value.__aenter__.return_value.get = AsyncMock(return_value=mock_response)
         result = await get_my_reddit_profile(mock_context)
 
     assert result == RedditUserProfile(
