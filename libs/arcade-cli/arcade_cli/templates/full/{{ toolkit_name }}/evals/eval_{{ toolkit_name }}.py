@@ -1,14 +1,13 @@
-from arcade_tdk import ToolCatalog
+from arcade_core import ToolCatalog
 from arcade_evals import (
     EvalRubric,
     EvalSuite,
     ExpectedToolCall,
     tool_eval,
 )
-from arcade_evals.critic import SimilarityCritic
 
 import {{ package_name }}
-from {{ package_name }}.tools.hello import say_hello
+from {{ package_name }}.tools.sample import get_my_reddit_profile
 
 # Evaluation rubric
 rubric = EvalRubric(
@@ -34,17 +33,10 @@ def {{ toolkit_name }}_eval_suite() -> EvalSuite:
     )
 
     suite.add_case(
-        name="Saying hello",
-        user_message="He's actually right here, say hi to him!",
-        expected_tool_calls=[ExpectedToolCall(func=say_hello, args={"name": "John Doe"})],
+        name="Get my Reddit profile",
+        user_message="What is my Reddit username and karma?",
+        expected_tool_calls=[ExpectedToolCall(func=get_my_reddit_profile, args={})],
         rubric=rubric,
-        critics=[
-            SimilarityCritic(critic_field="name", weight=0.5),
-        ],
-        additional_messages=[
-            {"role": "user", "content": "My friend's name is John Doe."},
-            {"role": "assistant", "content": "It is great that you have a friend named John Doe!"},
-        ],
     )
 
     return suite

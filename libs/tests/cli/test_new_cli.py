@@ -1,42 +1,33 @@
 from io import StringIO
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 from arcade_cli.new import create_new_toolkit, create_new_toolkit_minimal
 from rich.console import Console
 
 
-def test_create_new_toolkit_prints_next_steps(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_create_new_toolkit_prints_next_steps(tmp_path: Path) -> None:
     """create_new_toolkit (full template) should print numbered next steps."""
     output_dir = tmp_path / "full_test"
     output_dir.mkdir()
 
-    # Use a cwd that does not trigger community/official toolkit prompts
-    fake_cwd = tmp_path / "cwd"
-    fake_cwd.mkdir()
-    monkeypatch.chdir(fake_cwd)
+    buf = StringIO()
+    test_console = Console(file=buf, force_terminal=False)
+    import arcade_cli.new as new_mod
 
-    # Mock prompts: description, author, email, evals (yes)
-    with patch("arcade_cli.new.typer.prompt", side_effect=["", "", "", "y"]):
-        buf = StringIO()
-        test_console = Console(file=buf, force_terminal=False)
-        import arcade_cli.new as new_mod
-
-        orig = new_mod.console
-        new_mod.console = test_console
-        try:
-            create_new_toolkit(str(output_dir), "my_server")
-        finally:
-            new_mod.console = orig
+    orig = new_mod.console
+    new_mod.console = test_console
+    try:
+        create_new_toolkit(str(output_dir), "my_server")
+    finally:
+        new_mod.console = orig
 
     output = buf.getvalue()
     assert "Next steps:" in output
     assert "1. cd " in output
-    assert "2. Run the server (choose one transport):" in output
-    assert "- stdio: uv run server.py" in output
-    assert "- http:  uv run server.py --transport http --port 8000" in output
-    assert "uv run server.py" in output
+    assert "make install" in output
+    assert "make dev" in output
+    assert "make test" in output
     assert "my_server" in output
 
 
