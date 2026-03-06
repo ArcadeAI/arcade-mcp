@@ -5,8 +5,12 @@ Implements OAuth 2.0 Authorization Code flow with PKCE for secure CLI authentica
 Uses authlib for OAuth protocol handling.
 """
 
+import logging
 import os
 import secrets
+import socketserver
+import subprocess
+import sys
 import threading
 import uuid
 import webbrowser
@@ -29,10 +33,14 @@ from arcade_core.auth_tokens import (
 )
 from arcade_core.config_model import AuthConfig, Config, ContextConfig, UserConfig
 from arcade_core.constants import ARCADE_CONFIG_PATH, CREDENTIALS_FILE_PATH
+from arcade_core.subprocess_utils import build_windows_hidden_startupinfo
 from authlib.integrations.httpx_client import OAuth2Client
 from jinja2 import Environment, FileSystemLoader
 from pydantic import AliasChoices, BaseModel, Field
-from rich.console import Console
+
+from arcade_cli.console import console
+
+logger = logging.getLogger(__name__)
 
 # Set up Jinja2 templates
 _TEMPLATES_DIR = Path(__file__).parent / "templates"
@@ -45,11 +53,26 @@ def _render_template(template_name: str, **context: Any) -> bytes:
     return template.render(**context).encode("utf-8")
 
 
-console = Console()
-
 # OAuth constants
 DEFAULT_SCOPES = "openid offline_access"
+LOCAL_CALLBACK_HOST = "127.0.0.1"
 LOCAL_CALLBACK_PORT = 9905
+_DEFAULT_OAUTH_TIMEOUT_FALLBACK_SECONDS = 600
+
+
+def _get_default_oauth_timeout_seconds() -> int:
+    value = os.environ.get(
+        "ARCADE_LOGIN_TIMEOUT_SECONDS", str(_DEFAULT_OAUTH_TIMEOUT_FALLBACK_SECONDS)
+    )
+    try:
+        parsed = int(value)
+    except ValueError:
+        return _DEFAULT_OAUTH_TIMEOUT_FALLBACK_SECONDS
+    else:
+        return parsed if parsed > 0 else _DEFAULT_OAUTH_TIMEOUT_FALLBACK_SECONDS
+
+
+DEFAULT_OAUTH_TIMEOUT_SECONDS = _get_default_oauth_timeout_seconds()
 
 
 def create_oauth_client(cli_config: CLIConfig) -> OAuth2Client:  # type: ignore[no-any-unimported]
@@ -280,12 +303,42 @@ def fetch_projects(coordinator_url: str, org_id: str) -> list[ProjectInfo]:
     return [ProjectInfo.model_validate(item) for item in data.get("data", {}).get("items", [])]
 
 
+class _LoopbackHTTPServer(HTTPServer):
+    """HTTPServer that skips the potentially slow ``getfqdn()`` reverse-DNS
+    lookup in ``server_bind()``.
+
+    ``HTTPServer.server_bind()`` calls ``socket.getfqdn(host)`` which invokes
+    ``gethostbyaddr("127.0.0.1")`` via the system resolver.  On macOS CI
+    runners (Apple Silicon / macOS 14) the mDNSResponder can take 5-30 s to
+    resolve the loopback PTR record when the DNS cache is cold, causing the
+    daemon thread to block inside the constructor and ``ready_event`` to never
+    fire within the timeout window.
+
+    We only listen on ``127.0.0.1`` for the OAuth callback, so we hard-set
+    ``server_name`` to ``"127.0.0.1"`` and skip the DNS round-trip entirely.
+    """
+
+    def server_bind(self) -> None:
+        socketserver.TCPServer.server_bind(self)
+        host, port = self.server_address[:2]
+        self.server_name = host
+        self.server_port = port
+
+
 class OAuthCallbackHandler(BaseHTTPRequestHandler):
     """HTTP request handler for OAuth callback."""
 
-    def __init__(self, *args, state: str, result_holder: dict, **kwargs):  # type: ignore[no-untyped-def]
+    def __init__(
+        self,
+        *args: Any,
+        state: str,
+        result_holder: dict,
+        result_event: threading.Event,
+        **kwargs: Any,
+    ):
         self.state = state
         self.result_holder = result_holder
+        self.result_event = result_event
         # Store error details for template rendering
         self._error: str | None = None
         self._error_description: str | None = None
@@ -331,6 +384,7 @@ class OAuthCallbackHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.end_headers()
         self.wfile.write(_render_template("cli_login_success.jinja"))
+        self.result_event.set()
         threading.Thread(target=self.server.shutdown).start()
 
     def _send_error_response(self, message: str | None = None) -> None:
@@ -346,6 +400,7 @@ class OAuthCallbackHandler(BaseHTTPRequestHandler):
                 state=self._returned_state,
             )
         )
+        self.result_event.set()
         threading.Thread(target=self.server.shutdown).start()
 
 
@@ -358,13 +413,34 @@ class OAuthCallbackServer:
         self.httpd: HTTPServer | None = None
         self.result: dict[str, Any] = {}
 
+        # Threading events used on *all* platforms (not Windows-specific).
+        # result_event: signalled by the HTTP handler once the OAuth callback
+        #   has been processed (success or error).  Callers block on this via
+        #   wait_for_result() instead of polling.
+        # ready_event: signalled by run_server() once the HTTPServer is bound
+        #   and listening.  Callers block on this via wait_until_ready() so
+        #   they don't race the browser redirect against server startup.
+        self.result_event = threading.Event()
+        self.ready_event = threading.Event()
+
     def run_server(self) -> None:
-        """Start the callback server."""
-        server_address = ("", self.port)
+        """Start the callback server.
+
+        Binds to 127.0.0.1 (loopback only) rather than 0.0.0.0 to avoid
+        Windows Firewall prompts and keep the redirect URI host aligned
+        with the actual bind host.
+        """
+        server_address = (LOCAL_CALLBACK_HOST, self.port)
         handler = lambda *args, **kwargs: OAuthCallbackHandler(
-            *args, state=self.state, result_holder=self.result, **kwargs
+            *args,
+            state=self.state,
+            result_holder=self.result,
+            result_event=self.result_event,
+            **kwargs,
         )
-        self.httpd = HTTPServer(server_address, handler)
+        self.httpd = _LoopbackHTTPServer(server_address, handler)
+        self.port = self.httpd.server_port
+        self.ready_event.set()
         self.httpd.serve_forever()
 
     def shutdown_server(self) -> None:
@@ -372,9 +448,27 @@ class OAuthCallbackServer:
         if self.httpd:
             self.httpd.shutdown()
 
+    def wait_until_ready(self, timeout: float | None = 2.0) -> bool:
+        """Wait for the server to start listening."""
+        return self.ready_event.wait(timeout=timeout)
+
+    def wait_for_result(self, timeout: float | None) -> bool:
+        """Wait for the OAuth callback to complete."""
+        if self.result_event.wait(timeout=timeout):
+            return True
+
+        timeout_desc = f"{int(timeout)}s" if timeout else "the configured timeout"
+        self.result["error"] = (
+            f"Timed out waiting for the login callback after {timeout_desc}. "
+            "If your browser completed login, check firewall/antivirus settings "
+            "and re-run 'arcade login' (you can increase --timeout if needed)."
+        )
+        self.shutdown_server()
+        return False
+
     def get_redirect_uri(self) -> str:
         """Get the redirect URI for this server."""
-        return f"http://localhost:{self.port}/callback"
+        return f"http://{LOCAL_CALLBACK_HOST}:{self.port}/callback"
 
 
 def save_credentials_from_whoami(
@@ -449,6 +543,79 @@ def get_active_context() -> tuple[str, str]:
 # =============================================================================
 
 
+def _open_browser(url: str) -> bool:
+    """Open a URL in the default browser without flashing a CMD window on Windows.
+
+    On Windows, both ``webbrowser.open`` and ``os.startfile`` call
+    ``ShellExecuteW`` under the hood which can briefly flash a console window
+    depending on how the default-browser handler is registered.
+
+    This helper uses a tiered approach on Windows:
+
+    1. **ctypes ShellExecuteW** — calls the Win32 API directly so we can
+       pass ``SW_SHOWNORMAL`` explicitly.  No intermediate ``cmd.exe``
+       involved, so no console window should appear.
+    2. **rundll32 url.dll** — a well-known Windows technique to open URLs
+       via a pure-GUI helper DLL.  ``rundll32.exe`` is a GUI subsystem
+       binary so it never allocates a console.  Used as a fallback when
+       ctypes is unavailable or ShellExecuteW returns an error code.
+    3. **webbrowser.open** — stdlib last-resort fallback.
+
+    ``os.startfile`` is intentionally omitted: it is another thin wrapper
+    around ``ShellExecuteExW`` and therefore redundant with attempt 1.
+
+    On non-Windows platforms this simply delegates to ``webbrowser.open``.
+    """
+    if sys.platform != "win32":
+        try:
+            return webbrowser.open(url)
+        except Exception:
+            return False
+
+    # --- Windows path ---
+
+    # Attempt 1: ctypes ShellExecuteW — most direct, avoids any console.
+    try:
+        import ctypes
+
+        SW_SHOWNORMAL = 1
+        result = ctypes.windll.shell32.ShellExecuteW(
+            None,  # hwnd
+            "open",  # operation
+            url,  # file/URL
+            None,  # parameters
+            None,  # directory
+            SW_SHOWNORMAL,
+        )
+        # ShellExecuteW returns > 32 on success.
+        if result > 32:
+            return True
+    except Exception as exc:
+        logger.debug("_open_browser: ShellExecuteW failed: %s", exc)
+
+    # Attempt 2: rundll32 url.dll — a GUI-subsystem binary, no console.
+    try:
+        startupinfo = build_windows_hidden_startupinfo()
+        popen_kwargs: dict[str, Any] = {
+            "stdout": subprocess.DEVNULL,
+            "stderr": subprocess.DEVNULL,
+        }
+        if startupinfo is not None:
+            popen_kwargs["startupinfo"] = startupinfo
+
+        subprocess.Popen(["rundll32", "url.dll,FileProtocolHandler", url], **popen_kwargs)  # noqa: S607
+    except Exception as exc:
+        logger.debug("_open_browser: rundll32 fallback failed: %s", exc)
+    else:
+        return True
+
+    # Attempt 3: stdlib fallback.
+    try:
+        return webbrowser.open(url)
+    except Exception:
+        return False
+
+
 class OAuthLoginError(Exception):
     """Error during OAuth login flow."""
 
@@ -496,36 +663,44 @@ def build_coordinator_url(host: str, port: int | None) -> str:
 
 
 @contextmanager
-def oauth_callback_server(state: str) -> Generator[OAuthCallbackServer, None, None]:
+def oauth_callback_server(
+    state: str, port: int = LOCAL_CALLBACK_PORT
+) -> Generator[OAuthCallbackServer, None, None]:
     """
     Context manager for the OAuth callback server.
 
     Ensures the server is properly shut down even if an error occurs.
-    Waits for the callback to be received before exiting.
+    The caller is responsible for waiting on the callback result.
 
     Usage:
         with oauth_callback_server(state) as server:
             # server is running and waiting for callback
             ...
-        # After the with block, the server has received the callback
+        # After the with block, the server has been shut down
     """
-    server = OAuthCallbackServer(state)
-    server_thread = threading.Thread(target=server.run_server)
+    server = OAuthCallbackServer(state, port=port)
+    # daemon=True ensures the thread is killed automatically when the main
+    # process exits (e.g. user presses Ctrl-C during login).  Without it the
+    # blocking serve_forever() call would keep the process alive until the
+    # HTTP timeout expires, even after the CLI has printed an error.
+    server_thread = threading.Thread(target=server.run_server, daemon=True)
     server_thread.start()
+    # Give slower CI runners enough time to schedule the server thread and bind.
+    if not server.wait_until_ready(timeout=5.0):
+        server.shutdown_server()
+        server_thread.join(timeout=2)
+        raise RuntimeError("Failed to start local callback server.")
     try:
         yield server
-        # Wait for the callback to be received (server shuts itself down after handling)
-        server_thread.join()
     finally:
-        # Clean up if interrupted or if something went wrong
-        if server_thread.is_alive():
-            server.shutdown_server()
-            server_thread.join(timeout=2)
+        server.shutdown_server()
+        server_thread.join(timeout=2)
 
 
 def perform_oauth_login(
     coordinator_url: str,
     on_status: Callable[[str], None] | None = None,
+    callback_timeout_seconds: int | None = None,
 ) -> OAuthLoginResult:
     """
     Perform the complete OAuth login flow.
@@ -540,6 +715,7 @@ def perform_oauth_login(
     Args:
         coordinator_url: Base URL of the Coordinator
         on_status: Optional callback for status messages (e.g., console.print)
+        callback_timeout_seconds: Optional timeout for the local callback server
 
     Returns:
         OAuthLoginResult with tokens and user info
@@ -562,21 +738,39 @@ def perform_oauth_login(
     oauth_client = create_oauth_client(cli_config)
     state = str(uuid.uuid4())
 
+    timeout_seconds = (
+        callback_timeout_seconds
+        if callback_timeout_seconds is not None
+        else DEFAULT_OAUTH_TIMEOUT_SECONDS
+    )
+    if timeout_seconds <= 0:
+        timeout_seconds = DEFAULT_OAUTH_TIMEOUT_SECONDS
+
     # Step 3: Start local callback server and run browser auth
-    with oauth_callback_server(state) as server:
-        redirect_uri = server.get_redirect_uri()
+    try:
+        with oauth_callback_server(state) as server:
+            redirect_uri = server.get_redirect_uri()
 
-        # Step 4: Generate authorization URL and open browser
-        auth_url, code_verifier = generate_authorization_url(
-            oauth_client, cli_config, redirect_uri, state
-        )
+            # Step 4: Generate authorization URL and open browser
+            auth_url, code_verifier = generate_authorization_url(
+                oauth_client, cli_config, redirect_uri, state
+            )
 
-        status("Opening a browser to log you in...")
-        if not webbrowser.open(auth_url):
-            status(f"Copy this URL into your browser:\n{auth_url}")
+            status("Opening a browser to log you in...")
+            browser_opened = _open_browser(auth_url)
 
-        # Step 5: Wait for callback (server thread handles this via serve_forever)
-        # The thread will exit when the callback handler calls server.shutdown()
+            if not browser_opened:
+                status(
+                    "Could not open a browser automatically.\n"
+                    f"Open this link to log in:\n{auth_url}"
+                )
+
+            status(f"Waiting for login to complete (timeout: {timeout_seconds}s)...")
+            server.wait_for_result(timeout_seconds)
+    except OAuthLoginError:
+        raise
+    except Exception as e:
+        raise OAuthLoginError(str(e)) from e
 
     # Check for errors from callback
     if "error" in server.result:
@@ -614,7 +808,7 @@ def _credentials_file_contains_legacy() -> bool:
     Detect legacy (API key) credentials in the credentials file.
     """
     try:
-        with open(CREDENTIALS_FILE_PATH) as f:
+        with open(CREDENTIALS_FILE_PATH, encoding="utf-8") as f:
             data = yaml.safe_load(f) or {}
             cloud = data.get("cloud", {})
             return isinstance(cloud, dict) and "api" in cloud
@@ -636,7 +830,7 @@ def check_existing_login(suppress_message: bool = False) -> bool:
         return False
 
     try:
-        with open(CREDENTIALS_FILE_PATH) as f:
+        with open(CREDENTIALS_FILE_PATH, encoding="utf-8") as f:
             config_data: dict[str, Any] = yaml.safe_load(f)
 
         cloud_config = config_data.get("cloud", {}) if isinstance(config_data, dict) else {}

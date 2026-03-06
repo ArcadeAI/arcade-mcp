@@ -7,6 +7,13 @@ from typing import Annotated
 import httpx
 from arcade_mcp_server import Context, MCPApp
 from arcade_mcp_server.auth import Reddit
+from arcade_mcp_server.metadata import (
+    Behavior,
+    Classification,
+    Operation,
+    ServiceDomain,
+    ToolMetadata,
+)
 
 app = MCPApp(name="{{ toolkit_name }}", version="1.0.0", log_level="DEBUG")
 
@@ -33,7 +40,21 @@ def whisper_secret(context: Context) -> Annotated[str, "The last 4 characters of
 
 # To use this tool locally, you need to install the Arcade CLI (uv tool install arcade-mcp)
 # and then run 'arcade login' to authenticate.
-@app.tool(requires_auth=Reddit(scopes=["read"]))
+@app.tool(
+    requires_auth=Reddit(scopes=["read"]),
+    metadata=ToolMetadata(
+        classification=Classification(
+            service_domains=[ServiceDomain.SOCIAL_MEDIA],
+        ),
+        behavior=Behavior(
+            operations=[Operation.READ],
+            read_only=True,
+            destructive=False,
+            idempotent=True,
+            open_world=True,
+        ),
+    ),
+)
 async def get_posts_in_subreddit(
     context: Context, subreddit: Annotated[str, "The name of the subreddit"]
 ) -> dict:

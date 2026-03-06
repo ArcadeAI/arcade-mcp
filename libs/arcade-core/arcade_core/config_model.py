@@ -1,10 +1,60 @@
+import logging
 import os
+import subprocess
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
 import yaml
 from pydantic import BaseModel, ConfigDict, ValidationError
+
+logger = logging.getLogger(__name__)
+
+
+def _set_windows_owner_acl(config_file_path: Path) -> None:
+    """Restrict a file so only the current user can read/write it on Windows.
+
+    On POSIX systems ``chmod 600`` removes group/other access.  On Windows,
+    ``Path.chmod()`` only toggles the read-only flag and does **not** change
+    who can access the file.  To get equivalent protection we use the built-in
+    ``icacls`` command to manipulate NTFS Access Control Lists (ACLs):
+
+    1. ``/inheritance:r`` — remove all inherited Access Control Entries (ACEs).
+       By default every file inherits broad permissions from its parent folder
+       (e.g. ``Users:(RX)``).  Stripping inheritance leaves the file with an
+       empty ACL, meaning *no one* can access it yet.
+    2. ``/grant:r USERNAME:(R,W)`` — add a single explicit ACE that grants
+       the current user Read and Write access.  The ``:r`` flag replaces any
+       existing ACE for that user rather than merging.
+
+    Both flags are passed in a **single** ``icacls`` invocation so there is no
+    window where the file has an empty ACL (which would make it temporarily
+    inaccessible to everyone, including the owner).
+
+    The net effect is that only the logged-in Windows user can read or modify
+    the credentials file — the same security posture as ``chmod 600`` on Unix.
+    """
+    username = os.environ.get("USERNAME")
+    if not username:
+        raise OSError("USERNAME is not set; cannot apply Windows ACL restrictions")
+
+    # Strip inherited permissions and grant only the current user R+W access in
+    # a single icacls call.  Using two separate calls would leave the file with
+    # an empty ACL (nobody can access it) between the first and second call; if
+    # the second call were to fail the file would be permanently inaccessible.
+    subprocess.run(
+        [  # noqa: S607
+            "icacls",
+            str(config_file_path),
+            "/inheritance:r",
+            "/grant:r",
+            f"{username}:(R,W)",
+        ],
+        check=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
 
 
 class BaseConfig(BaseModel):
@@ -182,7 +232,7 @@ class Config(BaseConfig):
                 "Please run 'arcade login' to create your configuration."
             )
 
-        config_data = yaml.safe_load(config_file_path.read_text())
+        config_data = yaml.safe_load(config_file_path.read_text(encoding="utf-8"))
 
         if config_data is None:
             raise ValueError(
@@ -230,7 +280,22 @@ class Config(BaseConfig):
 
         # Convert to dict, excluding None values for cleaner output
         data = {"cloud": self.model_dump(exclude_none=True, mode="json")}
-        config_file_path.write_text(yaml.dump(data, default_flow_style=False))
+        config_file_path.write_text(yaml.dump(data, default_flow_style=False), encoding="utf-8")
 
-        # Set restrictive permissions (owner read/write only)
-        config_file_path.chmod(0o600)
+        # Restrict the credentials file so only the current user can read it.
+        # - Unix:    chmod 600 (removes group/other access via file-mode bits).
+        # - Windows: icacls to strip inherited ACEs and grant only the current
+        #            user R/W access (see _set_windows_owner_acl for details).
+        # Failure is non-fatal: the file is still written, but a warning is
+        # logged so the user knows the permissions could not be tightened.
+        try:
+            if os.name == "nt":
+                _set_windows_owner_acl(config_file_path)
+            else:
+                config_file_path.chmod(0o600)
+        except (OSError, subprocess.SubprocessError) as exc:
+            logger.warning(
+                "Unable to apply restrictive permissions to %s: %s",
+                config_file_path,
+                exc,
+            )

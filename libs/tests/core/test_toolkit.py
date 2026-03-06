@@ -366,7 +366,7 @@ class TestValidateFile:
         """Test validation of Python files with valid syntax."""
         # Create a temporary valid Python file
         valid_file = Path("valid.py")
-        valid_file.write_text("def test(): return True")
+        valid_file.write_text("def test(): return True", encoding="utf-8")
 
         # Should not raise any exceptions
         Toolkit.validate_file(valid_file)
@@ -384,7 +384,7 @@ class TestValidateFile:
     def test_validate_tools_non_python_file(self):
         """Test validation with non-Python file."""
         txt_file = Path("test.txt")
-        txt_file.write_text("Not a Python file")
+        txt_file.write_text("Not a Python file", encoding="utf-8")
 
         with pytest.raises(ValueError, match="Not a Python file"):
             Toolkit.validate_file(txt_file)
@@ -393,7 +393,7 @@ class TestValidateFile:
     def test_validate_tools_syntax_error(self):
         """Test validation with Python file containing syntax errors."""
         invalid_file = Path("invalid.py")
-        invalid_file.write_text("def test(): return True:")  # Invalid syntax
+        invalid_file.write_text("def test(): return True:", encoding="utf-8")  # Invalid syntax
 
         with pytest.raises(SyntaxError):
             Toolkit.validate_file(invalid_file)
@@ -516,7 +516,7 @@ class TestToolsFromDirectory:
         package_dir = tmp_path / "mypackage"
         package_dir.mkdir()
 
-        (package_dir / "__init__.py").write_text("")
+        (package_dir / "__init__.py").write_text("", encoding="utf-8")
         (package_dir / "entrypoint.py").write_text(
             '''
 from arcade_mcp_server import tool
@@ -525,11 +525,12 @@ from arcade_mcp_server import tool
 def my_tool():
     """A tool."""
     pass
-'''
+''',
+            encoding="utf-8",
         )
         tools_dir = package_dir / "tools"
         tools_dir.mkdir()
-        (tools_dir / "__init__.py").write_text("")
+        (tools_dir / "__init__.py").write_text("", encoding="utf-8")
         (tools_dir / "helper.py").write_text(
             '''
 from arcade_mcp_server import tool
@@ -538,7 +539,8 @@ from arcade_mcp_server import tool
 def helper_tool():
     """A helper tool."""
     pass
-'''
+''',
+            encoding="utf-8",
         )
 
         return package_dir

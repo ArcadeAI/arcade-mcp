@@ -8,7 +8,7 @@ def load_ast_tree(filepath: str | Path) -> ast.AST:
 
     """
     try:
-        with open(filepath) as file:
+        with open(filepath, encoding="utf-8") as file:
             return ast.parse(file.read(), filename=filepath)
     except FileNotFoundError:
         raise FileNotFoundError(f"File {filepath} not found")

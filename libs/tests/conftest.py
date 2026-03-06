@@ -41,21 +41,23 @@ def pytest_collection_modifyitems(config, items):
 
 
 @pytest.fixture(autouse=True)
-def disable_usage_tracking():
-    """Disable CLI usage tracking for all tests.
+def isolate_environment():
+    """Isolate environment variables for each test.
 
-    This prevents test runs from sending analytics events to PostHog.
-    The fixture is autouse=True so it applies automatically to every test.
+    This fixture captures the entire environment before a test and restores it
+    after. This ensures that environment variables set by load_dotenv() or any
+    other mechanism during tests don't leak into subsequent tests.
+
+    This also disables CLI usage tracking to prevent test runs from sending
+    analytics events to PostHog.
     """
-    original_value = os.environ.get("ARCADE_USAGE_TRACKING")
+    original_env = os.environ.copy()
 
     # Disable tracking
     os.environ["ARCADE_USAGE_TRACKING"] = "0"
 
     yield
 
-    # Restore original value after test
-    if original_value is None:
-        os.environ.pop("ARCADE_USAGE_TRACKING", None)
-    else:
-        os.environ["ARCADE_USAGE_TRACKING"] = original_value
+    # Restore the original environment
+    os.environ.clear()
+    os.environ.update(original_env)

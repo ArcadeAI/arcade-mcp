@@ -1,6 +1,7 @@
 """Tests for multi-provider utils functions."""
 
 import os
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -365,7 +366,17 @@ class TestParseOutputPaths:
     def test_path_with_directory(self) -> None:
         """Test parsing path with directory."""
         base, formats = parse_output_paths(["output/results.json"])
-        assert base == "output/results"
+        # Path separator is OS-dependent; use Path to build the expected value.
+        assert base == str(Path("output") / "results")
+        assert formats == ["json"]
+
+    def test_path_with_spaces(self, tmp_path: Path) -> None:
+        """Test parsing path with spaces."""
+        output_dir = tmp_path / "dir with spaces"
+        output_dir.mkdir()
+        output_path = output_dir / "results.json"
+        base, formats = parse_output_paths([str(output_path)])
+        assert base == str(output_dir / "results")
         assert formats == ["json"]
 
     def test_none_returns_empty(self) -> None:

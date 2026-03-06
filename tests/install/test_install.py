@@ -35,13 +35,23 @@ class TestRunner:
         self.test_results: list[tuple[str, bool]] = []
 
     def _find_arcade_command(self) -> list[str]:
-        """Find the arcade command (either direct or via uv run)."""
+        """Find the arcade command (either direct or via uv run).
+
+        When using uv run from temp dirs (e.g. configure tests), use
+        ``--project`` instead of ``--directory`` so uv resolves the project
+        environment without changing the subprocess working directory.
+        """
         if shutil.which("arcade"):
             return ["arcade"]
-        return ["uv", "run", "arcade"]
+        return ["uv", "run", "--project", str(self.project_root), "arcade"]
 
     def run_command(
-        self, cmd: list[str], description: str, required: bool = True
+        self,
+        cmd: list[str],
+        description: str,
+        required: bool = True,
+        cwd: Path | None = None,
+        input_text: str | None = None,
     ) -> tuple[bool, str]:
         """Run a command and return success status and output."""
         print(f"\n{'=' * 60}")
@@ -61,6 +71,8 @@ class TestRunner:
                 check=True,
                 timeout=60,
                 env=env,
+                cwd=str(cwd) if cwd else None,
+                input=input_text,
                 encoding="utf-8",
                 errors="replace",
             )
@@ -103,6 +115,26 @@ class TestRunner:
         success, _ = self.run_command(["uv", "--version"], "Check uv availability", required=True)
         return success
 
+    def _sync_dependencies_command(
+        self,
+        *,
+        current_test: str | None = None,
+    ) -> list[str]:
+        """Build the `uv sync` command for the current runtime context.
+
+        When this suite runs under pytest, avoid reinstalling pytest itself.
+        This prevents mutating the active test runner environment and also
+        avoids `pytest.exe` file-lock failures on Windows.
+        """
+        runtime_test = (
+            current_test if current_test is not None else os.environ.get("PYTEST_CURRENT_TEST")
+        )
+
+        command = ["uv", "sync", "--dev"]
+        if runtime_test:
+            command.extend(["--inexact", "--no-install-package", "pytest"])
+        return command
+
     def install_package(self) -> bool:
         """Install arcade-mcp from source."""
         print("\n" + "=" * 60)
@@ -111,7 +143,7 @@ class TestRunner:
 
         # Sync dependencies
         sync_success, _ = self.run_command(
-            ["uv", "sync", "--dev"],
+            self._sync_dependencies_command(),
             "Sync dependencies with uv",
             required=True,
         )
@@ -263,6 +295,33 @@ def main() -> int:
     project_root = Path(__file__).parent.parent.parent.absolute()
     runner = TestRunner(project_root)
     return runner.run_all_tests()
+
+
+def test_installation() -> None:
+    """Pytest entry point for the installation test suite.
+
+    Delegates to the existing TestRunner so the full install validation
+    runs under pytest (picks up conftest.py fixtures such as
+    disable_usage_tracking) without changing the internal test logic.
+    """
+    exit_code = main()
+    assert exit_code == 0, "One or more installation tests failed — see output above."
+
+
+def test_sync_dependencies_command_default(tmp_path: Path) -> None:
+    """Use the baseline sync command outside Windows+pytest context."""
+    runner = TestRunner(tmp_path)
+
+    assert runner._sync_dependencies_command(current_test="") == ["uv", "sync", "--dev"]
+
+
+def test_sync_dependencies_command_pytest_context(tmp_path: Path) -> None:
+    """Avoid reinstalling pytest when this suite itself is running."""
+    runner = TestRunner(tmp_path)
+
+    assert runner._sync_dependencies_command(
+        current_test="tests/install/test_install.py::test_installation (call)",
+    ) == ["uv", "sync", "--dev", "--inexact", "--no-install-package", "pytest"]
 
 
 if __name__ == "__main__":

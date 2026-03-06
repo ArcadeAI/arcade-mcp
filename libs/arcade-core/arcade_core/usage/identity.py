@@ -45,7 +45,7 @@ class UsageIdentity:
 
         if os.path.exists(self.usage_file_path):
             try:
-                with open(self.usage_file_path) as f:
+                with open(self.usage_file_path, encoding="utf-8") as f:
                     # Lock file for reading (shared lock)
                     portalocker.lock(f, portalocker.LOCK_SH)
                     try:
@@ -77,7 +77,7 @@ class UsageIdentity:
         )
 
         try:
-            with os.fdopen(temp_fd, "w") as f:
+            with os.fdopen(temp_fd, "w", encoding="utf-8") as f:
                 # Lock file for writing (exclusive lock)
                 portalocker.lock(f, portalocker.LOCK_EX)
                 try:
@@ -141,7 +141,7 @@ class UsageIdentity:
             return None
 
         try:
-            with open(CREDENTIALS_FILE_PATH) as f:
+            with open(CREDENTIALS_FILE_PATH, encoding="utf-8") as f:
                 config = yaml.safe_load(f) or {}
 
             cloud_config = config.get("cloud", {}) if isinstance(config, dict) else {}
