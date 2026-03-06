@@ -9,7 +9,7 @@ import {{ package_name }}
 app = MCPApp(
     name="{{ toolkit_name_title }}",
     instructions=(
-        "Use this server when you need to {{ toolkit_description }}."
+        "Use this server when you need to interact with {{ toolkit_name_title }}"
     ),
 )
 
