@@ -317,7 +317,10 @@ def test_verify_server_and_get_metadata_with_debug(valid_server_path: str, capsy
 
 
 @patch("arcade_cli.deploy.get_auth_headers", return_value={"Authorization": "Bearer test"})
-@patch("arcade_cli.deploy.get_org_scoped_url", return_value="http://engine/v1/orgs/1/projects/1/deployments")
+@patch(
+    "arcade_cli.deploy.get_org_scoped_url",
+    return_value="http://engine/v1/orgs/1/projects/1/deployments",
+)
 def test_deploy_server_to_engine_timeout_raises_helpful_error(
     mock_url: MagicMock, mock_auth: MagicMock
 ) -> None:
@@ -332,7 +335,10 @@ def test_deploy_server_to_engine_timeout_raises_helpful_error(
 
 
 @patch("arcade_cli.deploy.get_auth_headers", return_value={"Authorization": "Bearer test"})
-@patch("arcade_cli.deploy.get_org_scoped_url", return_value="http://engine/v1/orgs/1/projects/1/deployments")
+@patch(
+    "arcade_cli.deploy.get_org_scoped_url",
+    return_value="http://engine/v1/orgs/1/projects/1/deployments",
+)
 def test_deploy_server_to_engine_timeout_mentions_package_size(
     mock_url: MagicMock, mock_auth: MagicMock
 ) -> None:
@@ -347,7 +353,10 @@ def test_deploy_server_to_engine_timeout_mentions_package_size(
 
 
 @patch("arcade_cli.deploy.get_auth_headers", return_value={"Authorization": "Bearer test"})
-@patch("arcade_cli.deploy.get_org_scoped_url", return_value="http://engine/v1/orgs/1/projects/1/deployments")
+@patch(
+    "arcade_cli.deploy.get_org_scoped_url",
+    return_value="http://engine/v1/orgs/1/projects/1/deployments",
+)
 def test_deploy_server_to_engine_uses_deploy_timeout(
     mock_url: MagicMock, mock_auth: MagicMock
 ) -> None:
@@ -371,7 +380,10 @@ def test_deploy_server_to_engine_uses_deploy_timeout(
 
 
 @patch("arcade_cli.deploy.get_auth_headers", return_value={"Authorization": "Bearer test"})
-@patch("arcade_cli.deploy.get_org_scoped_url", return_value="http://engine/v1/orgs/1/projects/1/deployments/myserver")
+@patch(
+    "arcade_cli.deploy.get_org_scoped_url",
+    return_value="http://engine/v1/orgs/1/projects/1/deployments/myserver",
+)
 def test_update_deployment_timeout_raises_helpful_error(
     mock_url: MagicMock, mock_auth: MagicMock
 ) -> None:
@@ -386,10 +398,11 @@ def test_update_deployment_timeout_raises_helpful_error(
 
 
 @patch("arcade_cli.deploy.get_auth_headers", return_value={"Authorization": "Bearer test"})
-@patch("arcade_cli.deploy.get_org_scoped_url", return_value="http://engine/v1/orgs/1/projects/1/deployments/myserver")
-def test_update_deployment_uses_deploy_timeout(
-    mock_url: MagicMock, mock_auth: MagicMock
-) -> None:
+@patch(
+    "arcade_cli.deploy.get_org_scoped_url",
+    return_value="http://engine/v1/orgs/1/projects/1/deployments/myserver",
+)
+def test_update_deployment_uses_deploy_timeout(mock_url: MagicMock, mock_auth: MagicMock) -> None:
     """Test that update_deployment uses the DEPLOY_TIMEOUT_SECONDS constant."""
     with patch("arcade_cli.deploy.httpx.Client") as mock_client_cls:
         mock_client = MagicMock()
@@ -430,9 +443,7 @@ def test_start_server_process_non_debug_message(
 
 @patch("arcade_cli.deploy.find_python_interpreter")
 @patch("arcade_cli.deploy.subprocess.Popen")
-def test_start_server_process_debug_message(
-    mock_popen: MagicMock, mock_python: MagicMock
-) -> None:
+def test_start_server_process_debug_message(mock_popen: MagicMock, mock_python: MagicMock) -> None:
     """Debug mode error should NOT tell user to run with --debug (already in debug mode)."""
     mock_python.return_value = Path("python3")
     mock_proc = MagicMock()
