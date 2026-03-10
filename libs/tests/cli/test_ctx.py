@@ -11,6 +11,12 @@ import pytest
 from typer.testing import CliRunner
 
 from arcade_cli.context_box_client import ContextBoxClient, ContextBoxError
+from arcade_cli.ctx import (
+    AGENT_PROFILES,
+    _collect_files,
+    _detect_agent_profiles,
+    _file_uri,
+)
 
 runner = CliRunner()
 
@@ -874,3 +880,342 @@ class TestCtxTemplate:
         result = runner.invoke(app, ["template", "delete", "t1"])
         assert result.exit_code == 0
         assert "Deleted" in result.output
+
+
+# =====================================================================
+# Agent filesystem detection
+# =====================================================================
+
+
+class TestDetectAgentProfiles:
+    def test_detect_claude(self, tmp_path: Path):
+        (tmp_path / ".claude").mkdir()
+        profiles = _detect_agent_profiles(tmp_path)
+        assert len(profiles) == 1
+        assert profiles[0].name == "claude"
+
+    def test_detect_claude_via_claude_md(self, tmp_path: Path):
+        (tmp_path / "CLAUDE.md").write_text("# Instructions")
+        profiles = _detect_agent_profiles(tmp_path)
+        assert len(profiles) == 1
+        assert profiles[0].name == "claude"
+
+    def test_detect_cursor(self, tmp_path: Path):
+        (tmp_path / ".cursor").mkdir()
+        profiles = _detect_agent_profiles(tmp_path)
+        assert len(profiles) == 1
+        assert profiles[0].name == "cursor"
+
+    def test_detect_cursor_via_cursorrules(self, tmp_path: Path):
+        (tmp_path / ".cursorrules").write_text("rules")
+        profiles = _detect_agent_profiles(tmp_path)
+        assert len(profiles) == 1
+        assert profiles[0].name == "cursor"
+
+    def test_detect_codex(self, tmp_path: Path):
+        (tmp_path / ".codex").mkdir()
+        profiles = _detect_agent_profiles(tmp_path)
+        assert len(profiles) == 1
+        assert profiles[0].name == "codex"
+
+    def test_detect_multiple(self, tmp_path: Path):
+        (tmp_path / ".claude").mkdir()
+        (tmp_path / ".cursor").mkdir()
+        profiles = _detect_agent_profiles(tmp_path)
+        names = {p.name for p in profiles}
+        assert "claude" in names
+        assert "cursor" in names
+
+    def test_detect_none(self, tmp_path: Path):
+        profiles = _detect_agent_profiles(tmp_path)
+        assert profiles == []
+
+    def test_detect_windsurf(self, tmp_path: Path):
+        (tmp_path / ".windsurf").mkdir()
+        profiles = _detect_agent_profiles(tmp_path)
+        assert len(profiles) == 1
+        assert profiles[0].name == "windsurf"
+
+    def test_detect_openclaw(self, tmp_path: Path):
+        (tmp_path / ".openclaw").mkdir()
+        profiles = _detect_agent_profiles(tmp_path)
+        assert len(profiles) == 1
+        assert profiles[0].name == "openclaw"
+
+    def test_detect_cadecoder(self, tmp_path: Path):
+        (tmp_path / ".cadecoder").mkdir()
+        profiles = _detect_agent_profiles(tmp_path)
+        assert len(profiles) == 1
+        assert profiles[0].name == "cadecoder"
+
+
+class TestCollectFiles:
+    def test_collect_claude_files(self, tmp_path: Path):
+        (tmp_path / ".claude").mkdir()
+        (tmp_path / ".claude" / "settings.json").write_text("{}")
+        (tmp_path / "CLAUDE.md").write_text("# Instructions")
+        (tmp_path / "AGENTS.md").write_text("# Agents")
+
+        profiles = _detect_agent_profiles(tmp_path)
+        files = _collect_files(tmp_path, profiles)
+        names = {f.name for f in files}
+        assert "CLAUDE.md" in names
+        assert "AGENTS.md" in names
+        assert "settings.json" in names
+
+    def test_collect_cursor_files(self, tmp_path: Path):
+        (tmp_path / ".cursor").mkdir()
+        (tmp_path / ".cursor" / "mcp.json").write_text("{}")
+        skills_dir = tmp_path / ".cursor" / "skills" / "review"
+        skills_dir.mkdir(parents=True)
+        (skills_dir / "SKILL.md").write_text("# Review skill")
+        (tmp_path / ".cursorrules").write_text("rules here")
+
+        profiles = _detect_agent_profiles(tmp_path)
+        files = _collect_files(tmp_path, profiles)
+        names = {f.name for f in files}
+        assert "mcp.json" in names
+        assert "SKILL.md" in names
+        assert ".cursorrules" in names
+
+    def test_collect_skips_large_files(self, tmp_path: Path):
+        (tmp_path / ".claude").mkdir()
+        big_file = tmp_path / "CLAUDE.md"
+        big_file.write_text("x" * (512 * 1024 + 1))  # Over 512KB
+
+        profiles = _detect_agent_profiles(tmp_path)
+        files = _collect_files(tmp_path, profiles)
+        assert big_file not in files
+
+    def test_collect_memory_files(self, tmp_path: Path):
+        (tmp_path / ".claude").mkdir()
+        mem_dir = tmp_path / ".claude" / "projects" / "myproject" / "memory"
+        mem_dir.mkdir(parents=True)
+        (mem_dir / "notes.md").write_text("# Notes")
+
+        profiles = _detect_agent_profiles(tmp_path)
+        files = _collect_files(tmp_path, profiles)
+        names = {f.name for f in files}
+        assert "notes.md" in names
+
+    def test_collect_codex_files(self, tmp_path: Path):
+        (tmp_path / ".codex").mkdir()
+        (tmp_path / ".codex" / "instructions.md").write_text("# Codex")
+        (tmp_path / ".codex" / "config.json").write_text("{}")
+
+        profiles = _detect_agent_profiles(tmp_path)
+        files = _collect_files(tmp_path, profiles)
+        names = {f.name for f in files}
+        assert "instructions.md" in names
+        assert "config.json" in names
+
+
+class TestFileUri:
+    def test_file_uri_simple(self, tmp_path: Path):
+        f = tmp_path / "CLAUDE.md"
+        assert _file_uri(tmp_path, f) == "CLAUDE.md"
+
+    def test_file_uri_nested(self, tmp_path: Path):
+        f = tmp_path / ".claude" / "settings.json"
+        assert _file_uri(tmp_path, f) == ".claude/settings.json"
+
+
+# =====================================================================
+# arcade ctx sync
+# =====================================================================
+
+
+class TestCtxSync:
+    def test_sync_detects_and_uploads(self, mock_get_client, tmp_path: Path):
+        from arcade_cli.ctx import app
+
+        # Set up a project with .claude and CLAUDE.md
+        (tmp_path / ".claude").mkdir()
+        (tmp_path / ".claude" / "settings.json").write_text('{"key": "val"}')
+        (tmp_path / "CLAUDE.md").write_text("# My project instructions")
+
+        uploaded_uris: list[str] = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            if "resolve" in request.url.path:
+                return httpx.Response(
+                    200, json={"id": "box1", "urn": "urn:arcade:ctx:test/box"}
+                )
+            if "/knowledge" in request.url.path and request.method == "POST":
+                body = json.loads(request.content)
+                uploaded_uris.append(body.get("uri", ""))
+                return httpx.Response(
+                    201, json={"id": "k1", "uri": body.get("uri", "")}
+                )
+            return httpx.Response(404)
+
+        mock_get_client.return_value = _mock_client(handler)
+        result = runner.invoke(
+            app,
+            ["sync", "urn:arcade:ctx:test/box", "--root", str(tmp_path)],
+        )
+        assert result.exit_code == 0
+        assert "claude" in result.output.lower()
+        assert "CLAUDE.md" in result.output
+        assert len(uploaded_uris) >= 2
+
+    def test_sync_dry_run(self, tmp_path: Path):
+        from arcade_cli.ctx import app
+
+        (tmp_path / ".claude").mkdir()
+        (tmp_path / "CLAUDE.md").write_text("# Test")
+
+        result = runner.invoke(
+            app,
+            ["sync", "--root", str(tmp_path), "--dry-run"],
+        )
+        assert result.exit_code == 0
+        assert "Dry run" in result.output
+        assert "CLAUDE.md" in result.output
+
+    def test_sync_no_agent_detected(self, tmp_path: Path):
+        from arcade_cli.ctx import app
+
+        result = runner.invoke(
+            app,
+            ["sync", "--root", str(tmp_path)],
+        )
+        assert result.exit_code != 0
+        assert "No agent config detected" in result.output
+
+    def test_sync_auto_creates_box(self, mock_get_client, tmp_path: Path):
+        from arcade_cli.ctx import app
+
+        (tmp_path / ".claude").mkdir()
+        (tmp_path / "CLAUDE.md").write_text("# Test")
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            if "resolve" in request.url.path:
+                return httpx.Response(404, json={"error": "Not found"})
+            if request.url.path == "/v1/context-boxes" and request.method == "POST":
+                body = json.loads(request.content)
+                return httpx.Response(
+                    201,
+                    json={
+                        "id": "new-box",
+                        "urn": f"urn:arcade:ctx:{body['name']}",
+                        "name": body["name"],
+                        "status": "active",
+                    },
+                )
+            if "/knowledge" in request.url.path and request.method == "POST":
+                return httpx.Response(201, json={"id": "k1"})
+            return httpx.Response(404)
+
+        mock_get_client.return_value = _mock_client(handler)
+        result = runner.invoke(
+            app,
+            ["sync", "--root", str(tmp_path)],
+        )
+        assert result.exit_code == 0
+        assert "Creating new box" in result.output
+
+    def test_sync_multiple_agents(self, mock_get_client, tmp_path: Path):
+        from arcade_cli.ctx import app
+
+        (tmp_path / ".claude").mkdir()
+        (tmp_path / "CLAUDE.md").write_text("# Claude")
+        (tmp_path / ".cursor").mkdir()
+        (tmp_path / ".cursor" / "mcp.json").write_text("{}")
+
+        uploaded_count = 0
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            nonlocal uploaded_count
+            if "resolve" in request.url.path:
+                return httpx.Response(
+                    200, json={"id": "box1", "urn": "urn:arcade:ctx:test/box"}
+                )
+            if "/knowledge" in request.url.path and request.method == "POST":
+                uploaded_count += 1
+                return httpx.Response(201, json={"id": "k1"})
+            return httpx.Response(404)
+
+        mock_get_client.return_value = _mock_client(handler)
+        result = runner.invoke(
+            app,
+            ["sync", "urn:arcade:ctx:test/box", "--root", str(tmp_path)],
+        )
+        assert result.exit_code == 0
+        assert "claude" in result.output.lower()
+        assert "cursor" in result.output.lower()
+        assert uploaded_count >= 2
+
+
+# =====================================================================
+# arcade ctx push --auto
+# =====================================================================
+
+
+class TestCtxPushAuto:
+    def test_push_auto_detects_and_uploads(self, mock_get_client, tmp_path: Path):
+        from arcade_cli.ctx import app
+
+        (tmp_path / ".claude").mkdir()
+        (tmp_path / "CLAUDE.md").write_text("# My project")
+
+        uploaded_uris: list[str] = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            if "resolve" in request.url.path:
+                return httpx.Response(
+                    200, json={"id": "box1", "urn": "urn:arcade:ctx:test/box"}
+                )
+            if "/knowledge" in request.url.path and request.method == "POST":
+                body = json.loads(request.content)
+                uploaded_uris.append(body.get("uri", ""))
+                return httpx.Response(201, json={"id": "k1"})
+            return httpx.Response(404)
+
+        mock_get_client.return_value = _mock_client(handler)
+
+        # We need to patch cwd since push --auto uses Path.cwd()
+        with patch("arcade_cli.ctx.Path.cwd", return_value=tmp_path):
+            result = runner.invoke(
+                app,
+                ["push", "urn:arcade:ctx:test/box", "--auto"],
+            )
+        assert result.exit_code == 0
+        assert "CLAUDE.md" in " ".join(uploaded_uris)
+
+    def test_push_auto_no_agents(self, mock_get_client, tmp_path: Path):
+        from arcade_cli.ctx import app
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            if "resolve" in request.url.path:
+                return httpx.Response(
+                    200, json={"id": "box1", "urn": "urn:arcade:ctx:test/box"}
+                )
+            return httpx.Response(404)
+
+        mock_get_client.return_value = _mock_client(handler)
+        with patch("arcade_cli.ctx.Path.cwd", return_value=tmp_path):
+            result = runner.invoke(
+                app,
+                ["push", "urn:arcade:ctx:test/box", "--auto"],
+            )
+        assert result.exit_code != 0
+        assert "No agent config detected" in result.output
+
+    def test_push_no_files_no_auto(self, mock_get_client):
+        from arcade_cli.ctx import app
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            if "resolve" in request.url.path:
+                return httpx.Response(
+                    200, json={"id": "box1", "urn": "urn:arcade:ctx:test/box"}
+                )
+            return httpx.Response(404)
+
+        mock_get_client.return_value = _mock_client(handler)
+        result = runner.invoke(
+            app,
+            ["push", "urn:arcade:ctx:test/box"],
+        )
+        assert result.exit_code != 0
+        assert "Provide files" in result.output or "auto" in result.output

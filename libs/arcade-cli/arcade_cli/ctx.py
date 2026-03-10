@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import json
+import mimetypes
 import os
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
@@ -326,12 +328,64 @@ def status(
 @app.command()
 def push(
     urn: str = typer.Argument(..., help="Box URN"),
-    files: list[Path] = typer.Argument(..., help="Files to push"),
+    files: Optional[list[Path]] = typer.Argument(None, help="Files to push"),
     replace: bool = typer.Option(False, "--replace", help="Replace existing knowledge"),
+    auto: bool = typer.Option(
+        False, "--auto", help="Auto-detect agent configs and push them"
+    ),
 ) -> None:
-    """Push files to a context box as knowledge."""
+    """Push files to a context box as knowledge.
+
+    With --auto, detects .claude/.cursor/.codex directories and pushes their config files.
+    """
     client = _get_client()
     box = _resolve_box(client, urn)
+
+    if auto:
+        root = Path.cwd().resolve()
+        profiles = _detect_agent_profiles(root)
+        if not profiles:
+            console.print(
+                "No agent config detected. Use --auto from a directory with .claude, .cursor, .codex, etc.",
+                style="bold yellow",
+            )
+            raise typer.Exit(code=1)
+        agent_names = [p.name for p in profiles]
+        console.print(f"Detected agents: {', '.join(agent_names)}")
+        auto_files = _collect_files(root, profiles)
+        if not auto_files:
+            console.print("No matching agent config files found.", style="bold yellow")
+            raise typer.Exit(code=1)
+
+        uploaded = 0
+        for file_path in auto_files:
+            uri = _file_uri(root, file_path)
+            content = file_path.read_text(errors="replace")
+            mime = "text/markdown" if file_path.suffix == ".md" else "text/plain"
+            ext = file_path.suffix.lower()
+            if ext == ".json":
+                mime = "application/json"
+            elif ext in {".yaml", ".yml"}:
+                mime = "text/yaml"
+            elif ext == ".toml":
+                mime = "text/toml"
+            try:
+                size = _format_size(len(content.encode()))
+                console.print(f"  Uploading {uri}... ", end="")
+                client.add_knowledge(box["id"], uri, content, mime)
+                console.print(f"done ({size})")
+                uploaded += 1
+            except ContextBoxError as e:
+                console.print(f"error: {e.message}", style="bold red")
+        console.print(f"Pushed {uploaded} agent config files to {urn}")
+        return
+
+    if not files:
+        console.print(
+            "Error: Provide files to push, or use --auto to detect agent configs.",
+            style="bold red",
+        )
+        raise typer.Exit(code=1)
 
     for file_path in files:
         if not file_path.exists():
@@ -389,6 +443,263 @@ def pull(
             downloaded += 1
 
     console.print(f"Pulled {downloaded} files from {urn} to {output_dir}")
+
+
+# =====================================================================
+# Agent filesystem detection for sync
+# =====================================================================
+
+# Max file size to upload as text knowledge (512 KB)
+_MAX_TEXT_SIZE = 512 * 1024
+
+# Files/dirs to always skip
+_SKIP_NAMES = {
+    "__pycache__", "node_modules", ".git", ".DS_Store",
+    "*.pyc", "*.pyo", "*.so", "*.dylib",
+}
+
+# Text extensions we recognize
+_TEXT_EXTENSIONS = {
+    ".md", ".txt", ".json", ".yaml", ".yml", ".toml",
+    ".py", ".js", ".ts", ".go", ".sh", ".bash",
+    ".cfg", ".ini", ".conf", ".env.example",
+    ".xml", ".html", ".css", ".sql",
+}
+
+
+@dataclass
+class AgentProfile:
+    """Describes an agent's filesystem structure and which files to collect."""
+
+    name: str
+    # Marker files/dirs that indicate this agent is present (relative to project root)
+    markers: list[str]
+    # Glob patterns for files to collect (relative to project root)
+    file_patterns: list[str]
+    # Specific files to always include if they exist
+    specific_files: list[str] = field(default_factory=list)
+
+
+AGENT_PROFILES: list[AgentProfile] = [
+    AgentProfile(
+        name="claude",
+        markers=[".claude", "CLAUDE.md"],
+        file_patterns=[
+            ".claude/settings.json",
+            ".claude/projects/**/memory/*.md",
+            ".claude/plugins/**/*.json",
+        ],
+        specific_files=["CLAUDE.md", "AGENTS.md"],
+    ),
+    AgentProfile(
+        name="cursor",
+        markers=[".cursor", ".cursorrules"],
+        file_patterns=[
+            ".cursor/mcp.json",
+            ".cursor/skills/**/SKILL.md",
+            ".cursor/plans/**/*.md",
+            ".cursor/rules/**/*.md",
+        ],
+        specific_files=[".cursorrules"],
+    ),
+    AgentProfile(
+        name="codex",
+        markers=[".codex"],
+        file_patterns=[
+            ".codex/**/*.md",
+            ".codex/**/*.json",
+        ],
+        specific_files=["AGENTS.md"],
+    ),
+    AgentProfile(
+        name="windsurf",
+        markers=[".windsurf"],
+        file_patterns=[
+            ".windsurf/mcp.json",
+            ".windsurf/**/*.md",
+        ],
+        specific_files=[],
+    ),
+    AgentProfile(
+        name="openclaw",
+        markers=[".openclaw"],
+        file_patterns=[
+            ".openclaw/openclaw.json",
+            ".openclaw/agents/**/*.json",
+            ".openclaw/agents/**/*.md",
+        ],
+        specific_files=[],
+    ),
+    AgentProfile(
+        name="cadecoder",
+        markers=[".cadecoder"],
+        file_patterns=[
+            ".cadecoder/cadecoder.toml",
+            ".cadecoder/mcp_servers.json",
+        ],
+        specific_files=[],
+    ),
+]
+
+
+def _detect_agent_profiles(root: Path) -> list[AgentProfile]:
+    """Detect which agent profiles are present in the given directory."""
+    found: list[AgentProfile] = []
+    for profile in AGENT_PROFILES:
+        for marker in profile.markers:
+            if (root / marker).exists():
+                found.append(profile)
+                break
+    return found
+
+
+def _collect_files(root: Path, profiles: list[AgentProfile]) -> list[Path]:
+    """Collect files matching the detected agent profiles."""
+    collected: set[Path] = set()
+
+    for profile in profiles:
+        # Specific files
+        for specific in profile.specific_files:
+            path = root / specific
+            if path.is_file():
+                collected.add(path)
+
+        # Glob patterns
+        for pattern in profile.file_patterns:
+            for match in root.glob(pattern):
+                if match.is_file():
+                    collected.add(match)
+
+    # Filter out files that are too large or binary
+    result: list[Path] = []
+    for path in sorted(collected):
+        if path.stat().st_size > _MAX_TEXT_SIZE:
+            continue
+        if path.name in _SKIP_NAMES:
+            continue
+        # Check if it looks like a text file
+        ext = path.suffix.lower()
+        if ext in _TEXT_EXTENSIONS or path.name in {
+            "CLAUDE.md", "AGENTS.md", ".cursorrules",
+            "settings.json", "mcp.json", "openclaw.json",
+            "cadecoder.toml", "mcp_servers.json",
+        }:
+            result.append(path)
+        else:
+            # Try mime type
+            mime, _ = mimetypes.guess_type(str(path))
+            if mime and mime.startswith("text/"):
+                result.append(path)
+
+    return result
+
+
+def _file_uri(root: Path, file_path: Path) -> str:
+    """Create a URI for a file relative to the project root."""
+    rel = file_path.relative_to(root)
+    return str(rel)
+
+
+@app.command()
+def sync(
+    urn: Optional[str] = typer.Argument(
+        None, help="Box URN (auto-creates if not provided)"
+    ),
+    root: Path = typer.Option(
+        ".", "--root", "-r", help="Project root directory to scan"
+    ),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", "-n", help="Show what would be uploaded without uploading"
+    ),
+    name: Optional[str] = typer.Option(
+        None, "--name", help="Box name for auto-create (default: directory name)"
+    ),
+) -> None:
+    """Sync agent config files from the current project to a context box.
+
+    Detects .claude, .cursor, .codex, .windsurf, .openclaw, .cadecoder directories
+    and uploads their config/knowledge/skill files as context box knowledge.
+
+    If no URN is provided, creates a new box named after the project directory.
+    """
+    root = root.resolve()
+
+    # Detect agent profiles
+    profiles = _detect_agent_profiles(root)
+    if not profiles:
+        console.print(
+            "No agent config detected. Looked for: .claude, .cursor, .codex, .windsurf, .openclaw, .cadecoder",
+            style="bold yellow",
+        )
+        raise typer.Exit(code=1)
+
+    agent_names = [p.name for p in profiles]
+    console.print(f"Detected agents: {', '.join(agent_names)}")
+
+    # Collect files
+    files = _collect_files(root, profiles)
+    if not files:
+        console.print("No matching files found to sync.", style="bold yellow")
+        raise typer.Exit(code=1)
+
+    console.print(f"Found {len(files)} files to sync:")
+    for f in files:
+        rel = f.relative_to(root)
+        size = _format_size(f.stat().st_size)
+        console.print(f"  {rel} ({size})")
+
+    if dry_run:
+        console.print("\nDry run — no changes made.")
+        return
+
+    client = _get_client()
+
+    # Resolve or create box
+    if urn:
+        box = _resolve_box(client, urn)
+        console.print(f"\nSyncing to: {box.get('urn', urn)}")
+    else:
+        box_name = name or root.name
+        # Try to resolve first
+        try:
+            box = client.resolve_urn(f"urn:arcade:ctx:{box_name}")
+            console.print(f"\nFound existing box: {box.get('urn')}")
+        except ContextBoxError:
+            console.print(f"\nCreating new box: {box_name}")
+            desc = f"Agent config synced from {root.name} ({', '.join(agent_names)})"
+            try:
+                box = client.create_box(box_name, desc)
+                console.print(f"  Created: {box.get('urn')}")
+            except ContextBoxError as e:
+                console.print(f"Error creating box: {e.message}", style="bold red")
+                raise typer.Exit(code=1) from e
+
+    box_id = box["id"]
+
+    # Upload each file as knowledge
+    uploaded = 0
+    for file_path in files:
+        uri = _file_uri(root, file_path)
+        content = file_path.read_text(errors="replace")
+        mime = "text/markdown" if file_path.suffix == ".md" else "text/plain"
+        ext = file_path.suffix.lower()
+        if ext == ".json":
+            mime = "application/json"
+        elif ext in {".yaml", ".yml"}:
+            mime = "text/yaml"
+        elif ext == ".toml":
+            mime = "text/toml"
+
+        try:
+            size = _format_size(len(content.encode()))
+            console.print(f"  Uploading {uri}... ", end="")
+            client.add_knowledge(box_id, uri, content, mime)
+            console.print(f"done ({size})")
+            uploaded += 1
+        except ContextBoxError as e:
+            console.print(f"error: {e.message}", style="bold red")
+
+    console.print(f"\nSynced {uploaded}/{len(files)} files to {box.get('urn', box_id)}")
 
 
 # =====================================================================
