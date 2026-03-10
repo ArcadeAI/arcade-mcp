@@ -30,6 +30,15 @@ def _get_client() -> ContextBoxClient:
     return ContextBoxClient(base_url, headers)
 
 
+def _unwrap_items(response: dict | list) -> list:
+    """Unwrap API response — handles both {items: [...]} and raw list formats."""
+    if isinstance(response, list):
+        return response
+    if isinstance(response, dict):
+        return response.get("items", [])
+    return []
+
+
 def _resolve_box(client: ContextBoxClient, urn: str) -> dict:
     """Resolve a URN to a box, handling errors."""
     try:
@@ -269,7 +278,7 @@ def status(
     # Knowledge
     try:
         knowledge = client.list_knowledge(box_id)
-        items = knowledge.get("items", [])
+        items = _unwrap_items(knowledge)
         console.print(f"\n  Knowledge: {len(items)} items")
         for item in items[:5]:
             console.print(f"    {item.get('uri', 'unknown')}")
@@ -281,7 +290,7 @@ def status(
     # Memory
     try:
         memory = client.list_memory(box_id)
-        items = memory.get("items", [])
+        items = _unwrap_items(memory)
         console.print(f"\n  Memory: {len(items)} entries")
         for item in items[:5]:
             console.print(f"    {item.get('key', '?')} = {item.get('value', '?')}")
@@ -291,7 +300,7 @@ def status(
     # Skills
     try:
         skills = client.list_skills(box_id)
-        items = skills.get("items", [])
+        items = _unwrap_items(skills)
         console.print(f"\n  Skills: {len(items)}")
         for item in items[:5]:
             console.print(f"    {item.get('name', 'unknown')}")
@@ -301,10 +310,10 @@ def status(
     # Tool Refs
     try:
         tools = client.list_tool_refs(box_id)
-        items = tools.get("items", [])
+        items = _unwrap_items(tools)
         console.print(f"\n  Tool Refs: {len(items)}")
         for item in items[:5]:
-            console.print(f"    {item.get('tool_name', 'unknown')}")
+            console.print(f"    {item.get('tool_ref', item.get('tool_name', 'unknown'))}")
     except ContextBoxError:
         pass
 
