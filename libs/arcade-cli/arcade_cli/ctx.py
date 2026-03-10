@@ -537,7 +537,7 @@ AGENT_PROFILES: list[AgentProfile] = [
         home_project_patterns=[
             # ~/.cursor/projects/{encoded}/ — project-specific data
             "mcp-cache.json",              # Cached MCP state
-            "mcps/**/*.json",              # Project MCP overrides
+            # Note: mcps/**/*.json are auto-generated tool schema caches, skip them
         ],
         home_global_patterns=[
             # MCP & config
@@ -585,16 +585,26 @@ AGENT_PROFILES: list[AgentProfile] = [
 def _detect_agent_profiles(root: Path) -> list[AgentProfile]:
     """Detect which agent profiles are present in the given directory.
 
-    Only detects based on directory markers (e.g., .claude/, .cursor/),
-    not standalone files like CLAUDE.md.
+    Checks both directory markers (.claude/, .cursor/) AND standalone files
+    (CLAUDE.md, AGENTS.md, .cursorrules) so we detect agents even without
+    the dot-directory.
     """
     found: list[AgentProfile] = []
     for profile in AGENT_PROFILES:
+        detected = False
+        # Check directory markers first
         for marker in profile.markers:
-            marker_path = root / marker
-            if marker_path.is_dir():
-                found.append(profile)
+            if (root / marker).is_dir():
+                detected = True
                 break
+        # Also check standalone project files (e.g., CLAUDE.md, .cursorrules)
+        if not detected:
+            for pf in profile.project_files:
+                if (root / pf).is_file():
+                    detected = True
+                    break
+        if detected:
+            found.append(profile)
     return found
 
 
@@ -629,14 +639,59 @@ class CollectedFile:
     uri_prefix: str
 
 
+def _file_references_project(path: Path, project_root: Path) -> bool:
+    """Check if a file's content references the given project.
+
+    Uses the absolute project path and the directory basename as signals.
+    Returns True for config files (settings, mcp) that are always relevant.
+    """
+    # Config files are always relevant — they define agent capabilities.
+    # Only truly global configs go here (not plugin.json which is per-plugin).
+    _ALWAYS_INCLUDE = {
+        "settings.json", "settings.local.json", "mcp.json",
+        "config.toml", "installed_plugins.json",
+        "mcp-cache.json",
+    }
+    if path.name in _ALWAYS_INCLUDE:
+        return True
+
+    try:
+        content = path.read_text(errors="replace")
+    except OSError:
+        return False
+
+    # Check for the absolute project path (most reliable)
+    root_str = str(project_root)
+    if root_str in content:
+        return True
+
+    # Check for path fragments that strongly indicate this project.
+    # Use parent/dirname (e.g., "GitHub/monorepo") to avoid false positives
+    # on generic directory names.
+    dirname = project_root.name
+    parent_dirname = project_root.parent.name
+    if parent_dirname and dirname:
+        fragment = f"{parent_dirname}/{dirname}"
+        if fragment in content:
+            return True
+
+    return False
+
+
 def _collect_files(
     root: Path,
     profiles: list[AgentProfile],
     include_home: bool = True,
+    include_all_global: bool = False,
 ) -> list[CollectedFile]:
     """Collect files matching the detected agent profiles.
 
-    Scans both the project directory and home-level agent directories.
+    Collects shareable project knowledge: instructions, memory, skills, plans,
+    configs, rules, tasks. Skips raw session transcripts (noisy, huge, internal).
+
+    Home global files (plans, skills, etc.) are content-filtered by default —
+    only files that reference the current project are included. Use
+    include_all_global=True to disable this filter and include everything.
     """
     collected: dict[str, CollectedFile] = {}  # uri → CollectedFile (dedup by uri)
 
@@ -659,27 +714,28 @@ def _collect_files(
         if include_home and profile.home_dir:
             home_agent_dir = Path.home() / profile.home_dir
 
-            # Home global files (e.g., ~/.claude/settings.json)
+            # Home global files (e.g., ~/.claude/settings.json, plans, skills)
+            # Content-filtered: only include files that reference this project
             for pattern in profile.home_global_patterns:
                 for match in home_agent_dir.glob(pattern):
                     if match.is_file() and _is_text_file(match):
-                        rel = match.relative_to(home_agent_dir)
-                        uri = f"~{profile.home_dir}/{rel}"
-                        collected[uri] = CollectedFile(match, f"~{profile.home_dir}/")
+                        if include_all_global or _file_references_project(match, root):
+                            rel = match.relative_to(home_agent_dir)
+                            uri = f"~{profile.home_dir}/{rel}"
+                            collected[uri] = CollectedFile(match, f"~{profile.home_dir}/")
 
             # Home project-specific files (e.g., ~/.claude/projects/<encoded>/memory/)
-            if profile.home_project_patterns:
-                encoded_path = _encode_project_path(root)
-                project_data_dir = home_agent_dir / "projects" / encoded_path
-                if project_data_dir.is_dir():
-                    for pattern in profile.home_project_patterns:
-                        for match in project_data_dir.glob(pattern):
-                            if match.is_file() and _is_text_file(match):
-                                rel = match.relative_to(project_data_dir)
-                                uri = f"~{profile.home_dir}/project/{rel}"
-                                collected[uri] = CollectedFile(
-                                    match, f"~{profile.home_dir}/project/"
-                                )
+            encoded_path = _encode_project_path(root)
+            project_data_dir = home_agent_dir / "projects" / encoded_path
+            if project_data_dir.is_dir():
+                for pattern in profile.home_project_patterns:
+                    for match in project_data_dir.glob(pattern):
+                        if match.is_file() and _is_text_file(match):
+                            rel = match.relative_to(project_data_dir)
+                            uri = f"~{profile.home_dir}/project/{rel}"
+                            collected[uri] = CollectedFile(
+                                match, f"~{profile.home_dir}/project/"
+                            )
 
     return sorted(collected.values(), key=lambda cf: cf.path)
 
@@ -722,11 +778,21 @@ def sync(
     no_home: bool = typer.Option(
         False, "--no-home", help="Skip scanning home-level agent directories"
     ),
+    all_global: bool = typer.Option(
+        False,
+        "--all-global",
+        help="Include all global files (default: only project-relevant ones)",
+    ),
 ) -> None:
     """Sync agent config files from the current project to a context box.
 
-    Scans both project-level config (.claude/, .cursor/, .codex/) and
-    home-level agent data (~/.claude/projects/<project>/memory/, ~/.cursor/mcp.json, etc.).
+    Scans project-level config (.claude/, .cursor/, .codex/) and home-level
+    agent data. Global files (plans, skills) are automatically filtered to
+    only include ones that reference the current project. Use --all-global
+    to include everything.
+
+    Detection works with both dot-directories (.claude/) and standalone files
+    (CLAUDE.md, .cursorrules, AGENTS.md).
 
     If no URN is provided, creates a new box named owner/dirname.
     """
@@ -736,7 +802,8 @@ def sync(
     profiles = _detect_agent_profiles(root)
     if not profiles:
         console.print(
-            "No agent config detected. Looked for: .claude/, .cursor/, .codex/",
+            "No agent config detected. Looked for: .claude/, .cursor/, .codex/, "
+            "CLAUDE.md, AGENTS.md, .cursorrules",
             style="bold yellow",
         )
         raise typer.Exit(code=1)
@@ -745,7 +812,9 @@ def sync(
     console.print(f"Detected agents: {', '.join(agent_names)}")
 
     # Collect files from project + home
-    files = _collect_files(root, profiles, include_home=not no_home)
+    files = _collect_files(
+        root, profiles, include_home=not no_home, include_all_global=all_global
+    )
     if not files:
         console.print("No matching files found to sync.", style="bold yellow")
         raise typer.Exit(code=1)
