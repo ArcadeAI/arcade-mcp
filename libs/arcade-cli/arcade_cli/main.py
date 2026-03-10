@@ -22,6 +22,7 @@ from arcade_cli.authn import (
     save_credentials_from_whoami,
 )
 from arcade_cli.console import console
+from arcade_cli.ctx import app as ctx_app
 from arcade_cli.evals_runner import run_capture, run_evaluations
 from arcade_cli.org import app as org_app
 from arcade_cli.project import app as project_app
@@ -59,6 +60,13 @@ cli = TrackedTyper(
     epilog="Pro tip: use --help after any command to see command-specific options.",
 )
 
+
+cli.add_typer(
+    ctx_app,
+    name="ctx",
+    help="Manage context boxes (create, connect, push, pull, etc)",
+    rich_help_panel="Manage",
+)
 
 cli.add_typer(
     server_app,
