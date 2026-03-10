@@ -13,9 +13,10 @@ from typer.testing import CliRunner
 from arcade_cli.context_box_client import ContextBoxClient, ContextBoxError
 from arcade_cli.ctx import (
     AGENT_PROFILES,
+    CollectedFile,
     _collect_files,
     _detect_agent_profiles,
-    _file_uri,
+    _encode_project_path,
 )
 
 runner = CliRunner()
@@ -894,11 +895,11 @@ class TestDetectAgentProfiles:
         assert len(profiles) == 1
         assert profiles[0].name == "claude"
 
-    def test_detect_claude_via_claude_md(self, tmp_path: Path):
+    def test_claude_md_alone_does_not_trigger(self, tmp_path: Path):
+        """CLAUDE.md alone should NOT detect claude — only .claude/ dir does."""
         (tmp_path / "CLAUDE.md").write_text("# Instructions")
         profiles = _detect_agent_profiles(tmp_path)
-        assert len(profiles) == 1
-        assert profiles[0].name == "claude"
+        assert profiles == []
 
     def test_detect_cursor(self, tmp_path: Path):
         (tmp_path / ".cursor").mkdir()
@@ -906,11 +907,11 @@ class TestDetectAgentProfiles:
         assert len(profiles) == 1
         assert profiles[0].name == "cursor"
 
-    def test_detect_cursor_via_cursorrules(self, tmp_path: Path):
+    def test_cursorrules_alone_does_not_trigger(self, tmp_path: Path):
+        """.cursorrules file alone should NOT detect cursor — only .cursor/ dir does."""
         (tmp_path / ".cursorrules").write_text("rules")
         profiles = _detect_agent_profiles(tmp_path)
-        assert len(profiles) == 1
-        assert profiles[0].name == "cursor"
+        assert profiles == []
 
     def test_detect_codex(self, tmp_path: Path):
         (tmp_path / ".codex").mkdir()
@@ -950,20 +951,20 @@ class TestDetectAgentProfiles:
 
 
 class TestCollectFiles:
-    def test_collect_claude_files(self, tmp_path: Path):
+    def test_collect_claude_project_files(self, tmp_path: Path):
         (tmp_path / ".claude").mkdir()
         (tmp_path / ".claude" / "settings.json").write_text("{}")
         (tmp_path / "CLAUDE.md").write_text("# Instructions")
         (tmp_path / "AGENTS.md").write_text("# Agents")
 
         profiles = _detect_agent_profiles(tmp_path)
-        files = _collect_files(tmp_path, profiles)
-        names = {f.name for f in files}
+        files = _collect_files(tmp_path, profiles, include_home=False)
+        names = {cf.path.name for cf in files}
         assert "CLAUDE.md" in names
         assert "AGENTS.md" in names
         assert "settings.json" in names
 
-    def test_collect_cursor_files(self, tmp_path: Path):
+    def test_collect_cursor_project_files(self, tmp_path: Path):
         (tmp_path / ".cursor").mkdir()
         (tmp_path / ".cursor" / "mcp.json").write_text("{}")
         skills_dir = tmp_path / ".cursor" / "skills" / "review"
@@ -972,8 +973,8 @@ class TestCollectFiles:
         (tmp_path / ".cursorrules").write_text("rules here")
 
         profiles = _detect_agent_profiles(tmp_path)
-        files = _collect_files(tmp_path, profiles)
-        names = {f.name for f in files}
+        files = _collect_files(tmp_path, profiles, include_home=False)
+        names = {cf.path.name for cf in files}
         assert "mcp.json" in names
         assert "SKILL.md" in names
         assert ".cursorrules" in names
@@ -984,19 +985,41 @@ class TestCollectFiles:
         big_file.write_text("x" * (512 * 1024 + 1))  # Over 512KB
 
         profiles = _detect_agent_profiles(tmp_path)
-        files = _collect_files(tmp_path, profiles)
-        assert big_file not in files
+        files = _collect_files(tmp_path, profiles, include_home=False)
+        paths = {cf.path for cf in files}
+        assert big_file not in paths
 
-    def test_collect_memory_files(self, tmp_path: Path):
+    def test_collect_home_memory_files(self, tmp_path: Path):
+        """Simulate home-level memory files for the project."""
         (tmp_path / ".claude").mkdir()
-        mem_dir = tmp_path / ".claude" / "projects" / "myproject" / "memory"
+
+        # Create a fake home dir with project memory
+        fake_home = tmp_path / "fakehome"
+        encoded = _encode_project_path(tmp_path)
+        mem_dir = fake_home / ".claude" / "projects" / encoded / "memory"
         mem_dir.mkdir(parents=True)
-        (mem_dir / "notes.md").write_text("# Notes")
+        (mem_dir / "MEMORY.md").write_text("# Notes")
 
         profiles = _detect_agent_profiles(tmp_path)
-        files = _collect_files(tmp_path, profiles)
-        names = {f.name for f in files}
-        assert "notes.md" in names
+        with patch("arcade_cli.ctx.Path.home", return_value=fake_home):
+            files = _collect_files(tmp_path, profiles, include_home=True)
+        names = {cf.path.name for cf in files}
+        assert "MEMORY.md" in names
+
+    def test_collect_home_global_files(self, tmp_path: Path):
+        """Simulate home-level global settings."""
+        (tmp_path / ".claude").mkdir()
+
+        fake_home = tmp_path / "fakehome"
+        (fake_home / ".claude").mkdir(parents=True)
+        (fake_home / ".claude" / "settings.json").write_text('{"global": true}')
+
+        profiles = _detect_agent_profiles(tmp_path)
+        with patch("arcade_cli.ctx.Path.home", return_value=fake_home):
+            files = _collect_files(tmp_path, profiles, include_home=True)
+        # Should have both project and home settings.json
+        settings_files = [cf for cf in files if cf.path.name == "settings.json"]
+        assert len(settings_files) >= 1
 
     def test_collect_codex_files(self, tmp_path: Path):
         (tmp_path / ".codex").mkdir()
@@ -1004,20 +1027,37 @@ class TestCollectFiles:
         (tmp_path / ".codex" / "config.json").write_text("{}")
 
         profiles = _detect_agent_profiles(tmp_path)
-        files = _collect_files(tmp_path, profiles)
-        names = {f.name for f in files}
+        files = _collect_files(tmp_path, profiles, include_home=False)
+        names = {cf.path.name for cf in files}
         assert "instructions.md" in names
         assert "config.json" in names
 
+    def test_collected_file_has_uri_prefix(self, tmp_path: Path):
+        """Home-level files should have a uri_prefix, project files should not."""
+        (tmp_path / ".claude").mkdir()
+        (tmp_path / "CLAUDE.md").write_text("# Test")
 
-class TestFileUri:
-    def test_file_uri_simple(self, tmp_path: Path):
-        f = tmp_path / "CLAUDE.md"
-        assert _file_uri(tmp_path, f) == "CLAUDE.md"
+        fake_home = tmp_path / "fakehome"
+        (fake_home / ".claude").mkdir(parents=True)
+        (fake_home / ".claude" / "settings.json").write_text("{}")
 
-    def test_file_uri_nested(self, tmp_path: Path):
-        f = tmp_path / ".claude" / "settings.json"
-        assert _file_uri(tmp_path, f) == ".claude/settings.json"
+        profiles = _detect_agent_profiles(tmp_path)
+        with patch("arcade_cli.ctx.Path.home", return_value=fake_home):
+            files = _collect_files(tmp_path, profiles, include_home=True)
+
+        project_files = [cf for cf in files if not cf.uri_prefix]
+        home_files = [cf for cf in files if cf.uri_prefix]
+        assert any(cf.path.name == "CLAUDE.md" for cf in project_files)
+        assert any(cf.path.name == "settings.json" for cf in home_files)
+
+
+class TestEncodeProjectPath:
+    def test_encode_simple(self):
+        assert _encode_project_path(Path("/Users/shub/myproject")) == "Users-shub-myproject"
+
+    def test_encode_nested(self):
+        result = _encode_project_path(Path("/Users/shub/Documents/GitHub/monorepo"))
+        assert result == "Users-shub-Documents-GitHub-monorepo"
 
 
 # =====================================================================
@@ -1052,7 +1092,7 @@ class TestCtxSync:
         mock_get_client.return_value = _mock_client(handler)
         result = runner.invoke(
             app,
-            ["sync", "urn:arcade:ctx:test/box", "--root", str(tmp_path)],
+            ["sync", "urn:arcade:ctx:test/box", "--root", str(tmp_path), "--no-home"],
         )
         assert result.exit_code == 0
         assert "claude" in result.output.lower()
@@ -1067,7 +1107,7 @@ class TestCtxSync:
 
         result = runner.invoke(
             app,
-            ["sync", "--root", str(tmp_path), "--dry-run"],
+            ["sync", "--root", str(tmp_path), "--dry-run", "--no-home"],
         )
         assert result.exit_code == 0
         assert "Dry run" in result.output
@@ -1110,7 +1150,7 @@ class TestCtxSync:
         mock_get_client.return_value = _mock_client(handler)
         result = runner.invoke(
             app,
-            ["sync", "--root", str(tmp_path)],
+            ["sync", "--root", str(tmp_path), "--no-home"],
         )
         assert result.exit_code == 0
         assert "Creating new box" in result.output
@@ -1139,7 +1179,7 @@ class TestCtxSync:
         mock_get_client.return_value = _mock_client(handler)
         result = runner.invoke(
             app,
-            ["sync", "urn:arcade:ctx:test/box", "--root", str(tmp_path)],
+            ["sync", "urn:arcade:ctx:test/box", "--root", str(tmp_path), "--no-home"],
         )
         assert result.exit_code == 0
         assert "claude" in result.output.lower()

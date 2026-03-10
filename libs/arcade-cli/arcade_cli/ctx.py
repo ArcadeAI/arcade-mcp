@@ -346,7 +346,7 @@ def push(
         profiles = _detect_agent_profiles(root)
         if not profiles:
             console.print(
-                "No agent config detected. Use --auto from a directory with .claude, .cursor, .codex, etc.",
+                "No agent config detected. Use --auto from a directory with .claude/, .cursor/, .codex/, etc.",
                 style="bold yellow",
             )
             raise typer.Exit(code=1)
@@ -358,17 +358,13 @@ def push(
             raise typer.Exit(code=1)
 
         uploaded = 0
-        for file_path in auto_files:
-            uri = _file_uri(root, file_path)
-            content = file_path.read_text(errors="replace")
-            mime = "text/markdown" if file_path.suffix == ".md" else "text/plain"
-            ext = file_path.suffix.lower()
-            if ext == ".json":
-                mime = "application/json"
-            elif ext in {".yaml", ".yml"}:
-                mime = "text/yaml"
-            elif ext == ".toml":
-                mime = "text/toml"
+        for cf in auto_files:
+            if cf.uri_prefix:
+                uri = f"{cf.uri_prefix}{cf.path.name}"
+            else:
+                uri = str(cf.path.relative_to(root))
+            content = cf.path.read_text(errors="replace")
+            mime = _mime_for_file(cf.path)
             try:
                 size = _format_size(len(content.encode()))
                 console.print(f"  Uploading {uri}... ", end="")
@@ -423,7 +419,7 @@ def pull(
         console.print(f"Error: {e.message}", style="bold red")
         raise typer.Exit(code=1) from e
 
-    items = knowledge.get("items", [])
+    items = _unwrap_items(knowledge)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     downloaded = 0
@@ -463,7 +459,7 @@ _TEXT_EXTENSIONS = {
     ".md", ".txt", ".json", ".yaml", ".yml", ".toml",
     ".py", ".js", ".ts", ".go", ".sh", ".bash",
     ".cfg", ".ini", ".conf", ".env.example",
-    ".xml", ".html", ".css", ".sql",
+    ".xml", ".html", ".css", ".sql", ".jsonl",
 }
 
 
@@ -472,132 +468,222 @@ class AgentProfile:
     """Describes an agent's filesystem structure and which files to collect."""
 
     name: str
-    # Marker files/dirs that indicate this agent is present (relative to project root)
+    # Marker directories that indicate this agent is present (relative to project root)
+    # Only directories count — a CLAUDE.md alone doesn't mean "claude agent is configured"
     markers: list[str]
-    # Glob patterns for files to collect (relative to project root)
-    file_patterns: list[str]
-    # Specific files to always include if they exist
-    specific_files: list[str] = field(default_factory=list)
+    # Glob patterns for project-level files to collect (relative to project root)
+    project_patterns: list[str]
+    # Specific project-level files to always include if they exist
+    project_files: list[str] = field(default_factory=list)
+    # Home-level directory name (e.g., ".claude" → ~/.claude)
+    home_dir: str = ""
+    # Glob patterns for home-level files (relative to ~/.agent/projects/<encoded-path>/)
+    home_project_patterns: list[str] = field(default_factory=list)
+    # Glob patterns for home-level global files (relative to ~/.agent/)
+    home_global_patterns: list[str] = field(default_factory=list)
+
+
+def _encode_project_path(root: Path) -> str:
+    """Encode a project path the way Claude Code does: replace / with - and strip leading -."""
+    encoded = str(root).replace("/", "-")
+    return encoded.lstrip("-")
 
 
 AGENT_PROFILES: list[AgentProfile] = [
     AgentProfile(
         name="claude",
-        markers=[".claude", "CLAUDE.md"],
-        file_patterns=[
+        markers=[".claude"],
+        project_patterns=[
             ".claude/settings.json",
-            ".claude/projects/**/memory/*.md",
-            ".claude/plugins/**/*.json",
+            ".claude/settings.local.json",
+            ".claude/skills/**/*.md",
+            ".claude/format-hook.sh",
         ],
-        specific_files=["CLAUDE.md", "AGENTS.md"],
+        project_files=["CLAUDE.md", "AGENTS.md"],
+        home_dir=".claude",
+        home_project_patterns=[
+            "memory/*.md",
+            "sessions-index.json",
+        ],
+        home_global_patterns=[
+            "settings.json",
+            "plans/**/*.md",
+        ],
     ),
     AgentProfile(
         name="cursor",
-        markers=[".cursor", ".cursorrules"],
-        file_patterns=[
+        markers=[".cursor"],
+        project_patterns=[
             ".cursor/mcp.json",
             ".cursor/skills/**/SKILL.md",
             ".cursor/plans/**/*.md",
             ".cursor/rules/**/*.md",
         ],
-        specific_files=[".cursorrules"],
+        project_files=[".cursorrules"],
+        home_dir=".cursor",
+        home_project_patterns=[],
+        home_global_patterns=[
+            "mcp.json",
+            "skills/**/*.md",
+            "plans/**/*.md",
+        ],
     ),
     AgentProfile(
         name="codex",
         markers=[".codex"],
-        file_patterns=[
+        project_patterns=[
             ".codex/**/*.md",
             ".codex/**/*.json",
         ],
-        specific_files=["AGENTS.md"],
+        project_files=["AGENTS.md"],
     ),
     AgentProfile(
         name="windsurf",
         markers=[".windsurf"],
-        file_patterns=[
+        project_patterns=[
             ".windsurf/mcp.json",
             ".windsurf/**/*.md",
         ],
-        specific_files=[],
     ),
     AgentProfile(
         name="openclaw",
         markers=[".openclaw"],
-        file_patterns=[
+        project_patterns=[
             ".openclaw/openclaw.json",
             ".openclaw/agents/**/*.json",
             ".openclaw/agents/**/*.md",
         ],
-        specific_files=[],
     ),
     AgentProfile(
         name="cadecoder",
         markers=[".cadecoder"],
-        file_patterns=[
+        project_patterns=[
             ".cadecoder/cadecoder.toml",
             ".cadecoder/mcp_servers.json",
         ],
-        specific_files=[],
     ),
 ]
 
 
 def _detect_agent_profiles(root: Path) -> list[AgentProfile]:
-    """Detect which agent profiles are present in the given directory."""
+    """Detect which agent profiles are present in the given directory.
+
+    Only detects based on directory markers (e.g., .claude/, .cursor/),
+    not standalone files like CLAUDE.md.
+    """
     found: list[AgentProfile] = []
     for profile in AGENT_PROFILES:
         for marker in profile.markers:
-            if (root / marker).exists():
+            marker_path = root / marker
+            if marker_path.is_dir():
                 found.append(profile)
                 break
     return found
 
 
-def _collect_files(root: Path, profiles: list[AgentProfile]) -> list[Path]:
-    """Collect files matching the detected agent profiles."""
-    collected: set[Path] = set()
+def _is_text_file(path: Path) -> bool:
+    """Check if a file looks like a text file we should upload."""
+    if path.stat().st_size > _MAX_TEXT_SIZE:
+        return False
+    if path.name in _SKIP_NAMES:
+        return False
+    ext = path.suffix.lower()
+    if ext in _TEXT_EXTENSIONS:
+        return True
+    if path.name in {
+        "CLAUDE.md", "AGENTS.md", ".cursorrules",
+        "settings.json", "settings.local.json", "mcp.json",
+        "openclaw.json", "cadecoder.toml", "mcp_servers.json",
+        "format-hook.sh", "sessions-index.json",
+    }:
+        return True
+    mime, _ = mimetypes.guess_type(str(path))
+    return bool(mime and mime.startswith("text/"))
+
+
+@dataclass
+class CollectedFile:
+    """A file collected for sync, with its source context."""
+
+    path: Path
+    # URI prefix for organizing in the box (e.g., "project/", "home/global/", "home/project/")
+    uri_prefix: str
+
+
+def _collect_files(
+    root: Path,
+    profiles: list[AgentProfile],
+    include_home: bool = True,
+) -> list[CollectedFile]:
+    """Collect files matching the detected agent profiles.
+
+    Scans both the project directory and home-level agent directories.
+    """
+    collected: dict[str, CollectedFile] = {}  # uri → CollectedFile (dedup by uri)
 
     for profile in profiles:
-        # Specific files
-        for specific in profile.specific_files:
+        # 1. Project-level specific files
+        for specific in profile.project_files:
             path = root / specific
-            if path.is_file():
-                collected.add(path)
+            if path.is_file() and _is_text_file(path):
+                uri = str(path.relative_to(root))
+                collected[uri] = CollectedFile(path, "")
 
-        # Glob patterns
-        for pattern in profile.file_patterns:
+        # 2. Project-level glob patterns
+        for pattern in profile.project_patterns:
             for match in root.glob(pattern):
-                if match.is_file():
-                    collected.add(match)
+                if match.is_file() and _is_text_file(match):
+                    uri = str(match.relative_to(root))
+                    collected[uri] = CollectedFile(match, "")
 
-    # Filter out files that are too large or binary
-    result: list[Path] = []
-    for path in sorted(collected):
-        if path.stat().st_size > _MAX_TEXT_SIZE:
-            continue
-        if path.name in _SKIP_NAMES:
-            continue
-        # Check if it looks like a text file
-        ext = path.suffix.lower()
-        if ext in _TEXT_EXTENSIONS or path.name in {
-            "CLAUDE.md", "AGENTS.md", ".cursorrules",
-            "settings.json", "mcp.json", "openclaw.json",
-            "cadecoder.toml", "mcp_servers.json",
-        }:
-            result.append(path)
-        else:
-            # Try mime type
-            mime, _ = mimetypes.guess_type(str(path))
-            if mime and mime.startswith("text/"):
-                result.append(path)
+        # 3. Home-level files (if enabled and home_dir is set)
+        if include_home and profile.home_dir:
+            home_agent_dir = Path.home() / profile.home_dir
 
-    return result
+            # Home global files (e.g., ~/.claude/settings.json)
+            for pattern in profile.home_global_patterns:
+                for match in home_agent_dir.glob(pattern):
+                    if match.is_file() and _is_text_file(match):
+                        rel = match.relative_to(home_agent_dir)
+                        uri = f"~{profile.home_dir}/{rel}"
+                        collected[uri] = CollectedFile(match, f"~{profile.home_dir}/")
+
+            # Home project-specific files (e.g., ~/.claude/projects/<encoded>/memory/)
+            if profile.home_project_patterns:
+                encoded_path = _encode_project_path(root)
+                project_data_dir = home_agent_dir / "projects" / encoded_path
+                if project_data_dir.is_dir():
+                    for pattern in profile.home_project_patterns:
+                        for match in project_data_dir.glob(pattern):
+                            if match.is_file() and _is_text_file(match):
+                                rel = match.relative_to(project_data_dir)
+                                uri = f"~{profile.home_dir}/project/{rel}"
+                                collected[uri] = CollectedFile(
+                                    match, f"~{profile.home_dir}/project/"
+                                )
+
+    return sorted(collected.values(), key=lambda cf: cf.path)
 
 
-def _file_uri(root: Path, file_path: Path) -> str:
-    """Create a URI for a file relative to the project root."""
-    rel = file_path.relative_to(root)
-    return str(rel)
+def _get_default_owner() -> str:
+    """Get default owner name for box creation."""
+    return os.environ.get("USER", os.environ.get("USERNAME", "default"))
+
+
+def _mime_for_file(path: Path) -> str:
+    """Determine MIME type for a file."""
+    ext = path.suffix.lower()
+    if ext == ".md":
+        return "text/markdown"
+    if ext == ".json":
+        return "application/json"
+    if ext in {".yaml", ".yml"}:
+        return "text/yaml"
+    if ext == ".toml":
+        return "text/toml"
+    if ext == ".jsonl":
+        return "application/jsonl"
+    return "text/plain"
 
 
 @app.command()
@@ -612,15 +698,18 @@ def sync(
         False, "--dry-run", "-n", help="Show what would be uploaded without uploading"
     ),
     name: Optional[str] = typer.Option(
-        None, "--name", help="Box name for auto-create (default: directory name)"
+        None, "--name", help="Box name for auto-create (default: owner/dirname)"
+    ),
+    no_home: bool = typer.Option(
+        False, "--no-home", help="Skip scanning home-level agent directories"
     ),
 ) -> None:
     """Sync agent config files from the current project to a context box.
 
-    Detects .claude, .cursor, .codex, .windsurf, .openclaw, .cadecoder directories
-    and uploads their config/knowledge/skill files as context box knowledge.
+    Scans both project-level config (.claude/, .cursor/, .codex/) and
+    home-level agent data (~/.claude/projects/<project>/memory/, ~/.cursor/mcp.json, etc.).
 
-    If no URN is provided, creates a new box named after the project directory.
+    If no URN is provided, creates a new box named owner/dirname.
     """
     root = root.resolve()
 
@@ -628,7 +717,7 @@ def sync(
     profiles = _detect_agent_profiles(root)
     if not profiles:
         console.print(
-            "No agent config detected. Looked for: .claude, .cursor, .codex, .windsurf, .openclaw, .cadecoder",
+            "No agent config detected. Looked for: .claude/, .cursor/, .codex/, .windsurf/, .openclaw/, .cadecoder/",
             style="bold yellow",
         )
         raise typer.Exit(code=1)
@@ -636,17 +725,24 @@ def sync(
     agent_names = [p.name for p in profiles]
     console.print(f"Detected agents: {', '.join(agent_names)}")
 
-    # Collect files
-    files = _collect_files(root, profiles)
+    # Collect files from project + home
+    files = _collect_files(root, profiles, include_home=not no_home)
     if not files:
         console.print("No matching files found to sync.", style="bold yellow")
         raise typer.Exit(code=1)
 
     console.print(f"Found {len(files)} files to sync:")
-    for f in files:
-        rel = f.relative_to(root)
-        size = _format_size(f.stat().st_size)
-        console.print(f"  {rel} ({size})")
+    for cf in files:
+        # Show a friendly label
+        if cf.uri_prefix.startswith("~"):
+            label = f"{cf.uri_prefix}{cf.path.name}"
+        else:
+            try:
+                label = str(cf.path.relative_to(root))
+            except ValueError:
+                label = str(cf.path)
+        size = _format_size(cf.path.stat().st_size)
+        console.print(f"  {label} ({size})")
 
     if dry_run:
         console.print("\nDry run — no changes made.")
@@ -659,7 +755,11 @@ def sync(
         box = _resolve_box(client, urn)
         console.print(f"\nSyncing to: {box.get('urn', urn)}")
     else:
-        box_name = name or root.name
+        owner = _get_default_owner()
+        box_name = name or f"{owner}/{root.name}"
+        # Ensure owner/name format
+        if "/" not in box_name:
+            box_name = f"{owner}/{box_name}"
         # Try to resolve first
         try:
             box = client.resolve_urn(f"urn:arcade:ctx:{box_name}")
@@ -678,17 +778,45 @@ def sync(
 
     # Upload each file as knowledge
     uploaded = 0
-    for file_path in files:
-        uri = _file_uri(root, file_path)
-        content = file_path.read_text(errors="replace")
-        mime = "text/markdown" if file_path.suffix == ".md" else "text/plain"
-        ext = file_path.suffix.lower()
-        if ext == ".json":
-            mime = "application/json"
-        elif ext in {".yaml", ".yml"}:
-            mime = "text/yaml"
-        elif ext == ".toml":
-            mime = "text/toml"
+    for cf in files:
+        # Build URI: use prefix for home files, relative path for project files
+        if cf.uri_prefix:
+            try:
+                parent_dir = cf.path.parent
+                # For home project files, get relative to the project data dir
+                rel_name = cf.path.name
+                if cf.uri_prefix.endswith("/project/"):
+                    # e.g. ~/.claude/project/memory/MEMORY.md
+                    # Find the encoded project dir and get relative from there
+                    parts = cf.path.parts
+                    # Find "projects" in path and take everything after encoded-path
+                    for i, part in enumerate(parts):
+                        if part == "projects" and i + 2 < len(parts):
+                            rel_name = str(Path(*parts[i + 2 :]))
+                            break
+                    uri = f"{cf.uri_prefix}{rel_name}"
+                else:
+                    # Home global: relative to agent home dir
+                    for profile in profiles:
+                        if profile.home_dir and cf.uri_prefix.startswith(
+                            f"~{profile.home_dir}"
+                        ):
+                            home_dir = Path.home() / profile.home_dir
+                            try:
+                                rel = cf.path.relative_to(home_dir)
+                                uri = f"~{profile.home_dir}/{rel}"
+                            except ValueError:
+                                uri = f"{cf.uri_prefix}{cf.path.name}"
+                            break
+                    else:
+                        uri = f"{cf.uri_prefix}{cf.path.name}"
+            except Exception:
+                uri = f"{cf.uri_prefix}{cf.path.name}"
+        else:
+            uri = str(cf.path.relative_to(root))
+
+        content = cf.path.read_text(errors="replace")
+        mime = _mime_for_file(cf.path)
 
         try:
             size = _format_size(len(content.encode()))
@@ -757,7 +885,7 @@ def memory(
     if action == "list":
         try:
             result = client.list_memory(box_id)
-            items = result.get("items", [])
+            items = _unwrap_items(result)
             if format == "json":
                 console.print(json.dumps(result))
                 return
@@ -836,7 +964,7 @@ def skills(
     if action == "list":
         try:
             result = client.list_skills(box_id)
-            items = result.get("items", [])
+            items = _unwrap_items(result)
             if not items:
                 console.print("No skills found.")
                 return
@@ -900,8 +1028,8 @@ def logs(
         console.print(f"Error: {e.message}", style="bold red")
         raise typer.Exit(code=1) from e
 
-    items = result.get("items", [])
-    total = result.get("total", 0)
+    items = _unwrap_items(result)
+    total = result.get("total", len(items)) if isinstance(result, dict) else len(items)
 
     if not items:
         console.print("No log entries found.")
@@ -941,7 +1069,7 @@ def template(
     if action == "list":
         try:
             result = client.list_templates()
-            items = result.get("items", [])
+            items = _unwrap_items(result)
             if not items:
                 console.print("No templates found.")
                 return
