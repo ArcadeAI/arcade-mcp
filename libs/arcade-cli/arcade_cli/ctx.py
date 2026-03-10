@@ -494,6 +494,7 @@ AGENT_PROFILES: list[AgentProfile] = [
         name="claude",
         markers=[".claude"],
         project_patterns=[
+            # Project-level .claude/ config (committed to git)
             ".claude/settings.json",
             ".claude/settings.local.json",
             ".claude/skills/**/*.md",
@@ -502,30 +503,40 @@ AGENT_PROFILES: list[AgentProfile] = [
         project_files=["CLAUDE.md", "AGENTS.md"],
         home_dir=".claude",
         home_project_patterns=[
+            # ~/.claude/projects/{encoded}/memory/ — persistent cross-session memory
             "memory/*.md",
+            # Session index — lists all sessions with summaries
             "sessions-index.json",
         ],
         home_global_patterns=[
+            # ~/.claude/settings.json — global settings
             "settings.json",
-            "plans/**/*.md",
+            # ~/.claude/plugins/**/SKILL.md — installed plugin skills
+            "plugins/**/SKILL.md",
+            "plugins/**/plugin.json",
+            # ~/.claude/plugins/**/agents/*.md — subagent definitions
+            "plugins/**/agents/*.md",
         ],
     ),
     AgentProfile(
         name="cursor",
         markers=[".cursor"],
         project_patterns=[
+            # Project-level .cursor/ config
             ".cursor/mcp.json",
-            ".cursor/skills/**/SKILL.md",
-            ".cursor/plans/**/*.md",
             ".cursor/rules/**/*.md",
         ],
         project_files=[".cursorrules"],
         home_dir=".cursor",
-        home_project_patterns=[],
+        home_project_patterns=[
+            # ~/.cursor/projects/{encoded}/mcps/ — project-specific MCP configs
+            "mcps/**/*.json",
+        ],
         home_global_patterns=[
+            # ~/.cursor/mcp.json — global MCP server connections
             "mcp.json",
-            "skills/**/*.md",
-            "plans/**/*.md",
+            # ~/.cursor/skills/{name}/SKILL.md — user-installed skills
+            "skills/**/SKILL.md",
         ],
     ),
     AgentProfile(
@@ -536,31 +547,6 @@ AGENT_PROFILES: list[AgentProfile] = [
             ".codex/**/*.json",
         ],
         project_files=["AGENTS.md"],
-    ),
-    AgentProfile(
-        name="windsurf",
-        markers=[".windsurf"],
-        project_patterns=[
-            ".windsurf/mcp.json",
-            ".windsurf/**/*.md",
-        ],
-    ),
-    AgentProfile(
-        name="openclaw",
-        markers=[".openclaw"],
-        project_patterns=[
-            ".openclaw/openclaw.json",
-            ".openclaw/agents/**/*.json",
-            ".openclaw/agents/**/*.md",
-        ],
-    ),
-    AgentProfile(
-        name="cadecoder",
-        markers=[".cadecoder"],
-        project_patterns=[
-            ".cadecoder/cadecoder.toml",
-            ".cadecoder/mcp_servers.json",
-        ],
     ),
 ]
 
@@ -717,7 +703,7 @@ def sync(
     profiles = _detect_agent_profiles(root)
     if not profiles:
         console.print(
-            "No agent config detected. Looked for: .claude/, .cursor/, .codex/, .windsurf/, .openclaw/, .cadecoder/",
+            "No agent config detected. Looked for: .claude/, .cursor/, .codex/",
             style="bold yellow",
         )
         raise typer.Exit(code=1)

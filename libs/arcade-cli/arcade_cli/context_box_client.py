@@ -44,12 +44,19 @@ class ContextBoxClient:
         description: str = "",
         classification: str = "PRIVATE",
         status: str = "active",
+        owner: str = "",
     ) -> dict[str, Any]:
+        # If name contains owner/name, split it
+        if "/" in name and not owner:
+            owner, name = name.split("/", 1)
+        if not owner:
+            owner = "default"
         return self._request(
             "POST",
             "/v1/context-boxes",
             json={
                 "name": name,
+                "owner": owner,
                 "description": description,
                 "classification": classification,
                 "status": status,

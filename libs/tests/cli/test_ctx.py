@@ -931,23 +931,11 @@ class TestDetectAgentProfiles:
         profiles = _detect_agent_profiles(tmp_path)
         assert profiles == []
 
-    def test_detect_windsurf(self, tmp_path: Path):
+    def test_unsupported_agent_not_detected(self, tmp_path: Path):
+        """Windsurf, openclaw, cadecoder are not supported yet."""
         (tmp_path / ".windsurf").mkdir()
         profiles = _detect_agent_profiles(tmp_path)
-        assert len(profiles) == 1
-        assert profiles[0].name == "windsurf"
-
-    def test_detect_openclaw(self, tmp_path: Path):
-        (tmp_path / ".openclaw").mkdir()
-        profiles = _detect_agent_profiles(tmp_path)
-        assert len(profiles) == 1
-        assert profiles[0].name == "openclaw"
-
-    def test_detect_cadecoder(self, tmp_path: Path):
-        (tmp_path / ".cadecoder").mkdir()
-        profiles = _detect_agent_profiles(tmp_path)
-        assert len(profiles) == 1
-        assert profiles[0].name == "cadecoder"
+        assert profiles == []
 
 
 class TestCollectFiles:
@@ -967,17 +955,34 @@ class TestCollectFiles:
     def test_collect_cursor_project_files(self, tmp_path: Path):
         (tmp_path / ".cursor").mkdir()
         (tmp_path / ".cursor" / "mcp.json").write_text("{}")
-        skills_dir = tmp_path / ".cursor" / "skills" / "review"
-        skills_dir.mkdir(parents=True)
-        (skills_dir / "SKILL.md").write_text("# Review skill")
+        rules_dir = tmp_path / ".cursor" / "rules"
+        rules_dir.mkdir(parents=True)
+        (rules_dir / "style.md").write_text("# Style rules")
         (tmp_path / ".cursorrules").write_text("rules here")
 
         profiles = _detect_agent_profiles(tmp_path)
         files = _collect_files(tmp_path, profiles, include_home=False)
         names = {cf.path.name for cf in files}
         assert "mcp.json" in names
-        assert "SKILL.md" in names
+        assert "style.md" in names
         assert ".cursorrules" in names
+
+    def test_collect_cursor_home_skills(self, tmp_path: Path):
+        """Cursor skills live at ~/.cursor/skills/, not project level."""
+        (tmp_path / ".cursor").mkdir()
+
+        fake_home = tmp_path / "fakehome"
+        skills_dir = fake_home / ".cursor" / "skills" / "review"
+        skills_dir.mkdir(parents=True)
+        (skills_dir / "SKILL.md").write_text("# Review skill")
+        (fake_home / ".cursor" / "mcp.json").write_text("{}")
+
+        profiles = _detect_agent_profiles(tmp_path)
+        with patch("arcade_cli.ctx.Path.home", return_value=fake_home):
+            files = _collect_files(tmp_path, profiles, include_home=True)
+        names = {cf.path.name for cf in files}
+        assert "SKILL.md" in names
+        assert "mcp.json" in names
 
     def test_collect_skips_large_files(self, tmp_path: Path):
         (tmp_path / ".claude").mkdir()
