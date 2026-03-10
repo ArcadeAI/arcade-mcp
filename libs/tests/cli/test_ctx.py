@@ -609,7 +609,7 @@ class TestCtxMemory:
 
         mock_get_client.return_value = _mock_client(handler)
         result = runner.invoke(
-            app, ["memory", "urn:arcade:ctx:test/box", "list"]
+            app, ["memory", "list", "urn:arcade:ctx:test/box"]
         )
         assert result.exit_code == 0
         assert "lang" in result.output
@@ -635,7 +635,7 @@ class TestCtxMemory:
 
         mock_get_client.return_value = _mock_client(handler)
         result = runner.invoke(
-            app, ["memory", "urn:arcade:ctx:test/box", "set", "lang", "Go"]
+            app, ["memory", "set", "urn:arcade:ctx:test/box", "lang", "Go"]
         )
         assert result.exit_code == 0
         assert "lang" in result.output
@@ -654,7 +654,7 @@ class TestCtxMemory:
 
         mock_get_client.return_value = _mock_client(handler)
         result = runner.invoke(
-            app, ["memory", "urn:arcade:ctx:test/box", "delete", "lang"]
+            app, ["memory", "delete", "urn:arcade:ctx:test/box", "lang"]
         )
         assert result.exit_code == 0
         assert "Deleted" in result.output
@@ -671,7 +671,7 @@ class TestCtxMemory:
 
         mock_get_client.return_value = _mock_client(handler)
         result = runner.invoke(
-            app, ["memory", "urn:arcade:ctx:test/box", "get", "nope"]
+            app, ["memory", "get", "urn:arcade:ctx:test/box", "nope"]
         )
         assert "Error" in result.output or result.exit_code != 0
 
@@ -702,7 +702,7 @@ class TestCtxSkills:
 
         mock_get_client.return_value = _mock_client(handler)
         result = runner.invoke(
-            app, ["skills", "urn:arcade:ctx:test/box", "list"]
+            app, ["skills", "list", "urn:arcade:ctx:test/box"]
         )
         assert result.exit_code == 0
         assert "review" in result.output
@@ -729,8 +729,8 @@ class TestCtxSkills:
             app,
             [
                 "skills",
-                "urn:arcade:ctx:test/box",
                 "add",
+                "urn:arcade:ctx:test/box",
                 "--name",
                 "review",
                 "--template",
@@ -755,7 +755,7 @@ class TestCtxSkills:
         mock_get_client.return_value = _mock_client(handler)
         result = runner.invoke(
             app,
-            ["skills", "urn:arcade:ctx:test/box", "delete", "s1"],
+            ["skills", "delete", "urn:arcade:ctx:test/box", "s1"],
         )
         assert result.exit_code == 0
         assert "Deleted" in result.output

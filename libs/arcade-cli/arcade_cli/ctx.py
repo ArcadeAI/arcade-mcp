@@ -743,8 +743,8 @@ def transition(
 
 @app.command()
 def memory(
-    urn: str = typer.Argument(..., help="Box URN"),
     action: str = typer.Argument(..., help="Action: list, get, set, delete"),
+    urn: str = typer.Argument(..., help="Box URN"),
     key: Optional[str] = typer.Argument(None, help="Memory key"),
     value: Optional[str] = typer.Argument(None, help="Memory value (for set)"),
     format: str = typer.Option("table", "--format", "-f", help="Output format"),
@@ -819,8 +819,8 @@ def memory(
 
 @app.command()
 def skills(
-    urn: str = typer.Argument(..., help="Box URN"),
     action: str = typer.Argument(..., help="Action: list, add, delete"),
+    urn: str = typer.Argument(..., help="Box URN"),
     skill_id: Optional[str] = typer.Argument(None, help="Skill ID (for delete)"),
     name: Optional[str] = typer.Option(None, "--name", "-n", help="Skill name"),
     template: Optional[Path] = typer.Option(None, "--template", "-t", help="Template file"),
