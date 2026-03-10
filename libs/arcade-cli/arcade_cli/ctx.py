@@ -490,15 +490,16 @@ def _encode_project_path(root: Path) -> str:
 
 
 AGENT_PROFILES: list[AgentProfile] = [
+    # ── Claude Code (~/.claude/) ──────────────────────────────────────
     AgentProfile(
         name="claude",
         markers=[".claude"],
         project_patterns=[
             # Project-level .claude/ config (committed to git)
-            ".claude/settings.json",
-            ".claude/settings.local.json",
-            ".claude/skills/**/*.md",
-            ".claude/format-hook.sh",
+            ".claude/settings.json",       # Hooks, project config
+            ".claude/settings.local.json", # Local permissions (allow/deny)
+            ".claude/skills/**/*.md",      # Project skills
+            ".claude/format-hook.sh",      # Format hooks
         ],
         project_files=["CLAUDE.md", "AGENTS.md"],
         home_dir=".claude",
@@ -509,44 +510,74 @@ AGENT_PROFILES: list[AgentProfile] = [
             "sessions-index.json",
         ],
         home_global_patterns=[
-            # ~/.claude/settings.json — global settings
-            "settings.json",
-            # ~/.claude/plugins/**/SKILL.md — installed plugin skills
-            "plugins/**/SKILL.md",
-            "plugins/**/plugin.json",
-            # ~/.claude/plugins/**/agents/*.md — subagent definitions
-            "plugins/**/agents/*.md",
+            # Settings & history
+            "settings.json",               # Global settings
+            # Plans (human-readable names like greedy-napping-backus.md)
+            "plans/*.md",
+            # Plugins — skills, agents, config
+            "plugins/**/SKILL.md",         # Plugin skills
+            "plugins/**/plugin.json",      # Plugin metadata
+            "plugins/**/agents/*.md",      # Subagent definitions
+            "plugins/installed_plugins.json",
+            # Tasks & todos
+            "tasks/**/*.json",             # Structured tasks (subject, status, blocks)
+            "todos/*.json",                # Todo lists per agent
         ],
     ),
+    # ── Cursor (~/.cursor/) ───────────────────────────────────────────
     AgentProfile(
         name="cursor",
         markers=[".cursor"],
         project_patterns=[
-            # Project-level .cursor/ config
-            ".cursor/mcp.json",
-            ".cursor/rules/**/*.md",
+            ".cursor/mcp.json",            # Project MCP config
+            ".cursor/rules/**/*.md",       # Project rules
         ],
         project_files=[".cursorrules"],
         home_dir=".cursor",
         home_project_patterns=[
-            # ~/.cursor/projects/{encoded}/mcps/ — project-specific MCP configs
-            "mcps/**/*.json",
+            # ~/.cursor/projects/{encoded}/ — project-specific data
+            "mcp-cache.json",              # Cached MCP state
+            "mcps/**/*.json",              # Project MCP overrides
         ],
         home_global_patterns=[
-            # ~/.cursor/mcp.json — global MCP server connections
-            "mcp.json",
-            # ~/.cursor/skills/{name}/SKILL.md — user-installed skills
-            "skills/**/SKILL.md",
+            # MCP & config
+            "mcp.json",                    # Global MCP server connections
+            "ide_state.json",              # IDE state persistence
+            # Skills (user + built-in)
+            "skills/**/SKILL.md",          # User-installed skills
+            "skills-cursor/**/SKILL.md",   # Built-in Cursor skills
+            # Plans (YAML frontmatter + markdown with todos/dependencies)
+            "plans/*.plan.md",
         ],
     ),
+    # ── Codex (~/.codex/) ─────────────────────────────────────────────
     AgentProfile(
         name="codex",
         markers=[".codex"],
         project_patterns=[
-            ".codex/**/*.md",
-            ".codex/**/*.json",
+            # Project-level .codex/ config
+            ".codex/config.toml",          # Project config overrides (TOML)
+            ".codex/skills/**/SKILL.md",   # Project skills
+            ".codex/skills/**/agents/*.yaml",  # Skill agent configs
+            # Alternative skill location
+            ".agents/skills/**/SKILL.md",
+            ".agents/skills/**/agents/*.yaml",
         ],
-        project_files=["AGENTS.md"],
+        project_files=[
+            "AGENTS.md",                   # Project instructions
+            "AGENTS.override.md",          # Project instruction overrides
+        ],
+        home_dir=".codex",
+        home_project_patterns=[],
+        home_global_patterns=[
+            # Config & auth
+            "config.toml",                 # User config (model, sandbox, MCP servers)
+            # Instructions
+            "AGENTS.md",                   # Global instructions (fallback)
+            "AGENTS.override.md",          # Global instructions (override)
+            # Sessions (JSONL, resumable)
+            "sessions/*.jsonl",
+        ],
     ),
 ]
 
@@ -577,10 +608,12 @@ def _is_text_file(path: Path) -> bool:
     if ext in _TEXT_EXTENSIONS:
         return True
     if path.name in {
-        "CLAUDE.md", "AGENTS.md", ".cursorrules",
+        "CLAUDE.md", "AGENTS.md", "AGENTS.override.md", ".cursorrules",
         "settings.json", "settings.local.json", "mcp.json",
-        "openclaw.json", "cadecoder.toml", "mcp_servers.json",
+        "ide_state.json", "mcp-cache.json",
+        "config.toml", "installed_plugins.json",
         "format-hook.sh", "sessions-index.json",
+        "plugin.json", "blocklist.json",
     }:
         return True
     mime, _ = mimetypes.guess_type(str(path))

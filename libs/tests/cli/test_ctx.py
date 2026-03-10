@@ -1026,16 +1026,103 @@ class TestCollectFiles:
         settings_files = [cf for cf in files if cf.path.name == "settings.json"]
         assert len(settings_files) >= 1
 
-    def test_collect_codex_files(self, tmp_path: Path):
+    def test_collect_codex_project_files(self, tmp_path: Path):
         (tmp_path / ".codex").mkdir()
-        (tmp_path / ".codex" / "instructions.md").write_text("# Codex")
-        (tmp_path / ".codex" / "config.json").write_text("{}")
+        (tmp_path / ".codex" / "config.toml").write_text('model = "gpt-5"')
+        skills_dir = tmp_path / ".codex" / "skills" / "review"
+        skills_dir.mkdir(parents=True)
+        (skills_dir / "SKILL.md").write_text("---\nname: review\n---\n# Review")
+        (tmp_path / "AGENTS.md").write_text("# Instructions")
+        (tmp_path / "AGENTS.override.md").write_text("# Overrides")
 
         profiles = _detect_agent_profiles(tmp_path)
         files = _collect_files(tmp_path, profiles, include_home=False)
         names = {cf.path.name for cf in files}
-        assert "instructions.md" in names
-        assert "config.json" in names
+        assert "config.toml" in names
+        assert "SKILL.md" in names
+        assert "AGENTS.md" in names
+        assert "AGENTS.override.md" in names
+
+    def test_collect_codex_dot_agents_skills(self, tmp_path: Path):
+        """Codex also looks for skills in .agents/skills/."""
+        (tmp_path / ".codex").mkdir()
+        agents_dir = tmp_path / ".agents" / "skills" / "deploy"
+        agents_dir.mkdir(parents=True)
+        (agents_dir / "SKILL.md").write_text("---\nname: deploy\n---")
+
+        profiles = _detect_agent_profiles(tmp_path)
+        files = _collect_files(tmp_path, profiles, include_home=False)
+        names = {cf.path.name for cf in files}
+        assert "SKILL.md" in names
+
+    def test_collect_codex_home_files(self, tmp_path: Path):
+        (tmp_path / ".codex").mkdir()
+
+        fake_home = tmp_path / "fakehome"
+        (fake_home / ".codex").mkdir(parents=True)
+        (fake_home / ".codex" / "config.toml").write_text('model = "gpt-5"')
+        (fake_home / ".codex" / "AGENTS.md").write_text("# Global instructions")
+        sessions_dir = fake_home / ".codex" / "sessions"
+        sessions_dir.mkdir()
+        (sessions_dir / "abc123.jsonl").write_text('{"type":"user"}')
+
+        profiles = _detect_agent_profiles(tmp_path)
+        with patch("arcade_cli.ctx.Path.home", return_value=fake_home):
+            files = _collect_files(tmp_path, profiles, include_home=True)
+        names = {cf.path.name for cf in files}
+        assert "config.toml" in names
+        assert "AGENTS.md" in names
+        assert "abc123.jsonl" in names
+
+    def test_collect_claude_plans_and_tasks(self, tmp_path: Path):
+        """Claude home has plans/ and tasks/ directories."""
+        (tmp_path / ".claude").mkdir()
+
+        fake_home = tmp_path / "fakehome"
+        claude_home = fake_home / ".claude"
+        claude_home.mkdir(parents=True)
+        (claude_home / "settings.json").write_text("{}")
+
+        # Plans
+        plans_dir = claude_home / "plans"
+        plans_dir.mkdir()
+        (plans_dir / "greedy-napping-backus.md").write_text("# Plan")
+
+        # Tasks
+        task_dir = claude_home / "tasks" / "abc-123"
+        task_dir.mkdir(parents=True)
+        (task_dir / "1.json").write_text('{"subject":"Fix bug"}')
+
+        # Todos
+        todos_dir = claude_home / "todos"
+        todos_dir.mkdir()
+        (todos_dir / "session-agent.json").write_text("[]")
+
+        profiles = _detect_agent_profiles(tmp_path)
+        with patch("arcade_cli.ctx.Path.home", return_value=fake_home):
+            files = _collect_files(tmp_path, profiles, include_home=True)
+        names = {cf.path.name for cf in files}
+        assert "greedy-napping-backus.md" in names
+        assert "1.json" in names
+        assert "session-agent.json" in names
+
+    def test_collect_cursor_plans_from_home(self, tmp_path: Path):
+        """Cursor plans are *.plan.md in ~/.cursor/plans/."""
+        (tmp_path / ".cursor").mkdir()
+
+        fake_home = tmp_path / "fakehome"
+        cursor_home = fake_home / ".cursor"
+        plans_dir = cursor_home / "plans"
+        plans_dir.mkdir(parents=True)
+        (plans_dir / "my_feature_abc123.plan.md").write_text("---\nname: Feature\n---")
+        (cursor_home / "mcp.json").write_text("{}")
+
+        profiles = _detect_agent_profiles(tmp_path)
+        with patch("arcade_cli.ctx.Path.home", return_value=fake_home):
+            files = _collect_files(tmp_path, profiles, include_home=True)
+        names = {cf.path.name for cf in files}
+        assert "my_feature_abc123.plan.md" in names
+        assert "mcp.json" in names
 
     def test_collected_file_has_uri_prefix(self, tmp_path: Path):
         """Home-level files should have a uri_prefix, project files should not."""
