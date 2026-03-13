@@ -27,7 +27,7 @@ from arcade_tdk.tool import tool as tool_decorator
 from loguru import logger
 from watchfiles import watch
 
-from arcade_mcp_server._validation import MAJOR_ONLY_PATTERN, SEMVER_PATTERN, SHORT_VERSION_PATTERN
+from arcade_mcp_server._validation import normalize_version
 from arcade_mcp_server.exceptions import ServerError
 from arcade_mcp_server.logging_utils import intercept_standard_logging
 from arcade_mcp_server.resource_server.base import ResourceServerValidator
@@ -176,28 +176,16 @@ class MCPApp:
         return name
 
     def _validate_version(self, version: str) -> str:
-        """Validate that version is a valid semver string.
-
-        Normalizes MAJOR.MINOR to MAJOR.MINOR.0. Rejects v prefix and PEP 440 formats.
-        """
-        if not isinstance(version, str):
+        """Validate and normalize version to canonical semver (delegates to normalize_version)."""
+        try:
+            return normalize_version(version)
+        except TypeError:
             raise TypeError("MCPApp's version must be a string")
-        if not version:
-            raise ValueError("MCPApp's version cannot be empty")
-        # Normalize optional v prefix (vX.X.X → X.X.X, vX.X → X.X)
-        if version.startswith("v"):
-            version = version[1:]
-        # Normalize MAJOR → MAJOR.0.0, MAJOR.MINOR → MAJOR.MINOR.0
-        if MAJOR_ONLY_PATTERN.match(version):
-            version = f"{version}.0.0"
-        elif SHORT_VERSION_PATTERN.match(version):
-            version = f"{version}.0"
-        if not SEMVER_PATTERN.match(version):
+        except ValueError as e:
             raise ValueError(
                 f"MCPApp's version must be a valid semver string "
-                f"(e.g., '1.0.0', '1.2.3-beta.1'), got '{version}'"
+                f"(e.g., '1.0.0', '1.2.3-beta.1'), got '{e}'"
             )
-        return version
 
     # Properties (exposed below initializer)
     @property

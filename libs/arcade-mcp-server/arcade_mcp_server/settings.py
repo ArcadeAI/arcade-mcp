@@ -11,7 +11,7 @@ from typing import Any
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
 
-from arcade_mcp_server._validation import MAJOR_ONLY_PATTERN, SEMVER_PATTERN, SHORT_VERSION_PATTERN
+from arcade_mcp_server._validation import normalize_version
 
 
 def _find_project_root(start_dir: Path) -> Path | None:
@@ -176,22 +176,13 @@ class ServerSettings(BaseSettings):
     @field_validator("version")
     @classmethod
     def validate_version(cls, v: str) -> str:
-        """Validate that version is a valid semver string (aligned with Go semver.IsValid)."""
-        if not isinstance(v, str):
-            raise TypeError("Server version must be a string")
-        # Normalize optional v prefix (vX.X.X → X.X.X, vX.X → X.X)
-        if v.startswith("v"):
-            v = v[1:]
-        # Normalize MAJOR → MAJOR.0.0, MAJOR.MINOR → MAJOR.MINOR.0
-        if MAJOR_ONLY_PATTERN.match(v):
-            v = f"{v}.0.0"
-        elif SHORT_VERSION_PATTERN.match(v):
-            v = f"{v}.0"
-        if not SEMVER_PATTERN.match(v):
+        """Validate and normalize version to canonical semver (delegates to normalize_version)."""
+        try:
+            return normalize_version(v)
+        except (TypeError, ValueError) as e:
             raise ValueError(
-                f"Server version must be a valid semver string " f"(e.g., '1.0.0'), got '{v}'"
-            )
-        return v
+                f"Server version must be a valid semver string (e.g., '1.0.0'), got '{v}'"
+            ) from e
 
     model_config = {"env_prefix": "MCP_SERVER_"}
 
