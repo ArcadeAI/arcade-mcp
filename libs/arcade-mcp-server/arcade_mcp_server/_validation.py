@@ -1,8 +1,5 @@
 """Shared validation patterns for arcade-mcp-server.
 
-These patterns align with Go's golang.org/x/mod/semver so that versions
-validated here will use semver.Compare (correct ordering) in the Engine
-rather than falling back to strings.Compare (lexicographic, broken).
 """
 
 import re
