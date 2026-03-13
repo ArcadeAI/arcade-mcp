@@ -1,10 +1,21 @@
 import logging
 import os
 import urllib.parse
+import warnings
 from typing import Literal, Optional
 
+# requests scans the environment for chardet at import time and emits a
+# RequestsDependencyWarning when chardet>=6 is present (e.g. pulled in by tox).
+# The warning is noise: requests uses charset-normalizer regardless of chardet.
+warnings.filterwarnings(
+    "ignore",
+    message="urllib3.*chardet.*",
+    module="requests",
+)
+
 from fastapi import FastAPI
-from opentelemetry import _logs, trace
+from opentelemetry import trace
+from opentelemetry._logs import set_logger_provider
 from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
 from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
@@ -102,7 +113,7 @@ class OTELHandler:
         otlp_log_exporter = OTLPLogExporter()
 
         self._logger_provider = LoggerProvider(resource=self.resource)
-        _logs.set_logger_provider(self._logger_provider)
+        set_logger_provider(self._logger_provider)
 
         # Create a batch span processor and add the exporter
         self._log_processor = BatchLogRecordProcessor(otlp_log_exporter)
