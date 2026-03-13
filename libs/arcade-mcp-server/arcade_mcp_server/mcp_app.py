@@ -176,7 +176,7 @@ class MCPApp:
         return name
 
     def _validate_version(self, version: str) -> str:
-        """Validate that version is a valid semver string (aligned with Go semver.IsValid).
+        """Validate that version is a valid semver string.
 
         Normalizes MAJOR.MINOR to MAJOR.MINOR.0. Rejects v prefix, PEP 440 formats,
         and any string that would cause the Engine to fall back to lexicographic compare.
