@@ -62,6 +62,8 @@ ignore = [
 "**/tests/*" = ["S101"]
 "libs/**/*.py" = ["C901"]
 "libs/arcade-mcp-server/docs/**" = ["TRY400"]
+# E402: warnings.filterwarnings must run before opentelemetry imports (which pull in requests)
+"libs/arcade-serve/arcade_serve/fastapi/telemetry.py" = ["E402"]
 
 [format]
 preview = true
