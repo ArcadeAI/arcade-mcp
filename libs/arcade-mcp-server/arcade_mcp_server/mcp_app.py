@@ -27,6 +27,7 @@ from arcade_tdk.tool import tool as tool_decorator
 from loguru import logger
 from watchfiles import watch
 
+from arcade_mcp_server._validation import MAJOR_ONLY_PATTERN, SEMVER_PATTERN, SHORT_VERSION_PATTERN
 from arcade_mcp_server.exceptions import ServerError
 from arcade_mcp_server.logging_utils import intercept_standard_logging
 from arcade_mcp_server.resource_server.base import ResourceServerValidator
@@ -100,7 +101,7 @@ class MCPApp:
             **kwargs: Additional server configuration
         """
         self._name = self._validate_name(name)
-        self.version = version
+        self._version = self._validate_version(version)
         self.title = title or name
         self.instructions = instructions
         self.log_level = log_level
@@ -120,7 +121,7 @@ class MCPApp:
 
         server_settings_kwargs = {
             "name": self._name,
-            "version": self.version,
+            "version": self._version,
             "title": self.title,
         }
         if self.instructions:
@@ -174,6 +175,31 @@ class MCPApp:
 
         return name
 
+    def _validate_version(self, version: str) -> str:
+        """Validate that version is a valid semver string (aligned with Go semver.IsValid).
+
+        Normalizes MAJOR.MINOR to MAJOR.MINOR.0. Rejects v prefix, PEP 440 formats,
+        and any string that would cause the Engine to fall back to lexicographic compare.
+        """
+        if not isinstance(version, str):
+            raise TypeError("MCPApp's version must be a string")
+        if not version:
+            raise ValueError("MCPApp's version cannot be empty")
+        # Normalize optional v prefix (vX.X.X → X.X.X, vX.X → X.X)
+        if version.startswith("v"):
+            version = version[1:]
+        # Normalize MAJOR → MAJOR.0.0, MAJOR.MINOR → MAJOR.MINOR.0
+        if MAJOR_ONLY_PATTERN.match(version):
+            version = f"{version}.0.0"
+        elif SHORT_VERSION_PATTERN.match(version):
+            version = f"{version}.0"
+        if not SEMVER_PATTERN.match(version):
+            raise ValueError(
+                f"MCPApp's version must be a valid semver string "
+                f"(e.g., '1.0.0', '1.2.3-beta.1'), got '{version}'"
+            )
+        return version
+
     # Properties (exposed below initializer)
     @property
     def name(self) -> str:
@@ -184,6 +210,16 @@ class MCPApp:
     def name(self, value: str) -> None:
         """Set the server name with validation."""
         self._name = self._validate_name(value)
+
+    @property
+    def version(self) -> str:
+        """Get the server version."""
+        return self._version
+
+    @version.setter
+    def version(self, value: str) -> None:
+        """Set the server version with validation."""
+        self._version = self._validate_version(value)
 
     @property
     def tools(self) -> _ToolsAPI:
