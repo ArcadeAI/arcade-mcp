@@ -77,7 +77,7 @@ class TestMCPAppVersionValidation:
     def test_validate_version_invalid_versions(
         self, version: object, expected_error: type[Exception]
     ) -> None:
-        """Test _validate_version rejects invalid versions (Engine would use lexicographic compare)."""
+        """Test _validate_version rejects invalid versions."""
         app = MCPApp(name="TestApp", version="1.0.0")
         with pytest.raises(expected_error):
             app._validate_version(version)  # type: ignore[arg-type]
