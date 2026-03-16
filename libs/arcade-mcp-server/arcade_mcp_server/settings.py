@@ -11,6 +11,8 @@ from typing import Any
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
 
+from arcade_mcp_server._validation import normalize_version
+
 
 def _find_project_root(start_dir: Path) -> Path | None:
     """Find the nearest ancestor directory containing pyproject.toml.
@@ -156,7 +158,7 @@ class ServerSettings(BaseSettings):
         description="Server name",
     )
     version: str = Field(
-        default="0.1.0dev",
+        default="0.1.0",
         description="Server version",
     )
     title: str | None = Field(
@@ -170,6 +172,17 @@ class ServerSettings(BaseSettings):
         ),
         description="Server instructions for clients",
     )
+
+    @field_validator("version")
+    @classmethod
+    def validate_version(cls, v: str) -> str:
+        """Validate and normalize version to canonical semver."""
+        try:
+            return normalize_version(v)
+        except (TypeError, ValueError) as e:
+            raise ValueError(
+                f"Server version must be a valid semver string (e.g., '1.0.0'), got '{v}'"
+            ) from e
 
     model_config = {"env_prefix": "MCP_SERVER_"}
 

@@ -1,5 +1,8 @@
 """Tests for MCP Settings."""
 
+import pytest
+from pydantic import ValidationError
+
 from arcade_mcp_server.settings import MCPSettings, ServerSettings
 
 
@@ -11,7 +14,7 @@ class TestServerSettings:
         settings = ServerSettings()
 
         assert settings.name == "ArcadeMCP"
-        assert settings.version == "0.1.0dev"
+        assert settings.version == "0.1.0"
         assert settings.title == "ArcadeMCP"
         assert settings.instructions is not None
         assert "available tools" in settings.instructions.lower()
@@ -51,7 +54,7 @@ class TestMCPSettings:
         settings = MCPSettings()
 
         assert settings.server.name == "ArcadeMCP"
-        assert settings.server.version == "0.1.0dev"
+        assert settings.server.version == "0.1.0"
         assert settings.server.title == "ArcadeMCP"
         assert settings.server.instructions is not None
 
@@ -97,3 +100,48 @@ class TestServerSettingsTitleDefault:
         """Test that the title field default is 'ArcadeMCP'."""
         field_info = ServerSettings.model_fields["title"]
         assert field_info.default == "ArcadeMCP"
+
+
+class TestServerSettingsVersionValidation:
+    """Tests for ServerSettings version validation (semver enforcement)."""
+
+    def test_server_settings_rejects_invalid_version(self) -> None:
+        """Test ServerSettings raises ValidationError for invalid version."""
+        with pytest.raises(ValidationError, match="semver"):
+            ServerSettings(version="bad")
+
+    def test_server_settings_accepts_valid_semver(self) -> None:
+        """Test ServerSettings accepts valid semver."""
+        settings = ServerSettings(version="1.2.3-alpha.1+build.456")
+        assert settings.version == "1.2.3-alpha.1+build.456"
+
+    def test_server_settings_normalizes_short_version(self) -> None:
+        """Test ServerSettings normalizes MAJOR.MINOR to MAJOR.MINOR.0."""
+        settings = ServerSettings(version="1.0")
+        assert settings.version == "1.0.0"
+
+    def test_server_settings_normalizes_v_prefix(self) -> None:
+        """Test ServerSettings strips v prefix and normalizes the version."""
+        settings = ServerSettings(version="v1.0.0")
+        assert settings.version == "1.0.0"
+
+    def test_server_settings_normalizes_v_prefix_short(self) -> None:
+        """Test ServerSettings strips v prefix from short versions."""
+        settings = ServerSettings(version="v1.0")
+        assert settings.version == "1.0.0"
+
+    def test_server_settings_normalizes_major_only(self) -> None:
+        """Test ServerSettings normalizes MAJOR to MAJOR.0.0."""
+        settings = ServerSettings(version="1")
+        assert settings.version == "1.0.0"
+
+    def test_server_settings_normalizes_v_major_only(self) -> None:
+        """Test ServerSettings strips v prefix from major-only versions."""
+        settings = ServerSettings(version="v1")
+        assert settings.version == "1.0.0"
+
+    def test_mcp_settings_env_rejects_invalid_version(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test MCP_SERVER_VERSION env var is validated."""
+        monkeypatch.setenv("MCP_SERVER_VERSION", "not-valid")
+        with pytest.raises(ValidationError, match="semver"):
+            MCPSettings.from_env()
