@@ -176,7 +176,7 @@ class MCPApp:
         return name
 
     def _validate_version(self, version: str) -> str:
-        """Validate and normalize version to canonical semver (delegates to normalize_version)."""
+        """Validate and normalize version to canonical semver."""
         try:
             return normalize_version(version)
         except TypeError:
