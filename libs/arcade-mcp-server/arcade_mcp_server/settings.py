@@ -176,7 +176,7 @@ class ServerSettings(BaseSettings):
     @field_validator("version")
     @classmethod
     def validate_version(cls, v: str) -> str:
-        """Validate and normalize version to canonical semver (delegates to normalize_version)."""
+        """Validate and normalize version to canonical semver."""
         try:
             return normalize_version(v)
         except (TypeError, ValueError) as e:
