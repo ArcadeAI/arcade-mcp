@@ -14,7 +14,7 @@ from arcade_mcp_server.server import MCPServer
 
 
 class TestMCPAppVersionValidation:
-    """Tests for MCPApp version validation (semver enforcement for Engine compatibility)."""
+    """Tests for MCPApp version validation."""
 
     @pytest.mark.parametrize(
         "version,expected_result",
