@@ -102,7 +102,7 @@ class TestMCPAppVersionValidation:
         assert app._validate_version("v1") == "1.0.0"
 
     def test_multi_digit_versions_accepted(self) -> None:
-        """Test versions like 1.10.0 are accepted (Engine semver.Compare orders correctly)."""
+        """Test versions like 1.10.0 are accepted."""
         app = MCPApp(name="TestApp", version="1.10.0")
         assert app.version == "1.10.0"
         app2 = MCPApp(name="TestApp", version="1.9.0")
