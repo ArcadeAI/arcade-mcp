@@ -25,17 +25,26 @@ create Context instances directly.
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import uuid
 import weakref
 from builtins import list as builtins_list
 from contextvars import ContextVar, Token
-from typing import Any, cast
+from typing import Any, TypeVar, cast
 
 from arcade_core.context import ModelContext as ModelContextProtocol
+from arcade_core.errors import ToolResponseExtractionError
 from arcade_core.schema import (
     ToolContext,
 )
+from arcade_core.structuring import (
+    EXECUTE_DEFAULTS,
+    ExecuteOptions,
+    OnMissing,
+    structure_output,
+)
+from pydantic import BaseModel, ValidationError
 
 from arcade_mcp_server.resource_server.base import ResourceOwner
 from arcade_mcp_server.types import (
@@ -56,6 +65,10 @@ from arcade_mcp_server.types import (
     SamplingMessage,
     TextContent,
 )
+
+logger = logging.getLogger(__name__)
+
+T = TypeVar("T", bound=BaseModel)
 
 # Context variable for current model context
 _current_model_context: ContextVar[Context | None] = ContextVar("model_context", default=None)
@@ -515,13 +528,333 @@ class Tools(_ContextComponent):
 
         if isinstance(response, JSONRPCError):
             error_message = response.error.get("message", "Unknown error")
+            logger.warning("call_raw('%s'): JSONRPCError: %s", name, error_message)
             return CallToolResult(
                 content=[TextContent(type="text", text=error_message)],
                 structuredContent={"error": error_message},
                 isError=True,
             )
 
-        return cast(CallToolResult, response.result)
+        result = cast(CallToolResult, response.result)
+
+        # If the tool wasn't found locally, try Arcade Cloud
+        not_found = (
+            result.isError
+            and result.structuredContent
+            and result.structuredContent.get("_tool_not_found")
+        )
+        has_arcade = self._ctx.server.arcade is not None
+        logger.warning(
+            "call_raw('%s'): isError=%s, _tool_not_found=%s, has_arcade=%s",
+            name,
+            result.isError,
+            not_found,
+            has_arcade,
+        )
+        if not_found and has_arcade:
+            return await self._call_remote(name, params)
+
+        return result
+
+    async def _call_remote(self, name: str, params: dict[str, Any]) -> CallToolResult:
+        """Execute a tool via Arcade Cloud when it's not available locally."""
+        from arcadepy import APIStatusError
+
+        # Arcade Cloud uses dot notation (e.g., "Gmail.ListEmails")
+        remote_name = name if "." in name else name.replace("_", ".", 1)
+        user_id = self._ctx.user_id or "anonymous"
+        arcade = self._ctx.server.arcade
+
+        try:
+            logger.warning(
+                "_call_remote('%s'): calling Arcade Cloud as user_id=%s", remote_name, user_id
+            )
+            response = await arcade.tools.execute(
+                tool_name=remote_name,
+                input=params,
+                user_id=user_id,
+            )
+            logger.warning(
+                "_call_remote('%s'): success=%s, output=%s",
+                remote_name,
+                response.success,
+                response.output.value if response.output else None,
+            )
+
+            if response.success and response.output and response.output.value is not None:
+                value = response.output.value
+                text = value if isinstance(value, str) else json.dumps(value)
+                structured = value if isinstance(value, dict) else {"result": value}
+
+                return CallToolResult(
+                    content=[TextContent(type="text", text=text)],
+                    structuredContent=structured,
+                    isError=False,
+                )
+            else:
+                error_msg = "Remote tool execution failed"
+                if response.output and response.output.error:
+                    error_msg = str(response.output.error)
+                logger.warning("_call_remote('%s'): failed: %s", remote_name, error_msg)
+                return CallToolResult(
+                    content=[TextContent(type="text", text=error_msg)],
+                    structuredContent={"error": error_msg},
+                    isError=True,
+                )
+        except APIStatusError as e:
+            logger.warning(
+                "_call_remote('%s'): APIStatusError %d: %s", remote_name, e.status_code, e.body
+            )
+            if e.status_code == 403 and "tool_authorization_required" in str(e.body):
+                return await self._handle_remote_auth(remote_name, user_id)
+            error_msg = f"Failed to call remote tool '{remote_name}': {e}"
+            return CallToolResult(
+                content=[TextContent(type="text", text=error_msg)],
+                structuredContent={"error": error_msg},
+                isError=True,
+            )
+        except Exception as e:
+            logger.warning(
+                "_call_remote('%s'): %s: %s", remote_name, type(e).__name__, e, exc_info=True
+            )
+            error_msg = f"Failed to call remote tool '{remote_name}': {e}"
+            return CallToolResult(
+                content=[TextContent(type="text", text=error_msg)],
+                structuredContent={"error": error_msg},
+                isError=True,
+            )
+
+    async def _handle_remote_auth(self, tool_name: str, user_id: str) -> CallToolResult:
+        """Handle authorization required for a remote Arcade Cloud tool."""
+        arcade = self._ctx.server.arcade
+        try:
+            auth_response = await arcade.tools.authorize(
+                tool_name=tool_name,
+                user_id=user_id,
+            )
+
+            if auth_response.status == "completed":
+                # Already authorized — shouldn't normally reach here, but just in case
+                return CallToolResult(
+                    content=[
+                        TextContent(
+                            type="text",
+                            text=f"Authorization for '{tool_name}' is already complete. Please retry.",
+                        )
+                    ],
+                    structuredContent={"error": "Authorization complete, please retry."},
+                    isError=True,
+                )
+
+            user_message = "⚠ Authorization required\n\n"
+            user_message += (
+                f"  Tool '{tool_name}' needs your permission to access your account.\n\n"
+            )
+            user_message += "  To authorize:\n"
+            user_message += f"  1. Click this link: {auth_response.url}\n"
+            user_message += "  2. Grant the requested permissions\n"
+            user_message += "  3. Return here and try again\n\n"
+            user_message += "  This is a one-time setup for this tool."
+
+            return CallToolResult(
+                content=[TextContent(type="text", text=user_message)],
+                structuredContent={
+                    "error": user_message,
+                    "message": user_message,
+                    "llm_instructions": (
+                        f"Please show the following link to the end user formatted as markdown: "
+                        f"{auth_response.url} \nInform the end user that the tool requires their "
+                        f"authorization to be completed before the tool can be executed."
+                    ),
+                    "authorization_url": auth_response.url,
+                },
+                isError=True,
+            )
+        except Exception as e:
+            error_msg = f"Failed to authorize remote tool '{tool_name}': {e}"
+            return CallToolResult(
+                content=[TextContent(type="text", text=error_msg)],
+                structuredContent={"error": error_msg},
+                isError=True,
+            )
+
+    async def execute(
+        self,
+        response_type: type[T],
+        tool_name: str,
+        args: dict[str, Any],
+        options: ExecuteOptions | None = None,
+    ) -> T:
+        """Call a tool and structure the result into a typed Pydantic model.
+
+        Uses a tiered strategy:
+          1. Direct Pydantic validation
+          2. Heuristic field mapping (key normalization, unwrapping)
+          3. LLM extraction via MCP sampling (if client supports it)
+
+        Args:
+            response_type: The Pydantic model class to structure the response into.
+            tool_name: Fully qualified name of the tool to call.
+            args: Arguments to pass to the tool.
+            options: Configuration for missing field handling, timeouts, and retries.
+
+        Returns:
+            An instance of response_type populated from the tool's response.
+
+        Raises:
+            ToolResponseExtractionError: If the response cannot be structured into response_type.
+            asyncio.TimeoutError: If the total timeout is exceeded.
+        """
+        opts: ExecuteOptions = {**EXECUTE_DEFAULTS, **(options or {})}  # type: ignore[typeddict-item]
+        on_missing = opts.get("on_missing", OnMissing.FAIL)
+        timeout_seconds = opts.get("timeout_seconds", 60.0)
+        max_retries = opts.get("max_retries", 3)
+        retry_delay = opts.get("retry_delay_seconds", 1.0)
+
+        last_error: Exception | None = None
+
+        async with asyncio.timeout(timeout_seconds):
+            for attempt in range(max_retries + 1):
+                try:
+                    # Step 1: Call the tool
+                    raw_result = await self.call_raw(tool_name, args)
+
+                    if raw_result.isError:
+                        _raise_tool_error(tool_name, raw_result)
+
+                    # Step 2: Try deterministic structuring (Tiers 1-2)
+                    raw_data = raw_result.structuredContent
+                    tier12_result = None
+                    if raw_data is not None:
+                        try:
+                            tier12_result = structure_output(response_type, raw_data, on_missing)
+                            # If ALLOW_NULL left some fields as None that might
+                            # be extractable from the raw data, prefer Tier 3
+                            # (sampling) for a more complete mapping.
+                            if on_missing == OnMissing.ALLOW_NULL and _has_null_fields(
+                                tier12_result
+                            ):
+                                logger.debug(
+                                    "Tier 1-2 result for '%s' has unmapped None "
+                                    "fields, falling through to sampling",
+                                    tool_name,
+                                )
+                            else:
+                                return tier12_result
+                        except ToolResponseExtractionError:
+                            pass  # Fall through to Tier 3
+
+                    # Step 3: LLM extraction via sampling (Tier 3)
+                    try:
+                        return await self._extract_via_sampling(
+                            response_type, raw_result, on_missing
+                        )
+                    except Exception as sampling_err:
+                        # Sampling unavailable (client doesn't support it).
+                        # Return the Tier 1-2 result if we have one, even if empty.
+                        if tier12_result is not None:
+                            logger.debug(
+                                "Sampling unavailable for '%s', returning partial Tier 1-2 result",
+                                tool_name,
+                            )
+                            return tier12_result
+                        # No Tier 1-2 result either — if ALLOW_NULL, return
+                        # an empty model rather than crashing
+                        if on_missing == OnMissing.ALLOW_NULL:
+                            logger.warning(
+                                "Sampling failed for '%s' and no Tier 1-2 "
+                                "result available, returning empty model: %s",
+                                tool_name,
+                                sampling_err,
+                            )
+                            return _make_empty(response_type)
+                        raise
+
+                except ToolResponseExtractionError:
+                    raise  # Non-retryable
+                except (ValidationError, json.JSONDecodeError) as e:
+                    # LLM parse failures are retryable
+                    last_error = e
+                    if attempt < max_retries:
+                        await asyncio.sleep(retry_delay)
+                    continue
+                except Exception as e:
+                    # Check if it's a retryable tool error
+                    from arcade_core.errors import RetryableToolError
+
+                    if isinstance(e, RetryableToolError) and attempt < max_retries:
+                        last_error = e
+                        await asyncio.sleep(retry_delay)
+                        continue
+                    raise
+
+        raise ToolResponseExtractionError(
+            f"Failed to extract response after {max_retries + 1} attempts",
+            developer_message=str(last_error) if last_error else None,
+        )
+
+    async def _extract_via_sampling(
+        self,
+        response_type: type[T],
+        raw_result: CallToolResult,
+        on_missing: OnMissing,
+    ) -> T:
+        """Tier 3: Use MCP sampling to extract structured data from raw tool output."""
+        logger.warning(
+            "Tier 3 sampling: extracting %s from raw tool output via LLM",
+            response_type.__name__,
+        )
+        # Serialize raw result to text
+        raw_text_parts: list[str] = []
+        for content in raw_result.content:
+            if isinstance(content, TextContent):
+                raw_text_parts.append(content.text)
+        raw_text = "\n".join(raw_text_parts) if raw_text_parts else "{}"
+
+        # Include structured content if available
+        if raw_result.structuredContent:
+            raw_text = json.dumps(raw_result.structuredContent)
+
+        json_schema = response_type.model_json_schema()
+        null_instruction = ""
+        if on_missing == OnMissing.ALLOW_NULL:
+            null_instruction = " If a field's value cannot be determined from the input, use null."
+
+        system_prompt = (
+            "You are a data extraction assistant. Extract data from the provided input "
+            "and return ONLY valid JSON matching the given schema. Do not include any "
+            f"explanation or markdown formatting.{null_instruction}\n\n"
+            f"Target JSON Schema:\n{json.dumps(json_schema, indent=2)}"
+        )
+
+        # Check if sampling is available
+        try:
+            sampling_result = await self._ctx._sampling.create_message(
+                messages=f"Extract data from this tool output:\n\n{raw_text}",
+                system_prompt=system_prompt,
+                max_tokens=2048,
+            )
+        except (ValueError, RuntimeError) as e:
+            raise ToolResponseExtractionError(
+                f"Deterministic structuring failed and LLM extraction is unavailable. Reason: {e}",
+                developer_message=(
+                    "Tiers 1-2 failed and MCP sampling is not supported by the client. "
+                    f"Target type: {response_type.__name__}"
+                ),
+            ) from e
+
+        # Parse LLM response
+        if isinstance(sampling_result, TextContent):
+            response_text = sampling_result.text
+        elif hasattr(sampling_result, "content") and isinstance(
+            sampling_result.content,
+            TextContent,  # type: ignore[union-attr]
+        ):
+            response_text = sampling_result.content.text  # type: ignore[union-attr]
+        else:
+            response_text = str(sampling_result)
+
+        return response_type.model_validate_json(response_text)
 
 
 class Prompts(_ContextComponent):
@@ -687,6 +1020,53 @@ class Notifications(_ContextComponent):
     @property
     def prompts(self) -> _NotificationsPrompts:
         return self._prompts
+
+
+def _make_empty(model_class: type[T]) -> T:
+    """Create an instance of model_class with all fields set to None/defaults.
+
+    Used as a last resort when both structuring and sampling fail
+    and on_missing is ALLOW_NULL.
+    """
+    from arcade_core.structuring import _make_nullable
+
+    nullable = _make_nullable(model_class)
+    return nullable()  # type: ignore[return-value]
+
+
+def _raise_tool_error(tool_name: str, raw_result: CallToolResult) -> None:
+    """Build and raise a ToolResponseExtractionError from a failed tool call.
+
+    Preserves the full response so auth URLs, llm_instructions,
+    and other actionable info bubble up to the user.
+    """
+    error_msg = "Unknown error"
+    if raw_result.structuredContent:
+        # Prefer llm_instructions (actionable), fall back to error
+        error_msg = raw_result.structuredContent.get(
+            "llm_instructions",
+            raw_result.structuredContent.get("error", error_msg),
+        )
+    raise ToolResponseExtractionError(f"Tool '{tool_name}' returned an error: {error_msg}")
+
+
+def _has_null_fields(model: BaseModel) -> bool:
+    """Check if a Pydantic model has any None-valued fields.
+
+    Used to detect when ALLOW_NULL structuring left fields unmapped
+    that sampling might be able to fill from the raw data.
+    """
+    for field_name in model.model_fields:
+        value = getattr(model, field_name)
+        if value is None:
+            return True
+        if isinstance(value, BaseModel) and _has_null_fields(value):
+            return True
+        if isinstance(value, list):
+            for item in value:
+                if isinstance(item, BaseModel) and _has_null_fields(item):
+                    return True
+    return True
 
 
 def get_current_model_context() -> Context | None:

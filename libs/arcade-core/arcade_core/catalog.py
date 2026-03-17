@@ -428,6 +428,74 @@ class ToolCatalog(BaseModel):
         """
         return len(self._tools)
 
+    def resolve_cross_tool_requirements(self) -> None:
+        """Resolve requires_secrets_from and request_scopes_from references.
+
+        For each tool that declares these references, look up the referenced tools
+        in the catalog and merge their secrets/scopes into the referencing tool's
+        requirements. This must be called after all tools are registered.
+        """
+        for fq_name, mat_tool in self._tools.items():
+            defn = mat_tool.definition
+
+            # Merge secrets from referenced tools
+            if defn.requires_secrets_from:
+                existing_keys = {s.key for s in (defn.requirements.secrets or [])}
+                merged_secrets = list(defn.requirements.secrets or [])
+                for ref_name in defn.requires_secrets_from:
+                    try:
+                        ref_tool = self.get_tool_by_name(ref_name)
+                    except ValueError:
+                        logger.warning(
+                            f"Tool '{fq_name}' references secrets from '{ref_name}', "
+                            f"but '{ref_name}' was not found in the catalog."
+                        )
+                        continue
+                    for secret in ref_tool.definition.requirements.secrets or []:
+                        if secret.key not in existing_keys:
+                            merged_secrets.append(secret)
+                            existing_keys.add(secret.key)
+                defn.requirements.secrets = merged_secrets if merged_secrets else None
+
+            # Merge OAuth scopes from referenced tools
+            if defn.request_scopes_from:
+                for ref_name in defn.request_scopes_from:
+                    try:
+                        ref_tool = self.get_tool_by_name(ref_name)
+                    except ValueError:
+                        logger.warning(
+                            f"Tool '{fq_name}' references scopes from '{ref_name}', "
+                            f"but '{ref_name}' was not found in the catalog."
+                        )
+                        continue
+                    ref_auth = ref_tool.definition.requirements.authorization
+                    if ref_auth is None:
+                        continue
+
+                    if defn.requirements.authorization is None:
+                        # Adopt the referenced tool's auth requirement
+                        defn.requirements.authorization = ToolAuthRequirement(
+                            provider_id=ref_auth.provider_id,
+                            provider_type=ref_auth.provider_type,
+                            id=ref_auth.id,
+                            oauth2=OAuth2Requirement(
+                                scopes=list(ref_auth.oauth2.scopes)
+                                if ref_auth.oauth2 and ref_auth.oauth2.scopes
+                                else None,
+                            ),
+                        )
+                    elif ref_auth.oauth2 and ref_auth.oauth2.scopes:
+                        # Merge scopes into existing auth requirement
+                        if defn.requirements.authorization.oauth2 is None:
+                            defn.requirements.authorization.oauth2 = OAuth2Requirement(scopes=[])
+                        existing_scopes = set(defn.requirements.authorization.oauth2.scopes or [])
+                        for scope in ref_auth.oauth2.scopes:
+                            if scope not in existing_scopes:
+                                if defn.requirements.authorization.oauth2.scopes is None:
+                                    defn.requirements.authorization.oauth2.scopes = []
+                                defn.requirements.authorization.oauth2.scopes.append(scope)
+                                existing_scopes.add(scope)
+
     @staticmethod
     def create_tool_definition(
         tool: Callable,
@@ -475,6 +543,9 @@ class ToolCatalog(BaseModel):
                 )
             tool_metadata.validate_for_tool()
 
+        requires_secrets_from = getattr(tool, "__tool_requires_secrets_from__", None)
+        request_scopes_from = getattr(tool, "__tool_request_scopes_from__", None)
+
         return ToolDefinition(
             name=tool_name,
             fully_qualified_name=str(fully_qualified_name),
@@ -489,6 +560,8 @@ class ToolCatalog(BaseModel):
             ),
             deprecation_message=deprecation_message,
             metadata=tool_metadata,
+            requires_secrets_from=requires_secrets_from,
+            request_scopes_from=request_scopes_from,
         )
 
 

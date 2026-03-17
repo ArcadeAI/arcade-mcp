@@ -231,6 +231,8 @@ class MCPApp:
         requires_metadata: list[str] | None = None,
         adapters: list[ErrorAdapter] | None = None,
         metadata: ToolMetadata | None = None,
+        requires_secrets_from: list[str] | None = None,
+        request_scopes_from: list[str] | None = None,
     ) -> Callable[P, T]:
         """Add a tool for build-time materialization (pre-server)."""
         if not hasattr(func, "__tool_name__"):
@@ -243,6 +245,8 @@ class MCPApp:
                 requires_metadata=requires_metadata,
                 adapters=adapters,
                 metadata=metadata,
+                requires_secrets_from=requires_secrets_from,
+                request_scopes_from=request_scopes_from,
             )
         try:
             self._catalog.add_tool(
@@ -272,6 +276,8 @@ class MCPApp:
         requires_metadata: list[str] | None = None,
         adapters: list[ErrorAdapter] | None = None,
         metadata: ToolMetadata | None = None,
+        requires_secrets_from: list[str] | None = None,
+        request_scopes_from: list[str] | None = None,
     ) -> Callable[[Callable[P, T]], Callable[P, T]] | Callable[P, T]:
         """Decorator for adding tools with optional parameters."""
 
@@ -285,6 +291,8 @@ class MCPApp:
                 requires_metadata=requires_metadata,
                 adapters=adapters,
                 metadata=metadata,
+                requires_secrets_from=requires_secrets_from,
+                request_scopes_from=request_scopes_from,
             )
 
         if func is not None:
@@ -302,6 +310,9 @@ class MCPApp:
         if len(self._catalog) == 0:
             logger.error("No tools added to the server. Use @app.tool decorator or app.add_tool().")
             sys.exit(1)
+
+        # Resolve cross-tool requirements (requires_secrets_from, request_scopes_from)
+        self._catalog.resolve_cross_tool_requirements()
 
         host, port, transport, reload = MCPApp._get_configuration_overrides(
             host, port, transport, reload

@@ -331,6 +331,12 @@ class ToolDefinition(BaseModel):
     metadata: ToolMetadata | None = None
     """Metadata about the tool"""
 
+    requires_secrets_from: list[str] | None = Field(default=None, exclude=True)
+    """FQNs of tools whose secret requirements should be merged into this tool's requirements."""
+
+    request_scopes_from: list[str] | None = Field(default=None, exclude=True)
+    """FQNs of tools whose OAuth scopes should be merged into this tool's requirements."""
+
     def get_fully_qualified_name(self) -> FullyQualifiedName:
         return FullyQualifiedName(self.name, self.toolkit.name, self.toolkit.version)
 

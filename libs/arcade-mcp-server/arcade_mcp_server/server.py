@@ -762,10 +762,12 @@ class MCPServer:
         env = (self.settings.arcade.environment or "").lower()
 
         # First priority: resource owner from front-door auth (from current model context)
+        # Prefer email over sub claim — Arcade Cloud identifies users by email.
         mctx = get_current_model_context()
         if mctx is not None and hasattr(mctx, "_resource_owner") and mctx._resource_owner:
-            user_id = mctx._resource_owner.user_id
-            logger.debug(f"Context user_id set from Authorization Server 'sub' claim: {user_id}")
+            ro = mctx._resource_owner
+            user_id = ro.email or ro.user_id
+            logger.debug(f"Context user_id set from Authorization Server token: {user_id}")
             return cast(str, user_id)
 
         # Second priority: configured user_id from settings
@@ -926,7 +928,10 @@ class MCPServer:
             content = convert_to_mcp_content(error_message)
 
             # structuredContent should be the error as a JSON object
-            structured_content = convert_content_to_structured_content({"error": error_message})
+            structured_content = convert_content_to_structured_content({
+                "error": error_message,
+                "_tool_not_found": True,
+            })
 
             self._tracker.track_tool_call(False, "unknown tool")
             return JSONRPCResponse(
