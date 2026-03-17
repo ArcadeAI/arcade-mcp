@@ -544,7 +544,7 @@ class Tools(_ContextComponent):
             and result.structuredContent.get("_tool_not_found")
         )
         has_arcade = self._ctx.server.arcade is not None
-        logger.warning(
+        logger.debug(
             "call_raw('%s'): isError=%s, _tool_not_found=%s, has_arcade=%s",
             name,
             result.isError,
@@ -566,7 +566,7 @@ class Tools(_ContextComponent):
         arcade = self._ctx.server.arcade
 
         try:
-            logger.warning(
+            logger.debug(
                 "_call_remote('%s'): calling Arcade Cloud as user_id=%s", remote_name, user_id
             )
             response = await arcade.tools.execute(
@@ -574,7 +574,7 @@ class Tools(_ContextComponent):
                 input=params,
                 user_id=user_id,
             )
-            logger.warning(
+            logger.debug(
                 "_call_remote('%s'): success=%s, output=%s",
                 remote_name,
                 response.success,
@@ -800,7 +800,7 @@ class Tools(_ContextComponent):
         on_missing: OnMissing,
     ) -> T:
         """Tier 3: Use MCP sampling to extract structured data from raw tool output."""
-        logger.warning(
+        logger.debug(
             "Tier 3 sampling: extracting %s from raw tool output via LLM",
             response_type.__name__,
         )
