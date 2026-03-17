@@ -46,6 +46,7 @@ from arcade_core.structuring import (
 )
 from pydantic import BaseModel, ValidationError
 
+from arcade_mcp_server.exceptions import RequestError
 from arcade_mcp_server.resource_server.base import ResourceOwner
 from arcade_mcp_server.types import (
     AudioContent,
@@ -870,9 +871,15 @@ class Tools(_ContextComponent):
                 system_prompt=system_prompt,
                 max_tokens=2048,
             )
-        except (ValueError, RuntimeError) as e:
-            if "does not support sampling" in str(e) or "Session not available" in str(e):
-                raise _SamplingUnavailableError(str(e)) from e
+        except (ValueError, RuntimeError, RequestError) as e:
+            e_str = str(e)
+            if (
+                "does not support sampling" in e_str
+                or "Session not available" in e_str
+                or "-32601" in e_str  # JSON-RPC Method not found
+                or "Method not found" in e_str
+            ):
+                raise _SamplingUnavailableError(e_str) from e
             raise ToolResponseExtractionError(
                 f"MCP sampling failed unexpectedly. Reason: {e}",
                 developer_message=(f"Target type: {response_type.__name__}"),
