@@ -70,6 +70,15 @@ logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound=BaseModel)
 
+
+class _SamplingUnavailableError(Exception):
+    """Raised when the MCP client does not support sampling.
+
+    Used as a sentinel by _extract_via_sampling to signal that
+    Tier 3b (Anthropic SDK) should be attempted instead.
+    """
+
+
 # Context variable for current model context
 _current_model_context: ContextVar[Context | None] = ContextVar("model_context", default=None)
 _flush_lock = asyncio.Lock()
@@ -744,22 +753,49 @@ class Tools(_ContextComponent):
                         except ToolResponseExtractionError:
                             pass  # Fall through to Tier 3
 
-                    # Step 3: LLM extraction via sampling (Tier 3)
+                    # Step 3: LLM extraction — Tier 3a (MCP sampling), then Tier 3b (Anthropic SDK)
                     try:
                         return await self._extract_via_sampling(
                             response_type, raw_result, on_missing
                         )
+                    except _SamplingUnavailableError:
+                        # Client doesn't support sampling — try Anthropic SDK fallback
+                        logger.debug(
+                            "MCP sampling unavailable for '%s', attempting Anthropic SDK extraction",
+                            tool_name,
+                        )
+                        try:
+                            return await self._extract_via_anthropic(
+                                response_type, raw_result, on_missing
+                            )
+                        except ToolResponseExtractionError as anthropic_err:
+                            # Both LLM paths unavailable — fall back to partial Tier 1-2 or empty
+                            if tier12_result is not None:
+                                logger.debug(
+                                    "Anthropic extraction unavailable for '%s', "
+                                    "returning partial Tier 1-2 result: %s",
+                                    tool_name,
+                                    anthropic_err,
+                                )
+                                return tier12_result
+                            if on_missing == OnMissing.ALLOW_NULL:
+                                logger.warning(
+                                    "All extraction tiers failed for '%s', "
+                                    "returning empty model: %s",
+                                    tool_name,
+                                    anthropic_err,
+                                )
+                                return _make_empty(response_type)
+                            raise
                     except Exception as sampling_err:
-                        # Sampling unavailable (client doesn't support it).
-                        # Return the Tier 1-2 result if we have one, even if empty.
+                        # Sampling was available but failed (not a capability issue).
+                        # Do NOT try Anthropic — this may be transient; retry loop handles it.
                         if tier12_result is not None:
                             logger.debug(
-                                "Sampling unavailable for '%s', returning partial Tier 1-2 result",
+                                "Sampling failed for '%s', returning partial Tier 1-2 result",
                                 tool_name,
                             )
                             return tier12_result
-                        # No Tier 1-2 result either — if ALLOW_NULL, return
-                        # an empty model rather than crashing
                         if on_missing == OnMissing.ALLOW_NULL:
                             logger.warning(
                                 "Sampling failed for '%s' and no Tier 1-2 "
@@ -835,12 +871,11 @@ class Tools(_ContextComponent):
                 max_tokens=2048,
             )
         except (ValueError, RuntimeError) as e:
+            if "does not support sampling" in str(e) or "Session not available" in str(e):
+                raise _SamplingUnavailableError(str(e)) from e
             raise ToolResponseExtractionError(
-                f"Deterministic structuring failed and LLM extraction is unavailable. Reason: {e}",
-                developer_message=(
-                    "Tiers 1-2 failed and MCP sampling is not supported by the client. "
-                    f"Target type: {response_type.__name__}"
-                ),
+                f"MCP sampling failed unexpectedly. Reason: {e}",
+                developer_message=(f"Target type: {response_type.__name__}"),
             ) from e
 
         # Parse LLM response
@@ -855,6 +890,99 @@ class Tools(_ContextComponent):
             response_text = str(sampling_result)
 
         return response_type.model_validate_json(response_text)
+
+    async def _extract_via_anthropic(
+        self,
+        response_type: type[T],
+        raw_result: CallToolResult,
+        on_missing: OnMissing,
+    ) -> T:
+        """Tier 3b: Use Anthropic SDK (tool_use) to extract structured data from raw tool output."""
+        import anthropic  # lazy import — only required when this path is taken
+
+        settings = self._ctx.server.settings.anthropic
+        if not settings.api_key:
+            raise ToolResponseExtractionError(
+                "Deterministic structuring failed and Anthropic extraction is unavailable: "
+                "ANTHROPIC_API_KEY is not set.",
+                developer_message=(
+                    f"Set ANTHROPIC_API_KEY to enable Tier 3b extraction. "
+                    f"Target type: {response_type.__name__}"
+                ),
+            )
+
+        # Lazy-init cached client on the Tools instance, keyed by api_key
+        if (
+            not hasattr(self, "_anthropic_client")
+            or getattr(self, "_anthropic_client_key", None) != settings.api_key
+        ):
+            kwargs: dict[str, Any] = {"api_key": settings.api_key}
+            if settings.base_url:
+                kwargs["base_url"] = settings.base_url
+            self._anthropic_client: anthropic.AsyncAnthropic = anthropic.AsyncAnthropic(**kwargs)
+            self._anthropic_client_key: str = settings.api_key
+
+        logger.warning(
+            "Tier 3b Anthropic extraction: extracting %s from raw tool output",
+            response_type.__name__,
+        )
+
+        # Serialize raw result to text (same logic as _extract_via_sampling)
+        raw_text_parts: list[str] = []
+        for content in raw_result.content:
+            if isinstance(content, TextContent):
+                raw_text_parts.append(content.text)
+        raw_text = "\n".join(raw_text_parts) if raw_text_parts else "{}"
+        if raw_result.structuredContent:
+            raw_text = json.dumps(raw_result.structuredContent)
+
+        json_schema = response_type.model_json_schema()
+        null_instruction = (
+            " If a field's value cannot be determined from the input, use null."
+            if on_missing == OnMissing.ALLOW_NULL
+            else ""
+        )
+
+        tool_name = f"extract_{response_type.__name__.lower()}"
+        system_prompt = (
+            "You are a data extraction assistant. "
+            f"Call the provided tool with fields extracted from the user's input.{null_instruction}"
+        )
+
+        response = await self._anthropic_client.messages.create(
+            model=settings.model,
+            max_tokens=2048,
+            system=system_prompt,
+            tools=[
+                {
+                    "name": tool_name,
+                    "description": (
+                        f"Extract structured {response_type.__name__} data from the input."
+                    ),
+                    "input_schema": json_schema,
+                }
+            ],
+            tool_choice={"type": "tool", "name": tool_name},
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"Extract data from this tool output:\n\n{raw_text}",
+                }
+            ],
+        )
+
+        tool_use_block = next(
+            (block for block in response.content if block.type == "tool_use"),
+            None,
+        )
+        if tool_use_block is None:
+            raise ToolResponseExtractionError(
+                "Anthropic returned no tool_use block during structured extraction.",
+                developer_message=f"Response content: {response.content}",
+            )
+
+        extracted: dict[str, Any] = tool_use_block.input  # type: ignore[union-attr]
+        return response_type.model_validate(extracted)
 
 
 class Prompts(_ContextComponent):
