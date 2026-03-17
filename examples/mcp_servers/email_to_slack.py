@@ -47,9 +47,9 @@ app = MCPApp(name="email_to_slack", version="1.0.0", auth=resource_server_auth)
 class EmailSummary(BaseModel):
     """A single email extracted from Gmail's response."""
 
-    subject: str | None = None
-    sender: str | None = None
-    snippet: str | None = None
+    subject: str
+    sender: str
+    snippet: str
 
 
 class EmailList(BaseModel):
@@ -62,8 +62,8 @@ class SlackResponse(BaseModel):
     """The shape we expect back from Slack.SendMessage."""
 
     ok: bool
-    channel: str | None = None
-    ts: str | None = None
+    channel: str
+    ts: str
 
 
 class ForwardedEmail(BaseModel):
@@ -122,9 +122,9 @@ async def forward_emails_to_slack(
     # Step 2: Send each email as a Slack message
     results: list[ForwardedEmail] = []
     for email in email_data.emails:
-        subject = email.subject or "(no subject)"
-        sender = email.sender or "(unknown sender)"
-        snippet = email.snippet or ""
+        subject = email.subject
+        sender = email.sender
+        snippet = email.snippet
 
         message = f"*From:* {sender}\n*Subject:* {subject}\n> {snippet}"
 
