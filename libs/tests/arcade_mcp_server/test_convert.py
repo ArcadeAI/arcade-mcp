@@ -381,3 +381,107 @@ class TestCreateMCPTool:
         assert mcp_tool.outputSchema is not None
         assert mcp_tool.outputSchema["type"] == "object"
         assert mcp_tool.outputSchema["properties"]["result"]["type"] == "number"
+
+    def test_output_schema_nested_object(self):
+        """Test that nested object properties are recursively expanded in outputSchema."""
+        nested_props = {
+            "id": ValueSchema(val_type="integer"),
+            "name": ValueSchema(val_type="string"),
+        }
+        outer_props = {
+            "data": ValueSchema(val_type="json", properties=nested_props),
+            "status": ValueSchema(val_type="string"),
+        }
+        tool_def = ToolDefinition(
+            name="test",
+            fully_qualified_name="Test.test",
+            description="Test",
+            toolkit=ToolkitDefinition(name="Test"),
+            input=ToolInput(parameters=[]),
+            output=ToolOutput(
+                description="Result",
+                value_schema=ValueSchema(val_type="json", properties=outer_props),
+            ),
+            requirements=ToolRequirements(),
+        )
+
+        @tool
+        def f() -> Annotated[str, "result"]:
+            return "result"
+
+        input_model, output_model = create_func_models(f)
+        meta = ToolMeta(module=f.__module__, toolkit=tool_def.toolkit.name)
+        mat_tool = MaterializedTool(
+            tool=f,
+            definition=tool_def,
+            meta=meta,
+            input_model=input_model,
+            output_model=output_model,
+        )
+
+        mcp_tool = create_mcp_tool(mat_tool)
+        output_schema = mcp_tool.outputSchema
+
+        assert output_schema is not None
+        assert output_schema["type"] == "object"
+        assert "data" in output_schema["properties"]
+        data_schema = output_schema["properties"]["data"]
+        assert data_schema["type"] == "object"
+        assert "properties" in data_schema
+        assert data_schema["properties"]["id"]["type"] == "integer"
+        assert data_schema["properties"]["name"]["type"] == "string"
+        assert output_schema["properties"]["status"]["type"] == "string"
+
+    def test_input_schema_nested_object(self):
+        """Test that nested object properties are recursively expanded in inputSchema."""
+        # Two levels deep: payload.info.count — requires recursion
+        deeply_nested_props = {
+            "count": ValueSchema(val_type="integer"),
+        }
+        nested_props = {
+            "id": ValueSchema(val_type="integer"),
+            "info": ValueSchema(val_type="json", properties=deeply_nested_props),
+        }
+        tool_def = ToolDefinition(
+            name="test",
+            fully_qualified_name="Test.test",
+            description="Test",
+            toolkit=ToolkitDefinition(name="Test"),
+            input=ToolInput(
+                parameters=[
+                    InputParameter(
+                        name="payload",
+                        required=True,
+                        description="Nested payload",
+                        value_schema=ValueSchema(val_type="json", properties=nested_props),
+                    )
+                ]
+            ),
+            output=ToolOutput(),
+            requirements=ToolRequirements(),
+        )
+
+        @tool
+        def f(payload: Annotated[str, "Nested payload"]):
+            return payload
+
+        input_model, output_model = create_func_models(f)
+        meta = ToolMeta(module=f.__module__, toolkit=tool_def.toolkit.name)
+        mat_tool = MaterializedTool(
+            tool=f,
+            definition=tool_def,
+            meta=meta,
+            input_model=input_model,
+            output_model=output_model,
+        )
+
+        mcp_tool = create_mcp_tool(mat_tool)
+        payload_schema = mcp_tool.inputSchema["properties"]["payload"]
+
+        assert payload_schema["type"] == "object"
+        assert "properties" in payload_schema
+        assert payload_schema["properties"]["id"]["type"] == "integer"
+        info_schema = payload_schema["properties"]["info"]
+        assert info_schema["type"] == "object"
+        assert "properties" in info_schema
+        assert info_schema["properties"]["count"]["type"] == "integer"

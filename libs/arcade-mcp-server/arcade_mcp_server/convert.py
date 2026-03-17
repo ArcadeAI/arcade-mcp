@@ -215,11 +215,7 @@ def build_input_schema_from_definition(definition: ToolDefinition) -> dict[str, 
                 schema["type"] = "object"
                 schema["properties"] = {}
                 for prop_name, prop_schema in val_schema.properties.items():
-                    schema["properties"][prop_name] = {
-                        "type": _map_type_to_json_schema_type(
-                            getattr(prop_schema, "val_type", None)
-                        ),
-                    }
+                    schema["properties"][prop_name] = _build_value_schema_json(prop_schema)
                     if getattr(prop_schema, "description", None):
                         schema["properties"][prop_name]["description"] = prop_schema.description
 
@@ -254,9 +250,7 @@ def _build_value_schema_json(value_schema: Any) -> dict[str, Any]:
         schema["type"] = "object"
         schema["properties"] = {}
         for prop_name, prop_schema in value_schema.properties.items():
-            schema["properties"][prop_name] = {
-                "type": _map_type_to_json_schema_type(getattr(prop_schema, "val_type", None))
-            }
+            schema["properties"][prop_name] = _build_value_schema_json(prop_schema)
             if getattr(prop_schema, "description", None):
                 schema["properties"][prop_name]["description"] = prop_schema.description
     return schema
