@@ -7,9 +7,109 @@ from unittest.mock import Mock, patch
 
 import pytest
 from arcade_core.catalog import MaterializedTool
+
 from arcade_mcp_server import tool
 from arcade_mcp_server.mcp_app import MCPApp
 from arcade_mcp_server.server import MCPServer
+
+
+class TestMCPAppVersionValidation:
+    """Tests for MCPApp version validation."""
+
+    @pytest.mark.parametrize(
+        "version,expected_result",
+        [
+            # Full semver (passthrough)
+            ("1.0.0", "1.0.0"),
+            ("0.1.0", "0.1.0"),
+            ("0.0.0", "0.0.0"),
+            ("10.20.30", "10.20.30"),
+            # Pre-release and build metadata
+            ("1.2.3-alpha.1", "1.2.3-alpha.1"),
+            ("1.2.3+build.456", "1.2.3+build.456"),
+            ("1.2.3-beta.1+build.789", "1.2.3-beta.1+build.789"),
+            # Short versions (normalized to MAJOR.MINOR.0)
+            ("1.0", "1.0.0"),
+            ("0.1", "0.1.0"),
+            ("2.5", "2.5.0"),
+            ("10.20", "10.20.0"),
+            # Major-only versions (normalized to MAJOR.0.0)
+            ("1", "1.0.0"),
+            ("0", "0.0.0"),
+            ("10", "10.0.0"),
+            # v-prefixed versions (normalized by stripping v)
+            ("v1.0.0", "1.0.0"),
+            ("v0.1.0", "0.1.0"),
+            ("v1.2.3-alpha.1", "1.2.3-alpha.1"),
+            ("v1.0", "1.0.0"),
+            ("v2.5", "2.5.0"),
+            # v-prefixed major-only
+            ("v1", "1.0.0"),
+            ("v0", "0.0.0"),
+            ("v10", "10.0.0"),
+        ],
+    )
+    def test_validate_version_valid_versions(self, version: str, expected_result: str) -> None:
+        """Test _validate_version with valid semver strings."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+        result = app._validate_version(version)
+        assert result == expected_result
+
+    @pytest.mark.parametrize(
+        "version,expected_error",
+        [
+            ("", ValueError),
+            (None, TypeError),
+            (123, TypeError),
+            ([], TypeError),
+            ({}, TypeError),
+            ("1.0.0.0", ValueError),  # too many components
+            ("1.0.0dev", ValueError),  # PEP 440 dev (not semver)
+            ("1.0.0a1", ValueError),  # PEP 440 alpha (not semver)
+            ("1.0.0.post1", ValueError),  # PEP 440 post (not semver)
+            ("not_a_version", ValueError),  # garbage
+            ("latest", ValueError),  # word
+            (" 1.0.0", ValueError),  # leading space
+            ("1.0.0 ", ValueError),  # trailing space
+            ("01.0.0", ValueError),  # leading zero
+        ],
+    )
+    def test_validate_version_invalid_versions(
+        self, version: object, expected_error: type[Exception]
+    ) -> None:
+        """Test _validate_version rejects invalid versions."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+        with pytest.raises(expected_error):
+            app._validate_version(version)  # type: ignore[arg-type]
+
+    def test_mcp_app_rejects_invalid_version_at_init(self) -> None:
+        """Test MCPApp raises at instantiation for invalid version."""
+        with pytest.raises(ValueError, match="semver"):
+            MCPApp(name="TestApp", version="not-valid")
+
+    def test_mcp_app_rejects_invalid_version_via_setter(self) -> None:
+        """Test MCPApp version setter validates and raises for invalid version."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+        with pytest.raises(ValueError, match="semver"):
+            app.version = "bad"
+
+    def test_mcp_app_v_prefix_normalized(self) -> None:
+        """Test v prefix is stripped and version is normalized."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+        assert app._validate_version("v1.0.0") == "1.0.0"
+        assert app._validate_version("v1.0") == "1.0.0"
+        assert app._validate_version("v2.5") == "2.5.0"
+        assert app._validate_version("v1") == "1.0.0"
+
+    def test_multi_digit_versions_accepted(self) -> None:
+        """Test versions like 1.10.0 are accepted."""
+        app = MCPApp(name="TestApp", version="1.10.0")
+        assert app.version == "1.10.0"
+        app2 = MCPApp(name="TestApp", version="1.9.0")
+        assert app2.version == "1.9.0"
+        # 1.10.0 > 1.9.0 in semver; lexicographic would wrongly give 1.10.0 < 1.9.0
+        assert app._validate_version("1.10.0") == "1.10.0"
+        assert app._validate_version("1.9.0") == "1.9.0"
 
 
 class TestMCPApp:
