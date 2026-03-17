@@ -54,11 +54,20 @@ def create_mcp_tool(materialized_tool: MaterializedTool) -> MCPTool:
         description = f"[DEPRECATED: {deprecation_msg}] {description}"
 
     # Build the tool's output schema
+    # MCP spec requires outputSchema.type to be "object"
     output_schema = None
     if hasattr(definition, "output") and definition.output:
         output_def = definition.output
         if getattr(output_def, "value_schema", None):
-            output_schema = _build_value_schema_json(output_def.value_schema)
+            raw_schema = _build_value_schema_json(output_def.value_schema)
+            if raw_schema.get("type") == "object":
+                output_schema = raw_schema
+            else:
+                # Wrap non-object types in an object with a "result" property
+                output_schema = {
+                    "type": "object",
+                    "properties": {"result": raw_schema},
+                }
 
     # Build MCP tool annotations from metadata behavior fields
     title = getattr(materialized_tool.tool, "__tool_name__", definition.name)

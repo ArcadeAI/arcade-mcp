@@ -116,6 +116,12 @@ class MCPApp:
         self._catalog = ToolCatalog()
         self._toolkit_name = name
 
+        # Resource collection (build-time)
+        self._initial_resources: list[tuple[Resource, Callable[..., Any] | None]] = []
+
+        # Tool _meta extensions (build-time) — keyed by tool FQN
+        self._tool_meta_extensions: dict[str, dict[str, Any]] = {}
+
         # Public handle to the MCPServer (set by caller for runtime ops)
         self.server: MCPServer | None = None
 
@@ -254,6 +260,7 @@ class MCPApp:
         requires_metadata: list[str] | None = None,
         adapters: list[ErrorAdapter] | None = None,
         metadata: ToolMetadata | None = None,
+        ui_resource_uri: str | None = None,
     ) -> Callable[P, T]:
         """Add a tool for build-time materialization (pre-server)."""
         if not hasattr(func, "__tool_name__"):
@@ -276,6 +283,19 @@ class MCPApp:
             )
         except ToolDefinitionError as e:
             raise e.with_context(func.__name__) from e
+
+        # Store _meta.ui extension for MCP Apps support
+        if ui_resource_uri:
+            tool_name = getattr(func, "__tool_name__", func.__name__)
+            # Look up the actual FQN from the catalog (which may capitalize the toolkit name)
+            fqn = None
+            for mat_tool in self._catalog:
+                if mat_tool.definition.name == tool_name:
+                    fqn = str(mat_tool.definition.fully_qualified_name)
+                    break
+            if fqn:
+                self._tool_meta_extensions[fqn] = {"ui": {"resourceUri": ui_resource_uri}}
+
         logger.debug(f"Added tool: {func.__name__}")
         return func
 
@@ -284,6 +304,42 @@ class MCPApp:
         self._catalog.add_module(
             module, self._toolkit_name, version=self.version, description=self.instructions
         )
+
+    def add_resource(
+        self,
+        uri: str,
+        *,
+        name: str | None = None,
+        description: str | None = None,
+        mime_type: str | None = None,
+        handler: Callable[..., Any] | None = None,
+    ) -> None:
+        """Register a resource at build time (before server start)."""
+        resource = Resource(uri=uri, name=name or uri, description=description, mimeType=mime_type)
+        self._initial_resources.append((resource, handler))
+        logger.debug(f"Added resource: {uri}")
+
+    def resource(
+        self,
+        uri: str,
+        *,
+        name: str | None = None,
+        description: str | None = None,
+        mime_type: str | None = None,
+    ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+        """Decorator for registering a resource with a handler at build time."""
+
+        def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+            self.add_resource(
+                uri,
+                name=name or func.__name__,
+                description=description,
+                mime_type=mime_type,
+                handler=func,
+            )
+            return func
+
+        return decorator
 
     def tool(
         self,
@@ -295,6 +351,7 @@ class MCPApp:
         requires_metadata: list[str] | None = None,
         adapters: list[ErrorAdapter] | None = None,
         metadata: ToolMetadata | None = None,
+        ui_resource_uri: str | None = None,
     ) -> Callable[[Callable[P, T]], Callable[P, T]] | Callable[P, T]:
         """Decorator for adding tools with optional parameters."""
 
@@ -308,6 +365,7 @@ class MCPApp:
                 requires_metadata=requires_metadata,
                 adapters=adapters,
                 metadata=metadata,
+                ui_resource_uri=ui_resource_uri,
             )
 
         if func is not None:
@@ -322,8 +380,10 @@ class MCPApp:
         transport: TransportType = "stdio",
         **kwargs: Any,
     ) -> None:
-        if len(self._catalog) == 0:
-            logger.error("No tools added to the server. Use @app.tool decorator or app.add_tool().")
+        if len(self._catalog) == 0 and len(self._initial_resources) == 0:
+            logger.error(
+                "No tools or resources added. Use @app.tool, @app.resource, or app.add_resource()."
+            )
             sys.exit(1)
 
         host, port, transport, reload = MCPApp._get_configuration_overrides(
@@ -377,6 +437,8 @@ class MCPApp:
                 run_stdio_server(
                     catalog=self._catalog,
                     settings=self._mcp_settings,
+                    initial_resources=self._initial_resources,
+                    tool_meta_extensions=self._tool_meta_extensions,
                     **self.server_kwargs,
                 )
             )
@@ -470,6 +532,8 @@ class MCPApp:
             mcp_settings=self._mcp_settings,
             debug=debug,
             resource_server_validator=self.resource_server_validator,
+            initial_resources=self._initial_resources,
+            tool_meta_extensions=self._tool_meta_extensions,
             **self.server_kwargs,
         )
 

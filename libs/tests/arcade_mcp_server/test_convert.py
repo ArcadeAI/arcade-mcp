@@ -376,5 +376,8 @@ class TestCreateMCPTool:
         mcp_tool = create_mcp_tool(materialized_tool)
 
         # The fixture's output has value_schema=ValueSchema(val_type="number")
+        # MCP spec requires outputSchema.type to be "object", so non-object types
+        # get wrapped in {"type": "object", "properties": {"result": <original>}}
         assert mcp_tool.outputSchema is not None
-        assert mcp_tool.outputSchema["type"] == "number"
+        assert mcp_tool.outputSchema["type"] == "object"
+        assert mcp_tool.outputSchema["properties"]["result"]["type"] == "number"

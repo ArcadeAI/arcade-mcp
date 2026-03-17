@@ -1556,3 +1556,115 @@ class TestMissingSecretsWarnings:
             # Restore environment
             if old_value is not None:
                 os.environ["FORMAT_TEST_KEY"] = old_value
+
+
+class TestServerToolMetaExtensions:
+    """Tests for _meta extensions on tools (e.g., MCP Apps ui.resourceUri)."""
+
+    @pytest.mark.asyncio
+    async def test_tool_meta_extensions_applied(self, tool_catalog, mcp_settings):
+        """tool_meta_extensions adds _meta.ui.resourceUri to tools."""
+        # Get the FQN of the first tool in the catalog
+        first_tool = next(iter(tool_catalog))
+        fqn = first_tool.definition.fully_qualified_name
+
+        server = MCPServer(
+            catalog=tool_catalog,
+            settings=mcp_settings,
+            tool_meta_extensions={fqn: {"ui": {"resourceUri": "ui://test/index.html"}}},
+        )
+        await server.start()
+        try:
+            tools = await server.tools.list_tools()
+            # Find the tool by its sanitized name
+            sanitized = fqn.replace(".", "_")
+            matched = [t for t in tools if t.name == sanitized]
+            assert len(matched) == 1
+            assert matched[0].meta is not None
+            assert matched[0].meta["ui"]["resourceUri"] == "ui://test/index.html"
+        finally:
+            await server.stop()
+
+    @pytest.mark.asyncio
+    async def test_no_tool_meta_extensions_by_default(self, tool_catalog, mcp_settings):
+        """Without extensions, tools that have no arcade meta have _meta=None or no ui key."""
+        server = MCPServer(
+            catalog=tool_catalog,
+            settings=mcp_settings,
+        )
+        await server.start()
+        try:
+            tools = await server.tools.list_tools()
+            for t in tools:
+                if t.meta:
+                    assert "ui" not in t.meta
+        finally:
+            await server.stop()
+
+
+class TestServerInitialResources:
+    """Tests for loading build-time resources into MCPServer."""
+
+    @pytest.mark.asyncio
+    async def test_server_loads_initial_resources(self, tool_catalog, mcp_settings):
+        """MCPServer with initial_resources makes them available via list/read."""
+        from arcade_mcp_server.types import Resource
+
+        resource = Resource(uri="ui://app/index.html", name="App UI", mimeType="text/html")
+
+        def handler(uri: str) -> str:
+            return "<html>hello</html>"
+
+        server = MCPServer(
+            catalog=tool_catalog,
+            settings=mcp_settings,
+            initial_resources=[(resource, handler)],
+        )
+        await server.start()
+        try:
+            resources = await server.resources.list_resources()
+            uris = [r.uri for r in resources]
+            assert "ui://app/index.html" in uris
+
+            contents = await server.resources.read_resource("ui://app/index.html")
+            assert len(contents) == 1
+            assert contents[0].text == "<html>hello</html>"  # type: ignore[attr-defined]
+        finally:
+            await server.stop()
+
+    @pytest.mark.asyncio
+    async def test_server_no_initial_resources_by_default(self, tool_catalog, mcp_settings):
+        """Backward compat: no initial resources by default."""
+        server = MCPServer(
+            catalog=tool_catalog,
+            settings=mcp_settings,
+        )
+        await server.start()
+        try:
+            resources = await server.resources.list_resources()
+            assert resources == []
+        finally:
+            await server.stop()
+
+    @pytest.mark.asyncio
+    async def test_server_initial_resources_with_async_handler(self, tool_catalog, mcp_settings):
+        """Async handlers work for initial resources."""
+        from arcade_mcp_server.types import Resource
+
+        resource = Resource(uri="ui://app/data.json", name="Data", mimeType="application/json")
+
+        async def async_handler(uri: str) -> str:
+            return '{"key": "value"}'
+
+        server = MCPServer(
+            catalog=tool_catalog,
+            settings=mcp_settings,
+            initial_resources=[(resource, async_handler)],
+        )
+        await server.start()
+        try:
+            contents = await server.resources.read_resource("ui://app/data.json")
+            assert len(contents) == 1
+            assert contents[0].text == '{"key": "value"}'  # type: ignore[attr-defined]
+        finally:
+            await server.stop()

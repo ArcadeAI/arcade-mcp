@@ -77,6 +77,8 @@ class CustomUvicornServer(uvicorn.Server):
 async def create_lifespan(
     catalog: ToolCatalog,
     mcp_settings: MCPSettings | None = None,
+    initial_resources: list[tuple[Any, Any]] | None = None,
+    tool_meta_extensions: dict[str, Any] | None = None,
     **kwargs: Any,
 ) -> AsyncGenerator[dict[str, Any], None]:
     """
@@ -103,6 +105,8 @@ async def create_lifespan(
     mcp_server = MCPServer(
         catalog,
         settings=mcp_settings,
+        initial_resources=initial_resources,
+        tool_meta_extensions=tool_meta_extensions,
         **kwargs,
     )
 
@@ -127,6 +131,8 @@ def create_arcade_mcp(
     debug: bool = False,
     otel_enable: bool = False,
     resource_server_validator: ResourceServerValidator | None = None,
+    initial_resources: list[tuple[Any, Any]] | None = None,
+    tool_meta_extensions: dict[str, Any] | None = None,
     **kwargs: Any,
 ) -> FastAPI:
     """
@@ -156,7 +162,13 @@ def create_arcade_mcp(
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         try:
             logger.debug(f"Server lifespan startup. OTEL enabled: {otel_enable}")
-            async with create_lifespan(catalog, mcp_settings, **kwargs) as components:
+            async with create_lifespan(
+                catalog,
+                mcp_settings,
+                initial_resources=initial_resources,
+                tool_meta_extensions=tool_meta_extensions,
+                **kwargs,
+            ) as components:
                 app.state.mcp_server = components["mcp_server"]
                 app.state.session_manager = components["session_manager"]
                 yield

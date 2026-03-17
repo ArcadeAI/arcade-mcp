@@ -43,21 +43,29 @@ class ResourceManager(ComponentManager[str, Resource]):
     async def read_resource(self, uri: str) -> list[ResourceContents]:
         handler = self._resource_handlers.get(uri)
         if handler:
+            # Look up the registered resource's mimeType so we can propagate it
+            mime_type: str | None = None
+            try:
+                registered: Resource = await self.registry.get(uri)
+                mime_type = registered.mimeType
+            except KeyError:
+                pass
+
             result = handler(uri)
             if hasattr(result, "__await__"):
                 result = await result
             if isinstance(result, str):
-                return [TextResourceContents(uri=uri, text=result)]
+                return [TextResourceContents(uri=uri, mimeType=mime_type, text=result)]
             elif isinstance(result, dict):
                 if "text" in result:
-                    return [TextResourceContents(uri=uri, text=result["text"])]
+                    return [TextResourceContents(uri=uri, mimeType=mime_type, text=result["text"])]
                 if "blob" in result:
-                    return [BlobResourceContents(uri=uri, blob=result["blob"])]
-                return [ResourceContents(uri=uri)]
+                    return [BlobResourceContents(uri=uri, mimeType=mime_type, blob=result["blob"])]
+                return [ResourceContents(uri=uri, mimeType=mime_type)]
             elif isinstance(result, list):
                 return result
             else:
-                return [TextResourceContents(uri=uri, text=str(result))]
+                return [TextResourceContents(uri=uri, mimeType=mime_type, text=str(result))]
 
         try:
             _ = await self.registry.get(uri)

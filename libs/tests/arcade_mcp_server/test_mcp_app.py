@@ -443,6 +443,8 @@ class TestMCPApp:
                 mcp_settings=mcp_app._mcp_settings,
                 debug=False,
                 resource_server_validator=mcp_app.resource_server_validator,
+                initial_resources=mcp_app._initial_resources,
+                tool_meta_extensions=mcp_app._tool_meta_extensions,
             )
             mock_serve.assert_called_once_with(
                 app=mock_fastapi_app,
@@ -467,6 +469,8 @@ class TestMCPApp:
                 mcp_settings=mcp_app._mcp_settings,
                 debug=True,
                 resource_server_validator=mcp_app.resource_server_validator,
+                initial_resources=mcp_app._initial_resources,
+                tool_meta_extensions=mcp_app._tool_meta_extensions,
             )
             mock_serve.assert_called_once_with(
                 app=mock_fastapi_app,
@@ -742,3 +746,136 @@ class TestMCPApp:
         app = MCPApp()
         with pytest.raises(expected_error):
             app._validate_name(name)
+
+
+class TestMCPAppResourceRegistration:
+    """Tests for build-time resource registration on MCPApp."""
+
+    def test_add_resource_stores_resource(self):
+        """Verify add_resource stores a (Resource, None) tuple in _initial_resources."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+        app.add_resource("ui://app/index.html", name="App UI", mime_type="text/html")
+
+        assert len(app._initial_resources) == 1
+        resource, handler = app._initial_resources[0]
+        assert resource.uri == "ui://app/index.html"
+        assert resource.name == "App UI"
+        assert resource.mimeType == "text/html"
+        assert handler is None
+
+    def test_add_resource_with_handler(self):
+        """Verify handler is stored alongside resource."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        def my_handler(uri: str) -> str:
+            return "content"
+
+        app.add_resource("file:///data.json", name="Data", handler=my_handler)
+
+        assert len(app._initial_resources) == 1
+        resource, handler = app._initial_resources[0]
+        assert resource.uri == "file:///data.json"
+        assert handler is my_handler
+
+    def test_add_resource_name_defaults_to_uri(self):
+        """Name defaults to URI when omitted."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+        app.add_resource("ui://app/page.html")
+
+        resource, _ = app._initial_resources[0]
+        assert resource.name == "ui://app/page.html"
+
+    def test_resource_decorator_registers_resource(self):
+        """@app.resource(uri) stores (Resource, fn)."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        @app.resource("ui://app/index.html", mime_type="text/html")
+        def serve_ui(uri: str) -> str:
+            return "<html></html>"
+
+        assert len(app._initial_resources) == 1
+        resource, handler = app._initial_resources[0]
+        assert resource.uri == "ui://app/index.html"
+        assert handler is serve_ui
+
+    def test_resource_decorator_name_defaults_to_function_name(self):
+        """Name defaults to fn.__name__ when using decorator."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        @app.resource("ui://app/index.html")
+        def serve_ui(uri: str) -> str:
+            return "<html></html>"
+
+        resource, _ = app._initial_resources[0]
+        assert resource.name == "serve_ui"
+
+    def test_resource_decorator_preserves_function(self):
+        """Decorated function is still directly callable."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        @app.resource("ui://app/index.html")
+        def serve_ui(uri: str) -> str:
+            return f"content for {uri}"
+
+        assert serve_ui("test://uri") == "content for test://uri"
+
+    def test_multiple_resources_registered(self):
+        """Multiple add_resource + decorator calls accumulate."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        app.add_resource("file:///a.txt", name="A")
+        app.add_resource("file:///b.txt", name="B")
+
+        @app.resource("ui://app/index.html")
+        def serve_ui(uri: str) -> str:
+            return "<html></html>"
+
+        assert len(app._initial_resources) == 3
+
+    def test_run_exits_when_no_tools_or_resources(self):
+        """run() exits when neither tools nor resources are registered."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+        with pytest.raises(SystemExit):
+            app.run(transport="http")
+
+    def test_run_allows_resource_only_server(self):
+        """run() does not exit when only resources are registered (no tools)."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+        app.add_resource("ui://app/index.html", name="App UI")
+
+        with (
+            patch("arcade_mcp_server.mcp_app.create_arcade_mcp") as mock_create,
+            patch("arcade_mcp_server.mcp_app.serve_with_force_quit"),
+        ):
+            mock_create.return_value = Mock()
+            # Should NOT raise SystemExit
+            app.run(transport="http", host="127.0.0.1", port=8000)
+
+    def test_tool_with_ui_resource_uri(self):
+        """@app.tool(ui_resource_uri=...) stores _meta extension."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        @app.tool(ui_resource_uri="ui://test-app/index.html")
+        def get_data(query: Annotated[str, "A query"]) -> str:
+            """Get data."""
+            return "data"
+
+        assert "TestApp.GetData" in app._tool_meta_extensions
+        assert app._tool_meta_extensions["TestApp.GetData"] == {
+            "ui": {"resourceUri": "ui://test-app/index.html"}
+        }
+
+    def test_add_tool_with_ui_resource_uri(self):
+        """add_tool(ui_resource_uri=...) stores _meta extension."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        def my_tool(x: Annotated[str, "input"]) -> str:
+            """A tool."""
+            return x
+
+        app.add_tool(my_tool, ui_resource_uri="ui://my-tool/index.html")
+
+        assert "TestApp.MyTool" in app._tool_meta_extensions
+        assert app._tool_meta_extensions["TestApp.MyTool"] == {
+            "ui": {"resourceUri": "ui://my-tool/index.html"}
+        }

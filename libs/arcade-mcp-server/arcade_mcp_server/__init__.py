@@ -24,6 +24,7 @@ from arcade_mcp_server.context import Context
 from arcade_mcp_server.mcp_app import MCPApp
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.settings import MCPSettings
+from arcade_mcp_server.types import Resource
 from arcade_mcp_server.worker import create_arcade_mcp, run_arcade_mcp
 
 __all__ = [
@@ -33,6 +34,8 @@ __all__ = [
     # MCP Server implementation
     "MCPServer",
     "MCPSettings",
+    # MCP types
+    "Resource",
     # Integrated Factory and Runner
     "create_arcade_mcp",
     "run_arcade_mcp",
