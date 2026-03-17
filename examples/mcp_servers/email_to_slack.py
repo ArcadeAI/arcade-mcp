@@ -5,7 +5,6 @@ and forwards them as Slack messages to a specified channel.
 
 It demonstrates:
   - `context.tools.execute()` for strongly-typed cross-tool calls
-  - `requires_secrets_from` / `request_scopes_from` for aggregating auth
   - `OnMissing.ALLOW_NULL` for resilient field extraction
   - Pydantic models as the "contract" between tools with different response shapes
 
@@ -99,9 +98,7 @@ DEFAULT_OPTIONS = ExecuteOptions(
 # ---------------------------------------------------------------------------
 
 
-@app.tool(
-    request_scopes_from=["Gmail.ListEmails", "Slack.SendMessage"],
-)
+@app.tool
 async def forward_emails_to_slack(
     context: Context,
     channel_name: Annotated[str, "Slack channel to post emails to (e.g. '#general')"],

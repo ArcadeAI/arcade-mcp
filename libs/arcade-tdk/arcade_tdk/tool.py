@@ -115,8 +115,6 @@ def tool(
     requires_metadata: list[str] | None = None,
     adapters: list[ErrorAdapter] | None = None,
     metadata: ToolMetadata | None = None,
-    requires_secrets_from: list[str] | None = None,
-    request_scopes_from: list[str] | None = None,
 ) -> Callable:
     def decorator(func: Callable) -> Callable:
         func_name = str(getattr(func, "__name__", None))
@@ -128,8 +126,6 @@ def tool(
         func.__tool_requires_secrets__ = requires_secrets  # type: ignore[attr-defined]
         func.__tool_requires_metadata__ = requires_metadata  # type: ignore[attr-defined]
         func.__tool_metadata__ = metadata  # type: ignore[attr-defined]
-        func.__tool_requires_secrets_from__ = requires_secrets_from  # type: ignore[attr-defined]
-        func.__tool_request_scopes_from__ = request_scopes_from  # type: ignore[attr-defined]
 
         adapter_chain = _build_adapter_chain(adapters, requires_auth)
 
