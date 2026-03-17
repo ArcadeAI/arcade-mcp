@@ -27,6 +27,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import sys
 import uuid
 import weakref
 from builtins import list as builtins_list
@@ -723,7 +724,7 @@ class Tools(_ContextComponent):
 
         last_error: Exception | None = None
 
-        async with asyncio.timeout(timeout_seconds):
+        async with _async_timeout(timeout_seconds):
             for attempt in range(max_retries + 1):
                 try:
                     # Step 1: Call the tool
@@ -1167,6 +1168,20 @@ def _make_empty(model_class: type[T]) -> T:
 
     nullable = _make_nullable(model_class)
     return nullable()  # type: ignore[return-value]
+
+
+if sys.version_info >= (3, 11):
+    _async_timeout = asyncio.timeout
+else:
+    try:
+        from async_timeout import timeout as _async_timeout
+    except ImportError:
+        from contextlib import asynccontextmanager
+
+        @asynccontextmanager
+        async def _async_timeout(seconds: float | None):  # type: ignore[misc]
+            """No-op fallback when async_timeout is not installed."""
+            yield
 
 
 def _raise_tool_error(tool_name: str, raw_result: CallToolResult) -> None:
