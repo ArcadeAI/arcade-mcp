@@ -98,7 +98,9 @@ DEFAULT_OPTIONS = ExecuteOptions(
 # ---------------------------------------------------------------------------
 
 
-@app.tool
+@app.tool(
+    request_scopes_from=["Gmail.ListEmails", "Slack.SendMessage"],
+)
 async def forward_emails_to_slack(
     context: Context,
     channel_name: Annotated[str, "Slack channel to post emails to (e.g. '#general')"],

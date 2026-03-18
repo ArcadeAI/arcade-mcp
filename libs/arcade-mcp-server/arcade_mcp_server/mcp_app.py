@@ -252,6 +252,8 @@ class MCPApp:
         requires_auth: ToolAuthorization | None = None,
         requires_secrets: list[str] | None = None,
         requires_metadata: list[str] | None = None,
+        requires_secrets_from: list[str] | None = None,
+        request_scopes_from: list[str] | None = None,
         adapters: list[ErrorAdapter] | None = None,
         metadata: ToolMetadata | None = None,
     ) -> Callable[P, T]:
@@ -264,6 +266,8 @@ class MCPApp:
                 requires_auth=requires_auth,
                 requires_secrets=requires_secrets,
                 requires_metadata=requires_metadata,
+                requires_secrets_from=requires_secrets_from,
+                request_scopes_from=request_scopes_from,
                 adapters=adapters,
                 metadata=metadata,
             )
@@ -293,6 +297,8 @@ class MCPApp:
         requires_auth: ToolAuthorization | None = None,
         requires_secrets: list[str] | None = None,
         requires_metadata: list[str] | None = None,
+        requires_secrets_from: list[str] | None = None,
+        request_scopes_from: list[str] | None = None,
         adapters: list[ErrorAdapter] | None = None,
         metadata: ToolMetadata | None = None,
     ) -> Callable[[Callable[P, T]], Callable[P, T]] | Callable[P, T]:
@@ -306,6 +312,8 @@ class MCPApp:
                 requires_auth=requires_auth,
                 requires_secrets=requires_secrets,
                 requires_metadata=requires_metadata,
+                requires_secrets_from=requires_secrets_from,
+                request_scopes_from=request_scopes_from,
                 adapters=adapters,
                 metadata=metadata,
             )

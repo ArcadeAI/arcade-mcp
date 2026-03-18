@@ -23,7 +23,12 @@ from arcade_core.auth_tokens import get_valid_access_token
 from arcade_core.catalog import MaterializedTool, ToolCatalog
 from arcade_core.executor import ToolExecutor
 from arcade_core.network.org_transport import build_org_scoped_async_http_client
-from arcade_core.schema import ToolAuthorizationContext, ToolContext
+from arcade_core.schema import (
+    OAuth2Requirement,
+    ToolAuthorizationContext,
+    ToolContext,
+    ToolSecretRequirement,
+)
 from arcade_core.schema import ToolAuthRequirement as CoreToolAuthRequirement
 from arcadepy import ArcadeError, AsyncArcade
 from arcadepy.types.auth_authorize_params import AuthRequirement, AuthRequirementOauth2
@@ -344,6 +349,10 @@ class MCPServer:
     async def _start(self) -> None:
         """Start server components (called by MCPComponent.start)."""
         await self._tool_manager.start()
+
+        # Resolve cross-tool requirements from Arcade Cloud before loading catalog
+        await self._resolve_cross_tool_requirements()
+
         # Load initial catalog now that manager is started
         try:
             await self._tool_manager.load_from_catalog(self._initial_catalog)
@@ -789,6 +798,179 @@ class MCPServer:
 
         return session.session_id if session else None
 
+    async def _resolve_cross_tool_requirements(self) -> None:
+        """Fetch and merge requirements from remote tools referenced via
+        ``requires_secrets_from`` / ``request_scopes_from``.
+
+        For each local tool that declares these fields, we call
+        ``arcade.tools.get(name)`` to fetch the remote tool's definition and
+        merge its secret/scope requirements into the local tool's requirements.
+        This runs before ``load_from_catalog`` so that the MCPTool DTOs exposed
+        to clients already reflect the merged requirements.
+        """
+        if self.arcade is None:
+            # Check if any tools actually need resolution
+            for mat_tool in self._initial_catalog:
+                defn = mat_tool.definition
+                if defn.requires_secrets_from or defn.request_scopes_from:
+                    logger.warning(
+                        "Tools declare requires_secrets_from/request_scopes_from but no "
+                        "Arcade client is configured. Remote requirements will not be resolved. "
+                        "Set ARCADE_API_KEY to enable remote requirement resolution."
+                    )
+                    break
+            return
+
+        # Collect all unique remote tool FQNs we need to look up
+        remote_fqns: set[str] = set()
+        for mat_tool in self._initial_catalog:
+            defn = mat_tool.definition
+            for fqn in defn.requires_secrets_from or []:
+                remote_fqns.add(fqn)
+            for fqn in defn.request_scopes_from or []:
+                remote_fqns.add(fqn)
+
+        if not remote_fqns:
+            return
+
+        logger.debug(
+            f"Resolving cross-tool requirements from {len(remote_fqns)} remote tool(s): "
+            f"{', '.join(sorted(remote_fqns))}"
+        )
+
+        # Fetch all remote tool definitions concurrently
+        remote_defs: dict[str, Any] = {}
+
+        async def _fetch_remote(fqn: str) -> tuple[str, Any]:
+            try:
+                result = await self.arcade.tools.get(name=fqn)  # type: ignore[union-attr]
+            except Exception as e:
+                logger.warning(
+                    f"Failed to fetch remote tool '{fqn}' for cross-tool requirement "
+                    f"resolution: {e}"
+                )
+                return fqn, None
+            else:
+                return fqn, result
+
+        results = await asyncio.gather(*[_fetch_remote(fqn) for fqn in remote_fqns])
+        for fqn, result in results:
+            if result is not None:
+                remote_defs[fqn] = result
+
+        # Merge requirements into local tools
+        for mat_tool in self._initial_catalog:
+            defn = mat_tool.definition
+
+            # Merge secrets from referenced tools
+            for fqn in defn.requires_secrets_from or []:
+                remote = remote_defs.get(fqn)
+                if remote is None:
+                    continue
+                remote_reqs = getattr(remote, "requirements", None)
+                if remote_reqs is None:
+                    continue
+                remote_secrets = getattr(remote_reqs, "secrets", None)
+                if not remote_secrets:
+                    continue
+
+                # Initialize local secrets list if needed
+                if defn.requirements.secrets is None:
+                    defn.requirements.secrets = []
+                existing_keys = {s.key.lower() for s in defn.requirements.secrets}
+
+                for remote_secret in remote_secrets:
+                    key = getattr(remote_secret, "key", None)
+                    if key and key.lower() not in existing_keys:
+                        defn.requirements.secrets.append(ToolSecretRequirement(key=key))
+                        existing_keys.add(key.lower())
+                        logger.debug(
+                            f"Merged secret '{key}' from '{fqn}' into "
+                            f"'{defn.fully_qualified_name}'"
+                        )
+
+            # Merge scopes from referenced tools — collect per-provider auth requirements
+            # keyed by provider_id so we can detect multi-provider situations
+            collected_auths: dict[str | None, CoreToolAuthRequirement] = {}
+
+            # Seed with the tool's own auth if it has one
+            if defn.requirements.authorization is not None:
+                pid = defn.requirements.authorization.provider_id
+                collected_auths[pid] = CoreToolAuthRequirement(
+                    provider_id=defn.requirements.authorization.provider_id,
+                    provider_type=defn.requirements.authorization.provider_type,
+                    id=defn.requirements.authorization.id,
+                    oauth2=OAuth2Requirement(
+                        scopes=list(defn.requirements.authorization.oauth2.scopes or [])
+                    )
+                    if defn.requirements.authorization.oauth2
+                    else None,
+                )
+
+            for fqn in defn.request_scopes_from or []:
+                remote = remote_defs.get(fqn)
+                if remote is None:
+                    continue
+                remote_reqs = getattr(remote, "requirements", None)
+                if remote_reqs is None:
+                    continue
+                remote_auth = getattr(remote_reqs, "authorization", None)
+                if remote_auth is None:
+                    continue
+
+                remote_provider_id = getattr(remote_auth, "provider_id", None)
+                remote_provider_type = getattr(remote_auth, "provider_type", None)
+                remote_oauth2 = getattr(remote_auth, "oauth2", None)
+                remote_scopes = (
+                    getattr(remote_oauth2, "scopes", None) if remote_oauth2 else None
+                ) or []
+
+                if remote_provider_id in collected_auths:
+                    # Same provider — merge scopes into existing entry
+                    existing = collected_auths[remote_provider_id]
+                    if remote_scopes:
+                        if existing.oauth2 is None:
+                            existing.oauth2 = OAuth2Requirement(scopes=[])
+                        existing_scope_set = set(existing.oauth2.scopes or [])
+                        for scope in remote_scopes:
+                            if scope not in existing_scope_set:
+                                if existing.oauth2.scopes is None:
+                                    existing.oauth2.scopes = []
+                                existing.oauth2.scopes.append(scope)
+                                existing_scope_set.add(scope)
+                    logger.debug(f"Merged scopes from '{fqn}' into '{defn.fully_qualified_name}'")
+                else:
+                    # New provider — add a new entry
+                    collected_auths[remote_provider_id] = CoreToolAuthRequirement(
+                        provider_id=remote_provider_id,
+                        provider_type=remote_provider_type or "oauth2",
+                        oauth2=OAuth2Requirement(scopes=list(remote_scopes))
+                        if remote_scopes
+                        else None,
+                    )
+                    logger.debug(
+                        f"Adopted auth provider '{remote_provider_id}' from '{fqn}' "
+                        f"for '{defn.fully_qualified_name}'"
+                    )
+
+            # Apply collected auth requirements back to the definition
+            if collected_auths:
+                auth_list = list(collected_auths.values())
+
+                # Always set the first provider as the singular authorization
+                # (backward compat for clients that only read the singular field)
+                defn.requirements.authorization = auth_list[0]
+
+                if len(auth_list) > 1:
+                    # Multi-provider: store the full list for MCP metadata and
+                    # execution-time auth checks
+                    defn.resolved_authorizations = auth_list
+                    providers = [a.provider_id for a in auth_list]
+                    logger.info(
+                        f"Tool '{defn.fully_qualified_name}' requires auth from "
+                        f"{len(auth_list)} providers: {providers}"
+                    )
+
     async def _check_and_warn_missing_secrets(self) -> None:
         """
         Check for missing tool secrets and log warnings.
@@ -1038,8 +1220,18 @@ class MCPServer:
         session: ServerSession | None = None,
     ) -> JSONRPCResponse[CallToolResult] | None:
         """Check tool requirements before executing the tool"""
-        # Check authorization
-        if tool.definition.requirements and tool.definition.requirements.authorization:
+        # Check authorization — determine which auth requirements to check
+        defn = tool.definition
+        auth_reqs: list[CoreToolAuthRequirement] = []
+        is_multi_provider = False
+        resolved = getattr(defn, "resolved_authorizations", None)
+        if isinstance(resolved, list) and resolved:
+            auth_reqs = resolved
+            is_multi_provider = True
+        elif defn.requirements and defn.requirements.authorization:
+            auth_reqs = [defn.requirements.authorization]
+
+        if auth_reqs:
             # First check if Arcade API key is configured
             if not self.arcade:
                 user_message = "✗ Missing Arcade API key\n\n"
@@ -1065,49 +1257,56 @@ class MCPServer:
                 }
                 return self._create_error_response(message, tool_response)
 
-            # Check authorization status
-            try:
-                auth_result = await self._check_authorization(tool, tool_context.user_id)
-                if auth_result.status != "completed":
-                    user_message = "⚠ Authorization required\n\n"
-                    user_message += (
-                        f"  Tool '{tool_name}' needs your permission to access your account.\n\n"
-                    )
-                    user_message += "  To authorize:\n"
-                    user_message += f"  1. Click this link: {auth_result.url}\n"
-                    user_message += "  2. Grant the requested permissions\n"
-                    user_message += "  3. Return here and try again\n\n"
-                    user_message += "  This is a one-time setup for this tool."
+            # Check authorization status for each required provider
+            for auth_req in auth_reqs:
+                try:
+                    auth_result = await self._check_authorization(auth_req, tool_context.user_id)
+                    if auth_result.status != "completed":
+                        provider_label = auth_req.provider_id or "unknown provider"
+                        user_message = "⚠ Authorization required\n\n"
+                        user_message += (
+                            f"  Tool '{tool_name}' needs your permission to access "
+                            f"your {provider_label} account.\n\n"
+                        )
+                        user_message += "  To authorize:\n"
+                        user_message += f"  1. Click this link: {auth_result.url}\n"
+                        user_message += "  2. Grant the requested permissions\n"
+                        user_message += "  3. Return here and try again\n\n"
+                        user_message += "  This is a one-time setup for this tool."
+
+                        tool_response = {
+                            "message": user_message,
+                            "llm_instructions": f"Please show the following link to the end user formatted as markdown: {auth_result.url} \nInform the end user that the tool requires their authorization to be completed before the tool can be executed.",
+                            "authorization_url": auth_result.url,
+                        }
+                        return self._create_error_response(message, tool_response)
+
+                    # For single-provider tools, inject the auth token into tool context
+                    # (compound multi-provider tools don't use tool_context.authorization
+                    # directly — their sub-tools handle their own auth via Arcade Cloud)
+                    if not is_multi_provider:
+                        tool_context.authorization = ToolAuthorizationContext(
+                            token=auth_result.context.token,
+                            user_info=auth_result.context.user_info
+                            if auth_result.context.user_info
+                            else {},
+                        )
+                except ToolRuntimeError as e:
+                    # Handle any other authorization errors
+                    user_message = "✗ Authorization error\n\n"
+                    user_message += f"  Tool '{tool_name}' failed to authorize.\n\n"
+                    user_message += f"  Error: {e}\n\n"
+                    user_message += "  To fix:\n"
+                    user_message += "  1. Check your API key is valid\n"
+                    user_message += "  2. Verify you have necessary permissions\n"
+                    user_message += "  3. Try running: arcade login\n\n"
+                    user_message += "  Then restart the server."
 
                     tool_response = {
                         "message": user_message,
-                        "llm_instructions": f"Please show the following link to the end user formatted as markdown: {auth_result.url} \nInform the end user that the tool requires their authorization to be completed before the tool can be executed.",
-                        "authorization_url": auth_result.url,
+                        "llm_instructions": f"The '{tool_name}' tool failed authorization. Error: {e}. The developer should check their API key and permissions.",
                     }
                     return self._create_error_response(message, tool_response)
-                # Inject the authorization token into the tool context
-                tool_context.authorization = ToolAuthorizationContext(
-                    token=auth_result.context.token,
-                    user_info=auth_result.context.user_info
-                    if auth_result.context.user_info
-                    else {},
-                )
-            except ToolRuntimeError as e:
-                # Handle any other authorization errors
-                user_message = "✗ Authorization error\n\n"
-                user_message += f"  Tool '{tool_name}' failed to authorize.\n\n"
-                user_message += f"  Error: {e}\n\n"
-                user_message += "  To fix:\n"
-                user_message += "  1. Check your API key is valid\n"
-                user_message += "  2. Verify you have necessary permissions\n"
-                user_message += "  3. Try running: arcade login\n\n"
-                user_message += "  Then restart the server."
-
-                tool_response = {
-                    "message": user_message,
-                    "llm_instructions": f"The '{tool_name}' tool failed authorization. Error: {e}. The developer should check their API key and permissions.",
-                }
-                return self._create_error_response(message, tool_response)
 
         # Check secrets
         if tool.definition.requirements and tool.definition.requirements.secrets:
@@ -1150,10 +1349,10 @@ class MCPServer:
 
     async def _check_authorization(
         self,
-        tool: MaterializedTool,
+        auth_req: CoreToolAuthRequirement,
         user_id: str | None = None,
     ) -> Any:
-        """Check tool authorization.
+        """Check tool authorization for a specific auth requirement.
 
         Note: This method assumes self.arcade is not None. The caller should
         check for the presence of the Arcade API key before calling this method.
@@ -1164,7 +1363,7 @@ class MCPServer:
                 "This should be checked by the caller."
             )
 
-        req = tool.definition.requirements.authorization
+        req = auth_req
         provider_id = str(getattr(req, "provider_id", ""))
         provider_type = str(getattr(req, "provider_type", ""))
         # TypedDict requires concrete type; supply empty scopes if absent when oauth2 provider
@@ -1175,7 +1374,7 @@ class MCPServer:
             if isinstance(req, CoreToolAuthRequirement) and provider_type.lower() == "oauth2"
             else AuthRequirementOauth2()
         )
-        auth_req = AuthRequirement(
+        arcade_auth_req = AuthRequirement(
             provider_id=provider_id,
             provider_type=provider_type,
             oauth2=oauth2_req,
@@ -1191,7 +1390,7 @@ class MCPServer:
 
         try:
             response = await self.arcade.auth.authorize(
-                auth_requirement=auth_req,
+                auth_requirement=arcade_auth_req,
                 user_id=final_user_id,
             )
         except ArcadeError as e:

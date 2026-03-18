@@ -144,7 +144,9 @@ class MaterializedTool(BaseModel):
 
     @property
     def requires_auth(self) -> bool:
-        return self.definition.requirements.authorization is not None
+        return self.definition.requirements.authorization is not None or bool(
+            self.definition.resolved_authorizations
+        )
 
 
 class ToolCatalog(BaseModel):
@@ -475,6 +477,9 @@ class ToolCatalog(BaseModel):
                 )
             tool_metadata.validate_for_tool()
 
+        requires_secrets_from = getattr(tool, "__tool_requires_secrets_from__", None)
+        request_scopes_from = getattr(tool, "__tool_request_scopes_from__", None)
+
         return ToolDefinition(
             name=tool_name,
             fully_qualified_name=str(fully_qualified_name),
@@ -489,6 +494,8 @@ class ToolCatalog(BaseModel):
             ),
             deprecation_message=deprecation_message,
             metadata=tool_metadata,
+            requires_secrets_from=requires_secrets_from,
+            request_scopes_from=request_scopes_from,
         )
 
 

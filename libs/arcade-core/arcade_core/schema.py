@@ -331,6 +331,15 @@ class ToolDefinition(BaseModel):
     metadata: ToolMetadata | None = None
     """Metadata about the tool"""
 
+    requires_secrets_from: list[str] | None = Field(default=None, exclude=True)
+    """FQNs of remote tools whose secret requirements should be merged into this tool."""
+
+    request_scopes_from: list[str] | None = Field(default=None, exclude=True)
+    """FQNs of remote tools whose OAuth scopes should be merged into this tool."""
+
+    resolved_authorizations: list[ToolAuthRequirement] | None = Field(default=None, exclude=True)
+    """All auth requirements resolved from request_scopes_from, populated at startup for compound tools."""
+
     def get_fully_qualified_name(self) -> FullyQualifiedName:
         return FullyQualifiedName(self.name, self.toolkit.name, self.toolkit.version)
 
