@@ -124,11 +124,7 @@ async def forward_emails_to_slack(
     # Step 2: Send each email as a Slack message
     results: list[ForwardedEmail] = []
     for email in email_data.emails:
-        subject = email.subject
-        sender = email.sender
-        snippet = email.snippet
-
-        message = f"*From:* {sender}\n*Subject:* {subject}\n> {snippet}"
+        message = f"*From:* {email.sender}\n*Subject:* {email.subject}\n> {email.snippet}"
 
         slack_result = await context.tools.execute(
             SlackResponse,
@@ -141,8 +137,8 @@ async def forward_emails_to_slack(
         )
         results.append(
             ForwardedEmail(
-                sender=sender,
-                snippet=snippet,
+                sender=email.sender,
+                snippet=email.snippet,
                 sent_to_slack=bool(slack_result.ok),
             )
         )
