@@ -264,12 +264,8 @@ async def test_multi_provider_populates_resolved_authorizations() -> None:
     catalog = _make_catalog(defn)
     server = _make_server(catalog)
 
-    gmail_response = _make_remote_tool_response(
-        provider_id="google", scopes=["gmail.readonly"]
-    )
-    slack_response = _make_remote_tool_response(
-        provider_id="slack", scopes=["chat:write"]
-    )
+    gmail_response = _make_remote_tool_response(provider_id="google", scopes=["gmail.readonly"])
+    slack_response = _make_remote_tool_response(provider_id="slack", scopes=["chat:write"])
 
     async def mock_get(name: str) -> MagicMock:
         if "Gmail" in name:
@@ -306,9 +302,7 @@ async def test_multi_provider_with_existing_local_auth() -> None:
     catalog = _make_catalog(defn)
     server = _make_server(catalog)
 
-    slack_response = _make_remote_tool_response(
-        provider_id="slack", scopes=["chat:write"]
-    )
+    slack_response = _make_remote_tool_response(provider_id="slack", scopes=["chat:write"])
     server.arcade = AsyncMock()
     server.arcade.tools.get = AsyncMock(return_value=slack_response)
 
@@ -339,12 +333,8 @@ async def test_multi_provider_merges_same_provider_scopes() -> None:
     gmail_list_response = _make_remote_tool_response(
         provider_id="google", scopes=["gmail.readonly"]
     )
-    gmail_send_response = _make_remote_tool_response(
-        provider_id="google", scopes=["gmail.send"]
-    )
-    slack_response = _make_remote_tool_response(
-        provider_id="slack", scopes=["chat:write"]
-    )
+    gmail_send_response = _make_remote_tool_response(provider_id="google", scopes=["gmail.send"])
+    slack_response = _make_remote_tool_response(provider_id="slack", scopes=["chat:write"])
 
     async def mock_get(name: str) -> MagicMock:
         if "ListEmails" in name:
@@ -568,3 +558,134 @@ async def test_multiple_remote_tools_secrets_and_scopes() -> None:
     assert auth.provider_id == "google"
     # Only one provider referenced via scopes — no resolved_authorizations
     assert defn.resolved_authorizations is None
+
+
+# ---------------------------------------------------------------------------
+# Edge cases for cross-tool requirement resolution
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_remote_tool_with_requirements_but_no_secrets() -> None:
+    """Remote tool has requirements object but secrets is empty → skipped."""
+    defn = _make_tool_def(requires_secrets_from=["Tool.NoSecrets"])
+    catalog = _make_catalog(defn)
+    server = _make_server(catalog)
+
+    # Build a remote response with requirements but no secrets
+    remote = MagicMock()
+    remote.requirements = MagicMock()
+    remote.requirements.secrets = None
+    remote.requirements.authorization = None
+
+    server.arcade = AsyncMock()
+    server.arcade.tools.get = AsyncMock(return_value=remote)
+
+    await server._resolve_cross_tool_requirements()
+    assert defn.requirements.secrets is None
+
+
+@pytest.mark.asyncio
+async def test_scopes_remote_not_found_skipped() -> None:
+    """When a request_scopes_from reference fails to fetch, it's skipped."""
+    defn = _make_tool_def(request_scopes_from=["Missing.Tool"])
+    catalog = _make_catalog(defn)
+    server = _make_server(catalog)
+
+    server.arcade = AsyncMock()
+    server.arcade.tools.get = AsyncMock(side_effect=Exception("Not found"))
+
+    await server._resolve_cross_tool_requirements()
+    assert defn.requirements.authorization is None
+
+
+@pytest.mark.asyncio
+async def test_scopes_remote_has_no_requirements() -> None:
+    """Remote tool fetched for scopes but has no requirements → skipped."""
+    defn = _make_tool_def(request_scopes_from=["Empty.Tool"])
+    catalog = _make_catalog(defn)
+    server = _make_server(catalog)
+
+    remote = MagicMock()
+    remote.requirements = None
+    server.arcade = AsyncMock()
+    server.arcade.tools.get = AsyncMock(return_value=remote)
+
+    await server._resolve_cross_tool_requirements()
+    assert defn.requirements.authorization is None
+
+
+@pytest.mark.asyncio
+async def test_scopes_remote_has_no_auth() -> None:
+    """Remote tool has requirements but no authorization → skipped for scopes."""
+    defn = _make_tool_def(request_scopes_from=["Tool.NoAuth"])
+    catalog = _make_catalog(defn)
+    server = _make_server(catalog)
+
+    remote = MagicMock()
+    remote.requirements = MagicMock()
+    remote.requirements.authorization = None
+    remote.requirements.secrets = None
+    server.arcade = AsyncMock()
+    server.arcade.tools.get = AsyncMock(return_value=remote)
+
+    await server._resolve_cross_tool_requirements()
+    assert defn.requirements.authorization is None
+
+
+@pytest.mark.asyncio
+async def test_same_provider_merge_with_null_oauth2() -> None:
+    """When same-provider merge encounters existing entry with oauth2=None."""
+    defn = _make_tool_def(
+        auth=ToolAuthRequirement(
+            provider_id="google",
+            provider_type="oauth2",
+            oauth2=None,  # No oauth2 on local tool
+        ),
+        request_scopes_from=["Gmail.ListEmails"],
+    )
+    catalog = _make_catalog(defn)
+    server = _make_server(catalog)
+
+    remote = _make_remote_tool_response(
+        provider_id="google",
+        scopes=["gmail.readonly"],
+    )
+    server.arcade = AsyncMock()
+    server.arcade.tools.get = AsyncMock(return_value=remote)
+
+    await server._resolve_cross_tool_requirements()
+
+    auth = defn.requirements.authorization
+    assert auth is not None
+    assert auth.oauth2 is not None
+    assert auth.oauth2.scopes == ["gmail.readonly"]
+
+
+@pytest.mark.asyncio
+async def test_same_provider_merge_with_null_scopes_list() -> None:
+    """When same-provider merge encounters existing oauth2 with scopes=None."""
+    defn = _make_tool_def(
+        auth=ToolAuthRequirement(
+            provider_id="google",
+            provider_type="oauth2",
+            oauth2=OAuth2Requirement(scopes=None),
+        ),
+        request_scopes_from=["Gmail.ListEmails"],
+    )
+    catalog = _make_catalog(defn)
+    server = _make_server(catalog)
+
+    remote = _make_remote_tool_response(
+        provider_id="google",
+        scopes=["gmail.readonly"],
+    )
+    server.arcade = AsyncMock()
+    server.arcade.tools.get = AsyncMock(return_value=remote)
+
+    await server._resolve_cross_tool_requirements()
+
+    auth = defn.requirements.authorization
+    assert auth is not None
+    assert auth.oauth2 is not None
+    assert "gmail.readonly" in auth.oauth2.scopes
