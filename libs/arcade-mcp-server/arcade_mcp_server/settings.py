@@ -317,6 +317,25 @@ class ArcadeSettings(BaseSettings):
     model_config = {"env_prefix": "ARCADE_"}
 
 
+class AnthropicSettings(BaseSettings):
+    """Anthropic SDK settings for Tier 3b LLM extraction fallback."""
+
+    api_key: str | None = Field(
+        default=None,
+        description="Anthropic API key. If not set, Tier 3b extraction is disabled.",
+    )
+    model: str = Field(
+        default="claude-haiku-4-5-20251001",
+        description="Anthropic model to use for structured extraction.",
+    )
+    base_url: str | None = Field(
+        default=None,
+        description="Override Anthropic API base URL (for testing/proxies).",
+    )
+
+    model_config = {"env_prefix": "ANTHROPIC_"}
+
+
 class ToolEnvironmentSettings(BaseSettings):
     """Tool environment settings.
 
@@ -377,6 +396,10 @@ class MCPSettings(BaseSettings):
     arcade: ArcadeSettings = Field(
         default_factory=ArcadeSettings,
         description="Arcade integration settings",
+    )
+    anthropic: AnthropicSettings = Field(
+        default_factory=AnthropicSettings,
+        description="Anthropic SDK settings for LLM extraction fallback.",
     )
     tool_environment: ToolEnvironmentSettings = Field(
         default_factory=ToolEnvironmentSettings,

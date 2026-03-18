@@ -22,6 +22,14 @@ def _build_arcade_meta(definition: ToolDefinition) -> dict[str, Any] | None:
     if requirements.authorization or requirements.secrets or requirements.metadata:
         arcade_meta["requirements"] = requirements.model_dump(exclude_none=True)
 
+    # For compound tools with multi-provider auth, include the full list
+    if definition.resolved_authorizations:
+        if "requirements" not in arcade_meta:
+            arcade_meta["requirements"] = {}
+        arcade_meta["requirements"]["authorizations"] = [
+            auth.model_dump(exclude_none=True) for auth in definition.resolved_authorizations
+        ]
+
     tool_metadata = definition.metadata
     if tool_metadata:
         metadata_dump = tool_metadata.model_dump(mode="json", exclude_none=True)

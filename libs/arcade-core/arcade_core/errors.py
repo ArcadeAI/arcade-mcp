@@ -245,6 +245,24 @@ class ToolExecutionError(ToolRuntimeError):
         super().__init__(message, developer_message=developer_message, extra=extra)
 
 
+class ToolResponseExtractionError(ToolExecutionError):
+    """
+    Raised when a tool's response cannot be extracted/structured into the target type.
+
+    This occurs during typed tool composition when the raw response from a called tool
+    cannot be mapped into the caller's expected Pydantic model.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        developer_message: str | None = None,
+        *,
+        extra: dict[str, Any] | None = None,
+    ):
+        super().__init__(message, developer_message=developer_message, extra=extra)
+
+
 class RetryableToolError(ToolExecutionError):
     """
     Raised when a tool execution error is retryable.
