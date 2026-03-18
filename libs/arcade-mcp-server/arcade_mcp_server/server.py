@@ -28,6 +28,9 @@ from arcade_core.schema import ToolAuthRequirement as CoreToolAuthRequirement
 from arcadepy import ArcadeError, AsyncArcade
 from arcadepy.types.auth_authorize_params import AuthRequirement, AuthRequirementOauth2
 
+from opentelemetry import trace
+
+from arcade_mcp_server import otel_passback
 from arcade_mcp_server.context import Context, get_current_model_context, set_current_model_context
 from arcade_mcp_server.convert import convert_content_to_structured_content, convert_to_mcp_content
 from arcade_mcp_server.exceptions import NotFoundError, ToolRuntimeError
@@ -688,6 +691,7 @@ class MCPServer:
                 logging={},
                 prompts={"listChanged": True},
                 resources={"subscribe": True, "listChanged": True},
+                serverExecutionTelemetry=otel_passback.SERVER_EXECUTION_TELEMETRY_CAPABILITY,
             ),
             serverInfo=Implementation(
                 name=self.name,
@@ -830,62 +834,114 @@ class MCPServer:
         tool_name = message.params.name
         input_params = message.params.arguments or {}
 
+        passback_enabled, _detailed = otel_passback.should_passback(message.params.meta)
+        collector: otel_passback.PassbackCollector | None = None
+        if passback_enabled:
+            collector = otel_passback.PassbackCollector(service_name=self.name)
+
+        parent_ctx = (
+            otel_passback.parse_traceparent(message.params.meta)
+            if passback_enabled
+            else None
+        )
+
         try:
-            # Get tool
-            tool = await self._tool_manager.get_tool(tool_name)
-
-            # Create tool context
-            tool_context = self._create_tool_context(tool, session)
-
-            # Check restrictions for unauthenticated HTTP transport
-            if transport_restriction_response := self._check_transport_restrictions(
-                tool, tool_context, message, tool_name, session
-            ):
-                self._tracker.track_tool_call(False, "transport restriction")
-                return transport_restriction_response
-
-            # Handle authorization and secrets requirements if required
-            if missing_requirements_response := await self._check_tool_requirements(
-                tool, tool_context, message, tool_name, session
-            ):
-                self._tracker.track_tool_call(False, "missing requirements")
-                return missing_requirements_response
-
-            # Attach tool_context to current model context for this request
-            mctx = get_current_model_context()
-            saved_tool_context: ToolContext | None = None
-
-            if mctx is not None:
-                # Save the current tool context so we can restore it after the call
-                # This prevents context leakage from callee back to caller in the case of tool chaining.
-                saved_tool_context = ToolContext(
-                    authorization=mctx.authorization,
-                    secrets=mctx.secrets,
-                    metadata=mctx.metadata,
-                    user_id=mctx.user_id,
+            root_span = None
+            if collector:
+                root_span = collector.tracer.start_span(
+                    f"tools/call {tool_name}",
+                    context=parent_ctx,
+                    kind=trace.SpanKind.SERVER,
                 )
-                mctx.set_tool_context(tool_context)
 
             try:
-                # Execute tool
-                result = await ToolExecutor.run(
-                    func=tool.tool,
-                    definition=tool.definition,
-                    input_model=tool.input_model,
-                    output_model=tool.output_model,
-                    context=mctx if mctx is not None else tool_context,
-                    **input_params,
+                # Get tool
+                tool = await self._tool_manager.get_tool(tool_name)
+
+                # Create tool context
+                tool_context = self._create_tool_context(tool, session)
+
+                # Check restrictions for unauthenticated HTTP transport
+                if transport_restriction_response := self._check_transport_restrictions(
+                    tool, tool_context, message, tool_name, session
+                ):
+                    self._tracker.track_tool_call(False, "transport restriction")
+                    if root_span:
+                        root_span.set_status(trace.StatusCode.ERROR, "transport restriction")
+                    return transport_restriction_response
+
+                # Handle authorization and secrets requirements if required
+                if collector:
+                    req_span = collector.tracer.start_span(
+                        "requirements.check",
+                        context=trace.set_span_in_context(root_span),
+                    )
+                missing_req = await self._check_tool_requirements(
+                    tool, tool_context, message, tool_name, session
                 )
+                if collector:
+                    if missing_req:
+                        req_span.set_status(trace.StatusCode.ERROR, "requirements not met")
+                    req_span.end()
+
+                if missing_req:
+                    self._tracker.track_tool_call(False, "missing requirements")
+                    if root_span:
+                        root_span.set_status(trace.StatusCode.ERROR, "requirements not met")
+                    return missing_req
+
+                # Attach tool_context to current model context for this request
+                mctx = get_current_model_context()
+                saved_tool_context: ToolContext | None = None
+
+                if mctx is not None:
+                    saved_tool_context = ToolContext(
+                        authorization=mctx.authorization,
+                        secrets=mctx.secrets,
+                        metadata=mctx.metadata,
+                        user_id=mctx.user_id,
+                    )
+                    mctx.set_tool_context(tool_context)
+
+                try:
+                    # Execute tool
+                    if collector:
+                        exec_span = collector.tracer.start_span(
+                            "tool.execute",
+                            context=trace.set_span_in_context(root_span),
+                        )
+                    result = await ToolExecutor.run(
+                        func=tool.tool,
+                        definition=tool.definition,
+                        input_model=tool.input_model,
+                        output_model=tool.output_model,
+                        context=mctx if mctx is not None else tool_context,
+                        **input_params,
+                    )
+                    if collector:
+                        if result.error:
+                            exec_span.set_status(trace.StatusCode.ERROR, str(result.error))
+                        exec_span.end()
+                finally:
+                    if mctx is not None and saved_tool_context is not None:
+                        mctx.set_tool_context(saved_tool_context)
+
             finally:
-                # Restore the original tool context to prevent context leakage to parent tools in the case of tool chaining.
-                if mctx is not None and saved_tool_context is not None:
-                    mctx.set_tool_context(saved_tool_context)
+                if root_span:
+                    root_span.end()
+
+            passback_meta = None
+            if collector:
+                spans = collector.collect()
+                resource_spans = otel_passback.serialize_spans(spans)
+                if resource_spans:
+                    passback_meta = otel_passback.build_passback_meta(resource_spans)
+                collector.shutdown()
 
             # Convert result
             if result.value is not None:
                 content = convert_to_mcp_content(result.value)
 
-                # structuredContent should be the raw result value as a JSON object
                 structured_content = convert_content_to_structured_content(result.value)
 
                 self._tracker.track_tool_call(True)
@@ -895,13 +951,13 @@ class MCPServer:
                         content=content,
                         structuredContent=structured_content,
                         isError=False,
+                        meta=passback_meta,
                     ),
                 )
             else:
                 error = result.error or "Error calling tool"
                 content = convert_to_mcp_content(str(error))
 
-                # structuredContent should be the error as a JSON object
                 structured_content = convert_content_to_structured_content({"error": str(error)})
 
                 self._tracker.track_tool_call(False, "error during tool execution")
@@ -911,6 +967,7 @@ class MCPServer:
                         content=content,
                         structuredContent=structured_content,
                         isError=True,
+                        meta=passback_meta,
                     ),
                 )
         except NotFoundError:
@@ -1258,15 +1315,51 @@ class MCPServer:
         session: ServerSession | None = None,
     ) -> JSONRPCResponse[ReadResourceResult] | JSONRPCError:
         """Handle read resource request."""
+        passback_enabled, _detailed = otel_passback.should_passback(message.params.meta)
+        collector: otel_passback.PassbackCollector | None = None
+        if passback_enabled:
+            collector = otel_passback.PassbackCollector(service_name=self.name)
+
+        parent_ctx = (
+            otel_passback.parse_traceparent(message.params.meta)
+            if passback_enabled
+            else None
+        )
+
         try:
-            contents = await self._resource_manager.read_resource(message.params.uri)
-            # Narrow to allowed types for ReadResourceResult
-            allowed_contents = [
-                c for c in contents if isinstance(c, (TextResourceContents, BlobResourceContents))
-            ]
+            root_span = None
+            if collector:
+                root_span = collector.tracer.start_span(
+                    f"resources/read {message.params.uri}",
+                    context=parent_ctx,
+                    kind=trace.SpanKind.SERVER,
+                )
+
+            try:
+                contents = await self._resource_manager.read_resource(message.params.uri)
+                allowed_contents = [
+                    c
+                    for c in contents
+                    if isinstance(c, (TextResourceContents, BlobResourceContents))
+                ]
+            finally:
+                if root_span:
+                    root_span.end()
+
+            passback_meta = None
+            if collector:
+                spans = collector.collect()
+                resource_spans = otel_passback.serialize_spans(spans)
+                if resource_spans:
+                    passback_meta = otel_passback.build_passback_meta(resource_spans)
+                collector.shutdown()
+
             return JSONRPCResponse(
                 id=message.id,
-                result=ReadResourceResult(contents=allowed_contents),
+                result=ReadResourceResult(
+                    contents=allowed_contents,
+                    meta=passback_meta,
+                ),
             )
         except NotFoundError:
             return JSONRPCError(

@@ -259,6 +259,9 @@ class ListResourceTemplatesResult(PaginatedResult):
 
 class ReadResourceParams(BaseModel):
     uri: str
+    meta: dict[str, Any] | None = Field(alias="_meta", default=None)
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
 
 class ReadResourceRequest(JSONRPCRequest):
