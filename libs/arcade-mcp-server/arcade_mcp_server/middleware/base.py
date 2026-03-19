@@ -74,6 +74,13 @@ class Middleware:
     function to invoke the next handler in the chain.
     """
 
+    def get_capabilities(self) -> dict[str, Any]:
+        """Return extra server capabilities to advertise.
+
+        Override in subclasses to declare capabilities (e.g. serverExecutionTelemetry).
+        """
+        return {}
+
     async def __call__(
         self,
         context: MiddlewareContext[T],

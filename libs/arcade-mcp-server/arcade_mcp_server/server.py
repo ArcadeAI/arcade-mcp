@@ -123,6 +123,7 @@ class MCPServer:
         auth_disabled: bool = False,
         arcade_api_key: str | None = None,
         arcade_api_url: str | None = None,
+        extra_capabilities: dict[str, Any] | None = None,
     ):
         """
         Initialize MCP server.
@@ -139,6 +140,7 @@ class MCPServer:
             auth_disabled: Disable authentication
             arcade_api_key: Arcade API key (overrides settings)
             arcade_api_url: Arcade API URL (overrides settings)
+            extra_capabilities: Additional capabilities to advertise (e.g. serverExecutionTelemetry)
         """
         self._started = False
         self._lock = asyncio.Lock()
@@ -202,6 +204,7 @@ class MCPServer:
 
         # Middleware chain
         self.middleware: list[Middleware] = []
+        self._extra_capabilities: dict[str, Any] = extra_capabilities or {}
         self._init_middleware(middleware)
 
         # Lifespan management
@@ -318,6 +321,10 @@ class MCPServer:
         # Add custom middleware
         if custom_middleware:
             self.middleware.extend(custom_middleware)
+
+        # Collect capabilities from middleware that declare them
+        for mw in self.middleware:
+            self._extra_capabilities.update(mw.get_capabilities())
 
     def _register_handlers(self) -> dict[str, Callable]:
         """Register method handlers."""
@@ -681,14 +688,18 @@ class MCPServer:
         if session:
             session.set_client_params(message.params)
 
+        caps_kwargs: dict[str, Any] = {
+            "tools": {"listChanged": True},
+            "logging": {},
+            "prompts": {"listChanged": True},
+            "resources": {"subscribe": True, "listChanged": True},
+        }
+        if self._extra_capabilities:
+            caps_kwargs.update(self._extra_capabilities)
+
         result = InitializeResult(
             protocolVersion=LATEST_PROTOCOL_VERSION,
-            capabilities=ServerCapabilities(
-                tools={"listChanged": True},
-                logging={},
-                prompts={"listChanged": True},
-                resources={"subscribe": True, "listChanged": True},
-            ),
+            capabilities=ServerCapabilities(**caps_kwargs),
             serverInfo=Implementation(
                 name=self.name,
                 version=self.version,
