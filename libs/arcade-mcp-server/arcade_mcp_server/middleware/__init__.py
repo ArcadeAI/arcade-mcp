@@ -7,6 +7,7 @@ from arcade_mcp_server.middleware.base import (
 )
 from arcade_mcp_server.middleware.error_handling import ErrorHandlingMiddleware
 from arcade_mcp_server.middleware.logging import LoggingMiddleware
+from arcade_mcp_server.middleware.telemetry import TelemetryPassbackMiddleware
 
 __all__ = [
     "CallNext",
@@ -14,4 +15,5 @@ __all__ = [
     "LoggingMiddleware",
     "Middleware",
     "MiddlewareContext",
+    "TelemetryPassbackMiddleware",
 ]
