@@ -375,6 +375,111 @@ class TestCreateMCPTool:
         """Test that output schema is included when definition has one."""
         mcp_tool = create_mcp_tool(materialized_tool)
 
-        # The fixture's output has value_schema=ValueSchema(val_type="number")
+        # The fixture's output has value_schema=ValueSchema(val_type="number").
+        # Per MCP spec, outputSchema.type must be "object"; non-object return
+        # types are wrapped in {"result": <inner>}.
         assert mcp_tool.outputSchema is not None
-        assert mcp_tool.outputSchema["type"] == "number"
+        assert mcp_tool.outputSchema["type"] == "object"
+        assert mcp_tool.outputSchema["properties"]["result"]["type"] == "number"
+
+    def _make_tool_with_output(self, value_schema: ValueSchema):
+        """Helper to create a materialized tool with a given output ValueSchema."""
+        tool_def = ToolDefinition(
+            name="test",
+            fully_qualified_name="Test.test",
+            description="Test",
+            toolkit=ToolkitDefinition(name="Test"),
+            input=ToolInput(parameters=[]),
+            output=ToolOutput(
+                description="Test output",
+                value_schema=value_schema,
+            ),
+            requirements=ToolRequirements(),
+        )
+
+        @tool
+        def f() -> Annotated[str, "result"]:
+            return "result"
+
+        input_model, output_model = create_func_models(f)
+        meta = ToolMeta(module=f.__module__, toolkit=tool_def.toolkit.name)
+        mat_tool = MaterializedTool(
+            tool=f,
+            definition=tool_def,
+            meta=meta,
+            input_model=input_model,
+            output_model=output_model,
+        )
+        return create_mcp_tool(mat_tool)
+
+    @pytest.mark.parametrize(
+        "val_type",
+        ["string", "integer", "number", "boolean"],
+    )
+    def test_output_schema_primitive_types_wrapped_as_object(self, val_type):
+        """Primitive output types must be wrapped so outputSchema.type == 'object'."""
+        mcp_tool = self._make_tool_with_output(ValueSchema(val_type=val_type))
+        schema = mcp_tool.outputSchema
+
+        assert schema is not None
+        assert schema["type"] == "object"
+        expected_json_type = {
+            "string": "string",
+            "integer": "integer",
+            "number": "number",
+            "boolean": "boolean",
+        }[val_type]
+        assert schema["properties"]["result"]["type"] == expected_json_type
+
+    def test_output_schema_array_type_wrapped_as_object(self):
+        """Array output type must be wrapped so outputSchema.type == 'object'."""
+        mcp_tool = self._make_tool_with_output(
+            ValueSchema(val_type="array", inner_val_type="string")
+        )
+        schema = mcp_tool.outputSchema
+
+        assert schema is not None
+        assert schema["type"] == "object"
+        result_prop = schema["properties"]["result"]
+        assert result_prop["type"] == "array"
+        assert result_prop["items"]["type"] == "string"
+
+    def test_output_schema_enum_preserved_in_wrapper(self):
+        """Enum values must be preserved inside the wrapped result property."""
+        mcp_tool = self._make_tool_with_output(
+            ValueSchema(val_type="string", enum=["a", "b", "c"])
+        )
+        schema = mcp_tool.outputSchema
+
+        assert schema is not None
+        assert schema["type"] == "object"
+        assert schema["properties"]["result"]["enum"] == ["a", "b", "c"]
+
+    def test_output_schema_json_type_not_wrapped(self):
+        """Object (json) output types are already type 'object', not wrapped."""
+        mcp_tool = self._make_tool_with_output(
+            ValueSchema(
+                val_type="json",
+                properties={
+                    "name": ValueSchema(val_type="string", description="A name"),
+                    "count": ValueSchema(val_type="integer"),
+                },
+            )
+        )
+        schema = mcp_tool.outputSchema
+
+        assert schema is not None
+        assert schema["type"] == "object"
+        assert "result" not in schema.get("properties", {})
+        assert schema["properties"]["name"]["type"] == "string"
+        assert schema["properties"]["name"]["description"] == "A name"
+        assert schema["properties"]["count"]["type"] == "integer"
+
+    def test_output_schema_json_type_without_properties(self):
+        """Object (json) output type with no properties is a bare object schema."""
+        mcp_tool = self._make_tool_with_output(ValueSchema(val_type="json"))
+        schema = mcp_tool.outputSchema
+
+        assert schema is not None
+        assert schema["type"] == "object"
+        assert "properties" not in schema
