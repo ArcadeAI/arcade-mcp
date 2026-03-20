@@ -215,7 +215,7 @@ def build_input_schema_from_definition(definition: ToolDefinition) -> dict[str, 
                 schema["type"] = "object"
                 schema["properties"] = {}
                 for prop_name, prop_schema in val_schema.properties.items():
-                    schema["properties"][prop_name] = _build_value_schema_json(prop_schema)
+                    schema["properties"][prop_name] = _value_schema_to_json_schema(prop_schema)
                     if getattr(prop_schema, "description", None):
                         schema["properties"][prop_name]["description"] = prop_schema.description
 
@@ -234,23 +234,59 @@ def build_input_schema_from_definition(definition: ToolDefinition) -> dict[str, 
 
 
 def _build_value_schema_json(value_schema: Any) -> dict[str, Any]:
-    """Map a ValueSchema to a JSON schema fragment for outputSchema."""
-    schema: dict[str, Any] = {
-        "type": _map_type_to_json_schema_type(getattr(value_schema, "val_type", None)),
+    """Map a ValueSchema to a JSON Schema ``outputSchema``.
+
+    Per the MCP specification, ``outputSchema.type`` MUST be ``"object"``
+    because ``structuredContent`` is always a JSON object.
+
+    * **object** return types (``val_type == "json"``) are emitted directly
+      as ``{"type": "object", "properties": {…}}``.
+    * All other return types (primitives, arrays) are wrapped in
+      ``{"type": "object", "properties": {"result": <inner>}}`` to mirror
+      the wrapping performed at runtime by
+      :func:`convert_content_to_structured_content`.
+    """
+    val_type = getattr(value_schema, "val_type", None)
+
+    if val_type == "json":
+        schema: dict[str, Any] = {"type": "object"}
+        if getattr(value_schema, "properties", None):
+            schema["properties"] = {}
+            for prop_name, prop_schema in value_schema.properties.items():
+                schema["properties"][prop_name] = _value_schema_to_json_schema(prop_schema)
+                if getattr(prop_schema, "description", None):
+                    schema["properties"][prop_name]["description"] = prop_schema.description
+        return schema
+
+    inner_schema = _value_schema_to_json_schema(value_schema)
+    return {
+        "type": "object",
+        "properties": {
+            "result": inner_schema,
+        },
     }
+
+
+def _value_schema_to_json_schema(value_schema: Any) -> dict[str, Any]:
+    """Convert a ValueSchema to a JSON Schema dict without top-level object wrapping.
+
+    Recursively expands nested object (json) types into their sub-schemas.
+    """
+    val_type = getattr(value_schema, "val_type", None)
+
+    if val_type == "json":
+        schema: dict[str, Any] = {"type": "object"}
+        if getattr(value_schema, "properties", None):
+            schema["properties"] = {}
+            for prop_name, prop_schema in value_schema.properties.items():
+                schema["properties"][prop_name] = _value_schema_to_json_schema(prop_schema)
+                if getattr(prop_schema, "description", None):
+                    schema["properties"][prop_name]["description"] = prop_schema.description
+        return schema
+
+    schema = {"type": _map_type_to_json_schema_type(val_type)}
     if getattr(value_schema, "enum", None):
         schema["enum"] = list(value_schema.enum)
-    if getattr(value_schema, "val_type", None) == "array" and getattr(
-        value_schema, "inner_val_type", None
-    ):
+    if val_type == "array" and getattr(value_schema, "inner_val_type", None):
         schema["items"] = {"type": _map_type_to_json_schema_type(value_schema.inner_val_type)}
-    if getattr(value_schema, "val_type", None) == "json" and getattr(
-        value_schema, "properties", None
-    ):
-        schema["type"] = "object"
-        schema["properties"] = {}
-        for prop_name, prop_schema in value_schema.properties.items():
-            schema["properties"][prop_name] = _build_value_schema_json(prop_schema)
-            if getattr(prop_schema, "description", None):
-                schema["properties"][prop_name]["description"] = prop_schema.description
     return schema
