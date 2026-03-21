@@ -891,6 +891,37 @@ def deploy(
         handle_cli_error("Failed to deploy server", e, debug)
 
 
+@cli.command(help="Check for and install CLI updates", rich_help_panel="Manage")
+def update(
+    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
+) -> None:
+    """Check for updates to the Arcade CLI and install if available."""
+    from arcade_cli.update import run_update
+
+    try:
+        run_update()
+    except Exception as e:
+        handle_cli_error("Failed to check for updates", e, debug)
+
+
+@cli.command(
+    name="upgrade",
+    help="Check for and install CLI updates (alias for update)",
+    rich_help_panel="Manage",
+    hidden=True,
+)
+def upgrade(
+    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
+) -> None:
+    """Alias for `arcade update`."""
+    from arcade_cli.update import run_update
+
+    try:
+        run_update()
+    except Exception as e:
+        handle_cli_error("Failed to check for updates", e, debug)
+
+
 @cli.command(help="Open the Arcade Dashboard in a web browser", rich_help_panel="User")
 def dashboard(
     host: str = typer.Option(
@@ -972,6 +1003,8 @@ def main_callback(
         new.__name__,
         show.__name__,
         configure.__name__,
+        update.__name__,
+        upgrade.__name__,
     }
     if ctx.invoked_subcommand in public_commands:
         return
