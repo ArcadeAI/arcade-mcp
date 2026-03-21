@@ -29,7 +29,7 @@ from arcade_cli.project import app as project_app
 from arcade_cli.secret import app as secret_app
 from arcade_cli.server import app as server_app
 from arcade_cli.show import show_logic
-from arcade_cli.update import check_and_notify
+from arcade_cli.update import check_and_notify, run_update
 from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
     ModelSpec,
@@ -898,8 +898,6 @@ def update(
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """Check for updates to the Arcade CLI and install if available."""
-    from arcade_cli.update import run_update
-
     try:
         run_update()
     except Exception as e:
@@ -916,12 +914,7 @@ def upgrade(
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """Alias for `arcade update`."""
-    from arcade_cli.update import run_update
-
-    try:
-        run_update()
-    except Exception as e:
-        handle_cli_error("Failed to check for updates", e, debug)
+    update(debug=debug)
 
 
 @cli.command(help="Open the Arcade Dashboard in a web browser", rich_help_panel="User")
@@ -995,8 +988,9 @@ def main_callback(
         help="Print version and exit.",
     ),
 ) -> None:
-    # Background update check + notification (skip for update/upgrade commands)
-    if ctx.invoked_subcommand not in {update.__name__, upgrade.__name__}:
+    # Background update check + notification (skip for update/upgrade/mcp to avoid
+    # corrupting MCP stdio protocol with non-JSON output)
+    if ctx.invoked_subcommand not in {update.__name__, upgrade.__name__, mcp.__name__}:
         with contextlib.suppress(Exception):
             check_and_notify()
 

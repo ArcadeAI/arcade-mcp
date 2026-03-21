@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+import dataclasses
 import json
 import logging
 import os
@@ -16,6 +17,10 @@ from importlib import metadata
 from urllib.request import urlopen
 
 from arcade_core.constants import ARCADE_CONFIG_PATH
+from arcade_core.subprocess_utils import (
+    build_windows_hidden_startupinfo,
+    get_windows_no_window_creationflags,
+)
 from packaging.version import Version
 
 from arcade_cli.console import console
@@ -25,7 +30,9 @@ logger = logging.getLogger(__name__)
 PACKAGE_NAME = "arcade-mcp"
 PYPI_URL = f"https://pypi.org/pypi/{PACKAGE_NAME}/json"
 
+# Cross-OS: ARCADE_CONFIG_PATH uses os.path.join / os.path.expanduser
 UPDATE_CACHE_PATH = os.path.join(ARCADE_CONFIG_PATH, "update_cache.json")
+# Minimum interval between background PyPI version checks
 CHECK_INTERVAL_SECONDS = 4 * 60 * 60  # 4 hours
 
 
@@ -45,10 +52,9 @@ def read_update_cache(cache_path: str) -> UpdateCache | None:
     try:
         with open(cache_path) as f:
             data = json.load(f)
-        return UpdateCache(
-            latest_version=data["latest_version"],
-            checked_at=float(data["checked_at"]),
-        )
+        # Only extract fields defined on UpdateCache so schema changes stay in sync
+        fields = {f.name for f in dataclasses.fields(UpdateCache)}
+        return UpdateCache(**{k: data[k] for k in fields})
     except Exception:
         return None
 
@@ -57,7 +63,7 @@ def write_update_cache(cache_path: str, cache: UpdateCache) -> None:
     """Write the update cache to disk."""
     os.makedirs(os.path.dirname(cache_path), exist_ok=True)
     with open(cache_path, "w") as f:
-        json.dump({"latest_version": cache.latest_version, "checked_at": cache.checked_at}, f)
+        json.dump(dataclasses.asdict(cache), f)
 
 
 def should_check_for_update(cache: UpdateCache | None) -> bool:
@@ -74,23 +80,37 @@ def fork_background_check() -> None:
     cache = read_update_cache(UPDATE_CACHE_PATH)
     if not should_check_for_update(cache):
         return
+    cmd = [
+        sys.executable,
+        "-c",
+        "from arcade_cli.update import _background_check; _background_check()",
+    ]
     with contextlib.suppress(Exception):
-        subprocess.Popen(
-            [
-                sys.executable,
-                "-c",
-                "from arcade_cli.update import _background_check; _background_check()",
-            ],
-            start_new_session=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
+        if sys.platform == "win32":
+            subprocess.Popen(
+                cmd,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                creationflags=get_windows_no_window_creationflags(new_process_group=True),
+                startupinfo=build_windows_hidden_startupinfo(),
+                close_fds=True,
+            )
+        else:
+            subprocess.Popen(
+                cmd,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                start_new_session=True,
+                close_fds=True,
+            )
 
 
 def _background_check() -> None:
     """Entry point for the detached background process. Fetches PyPI, writes cache."""
     latest = fetch_latest_pypi_version()
-    if latest:
+    if latest and not Version(latest).is_prerelease:
         write_update_cache(
             UPDATE_CACHE_PATH, UpdateCache(latest_version=latest, checked_at=time.time())
         )
@@ -103,12 +123,14 @@ def check_and_notify() -> None:
     cache = read_update_cache(UPDATE_CACHE_PATH)
     if cache:
         try:
-            current = metadata.version(PACKAGE_NAME)
-            if Version(cache.latest_version) > Version(current):
+            cached_version = Version(cache.latest_version)
+            if cached_version.is_prerelease:
+                pass  # Never notify about pre-release versions
+            elif cached_version > Version(metadata.version(PACKAGE_NAME)):
                 console.print(
-                    f"Update available: {current} → {cache.latest_version}  "
+                    f"Update available: {metadata.version(PACKAGE_NAME)} → {cache.latest_version}  "
                     f"Run `arcade update` to upgrade.",
-                    style="dim",
+                    style="yellow",
                 )
         except Exception:
             logger.debug("Failed to check cached update version", exc_info=True)
@@ -125,7 +147,7 @@ class InstallMethod(str, Enum):
 def fetch_latest_pypi_version() -> str | None:
     """Query PyPI for the latest published version of the package."""
     try:
-        with urlopen(PYPI_URL) as resp:  # noqa: S310
+        with urlopen(PYPI_URL, timeout=5) as resp:  # noqa: S310
             if resp.status != 200:
                 return None
             data = json.loads(resp.read())
@@ -237,8 +259,9 @@ def run_update() -> None:
         console.print(f"Successfully updated to {latest}!", style="bold green")
     else:
         console.print(
-            f"\nAuto-upgrade failed. You can try manually:\n"
-            f"  uv tool upgrade {PACKAGE_NAME}\n"
+            f"\nAuto-upgrade failed. Try upgrading manually:\n"
+            f"  uv tool upgrade {PACKAGE_NAME}\n\n"
+            f"If you don't use `uv tool`, try one of these alternatives instead:\n"
             f"  uv pip install -U {PACKAGE_NAME}\n"
             f"  pip install -U {PACKAGE_NAME}",
             style="red",

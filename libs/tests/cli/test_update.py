@@ -10,6 +10,7 @@ from arcade_cli.main import cli
 from arcade_cli.update import (
     InstallMethod,
     UpdateCache,
+    _background_check,
     check_and_notify,
     detect_install_method,
     fetch_latest_pypi_version,
@@ -206,8 +207,10 @@ class TestUpdateCommand:
             mock_run.return_value = MagicMock(returncode=1)
             result = runner.invoke(cli, ["update"])
             assert result.exit_code == 0
-            # Should show manual fallback instructions
-            assert "uv tool upgrade" in result.output.lower() or "manually" in result.output.lower()
+            output = result.output.lower()
+            # Should show preferred method and alternatives
+            assert "uv tool upgrade" in output
+            assert "alternatives" in output
 
 
 # ---------------------------------------------------------------------------
@@ -273,17 +276,40 @@ class TestShouldCheckForUpdate:
 
 
 class TestForkBackgroundCheck:
-    def test_spawns_detached_subprocess(self) -> None:
-        """When check is needed, spawns a detached subprocess."""
+    def test_spawns_detached_subprocess_unix(self) -> None:
+        """On Unix, spawns a detached subprocess with start_new_session=True."""
         with (
             patch("arcade_cli.update.read_update_cache", return_value=None),
             patch("arcade_cli.update.should_check_for_update", return_value=True),
+            patch("arcade_cli.update.sys") as mock_sys,
             patch("arcade_cli.update.subprocess.Popen") as mock_popen,
         ):
+            mock_sys.platform = "darwin"
+            mock_sys.executable = "/usr/bin/python3"
             fork_background_check()
             mock_popen.assert_called_once()
             call_kwargs = mock_popen.call_args[1]
             assert call_kwargs.get("start_new_session") is True
+            assert call_kwargs.get("close_fds") is True
+
+    def test_spawns_detached_subprocess_windows(self) -> None:
+        """On Windows, spawns a subprocess with creationflags instead of start_new_session."""
+        with (
+            patch("arcade_cli.update.read_update_cache", return_value=None),
+            patch("arcade_cli.update.should_check_for_update", return_value=True),
+            patch("arcade_cli.update.sys") as mock_sys,
+            patch("arcade_cli.update.subprocess.Popen") as mock_popen,
+            patch("arcade_cli.update.get_windows_no_window_creationflags", return_value=0x08000200),
+            patch("arcade_cli.update.build_windows_hidden_startupinfo", return_value=None),
+        ):
+            mock_sys.platform = "win32"
+            mock_sys.executable = "python.exe"
+            fork_background_check()
+            mock_popen.assert_called_once()
+            call_kwargs = mock_popen.call_args[1]
+            assert "start_new_session" not in call_kwargs
+            assert call_kwargs.get("creationflags") == 0x08000200
+            assert call_kwargs.get("close_fds") is True
 
     def test_does_not_spawn_when_check_not_needed(self) -> None:
         """When cache is fresh, no subprocess is spawned."""
@@ -326,6 +352,7 @@ class TestCheckAndNotify:
             output = mock_console.print.call_args[0][0]
             assert "update available" in output.lower()
             assert "arcade update" in output.lower()
+            assert mock_console.print.call_args[1]["style"] == "yellow"
 
     def test_no_notification_when_up_to_date(self) -> None:
         cache = UpdateCache(latest_version="1.0.0", checked_at=time.time())
@@ -368,6 +395,48 @@ class TestCheckAndNotify:
             check_and_notify()
             mock_fork.assert_called_once()
 
+    def test_no_notification_for_prerelease(self) -> None:
+        """Pre-release versions in cache should not trigger a notification."""
+        cache = UpdateCache(latest_version="2.0.0rc1", checked_at=time.time())
+        with (
+            patch("arcade_cli.update.read_update_cache", return_value=cache),
+            patch("arcade_cli.update.metadata") as mock_meta,
+            patch("arcade_cli.update.fork_background_check"),
+            patch("arcade_cli.update.console") as mock_console,
+        ):
+            mock_meta.version.return_value = "1.0.0"
+            check_and_notify()
+            mock_console.print.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# Unit tests for _background_check
+# ---------------------------------------------------------------------------
+
+
+class TestBackgroundCheck:
+    def test_skips_prerelease(self, tmp_path: pytest.TempPathFactory) -> None:
+        """Pre-release versions from PyPI should not be cached."""
+        cache_path = str(tmp_path / "update_cache.json")
+        with (
+            patch("arcade_cli.update.fetch_latest_pypi_version", return_value="2.0.0rc1"),
+            patch("arcade_cli.update.UPDATE_CACHE_PATH", cache_path),
+        ):
+            _background_check()
+            assert read_update_cache(cache_path) is None
+
+    def test_caches_stable_release(self, tmp_path: pytest.TempPathFactory) -> None:
+        """Stable versions from PyPI should be cached."""
+        cache_path = str(tmp_path / "update_cache.json")
+        with (
+            patch("arcade_cli.update.fetch_latest_pypi_version", return_value="2.0.0"),
+            patch("arcade_cli.update.UPDATE_CACHE_PATH", cache_path),
+        ):
+            _background_check()
+            result = read_update_cache(cache_path)
+            assert result is not None
+            assert result.latest_version == "2.0.0"
+
 
 # ---------------------------------------------------------------------------
 # Tests for main_callback integration with check_and_notify
@@ -402,4 +471,10 @@ class TestMainCallbackUpdateNotification:
         ):
             mock_meta.version.return_value = "1.0.0"
             runner.invoke(cli, ["upgrade"])
+            mock_notify.assert_not_called()
+
+    def test_main_callback_skips_check_for_mcp_command(self) -> None:
+        """Running `arcade mcp` should NOT trigger check_and_notify (would corrupt stdio)."""
+        with patch("arcade_cli.main.check_and_notify") as mock_notify:
+            runner.invoke(cli, ["mcp", "--help"])
             mock_notify.assert_not_called()
