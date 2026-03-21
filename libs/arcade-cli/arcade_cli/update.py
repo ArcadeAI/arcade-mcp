@@ -161,8 +161,14 @@ def fetch_latest_pypi_version() -> str | None:
 
 
 def detect_install_method() -> InstallMethod:
-    """Auto-detect how the user originally installed the CLI."""
-    # 1. Check uv tool
+    """Auto-detect how the user originally installed the CLI.
+
+    Detection order:
+    1. uv tool — check ``uv tool list`` for the package
+    2. pipx — check ``pipx list`` for the package
+    3. uv pip — if ``uv`` is on PATH but the package wasn't installed via uv tool
+    4. pip — fallback
+    """
     if shutil.which("uv"):
         try:
             result = subprocess.run(
@@ -176,7 +182,6 @@ def detect_install_method() -> InstallMethod:
         except Exception:
             logger.debug("Failed to check uv tool list", exc_info=True)
 
-    # 2. Check pipx
     if shutil.which("pipx"):
         try:
             result = subprocess.run(
@@ -190,11 +195,9 @@ def detect_install_method() -> InstallMethod:
         except Exception:
             logger.debug("Failed to check pipx list", exc_info=True)
 
-    # 3. If uv is available, use uv pip
     if shutil.which("uv"):
         return InstallMethod.UV_PIP
 
-    # 4. Fallback to pip
     return InstallMethod.PIP
 
 

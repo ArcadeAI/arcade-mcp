@@ -287,6 +287,18 @@ class TestShouldCheckForUpdate:
 
 
 class TestForkBackgroundCheck:
+    def test_background_check_import_string_is_valid(self) -> None:
+        """The hardcoded import string in fork_background_check must resolve to the real function."""
+        import importlib
+        import inspect
+
+        source = inspect.getsource(fork_background_check)
+        # Extract the import string from the "-c" argument
+        assert "from arcade_cli.update import _background_check; _background_check()" in source
+        # Verify the function is actually importable at that path
+        mod = importlib.import_module("arcade_cli.update")
+        assert hasattr(mod, "_background_check") and callable(mod._background_check)
+
     def test_spawns_detached_subprocess_unix(self) -> None:
         """On Unix, spawns a detached subprocess with start_new_session=True."""
         with (
