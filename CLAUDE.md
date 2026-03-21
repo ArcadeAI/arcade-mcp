@@ -67,6 +67,7 @@ Transports: `stdio` (default) and `http` (tools that require auth or secrets nee
 
 - **All changes must have tests and follow TDD.** Every new feature, bug fix, or behavioral change needs a corresponding test in `libs/tests/`.
 - **Always use uv.** Never use `pip`, `pip install`, `python`, or `python -m` directly. Use `uv run`, `uv sync`, `uv build`, etc.
+- **Never pollute stdout/stderr in MCP stdio paths.** Code reachable by `arcade-mcp-server` or the `arcade mcp` CLI command must never print, log to stdout, or spawn processes that write to stdout/stderr. The MCP stdio transport requires a clean JSON-only channel — any stray output corrupts the protocol. When adding CLI-wide hooks or notifications, always gate them to exclude MCP transport paths.
 
 ## Code Quality
 
