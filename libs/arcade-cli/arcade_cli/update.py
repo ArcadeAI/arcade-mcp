@@ -30,7 +30,6 @@ logger = logging.getLogger(__name__)
 PACKAGE_NAME = "arcade-mcp"
 PYPI_URL = f"https://pypi.org/pypi/{PACKAGE_NAME}/json"
 
-# Cross-OS: ARCADE_CONFIG_PATH uses os.path.join / os.path.expanduser
 UPDATE_CACHE_PATH = os.path.join(ARCADE_CONFIG_PATH, "update_cache.json")
 # Minimum interval between background PyPI version checks
 CHECK_INTERVAL_SECONDS = 4 * 60 * 60  # 4 hours
