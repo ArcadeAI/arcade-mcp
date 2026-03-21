@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import os
 import subprocess
 import sys
@@ -28,6 +29,7 @@ from arcade_cli.project import app as project_app
 from arcade_cli.secret import app as secret_app
 from arcade_cli.server import app as server_app
 from arcade_cli.show import show_logic
+from arcade_cli.update import check_and_notify, run_update
 from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
     ModelSpec,
@@ -891,6 +893,30 @@ def deploy(
         handle_cli_error("Failed to deploy server", e, debug)
 
 
+@cli.command(help="Check for and install CLI updates", rich_help_panel="Manage")
+def update(
+    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
+) -> None:
+    """Check for updates to the Arcade CLI and install if available."""
+    try:
+        run_update()
+    except Exception as e:
+        handle_cli_error("Failed to check for updates", e, debug)
+
+
+@cli.command(
+    name="upgrade",
+    help="Check for and install CLI updates (alias for update)",
+    rich_help_panel="Manage",
+    hidden=True,
+)
+def upgrade(
+    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
+) -> None:
+    """Alias for `arcade update`."""
+    update(debug=debug)
+
+
 @cli.command(help="Open the Arcade Dashboard in a web browser", rich_help_panel="User")
 def dashboard(
     host: str = typer.Option(
@@ -962,6 +988,12 @@ def main_callback(
         help="Print version and exit.",
     ),
 ) -> None:
+    # Background update check + notification (skip for update/upgrade/mcp to avoid
+    # corrupting MCP stdio protocol with non-JSON output)
+    if ctx.invoked_subcommand not in {update.__name__, upgrade.__name__, mcp.__name__}:
+        with contextlib.suppress(Exception):
+            check_and_notify()
+
     # Commands that do not require a logged in user
     public_commands = {
         login.__name__,
@@ -972,6 +1004,8 @@ def main_callback(
         new.__name__,
         show.__name__,
         configure.__name__,
+        update.__name__,
+        upgrade.__name__,
     }
     if ctx.invoked_subcommand in public_commands:
         return
