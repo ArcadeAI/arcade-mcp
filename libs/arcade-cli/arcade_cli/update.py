@@ -110,7 +110,7 @@ def fork_background_check() -> None:
 def _background_check() -> None:
     """Entry point for the detached background process. Fetches PyPI, writes cache."""
     latest = fetch_latest_pypi_version()
-    if latest and not Version(latest).is_prerelease:
+    if latest:
         write_update_cache(
             UPDATE_CACHE_PATH, UpdateCache(latest_version=latest, checked_at=time.time())
         )
@@ -124,9 +124,7 @@ def check_and_notify() -> None:
     if cache:
         try:
             cached_version = Version(cache.latest_version)
-            if cached_version.is_prerelease:
-                pass  # Never notify about pre-release versions
-            elif cached_version > Version(metadata.version(PACKAGE_NAME)):
+            if cached_version > Version(metadata.version(PACKAGE_NAME)):
                 console.print(
                     f"Update available: {metadata.version(PACKAGE_NAME)} → {cache.latest_version}  "
                     f"Run `arcade update` to upgrade.",
@@ -145,13 +143,19 @@ class InstallMethod(str, Enum):
 
 
 def fetch_latest_pypi_version() -> str | None:
-    """Query PyPI for the latest published version of the package."""
+    """Query PyPI for the latest stable version of the package.
+
+    Returns None if the fetch fails or the latest version is a pre-release.
+    """
     try:
         with urlopen(PYPI_URL, timeout=5) as resp:  # noqa: S310
             if resp.status != 200:
                 return None
             data = json.loads(resp.read())
-            return data["info"]["version"]  # type: ignore[no-any-return]
+            version: str = data["info"]["version"]
+            if Version(version).is_prerelease:
+                return None
+            return version
     except Exception:
         return None
 

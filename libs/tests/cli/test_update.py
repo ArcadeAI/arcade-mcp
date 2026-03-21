@@ -42,6 +42,17 @@ class TestFetchLatestPypiVersion:
         with patch("arcade_cli.update.urlopen", return_value=mock_response):
             assert fetch_latest_pypi_version() == "2.0.0"
 
+    def test_returns_none_on_prerelease(self) -> None:
+        """Pre-release versions should be filtered out at the source."""
+        mock_response = MagicMock()
+        mock_response.status = 200
+        mock_response.read.return_value = b'{"info": {"version": "2.0.0rc1"}}'
+        mock_response.__enter__ = lambda s: s
+        mock_response.__exit__ = MagicMock(return_value=False)
+
+        with patch("arcade_cli.update.urlopen", return_value=mock_response):
+            assert fetch_latest_pypi_version() is None
+
     def test_returns_none_on_http_error(self) -> None:
         with patch("arcade_cli.update.urlopen", side_effect=Exception("network error")):
             assert fetch_latest_pypi_version() is None
@@ -395,19 +406,6 @@ class TestCheckAndNotify:
             check_and_notify()
             mock_fork.assert_called_once()
 
-    def test_no_notification_for_prerelease(self) -> None:
-        """Pre-release versions in cache should not trigger a notification."""
-        cache = UpdateCache(latest_version="2.0.0rc1", checked_at=time.time())
-        with (
-            patch("arcade_cli.update.read_update_cache", return_value=cache),
-            patch("arcade_cli.update.metadata") as mock_meta,
-            patch("arcade_cli.update.fork_background_check"),
-            patch("arcade_cli.update.console") as mock_console,
-        ):
-            mock_meta.version.return_value = "1.0.0"
-            check_and_notify()
-            mock_console.print.assert_not_called()
-
 
 # ---------------------------------------------------------------------------
 # Unit tests for _background_check
@@ -415,11 +413,11 @@ class TestCheckAndNotify:
 
 
 class TestBackgroundCheck:
-    def test_skips_prerelease(self, tmp_path: pytest.TempPathFactory) -> None:
-        """Pre-release versions from PyPI should not be cached."""
+    def test_skips_when_fetch_returns_none(self, tmp_path: pytest.TempPathFactory) -> None:
+        """When fetch returns None (e.g. pre-release filtered out), nothing is cached."""
         cache_path = str(tmp_path / "update_cache.json")
         with (
-            patch("arcade_cli.update.fetch_latest_pypi_version", return_value="2.0.0rc1"),
+            patch("arcade_cli.update.fetch_latest_pypi_version", return_value=None),
             patch("arcade_cli.update.UPDATE_CACHE_PATH", cache_path),
         ):
             _background_check()
