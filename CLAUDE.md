@@ -31,7 +31,7 @@ arcade-core          (base: config, errors, catalog, telemetry)
 
 ## Versioning Rules
 
-- Use semver. ALWAYS bump the version in `pyproject.toml` when modifying a library's code.
+- Use semver. Bump the version in `pyproject.toml` when modifying a library's code — but first check `git diff main` to see if the version has already been bumped in the current branch. Only bump once per branch/PR.
 - ALWAYS bump the minimum required dependency version when making breaking changes between libraries.
 
 ## Key Patterns

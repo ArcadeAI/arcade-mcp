@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import os
 import subprocess
 import sys
@@ -28,6 +29,7 @@ from arcade_cli.project import app as project_app
 from arcade_cli.secret import app as secret_app
 from arcade_cli.server import app as server_app
 from arcade_cli.show import show_logic
+from arcade_cli.update import check_and_notify
 from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
     ModelSpec,
@@ -993,6 +995,11 @@ def main_callback(
         help="Print version and exit.",
     ),
 ) -> None:
+    # Background update check + notification (skip for update/upgrade commands)
+    if ctx.invoked_subcommand not in {update.__name__, upgrade.__name__}:
+        with contextlib.suppress(Exception):
+            check_and_notify()
+
     # Commands that do not require a logged in user
     public_commands = {
         login.__name__,

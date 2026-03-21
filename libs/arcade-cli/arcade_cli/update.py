@@ -2,13 +2,21 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
+import os
 import shutil
 import subprocess
+import sys
+import time
+from dataclasses import dataclass
 from enum import Enum
 from importlib import metadata
 from urllib.request import urlopen
+
+from arcade_core.constants import ARCADE_CONFIG_PATH
+from packaging.version import Version
 
 from arcade_cli.console import console
 
@@ -16,6 +24,95 @@ logger = logging.getLogger(__name__)
 
 PACKAGE_NAME = "arcade-mcp"
 PYPI_URL = f"https://pypi.org/pypi/{PACKAGE_NAME}/json"
+
+UPDATE_CACHE_PATH = os.path.join(ARCADE_CONFIG_PATH, "update_cache.json")
+CHECK_INTERVAL_SECONDS = 4 * 60 * 60  # 4 hours
+
+
+# ---------------------------------------------------------------------------
+# Update cache dataclass and I/O
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class UpdateCache:
+    latest_version: str
+    checked_at: float  # time.time()
+
+
+def read_update_cache(cache_path: str) -> UpdateCache | None:
+    """Read the update cache from disk. Returns None if missing or corrupt."""
+    try:
+        with open(cache_path) as f:
+            data = json.load(f)
+        return UpdateCache(
+            latest_version=data["latest_version"],
+            checked_at=float(data["checked_at"]),
+        )
+    except Exception:
+        return None
+
+
+def write_update_cache(cache_path: str, cache: UpdateCache) -> None:
+    """Write the update cache to disk."""
+    os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+    with open(cache_path, "w") as f:
+        json.dump({"latest_version": cache.latest_version, "checked_at": cache.checked_at}, f)
+
+
+def should_check_for_update(cache: UpdateCache | None) -> bool:
+    """Determine whether a background PyPI check is needed."""
+    if os.environ.get("ARCADE_DISABLE_AUTOUPDATE") == "1":
+        return False
+    if cache is None:
+        return True
+    return (time.time() - cache.checked_at) > CHECK_INTERVAL_SECONDS
+
+
+def fork_background_check() -> None:
+    """Spawn a detached process that checks PyPI and writes the cache."""
+    cache = read_update_cache(UPDATE_CACHE_PATH)
+    if not should_check_for_update(cache):
+        return
+    with contextlib.suppress(Exception):
+        subprocess.Popen(
+            [
+                sys.executable,
+                "-c",
+                "from arcade_cli.update import _background_check; _background_check()",
+            ],
+            start_new_session=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+
+
+def _background_check() -> None:
+    """Entry point for the detached background process. Fetches PyPI, writes cache."""
+    latest = fetch_latest_pypi_version()
+    if latest:
+        write_update_cache(
+            UPDATE_CACHE_PATH, UpdateCache(latest_version=latest, checked_at=time.time())
+        )
+
+
+def check_and_notify() -> None:
+    """Read cache, print notification if update available, fork background check."""
+    if os.environ.get("ARCADE_DISABLE_AUTOUPDATE") == "1":
+        return
+    cache = read_update_cache(UPDATE_CACHE_PATH)
+    if cache:
+        try:
+            current = metadata.version(PACKAGE_NAME)
+            if Version(cache.latest_version) > Version(current):
+                console.print(
+                    f"Update available: {current} → {cache.latest_version}  "
+                    f"Run `arcade update` to upgrade.",
+                    style="dim",
+                )
+        except Exception:
+            logger.debug("Failed to check cached update version", exc_info=True)
+    fork_background_check()
 
 
 class InstallMethod(str, Enum):
@@ -112,8 +209,6 @@ def run_update() -> None:
         return
 
     current = metadata.version(PACKAGE_NAME)
-
-    from packaging.version import Version
 
     if Version(current) >= Version(latest):
         console.print(

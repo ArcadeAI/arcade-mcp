@@ -1,9 +1,23 @@
 """Tests for the `arcade update` CLI command."""
 
+import json
+import os
+import time
 from unittest.mock import MagicMock, patch
 
+import pytest
 from arcade_cli.main import cli
-from arcade_cli.update import InstallMethod, detect_install_method, fetch_latest_pypi_version
+from arcade_cli.update import (
+    InstallMethod,
+    UpdateCache,
+    check_and_notify,
+    detect_install_method,
+    fetch_latest_pypi_version,
+    fork_background_check,
+    read_update_cache,
+    should_check_for_update,
+    write_update_cache,
+)
 from typer.testing import CliRunner
 
 runner = CliRunner()
@@ -194,3 +208,198 @@ class TestUpdateCommand:
             assert result.exit_code == 0
             # Should show manual fallback instructions
             assert "uv tool upgrade" in result.output.lower() or "manually" in result.output.lower()
+
+
+# ---------------------------------------------------------------------------
+# Unit tests for UpdateCache and cache I/O
+# ---------------------------------------------------------------------------
+
+
+class TestUpdateCache:
+    def test_read_cache_returns_none_when_file_missing(self, tmp_path: pytest.TempPathFactory) -> None:
+        assert read_update_cache(str(tmp_path / "nonexistent.json")) is None
+
+    def test_read_cache_returns_none_on_corrupt_json(self, tmp_path: pytest.TempPathFactory) -> None:
+        cache_file = tmp_path / "update_cache.json"
+        cache_file.write_text("not valid json{{{")
+        assert read_update_cache(str(cache_file)) is None
+
+    def test_write_and_read_cache_roundtrip(self, tmp_path: pytest.TempPathFactory) -> None:
+        cache_file = str(tmp_path / "update_cache.json")
+        cache = UpdateCache(latest_version="2.0.0", checked_at=1000.0)
+        write_update_cache(cache_file, cache)
+        result = read_update_cache(cache_file)
+        assert result is not None
+        assert result.latest_version == "2.0.0"
+        assert result.checked_at == 1000.0
+
+    def test_read_cache_ignores_unknown_fields(self, tmp_path: pytest.TempPathFactory) -> None:
+        cache_file = tmp_path / "update_cache.json"
+        cache_file.write_text(json.dumps({
+            "latest_version": "2.0.0",
+            "checked_at": 1000.0,
+            "unknown_field": "should be ignored",
+        }))
+        result = read_update_cache(str(cache_file))
+        assert result is not None
+        assert result.latest_version == "2.0.0"
+
+
+# ---------------------------------------------------------------------------
+# Unit tests for should_check_for_update
+# ---------------------------------------------------------------------------
+
+
+class TestShouldCheckForUpdate:
+    def test_returns_true_when_no_cache(self) -> None:
+        assert should_check_for_update(None) is True
+
+    def test_returns_true_when_cache_expired(self) -> None:
+        old_cache = UpdateCache(latest_version="1.0.0", checked_at=time.time() - 5 * 3600)
+        assert should_check_for_update(old_cache) is True
+
+    def test_returns_false_when_cache_fresh(self) -> None:
+        fresh_cache = UpdateCache(latest_version="1.0.0", checked_at=time.time() - 60)
+        assert should_check_for_update(fresh_cache) is False
+
+    def test_returns_false_when_disabled_env_var(self) -> None:
+        with patch.dict(os.environ, {"ARCADE_DISABLE_AUTOUPDATE": "1"}):
+            assert should_check_for_update(None) is False
+
+
+# ---------------------------------------------------------------------------
+# Unit tests for fork_background_check
+# ---------------------------------------------------------------------------
+
+
+class TestForkBackgroundCheck:
+    def test_spawns_detached_subprocess(self) -> None:
+        """When check is needed, spawns a detached subprocess."""
+        with (
+            patch("arcade_cli.update.read_update_cache", return_value=None),
+            patch("arcade_cli.update.should_check_for_update", return_value=True),
+            patch("arcade_cli.update.subprocess.Popen") as mock_popen,
+        ):
+            fork_background_check()
+            mock_popen.assert_called_once()
+            call_kwargs = mock_popen.call_args[1]
+            assert call_kwargs.get("start_new_session") is True
+
+    def test_does_not_spawn_when_check_not_needed(self) -> None:
+        """When cache is fresh, no subprocess is spawned."""
+        fresh_cache = UpdateCache(latest_version="1.0.0", checked_at=time.time())
+        with (
+            patch("arcade_cli.update.read_update_cache", return_value=fresh_cache),
+            patch("arcade_cli.update.should_check_for_update", return_value=False),
+            patch("arcade_cli.update.subprocess.Popen") as mock_popen,
+        ):
+            fork_background_check()
+            mock_popen.assert_not_called()
+
+    def test_swallows_exceptions(self) -> None:
+        """Popen raising an exception should not crash."""
+        with (
+            patch("arcade_cli.update.read_update_cache", return_value=None),
+            patch("arcade_cli.update.should_check_for_update", return_value=True),
+            patch("arcade_cli.update.subprocess.Popen", side_effect=OSError("spawn failed")),
+        ):
+            # Should not raise
+            fork_background_check()
+
+
+# ---------------------------------------------------------------------------
+# Unit tests for check_and_notify
+# ---------------------------------------------------------------------------
+
+
+class TestCheckAndNotify:
+    def test_prints_notification_when_update_available(self) -> None:
+        cache = UpdateCache(latest_version="2.0.0", checked_at=time.time())
+        with (
+            patch("arcade_cli.update.read_update_cache", return_value=cache),
+            patch("arcade_cli.update.metadata") as mock_meta,
+            patch("arcade_cli.update.fork_background_check"),
+            patch("arcade_cli.update.console") as mock_console,
+        ):
+            mock_meta.version.return_value = "1.0.0"
+            check_and_notify()
+            output = mock_console.print.call_args[0][0]
+            assert "update available" in output.lower()
+            assert "arcade update" in output.lower()
+
+    def test_no_notification_when_up_to_date(self) -> None:
+        cache = UpdateCache(latest_version="1.0.0", checked_at=time.time())
+        with (
+            patch("arcade_cli.update.read_update_cache", return_value=cache),
+            patch("arcade_cli.update.metadata") as mock_meta,
+            patch("arcade_cli.update.fork_background_check"),
+            patch("arcade_cli.update.console") as mock_console,
+        ):
+            mock_meta.version.return_value = "1.0.0"
+            check_and_notify()
+            mock_console.print.assert_not_called()
+
+    def test_no_notification_when_no_cache(self) -> None:
+        with (
+            patch("arcade_cli.update.read_update_cache", return_value=None),
+            patch("arcade_cli.update.fork_background_check"),
+            patch("arcade_cli.update.console") as mock_console,
+        ):
+            check_and_notify()
+            mock_console.print.assert_not_called()
+
+    def test_no_notification_when_disabled(self) -> None:
+        with (
+            patch.dict(os.environ, {"ARCADE_DISABLE_AUTOUPDATE": "1"}),
+            patch("arcade_cli.update.read_update_cache") as mock_read,
+            patch("arcade_cli.update.fork_background_check") as mock_fork,
+            patch("arcade_cli.update.console") as mock_console,
+        ):
+            check_and_notify()
+            mock_read.assert_not_called()
+            mock_fork.assert_not_called()
+            mock_console.print.assert_not_called()
+
+    def test_forks_background_check(self) -> None:
+        with (
+            patch("arcade_cli.update.read_update_cache", return_value=None),
+            patch("arcade_cli.update.fork_background_check") as mock_fork,
+        ):
+            check_and_notify()
+            mock_fork.assert_called_once()
+
+
+# ---------------------------------------------------------------------------
+# Tests for main_callback integration with check_and_notify
+# ---------------------------------------------------------------------------
+
+
+class TestMainCallbackUpdateNotification:
+    def test_main_callback_calls_check_and_notify(self) -> None:
+        """Running a non-update command triggers check_and_notify."""
+        with patch("arcade_cli.main.check_and_notify") as mock_notify:
+            # Use 'show' as a public command that goes through main_callback
+            runner.invoke(cli, ["show", "--help"])
+            mock_notify.assert_called_once()
+
+    def test_main_callback_skips_check_for_update_command(self) -> None:
+        """Running `arcade update` should NOT trigger check_and_notify."""
+        with (
+            patch("arcade_cli.main.check_and_notify") as mock_notify,
+            patch("arcade_cli.update.fetch_latest_pypi_version", return_value="1.0.0"),
+            patch("arcade_cli.update.metadata") as mock_meta,
+        ):
+            mock_meta.version.return_value = "1.0.0"
+            runner.invoke(cli, ["update"])
+            mock_notify.assert_not_called()
+
+    def test_main_callback_skips_check_for_upgrade_command(self) -> None:
+        """Running `arcade upgrade` should NOT trigger check_and_notify."""
+        with (
+            patch("arcade_cli.main.check_and_notify") as mock_notify,
+            patch("arcade_cli.update.fetch_latest_pypi_version", return_value="1.0.0"),
+            patch("arcade_cli.update.metadata") as mock_meta,
+        ):
+            mock_meta.version.return_value = "1.0.0"
+            runner.invoke(cli, ["upgrade"])
+            mock_notify.assert_not_called()
