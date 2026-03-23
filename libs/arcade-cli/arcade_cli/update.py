@@ -107,12 +107,18 @@ def fork_background_check() -> None:
 
 
 def _background_check() -> None:
-    """Entry point for the detached background process. Fetches PyPI, writes cache."""
+    """Entry point for the detached background process. Fetches PyPI, writes cache.
+
+    Always updates ``checked_at`` so that failed checks don't bypass the throttle
+    and spawn a new background process on every CLI invocation.
+    """
     latest = fetch_latest_pypi_version()
-    if latest:
-        write_update_cache(
-            UPDATE_CACHE_PATH, UpdateCache(latest_version=latest, checked_at=time.time())
-        )
+    # Preserve the previously cached version when the fetch fails
+    existing = read_update_cache(UPDATE_CACHE_PATH)
+    cached_version = latest or (existing.latest_version if existing else "")
+    write_update_cache(
+        UPDATE_CACHE_PATH, UpdateCache(latest_version=cached_version, checked_at=time.time())
+    )
 
 
 def check_and_notify() -> None:

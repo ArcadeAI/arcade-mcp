@@ -425,15 +425,37 @@ class TestCheckAndNotify:
 
 
 class TestBackgroundCheck:
-    def test_skips_when_fetch_returns_none(self, tmp_path: pytest.TempPathFactory) -> None:
-        """When fetch returns None (e.g. pre-release filtered out), nothing is cached."""
+    def test_updates_timestamp_when_fetch_returns_none(
+        self, tmp_path: pytest.TempPathFactory
+    ) -> None:
+        """When fetch returns None, the cache timestamp is still updated to throttle retries."""
         cache_path = str(tmp_path / "update_cache.json")
         with (
             patch("arcade_cli.update.fetch_latest_pypi_version", return_value=None),
             patch("arcade_cli.update.UPDATE_CACHE_PATH", cache_path),
         ):
             _background_check()
-            assert read_update_cache(cache_path) is None
+            result = read_update_cache(cache_path)
+            assert result is not None
+            assert result.latest_version == ""
+            assert result.checked_at > 0
+
+    def test_preserves_cached_version_when_fetch_fails(
+        self, tmp_path: pytest.TempPathFactory
+    ) -> None:
+        """When fetch fails but a previous version is cached, preserve it."""
+        cache_path = str(tmp_path / "update_cache.json")
+        old_cache = UpdateCache(latest_version="1.5.0", checked_at=1000.0)
+        write_update_cache(cache_path, old_cache)
+        with (
+            patch("arcade_cli.update.fetch_latest_pypi_version", return_value=None),
+            patch("arcade_cli.update.UPDATE_CACHE_PATH", cache_path),
+        ):
+            _background_check()
+            result = read_update_cache(cache_path)
+            assert result is not None
+            assert result.latest_version == "1.5.0"
+            assert result.checked_at > old_cache.checked_at
 
     def test_caches_stable_release(self, tmp_path: pytest.TempPathFactory) -> None:
         """Stable versions from PyPI should be cached."""
