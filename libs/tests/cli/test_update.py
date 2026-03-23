@@ -48,7 +48,11 @@ class TestFetchLatestPypiVersion:
         mock_response.status = 200
         payload = json.dumps({
             "info": {"version": "2.0.0rc1"},
-            "releases": {"1.9.0": [], "2.0.0rc1": [], "1.10.0": []},
+            "releases": {
+                "1.9.0": [{"filename": "a.whl", "yanked": False}],
+                "2.0.0rc1": [{"filename": "b.whl", "yanked": False}],
+                "1.10.0": [{"filename": "c.whl", "yanked": False}],
+            },
         }).encode()
         mock_response.read.return_value = payload
         mock_response.__enter__ = lambda s: s
@@ -71,6 +75,26 @@ class TestFetchLatestPypiVersion:
 
         with patch("arcade_cli.update.urlopen", return_value=mock_response):
             assert fetch_latest_pypi_version() is None
+
+    def test_skips_yanked_releases(self) -> None:
+        """Yanked releases should not be returned even if they are the highest stable."""
+        mock_response = MagicMock()
+        mock_response.status = 200
+        payload = json.dumps({
+            "info": {"version": "2.0.0rc1"},
+            "releases": {
+                "1.9.0": [{"filename": "a.whl", "yanked": False}],
+                "1.10.0": [{"filename": "b.whl", "yanked": True}],
+                "2.0.0rc1": [{"filename": "c.whl", "yanked": False}],
+            },
+        }).encode()
+        mock_response.read.return_value = payload
+        mock_response.__enter__ = lambda s: s
+        mock_response.__exit__ = MagicMock(return_value=False)
+
+        with patch("arcade_cli.update.urlopen", return_value=mock_response):
+            # 1.10.0 is yanked, so should fall back to 1.9.0
+            assert fetch_latest_pypi_version() == "1.9.0"
 
     def test_returns_none_on_http_error(self) -> None:
         with patch("arcade_cli.update.urlopen", side_effect=Exception("network error")):

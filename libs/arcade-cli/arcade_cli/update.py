@@ -155,7 +155,7 @@ def fetch_latest_pypi_version() -> str | None:
 
     Returns None only if the fetch fails or no stable version exists.
     If ``data["info"]["version"]`` is a pre-release, falls back to scanning
-    all releases for the highest stable version.
+    all releases for the highest stable, non-yanked version.
     """
     try:
         with urlopen(PYPI_URL, timeout=5) as resp:  # noqa: S310
@@ -166,12 +166,17 @@ def fetch_latest_pypi_version() -> str | None:
             if not Version(latest).is_prerelease:
                 return latest
             # info.version is a pre-release — scan releases for the newest stable
+            releases = data.get("releases", {})
             stable_versions: list[Version] = []
-            for v in data.get("releases", {}):
+            for v, files in releases.items():
                 with contextlib.suppress(Exception):
                     parsed = Version(v)
-                    if not parsed.is_prerelease:
-                        stable_versions.append(parsed)
+                    if parsed.is_prerelease:
+                        continue
+                    # Skip yanked releases (all files marked yanked, or no files)
+                    if not files or all(f.get("yanked", False) for f in files):
+                        continue
+                    stable_versions.append(parsed)
             if not stable_versions:
                 return None
             return str(max(stable_versions))
