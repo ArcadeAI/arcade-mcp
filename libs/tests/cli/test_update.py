@@ -124,6 +124,16 @@ class TestDetectInstallMethod:
             with patch("arcade_cli.update.subprocess.run", side_effect=run_side_effect):
                 assert detect_install_method() == InstallMethod.UV_PIP
 
+    def test_does_not_false_positive_on_prefix_match(self) -> None:
+        """arcade-mcp-server should NOT be detected as arcade-mcp."""
+        uv_tool_output = "arcade-mcp-server v1.0.0\n- arcade-mcp-server\n"
+        with patch("arcade_cli.update.shutil") as mock_shutil:
+            mock_shutil.which.return_value = "/usr/local/bin/uv"
+            with patch("arcade_cli.update.subprocess.run") as mock_run:
+                mock_run.return_value = MagicMock(returncode=0, stdout=uv_tool_output)
+                # Should NOT detect UV_TOOL since only arcade-mcp-server is installed
+                assert detect_install_method() == InstallMethod.UV_PIP
+
     def test_falls_back_to_pip(self) -> None:
         """If neither uv nor pipx is available, fall back to PIP."""
         with patch("arcade_cli.update.shutil") as mock_shutil:

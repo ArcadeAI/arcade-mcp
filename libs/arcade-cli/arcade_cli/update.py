@@ -7,6 +7,7 @@ import dataclasses
 import json
 import logging
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -29,6 +30,8 @@ logger = logging.getLogger(__name__)
 
 PACKAGE_NAME = "arcade-mcp"
 PYPI_URL = f"https://pypi.org/pypi/{PACKAGE_NAME}/json"
+# Pattern to match PACKAGE_NAME exactly (not as a prefix of e.g. "arcade-mcp-server")
+_PACKAGE_RE = re.compile(rf"(?:^|\s){re.escape(PACKAGE_NAME)}(?:\s|$)", re.MULTILINE)
 
 UPDATE_CACHE_PATH = os.path.join(ARCADE_CONFIG_PATH, "update_cache.json")
 # Minimum interval between background PyPI version checks
@@ -193,7 +196,7 @@ def detect_install_method() -> InstallMethod:
                 text=True,
                 timeout=10,
             )
-            if result.returncode == 0 and PACKAGE_NAME in result.stdout:
+            if result.returncode == 0 and _PACKAGE_RE.search(result.stdout):
                 return InstallMethod.UV_TOOL
         except Exception:
             logger.debug("Failed to check uv tool list", exc_info=True)
@@ -206,7 +209,7 @@ def detect_install_method() -> InstallMethod:
                 text=True,
                 timeout=10,
             )
-            if result.returncode == 0 and PACKAGE_NAME in result.stdout:
+            if result.returncode == 0 and _PACKAGE_RE.search(result.stdout):
                 return InstallMethod.PIPX
         except Exception:
             logger.debug("Failed to check pipx list", exc_info=True)
