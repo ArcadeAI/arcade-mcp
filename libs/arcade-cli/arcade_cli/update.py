@@ -150,17 +150,28 @@ class InstallMethod(str, Enum):
 def fetch_latest_pypi_version() -> str | None:
     """Query PyPI for the latest stable version of the package.
 
-    Returns None if the fetch fails or the latest version is a pre-release.
+    Returns None only if the fetch fails or no stable version exists.
+    If ``data["info"]["version"]`` is a pre-release, falls back to scanning
+    all releases for the highest stable version.
     """
     try:
         with urlopen(PYPI_URL, timeout=5) as resp:  # noqa: S310
             if resp.status != 200:
                 return None
             data = json.loads(resp.read())
-            version: str = data["info"]["version"]
-            if Version(version).is_prerelease:
+            latest: str = data["info"]["version"]
+            if not Version(latest).is_prerelease:
+                return latest
+            # info.version is a pre-release — scan releases for the newest stable
+            stable_versions: list[Version] = []
+            for v in data.get("releases", {}):
+                with contextlib.suppress(Exception):
+                    parsed = Version(v)
+                    if not parsed.is_prerelease:
+                        stable_versions.append(parsed)
+            if not stable_versions:
                 return None
-            return version
+            return str(max(stable_versions))
     except Exception:
         return None
 

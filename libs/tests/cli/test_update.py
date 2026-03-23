@@ -42,11 +42,30 @@ class TestFetchLatestPypiVersion:
         with patch("arcade_cli.update.urlopen", return_value=mock_response):
             assert fetch_latest_pypi_version() == "2.0.0"
 
-    def test_returns_none_on_prerelease(self) -> None:
-        """Pre-release versions should be filtered out at the source."""
+    def test_falls_back_to_stable_release_when_latest_is_prerelease(self) -> None:
+        """When info.version is a pre-release, return the highest stable from releases."""
         mock_response = MagicMock()
         mock_response.status = 200
-        mock_response.read.return_value = b'{"info": {"version": "2.0.0rc1"}}'
+        payload = json.dumps({
+            "info": {"version": "2.0.0rc1"},
+            "releases": {"1.9.0": [], "2.0.0rc1": [], "1.10.0": []},
+        }).encode()
+        mock_response.read.return_value = payload
+        mock_response.__enter__ = lambda s: s
+        mock_response.__exit__ = MagicMock(return_value=False)
+
+        with patch("arcade_cli.update.urlopen", return_value=mock_response):
+            assert fetch_latest_pypi_version() == "1.10.0"
+
+    def test_returns_none_when_only_prereleases_exist(self) -> None:
+        """When all releases are pre-releases, return None."""
+        mock_response = MagicMock()
+        mock_response.status = 200
+        payload = json.dumps({
+            "info": {"version": "2.0.0rc1"},
+            "releases": {"2.0.0a1": [], "2.0.0rc1": []},
+        }).encode()
+        mock_response.read.return_value = payload
         mock_response.__enter__ = lambda s: s
         mock_response.__exit__ = MagicMock(return_value=False)
 
