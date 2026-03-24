@@ -6,6 +6,7 @@ and tool catalog initialization used by both stdio and HTTP modes.
 """
 
 import sys
+from collections.abc import Callable
 from typing import Any
 
 from arcade_core.catalog import ToolCatalog
@@ -16,6 +17,7 @@ from loguru import logger
 
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.settings import MCPSettings
+from arcade_mcp_server.types import Resource
 
 
 def initialize_tool_catalog(
@@ -56,7 +58,7 @@ async def run_stdio_server(
     debug: bool = False,
     env_file: str | None = None,
     settings: MCPSettings | None = None,
-    initial_resources: list[tuple[Any, Any]] | None = None,
+    initial_resources: list[tuple[Resource, Callable[..., Any] | None]] | None = None,
     tool_meta_extensions: dict[str, Any] | None = None,
     **kwargs: Any,
 ) -> None:

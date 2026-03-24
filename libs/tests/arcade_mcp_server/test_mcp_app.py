@@ -785,6 +785,30 @@ class TestMCPAppResourceRegistration:
         resource, _ = app._initial_resources[0]
         assert resource.name == "ui://app/page.html"
 
+    def test_add_resource_with_title(self):
+        """Verify title is set on the Resource object."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+        app.add_resource(
+            "ui://app/index.html",
+            name="App UI",
+            title="My Application",
+            mime_type="text/html",
+        )
+
+        resource, _ = app._initial_resources[0]
+        assert resource.title == "My Application"
+
+    def test_resource_decorator_with_title(self):
+        """Verify title is passed through from the decorator."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        @app.resource("ui://app/index.html", title="My App UI")
+        def serve_ui(uri: str) -> str:
+            return "<html></html>"
+
+        resource, _ = app._initial_resources[0]
+        assert resource.title == "My App UI"
+
     def test_resource_decorator_registers_resource(self):
         """@app.resource(uri) stores (Resource, fn)."""
         app = MCPApp(name="TestApp", version="1.0.0")

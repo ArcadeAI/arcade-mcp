@@ -310,12 +310,15 @@ class MCPApp:
         uri: str,
         *,
         name: str | None = None,
+        title: str | None = None,
         description: str | None = None,
         mime_type: str | None = None,
         handler: Callable[..., Any] | None = None,
     ) -> None:
         """Register a resource at build time (before server start)."""
-        resource = Resource(uri=uri, name=name or uri, description=description, mimeType=mime_type)
+        resource = Resource(
+            uri=uri, name=name or uri, title=title, description=description, mimeType=mime_type
+        )
         self._initial_resources.append((resource, handler))
         logger.debug(f"Added resource: {uri}")
 
@@ -324,6 +327,7 @@ class MCPApp:
         uri: str,
         *,
         name: str | None = None,
+        title: str | None = None,
         description: str | None = None,
         mime_type: str | None = None,
     ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
@@ -333,6 +337,7 @@ class MCPApp:
             self.add_resource(
                 uri,
                 name=name or func.__name__,
+                title=title,
                 description=description,
                 mime_type=mime_type,
                 handler=func,

@@ -1668,3 +1668,43 @@ class TestServerInitialResources:
             assert contents[0].text == '{"key": "value"}'  # type: ignore[attr-defined]
         finally:
             await server.stop()
+
+    @pytest.mark.asyncio
+    async def test_server_handle_read_resource_round_trip(self, tool_catalog, mcp_settings):
+        """Integration: _handle_read_resource returns correct JSONRPCResponse."""
+        from arcade_mcp_server.types import (
+            ReadResourceParams,
+            ReadResourceRequest,
+            ReadResourceResult,
+            Resource,
+            TextResourceContents,
+        )
+
+        resource = Resource(uri="ui://app/page.html", name="Page", mimeType="text/html")
+
+        def handler(uri: str) -> str:
+            return "<html><body>Hello</body></html>"
+
+        server = MCPServer(
+            catalog=tool_catalog,
+            settings=mcp_settings,
+            initial_resources=[(resource, handler)],
+        )
+        await server.start()
+        try:
+            request = ReadResourceRequest(
+                id=1,
+                params=ReadResourceParams(uri="ui://app/page.html"),
+            )
+            response = await server._handle_read_resource(request)
+
+            assert not hasattr(response, "error"), f"Expected success, got error: {response}"
+            result = response.result
+            assert isinstance(result, ReadResourceResult)
+            assert len(result.contents) == 1
+            content = result.contents[0]
+            assert isinstance(content, TextResourceContents)
+            assert content.text == "<html><body>Hello</body></html>"
+            assert content.mimeType == "text/html"
+        finally:
+            await server.stop()
