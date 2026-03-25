@@ -1,6 +1,6 @@
-# SEP-0000 Telemetry Passback — Reference Implementation
+# SEP-2448: MCP server execution telemetry — Reference Implementation
 
-End-to-end reference implementation of **SEP-0000 `serverExecutionTelemetry`** — cross-organization distributed tracing via MCP.
+End-to-end reference implementation of **SEP-2448 `serverExecutionTelemetry`** — cross-organization distributed tracing via MCP.
 
 ## Overview
 

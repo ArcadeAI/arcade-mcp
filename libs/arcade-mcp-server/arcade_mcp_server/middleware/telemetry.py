@@ -19,9 +19,7 @@ logger = logging.getLogger("arcade.mcp.telemetry")
 
 
 # Per-request span collection via ContextVar
-_request_spans: ContextVar[list[ReadableSpan] | None] = ContextVar(
-    "_request_spans", default=None
-)
+_request_spans: ContextVar[list[ReadableSpan] | None] = ContextVar("_request_spans", default=None)
 
 
 class ContextVarSpanCollector(SpanProcessor):
@@ -69,17 +67,20 @@ def filter_top_level_spans(spans: list[ReadableSpan]) -> list[ReadableSpan]:
         return spans
     root_id = root.context.span_id
     return [
-        s for s in spans
-        if s.context.span_id == root_id
-        or (s.parent and s.parent.span_id == root_id)
+        s
+        for s in spans
+        if s.context.span_id == root_id or (s.parent and s.parent.span_id == root_id)
     ]
 
 
 # OTLP JSON serialization
 
 _SPAN_KIND_MAP = {
-    SpanKind.INTERNAL: 1, SpanKind.SERVER: 2, SpanKind.CLIENT: 3,
-    SpanKind.PRODUCER: 4, SpanKind.CONSUMER: 5,
+    SpanKind.INTERNAL: 1,
+    SpanKind.SERVER: 2,
+    SpanKind.CLIENT: 3,
+    SpanKind.PRODUCER: 4,
+    SpanKind.CONSUMER: 5,
 }
 _STATUS_CODE_MAP = {StatusCode.UNSET: 0, StatusCode.OK: 1, StatusCode.ERROR: 2}
 
@@ -102,7 +103,7 @@ def _attrs_to_kv(attrs: dict[str, Any] | None) -> list[dict[str, Any]]:
         elif isinstance(val, str):
             out.append({"key": key, "value": {"stringValue": val}})
         elif isinstance(val, (list, tuple)):
-            arr = []
+            arr: list[dict[str, Any]] = []
             for v in val:
                 if isinstance(v, str):
                     arr.append({"stringValue": v})
@@ -119,7 +120,8 @@ def _attrs_to_kv(attrs: dict[str, Any] | None) -> list[dict[str, Any]]:
 
 
 def spans_to_otlp_json(
-    spans: list[ReadableSpan], service_name: str,
+    spans: list[ReadableSpan],
+    service_name: str,
 ) -> dict[str, Any]:
     """Convert ReadableSpan objects to OTLP JSON (ExportTraceServiceRequest)."""
     otlp_spans: list[dict[str, Any]] = []
@@ -151,12 +153,14 @@ def spans_to_otlp_json(
         otlp_spans.append(rec)
 
     return {
-        "resourceSpans": [{
-            "resource": {
-                "attributes": [{"key": "service.name", "value": {"stringValue": service_name}}],
-            },
-            "scopeSpans": [{"scope": {"name": "mcp-telemetry-passback"}, "spans": otlp_spans}],
-        }]
+        "resourceSpans": [
+            {
+                "resource": {
+                    "attributes": [{"key": "service.name", "value": {"stringValue": service_name}}],
+                },
+                "scopeSpans": [{"scope": {"name": "mcp-telemetry-passback"}, "spans": otlp_spans}],
+            }
+        ]
     }
 
 
@@ -223,16 +227,20 @@ class TelemetryPassbackMiddleware(Middleware):
 
         payload = {
             "traces": {
-                "resourceSpans": spans_to_otlp_json(filtered, self._service_name).get("resourceSpans", []),
+                "resourceSpans": spans_to_otlp_json(filtered, self._service_name).get(
+                    "resourceSpans", []
+                ),
                 "truncated": dropped > 0,
                 "droppedSpanCount": dropped,
             }
         }
 
         if isinstance(response, JSONRPCResponse) and response.result is not None:
-            meta = response.result.meta or {}
-            meta["otel"] = payload
-            response.result.meta = meta
+            result = response.result
+            if not isinstance(result, dict) and hasattr(result, "meta"):
+                meta = result.meta or {}
+                meta["otel"] = payload
+                result.meta = meta
 
         return response
 
@@ -245,10 +253,9 @@ class TelemetryPassbackMiddleware(Middleware):
         for attr in ("content", "contents"):
             items = getattr(result, attr, None)
             if items and isinstance(items, list):
-                parts = [getattr(c, "text", None) for c in items]
-                parts = [p for p in parts if p]
+                parts = [p for c in items if (p := getattr(c, "text", None))]
                 if parts:
-                    return "\n".join(parts)
+                    return "\n".join(str(p) for p in parts)
         return None
 
     async def _handle_with_telemetry(
@@ -292,7 +299,9 @@ class TelemetryPassbackMiddleware(Middleware):
         return self._attach_spans(response, collected, otel.get("detailed", False))
 
     async def on_call_tool(
-        self, context: MiddlewareContext[Any], call_next: CallNext[Any, Any],
+        self,
+        context: MiddlewareContext[Any],
+        call_next: CallNext[Any, Any],
     ) -> Any:
         """Intercept tools/call to collect and return server spans."""
         msg = context.message
@@ -300,7 +309,8 @@ class TelemetryPassbackMiddleware(Middleware):
         name = params.get("name", "")
         arguments = params.get("arguments", {})
         return await self._handle_with_telemetry(
-            context, call_next,
+            context,
+            call_next,
             span_name=f"tools/call {name}",
             span_attributes={
                 "mcp.method": "tools/call",
@@ -314,14 +324,17 @@ class TelemetryPassbackMiddleware(Middleware):
         )
 
     async def on_read_resource(
-        self, context: MiddlewareContext[Any], call_next: CallNext[Any, Any],
+        self,
+        context: MiddlewareContext[Any],
+        call_next: CallNext[Any, Any],
     ) -> Any:
         """Intercept resources/read to collect and return server spans."""
         msg = context.message
         params = msg.get("params", {}) if isinstance(msg, dict) else {}
         uri = params.get("uri", "")
         return await self._handle_with_telemetry(
-            context, call_next,
+            context,
+            call_next,
             span_name=f"resources/read {uri}",
             span_attributes={
                 "mcp.method": "resources/read",

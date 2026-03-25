@@ -1,4 +1,4 @@
-"""Gmail MCP server with SEP-0000 telemetry passback.
+"""Gmail MCP server with SEP-2448 MCP server execution telemetry.
 
 Vendor-side reference implementation of cross-org distributed tracing:
 
@@ -18,23 +18,23 @@ from email.mime.text import MIMEText
 from pathlib import Path
 from typing import Annotated, cast
 
+import httpx
 from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parent.parent.parent / ".env")
 
-import httpx
-from arcade_mcp_server import Context, MCPApp
-from arcade_mcp_server.auth import Google
-from arcade_mcp_server.mcp_app import TransportType
-from arcade_mcp_server.middleware.telemetry import TelemetryPassbackMiddleware
-from arcade_mcp_server.resource_server import (
+from arcade_mcp_server import Context, MCPApp  # noqa: E402
+from arcade_mcp_server.auth import Google  # noqa: E402
+from arcade_mcp_server.mcp_app import TransportType  # noqa: E402
+from arcade_mcp_server.middleware.telemetry import TelemetryPassbackMiddleware  # noqa: E402
+from arcade_mcp_server.resource_server import (  # noqa: E402
     AuthorizationServerEntry,
     ResourceServerAuth,
 )
-from arcade_mcp_server.resource_server.base import ResourceOwner
-from opentelemetry import trace
-from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
-from opentelemetry.sdk.trace import TracerProvider
+from arcade_mcp_server.resource_server.base import ResourceOwner  # noqa: E402
+from opentelemetry import trace  # noqa: E402
+from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor  # noqa: E402
+from opentelemetry.sdk.trace import TracerProvider  # noqa: E402
 
 # ------------------------------------------------------------
 # OpenTelemetry — server-internal only (no external exporter)
@@ -67,11 +67,14 @@ async def _async_response_hook(span, request, response):
     """Capture response status with gen_ai semantic conventions."""
     method = request.method.decode() if isinstance(request.method, bytes) else str(request.method)
     url = str(request.url)
-    span.set_attribute("gen_ai.tool.call.result", json.dumps({
-        "status": response.status_code,
-        "url": url,
-        "method": method,
-    }))
+    span.set_attribute(
+        "gen_ai.tool.call.result",
+        json.dumps({
+            "status": response.status_code,
+            "url": url,
+            "method": method,
+        }),
+    )
 
 
 HTTPXClientInstrumentor().instrument(
@@ -127,12 +130,10 @@ app = MCPApp(
     name="mcp_gmail_server",
     version="0.1.0",
     instructions=(
-        "Gmail server with cross-org observability "
-        "via SEP-0000 serverExecutionTelemetry."
+        "Gmail server with cross-org observability " "via SEP-0000 serverExecutionTelemetry."
     ),
     auth=resource_server_auth,
     middleware=[telemetry_mw],
-    extra_capabilities=telemetry_mw.get_capabilities(),
 )
 
 # ------
@@ -192,10 +193,7 @@ async def list_emails(
                 )
                 detail_resp.raise_for_status()
                 msg = detail_resp.json()
-                hdrs = {
-                    h["name"]: h["value"]
-                    for h in msg.get("payload", {}).get("headers", [])
-                }
+                hdrs = {h["name"]: h["value"] for h in msg.get("payload", {}).get("headers", [])}
                 results.append({
                     "id": msg["id"],
                     "subject": hdrs.get("Subject", "(no subject)"),

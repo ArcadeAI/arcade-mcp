@@ -123,7 +123,6 @@ class MCPServer:
         auth_disabled: bool = False,
         arcade_api_key: str | None = None,
         arcade_api_url: str | None = None,
-        extra_capabilities: dict[str, Any] | None = None,
     ):
         """
         Initialize MCP server.
@@ -140,7 +139,6 @@ class MCPServer:
             auth_disabled: Disable authentication
             arcade_api_key: Arcade API key (overrides settings)
             arcade_api_url: Arcade API URL (overrides settings)
-            extra_capabilities: Additional capabilities to advertise (e.g. serverExecutionTelemetry)
         """
         self._started = False
         self._lock = asyncio.Lock()
@@ -204,7 +202,7 @@ class MCPServer:
 
         # Middleware chain
         self.middleware: list[Middleware] = []
-        self._extra_capabilities: dict[str, Any] = extra_capabilities or {}
+        self._extra_capabilities: dict[str, Any] = {}
         self._init_middleware(middleware)
 
         # Lifespan management

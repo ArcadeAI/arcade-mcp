@@ -1,4 +1,4 @@
-"""LangChain ReAct agent with SEP-0000 span passback.
+"""LangChain ReAct agent with SEP-2448: MCP server execution telemetry.
 
 Consumer-side reference implementation of cross-org distributed tracing:
 
@@ -30,9 +30,9 @@ from urllib.parse import parse_qs, urlparse
 
 import httpx
 from dotenv import load_dotenv
+from langchain.agents import create_agent
 from langchain_core.tools import StructuredTool
 from langchain_openai import ChatOpenAI
-from langgraph.prebuilt import create_react_agent
 from mcp import ClientSession
 from mcp.client.auth import OAuthClientProvider, TokenStorage
 from mcp.client.streamable_http import streamable_http_client
@@ -66,7 +66,7 @@ _passback_stats: dict[str, Any] = {"span_count": 0, "truncated": False, "dropped
 
 
 # --------------------------------------
-# MCP OAuth 2.1 (handled by the MCP SDK 
+# MCP OAuth 2.1 (handled by the MCP SDK
 # --------------------------------------
 
 _OAUTH_TOKEN_FILE = _PROJECT_ROOT / ".oauth_tokens.json"
@@ -96,7 +96,7 @@ class FileTokenStorage(TokenStorage):
 
 async def _handle_redirect(authorization_url: str) -> None:
     """Open the browser for OAuth consent."""
-    print(f"\n  Opening browser for authorization...")
+    print("\n  Opening browser for authorization...")
     print(f"  URL: {authorization_url}\n")
     webbrowser.open(authorization_url)
 
@@ -115,7 +115,9 @@ async def _handle_callback() -> tuple[str, str | None]:
                 self.send_response(200)
                 self.send_header("Content-Type", "text/html")
                 self.end_headers()
-                self.wfile.write(b"<h2>Authorization successful!</h2><p>You can close this tab.</p>")
+                self.wfile.write(
+                    b"<h2>Authorization successful!</h2><p>You can close this tab.</p>"
+                )
                 loop.call_soon_threadsafe(future.set_result, (code, state))
             else:
                 error = qs.get("error", ["unknown"])[0]
@@ -123,9 +125,11 @@ async def _handle_callback() -> tuple[str, str | None]:
                 self.send_header("Content-Type", "text/html")
                 self.end_headers()
                 self.wfile.write(f"<h2>Authorization failed: {error}</h2>".encode())
-                loop.call_soon_threadsafe(future.set_exception, RuntimeError(f"OAuth error: {error}"))
+                loop.call_soon_threadsafe(
+                    future.set_exception, RuntimeError(f"OAuth error: {error}")
+                )
 
-        def log_message(self, format: str, *args: Any) -> None:
+        def log_message(self, fmt: str, *args: Any) -> None:
             pass
 
     server = HTTPServer(("127.0.0.1", _CALLBACK_PORT), _Handler)
@@ -144,11 +148,7 @@ async def _handle_callback() -> tuple[str, str | None]:
 
 
 def _count_spans(resource_spans: list[dict[str, Any]]) -> int:
-    return sum(
-        len(ss.get("spans", []))
-        for rs in resource_spans
-        for ss in rs.get("scopeSpans", [])
-    )
+    return sum(len(ss.get("spans", [])) for rs in resource_spans for ss in rs.get("scopeSpans", []))
 
 
 def _hex_ids_to_base64(resource_spans: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -162,7 +162,7 @@ def _hex_ids_to_base64(resource_spans: list[dict[str, Any]]) -> list[dict[str, A
         for ss in rs.get("scopeSpans", []):
             for span in ss.get("spans", []):
                 for fld in _ID_FIELDS:
-                    if fld in span and span[fld]:
+                    if span.get(fld):
                         span[fld] = base64.b64encode(bytes.fromhex(span[fld])).decode()
     return converted
 
@@ -180,9 +180,11 @@ def ingest_spans_json(
         httpx.post(endpoint, json=otlp_json, headers=hdrs).raise_for_status()
         log.info("Ingested %d server span(s) into %s", count, label)
     except httpx.ConnectError:
-        log.error("Could not connect to %s at %s", label, endpoint)
+        log.exception("Could not connect to %s at %s", label, endpoint)
     except httpx.HTTPStatusError as exc:
-        log.error("%s returned %d: %s", label, exc.response.status_code, exc.response.text[:200])
+        log.exception(
+            "%s returned %d: %s", label, exc.response.status_code, exc.response.text[:200]
+        )
 
 
 def ingest_spans_protobuf(
@@ -205,10 +207,17 @@ def ingest_spans_protobuf(
     b64_spans = _hex_ids_to_base64(resource_spans)
     body = ParseDict({"resourceSpans": b64_spans}, ExportTraceServiceRequest()).SerializeToString()
     try:
-        resp = httpx.post(endpoint, content=body, headers={"Content-Type": "application/x-protobuf", **headers})
-        log.info("Exported %d server span(s) to %s (HTTP %d)", _count_spans(resource_spans), label, resp.status_code)
+        resp = httpx.post(
+            endpoint, content=body, headers={"Content-Type": "application/x-protobuf", **headers}
+        )
+        log.info(
+            "Exported %d server span(s) to %s (HTTP %d)",
+            _count_spans(resource_spans),
+            label,
+            resp.status_code,
+        )
     except httpx.ConnectError:
-        log.error("Could not connect to %s at %s", label, endpoint)
+        log.exception("Could not connect to %s at %s", label, endpoint)
 
 
 # ----------------
@@ -262,11 +271,13 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("query", nargs="?", default="List my 5 most recent emails")
     p.add_argument("--detailed", action="store_true", help="Request full span tree")
     p.add_argument(
-        "--no-passback", action="store_true",
+        "--no-passback",
+        action="store_true",
         help="Disable span passback (before SEP-0000 -- server is a black box)",
     )
     p.add_argument(
-        "--server-url", default="http://127.0.0.1:8000/mcp",
+        "--server-url",
+        default="http://127.0.0.1:8000/mcp",
         help="MCP server URL (default: http://127.0.0.1:8000/mcp)",
     )
     return p.parse_args()
@@ -300,6 +311,17 @@ def _find_instrumentor_span(tool_name: str) -> trace.Span | None:
 # --------------------------
 
 
+def _extract_trace_id(resource_spans: list[dict[str, Any]]) -> str | None:
+    """Return the first traceId found in resource_spans, or None."""
+    for rs in resource_spans:
+        for ss in rs.get("scopeSpans", []):
+            for sp in ss.get("spans", []):
+                tid = sp.get("traceId")
+                if tid:
+                    return tid
+    return None
+
+
 def _process_passback_spans(meta: dict[str, Any] | None) -> None:
     """Extract server spans from response ``_meta`` and ingest into collectors."""
     if not meta:
@@ -320,13 +342,7 @@ def _process_passback_spans(meta: dict[str, Any] | None) -> None:
     _passback_stats["truncated"] = _passback_stats["truncated"] or truncated
     _passback_stats["dropped"] += dropped
     if not _passback_stats.get("trace_id"):
-        for rs in resource_spans:
-            for ss in rs.get("scopeSpans", []):
-                for sp in ss.get("spans", []):
-                    tid = sp.get("traceId")
-                    if tid:
-                        _passback_stats["trace_id"] = tid
-                        break
+        _passback_stats["trace_id"] = _extract_trace_id(resource_spans) or ""
 
     print(f"  Server-side spans: {span_count} received and ingested")
     if truncated:
@@ -419,7 +435,9 @@ def build_mcp_tools(
                         span.set_attribute("mcp.auth.required", True)
                         print(f"\n  Authorization required. Open this URL:\n\n  {auth_url}\n")
                         await asyncio.get_event_loop().run_in_executor(
-                            None, input, "  Press Enter after authorizing...",
+                            None,
+                            input,
+                            "  Press Enter after authorizing...",
                         )
                         result = await session.call_tool(t_name, arguments=kwargs, meta=meta)
 
@@ -443,12 +461,14 @@ def build_mcp_tools(
             else:
                 fields[pname] = (str, Field(default="", description=pdesc))
 
-        tools.append(StructuredTool(
-            name=name,
-            description=desc,
-            coroutine=_make_fn(name),
-            args_schema=create_model(f"{name}Args", **fields),
-        ))
+        tools.append(
+            StructuredTool(
+                name=name,
+                description=desc,
+                coroutine=_make_fn(name),
+                args_schema=create_model(f"{name}Args", **fields),
+            )
+        )
 
     return tools
 
@@ -489,7 +509,7 @@ async def main() -> None:
             redirect_uris=["http://127.0.0.1:9905/callback"],
             grant_types=["authorization_code", "refresh_token"],
             response_types=["code"],
-            token_endpoint_auth_method="none",
+            token_endpoint_auth_method="none",  # noqa: S106 - OAuth 2.1 public client (no secret)
         ),
         storage=FileTokenStorage(),
         redirect_handler=_handle_redirect,
@@ -498,34 +518,40 @@ async def main() -> None:
     http_client = httpx.AsyncClient(auth=oauth_auth)
     print(f"  Connecting to MCP server at {server_url} ...")
 
-    async with streamable_http_client(url=server_url, http_client=http_client) as (read, write, _):
-        async with ClientSession(read, write) as session:
-            init = await session.initialize()
+    async with (
+        streamable_http_client(url=server_url, http_client=http_client) as (read, write, _),
+        ClientSession(read, write) as session,
+    ):
+        init = await session.initialize()
 
-            telemetry_cap = getattr(init.capabilities, "serverExecutionTelemetry", None)
-            print(f"  Server: {init.serverInfo.name} v{init.serverInfo.version}")
-            print(f"  serverExecutionTelemetry: {telemetry_cap is not None}")
-            if telemetry_cap:
-                print(f"  Capability: {telemetry_cap}")
+        telemetry_cap = getattr(init.capabilities, "serverExecutionTelemetry", None)
+        print(f"  Server: {init.serverInfo.name} v{init.serverInfo.version}")
+        print(f"  serverExecutionTelemetry: {telemetry_cap is not None}")
+        if telemetry_cap:
+            print(f"  Capability: {telemetry_cap}")
 
-            discovered = await session.list_tools()
-            print(f"  Tools: {[t.name for t in discovered.tools]}\n")
+        discovered = await session.list_tools()
+        print(f"  Tools: {[t.name for t in discovered.tools]}\n")
 
-            lc_tools = build_mcp_tools(
-                session, discovered.tools, tracer, propagator,
-                detailed=args.detailed, passback=passback,
-            )
+        lc_tools = build_mcp_tools(
+            session,
+            discovered.tools,
+            tracer,
+            propagator,
+            detailed=args.detailed,
+            passback=passback,
+        )
 
-            agent = create_react_agent(ChatOpenAI(model="gpt-4o-mini"), lc_tools)
+        agent = create_agent(ChatOpenAI(model="gpt-4o-mini"), lc_tools)
 
-            print(f"  Query: {args.query}")
-            if passback:
-                print(f"  Detailed: {args.detailed}")
-            print()
+        print(f"  Query: {args.query}")
+        if passback:
+            print(f"  Detailed: {args.detailed}")
+        print()
 
-            result = await agent.ainvoke({"messages": [("user", args.query)]})
+        result = await agent.ainvoke({"messages": [("user", args.query)]})
 
-            print(f"\n  Agent: {result['messages'][-1].content}\n")
+        print(f"\n  Agent: {result['messages'][-1].content}\n")
 
     provider.force_flush()
     provider.shutdown()
@@ -535,7 +561,7 @@ async def main() -> None:
         print(f"  Jaeger UI: {JAEGER_UI}/trace/{trace_id}")
     else:
         print(f"  Jaeger UI: {JAEGER_UI}  (search for service mcp-gmail-agent)")
-    print(f"  Service:   mcp-gmail-agent")
+    print("  Service:   mcp-gmail-agent")
     if args.no_passback:
         print("  Expected:  only agent-side spans (server is a black box)")
     elif args.detailed:

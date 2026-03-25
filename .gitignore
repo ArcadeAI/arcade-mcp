@@ -180,6 +180,6 @@ cython_debug/
 # Docs
 libs/arcade-mcp-server/site/*
 
-# exlcude OAuth tokens
+# exclude OAuth tokens
 .oauth_tokens.json
 .oauth_client.json
