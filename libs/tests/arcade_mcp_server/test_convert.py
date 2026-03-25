@@ -16,7 +16,11 @@ from arcade_core.schema import (
     ValueSchema,
 )
 from arcade_mcp_server import tool
-from arcade_mcp_server.convert import convert_to_mcp_content, create_mcp_tool
+from arcade_mcp_server.convert import (
+    convert_content_to_structured_content,
+    convert_to_mcp_content,
+    create_mcp_tool,
+)
 
 # Small PNG header (1x1 transparent pixel) used for byte-image param tests
 PNG_BYTES = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde"
@@ -562,3 +566,53 @@ class TestCreateMCPTool:
         assert info_schema["type"] == "object"
         assert "properties" in info_schema
         assert info_schema["properties"]["count"]["type"] == "integer"
+
+    def test_output_schema_non_object_wrapped_in_object(self):
+        """Non-object output types get wrapped in {type: object, properties: {result: ...}}."""
+        mcp_tool = self._make_tool_with_output(ValueSchema(val_type="string"))
+        output_schema = mcp_tool.outputSchema
+
+        assert output_schema is not None
+        assert output_schema["type"] == "object"
+        assert "result" in output_schema["properties"]
+        assert output_schema["properties"]["result"]["type"] == "string"
+
+    def test_output_schema_array_wrapped_in_object(self):
+        """Array output types get wrapped in an object with a 'result' property."""
+        mcp_tool = self._make_tool_with_output(
+            ValueSchema(val_type="array", inner_val_type="string")
+        )
+        output_schema = mcp_tool.outputSchema
+
+        assert output_schema is not None
+        assert output_schema["type"] == "object"
+        assert output_schema["properties"]["result"]["type"] == "array"
+        assert output_schema["properties"]["result"]["items"]["type"] == "string"
+
+
+class TestConvertContentToStructuredContent:
+    """Test convert_content_to_structured_content function."""
+
+    def test_none_returns_none(self):
+        assert convert_content_to_structured_content(None) is None
+
+    def test_dict_returned_as_is(self):
+        d = {"key": "value"}
+        assert convert_content_to_structured_content(d) is d
+
+    def test_list_wrapped_in_result(self):
+        result = convert_content_to_structured_content([1, 2, 3])
+        assert result == {"result": [1, 2, 3]}
+
+    @pytest.mark.parametrize("value", ["hello", 42, 3.14, True])
+    def test_primitives_wrapped_in_result(self, value):
+        result = convert_content_to_structured_content(value)
+        assert result == {"result": value}
+
+    def test_arbitrary_object_str_wrapped(self):
+        class Custom:
+            def __str__(self):
+                return "custom-str"
+
+        result = convert_content_to_structured_content(Custom())
+        assert result == {"result": "custom-str"}

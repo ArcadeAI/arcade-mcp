@@ -1708,3 +1708,72 @@ class TestServerInitialResources:
             assert content.mimeType == "text/html"
         finally:
             await server.stop()
+
+    @pytest.mark.asyncio
+    async def test_server_loads_initial_template_resources(self, tool_catalog, mcp_settings):
+        """MCPServer with initial ResourceTemplate registers it as a template."""
+        from arcade_mcp_server.types import ResourceTemplate
+
+        tmpl = ResourceTemplate(
+            uriTemplate="data://{item_id}", name="Data", mimeType="text/plain"
+        )
+
+        def handler(uri: str, item_id: str) -> str:
+            return f"item-{item_id}"
+
+        server = MCPServer(
+            catalog=tool_catalog,
+            settings=mcp_settings,
+            initial_resources=[(tmpl, handler)],
+        )
+        await server.start()
+        try:
+            templates = await server.resources.list_resource_templates()
+            assert any(t.uriTemplate == "data://{item_id}" for t in templates)
+
+            contents = await server.resources.read_resource("data://42")
+            assert contents[0].text == "item-42"
+        finally:
+            await server.stop()
+
+    @pytest.mark.asyncio
+    async def test_server_loads_template_without_handler(self, tool_catalog, mcp_settings):
+        """MCPServer with ResourceTemplate and no handler registers template only."""
+        from arcade_mcp_server.types import ResourceTemplate
+
+        tmpl = ResourceTemplate(
+            uriTemplate="schema://{type}", name="Schema"
+        )
+
+        server = MCPServer(
+            catalog=tool_catalog,
+            settings=mcp_settings,
+            initial_resources=[(tmpl, None)],
+        )
+        await server.start()
+        try:
+            templates = await server.resources.list_resource_templates()
+            assert any(t.uriTemplate == "schema://{type}" for t in templates)
+        finally:
+            await server.stop()
+
+
+class TestToolMetaExtensionEdgeCases:
+    """Test apply_meta_extensions edge cases on ToolManager directly."""
+
+    @pytest.mark.asyncio
+    async def test_missing_fqn_logs_warning(self, tool_catalog, mcp_settings, caplog):
+        """Extensions referencing non-existent tools log a warning and skip."""
+        import logging
+
+        server = MCPServer(
+            catalog=tool_catalog,
+            settings=mcp_settings,
+            tool_meta_extensions={"NonExistent.Tool": {"ui": {"resourceUri": "ui://x"}}},
+        )
+        with caplog.at_level(logging.WARNING, logger="arcade.mcp.managers.tool"):
+            await server.start()
+        try:
+            assert "skipped: tool not found" in caplog.text
+        finally:
+            await server.stop()

@@ -494,3 +494,97 @@ class TestDuplicateHandlingPolicy:
         # First handler should be kept
         result = await manager.read_resource("dup://test")
         assert result[0].text == "first"
+
+
+class TestCoerceResultDictBranches:
+    """Test _coerce_result dict sub-branches and other handler return types."""
+
+    @pytest.mark.asyncio
+    async def test_handler_returning_dict_with_text_key(self):
+        manager = ResourceManager()
+        resource = Resource(uri="dict://text", name="text", mimeType="text/plain")
+        await manager.add_resource(resource, handler=lambda _uri: {"text": "from dict"})
+
+        result = await manager.read_resource("dict://text")
+        assert isinstance(result[0], TextResourceContents)
+        assert result[0].text == "from dict"
+        assert result[0].mimeType == "text/plain"
+
+    @pytest.mark.asyncio
+    async def test_handler_returning_dict_with_blob_key(self):
+        manager = ResourceManager()
+        resource = Resource(uri="dict://blob", name="blob", mimeType="application/octet-stream")
+        await manager.add_resource(resource, handler=lambda _uri: {"blob": "AQID"})
+
+        result = await manager.read_resource("dict://blob")
+        assert isinstance(result[0], BlobResourceContents)
+        assert result[0].blob == "AQID"
+        assert result[0].mimeType == "application/octet-stream"
+
+    @pytest.mark.asyncio
+    async def test_handler_returning_dict_with_no_text_or_blob(self):
+        manager = ResourceManager()
+        resource = Resource(uri="dict://empty", name="empty", mimeType="application/json")
+        await manager.add_resource(resource, handler=lambda _uri: {"foo": "bar"})
+
+        result = await manager.read_resource("dict://empty")
+        assert isinstance(result[0], ResourceContents)
+        assert result[0].mimeType == "application/json"
+
+    @pytest.mark.asyncio
+    async def test_handler_returning_non_standard_type(self):
+        """Handlers returning arbitrary types get str()-converted."""
+        manager = ResourceManager()
+        resource = Resource(uri="misc://int", name="int")
+        await manager.add_resource(resource, handler=lambda _uri: 42)
+
+        result = await manager.read_resource("misc://int")
+        assert isinstance(result[0], TextResourceContents)
+        assert result[0].text == "42"
+
+
+class TestUpdateResource:
+    """Test ResourceManager.update_resource."""
+
+    @pytest.mark.asyncio
+    async def test_update_existing_resource(self):
+        manager = ResourceManager()
+        r = Resource(uri="upd://test", name="original")
+        await manager.add_resource(r, handler=lambda _uri: "original")
+
+        updated = Resource(uri="upd://test", name="updated")
+        result = await manager.update_resource("upd://test", updated, handler=lambda _uri: "updated")
+        assert result.name == "updated"
+
+        contents = await manager.read_resource("upd://test")
+        assert contents[0].text == "updated"
+
+    @pytest.mark.asyncio
+    async def test_update_nonexistent_resource_raises(self):
+        manager = ResourceManager()
+        r = Resource(uri="upd://missing", name="missing")
+        with pytest.raises(NotFoundError, match="not found"):
+            await manager.update_resource("upd://missing", r)
+
+
+class TestRemoveTemplate:
+    """Test ResourceManager.remove_template."""
+
+    @pytest.mark.asyncio
+    async def test_remove_template_success(self):
+        manager = ResourceManager()
+        tmpl = ResourceTemplate(uriTemplate="rm://{id}", name="removable")
+        await manager.add_template_with_handler(tmpl, lambda uri, id: f"item {id}")
+
+        removed = await manager.remove_template("rm://{id}")
+        assert removed.uriTemplate == "rm://{id}"
+
+        # Template handler should no longer match
+        with pytest.raises(NotFoundError):
+            await manager.read_resource("rm://123")
+
+    @pytest.mark.asyncio
+    async def test_remove_template_not_found(self):
+        manager = ResourceManager()
+        with pytest.raises(NotFoundError, match="not found"):
+            await manager.remove_template("nonexistent://{x}")

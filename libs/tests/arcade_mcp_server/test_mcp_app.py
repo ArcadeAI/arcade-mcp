@@ -997,3 +997,46 @@ class TestMCPAppResourceAnnotationsMetaTemplates:
         item, handler = app._initial_resources[0]
         assert isinstance(item, Resource)
         assert handler is not None
+
+    def test_mcp_app_add_file_resource(self, tmp_path):
+        from arcade_mcp_server.types import Resource
+
+        f = tmp_path / "test.txt"
+        f.write_text("file content")
+
+        app = MCPApp(name="TestApp", version="1.0.0")
+        app.add_file_resource(
+            "file:///test.txt",
+            path=str(f),
+            name="Test File",
+            mime_type="text/plain",
+        )
+
+        assert len(app._initial_resources) == 1
+        item, handler = app._initial_resources[0]
+        assert isinstance(item, Resource)
+        assert item.name == "Test File"
+        assert handler is not None
+        # Handler should return the file content
+        assert handler("file:///test.txt") == "file content"
+
+    def test_mcp_app_add_file_resource_binary(self, tmp_path):
+        f = tmp_path / "image.bin"
+        f.write_bytes(b"\x89PNG\r\n")
+
+        app = MCPApp(name="TestApp", version="1.0.0")
+        app.add_file_resource("file:///image.bin", path=str(f))
+
+        _, handler = app._initial_resources[0]
+        result = handler("file:///image.bin")
+        assert isinstance(result, bytes)
+
+    def test_mcp_app_add_file_resource_missing_raises(self, tmp_path):
+        from arcade_mcp_server.exceptions import NotFoundError
+
+        app = MCPApp(name="TestApp", version="1.0.0")
+        app.add_file_resource("file:///missing.txt", path=str(tmp_path / "missing.txt"))
+
+        _, handler = app._initial_resources[0]
+        with pytest.raises(NotFoundError, match="File not found"):
+            handler("file:///missing.txt")
