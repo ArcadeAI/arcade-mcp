@@ -333,6 +333,7 @@ def _make_otel_context(*, request: bool = True, detailed: bool = False, tracepar
     return mcp_ctx
 
 
+@pytest.mark.filterwarnings("ignore::FutureWarning")
 class TestTelemetryPassbackMiddleware:
     """Test TelemetryPassbackMiddleware class."""
 

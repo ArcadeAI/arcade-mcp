@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import warnings
 from contextvars import ContextVar
 from typing import Any
 
@@ -167,6 +168,12 @@ def spans_to_otlp_json(
 class TelemetryPassbackMiddleware(Middleware):
     """MCP middleware implementing SEP serverExecutionTelemetry.
 
+    .. warning:: **Provisional API** — This middleware implements a draft SEP
+       (SEP-2448: server execution telemetry) that has not yet been finalized in
+       the MCP specification.  The capability schema, response payload shape,
+       and constructor signature may change in a future release once the SEP is
+       ratified.  Pin your ``arcade-mcp-server`` version if you need stability.
+
     Intercepts tools/call and resources/read to:
 
     1. Propagate traceparent from the client for distributed tracing.
@@ -176,6 +183,13 @@ class TelemetryPassbackMiddleware(Middleware):
     """
 
     def __init__(self, service_name: str, tracer_provider: TracerProvider) -> None:
+        warnings.warn(
+            "TelemetryPassbackMiddleware implements a draft version of SEP "
+            "(SEP-2448: server execution telemetry) that is not yet finalized. "
+            "The API may change in a future release.",
+            FutureWarning,
+            stacklevel=2,
+        )
         self._service_name = service_name
         self._tracer = tracer_provider.get_tracer(service_name)
         self._propagator = TraceContextTextMapPropagator()
