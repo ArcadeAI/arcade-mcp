@@ -71,6 +71,7 @@ from arcade_mcp_server.types import (
     PingRequest,
     ReadResourceRequest,
     ReadResourceResult,
+    ResourceTemplate,
     ServerCapabilities,
     SetLevelRequest,
     SubscribeRequest,
@@ -366,8 +367,14 @@ class MCPServer:
         await self._check_and_warn_missing_secrets()
 
         await self._resource_manager.start()
-        for resource, handler in self._initial_resources:
-            await self._resource_manager.add_resource(resource, handler)
+        for item, handler in self._initial_resources:
+            if isinstance(item, ResourceTemplate):
+                if handler is not None:
+                    await self._resource_manager.add_template_with_handler(item, handler)
+                else:
+                    await self._resource_manager.add_template(item)
+            else:
+                await self._resource_manager.add_resource(item, handler)
         await self._prompt_manager.start()
         await self.lifespan_manager.startup()
 

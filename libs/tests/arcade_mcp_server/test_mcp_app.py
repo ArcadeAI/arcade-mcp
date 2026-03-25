@@ -7,7 +7,6 @@ from unittest.mock import Mock, patch
 
 import pytest
 from arcade_core.catalog import MaterializedTool
-
 from arcade_mcp_server import tool
 from arcade_mcp_server.mcp_app import MCPApp
 from arcade_mcp_server.server import MCPServer
@@ -903,3 +902,98 @@ class TestMCPAppResourceRegistration:
         assert app._tool_meta_extensions["TestApp.MyTool"] == {
             "ui": {"resourceUri": "ui://my-tool/index.html"}
         }
+
+
+class TestMCPAppResourceAnnotationsMetaTemplates:
+    """Test MCPApp resource registration with annotations, meta, and templates."""
+
+    def test_add_resource_with_annotations(self):
+        from arcade_mcp_server.types import Annotations, Resource
+
+        app = MCPApp(name="TestApp", version="1.0.0")
+        app.add_resource(
+            "res://test",
+            annotations=Annotations(priority=0.5),
+        )
+        assert len(app._initial_resources) == 1
+        item, _handler = app._initial_resources[0]
+        assert isinstance(item, Resource)
+        assert item.annotations is not None
+        assert item.annotations.priority == 0.5
+
+    def test_add_resource_with_meta(self):
+        from arcade_mcp_server.types import Resource
+
+        app = MCPApp(name="TestApp", version="1.0.0")
+        app.add_resource(
+            "res://test",
+            meta={"custom": "value"},
+        )
+        item, _ = app._initial_resources[0]
+        assert isinstance(item, Resource)
+        assert item.meta == {"custom": "value"}
+
+    def test_resource_decorator_with_annotations(self):
+        from arcade_mcp_server.types import Annotations, Resource
+
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        @app.resource("res://dec", annotations=Annotations(priority=0.8))
+        def handler(uri: str) -> str:
+            return "ok"
+
+        item, _ = app._initial_resources[0]
+        assert isinstance(item, Resource)
+        assert item.annotations is not None
+        assert item.annotations.priority == 0.8
+
+    def test_resource_decorator_with_meta(self):
+        from arcade_mcp_server.types import Resource
+
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        @app.resource("res://dec", meta={"key": "val"})
+        def handler(uri: str) -> str:
+            return "ok"
+
+        item, _ = app._initial_resources[0]
+        assert isinstance(item, Resource)
+        assert item.meta == {"key": "val"}
+
+    def test_resource_decorator_with_template_uri(self):
+        from arcade_mcp_server.types import ResourceTemplate
+
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        @app.resource("weather://{city}/current")
+        def handler(uri: str, city: str) -> str:
+            return f"Weather for {city}"
+
+        item, _ = app._initial_resources[0]
+        assert isinstance(item, ResourceTemplate)
+        assert item.uriTemplate == "weather://{city}/current"
+
+    def test_resource_decorator_template_listed_as_template(self):
+        from arcade_mcp_server.types import Resource, ResourceTemplate
+
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        @app.resource("weather://{city}/current")
+        def handler(uri: str, city: str) -> str:
+            return f"Weather for {city}"
+
+        # Should be ResourceTemplate, not Resource
+        item, _ = app._initial_resources[0]
+        assert isinstance(item, ResourceTemplate)
+        assert not isinstance(item, Resource)
+
+    def test_mcp_app_add_text_resource(self):
+        from arcade_mcp_server.types import Resource
+
+        app = MCPApp(name="TestApp", version="1.0.0")
+        app.add_text_resource("text://hello", text="hello world")
+
+        assert len(app._initial_resources) == 1
+        item, handler = app._initial_resources[0]
+        assert isinstance(item, Resource)
+        assert handler is not None

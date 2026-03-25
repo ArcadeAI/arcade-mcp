@@ -33,7 +33,7 @@ from arcade_mcp_server.resource_server.middleware import ResourceServerMiddlewar
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.settings import MCPSettings
 from arcade_mcp_server.transports.http_session_manager import HTTPSessionManager
-from arcade_mcp_server.types import Resource
+from arcade_mcp_server.types import Resource, ResourceTemplate
 
 
 class CustomUvicornServer(uvicorn.Server):
@@ -78,7 +78,8 @@ class CustomUvicornServer(uvicorn.Server):
 async def create_lifespan(
     catalog: ToolCatalog,
     mcp_settings: MCPSettings | None = None,
-    initial_resources: list[tuple[Resource, Callable[..., Any] | None]] | None = None,
+    initial_resources: list[tuple[Resource | ResourceTemplate, Callable[..., Any] | None]]
+    | None = None,
     tool_meta_extensions: dict[str, Any] | None = None,
     **kwargs: Any,
 ) -> AsyncGenerator[dict[str, Any], None]:
@@ -132,7 +133,8 @@ def create_arcade_mcp(
     debug: bool = False,
     otel_enable: bool = False,
     resource_server_validator: ResourceServerValidator | None = None,
-    initial_resources: list[tuple[Resource, Callable[..., Any] | None]] | None = None,
+    initial_resources: list[tuple[Resource | ResourceTemplate, Callable[..., Any] | None]]
+    | None = None,
     tool_meta_extensions: dict[str, Any] | None = None,
     **kwargs: Any,
 ) -> FastAPI:

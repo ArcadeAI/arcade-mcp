@@ -17,7 +17,7 @@ from loguru import logger
 
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.settings import MCPSettings
-from arcade_mcp_server.types import Resource
+from arcade_mcp_server.types import Resource, ResourceTemplate
 
 
 def initialize_tool_catalog(
@@ -58,7 +58,8 @@ async def run_stdio_server(
     debug: bool = False,
     env_file: str | None = None,
     settings: MCPSettings | None = None,
-    initial_resources: list[tuple[Resource, Callable[..., Any] | None]] | None = None,
+    initial_resources: list[tuple[Resource | ResourceTemplate, Callable[..., Any] | None]]
+    | None = None,
     tool_meta_extensions: dict[str, Any] | None = None,
     **kwargs: Any,
 ) -> None:

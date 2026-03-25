@@ -33,7 +33,7 @@ from arcade_mcp_server.logging_utils import intercept_standard_logging
 from arcade_mcp_server.resource_server.base import ResourceServerValidator
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.settings import MCPSettings, ServerSettings, find_env_file
-from arcade_mcp_server.types import Prompt, PromptMessage, Resource
+from arcade_mcp_server.types import Annotations, Prompt, PromptMessage, Resource, ResourceTemplate
 from arcade_mcp_server.usage import ServerTracker
 from arcade_mcp_server.worker import create_arcade_mcp, serve_with_force_quit
 
@@ -117,7 +117,9 @@ class MCPApp:
         self._toolkit_name = name
 
         # Resource collection (build-time)
-        self._initial_resources: list[tuple[Resource, Callable[..., Any] | None]] = []
+        self._initial_resources: list[
+            tuple[Resource | ResourceTemplate, Callable[..., Any] | None]
+        ] = []
 
         # Tool _meta extensions (build-time) — keyed by tool FQN
         self._tool_meta_extensions: dict[str, dict[str, Any]] = {}
@@ -314,12 +316,28 @@ class MCPApp:
         description: str | None = None,
         mime_type: str | None = None,
         handler: Callable[..., Any] | None = None,
+        annotations: Annotations | None = None,
+        meta: dict[str, Any] | None = None,
     ) -> None:
-        """Register a resource at build time (before server start)."""
-        resource = Resource(
-            uri=uri, name=name or uri, title=title, description=description, mimeType=mime_type
-        )
-        self._initial_resources.append((resource, handler))
+        """Register a resource at build time (before server start).
+
+        If the URI contains ``{`` it is treated as a URI template and a
+        :class:`ResourceTemplate` is stored instead of a :class:`Resource`.
+        """
+        common_kwargs: dict[str, Any] = {
+            "name": name or uri,
+            "title": title,
+            "description": description,
+            "mimeType": mime_type,
+            "annotations": annotations,
+        }
+        if meta is not None:
+            common_kwargs["_meta"] = meta
+        if "{" in uri:
+            item: Resource | ResourceTemplate = ResourceTemplate(uriTemplate=uri, **common_kwargs)
+        else:
+            item = Resource(uri=uri, **common_kwargs)
+        self._initial_resources.append((item, handler))
         logger.debug(f"Added resource: {uri}")
 
     def resource(
@@ -330,6 +348,8 @@ class MCPApp:
         title: str | None = None,
         description: str | None = None,
         mime_type: str | None = None,
+        annotations: Annotations | None = None,
+        meta: dict[str, Any] | None = None,
     ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
         """Decorator for registering a resource with a handler at build time."""
 
@@ -341,10 +361,64 @@ class MCPApp:
                 description=description,
                 mime_type=mime_type,
                 handler=func,
+                annotations=annotations,
+                meta=meta,
             )
             return func
 
         return decorator
+
+    def add_text_resource(
+        self,
+        uri: str,
+        *,
+        text: str,
+        name: str | None = None,
+        title: str | None = None,
+        description: str | None = None,
+        mime_type: str = "text/plain",
+    ) -> None:
+        """Register a static text resource at build time."""
+        self.add_resource(
+            uri,
+            name=name,
+            title=title,
+            description=description,
+            mime_type=mime_type,
+            handler=lambda _uri: text,
+        )
+
+    def add_file_resource(
+        self,
+        uri: str,
+        *,
+        path: str | Path,
+        name: str | None = None,
+        title: str | None = None,
+        description: str | None = None,
+        mime_type: str | None = None,
+    ) -> None:
+        """Register a file-backed resource at build time."""
+        from arcade_mcp_server.exceptions import NotFoundError
+
+        file_path = Path(path)
+
+        def _read_file(_uri: str) -> str | bytes:
+            if not file_path.exists():
+                raise NotFoundError(f"File not found: {file_path}")
+            try:
+                return file_path.read_text()
+            except UnicodeDecodeError:
+                return file_path.read_bytes()
+
+        self.add_resource(
+            uri,
+            name=name,
+            title=title,
+            description=description,
+            mime_type=mime_type,
+            handler=_read_file,
+        )
 
     def tool(
         self,
