@@ -220,7 +220,7 @@ class ResourceManager(ComponentManager[str, Resource]):
             if not file_path.exists():
                 raise NotFoundError(f"File not found: {file_path}")
             try:
-                return file_path.read_text()
+                return file_path.read_text(encoding="utf-8")
             except UnicodeDecodeError:
                 return file_path.read_bytes()
 
