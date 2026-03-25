@@ -202,6 +202,7 @@ class MCPServer:
 
         # Middleware chain
         self.middleware: list[Middleware] = []
+        self._extra_capabilities: dict[str, Any] = {}
         self._init_middleware(middleware)
 
         # Lifespan management
@@ -318,6 +319,10 @@ class MCPServer:
         # Add custom middleware
         if custom_middleware:
             self.middleware.extend(custom_middleware)
+
+        # Collect capabilities from middleware that declare them
+        for mw in self.middleware:
+            self._extra_capabilities.update(mw.get_capabilities())
 
     def _register_handlers(self) -> dict[str, Callable]:
         """Register method handlers."""
@@ -681,14 +686,18 @@ class MCPServer:
         if session:
             session.set_client_params(message.params)
 
+        caps_kwargs: dict[str, Any] = {
+            "tools": {"listChanged": True},
+            "logging": {},
+            "prompts": {"listChanged": True},
+            "resources": {"subscribe": True, "listChanged": True},
+        }
+        if self._extra_capabilities:
+            caps_kwargs.update(self._extra_capabilities)
+
         result = InitializeResult(
             protocolVersion=LATEST_PROTOCOL_VERSION,
-            capabilities=ServerCapabilities(
-                tools={"listChanged": True},
-                logging={},
-                prompts={"listChanged": True},
-                resources={"subscribe": True, "listChanged": True},
-            ),
+            capabilities=ServerCapabilities(**caps_kwargs),
             serverInfo=Implementation(
                 name=self.name,
                 version=self.version,
