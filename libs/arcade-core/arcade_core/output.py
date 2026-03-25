@@ -36,16 +36,17 @@ class ToolOutputFactory:
                 value = ""
             # If the result is a BaseModel (e.g., from TypedDict conversion), convert to dict
             elif isinstance(result, BaseModel):
-                value = result.model_dump()
+                value = result.model_dump(exclude_none=True)
             # If the result is a list, check if it contains BaseModel objects
             elif isinstance(result, list):
                 value = [
-                    item.model_dump() if isinstance(item, BaseModel) else item for item in result
+                    item.model_dump(exclude_none=True) if isinstance(item, BaseModel) else item
+                    for item in result
                 ]
             else:
                 value = result
         elif isinstance(data, BaseModel):
-            value = data.model_dump()
+            value = data.model_dump(exclude_none=True)
         elif isinstance(data, (str, int, float, bool, list, dict)):
             value = data
         else:

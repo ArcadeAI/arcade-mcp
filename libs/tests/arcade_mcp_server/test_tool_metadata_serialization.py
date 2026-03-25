@@ -162,8 +162,9 @@ class TestToolMetadataSerialization:
         assert dto.annotations.destructiveHint is None
         assert dto.annotations.idempotentHint is None
         assert dto.annotations.openWorldHint is None
-        # Should not have arcade meta without metadata
-        assert dto.meta is None or "arcade" not in dto.meta
+        # Should have arcade meta with role even without metadata
+        assert dto.meta is not None
+        assert dto.meta["arcade"]["role"] == "tool"
 
     def test_full_metadata_serialization(self, tool_manager: ToolManager):
         """Test complete metadata serialization with all fields."""

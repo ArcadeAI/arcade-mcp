@@ -69,6 +69,13 @@
       }
     }
   },
-  "required": ["run_id", "execution_id", "created_at", "tool", "inputs", "context"],
+  "required": [
+    "run_id",
+    "execution_id",
+    "created_at",
+    "tool",
+    "inputs",
+    "context"
+  ],
   "additionalProperties": false
 }

@@ -7,16 +7,29 @@ Provides a clean, minimal API for building MCP servers with lazy initialization.
 from __future__ import annotations
 
 import asyncio
+import inspect
 import os
 import re
 import subprocess
 import sys
 from pathlib import Path
-from types import ModuleType
-from typing import Any, Callable, Literal, ParamSpec, TypeVar, cast
+from types import ModuleType, UnionType
+from typing import (
+    Any,
+    Callable,
+    Literal,
+    ParamSpec,
+    TypeVar,
+    Union,
+    cast,
+    get_args,
+    get_origin,
+    get_type_hints,
+)
 
 from arcade_core.catalog import MaterializedTool, ToolCatalog, ToolDefinitionError
 from arcade_core.metadata import ToolMetadata
+from arcade_core.schema import CrawlResult, IndexedObject
 from arcade_core.subprocess_utils import (
     get_windows_no_window_creationflags,
     graceful_terminate_process,
@@ -39,6 +52,19 @@ from arcade_mcp_server.worker import create_arcade_mcp, serve_with_force_quit
 
 P = ParamSpec("P")
 T = TypeVar("T")
+
+
+def _is_optional_str(tp: Any) -> bool:
+    """Check if a type annotation is ``str | None`` (i.e., Optional[str]).
+
+    Handles both ``typing.Union[str, None]`` and Python 3.10+ ``str | None``.
+    """
+    origin = get_origin(tp)
+    if origin is Union or isinstance(tp, UnionType):
+        args = get_args(tp)
+        return set(args) == {str, type(None)}
+    return False
+
 
 TransportType = Literal["http", "stdio"]
 
@@ -115,6 +141,8 @@ class MCPApp:
         # Tool collection (build-time)
         self._catalog = ToolCatalog()
         self._toolkit_name = name
+        self._crawl_types: set[str] = set()
+        self._index_types: set[str] = set()
 
         # Public handle to the MCPServer (set by caller for runtime ops)
         self.server: MCPServer | None = None
@@ -312,6 +340,213 @@ class MCPApp:
 
         if func is not None:
             return decorator(func)
+        return decorator
+
+    @property
+    def catalog(self) -> ToolCatalog:
+        """Access the build-time tool catalog."""
+        return self._catalog
+
+    def crawl(
+        self,
+        func: Callable[P, T] | None = None,
+        *,
+        object_type: str = "",
+        requires_auth: ToolAuthorization | None = None,
+        requires_secrets: list[str] | None = None,
+        requires_metadata: list[str] | None = None,
+        desc: str | None = None,
+        name: str | None = None,
+        adapters: list[ErrorAdapter] | None = None,
+        metadata: ToolMetadata | None = None,
+    ) -> Callable[[Callable[P, T]], Callable[P, T]] | Callable[P, T]:
+        """Decorator for registering a crawl handler for a given object type.
+
+        The decorated function must accept ``context`` and
+        ``cursor: Annotated[str | None, "..."] = None`` parameters and return
+        a ``CrawlResult``.
+
+        Must be called with parentheses and an ``object_type`` argument::
+
+            @app.crawl(object_type="document")
+            async def crawl_docs(context: Context, cursor: str | None = None) -> CrawlResult:
+                ...
+        """
+        # Detect bare @app.crawl (no parentheses) — func is the decorated function
+        if func is not None:
+            raise ToolDefinitionError(
+                "@app.crawl must be called with parentheses and an 'object_type' argument, "
+                "e.g. @app.crawl(object_type='document')"
+            )
+
+        if not object_type or not object_type.strip():
+            raise ToolDefinitionError("crawl() requires a non-empty 'object_type' argument")
+
+        # Duplicate type check (case-insensitive)
+        if object_type.lower() in {t.lower() for t in self._crawl_types}:
+            raise ToolDefinitionError(f"Duplicate crawl type: '{object_type}'")
+
+        def decorator(fn: Callable[P, T]) -> Callable[P, T]:
+            sig = inspect.signature(fn)
+            params = set(sig.parameters)
+
+            # Validate context param
+            if "context" not in params:
+                raise ToolDefinitionError(
+                    f"Crawl handler '{fn.__name__}' must have a 'context' parameter."
+                )
+
+            # Validate: no extra parameters beyond context and cursor
+            extra = params - {"context", "cursor"}
+            if extra:
+                raise ToolDefinitionError(
+                    f"Crawl handler '{fn.__name__}' has unexpected parameters: {extra}. "
+                    f"Crawl handlers must only have 'context' and 'cursor' parameters."
+                )
+
+            # Validate cursor param
+            if "cursor" not in params:
+                raise ToolDefinitionError(
+                    f"Crawl handler '{fn.__name__}' must have a 'cursor' parameter "
+                    f'with signature: cursor: Annotated[str | None, "..."] = None'
+                )
+            cursor_param = sig.parameters["cursor"]
+            if cursor_param.default is inspect.Parameter.empty:
+                raise ToolDefinitionError(
+                    f"Crawl handler '{fn.__name__}' 'cursor' parameter must default to None"
+                )
+            if cursor_param.default is not None:
+                raise ToolDefinitionError(
+                    f"Crawl handler '{fn.__name__}' 'cursor' parameter must default to None, "
+                    f"got default={cursor_param.default!r}"
+                )
+
+            # Validate cursor type is str | None and return type is CrawlResult
+            hints = get_type_hints(fn, include_extras=False)
+            cursor_type = hints.get("cursor")
+            if cursor_type is not None and not _is_optional_str(cursor_type):
+                raise ToolDefinitionError(
+                    f"Crawl handler '{fn.__name__}' 'cursor' parameter must be typed as "
+                    f"str | None, got {cursor_type}"
+                )
+            ret = hints.get("return")
+            if ret is not CrawlResult:
+                raise ToolDefinitionError(
+                    f"Crawl handler '{fn.__name__}' must return CrawlResult, got {ret}"
+                )
+
+            fn.__tool_role__ = "crawl"  # type: ignore[attr-defined]
+            fn.__tool_object_type__ = object_type  # type: ignore[attr-defined]
+
+            self.add_tool(
+                fn,
+                desc=desc,
+                name=name,
+                requires_auth=requires_auth,
+                requires_secrets=requires_secrets,
+                requires_metadata=requires_metadata,
+                adapters=adapters,
+                metadata=metadata,
+            )
+            self._crawl_types.add(object_type)
+            return fn
+
+        return decorator
+
+    def index(
+        self,
+        func: Callable[P, T] | None = None,
+        *,
+        object_type: str = "",
+        requires_auth: ToolAuthorization | None = None,
+        requires_secrets: list[str] | None = None,
+        requires_metadata: list[str] | None = None,
+        desc: str | None = None,
+        name: str | None = None,
+        adapters: list[ErrorAdapter] | None = None,
+        metadata: ToolMetadata | None = None,
+    ) -> Callable[[Callable[P, T]], Callable[P, T]] | Callable[P, T]:
+        """Decorator for registering an index handler for a given object type.
+
+        The decorated function must accept ``context`` and
+        ``object_id: Annotated[str, "..."]`` parameters and return an
+        ``IndexedObject``.
+
+        Must be called with parentheses and an ``object_type`` argument::
+
+            @app.index(object_type="document")
+            async def index_doc(context: Context, object_id: str) -> IndexedObject:
+                ...
+        """
+        # Detect bare @app.index (no parentheses) — func is the decorated function
+        if func is not None:
+            raise ToolDefinitionError(
+                "@app.index must be called with parentheses and an 'object_type' argument, "
+                "e.g. @app.index(object_type='document')"
+            )
+
+        if not object_type or not object_type.strip():
+            raise ToolDefinitionError("index() requires a non-empty 'object_type' argument")
+
+        # Duplicate type check (case-insensitive)
+        if object_type.lower() in {t.lower() for t in self._index_types}:
+            raise ToolDefinitionError(f"Duplicate index type: '{object_type}'")
+
+        def decorator(fn: Callable[P, T]) -> Callable[P, T]:
+            sig = inspect.signature(fn)
+            params = set(sig.parameters)
+
+            # Validate context param
+            if "context" not in params:
+                raise ToolDefinitionError(
+                    f"Index handler '{fn.__name__}' must have a 'context' parameter."
+                )
+
+            # Validate: no extra parameters beyond context and object_id
+            extra = params - {"context", "object_id"}
+            if extra:
+                raise ToolDefinitionError(
+                    f"Index handler '{fn.__name__}' has unexpected parameters: {extra}. "
+                    f"Index handlers must only have 'context' and 'object_id' parameters."
+                )
+
+            # Validate object_id param
+            if "object_id" not in params:
+                raise ToolDefinitionError(
+                    f"Index handler '{fn.__name__}' must have an 'object_id' parameter "
+                    f'with signature: object_id: Annotated[str, "..."]'
+                )
+
+            # Validate object_id type is str and return type is IndexedObject
+            hints = get_type_hints(fn, include_extras=False)
+            object_id_type = hints.get("object_id")
+            if object_id_type is not None and object_id_type is not str:
+                raise ToolDefinitionError(
+                    f"Index handler '{fn.__name__}' 'object_id' parameter must be typed as "
+                    f"str, got {object_id_type}"
+                )
+            ret = hints.get("return")
+            if ret is not IndexedObject:
+                raise ToolDefinitionError(
+                    f"Index handler '{fn.__name__}' must return IndexedObject, got {ret}"
+                )
+
+            fn.__tool_role__ = "index"  # type: ignore[attr-defined]
+            fn.__tool_object_type__ = object_type  # type: ignore[attr-defined]
+
+            self.add_tool(
+                fn,
+                desc=desc,
+                name=name,
+                requires_auth=requires_auth,
+                requires_secrets=requires_secrets,
+                requires_metadata=requires_metadata,
+                adapters=adapters,
+                metadata=metadata,
+            )
+            self._index_types.add(object_type)
+            return fn
+
         return decorator
 
     def run(

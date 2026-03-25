@@ -18,6 +18,10 @@ def _build_arcade_meta(definition: ToolDefinition) -> dict[str, Any] | None:
     """
     arcade_meta: dict[str, Any] = {}
 
+    arcade_meta["role"] = definition.role
+    if definition.object_type:
+        arcade_meta["object_type"] = definition.object_type
+
     requirements = definition.requirements
     if requirements.authorization or requirements.secrets or requirements.metadata:
         arcade_meta["requirements"] = requirements.model_dump(exclude_none=True)
@@ -28,7 +32,7 @@ def _build_arcade_meta(definition: ToolDefinition) -> dict[str, Any] | None:
         if metadata_dump:
             arcade_meta["metadata"] = metadata_dump
 
-    return arcade_meta if arcade_meta else None
+    return arcade_meta
 
 
 def create_mcp_tool(materialized_tool: MaterializedTool) -> MCPTool:

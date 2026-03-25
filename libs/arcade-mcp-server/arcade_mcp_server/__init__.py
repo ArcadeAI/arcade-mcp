@@ -18,6 +18,7 @@ A FastAPI-like interface for building MCP servers.
 - run with uv or `python -m arcade_mcp`
 """
 
+from arcade_core.schema import CrawlResult, IndexedObject, ObjectReference
 from arcade_tdk import tool
 
 from arcade_mcp_server.context import Context
@@ -28,6 +29,10 @@ from arcade_mcp_server.worker import create_arcade_mcp, run_arcade_mcp
 
 __all__ = [
     "Context",
+    # Crawl/Index schema types (re-exported from arcade-core)
+    "CrawlResult",
+    "IndexedObject",
+    "ObjectReference",
     # FastAPI-like interface
     "MCPApp",
     # MCP Server implementation

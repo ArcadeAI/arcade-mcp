@@ -11,7 +11,10 @@
       "type": "object",
       "properties": {
         "val_type": {
-          "oneOf": [{ "$ref": "#/$defs/primitives" }, { "type": "string", "enum": ["array"] }]
+          "oneOf": [
+            { "$ref": "#/$defs/primitives" },
+            { "type": "string", "enum": ["array"] }
+          ]
         },
         "inner_val_type": {
           "description": "If the value type is a list, the type of the list values.",
@@ -124,7 +127,13 @@
           "minItems": 1,
           "items": {
             "type": "string",
-            "enum": ["value", "error", "null", "artifact", "requires_authorization"]
+            "enum": [
+              "value",
+              "error",
+              "null",
+              "artifact",
+              "requires_authorization"
+            ]
           }
         },
         "description": {

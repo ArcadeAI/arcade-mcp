@@ -21,10 +21,13 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Literal, Protocol
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from arcade_core.errors import ErrorKind
 from arcade_core.metadata import ToolMetadata
+
+# Maximum content size for IndexedObject (10 MiB)
+_MAX_CONTENT_BYTES = 10 * 1024 * 1024
 
 # allow for custom tool name separator
 TOOL_NAME_SEPARATOR = os.getenv("ARCADE_TOOL_NAME_SEPARATOR", ".")
@@ -301,6 +304,113 @@ class FullyQualifiedName:
         return FullyQualifiedName(tool_name, toolkit.name, toolkit.version)
 
 
+MetadataDict = dict[str, str | int | float | bool | None]
+"""Type alias for flat scalar metadata dictionaries used by crawl/index models."""
+
+
+def _validate_metadata_scalars(v: MetadataDict | None) -> MetadataDict | None:
+    """Shared validator: reject nested dicts/lists in metadata values."""
+    if v:
+        for key, val in v.items():
+            if isinstance(val, (dict, list, set, tuple)):
+                raise ValueError(  # noqa: TRY004 — Pydantic validators must raise ValueError
+                    f"metadata key '{key}' has non-scalar value of type " f"{type(val).__name__}"
+                )
+    return v
+
+
+class ObjectReference(BaseModel):
+    """A reference to a discoverable object returned by a crawl handler."""
+
+    id: str
+    """The unique identifier of the object."""
+
+    type: str
+    """The object type (e.g. 'google_doc')."""
+
+    uri: str | None = None
+    """Optional URI for the object."""
+
+    metadata: MetadataDict | None = None
+    """Optional metadata about the object."""
+
+    created_at: str | None = None
+    """ISO-8601 creation timestamp."""
+
+    modified_at: str | None = None
+    """ISO-8601 last-modified timestamp."""
+
+    @field_validator("id")
+    @classmethod
+    def id_must_be_non_empty(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("ObjectReference.id must be non-empty")
+        return v
+
+    @field_validator("uri")
+    @classmethod
+    def uri_must_be_non_empty_when_set(cls, v: str | None) -> str | None:
+        if v is not None and not v.strip():
+            raise ValueError("ObjectReference.uri must be non-empty when provided")
+        return v
+
+    _check_metadata = field_validator("metadata")(_validate_metadata_scalars)
+
+
+class CrawlResult(BaseModel):
+    """The result of a crawl handler invocation."""
+
+    objects: list[ObjectReference] = Field(default_factory=list)
+    """The discovered objects."""
+
+    next_cursor: str | None = None
+    """Cursor for the next page, or None if no more pages."""
+
+    deleted_ids: list[str] = Field(default_factory=list)
+    """IDs of objects that have been deleted since the last crawl."""
+
+    @field_validator("next_cursor", mode="before")
+    @classmethod
+    def normalize_empty_cursor(cls, v: str | None) -> str | None:
+        if isinstance(v, str) and not v.strip():
+            return None
+        return v
+
+
+class IndexedObject(BaseModel):
+    """The result of an index handler invocation."""
+
+    id: str
+    """The unique identifier of the indexed object."""
+
+    type: str
+    """The object type (e.g. 'google_doc')."""
+
+    content: str
+    """The extracted content of the object."""
+
+    content_type: str = "text/plain"
+    """MIME type of the content."""
+
+    metadata: MetadataDict | None = None
+    """Optional metadata about the indexed object."""
+
+    @field_validator("content")
+    @classmethod
+    def content_must_not_exceed_max_size(cls, v: str) -> str:
+        if len(v.encode("utf-8")) > _MAX_CONTENT_BYTES:
+            raise ValueError(
+                f"IndexedObject.content exceeds maximum size of {_MAX_CONTENT_BYTES} bytes"
+            )
+        return v
+
+    _check_metadata = field_validator("metadata")(_validate_metadata_scalars)
+
+
+ToolRole = Literal["tool", "crawl", "index"]
+"""The role of a tool definition."""
+
+
 class ToolDefinition(BaseModel):
     """The specification of a tool."""
 
@@ -324,6 +434,12 @@ class ToolDefinition(BaseModel):
 
     requirements: ToolRequirements
     """The requirements (e.g. authorization) for the tool to run."""
+
+    role: ToolRole = "tool"
+    """The role of this definition: 'tool', 'crawl', or 'index'."""
+
+    object_type: str | None = None
+    """The object type this crawl/index handler operates on."""
 
     deprecation_message: str | None = None
     """The message to display when the tool is deprecated."""

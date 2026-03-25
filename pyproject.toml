@@ -73,6 +73,16 @@ dev = [
     "types-pytz>=2024.1",
 ]
 
+demo = [
+    # Toolkits and MCP client used by demo_crawl_index.py
+    "mcp>=1.9.0",
+    "arcade-google-docs",
+    "arcade-confluence",
+    "google-api-python-client",
+    "google-auth",
+    "google-auth-httplib2",
+]
+
 # CLI entry point
 [project.scripts]
 arcade = "arcade_cli.main:cli"
@@ -84,6 +94,9 @@ arcade-core = { workspace = true }
 arcade-tdk = { workspace = true }
 arcade-serve = { workspace = true }
 arcade-mcp-server = { workspace = true }
+# Toolkit sources for demo
+arcade-google-docs = { path = "../../apps/worker/toolkits/google_docs", editable = true }
+arcade-confluence = { path = "../../apps/worker/toolkits/confluence", editable = true }
 
 [build-system]
 requires = ["hatchling"]

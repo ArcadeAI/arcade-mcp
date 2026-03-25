@@ -48,6 +48,7 @@ from arcade_core.schema import (
     ToolMetadataRequirement,
     ToolOutput,
     ToolRequirements,
+    ToolRole,
     ToolSecretRequirement,
     ValueSchema,
 )
@@ -475,6 +476,9 @@ class ToolCatalog(BaseModel):
                 )
             tool_metadata.validate_for_tool()
 
+        role: ToolRole = getattr(tool, "__tool_role__", "tool")
+        object_type: str | None = getattr(tool, "__tool_object_type__", None)
+
         return ToolDefinition(
             name=tool_name,
             fully_qualified_name=str(fully_qualified_name),
@@ -487,6 +491,8 @@ class ToolCatalog(BaseModel):
                 secrets=secrets_requirement,
                 metadata=metadata_requirement,
             ),
+            role=role,
+            object_type=object_type,
             deprecation_message=deprecation_message,
             metadata=tool_metadata,
         )
