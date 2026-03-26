@@ -1,6 +1,6 @@
 """In-memory data for the "Company Knowledge Base" demo."""
 
-from resources.types import Author
+from resources.schemas import Author
 
 KB_ARTICLES: dict[str, dict[str, str]] = {
     "getting-started": {

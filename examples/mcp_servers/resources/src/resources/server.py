@@ -26,7 +26,7 @@ from typing import Annotated
 
 from arcade_mcp_server import Annotations, MCPApp
 from resources.data import KB_ARTICLES, KB_CATEGORIES, TEAMS
-from resources.types import ArticleDetail, Author, SearchMatch, SearchResult
+from resources.schemas import ArticleDetail, Author, SearchMatch, SearchResult
 
 app = MCPApp(name="resources", version="1.0.0", log_level="DEBUG")
 
