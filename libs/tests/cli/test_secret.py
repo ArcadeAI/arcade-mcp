@@ -171,10 +171,11 @@ class TestRemoveInlineComment:
 class TestUpsertSecretToEngine:
     """Tests for _upsert_secret function."""
 
+    @patch("arcade_cli.secret.get_ssl_verify", return_value=True)
     @patch("arcade_cli.secret.get_auth_headers")
     @patch("arcade_cli.secret.get_org_scoped_url")
     @patch("arcade_cli.secret.httpx.put")
-    def test_upsert_secret_success(self, mock_put, mock_get_url, mock_get_headers):
+    def test_upsert_secret_success(self, mock_put, mock_get_url, mock_get_headers, mock_ssl):
         """Test successful secret upsert."""
         mock_response = MagicMock()
         mock_response.raise_for_status.return_value = None
@@ -212,10 +213,11 @@ class TestUpsertSecretToEngine:
 class TestGetSecretsFromEngine:
     """Tests for _get_secrets function."""
 
+    @patch("arcade_cli.secret.get_ssl_verify", return_value=True)
     @patch("arcade_cli.secret.get_auth_headers")
     @patch("arcade_cli.secret.get_org_scoped_url")
     @patch("arcade_cli.secret.httpx.get")
-    def test_get_secrets_success(self, mock_get, mock_get_url, mock_get_headers):
+    def test_get_secrets_success(self, mock_get, mock_get_url, mock_get_headers, mock_ssl):
         """Test successful secrets retrieval."""
         mock_response = MagicMock()
         mock_response.raise_for_status.return_value = None
@@ -262,10 +264,11 @@ class TestGetSecretsFromEngine:
 class TestDeleteSecretFromEngine:
     """Tests for _delete_secret function."""
 
+    @patch("arcade_cli.secret.get_ssl_verify", return_value=True)
     @patch("arcade_cli.secret.get_auth_headers")
     @patch("arcade_cli.secret.get_org_scoped_url")
     @patch("arcade_cli.secret.httpx.delete")
-    def test_delete_secret_success(self, mock_delete, mock_get_url, mock_get_headers):
+    def test_delete_secret_success(self, mock_delete, mock_get_url, mock_get_headers, mock_ssl):
         """Test successful secret deletion."""
         mock_response = MagicMock()
         mock_response.raise_for_status.return_value = None
