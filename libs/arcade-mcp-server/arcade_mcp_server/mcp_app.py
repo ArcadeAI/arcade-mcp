@@ -390,6 +390,11 @@ class MCPApp:
         mime_type: str = "text/plain",
     ) -> None:
         """Register a static text resource at build time."""
+        if _is_template_uri(uri):
+            raise ValueError(
+                f"Template URIs are not supported for static text resources: '{uri}'. "
+                "Use add_resource() with a handler that accepts template parameters instead."
+            )
         self.add_resource(
             uri,
             name=name,
@@ -410,6 +415,11 @@ class MCPApp:
         mime_type: str | None = None,
     ) -> None:
         """Register a file-backed resource at build time."""
+        if _is_template_uri(uri):
+            raise ValueError(
+                f"Template URIs are not supported for file resources: '{uri}'. "
+                "Use add_resource() with a handler that accepts template parameters instead."
+            )
         self.add_resource(
             uri,
             name=name,
