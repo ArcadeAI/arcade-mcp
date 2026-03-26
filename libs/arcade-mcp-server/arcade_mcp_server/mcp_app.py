@@ -262,9 +262,15 @@ class MCPApp:
         requires_metadata: list[str] | None = None,
         adapters: list[ErrorAdapter] | None = None,
         metadata: ToolMetadata | None = None,
-        ui_resource_uri: str | None = None,
+        meta: dict[str, Any] | None = None,
     ) -> Callable[P, T]:
         """Add a tool for build-time materialization (pre-server)."""
+        if meta and "arcade" in meta:
+            raise ValueError(
+                "The 'arcade' key in meta is reserved. "
+                "Use the 'metadata' parameter (ToolMetadata) instead."
+            )
+
         if not hasattr(func, "__tool_name__"):
             func = tool_decorator(
                 func,
@@ -286,17 +292,16 @@ class MCPApp:
         except ToolDefinitionError as e:
             raise e.with_context(func.__name__) from e
 
-        # Store _meta.ui extension for MCP Apps support
-        if ui_resource_uri:
+        # Store _meta extensions for the tool
+        if meta:
             tool_name = getattr(func, "__tool_name__", func.__name__)
-            # Look up the actual FQN from the catalog (which may capitalize the toolkit name)
             fqn = None
             for mat_tool in self._catalog:
                 if mat_tool.definition.name == tool_name:
                     fqn = str(mat_tool.definition.fully_qualified_name)
                     break
             if fqn:
-                self._tool_meta_extensions[fqn] = {"ui": {"resourceUri": ui_resource_uri}}
+                self._tool_meta_extensions[fqn] = meta
 
         logger.debug(f"Added tool: {func.__name__}")
         return func
@@ -430,7 +435,7 @@ class MCPApp:
         requires_metadata: list[str] | None = None,
         adapters: list[ErrorAdapter] | None = None,
         metadata: ToolMetadata | None = None,
-        ui_resource_uri: str | None = None,
+        meta: dict[str, Any] | None = None,
     ) -> Callable[[Callable[P, T]], Callable[P, T]] | Callable[P, T]:
         """Decorator for adding tools with optional parameters."""
 
@@ -444,7 +449,7 @@ class MCPApp:
                 requires_metadata=requires_metadata,
                 adapters=adapters,
                 metadata=metadata,
-                ui_resource_uri=ui_resource_uri,
+                meta=meta,
             )
 
         if func is not None:

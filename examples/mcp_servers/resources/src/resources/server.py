@@ -13,7 +13,7 @@ Comprehensive showcase of MCP resource features in arcade-mcp-server:
  7. Annotations(priority=...)            — resource annotations
  8. meta={...}                           — custom metadata
  9. Async handlers + return types        — bytes, dict, str
-10. @app.tool(ui_resource_uri=...)       — MCP Apps (tool-to-UI linking)
+10. @app.tool(meta={...})                — MCP Apps (tool-to-UI linking)
 11. Nested TypedDict tool outputs        — recursive structured output schemas
 """
 
@@ -240,7 +240,8 @@ async def server_status(uri: str) -> dict:
 # ===========================================================================
 # 10. MCP Apps — tool-to-UI resource linking with nested TypedDict outputs
 # ===========================================================================
-# Tools can declare a ui_resource_uri to link them to an interactive HTML
+# Tools can declare a meta dict to attach _meta extensions. For MCP Apps,
+# set meta={"ui": {"resourceUri": "..."}} to link to an interactive HTML
 # resource. MCP Apps hosts render the HTML in a sandboxed iframe and the UI
 # can call tools back on the server via postMessage JSON-RPC.
 #
@@ -252,7 +253,7 @@ async def server_status(uri: str) -> dict:
 APP_RESOURCE_URI = "ui://resources/mcp-app.html"
 
 
-@app.tool(ui_resource_uri=APP_RESOURCE_URI)
+@app.tool(meta={"ui": {"resourceUri": APP_RESOURCE_URI}})
 def get_article(
     slug: Annotated[str, "The article slug (e.g. 'getting-started')"],
 ) -> Annotated[ArticleDetail, "Full article with nested author information"]:
@@ -273,7 +274,7 @@ def get_article(
     )
 
 
-@app.tool(ui_resource_uri=APP_RESOURCE_URI)
+@app.tool(meta={"ui": {"resourceUri": APP_RESOURCE_URI}})
 def search_articles(
     query: Annotated[str, "Case-insensitive search query"],
 ) -> Annotated[SearchResult, "Search results with nested match details"]:

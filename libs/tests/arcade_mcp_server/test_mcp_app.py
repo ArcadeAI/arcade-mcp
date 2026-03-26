@@ -874,11 +874,11 @@ class TestMCPAppResourceRegistration:
             # Should NOT raise SystemExit
             app.run(transport="http", host="127.0.0.1", port=8000)
 
-    def test_tool_with_ui_resource_uri(self):
-        """@app.tool(ui_resource_uri=...) stores _meta extension."""
+    def test_tool_with_meta(self):
+        """@app.tool(meta=...) stores _meta extension."""
         app = MCPApp(name="TestApp", version="1.0.0")
 
-        @app.tool(ui_resource_uri="ui://test-app/index.html")
+        @app.tool(meta={"ui": {"resourceUri": "ui://test-app/index.html"}})
         def get_data(query: Annotated[str, "A query"]) -> str:
             """Get data."""
             return "data"
@@ -888,20 +888,63 @@ class TestMCPAppResourceRegistration:
             "ui": {"resourceUri": "ui://test-app/index.html"}
         }
 
-    def test_add_tool_with_ui_resource_uri(self):
-        """add_tool(ui_resource_uri=...) stores _meta extension."""
+    def test_add_tool_with_meta(self):
+        """add_tool(meta=...) stores _meta extension."""
         app = MCPApp(name="TestApp", version="1.0.0")
 
         def my_tool(x: Annotated[str, "input"]) -> str:
             """A tool."""
             return x
 
-        app.add_tool(my_tool, ui_resource_uri="ui://my-tool/index.html")
+        app.add_tool(my_tool, meta={"ui": {"resourceUri": "ui://my-tool/index.html"}})
 
         assert "TestApp.MyTool" in app._tool_meta_extensions
         assert app._tool_meta_extensions["TestApp.MyTool"] == {
             "ui": {"resourceUri": "ui://my-tool/index.html"}
         }
+
+    def test_tool_with_meta_arbitrary_keys(self):
+        """meta with arbitrary keys is stored as-is."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        @app.tool(meta={"custom": {"key": "value"}, "other": 42})
+        def do_stuff(x: Annotated[str, "input"]) -> str:
+            """A tool."""
+            return x
+
+        assert "TestApp.DoStuff" in app._tool_meta_extensions
+        assert app._tool_meta_extensions["TestApp.DoStuff"] == {
+            "custom": {"key": "value"},
+            "other": 42,
+        }
+
+    def test_tool_with_meta_arcade_key_raises(self):
+        """meta containing 'arcade' key raises ValueError."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        with pytest.raises(ValueError, match="'arcade' key in meta is reserved"):
+
+            @app.tool(meta={"arcade": {"something": True}})
+            def bad_tool(x: Annotated[str, "input"]) -> str:
+                """A tool."""
+                return x
+
+    def test_tool_with_meta_empty_or_none(self):
+        """meta={} and meta=None do not create _tool_meta_extensions entries."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        @app.tool(meta={})
+        def tool_empty(x: Annotated[str, "input"]) -> str:
+            """A tool."""
+            return x
+
+        @app.tool(meta=None)
+        def tool_none(x: Annotated[str, "input"]) -> str:
+            """A tool."""
+            return x
+
+        assert "TestApp.ToolEmpty" not in app._tool_meta_extensions
+        assert "TestApp.ToolNone" not in app._tool_meta_extensions
 
 
 class TestMCPAppResourceAnnotationsMetaTemplates:
