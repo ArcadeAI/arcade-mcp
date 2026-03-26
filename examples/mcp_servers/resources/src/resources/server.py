@@ -307,7 +307,7 @@ def search_articles(
 @app.resource(APP_RESOURCE_URI, name="MCP App UI", mime_type="text/html;profile=mcp-app")
 def serve_app_ui(uri: str) -> str:
     """Serve the MCP App HTML from the co-located app.html file."""
-    return (_HERE / "app.html").read_text()
+    return (_HERE / "app.html").read_text(encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------

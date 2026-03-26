@@ -246,19 +246,13 @@ def _build_value_schema_json(value_schema: Any) -> dict[str, Any]:
       the wrapping performed at runtime by
       :func:`convert_content_to_structured_content`.
     """
-    val_type = getattr(value_schema, "val_type", None)
-
-    if val_type == "json":
-        schema: dict[str, Any] = {"type": "object"}
-        if getattr(value_schema, "properties", None):
-            schema["properties"] = {}
-            for prop_name, prop_schema in value_schema.properties.items():
-                schema["properties"][prop_name] = _value_schema_to_json_schema(prop_schema)
-                if getattr(prop_schema, "description", None):
-                    schema["properties"][prop_name]["description"] = prop_schema.description
-        return schema
-
     inner_schema = _value_schema_to_json_schema(value_schema)
+
+    # Object return types are already top-level objects, emit directly.
+    if inner_schema.get("type") == "object":
+        return inner_schema
+
+    # Primitives/arrays must be wrapped so outputSchema.type is "object" per MCP spec.
     return {
         "type": "object",
         "properties": {
