@@ -183,7 +183,6 @@ class MCPServer:
         # Build-time resources to load on start
         self._initial_resources = initial_resources or []
 
-        # Tool _meta extensions (e.g., _meta.ui.resourceUri for MCP Apps)
         self._tool_meta_extensions = tool_meta_extensions or {}
 
         # Centralized notifications
@@ -359,7 +358,7 @@ class MCPServer:
         except Exception:
             logger.exception("Failed to load tools from initial catalog")
 
-        # Apply _meta extensions (e.g., MCP Apps ui.resourceUri) to loaded tools
+        # Apply _meta extensions to loaded tools
         if self._tool_meta_extensions:
             await self._tool_manager.apply_meta_extensions(self._tool_meta_extensions)
 

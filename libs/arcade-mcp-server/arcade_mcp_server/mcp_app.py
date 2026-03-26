@@ -30,6 +30,11 @@ from watchfiles import watch
 from arcade_mcp_server._validation import normalize_version
 from arcade_mcp_server.exceptions import ServerError
 from arcade_mcp_server.logging_utils import intercept_standard_logging
+from arcade_mcp_server.managers.resource import (
+    _is_template_uri,
+    make_file_handler,
+    make_text_handler,
+)
 from arcade_mcp_server.resource_server.base import ResourceServerValidator
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.settings import MCPSettings, ServerSettings, find_env_file
@@ -266,7 +271,7 @@ class MCPApp:
     ) -> Callable[P, T]:
         """Add a tool for build-time materialization (pre-server)."""
         if meta and "arcade" in meta:
-            raise ValueError(
+            raise ToolDefinitionError(
                 "The 'arcade' key in meta is reserved. "
                 "Use the 'metadata' parameter (ToolMetadata) instead."
             )
@@ -338,7 +343,6 @@ class MCPApp:
         }
         if meta is not None:
             common_kwargs["_meta"] = meta
-        from arcade_mcp_server.managers.resource import _is_template_uri
 
         if _is_template_uri(uri):
             item: Resource | ResourceTemplate = ResourceTemplate(uriTemplate=uri, **common_kwargs)
@@ -386,8 +390,6 @@ class MCPApp:
         mime_type: str = "text/plain",
     ) -> None:
         """Register a static text resource at build time."""
-        from arcade_mcp_server.managers.resource import make_text_handler
-
         self.add_resource(
             uri,
             name=name,
@@ -408,8 +410,6 @@ class MCPApp:
         mime_type: str | None = None,
     ) -> None:
         """Register a file-backed resource at build time."""
-        from arcade_mcp_server.managers.resource import make_file_handler
-
         self.add_resource(
             uri,
             name=name,
@@ -460,7 +460,7 @@ class MCPApp:
     ) -> None:
         if len(self._catalog) == 0 and len(self._initial_resources) == 0:
             logger.error(
-                "No tools or resources added. Use @app.tool, @app.resource, or app.add_resource()."
+                "No tools or resources added. Use @app.tool, app.add_tool(), @app.resource, or app.add_resource()."
             )
             sys.exit(1)
 

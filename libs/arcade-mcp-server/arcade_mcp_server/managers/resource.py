@@ -30,7 +30,7 @@ DuplicatePolicy = Literal["warn", "error", "replace", "ignore"]
 
 def _is_template_uri(uri: str) -> bool:
     """Return True if *uri* contains RFC 6570-style template variables."""
-    return "{" in uri
+    return bool(re.search(r"\{[^}]+\}", uri))
 
 
 def _template_to_regex(template: str) -> re.Pattern[str]:
@@ -57,7 +57,11 @@ def _template_to_regex(template: str) -> re.Pattern[str]:
 
 def make_text_handler(text: str) -> Callable[[str], str]:
     """Create a handler that returns static text."""
-    return lambda _uri: text
+
+    def handler(_uri: str) -> str:
+        return text
+
+    return handler
 
 
 def make_file_handler(path: str | Path) -> Callable[[str], str | bytes]:

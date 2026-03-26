@@ -6,7 +6,7 @@ from typing import Annotated
 from unittest.mock import Mock, patch
 
 import pytest
-from arcade_core.catalog import MaterializedTool
+from arcade_core.catalog import MaterializedTool, ToolDefinitionError
 from arcade_mcp_server import tool
 from arcade_mcp_server.mcp_app import MCPApp
 from arcade_mcp_server.server import MCPServer
@@ -919,10 +919,10 @@ class TestMCPAppResourceRegistration:
         }
 
     def test_tool_with_meta_arcade_key_raises(self):
-        """meta containing 'arcade' key raises ValueError."""
+        """meta containing 'arcade' key raises ToolDefinitionError."""
         app = MCPApp(name="TestApp", version="1.0.0")
 
-        with pytest.raises(ValueError, match="'arcade' key in meta is reserved"):
+        with pytest.raises(ToolDefinitionError, match="'arcade' key in meta is reserved"):
 
             @app.tool(meta={"arcade": {"something": True}})
             def bad_tool(x: Annotated[str, "input"]) -> str:
