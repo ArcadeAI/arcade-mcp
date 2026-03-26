@@ -6,6 +6,8 @@ from __future__ import annotations
 
 import httpx
 
+from arcade_core.network.ssl import get_ssl_verify
+
 
 def _rewrite_request_path(request: httpx.Request, org_id: str, project_id: str) -> httpx.Request:
     """Return a request with its path rewritten to include org/project scope."""
@@ -79,6 +81,7 @@ def build_org_scoped_http_client(
     transport = OrgScopedTransport(
         base_transport or httpx.HTTPTransport(), org_id=org_id, project_id=project_id
     )
+    client_kwargs.setdefault("verify", get_ssl_verify())
     return httpx.Client(transport=transport, **client_kwargs)
 
 
@@ -96,4 +99,5 @@ def build_org_scoped_async_http_client(
     transport = AsyncOrgScopedTransport(
         base_transport or httpx.AsyncHTTPTransport(), org_id=org_id, project_id=project_id
     )
+    client_kwargs.setdefault("verify", get_ssl_verify())
     return httpx.AsyncClient(transport=transport, **client_kwargs)

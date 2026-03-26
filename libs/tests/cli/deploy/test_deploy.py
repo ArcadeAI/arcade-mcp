@@ -373,6 +373,7 @@ def test_deploy_server_to_engine_uses_deploy_timeout(
         mock_client_cls.assert_called_once_with(
             headers={"Authorization": "Bearer test"},
             timeout=DEPLOY_TIMEOUT_SECONDS,
+            verify=True,
         )
 
 
@@ -413,6 +414,7 @@ def test_update_deployment_uses_deploy_timeout(mock_url: MagicMock, mock_auth: M
         mock_client_cls.assert_called_once_with(
             headers={"Authorization": "Bearer test"},
             timeout=DEPLOY_TIMEOUT_SECONDS,
+            verify=True,
         )
 
 

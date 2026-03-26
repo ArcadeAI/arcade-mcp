@@ -1,6 +1,7 @@
 import httpx
 import typer
 from arcade_core.constants import PROD_ENGINE_HOST
+from arcade_core.network.ssl import get_ssl_verify
 from rich.table import Table
 
 from arcade_cli.console import console
@@ -251,6 +252,7 @@ def _upsert_secret(secret_key: str, secret_value: str) -> None:
         url,
         headers=get_auth_headers(),
         json={"description": "Secret set via CLI", "value": secret_value},
+        verify=get_ssl_verify(),
     )
     response.raise_for_status()
 
@@ -259,7 +261,7 @@ def _get_secrets() -> list[dict]:
     """Get all secrets from the engine."""
     engine_url = state["engine_url"]
     url = get_org_scoped_url(engine_url, "/secrets")
-    response = httpx.get(url, headers=get_auth_headers())
+    response = httpx.get(url, headers=get_auth_headers(), verify=get_ssl_verify())
     response.raise_for_status()
     return response.json()["items"]  # type: ignore[no-any-return]
 
@@ -268,5 +270,5 @@ def _delete_secret(secret_id: str) -> None:
     """Delete a secret from the engine."""
     engine_url = state["engine_url"]
     url = get_org_scoped_url(engine_url, f"/secrets/{secret_id}")
-    response = httpx.delete(url, headers=get_auth_headers())
+    response = httpx.delete(url, headers=get_auth_headers(), verify=get_ssl_verify())
     response.raise_for_status()

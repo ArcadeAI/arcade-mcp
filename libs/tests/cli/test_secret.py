@@ -188,6 +188,7 @@ class TestUpsertSecretToEngine:
             "https://api.example.com/v1/org/test-org/secrets/SECRET_KEY",
             headers={"Authorization": "Bearer test-api-key"},
             json={"description": "Secret set via CLI", "value": "secret-value"},
+            verify=True,
         )
         mock_response.raise_for_status.assert_called_once()
 
@@ -237,6 +238,7 @@ class TestGetSecretsFromEngine:
         mock_get.assert_called_once_with(
             "https://api.example.com/v1/org/test-org/secrets",
             headers={"Authorization": "Bearer test-api-key"},
+            verify=True,
         )
         mock_response.raise_for_status.assert_called_once()
 
@@ -276,6 +278,7 @@ class TestDeleteSecretFromEngine:
         mock_delete.assert_called_once_with(
             "https://api.example.com/v1/org/test-org/secrets/secret-id-123",
             headers={"Authorization": "Bearer test-api-key"},
+            verify=True,
         )
         mock_response.raise_for_status.assert_called_once()
 

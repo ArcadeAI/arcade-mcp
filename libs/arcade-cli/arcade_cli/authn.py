@@ -33,6 +33,7 @@ from arcade_core.auth_tokens import (
 )
 from arcade_core.config_model import AuthConfig, Config, ContextConfig, UserConfig
 from arcade_core.constants import ARCADE_CONFIG_PATH, CREDENTIALS_FILE_PATH
+from arcade_core.network.ssl import get_ssl_verify
 from arcade_core.subprocess_utils import build_windows_hidden_startupinfo
 from authlib.integrations.httpx_client import OAuth2Client
 from jinja2 import Environment, FileSystemLoader
@@ -247,6 +248,7 @@ def fetch_whoami(coordinator_url: str, access_token: str) -> WhoAmIResponse:
         url,
         headers={"Authorization": f"Bearer {access_token}"},
         timeout=30,
+        verify=get_ssl_verify(),
     )
     response.raise_for_status()
     data = response.json().get("data", {})
@@ -271,6 +273,7 @@ def fetch_organizations(coordinator_url: str) -> list[OrgInfo]:
         url,
         headers={"Authorization": f"Bearer {access_token}"},
         timeout=30,
+        verify=get_ssl_verify(),
     )
     response.raise_for_status()
     data = response.json()
@@ -296,6 +299,7 @@ def fetch_projects(coordinator_url: str, org_id: str) -> list[ProjectInfo]:
         url,
         headers={"Authorization": f"Bearer {access_token}"},
         timeout=30,
+        verify=get_ssl_verify(),
     )
     response.raise_for_status()
     data = response.json()
