@@ -1,8 +1,4 @@
-"""TypedDict definitions for structured tool outputs.
-
-These demonstrate nested TypedDict return types, which arcade-mcp-server
-recursively expands into full JSON Schema output schemas for MCP clients.
-"""
+"""TypedDict definitions for structured tool outputs."""
 
 from typing_extensions import TypedDict
 
@@ -34,7 +30,7 @@ class SearchMatch(TypedDict):
 
 
 class SearchResult(TypedDict):
-    """Search results with metadata — demonstrates nested TypedDict output."""
+    """Search results with metadata"""
 
     query: str
     total_matches: int

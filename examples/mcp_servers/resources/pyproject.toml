@@ -1,10 +1,10 @@
 [project]
 name = "resources"
 version = "0.1.0"
-description = "MCP Apps example — interactive UI served as an MCP resource"
+description = "Example MCP server showcasing resource features (static, file-backed, templates, annotations)"
 requires-python = ">=3.10"
 dependencies = [
-    "arcade-mcp-server>=1.17.0,<2.0.0",
+    "arcade-mcp-server>=1.20.0,<2.0.0",
 ]
 
 [project.optional-dependencies]
@@ -38,7 +38,7 @@ disallow_untyped_defs = false
 
 # Uncomment the following if you are developing inside of the arcade-mcp repo & want to use editable mode
 # Otherwise, you will install the following packages from PyPI
-[tool.uv.sources]
-arcade-mcp = { path = "../../../", editable = true }
-arcade-serve = { path = "../../../libs/arcade-serve/", editable = true }
-arcade-mcp-server = { path = "../../../libs/arcade-mcp-server/", editable = true }
+# [tool.uv.sources]
+# arcade-mcp = { path = "../../../", editable = true }
+# arcade-serve = { path = "../../../libs/arcade-serve/", editable = true }
+# arcade-mcp-server = { path = "../../../libs/arcade-mcp-server/", editable = true }
