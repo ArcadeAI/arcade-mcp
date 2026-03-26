@@ -78,10 +78,12 @@ def build_org_scoped_http_client(
     Build a sync httpx.Client that rewrites /v1 requests with org/project scope.
     """
     client_kwargs = client_kwargs or {}
+    ssl_verify = get_ssl_verify()
     transport = OrgScopedTransport(
-        base_transport or httpx.HTTPTransport(), org_id=org_id, project_id=project_id
+        base_transport or httpx.HTTPTransport(verify=ssl_verify),
+        org_id=org_id,
+        project_id=project_id,
     )
-    client_kwargs.setdefault("verify", get_ssl_verify())
     return httpx.Client(transport=transport, **client_kwargs)
 
 
@@ -96,8 +98,10 @@ def build_org_scoped_async_http_client(
     Build an async httpx.AsyncClient that rewrites /v1 requests with org/project scope.
     """
     client_kwargs = client_kwargs or {}
+    ssl_verify = get_ssl_verify()
     transport = AsyncOrgScopedTransport(
-        base_transport or httpx.AsyncHTTPTransport(), org_id=org_id, project_id=project_id
+        base_transport or httpx.AsyncHTTPTransport(verify=ssl_verify),
+        org_id=org_id,
+        project_id=project_id,
     )
-    client_kwargs.setdefault("verify", get_ssl_verify())
     return httpx.AsyncClient(transport=transport, **client_kwargs)
