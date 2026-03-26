@@ -13,6 +13,8 @@ Comprehensive showcase of MCP resource features in arcade-mcp-server:
  7. Annotations(priority=...)            — resource annotations
  8. meta={...}                           — custom metadata
  9. Async handlers + return types        — bytes, dict, str
+10. @app.tool(meta={...})                — MCP Apps (tool-to-UI linking)
+11. Nested TypedDict tool outputs        — recursive structured output schemas
 """
 
 import asyncio
@@ -20,9 +22,11 @@ import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Annotated
 
 from arcade_mcp_server import Annotations, MCPApp
-from resources.data import KB_ARTICLES, KB_CATEGORIES
+from resources.data import KB_ARTICLES, KB_CATEGORIES, TEAMS
+from resources.types import ArticleDetail, Author, SearchMatch, SearchResult
 
 app = MCPApp(name="resources", version="1.0.0", log_level="DEBUG")
 
@@ -231,6 +235,79 @@ async def server_status(uri: str) -> dict:
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     return {"text": json.dumps(status, indent=2)}
+
+
+# ===========================================================================
+# 10. MCP Apps — tool-to-UI resource linking with nested TypedDict outputs
+# ===========================================================================
+# Tools can declare a meta dict to attach _meta extensions. For MCP Apps,
+# set meta={"ui": {"resourceUri": "..."}} to link to an interactive HTML
+# resource. MCP Apps hosts render the HTML in a sandboxed iframe and the UI
+# can call tools back on the server via postMessage JSON-RPC.
+#
+# These tools also showcase nested TypedDict return types, which
+# arcade-mcp-server recursively expands into full JSON Schema output schemas.
+#
+# See: https://modelcontextprotocol.io/extensions/apps/build
+
+APP_RESOURCE_URI = "ui://resources/mcp-app.html"
+
+
+@app.tool(meta={"ui": {"resourceUri": APP_RESOURCE_URI}})
+def get_article(
+    slug: Annotated[str, "The article slug (e.g. 'getting-started')"],
+) -> Annotated[ArticleDetail, "Full article with nested author information"]:
+    """Retrieve a knowledge-base article by slug, including author details.
+
+    Returns an ArticleDetail (nested TypedDict) with a nested Author object,
+    demonstrating recursive structured output schemas.
+    """
+    raw = KB_ARTICLES.get(slug)
+    if raw is None:
+        raise ValueError(f"Article '{slug}' not found")
+    return ArticleDetail(
+        slug=slug,
+        title=raw["title"],
+        category=raw["category"],
+        body=raw["body"],
+        author=TEAMS.get(raw["author"], Author(name=raw["author"], team="Unknown")),
+    )
+
+
+@app.tool(meta={"ui": {"resourceUri": APP_RESOURCE_URI}})
+def search_articles(
+    query: Annotated[str, "Case-insensitive search query"],
+) -> Annotated[SearchResult, "Search results with nested match details"]:
+    """Search knowledge-base articles by title, category, or body text.
+
+    Returns a SearchResult (nested TypedDict) containing a list of SearchMatch
+    objects, demonstrating recursive structured output schemas with lists.
+    """
+    q = query.lower()
+    matches: list[SearchMatch] = []
+    for slug, article in KB_ARTICLES.items():
+        for field in ("title", "category", "body"):
+            if q in article[field].lower():
+                matches.append(
+                    SearchMatch(
+                        slug=slug,
+                        title=article["title"],
+                        category=article["category"],
+                        matched_field=field,
+                    )
+                )
+                break  # one match per article
+    return SearchResult(
+        query=query,
+        total_matches=len(matches),
+        matches=matches,
+    )
+
+
+@app.resource(APP_RESOURCE_URI, name="MCP App UI", mime_type="text/html;profile=mcp-app")
+def serve_app_ui(uri: str) -> str:
+    """Serve the MCP App HTML from the co-located app.html file."""
+    return (_HERE / "app.html").read_text(encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------

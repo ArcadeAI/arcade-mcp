@@ -1,5 +1,7 @@
 """In-memory data for the "Company Knowledge Base" demo."""
 
+from resources.types import Author
+
 KB_ARTICLES: dict[str, dict[str, str]] = {
     "getting-started": {
         "title": "Getting Started",
@@ -25,4 +27,11 @@ KB_CATEGORIES: dict[str, list[str]] = {
     "onboarding": ["getting-started"],
     "engineering": ["api-guidelines"],
     "compliance": ["security-policy"],
+}
+
+# Maps short author keys to structured Author records
+TEAMS: dict[str, Author] = {
+    "docs-team": Author(name="Documentation Team", team="Developer Experience"),
+    "platform-team": Author(name="Platform Team", team="Engineering"),
+    "security-team": Author(name="Security Team", team="Compliance & Risk"),
 }
