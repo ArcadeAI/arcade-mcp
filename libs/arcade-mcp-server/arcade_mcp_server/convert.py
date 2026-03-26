@@ -276,5 +276,13 @@ def _value_schema_to_json_schema(value_schema: Any) -> dict[str, Any]:
     if getattr(value_schema, "enum", None):
         schema["enum"] = list(value_schema.enum)
     if val_type == "array" and getattr(value_schema, "inner_val_type", None):
-        schema["items"] = {"type": _map_type_to_json_schema_type(value_schema.inner_val_type)}
+        inner_type = value_schema.inner_val_type
+        items_schema: dict[str, Any] = {"type": _map_type_to_json_schema_type(inner_type)}
+        if inner_type == "json" and getattr(value_schema, "inner_properties", None):
+            items_schema["properties"] = {}
+            for prop_name, prop_schema in value_schema.inner_properties.items():
+                items_schema["properties"][prop_name] = _value_schema_to_json_schema(prop_schema)
+                if getattr(prop_schema, "description", None):
+                    items_schema["properties"][prop_name]["description"] = prop_schema.description
+        schema["items"] = items_schema
     return schema
