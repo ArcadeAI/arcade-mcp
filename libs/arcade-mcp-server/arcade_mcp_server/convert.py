@@ -59,15 +59,9 @@ def create_mcp_tool(materialized_tool: MaterializedTool) -> MCPTool:
     if hasattr(definition, "output") and definition.output:
         output_def = definition.output
         if getattr(output_def, "value_schema", None):
-            raw_schema = _build_value_schema_json(output_def.value_schema)
-            if raw_schema.get("type") == "object":
-                output_schema = raw_schema
-            else:
-                # Wrap non-object types in an object with a "result" property
-                output_schema = {
-                    "type": "object",
-                    "properties": {"result": raw_schema},
-                }
+            # _build_value_schema_json always returns {"type": "object", ...}
+            # (it wraps non-object types in a result property internally)
+            output_schema = _build_value_schema_json(output_def.value_schema)
 
     # Build MCP tool annotations from metadata behavior fields
     title = getattr(materialized_tool.tool, "__tool_name__", definition.name)

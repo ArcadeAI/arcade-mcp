@@ -384,13 +384,15 @@ class MCPApp:
         mime_type: str = "text/plain",
     ) -> None:
         """Register a static text resource at build time."""
+        from arcade_mcp_server.managers.resource import make_text_handler
+
         self.add_resource(
             uri,
             name=name,
             title=title,
             description=description,
             mime_type=mime_type,
-            handler=lambda _uri: text,
+            handler=make_text_handler(text),
         )
 
     def add_file_resource(
@@ -404,17 +406,7 @@ class MCPApp:
         mime_type: str | None = None,
     ) -> None:
         """Register a file-backed resource at build time."""
-        from arcade_mcp_server.exceptions import NotFoundError
-
-        file_path = Path(path)
-
-        def _read_file(_uri: str) -> str | bytes:
-            if not file_path.exists():
-                raise NotFoundError(f"File not found: {file_path}")
-            try:
-                return file_path.read_text(encoding="utf-8")
-            except UnicodeDecodeError:
-                return file_path.read_bytes()
+        from arcade_mcp_server.managers.resource import make_file_handler
 
         self.add_resource(
             uri,
@@ -422,7 +414,7 @@ class MCPApp:
             title=title,
             description=description,
             mime_type=mime_type,
-            handler=_read_file,
+            handler=make_file_handler(path),
         )
 
     def tool(

@@ -55,6 +55,26 @@ def _template_to_regex(template: str) -> re.Pattern[str]:
     return re.compile(f"^{pattern}$")
 
 
+def make_text_handler(text: str) -> Callable[[str], str]:
+    """Create a handler that returns static text."""
+    return lambda _uri: text
+
+
+def make_file_handler(path: str | Path) -> Callable[[str], str | bytes]:
+    """Create a handler that reads a file, returning text or bytes."""
+    file_path = Path(path)
+
+    def _read_file(_uri: str) -> str | bytes:
+        if not file_path.exists():
+            raise NotFoundError(f"File not found: {file_path}")
+        try:
+            return file_path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            return file_path.read_bytes()
+
+    return _read_file
+
+
 class ResourceManager(ComponentManager[str, Resource]):
     """
     Manages resources for the MCP server.
@@ -201,7 +221,7 @@ class ResourceManager(ComponentManager[str, Resource]):
     ) -> None:
         """Convenience: register a static text resource."""
         resource = Resource(uri=uri, name=name or uri, description=description, mimeType=mime_type)
-        await self.add_resource(resource, handler=lambda _uri: text)
+        await self.add_resource(resource, handler=make_text_handler(text))
 
     async def add_file_resource(
         self,
@@ -214,14 +234,4 @@ class ResourceManager(ComponentManager[str, Resource]):
     ) -> None:
         """Convenience: register a file-backed resource."""
         resource = Resource(uri=uri, name=name or uri, description=description, mimeType=mime_type)
-        file_path = Path(path)
-
-        def _read_file(_uri: str) -> str | bytes:
-            if not file_path.exists():
-                raise NotFoundError(f"File not found: {file_path}")
-            try:
-                return file_path.read_text(encoding="utf-8")
-            except UnicodeDecodeError:
-                return file_path.read_bytes()
-
-        await self.add_resource(resource, handler=_read_file)
+        await self.add_resource(resource, handler=make_file_handler(path))
