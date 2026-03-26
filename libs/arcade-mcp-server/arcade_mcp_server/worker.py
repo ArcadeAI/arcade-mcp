@@ -80,7 +80,7 @@ async def create_lifespan(
     mcp_settings: MCPSettings | None = None,
     initial_resources: list[tuple[Resource | ResourceTemplate, Callable[..., Any] | None]]
     | None = None,
-    tool_meta_extensions: dict[str, Any] | None = None,
+    tool_meta_extensions: dict[str, dict[str, Any]] | None = None,
     **kwargs: Any,
 ) -> AsyncGenerator[dict[str, Any], None]:
     """
@@ -135,7 +135,7 @@ def create_arcade_mcp(
     resource_server_validator: ResourceServerValidator | None = None,
     initial_resources: list[tuple[Resource | ResourceTemplate, Callable[..., Any] | None]]
     | None = None,
-    tool_meta_extensions: dict[str, Any] | None = None,
+    tool_meta_extensions: dict[str, dict[str, Any]] | None = None,
     **kwargs: Any,
 ) -> FastAPI:
     """

@@ -338,7 +338,9 @@ class MCPApp:
         }
         if meta is not None:
             common_kwargs["_meta"] = meta
-        if "{" in uri:
+        from arcade_mcp_server.managers.resource import _is_template_uri
+
+        if _is_template_uri(uri):
             item: Resource | ResourceTemplate = ResourceTemplate(uriTemplate=uri, **common_kwargs)
         else:
             item = Resource(uri=uri, **common_kwargs)

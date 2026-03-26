@@ -60,7 +60,7 @@ async def run_stdio_server(
     settings: MCPSettings | None = None,
     initial_resources: list[tuple[Resource | ResourceTemplate, Callable[..., Any] | None]]
     | None = None,
-    tool_meta_extensions: dict[str, Any] | None = None,
+    tool_meta_extensions: dict[str, dict[str, Any]] | None = None,
     **kwargs: Any,
 ) -> None:
     """Run MCP server with stdio transport."""
