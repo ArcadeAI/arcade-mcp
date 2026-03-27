@@ -7,6 +7,7 @@ import logging
 import pytest
 from arcade_mcp_server.exceptions import NotFoundError, ResourceError
 from arcade_mcp_server.managers.resource import (
+    MultipleMatchPolicy,
     ResourceManager,
     _is_template_uri,
     _template_to_regex,
@@ -645,3 +646,62 @@ class TestTemplateOverlapWarning:
             await manager.add_template_with_handler(t2, lambda uri, topic: "news")
 
         assert "overlaps" not in caplog.text
+
+
+class TestMultipleMatchPolicy:
+    """Test runtime multiple-template-match detection via multiple_match_policy."""
+
+    async def _setup_overlapping(
+        self, policy: MultipleMatchPolicy
+    ) -> ResourceManager:
+        """Register a wildcard and a specific template that overlap."""
+        manager = ResourceManager(multiple_match_policy=policy)
+        broad = ResourceTemplate(uriTemplate="kb://docs/{path*}", name="Catch-all")
+        specific = ResourceTemplate(
+            uriTemplate="kb://docs/{category}/articles/{slug}", name="Specific"
+        )
+        await manager.add_template_with_handler(broad, lambda uri, path: "broad")
+        await manager.add_template_with_handler(specific, lambda uri, category, slug: "specific")
+        return manager
+
+    def test_default_policy_is_warn(self):
+        manager = ResourceManager()
+        assert manager.multiple_match_policy == "warn"
+
+    @pytest.mark.asyncio
+    async def test_warn_logs_and_returns_first(self, caplog):
+        manager = await self._setup_overlapping("warn")
+        with caplog.at_level(logging.WARNING, logger="arcade.mcp.managers.resource"):
+            result = await manager.read_resource("kb://docs/science/articles/quantum")
+
+        assert result[0].text == "broad"
+        assert "matched 2 resource templates" in caplog.text
+        assert "kb://docs/{path*}" in caplog.text
+
+    @pytest.mark.asyncio
+    async def test_error_raises(self):
+        manager = await self._setup_overlapping("error")
+        with pytest.raises(ResourceError, match="matched 2 resource templates"):
+            await manager.read_resource("kb://docs/science/articles/quantum")
+
+    @pytest.mark.asyncio
+    async def test_ignore_returns_first_silently(self, caplog):
+        manager = await self._setup_overlapping("ignore")
+        with caplog.at_level(logging.WARNING, logger="arcade.mcp.managers.resource"):
+            result = await manager.read_resource("kb://docs/science/articles/quantum")
+
+        assert result[0].text == "broad"
+        assert "matched" not in caplog.text
+
+    @pytest.mark.asyncio
+    async def test_single_match_no_warning(self, caplog):
+        """When only one template matches, no warning regardless of policy."""
+        manager = ResourceManager(multiple_match_policy="warn")
+        tmpl = ResourceTemplate(uriTemplate="weather://{city}/current", name="Weather")
+        await manager.add_template_with_handler(tmpl, lambda uri, city: f"weather-{city}")
+
+        with caplog.at_level(logging.WARNING, logger="arcade.mcp.managers.resource"):
+            result = await manager.read_resource("weather://london/current")
+
+        assert result[0].text == "weather-london"
+        assert "matched" not in caplog.text

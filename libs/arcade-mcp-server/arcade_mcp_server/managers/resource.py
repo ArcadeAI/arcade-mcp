@@ -26,6 +26,7 @@ from arcade_mcp_server.types import (
 logger = logging.getLogger("arcade.mcp.managers.resource")
 
 DuplicatePolicy = Literal["warn", "error", "replace", "ignore"]
+MultipleMatchPolicy = Literal["warn", "error", "ignore"]
 
 
 def _is_template_uri(uri: str) -> bool:
@@ -100,6 +101,7 @@ class ResourceManager(ComponentManager[str, Resource]):
     def __init__(
         self,
         duplicate_policy: DuplicatePolicy = "warn",
+        multiple_match_policy: MultipleMatchPolicy = "warn",
     ) -> None:
         super().__init__("resource")
         self._templates: dict[str, ResourceTemplate] = {}
@@ -107,6 +109,7 @@ class ResourceManager(ComponentManager[str, Resource]):
         self._template_handlers: dict[str, Callable[..., Any]] = {}
         self._template_patterns: dict[str, re.Pattern[str]] = {}
         self.duplicate_policy: DuplicatePolicy = duplicate_policy
+        self.multiple_match_policy: MultipleMatchPolicy = multiple_match_policy
 
     async def list_resources(self) -> list[Resource]:
         return await self.registry.list()
@@ -130,17 +133,34 @@ class ResourceManager(ComponentManager[str, Resource]):
                 result = await result
             return self._coerce_result(uri, mime_type, result)
 
-        # Try template matching before giving up
+        # Try template matching before giving up — collect all matches
+        matches: list[tuple[str, re.Match[str]]] = []
         for tmpl_str, pattern in self._template_patterns.items():
             match = pattern.match(uri)
             if match:
-                params = match.groupdict()
-                tmpl_handler = self._template_handlers[tmpl_str]
-                mime_type = self._templates[tmpl_str].mimeType
-                result = tmpl_handler(uri, **params)
-                if hasattr(result, "__await__"):
-                    result = await result
-                return self._coerce_result(uri, mime_type, result)
+                matches.append((tmpl_str, match))
+
+        if matches:
+            if len(matches) > 1 and self.multiple_match_policy != "ignore":
+                matched_templates = [m[0] for m in matches]
+                message = (
+                    f"URI '{uri}' matched {len(matches)} resource templates: "
+                    f"{matched_templates}. Using first registered match "
+                    f"'{matched_templates[0]}'."
+                )
+                if self.multiple_match_policy == "error":
+                    raise ResourceError(message)
+                else:  # "warn"
+                    logger.warning(message)
+
+            tmpl_str, match = matches[0]
+            params = match.groupdict()
+            tmpl_handler = self._template_handlers[tmpl_str]
+            mime_type = self._templates[tmpl_str].mimeType
+            result = tmpl_handler(uri, **params)
+            if hasattr(result, "__await__"):
+                result = await result
+            return self._coerce_result(uri, mime_type, result)
 
         try:
             _ = await self.registry.get(uri)
