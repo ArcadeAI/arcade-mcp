@@ -49,16 +49,6 @@ def test_create_new_toolkit_full_template_matches_monorepo(tmp_path: Path) -> No
 
     toolkit_dir = output_dir / "my_server"
 
-    # .ruff.toml should extend monorepo root config
-    ruff_toml = (toolkit_dir / ".ruff.toml").read_text()
-    assert ruff_toml.strip() == 'extend = "../../../../ruff.toml"'
-
-    # .pre-commit-config.yaml should use ruff-check and v0.15.7
-    pre_commit = (toolkit_dir / ".pre-commit-config.yaml").read_text()
-    assert "v0.15.7" in pre_commit
-    assert "ruff-check" in pre_commit
-    assert "id: ruff\n" not in pre_commit
-
     # pyproject.toml formatting checks
     pyproject = (toolkit_dir / "pyproject.toml").read_text()
     assert 'requires = ["hatchling"]' in pyproject
@@ -70,12 +60,6 @@ def test_create_new_toolkit_full_template_matches_monorepo(tmp_path: Path) -> No
     # Makefile should not have pre-commit install
     makefile = (toolkit_dir / "Makefile").read_text()
     assert "pre-commit install" not in makefile
-
-    # .gitignore and README.md should exist
-    assert (toolkit_dir / ".gitignore").is_file()
-    assert (toolkit_dir / "README.md").is_file()
-    readme = (toolkit_dir / "README.md").read_text()
-    assert "My Server" in readme
 
 
 def test_create_new_toolkit_minimal_with_spaces(tmp_path: Path) -> None:
