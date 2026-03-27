@@ -2,20 +2,12 @@
 MCP (Model Context Protocol) support for Arcade.
 
 This package provides:
-- MCP server implementation for serving Arcade tools
+- MCPApp: A FastAPI-like interface for building MCP servers with decorators
+- MCPServer: Lower-level server implementation for serving Arcade tools
 - Multiple transport options (stdio, HTTP/SSE)
+- Tools and resources support
 - Integration with Arcade workers with factory and runner functions
 - Context system for tool execution with MCP methods
-
-A FastAPI-like interface for building MCP servers.
-- Add tools with decorators or explicitly
-- Run the server with a single function call
-- Supports HTTP transport only
-
-`arcade_mcp` for running stdio directly from the command line.
-- auto discovery of tools and construction of the server
-- supports stdio transport only
-- run with uv or `python -m arcade_mcp`
 """
 
 from arcade_tdk import tool

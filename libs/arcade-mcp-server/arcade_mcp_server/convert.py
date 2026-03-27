@@ -184,34 +184,10 @@ def build_input_schema_from_definition(definition: ToolDefinition) -> dict[str, 
     if getattr(definition, "input", None) and getattr(definition.input, "parameters", None):
         for param in definition.input.parameters:
             val_schema = getattr(param, "value_schema", None)
-            schema: dict[str, Any] = {
-                "type": _map_type_to_json_schema_type(getattr(val_schema, "val_type", None)),
-            }
+            schema = _value_schema_to_json_schema(val_schema) if val_schema else {"type": "string"}
 
             if getattr(param, "description", None):
                 schema["description"] = param.description
-
-            if val_schema and getattr(val_schema, "enum", None):
-                schema["enum"] = list(val_schema.enum)
-
-            if (
-                val_schema
-                and val_schema.val_type == "array"
-                and getattr(val_schema, "inner_val_type", None)
-            ):
-                schema["items"] = {"type": _map_type_to_json_schema_type(val_schema.inner_val_type)}
-
-            if (
-                val_schema
-                and val_schema.val_type == "json"
-                and getattr(val_schema, "properties", None)
-            ):
-                schema["type"] = "object"
-                schema["properties"] = {}
-                for prop_name, prop_schema in val_schema.properties.items():
-                    schema["properties"][prop_name] = _value_schema_to_json_schema(prop_schema)
-                    if getattr(prop_schema, "description", None):
-                        schema["properties"][prop_name]["description"] = prop_schema.description
 
             properties[param.name] = schema
             if getattr(param, "required", False):

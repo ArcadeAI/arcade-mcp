@@ -485,7 +485,10 @@ class MCPApp:
             # parent watcher has already been setup
             reload = False
 
-        logger.info(f"Starting {self._name} v{self.version} with {len(self._catalog)} tools")
+        logger.info(
+            f"Starting {self._name} v{self.version}"
+            f" with {len(self._catalog)} tools and {len(self._initial_resources)} resources"
+        )
 
         if transport in ["http", "streamable-http", "streamable"]:
             resource_server_auth_enabled = isinstance(
