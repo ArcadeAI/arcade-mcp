@@ -352,13 +352,14 @@ def test_deploy_server_to_engine_timeout_mentions_package_size(
             deploy_server_to_engine("http://engine", {"test": "payload"})
 
 
+@patch("arcade_cli.deploy.get_ssl_verify", return_value=True)
 @patch("arcade_cli.deploy.get_auth_headers", return_value={"Authorization": "Bearer test"})
 @patch(
     "arcade_cli.deploy.get_org_scoped_url",
     return_value="http://engine/v1/orgs/1/projects/1/deployments",
 )
 def test_deploy_server_to_engine_uses_deploy_timeout(
-    mock_url: MagicMock, mock_auth: MagicMock
+    mock_url: MagicMock, mock_auth: MagicMock, mock_ssl: MagicMock
 ) -> None:
     """Test that deploy_server_to_engine uses the DEPLOY_TIMEOUT_SECONDS constant."""
     with patch("arcade_cli.deploy.httpx.Client") as mock_client_cls:
@@ -373,6 +374,7 @@ def test_deploy_server_to_engine_uses_deploy_timeout(
         mock_client_cls.assert_called_once_with(
             headers={"Authorization": "Bearer test"},
             timeout=DEPLOY_TIMEOUT_SECONDS,
+            verify=True,
         )
 
 
@@ -397,12 +399,13 @@ def test_update_deployment_timeout_raises_helpful_error(
             update_deployment("http://engine", "myserver", {"test": "payload"})
 
 
+@patch("arcade_cli.deploy.get_ssl_verify", return_value=True)
 @patch("arcade_cli.deploy.get_auth_headers", return_value={"Authorization": "Bearer test"})
 @patch(
     "arcade_cli.deploy.get_org_scoped_url",
     return_value="http://engine/v1/orgs/1/projects/1/deployments/myserver",
 )
-def test_update_deployment_uses_deploy_timeout(mock_url: MagicMock, mock_auth: MagicMock) -> None:
+def test_update_deployment_uses_deploy_timeout(mock_url: MagicMock, mock_auth: MagicMock, mock_ssl: MagicMock) -> None:
     """Test that update_deployment uses the DEPLOY_TIMEOUT_SECONDS constant."""
     with patch("arcade_cli.deploy.httpx.Client") as mock_client_cls:
         mock_client = MagicMock()
@@ -413,6 +416,7 @@ def test_update_deployment_uses_deploy_timeout(mock_url: MagicMock, mock_auth: M
         mock_client_cls.assert_called_once_with(
             headers={"Authorization": "Bearer test"},
             timeout=DEPLOY_TIMEOUT_SECONDS,
+            verify=True,
         )
 
 

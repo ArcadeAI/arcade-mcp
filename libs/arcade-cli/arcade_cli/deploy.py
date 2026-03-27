@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import cast
 
 import httpx
+from arcade_core.network.ssl import get_ssl_verify
 from arcade_core.subprocess_utils import (
     get_windows_no_window_creationflags,
     graceful_terminate_process,
@@ -119,7 +120,9 @@ def _get_deployment_status(engine_url: str, server_name: str) -> str:
         Possible values are: "pending", "updating", "unknown", "running", "failed".
     """
     url = get_org_scoped_url(engine_url, f"/deployments/{server_name}/status")
-    client = httpx.Client(headers=get_auth_headers(), timeout=DEPLOY_TIMEOUT_SECONDS)
+    client = httpx.Client(
+        headers=get_auth_headers(), timeout=DEPLOY_TIMEOUT_SECONDS, verify=get_ssl_verify()
+    )
     response = client.get(url)
     response.raise_for_status()
     status = cast(str, response.json().get("status", "unknown"))
@@ -159,7 +162,7 @@ async def _stream_deployment_logs_to_deque(
         try:
             auth_headers = get_auth_headers()
             async with (
-                httpx.AsyncClient(timeout=None) as client,  # noqa: S113 - expected indefinite log stream
+                httpx.AsyncClient(timeout=None, verify=get_ssl_verify()) as client,  # noqa: S113 - expected indefinite log stream
                 client.stream("GET", stream_url, headers=auth_headers) as response,
             ):
                 response.raise_for_status()
@@ -294,7 +297,7 @@ async def _monitor_deployment_with_logs(
 def server_already_exists(engine_url: str, server_name: str) -> bool:
     """Check if a server already exists in the Arcade Engine."""
     url = get_org_scoped_url(engine_url, f"/workers/{server_name}")
-    client = httpx.Client(headers=get_auth_headers())
+    client = httpx.Client(headers=get_auth_headers(), verify=get_ssl_verify())
     response = client.get(url)
     if response.status_code == 404:
         return False
@@ -323,7 +326,9 @@ def update_deployment(
         httpx.ConnectError: If connection to the engine fails
     """
     url = get_org_scoped_url(engine_url, f"/deployments/{server_name}")
-    client = httpx.Client(headers=get_auth_headers(), timeout=DEPLOY_TIMEOUT_SECONDS)
+    client = httpx.Client(
+        headers=get_auth_headers(), timeout=DEPLOY_TIMEOUT_SECONDS, verify=get_ssl_verify()
+    )
 
     try:
         response = client.put(url, json=update_deployment_request)
@@ -520,7 +525,7 @@ def wait_for_health(
 
     while time.time() - start_time < timeout:
         try:
-            response = httpx.get(health_url, timeout=2.0)
+            response = httpx.get(health_url, timeout=2.0, verify=get_ssl_verify())
             if response.status_code == 200:
                 is_healthy = True
                 break
@@ -584,7 +589,11 @@ def get_server_info(base_url: str) -> tuple[str, str]:
 
     try:
         mcp_response = httpx.post(
-            mcp_url, json=initialize_request.model_dump(), headers=headers, timeout=10.0
+            mcp_url,
+            json=initialize_request.model_dump(),
+            headers=headers,
+            timeout=10.0,
+            verify=get_ssl_verify(),
         )
         mcp_response.raise_for_status()
         mcp_data = mcp_response.json()
@@ -622,7 +631,7 @@ def get_required_secrets(
     tools_url = f"{base_url}/worker/tools"
 
     try:
-        tools_response = httpx.get(tools_url, timeout=10.0)
+        tools_response = httpx.get(tools_url, timeout=10.0, verify=get_ssl_verify())
         tools_response.raise_for_status()
         tools_data = tools_response.json()
 
@@ -713,7 +722,7 @@ def upsert_secrets_to_engine(
     if not secrets:
         return
 
-    client = httpx.Client(headers=get_auth_headers())
+    client = httpx.Client(headers=get_auth_headers(), verify=get_ssl_verify())
 
     for secret_key in sorted(secrets):
         secret_value = os.getenv(secret_key)
@@ -774,7 +783,9 @@ def deploy_server_to_engine(
         httpx.ConnectError: If connection to the engine fails
     """
     url = get_org_scoped_url(engine_url, "/deployments")
-    client = httpx.Client(headers=get_auth_headers(), timeout=DEPLOY_TIMEOUT_SECONDS)
+    client = httpx.Client(
+        headers=get_auth_headers(), timeout=DEPLOY_TIMEOUT_SECONDS, verify=get_ssl_verify()
+    )
 
     try:
         response = client.post(url, json=deployment_request)

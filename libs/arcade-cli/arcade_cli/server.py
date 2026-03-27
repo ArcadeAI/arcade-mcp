@@ -7,6 +7,7 @@ from typing import Optional
 import httpx
 import typer
 from arcade_core.constants import PROD_ENGINE_HOST
+from arcade_core.network.ssl import get_ssl_verify
 from arcadepy import NotFoundError
 from arcadepy.types import WorkerHealthResponse, WorkerResponse
 from dateutil import parser
@@ -316,7 +317,7 @@ def _display_deployment_logs(
     engine_url: str, headers: dict, since: datetime, until: datetime, debug: bool
 ) -> None:
     try:
-        with httpx.Client() as client:
+        with httpx.Client(verify=get_ssl_verify()) as client:
             params = {"start_time_utc": since.isoformat(), "end_time_utc": until.isoformat()}
             response = client.get(engine_url, headers=headers, params=params)
             response.raise_for_status()
@@ -337,7 +338,7 @@ async def _stream_deployment_logs(
 ) -> None:
     try:
         async with (
-            httpx.AsyncClient(timeout=None) as client,  # noqa: S113 - expected indefinite log stream
+            httpx.AsyncClient(timeout=None, verify=get_ssl_verify()) as client,  # noqa: S113 - expected indefinite log stream
             client.stream(
                 "GET",
                 engine_url,
