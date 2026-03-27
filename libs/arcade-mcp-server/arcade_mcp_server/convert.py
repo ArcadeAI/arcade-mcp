@@ -240,6 +240,8 @@ def _value_schema_to_json_schema(value_schema: Any) -> dict[str, Any]:
 
     if val_type == "json":
         schema: dict[str, Any] = {"type": "object"}
+        if getattr(value_schema, "enum", None):
+            schema["enum"] = list(value_schema.enum)
         if getattr(value_schema, "properties", None):
             schema["properties"] = {}
             for prop_name, prop_schema in value_schema.properties.items():

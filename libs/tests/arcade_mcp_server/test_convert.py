@@ -342,6 +342,50 @@ class TestCreateMCPTool:
         assert param_schema["type"] == "string"
         assert param_schema["enum"] == ["red", "green", "blue"]
 
+    def test_enum_on_json_object_parameter(self):
+        """Test that enum is preserved on json/object type parameters."""
+        tool_def = ToolDefinition(
+            name="test",
+            fully_qualified_name="Test.test",
+            description="Test",
+            toolkit=ToolkitDefinition(name="Test"),
+            input=ToolInput(
+                parameters=[
+                    InputParameter(
+                        name="config",
+                        required=True,
+                        description="Config choice",
+                        value_schema=ValueSchema(
+                            val_type="json",
+                            enum=["preset_a", "preset_b"],
+                        ),
+                    )
+                ]
+            ),
+            output=ToolOutput(),
+            requirements=ToolRequirements(),
+        )
+
+        @tool
+        def f(config: Annotated[str, "Config choice"]):
+            return config
+
+        input_model, output_model = create_func_models(f)
+        meta = ToolMeta(module=f.__module__, toolkit=tool_def.toolkit.name)
+        mat_tool = MaterializedTool(
+            tool=f,
+            definition=tool_def,
+            meta=meta,
+            input_model=input_model,
+            output_model=output_model,
+        )
+
+        mcp_tool = create_mcp_tool(mat_tool)
+        param_schema = mcp_tool.inputSchema["properties"]["config"]
+
+        assert param_schema["type"] == "object"
+        assert param_schema["enum"] == ["preset_a", "preset_b"]
+
     def test_no_parameters(self):
         """Test tool with no parameters."""
         tool_def = ToolDefinition(
