@@ -171,6 +171,7 @@ class ResourceManager(ComponentManager[str, Resource]):
             elif self.duplicate_policy == "warn":
                 logger.warning(f"Replacing duplicate resource '{resource.uri}'")
             # "replace" and "warn" both fall through to upsert
+            self._resource_handlers.pop(resource.uri, None)
 
         await self.registry.upsert(resource.uri, resource)
         if handler:
