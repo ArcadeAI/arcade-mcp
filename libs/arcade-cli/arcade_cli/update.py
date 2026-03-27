@@ -154,8 +154,9 @@ def fetch_latest_pypi_version() -> str | None:
     """Query PyPI for the latest stable version of the package.
 
     Returns None only if the fetch fails or no stable version exists.
-    If ``data["info"]["version"]`` is a pre-release, falls back to scanning
-    all releases for the highest stable, non-yanked version.
+    If ``data["info"]["version"]`` is a stable, non-yanked release it is returned
+    immediately.  Otherwise falls back to scanning all releases for the highest
+    stable, non-yanked version.
     """
     try:
         with urlopen(PYPI_URL, timeout=5) as resp:  # noqa: S310
@@ -163,9 +164,16 @@ def fetch_latest_pypi_version() -> str | None:
                 return None
             data = json.loads(resp.read())
             latest: str = data["info"]["version"]
-            if not Version(latest).is_prerelease:
+            releases = data.get("releases", {})
+            latest_files = releases.get(latest, [])
+            # Return immediately only if stable AND not yanked
+            if (
+                not Version(latest).is_prerelease
+                and latest_files
+                and not all(f.get("yanked", False) for f in latest_files)
+            ):
                 return latest
-            # info.version is a pre-release — scan releases for the newest stable
+            # Scan releases for the newest stable, non-yanked version
             releases = data.get("releases", {})
             stable_versions: list[Version] = []
             for v, files in releases.items():
@@ -240,15 +248,6 @@ _METHOD_LABELS: dict[InstallMethod, str] = {
 }
 
 
-def _upgrade_command(method: InstallMethod) -> list[str]:
-    """Return the shell command to run for a given install method."""
-    return _UPGRADE_COMMANDS[method]
-
-
-def _method_label(method: InstallMethod) -> str:
-    return _METHOD_LABELS[method]
-
-
 def run_update() -> None:
     """Check for updates and install if available."""
     console.print("Checking for updates…")
@@ -273,12 +272,12 @@ def run_update() -> None:
     console.print(f"Update available: {current} → {latest}")
 
     method = detect_install_method()
-    cmd = _upgrade_command(method)
+    cmd = _UPGRADE_COMMANDS[method]
 
     # Warn if not using the recommended install method
     if method != InstallMethod.UV_TOOL:
         console.print(
-            f"\n⚠️  Detected install method: {_method_label(method)}. "
+            f"\n⚠️  Detected install method: {_METHOD_LABELS[method]}. "
             f"We recommend installing via `uv tool install {PACKAGE_NAME}` for the best experience.\n",
             style="yellow",
         )

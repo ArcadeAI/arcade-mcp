@@ -35,7 +35,10 @@ class TestFetchLatestPypiVersion:
     def test_returns_version_on_success(self) -> None:
         mock_response = MagicMock()
         mock_response.status = 200
-        mock_response.read.return_value = b'{"info": {"version": "2.0.0"}}'
+        mock_response.read.return_value = json.dumps({
+            "info": {"version": "2.0.0"},
+            "releases": {"2.0.0": [{"filename": "a.whl", "yanked": False}]},
+        }).encode()
         mock_response.__enter__ = lambda s: s
         mock_response.__exit__ = MagicMock(return_value=False)
 
@@ -94,6 +97,25 @@ class TestFetchLatestPypiVersion:
 
         with patch("arcade_cli.update.urlopen", return_value=mock_response):
             # 1.10.0 is yanked, so should fall back to 1.9.0
+            assert fetch_latest_pypi_version() == "1.9.0"
+
+    def test_falls_back_when_latest_stable_is_yanked(self) -> None:
+        """When info.version is stable but yanked, fall back to scanning releases."""
+        mock_response = MagicMock()
+        mock_response.status = 200
+        payload = json.dumps({
+            "info": {"version": "2.0.0"},
+            "releases": {
+                "1.9.0": [{"filename": "a.whl", "yanked": False}],
+                "2.0.0": [{"filename": "b.whl", "yanked": True}],
+            },
+        }).encode()
+        mock_response.read.return_value = payload
+        mock_response.__enter__ = lambda s: s
+        mock_response.__exit__ = MagicMock(return_value=False)
+
+        with patch("arcade_cli.update.urlopen", return_value=mock_response):
+            # 2.0.0 is yanked, so should fall back to 1.9.0
             assert fetch_latest_pypi_version() == "1.9.0"
 
     def test_returns_none_on_http_error(self) -> None:
