@@ -106,6 +106,9 @@ class ServiceDomain(str, Enum):
     TRAVEL = "travel"
     """Travel search, flight and hotel booking platforms."""
 
+    PRODUCT_ANALYTICS = "product_analytics"
+    """Product analytics — user behavior tracking, funnels, retention, session replay, and experimentation."""
+
 
 class Operation(str, Enum):
     """
