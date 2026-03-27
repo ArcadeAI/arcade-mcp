@@ -21,6 +21,7 @@ from arcade_core.subprocess_utils import (
     get_windows_no_window_creationflags,
     graceful_terminate_process,
 )
+from arcade_core.utils import snake_to_pascal_case
 from arcade_tdk.auth import ToolAuthorization
 from arcade_tdk.error_adapters import ErrorAdapter
 from arcade_tdk.tool import tool as tool_decorator
@@ -299,7 +300,7 @@ class MCPApp:
 
         # Store _meta extensions for the tool
         if meta:
-            tool_name = getattr(func, "__tool_name__", func.__name__)
+            tool_name = snake_to_pascal_case(getattr(func, "__tool_name__", func.__name__))
             fqn = None
             for mat_tool in self._catalog:
                 if mat_tool.definition.name == tool_name:
