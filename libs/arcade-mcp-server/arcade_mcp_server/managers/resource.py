@@ -191,6 +191,7 @@ class ResourceManager(ComponentManager[str, Resource]):
             await self.registry.remove(uri)
         except KeyError:
             raise NotFoundError(f"Resource '{uri}' not found")
+        self._resource_handlers.pop(uri, None)
         await self.registry.upsert(resource.uri, resource)
         if handler:
             self._resource_handlers[resource.uri] = handler
