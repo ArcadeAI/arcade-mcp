@@ -229,6 +229,7 @@ def new(
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
     full: bool = typer.Option(
         False,
+        "-f",
         "--full",
         help="[Internal] Create a full toolkit scaffold for Arcade development.",
         hidden=True,
