@@ -10,6 +10,7 @@ from arcade_mcp_server.managers.resource import (
     ResourceManager,
     _is_template_uri,
     _template_to_regex,
+    _template_to_sample_uri,
 )
 from arcade_mcp_server.types import (
     BlobResourceContents,
@@ -588,3 +589,59 @@ class TestRemoveTemplate:
         manager = ResourceManager()
         with pytest.raises(NotFoundError, match="not found"):
             await manager.remove_template("nonexistent://{x}")
+
+
+class TestTemplateOverlapWarning:
+    """Test that overlapping templates produce a warning at registration time."""
+
+    def test_template_to_sample_uri_simple(self):
+        assert _template_to_sample_uri("weather://{city}/current") == "weather://__city__/current"
+
+    def test_template_to_sample_uri_wildcard(self):
+        sample = _template_to_sample_uri("file:///{path*}")
+        assert sample == "file:///__path__/nested"
+
+    @pytest.mark.asyncio
+    async def test_wildcard_before_specific_warns(self, caplog):
+        """A broad wildcard registered first should warn when a narrower template is added."""
+        manager = ResourceManager()
+        broad = ResourceTemplate(uriTemplate="kb://docs/{path*}", name="Catch-all")
+        specific = ResourceTemplate(
+            uriTemplate="kb://docs/{category}/articles/{slug}", name="Specific"
+        )
+
+        await manager.add_template_with_handler(broad, lambda uri, path: "broad")
+        with caplog.at_level(logging.WARNING, logger="arcade.mcp.managers.resource"):
+            await manager.add_template_with_handler(specific, lambda uri, category, slug: "specific")
+
+        assert "overlaps" in caplog.text
+        assert "kb://docs/{path*}" in caplog.text
+        assert "kb://docs/{category}/articles/{slug}" in caplog.text
+
+    @pytest.mark.asyncio
+    async def test_specific_before_wildcard_warns(self, caplog):
+        """Adding a broad template after a specific one also warns."""
+        manager = ResourceManager()
+        specific = ResourceTemplate(
+            uriTemplate="kb://docs/{category}/articles/{slug}", name="Specific"
+        )
+        broad = ResourceTemplate(uriTemplate="kb://docs/{path*}", name="Catch-all")
+
+        await manager.add_template_with_handler(specific, lambda uri, category, slug: "specific")
+        with caplog.at_level(logging.WARNING, logger="arcade.mcp.managers.resource"):
+            await manager.add_template_with_handler(broad, lambda uri, path: "broad")
+
+        assert "overlaps" in caplog.text
+
+    @pytest.mark.asyncio
+    async def test_non_overlapping_templates_no_warning(self, caplog):
+        """Templates with different prefixes should not warn."""
+        manager = ResourceManager()
+        t1 = ResourceTemplate(uriTemplate="weather://{city}/current", name="Weather")
+        t2 = ResourceTemplate(uriTemplate="news://{topic}/latest", name="News")
+
+        await manager.add_template_with_handler(t1, lambda uri, city: "weather")
+        with caplog.at_level(logging.WARNING, logger="arcade.mcp.managers.resource"):
+            await manager.add_template_with_handler(t2, lambda uri, topic: "news")
+
+        assert "overlaps" not in caplog.text

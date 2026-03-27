@@ -55,6 +55,19 @@ def _template_to_regex(template: str) -> re.Pattern[str]:
     return re.compile(f"^{pattern}$")
 
 
+def _template_to_sample_uri(template: str) -> str:
+    """Replace template variables with dummy values to produce a concrete sample URI.
+
+    ``{param}``  -> ``__param__``
+    ``{param*}`` -> ``__param__/nested``  (includes slash to exercise wildcard)
+    """
+    # Wildcards first
+    result = re.sub(r"\{(\w+)\*\}", r"__\1__/nested", template)
+    # Simple params
+    result = re.sub(r"\{(\w+)\}", r"__\1__", result)
+    return result
+
+
 def make_text_handler(text: str) -> Callable[[str], str]:
     """Create a handler that returns static text."""
 
@@ -204,10 +217,33 @@ class ResourceManager(ComponentManager[str, Resource]):
     async def add_template_with_handler(
         self, template: ResourceTemplate, handler: Callable[..., Any]
     ) -> None:
-        """Store a template together with its handler and compiled regex."""
+        """Store a template together with its handler and compiled regex.
+
+        Warns at registration time if the new template overlaps with any
+        existing template, since only the first registered match is used at
+        read time.
+        """
+        new_pattern = _template_to_regex(template.uriTemplate)
+        new_sample = _template_to_sample_uri(template.uriTemplate)
+
+        for existing_tmpl_str, existing_pattern in self._template_patterns.items():
+            existing_sample = _template_to_sample_uri(existing_tmpl_str)
+            # Check both directions: does the new pattern match an existing
+            # template's sample URI, or does an existing pattern match the
+            # new template's sample URI?
+            if existing_pattern.match(new_sample) or new_pattern.match(existing_sample):
+                logger.warning(
+                    "Resource template '%s' overlaps with already-registered "
+                    "template '%s'. The first registered template will take "
+                    "priority when both match a URI. Consider registering more "
+                    "specific templates before broader ones.",
+                    template.uriTemplate,
+                    existing_tmpl_str,
+                )
+
         self._templates[template.uriTemplate] = template
         self._template_handlers[template.uriTemplate] = handler
-        self._template_patterns[template.uriTemplate] = _template_to_regex(template.uriTemplate)
+        self._template_patterns[template.uriTemplate] = new_pattern
 
     async def remove_template(self, uri_template: str) -> ResourceTemplate:
         if uri_template not in self._templates:
