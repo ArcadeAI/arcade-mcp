@@ -1,7 +1,7 @@
-files: ^.*/{{toolkit_name}}/.*
+files: ^.*/{{ toolkit_name }}/.*
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: "v4.4.0"
+    rev: 'v4.4.0'
     hooks:
       - id: check-case-conflict
       - id: check-merge-conflict
@@ -11,8 +11,8 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.7
+    rev: v0.15.7
     hooks:
-      - id: ruff
+      - id: ruff-check
         args: [--fix]
       - id: ruff-format
