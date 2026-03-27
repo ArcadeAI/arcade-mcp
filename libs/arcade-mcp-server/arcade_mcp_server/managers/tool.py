@@ -6,7 +6,8 @@ Async-safe tool management with pre-converted MCPTool DTOs and executable materi
 
 from __future__ import annotations
 
-from typing import TypedDict
+import logging
+from typing import Any, TypedDict
 
 from arcade_core.catalog import MaterializedTool, ToolCatalog
 
@@ -14,6 +15,8 @@ from arcade_mcp_server.convert import create_mcp_tool
 from arcade_mcp_server.exceptions import NotFoundError
 from arcade_mcp_server.managers.base import ComponentManager
 from arcade_mcp_server.types import MCPTool
+
+logger = logging.getLogger("arcade.mcp.managers.tool")
 
 
 class ManagedTool(TypedDict):
@@ -92,3 +95,20 @@ class ToolManager(ComponentManager[Key, ManagedTool]):
         if sanitized in self._sanitized_to_key:
             del self._sanitized_to_key[sanitized]
         return rec["materialized"]
+
+    async def apply_meta_extensions(self, extensions: dict[str, dict[str, Any]]) -> None:
+        """Merge additional _meta fields into loaded tool DTOs.
+
+        Used for MCP Apps support (_meta.ui.resourceUri) and other extensions.
+        Keys in *extensions* are tool FQNs (dotted).
+        """
+        for fqn, extra_meta in extensions.items():
+            try:
+                rec = await self.registry.get(fqn)
+            except KeyError:
+                logger.warning(f"Tool meta extension for '{fqn}' skipped: tool not found")
+                continue
+            dto = rec["dto"]
+            if dto.meta is None:
+                dto.meta = {}
+            dto.meta.update(extra_meta)

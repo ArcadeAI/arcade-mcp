@@ -31,6 +31,37 @@ def test_create_new_toolkit_prints_next_steps(tmp_path: Path) -> None:
     assert "my_server" in output
 
 
+def test_create_new_toolkit_full_template_matches_monorepo(tmp_path: Path) -> None:
+    """Full template should produce files matching monorepo conventions."""
+    output_dir = tmp_path / "full_conventions"
+    output_dir.mkdir()
+
+    buf = StringIO()
+    test_console = Console(file=buf, force_terminal=False)
+    import arcade_cli.new as new_mod
+
+    orig = new_mod.console
+    new_mod.console = test_console
+    try:
+        create_new_toolkit(str(output_dir), "my_server")
+    finally:
+        new_mod.console = orig
+
+    toolkit_dir = output_dir / "my_server"
+
+    # pyproject.toml formatting checks
+    pyproject = (toolkit_dir / "pyproject.toml").read_text()
+    assert 'requires = ["hatchling"]' in pyproject
+    assert 'license = { text = "Proprietary' in pyproject
+    assert 'asyncio_mode = "auto"' in pyproject
+    assert "disallow_untyped_defs = true" in pyproject
+    assert '"True"' not in pyproject
+
+    # Makefile should not have pre-commit install
+    makefile = (toolkit_dir / "Makefile").read_text()
+    assert "pre-commit install" not in makefile
+
+
 def test_create_new_toolkit_minimal_with_spaces(tmp_path: Path) -> None:
     output_dir = tmp_path / "dir with spaces"
     output_dir.mkdir()

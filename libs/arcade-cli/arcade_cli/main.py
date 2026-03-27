@@ -231,9 +231,10 @@ def new(
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
     full: bool = typer.Option(
         False,
-        "--full",
         "-f",
-        help="Create a starter MCP server (pyproject.toml, server.py, .env.example)",
+        "--full",
+        help="[Internal] Create a full toolkit scaffold for Arcade development.",
+        hidden=True,
     ),
 ) -> None:
     """
