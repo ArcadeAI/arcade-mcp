@@ -1,7 +1,7 @@
 import json
 from typing import Any, Callable
 
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from opentelemetry.metrics import Meter
 from starlette.requests import ClientDisconnect
@@ -12,7 +12,7 @@ from arcade_serve.core.base import (
     BaseWorker,
     Router,
 )
-from arcade_serve.core.common import RequestData, ResponseData, WorkerComponent
+from arcade_serve.core.common import RequestData, ResponseData, ToolNotFoundError, WorkerComponent
 from arcade_serve.fastapi.auth import validate_engine_request
 from arcade_serve.utils import is_async_callable
 
@@ -101,8 +101,6 @@ class FastAPIRouter(Router):
             try:
                 body_str = await request.body()
             except ClientDisconnect:
-                # Client disconnected while reading request body (often due to large payloads)
-                # Return HTTP 499 (Client Closed Request)
                 return Response(status_code=499)
 
             body_json = json.loads(body_str) if body_str else {}
@@ -111,10 +109,13 @@ class FastAPIRouter(Router):
                 method=request.method,
                 body_json=body_json,
             )
-            if is_async_callable(handler):
-                return await handler(request_data)
-            else:
-                return handler(request_data)
+            try:
+                if is_async_callable(handler):
+                    return await handler(request_data)
+                else:
+                    return handler(request_data)
+            except ToolNotFoundError as e:
+                raise HTTPException(status_code=404, detail=str(e))
 
         return wrapped_handler
 

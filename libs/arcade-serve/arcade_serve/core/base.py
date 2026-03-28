@@ -1,7 +1,7 @@
 import logging
 import os
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Callable, ClassVar
 
 from arcade_core.catalog import ToolCatalog, Toolkit
@@ -14,7 +14,7 @@ from arcade_core.schema import (
 from opentelemetry import trace
 from opentelemetry.metrics import Meter
 
-from arcade_serve.core.common import Router, Worker
+from arcade_serve.core.common import Router, ToolNotFoundError, Worker
 from arcade_serve.core.components import (
     CallToolComponent,
     CatalogComponent,
@@ -58,6 +58,13 @@ class BaseWorker(Worker):
 
         self.secret = self._set_secret(secret, disable_auth)
         self.environment = os.environ.get("ARCADE_ENVIRONMENT", "local")
+
+        # Record process startup time for rolling deployment detection.
+        # The engine uses this to determine which worker replica is newer.
+        self._started_at = datetime.now(timezone.utc).isoformat()
+
+        # Hash is computed lazily on first health check (after all tools are registered)
+        self._tool_definitions_hash: str | None = None
 
         self.tool_counter = None
         if otel_meter:
@@ -108,10 +115,8 @@ class BaseWorker(Worker):
 
         try:
             materialized_tool = self.catalog.get_tool(tool_fqname)
-        except KeyError:
-            raise ValueError(
-                f"Tool {tool_fqname} not found in catalog with toolkit version {tool_request.tool.version}."
-            )
+        except (KeyError, ValueError):
+            raise ToolNotFoundError(str(tool_fqname), tool_request.tool.version)
 
         start_time = time.time()
 
@@ -182,8 +187,19 @@ class BaseWorker(Worker):
     def health_check(self) -> dict[str, Any]:
         """
         Provide a health check that serves as a heartbeat of worker health.
+
+        Includes tool_definitions_hash and started_at for the engine to detect
+        tool changes and determine replica freshness during rolling deployments.
         """
-        return {"status": "ok", "tool_count": str(len(self.catalog))}
+        if self._tool_definitions_hash is None:
+            self._tool_definitions_hash = self.catalog.compute_hash()
+
+        return {
+            "status": "ok",
+            "tool_count": str(len(self.catalog)),
+            "tool_definitions_hash": self._tool_definitions_hash,
+            "started_at": self._started_at,
+        }
 
     def register_routes(self, router: Router) -> None:
         """
