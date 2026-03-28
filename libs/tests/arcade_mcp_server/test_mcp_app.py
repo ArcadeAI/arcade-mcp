@@ -444,6 +444,7 @@ class TestMCPApp:
                 resource_server_validator=mcp_app.resource_server_validator,
                 initial_resources=mcp_app._initial_resources,
                 tool_meta_extensions=mcp_app._tool_meta_extensions,
+                extra_routers=None,
             )
             mock_serve.assert_called_once_with(
                 app=mock_fastapi_app,
@@ -470,6 +471,7 @@ class TestMCPApp:
                 resource_server_validator=mcp_app.resource_server_validator,
                 initial_resources=mcp_app._initial_resources,
                 tool_meta_extensions=mcp_app._tool_meta_extensions,
+                extra_routers=None,
             )
             mock_serve.assert_called_once_with(
                 app=mock_fastapi_app,
@@ -745,6 +747,81 @@ class TestMCPApp:
         app = MCPApp()
         with pytest.raises(expected_error):
             app._validate_name(name)
+
+
+class TestMCPAppIncludeRouter:
+    """Tests for MCPApp.include_router()."""
+
+    @pytest.fixture
+    def mcp_app(self) -> MCPApp:
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        @app.tool
+        def sample_tool(message: Annotated[str, "A message"]) -> str:
+            """A sample tool for testing."""
+            return f"Response: {message}"
+
+        return app
+
+    def test_routers_list_empty_by_default(self):
+        """New MCPApp has _routers == []."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+        assert app._routers == []
+
+    def test_include_router_stores_router(self):
+        """After include_router(router), _routers has 1 entry with (router, {})."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+        router = Mock()
+        app.include_router(router)
+        assert len(app._routers) == 1
+        assert app._routers[0] == (router, {})
+
+    def test_include_router_stores_kwargs(self):
+        """include_router(router, prefix="/api", tags=["custom"]) stores the kwargs."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+        router = Mock()
+        app.include_router(router, prefix="/api", tags=["custom"])
+        assert len(app._routers) == 1
+        assert app._routers[0] == (router, {"prefix": "/api", "tags": ["custom"]})
+
+    def test_include_router_multiple(self):
+        """Two routers stored in order."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+        r1, r2 = Mock(), Mock()
+        app.include_router(r1)
+        app.include_router(r2, prefix="/v2")
+        assert len(app._routers) == 2
+        assert app._routers[0] == (r1, {})
+        assert app._routers[1] == (r2, {"prefix": "/v2"})
+
+    def test_routers_passed_to_create_arcade_mcp(self, mcp_app: MCPApp):
+        """Mock create_arcade_mcp, call _create_and_run_server, assert extra_routers kwarg."""
+        router = Mock()
+        mcp_app.include_router(router, prefix="/custom")
+
+        with (
+            patch("arcade_mcp_server.mcp_app.create_arcade_mcp") as mock_create,
+            patch("arcade_mcp_server.mcp_app.serve_with_force_quit"),
+        ):
+            mock_create.return_value = Mock()
+            mcp_app._create_and_run_server("127.0.0.1", 8000)
+
+            call_kwargs = mock_create.call_args
+            assert call_kwargs.kwargs.get("extra_routers") is not None
+            assert len(call_kwargs.kwargs["extra_routers"]) == 1
+            assert call_kwargs.kwargs["extra_routers"][0] == (router, {"prefix": "/custom"})
+
+    def test_no_routers_passes_none(self, mcp_app: MCPApp):
+        """When no routers registered, extra_routers is None."""
+        with (
+            patch("arcade_mcp_server.mcp_app.create_arcade_mcp") as mock_create,
+            patch("arcade_mcp_server.mcp_app.serve_with_force_quit"),
+        ):
+            mock_create.return_value = Mock()
+            mcp_app._create_and_run_server("127.0.0.1", 8000)
+
+            call_kwargs = mock_create.call_args
+            assert call_kwargs.kwargs.get("extra_routers") is None
 
 
 class TestMCPAppResourceRegistration:

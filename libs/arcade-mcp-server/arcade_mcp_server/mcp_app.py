@@ -130,6 +130,9 @@ class MCPApp:
         # Tool _meta extensions (build-time) — keyed by tool FQN
         self._tool_meta_extensions: dict[str, dict[str, Any]] = {}
 
+        # Extra FastAPI routers (build-time, applied in HTTP mode only)
+        self._routers: list[tuple[Any, dict[str, Any]]] = []
+
         # Public handle to the MCPServer (set by caller for runtime ops)
         self.server: MCPServer | None = None
 
@@ -430,6 +433,13 @@ class MCPApp:
             handler=make_file_handler(path),
         )
 
+    def include_router(self, router: Any, **kwargs: Any) -> None:
+        """Register a FastAPI APIRouter to include when the HTTP server starts.
+
+        Routers are silently ignored in stdio mode.
+        """
+        self._routers.append((router, kwargs))
+
     def tool(
         self,
         func: Callable[P, T] | None = None,
@@ -626,6 +636,7 @@ class MCPApp:
             resource_server_validator=self.resource_server_validator,
             initial_resources=self._initial_resources,
             tool_meta_extensions=self._tool_meta_extensions,
+            extra_routers=self._routers or None,
             **self.server_kwargs,
         )
 

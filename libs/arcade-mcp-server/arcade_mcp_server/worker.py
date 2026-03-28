@@ -136,6 +136,7 @@ def create_arcade_mcp(
     initial_resources: list[tuple[Resource | ResourceTemplate, Callable[..., Any] | None]]
     | None = None,
     tool_meta_extensions: dict[str, dict[str, Any]] | None = None,
+    extra_routers: list[tuple[Any, dict[str, Any]]] | None = None,
     **kwargs: Any,
 ) -> FastAPI:
     """
@@ -219,6 +220,11 @@ def create_arcade_mcp(
 
         auth_router = create_auth_router(resource_server_validator, canonical_url)
         app.include_router(auth_router)
+
+    # Extra routers registered via MCPApp.include_router()
+    if extra_routers:
+        for router, router_kwargs in extra_routers:
+            app.include_router(router, **router_kwargs)
 
     # Worker endpoints
     if secret is not None:
