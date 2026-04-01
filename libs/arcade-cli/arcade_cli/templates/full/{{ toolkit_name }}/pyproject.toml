@@ -55,7 +55,7 @@ skip_empty = true
 
 [tool.uv]
 exclude-newer = "1 week"
-exclude-newer-package = { arcade-mcp-server = false }
+exclude-newer-package = { arcade-mcp-server = false, arcade-tdk = false, arcade-core = false, arcade-serve = false }
 
 [tool.hatch.build.targets.wheel]
 packages = ["{{ package_name }}"]
