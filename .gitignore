@@ -1,7 +1,7 @@
 .DS_Store
 credentials.yaml
 docker/credentials.yaml
-
+.cursor/*
 *.lock
 
 # example data
@@ -179,3 +179,7 @@ cython_debug/
 
 # Docs
 libs/arcade-mcp-server/site/*
+
+# exclude OAuth tokens
+.oauth_tokens.json
+.oauth_client.json

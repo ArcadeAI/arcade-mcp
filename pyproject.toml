@@ -1,6 +1,6 @@
 [project]
 name = "arcade-mcp"
-version = "1.11.2"
+version = "1.13.0"
 description = "Arcade.dev - Tool Calling platform for Agents"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -24,11 +24,12 @@ dependencies = [
     "typer==0.10.0",
     "rich>=14.0.0,<15.0.0",
     "Jinja2==3.1.6",
-    "authlib==1.6.6",
+    "authlib==1.6.9",
     "arcadepy==1.8.0",
     "tqdm==4.67.1",
     "click==8.1.8",
     "python-dateutil>=2.8.2",
+    "packaging>=23.0",
     "platformdirs>=4.3.6; platform_system == 'Windows'",
 ]
 

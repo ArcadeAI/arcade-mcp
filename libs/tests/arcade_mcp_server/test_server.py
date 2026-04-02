@@ -1556,3 +1556,224 @@ class TestMissingSecretsWarnings:
             # Restore environment
             if old_value is not None:
                 os.environ["FORMAT_TEST_KEY"] = old_value
+
+
+class TestServerToolMetaExtensions:
+    """Tests for _meta extensions on tools (e.g., MCP Apps ui.resourceUri)."""
+
+    @pytest.mark.asyncio
+    async def test_tool_meta_extensions_applied(self, tool_catalog, mcp_settings):
+        """tool_meta_extensions adds _meta.ui.resourceUri to tools."""
+        # Get the FQN of the first tool in the catalog
+        first_tool = next(iter(tool_catalog))
+        fqn = first_tool.definition.fully_qualified_name
+
+        server = MCPServer(
+            catalog=tool_catalog,
+            settings=mcp_settings,
+            tool_meta_extensions={fqn: {"ui": {"resourceUri": "ui://test/index.html"}}},
+        )
+        await server.start()
+        try:
+            tools = await server.tools.list_tools()
+            # Find the tool by its sanitized name
+            sanitized = fqn.replace(".", "_")
+            matched = [t for t in tools if t.name == sanitized]
+            assert len(matched) == 1
+            assert matched[0].meta is not None
+            assert matched[0].meta["ui"]["resourceUri"] == "ui://test/index.html"
+        finally:
+            await server.stop()
+
+    @pytest.mark.asyncio
+    async def test_no_tool_meta_extensions_by_default(self, tool_catalog, mcp_settings):
+        """Without extensions, tools that have no arcade meta have _meta=None or no ui key."""
+        server = MCPServer(
+            catalog=tool_catalog,
+            settings=mcp_settings,
+        )
+        await server.start()
+        try:
+            tools = await server.tools.list_tools()
+            for t in tools:
+                if t.meta:
+                    assert "ui" not in t.meta
+        finally:
+            await server.stop()
+
+
+class TestServerInitialResources:
+    """Tests for loading build-time resources into MCPServer."""
+
+    @pytest.mark.asyncio
+    async def test_server_loads_initial_resources(self, tool_catalog, mcp_settings):
+        """MCPServer with initial_resources makes them available via list/read."""
+        from arcade_mcp_server.types import Resource
+
+        resource = Resource(uri="ui://app/index.html", name="App UI", mimeType="text/html")
+
+        def handler(uri: str) -> str:
+            return "<html>hello</html>"
+
+        server = MCPServer(
+            catalog=tool_catalog,
+            settings=mcp_settings,
+            initial_resources=[(resource, handler)],
+        )
+        await server.start()
+        try:
+            resources = await server.resources.list_resources()
+            uris = [r.uri for r in resources]
+            assert "ui://app/index.html" in uris
+
+            contents = await server.resources.read_resource("ui://app/index.html")
+            assert len(contents) == 1
+            assert contents[0].text == "<html>hello</html>"  # type: ignore[attr-defined]
+        finally:
+            await server.stop()
+
+    @pytest.mark.asyncio
+    async def test_server_no_initial_resources_by_default(self, tool_catalog, mcp_settings):
+        """Backward compat: no initial resources by default."""
+        server = MCPServer(
+            catalog=tool_catalog,
+            settings=mcp_settings,
+        )
+        await server.start()
+        try:
+            resources = await server.resources.list_resources()
+            assert resources == []
+        finally:
+            await server.stop()
+
+    @pytest.mark.asyncio
+    async def test_server_initial_resources_with_async_handler(self, tool_catalog, mcp_settings):
+        """Async handlers work for initial resources."""
+        from arcade_mcp_server.types import Resource
+
+        resource = Resource(uri="ui://app/data.json", name="Data", mimeType="application/json")
+
+        async def async_handler(uri: str) -> str:
+            return '{"key": "value"}'
+
+        server = MCPServer(
+            catalog=tool_catalog,
+            settings=mcp_settings,
+            initial_resources=[(resource, async_handler)],
+        )
+        await server.start()
+        try:
+            contents = await server.resources.read_resource("ui://app/data.json")
+            assert len(contents) == 1
+            assert contents[0].text == '{"key": "value"}'  # type: ignore[attr-defined]
+        finally:
+            await server.stop()
+
+    @pytest.mark.asyncio
+    async def test_server_handle_read_resource_round_trip(self, tool_catalog, mcp_settings):
+        """Integration: _handle_read_resource returns correct JSONRPCResponse."""
+        from arcade_mcp_server.types import (
+            ReadResourceParams,
+            ReadResourceRequest,
+            ReadResourceResult,
+            Resource,
+            TextResourceContents,
+        )
+
+        resource = Resource(uri="ui://app/page.html", name="Page", mimeType="text/html")
+
+        def handler(uri: str) -> str:
+            return "<html><body>Hello</body></html>"
+
+        server = MCPServer(
+            catalog=tool_catalog,
+            settings=mcp_settings,
+            initial_resources=[(resource, handler)],
+        )
+        await server.start()
+        try:
+            request = ReadResourceRequest(
+                id=1,
+                params=ReadResourceParams(uri="ui://app/page.html"),
+            )
+            response = await server._handle_read_resource(request)
+
+            assert not hasattr(response, "error"), f"Expected success, got error: {response}"
+            result = response.result
+            assert isinstance(result, ReadResourceResult)
+            assert len(result.contents) == 1
+            content = result.contents[0]
+            assert isinstance(content, TextResourceContents)
+            assert content.text == "<html><body>Hello</body></html>"
+            assert content.mimeType == "text/html"
+        finally:
+            await server.stop()
+
+    @pytest.mark.asyncio
+    async def test_server_loads_initial_template_resources(self, tool_catalog, mcp_settings):
+        """MCPServer with initial ResourceTemplate registers it as a template."""
+        from arcade_mcp_server.types import ResourceTemplate
+
+        tmpl = ResourceTemplate(
+            uriTemplate="data://{item_id}", name="Data", mimeType="text/plain"
+        )
+
+        def handler(uri: str, item_id: str) -> str:
+            return f"item-{item_id}"
+
+        server = MCPServer(
+            catalog=tool_catalog,
+            settings=mcp_settings,
+            initial_resources=[(tmpl, handler)],
+        )
+        await server.start()
+        try:
+            templates = await server.resources.list_resource_templates()
+            assert any(t.uriTemplate == "data://{item_id}" for t in templates)
+
+            contents = await server.resources.read_resource("data://42")
+            assert contents[0].text == "item-42"
+        finally:
+            await server.stop()
+
+    @pytest.mark.asyncio
+    async def test_server_loads_template_without_handler(self, tool_catalog, mcp_settings):
+        """MCPServer with ResourceTemplate and no handler registers template only."""
+        from arcade_mcp_server.types import ResourceTemplate
+
+        tmpl = ResourceTemplate(
+            uriTemplate="schema://{type}", name="Schema"
+        )
+
+        server = MCPServer(
+            catalog=tool_catalog,
+            settings=mcp_settings,
+            initial_resources=[(tmpl, None)],
+        )
+        await server.start()
+        try:
+            templates = await server.resources.list_resource_templates()
+            assert any(t.uriTemplate == "schema://{type}" for t in templates)
+        finally:
+            await server.stop()
+
+
+class TestToolMetaExtensionEdgeCases:
+    """Test apply_meta_extensions edge cases on ToolManager directly."""
+
+    @pytest.mark.asyncio
+    async def test_missing_fqn_logs_warning(self, tool_catalog, mcp_settings, caplog):
+        """Extensions referencing non-existent tools log a warning and skip."""
+        import logging
+
+        server = MCPServer(
+            catalog=tool_catalog,
+            settings=mcp_settings,
+            tool_meta_extensions={"NonExistent.Tool": {"ui": {"resourceUri": "ui://x"}}},
+        )
+        with caplog.at_level(logging.WARNING, logger="arcade.mcp.managers.tool"):
+            await server.start()
+        try:
+            assert "skipped: tool not found" in caplog.text
+        finally:
+            await server.stop()

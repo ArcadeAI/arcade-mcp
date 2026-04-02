@@ -6,10 +6,109 @@ from typing import Annotated
 from unittest.mock import Mock, patch
 
 import pytest
-from arcade_core.catalog import MaterializedTool
+from arcade_core.catalog import MaterializedTool, ToolDefinitionError
 from arcade_mcp_server import tool
 from arcade_mcp_server.mcp_app import MCPApp
 from arcade_mcp_server.server import MCPServer
+
+
+class TestMCPAppVersionValidation:
+    """Tests for MCPApp version validation."""
+
+    @pytest.mark.parametrize(
+        "version,expected_result",
+        [
+            # Full semver (passthrough)
+            ("1.0.0", "1.0.0"),
+            ("0.1.0", "0.1.0"),
+            ("0.0.0", "0.0.0"),
+            ("10.20.30", "10.20.30"),
+            # Pre-release and build metadata
+            ("1.2.3-alpha.1", "1.2.3-alpha.1"),
+            ("1.2.3+build.456", "1.2.3+build.456"),
+            ("1.2.3-beta.1+build.789", "1.2.3-beta.1+build.789"),
+            # Short versions (normalized to MAJOR.MINOR.0)
+            ("1.0", "1.0.0"),
+            ("0.1", "0.1.0"),
+            ("2.5", "2.5.0"),
+            ("10.20", "10.20.0"),
+            # Major-only versions (normalized to MAJOR.0.0)
+            ("1", "1.0.0"),
+            ("0", "0.0.0"),
+            ("10", "10.0.0"),
+            # v-prefixed versions (normalized by stripping v)
+            ("v1.0.0", "1.0.0"),
+            ("v0.1.0", "0.1.0"),
+            ("v1.2.3-alpha.1", "1.2.3-alpha.1"),
+            ("v1.0", "1.0.0"),
+            ("v2.5", "2.5.0"),
+            # v-prefixed major-only
+            ("v1", "1.0.0"),
+            ("v0", "0.0.0"),
+            ("v10", "10.0.0"),
+        ],
+    )
+    def test_validate_version_valid_versions(self, version: str, expected_result: str) -> None:
+        """Test _validate_version with valid semver strings."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+        result = app._validate_version(version)
+        assert result == expected_result
+
+    @pytest.mark.parametrize(
+        "version,expected_error",
+        [
+            ("", ValueError),
+            (None, TypeError),
+            (123, TypeError),
+            ([], TypeError),
+            ({}, TypeError),
+            ("1.0.0.0", ValueError),  # too many components
+            ("1.0.0dev", ValueError),  # PEP 440 dev (not semver)
+            ("1.0.0a1", ValueError),  # PEP 440 alpha (not semver)
+            ("1.0.0.post1", ValueError),  # PEP 440 post (not semver)
+            ("not_a_version", ValueError),  # garbage
+            ("latest", ValueError),  # word
+            (" 1.0.0", ValueError),  # leading space
+            ("1.0.0 ", ValueError),  # trailing space
+            ("01.0.0", ValueError),  # leading zero
+        ],
+    )
+    def test_validate_version_invalid_versions(
+        self, version: object, expected_error: type[Exception]
+    ) -> None:
+        """Test _validate_version rejects invalid versions."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+        with pytest.raises(expected_error):
+            app._validate_version(version)  # type: ignore[arg-type]
+
+    def test_mcp_app_rejects_invalid_version_at_init(self) -> None:
+        """Test MCPApp raises at instantiation for invalid version."""
+        with pytest.raises(ValueError, match="semver"):
+            MCPApp(name="TestApp", version="not-valid")
+
+    def test_mcp_app_rejects_invalid_version_via_setter(self) -> None:
+        """Test MCPApp version setter validates and raises for invalid version."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+        with pytest.raises(ValueError, match="semver"):
+            app.version = "bad"
+
+    def test_mcp_app_v_prefix_normalized(self) -> None:
+        """Test v prefix is stripped and version is normalized."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+        assert app._validate_version("v1.0.0") == "1.0.0"
+        assert app._validate_version("v1.0") == "1.0.0"
+        assert app._validate_version("v2.5") == "2.5.0"
+        assert app._validate_version("v1") == "1.0.0"
+
+    def test_multi_digit_versions_accepted(self) -> None:
+        """Test versions like 1.10.0 are accepted."""
+        app = MCPApp(name="TestApp", version="1.10.0")
+        assert app.version == "1.10.0"
+        app2 = MCPApp(name="TestApp", version="1.9.0")
+        assert app2.version == "1.9.0"
+        # 1.10.0 > 1.9.0 in semver; lexicographic would wrongly give 1.10.0 < 1.9.0
+        assert app._validate_version("1.10.0") == "1.10.0"
+        assert app._validate_version("1.9.0") == "1.9.0"
 
 
 class TestMCPApp:
@@ -343,6 +442,8 @@ class TestMCPApp:
                 mcp_settings=mcp_app._mcp_settings,
                 debug=False,
                 resource_server_validator=mcp_app.resource_server_validator,
+                initial_resources=mcp_app._initial_resources,
+                tool_meta_extensions=mcp_app._tool_meta_extensions,
             )
             mock_serve.assert_called_once_with(
                 app=mock_fastapi_app,
@@ -367,6 +468,8 @@ class TestMCPApp:
                 mcp_settings=mcp_app._mcp_settings,
                 debug=True,
                 resource_server_validator=mcp_app.resource_server_validator,
+                initial_resources=mcp_app._initial_resources,
+                tool_meta_extensions=mcp_app._tool_meta_extensions,
             )
             mock_serve.assert_called_once_with(
                 app=mock_fastapi_app,
@@ -642,3 +745,341 @@ class TestMCPApp:
         app = MCPApp()
         with pytest.raises(expected_error):
             app._validate_name(name)
+
+
+class TestMCPAppResourceRegistration:
+    """Tests for build-time resource registration on MCPApp."""
+
+    def test_add_resource_stores_resource(self):
+        """Verify add_resource stores a (Resource, None) tuple in _initial_resources."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+        app.add_resource("ui://app/index.html", name="App UI", mime_type="text/html")
+
+        assert len(app._initial_resources) == 1
+        resource, handler = app._initial_resources[0]
+        assert resource.uri == "ui://app/index.html"
+        assert resource.name == "App UI"
+        assert resource.mimeType == "text/html"
+        assert handler is None
+
+    def test_add_resource_with_handler(self):
+        """Verify handler is stored alongside resource."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        def my_handler(uri: str) -> str:
+            return "content"
+
+        app.add_resource("file:///data.json", name="Data", handler=my_handler)
+
+        assert len(app._initial_resources) == 1
+        resource, handler = app._initial_resources[0]
+        assert resource.uri == "file:///data.json"
+        assert handler is my_handler
+
+    def test_add_resource_name_defaults_to_uri(self):
+        """Name defaults to URI when omitted."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+        app.add_resource("ui://app/page.html")
+
+        resource, _ = app._initial_resources[0]
+        assert resource.name == "ui://app/page.html"
+
+    def test_add_resource_with_title(self):
+        """Verify title is set on the Resource object."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+        app.add_resource(
+            "ui://app/index.html",
+            name="App UI",
+            title="My Application",
+            mime_type="text/html",
+        )
+
+        resource, _ = app._initial_resources[0]
+        assert resource.title == "My Application"
+
+    def test_resource_decorator_with_title(self):
+        """Verify title is passed through from the decorator."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        @app.resource("ui://app/index.html", title="My App UI")
+        def serve_ui(uri: str) -> str:
+            return "<html></html>"
+
+        resource, _ = app._initial_resources[0]
+        assert resource.title == "My App UI"
+
+    def test_resource_decorator_registers_resource(self):
+        """@app.resource(uri) stores (Resource, fn)."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        @app.resource("ui://app/index.html", mime_type="text/html")
+        def serve_ui(uri: str) -> str:
+            return "<html></html>"
+
+        assert len(app._initial_resources) == 1
+        resource, handler = app._initial_resources[0]
+        assert resource.uri == "ui://app/index.html"
+        assert handler is serve_ui
+
+    def test_resource_decorator_name_defaults_to_function_name(self):
+        """Name defaults to fn.__name__ when using decorator."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        @app.resource("ui://app/index.html")
+        def serve_ui(uri: str) -> str:
+            return "<html></html>"
+
+        resource, _ = app._initial_resources[0]
+        assert resource.name == "serve_ui"
+
+    def test_resource_decorator_preserves_function(self):
+        """Decorated function is still directly callable."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        @app.resource("ui://app/index.html")
+        def serve_ui(uri: str) -> str:
+            return f"content for {uri}"
+
+        assert serve_ui("test://uri") == "content for test://uri"
+
+    def test_multiple_resources_registered(self):
+        """Multiple add_resource + decorator calls accumulate."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        app.add_resource("file:///a.txt", name="A")
+        app.add_resource("file:///b.txt", name="B")
+
+        @app.resource("ui://app/index.html")
+        def serve_ui(uri: str) -> str:
+            return "<html></html>"
+
+        assert len(app._initial_resources) == 3
+
+    def test_run_exits_when_no_tools_or_resources(self):
+        """run() exits when neither tools nor resources are registered."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+        with pytest.raises(SystemExit):
+            app.run(transport="http")
+
+    def test_run_allows_resource_only_server(self):
+        """run() does not exit when only resources are registered (no tools)."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+        app.add_resource("ui://app/index.html", name="App UI")
+
+        with (
+            patch("arcade_mcp_server.mcp_app.create_arcade_mcp") as mock_create,
+            patch("arcade_mcp_server.mcp_app.serve_with_force_quit"),
+        ):
+            mock_create.return_value = Mock()
+            # Should NOT raise SystemExit
+            app.run(transport="http", host="127.0.0.1", port=8000)
+
+    def test_tool_with_meta(self):
+        """@app.tool(meta=...) stores _meta extension."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        @app.tool(meta={"ui": {"resourceUri": "ui://test-app/index.html"}})
+        def get_data(query: Annotated[str, "A query"]) -> str:
+            """Get data."""
+            return "data"
+
+        assert "TestApp.GetData" in app._tool_meta_extensions
+        assert app._tool_meta_extensions["TestApp.GetData"] == {
+            "ui": {"resourceUri": "ui://test-app/index.html"}
+        }
+
+    def test_add_tool_with_meta(self):
+        """add_tool(meta=...) stores _meta extension."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        def my_tool(x: Annotated[str, "input"]) -> str:
+            """A tool."""
+            return x
+
+        app.add_tool(my_tool, meta={"ui": {"resourceUri": "ui://my-tool/index.html"}})
+
+        assert "TestApp.MyTool" in app._tool_meta_extensions
+        assert app._tool_meta_extensions["TestApp.MyTool"] == {
+            "ui": {"resourceUri": "ui://my-tool/index.html"}
+        }
+
+    def test_tool_with_meta_arbitrary_keys(self):
+        """meta with arbitrary keys is stored as-is."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        @app.tool(meta={"custom": {"key": "value"}, "other": 42})
+        def do_stuff(x: Annotated[str, "input"]) -> str:
+            """A tool."""
+            return x
+
+        assert "TestApp.DoStuff" in app._tool_meta_extensions
+        assert app._tool_meta_extensions["TestApp.DoStuff"] == {
+            "custom": {"key": "value"},
+            "other": 42,
+        }
+
+    def test_tool_with_meta_arcade_key_raises(self):
+        """meta containing 'arcade' key raises ToolDefinitionError."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        with pytest.raises(ToolDefinitionError, match="'arcade' key in meta is reserved"):
+
+            @app.tool(meta={"arcade": {"something": True}})
+            def bad_tool(x: Annotated[str, "input"]) -> str:
+                """A tool."""
+                return x
+
+    def test_tool_with_meta_empty_or_none(self):
+        """meta={} and meta=None do not create _tool_meta_extensions entries."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        @app.tool(meta={})
+        def tool_empty(x: Annotated[str, "input"]) -> str:
+            """A tool."""
+            return x
+
+        @app.tool(meta=None)
+        def tool_none(x: Annotated[str, "input"]) -> str:
+            """A tool."""
+            return x
+
+        assert "TestApp.ToolEmpty" not in app._tool_meta_extensions
+        assert "TestApp.ToolNone" not in app._tool_meta_extensions
+
+
+class TestMCPAppResourceAnnotationsMetaTemplates:
+    """Test MCPApp resource registration with annotations, meta, and templates."""
+
+    def test_add_resource_with_annotations(self):
+        from arcade_mcp_server.types import Annotations, Resource
+
+        app = MCPApp(name="TestApp", version="1.0.0")
+        app.add_resource(
+            "res://test",
+            annotations=Annotations(priority=0.5),
+        )
+        assert len(app._initial_resources) == 1
+        item, _handler = app._initial_resources[0]
+        assert isinstance(item, Resource)
+        assert item.annotations is not None
+        assert item.annotations.priority == 0.5
+
+    def test_add_resource_with_meta(self):
+        from arcade_mcp_server.types import Resource
+
+        app = MCPApp(name="TestApp", version="1.0.0")
+        app.add_resource(
+            "res://test",
+            meta={"custom": "value"},
+        )
+        item, _ = app._initial_resources[0]
+        assert isinstance(item, Resource)
+        assert item.meta == {"custom": "value"}
+
+    def test_resource_decorator_with_annotations(self):
+        from arcade_mcp_server.types import Annotations, Resource
+
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        @app.resource("res://dec", annotations=Annotations(priority=0.8))
+        def handler(uri: str) -> str:
+            return "ok"
+
+        item, _ = app._initial_resources[0]
+        assert isinstance(item, Resource)
+        assert item.annotations is not None
+        assert item.annotations.priority == 0.8
+
+    def test_resource_decorator_with_meta(self):
+        from arcade_mcp_server.types import Resource
+
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        @app.resource("res://dec", meta={"key": "val"})
+        def handler(uri: str) -> str:
+            return "ok"
+
+        item, _ = app._initial_resources[0]
+        assert isinstance(item, Resource)
+        assert item.meta == {"key": "val"}
+
+    def test_resource_decorator_with_template_uri(self):
+        from arcade_mcp_server.types import ResourceTemplate
+
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        @app.resource("weather://{city}/current")
+        def handler(uri: str, city: str) -> str:
+            return f"Weather for {city}"
+
+        item, _ = app._initial_resources[0]
+        assert isinstance(item, ResourceTemplate)
+        assert item.uriTemplate == "weather://{city}/current"
+
+    def test_resource_decorator_template_listed_as_template(self):
+        from arcade_mcp_server.types import Resource, ResourceTemplate
+
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        @app.resource("weather://{city}/current")
+        def handler(uri: str, city: str) -> str:
+            return f"Weather for {city}"
+
+        # Should be ResourceTemplate, not Resource
+        item, _ = app._initial_resources[0]
+        assert isinstance(item, ResourceTemplate)
+        assert not isinstance(item, Resource)
+
+    def test_mcp_app_add_text_resource(self):
+        from arcade_mcp_server.types import Resource
+
+        app = MCPApp(name="TestApp", version="1.0.0")
+        app.add_text_resource("text://hello", text="hello world")
+
+        assert len(app._initial_resources) == 1
+        item, handler = app._initial_resources[0]
+        assert isinstance(item, Resource)
+        assert handler is not None
+
+    def test_mcp_app_add_file_resource(self, tmp_path):
+        from arcade_mcp_server.types import Resource
+
+        f = tmp_path / "test.txt"
+        f.write_text("file content")
+
+        app = MCPApp(name="TestApp", version="1.0.0")
+        app.add_file_resource(
+            "file:///test.txt",
+            path=str(f),
+            name="Test File",
+            mime_type="text/plain",
+        )
+
+        assert len(app._initial_resources) == 1
+        item, handler = app._initial_resources[0]
+        assert isinstance(item, Resource)
+        assert item.name == "Test File"
+        assert handler is not None
+        # Handler should return the file content
+        assert handler("file:///test.txt") == "file content"
+
+    def test_mcp_app_add_file_resource_binary(self, tmp_path):
+        f = tmp_path / "image.bin"
+        f.write_bytes(b"\x89PNG\r\n")
+
+        app = MCPApp(name="TestApp", version="1.0.0")
+        app.add_file_resource("file:///image.bin", path=str(f))
+
+        _, handler = app._initial_resources[0]
+        result = handler("file:///image.bin")
+        assert isinstance(result, bytes)
+
+    def test_mcp_app_add_file_resource_missing_raises(self, tmp_path):
+        from arcade_mcp_server.exceptions import NotFoundError
+
+        app = MCPApp(name="TestApp", version="1.0.0")
+        app.add_file_resource("file:///missing.txt", path=str(tmp_path / "missing.txt"))
+
+        _, handler = app._initial_resources[0]
+        with pytest.raises(NotFoundError, match="File not found"):
+            handler("file:///missing.txt")

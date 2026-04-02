@@ -71,6 +71,7 @@ from arcade_mcp_server.types import (
     PingRequest,
     ReadResourceRequest,
     ReadResourceResult,
+    ResourceTemplate,
     ServerCapabilities,
     SetLevelRequest,
     SubscribeRequest,
@@ -123,6 +124,8 @@ class MCPServer:
         auth_disabled: bool = False,
         arcade_api_key: str | None = None,
         arcade_api_url: str | None = None,
+        initial_resources: list[tuple[Any, Callable[..., Any] | None]] | None = None,
+        tool_meta_extensions: dict[str, dict[str, Any]] | None = None,
     ):
         """
         Initialize MCP server.
@@ -177,6 +180,11 @@ class MCPServer:
         self._resource_manager = ResourceManager()
         self._prompt_manager = PromptManager()
 
+        # Build-time resources to load on start
+        self._initial_resources = initial_resources or []
+
+        self._tool_meta_extensions = tool_meta_extensions or {}
+
         # Centralized notifications
         self.notification_manager = NotificationManager(self)
 
@@ -202,6 +210,7 @@ class MCPServer:
 
         # Middleware chain
         self.middleware: list[Middleware] = []
+        self._extra_capabilities: dict[str, Any] = {}
         self._init_middleware(middleware)
 
         # Lifespan management
@@ -319,6 +328,10 @@ class MCPServer:
         if custom_middleware:
             self.middleware.extend(custom_middleware)
 
+        # Collect capabilities from middleware that declare them
+        for mw in self.middleware:
+            self._extra_capabilities.update(mw.get_capabilities())
+
     def _register_handlers(self) -> dict[str, Callable]:
         """Register method handlers."""
         return {
@@ -350,10 +363,22 @@ class MCPServer:
         except Exception:
             logger.exception("Failed to load tools from initial catalog")
 
+        # Apply _meta extensions to loaded tools
+        if self._tool_meta_extensions:
+            await self._tool_manager.apply_meta_extensions(self._tool_meta_extensions)
+
         # Check for missing secrets and log warnings (only when worker routes are disabled)
         await self._check_and_warn_missing_secrets()
 
         await self._resource_manager.start()
+        for item, handler in self._initial_resources:
+            if isinstance(item, ResourceTemplate):
+                if handler is not None:
+                    await self._resource_manager.add_template_with_handler(item, handler)
+                else:
+                    await self._resource_manager.add_template(item)
+            else:
+                await self._resource_manager.add_resource(item, handler)
         await self._prompt_manager.start()
         await self.lifespan_manager.startup()
 
@@ -681,14 +706,18 @@ class MCPServer:
         if session:
             session.set_client_params(message.params)
 
+        caps_kwargs: dict[str, Any] = {
+            "tools": {"listChanged": True},
+            "logging": {},
+            "prompts": {"listChanged": True},
+            "resources": {"subscribe": True, "listChanged": True},
+        }
+        if self._extra_capabilities:
+            caps_kwargs.update(self._extra_capabilities)
+
         result = InitializeResult(
             protocolVersion=LATEST_PROTOCOL_VERSION,
-            capabilities=ServerCapabilities(
-                tools={"listChanged": True},
-                logging={},
-                prompts={"listChanged": True},
-                resources={"subscribe": True, "listChanged": True},
-            ),
+            capabilities=ServerCapabilities(**caps_kwargs),
             serverInfo=Implementation(
                 name=self.name,
                 version=self.version,

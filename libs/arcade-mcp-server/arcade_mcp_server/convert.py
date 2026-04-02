@@ -54,10 +54,13 @@ def create_mcp_tool(materialized_tool: MaterializedTool) -> MCPTool:
         description = f"[DEPRECATED: {deprecation_msg}] {description}"
 
     # Build the tool's output schema
+    # MCP spec requires outputSchema.type to be "object"
     output_schema = None
     if hasattr(definition, "output") and definition.output:
         output_def = definition.output
         if getattr(output_def, "value_schema", None):
+            # _build_value_schema_json always returns {"type": "object", ...}
+            # (it wraps non-object types in a result property internally)
             output_schema = _build_value_schema_json(output_def.value_schema)
 
     # Build MCP tool annotations from metadata behavior fields
@@ -181,38 +184,10 @@ def build_input_schema_from_definition(definition: ToolDefinition) -> dict[str, 
     if getattr(definition, "input", None) and getattr(definition.input, "parameters", None):
         for param in definition.input.parameters:
             val_schema = getattr(param, "value_schema", None)
-            schema: dict[str, Any] = {
-                "type": _map_type_to_json_schema_type(getattr(val_schema, "val_type", None)),
-            }
+            schema = _value_schema_to_json_schema(val_schema) if val_schema else {"type": "string"}
 
             if getattr(param, "description", None):
                 schema["description"] = param.description
-
-            if val_schema and getattr(val_schema, "enum", None):
-                schema["enum"] = list(val_schema.enum)
-
-            if (
-                val_schema
-                and val_schema.val_type == "array"
-                and getattr(val_schema, "inner_val_type", None)
-            ):
-                schema["items"] = {"type": _map_type_to_json_schema_type(val_schema.inner_val_type)}
-
-            if (
-                val_schema
-                and val_schema.val_type == "json"
-                and getattr(val_schema, "properties", None)
-            ):
-                schema["type"] = "object"
-                schema["properties"] = {}
-                for prop_name, prop_schema in val_schema.properties.items():
-                    schema["properties"][prop_name] = {
-                        "type": _map_type_to_json_schema_type(
-                            getattr(prop_schema, "val_type", None)
-                        ),
-                    }
-                    if getattr(prop_schema, "description", None):
-                        schema["properties"][prop_name]["description"] = prop_schema.description
 
             properties[param.name] = schema
             if getattr(param, "required", False):
@@ -229,25 +204,63 @@ def build_input_schema_from_definition(definition: ToolDefinition) -> dict[str, 
 
 
 def _build_value_schema_json(value_schema: Any) -> dict[str, Any]:
-    """Map a ValueSchema to a JSON schema fragment for outputSchema."""
-    schema: dict[str, Any] = {
-        "type": _map_type_to_json_schema_type(getattr(value_schema, "val_type", None)),
+    """Map a ValueSchema to a JSON Schema ``outputSchema``.
+
+    Per the MCP specification, ``outputSchema.type`` MUST be ``"object"``
+    because ``structuredContent`` is always a JSON object.
+
+    * **object** return types (``val_type == "json"``) are emitted directly
+      as ``{"type": "object", "properties": {…}}``.
+    * All other return types (primitives, arrays) are wrapped in
+      ``{"type": "object", "properties": {"result": <inner>}}`` to mirror
+      the wrapping performed at runtime by
+      :func:`convert_content_to_structured_content`.
+    """
+    inner_schema = _value_schema_to_json_schema(value_schema)
+
+    # Object return types are already top-level objects, emit directly.
+    if inner_schema.get("type") == "object":
+        return inner_schema
+
+    # Primitives/arrays must be wrapped so outputSchema.type is "object" per MCP spec.
+    return {
+        "type": "object",
+        "properties": {
+            "result": inner_schema,
+        },
     }
+
+
+def _value_schema_to_json_schema(value_schema: Any) -> dict[str, Any]:
+    """Convert a ValueSchema to a JSON Schema dict without top-level object wrapping.
+
+    Recursively expands nested object (json) types into their sub-schemas.
+    """
+    val_type = getattr(value_schema, "val_type", None)
+
+    if val_type == "json":
+        schema: dict[str, Any] = {"type": "object"}
+        if getattr(value_schema, "enum", None):
+            schema["enum"] = list(value_schema.enum)
+        if getattr(value_schema, "properties", None):
+            schema["properties"] = {}
+            for prop_name, prop_schema in value_schema.properties.items():
+                schema["properties"][prop_name] = _value_schema_to_json_schema(prop_schema)
+                if getattr(prop_schema, "description", None):
+                    schema["properties"][prop_name]["description"] = prop_schema.description
+        return schema
+
+    schema = {"type": _map_type_to_json_schema_type(val_type)}
     if getattr(value_schema, "enum", None):
         schema["enum"] = list(value_schema.enum)
-    if getattr(value_schema, "val_type", None) == "array" and getattr(
-        value_schema, "inner_val_type", None
-    ):
-        schema["items"] = {"type": _map_type_to_json_schema_type(value_schema.inner_val_type)}
-    if getattr(value_schema, "val_type", None) == "json" and getattr(
-        value_schema, "properties", None
-    ):
-        schema["type"] = "object"
-        schema["properties"] = {}
-        for prop_name, prop_schema in value_schema.properties.items():
-            schema["properties"][prop_name] = {
-                "type": _map_type_to_json_schema_type(getattr(prop_schema, "val_type", None))
-            }
-            if getattr(prop_schema, "description", None):
-                schema["properties"][prop_name]["description"] = prop_schema.description
+    if val_type == "array" and getattr(value_schema, "inner_val_type", None):
+        inner_type = value_schema.inner_val_type
+        items_schema: dict[str, Any] = {"type": _map_type_to_json_schema_type(inner_type)}
+        if inner_type == "json" and getattr(value_schema, "inner_properties", None):
+            items_schema["properties"] = {}
+            for prop_name, prop_schema in value_schema.inner_properties.items():
+                items_schema["properties"][prop_name] = _value_schema_to_json_schema(prop_schema)
+                if getattr(prop_schema, "description", None):
+                    items_schema["properties"][prop_name]["description"] = prop_schema.description
+        schema["items"] = items_schema
     return schema

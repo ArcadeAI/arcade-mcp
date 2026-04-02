@@ -21,18 +21,25 @@ from arcade_core.subprocess_utils import (
     get_windows_no_window_creationflags,
     graceful_terminate_process,
 )
+from arcade_core.utils import snake_to_pascal_case
 from arcade_tdk.auth import ToolAuthorization
 from arcade_tdk.error_adapters import ErrorAdapter
 from arcade_tdk.tool import tool as tool_decorator
 from loguru import logger
 from watchfiles import watch
 
+from arcade_mcp_server._validation import normalize_version
 from arcade_mcp_server.exceptions import ServerError
 from arcade_mcp_server.logging_utils import intercept_standard_logging
+from arcade_mcp_server.managers.resource import (
+    _is_template_uri,
+    make_file_handler,
+    make_text_handler,
+)
 from arcade_mcp_server.resource_server.base import ResourceServerValidator
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.settings import MCPSettings, ServerSettings, find_env_file
-from arcade_mcp_server.types import Prompt, PromptMessage, Resource
+from arcade_mcp_server.types import Annotations, Prompt, PromptMessage, Resource, ResourceTemplate
 from arcade_mcp_server.usage import ServerTracker
 from arcade_mcp_server.worker import create_arcade_mcp, serve_with_force_quit
 
@@ -100,7 +107,7 @@ class MCPApp:
             **kwargs: Additional server configuration
         """
         self._name = self._validate_name(name)
-        self.version = version
+        self._version = self._validate_version(version)
         self.title = title or name
         self.instructions = instructions
         self.log_level = log_level
@@ -115,12 +122,20 @@ class MCPApp:
         self._catalog = ToolCatalog()
         self._toolkit_name = name
 
+        # Resource collection (build-time)
+        self._initial_resources: list[
+            tuple[Resource | ResourceTemplate, Callable[..., Any] | None]
+        ] = []
+
+        # Tool _meta extensions (build-time) — keyed by tool FQN
+        self._tool_meta_extensions: dict[str, dict[str, Any]] = {}
+
         # Public handle to the MCPServer (set by caller for runtime ops)
         self.server: MCPServer | None = None
 
         server_settings_kwargs = {
             "name": self._name,
-            "version": self.version,
+            "version": self._version,
             "title": self.title,
         }
         if self.instructions:
@@ -174,6 +189,18 @@ class MCPApp:
 
         return name
 
+    def _validate_version(self, version: str) -> str:
+        """Validate and normalize version to canonical semver."""
+        try:
+            return normalize_version(version)
+        except TypeError:
+            raise TypeError("MCPApp's version must be a string")
+        except ValueError as e:
+            raise ValueError(
+                f"MCPApp's version must be a valid semver string "
+                f"(e.g., '1.0.0', '1.2.3-beta.1'), got '{e}'"
+            )
+
     # Properties (exposed below initializer)
     @property
     def name(self) -> str:
@@ -184,6 +211,16 @@ class MCPApp:
     def name(self, value: str) -> None:
         """Set the server name with validation."""
         self._name = self._validate_name(value)
+
+    @property
+    def version(self) -> str:
+        """Get the server version."""
+        return self._version
+
+    @version.setter
+    def version(self, value: str) -> None:
+        """Set the server version with validation."""
+        self._version = self._validate_version(value)
 
     @property
     def tools(self) -> _ToolsAPI:
@@ -231,8 +268,15 @@ class MCPApp:
         requires_metadata: list[str] | None = None,
         adapters: list[ErrorAdapter] | None = None,
         metadata: ToolMetadata | None = None,
+        meta: dict[str, Any] | None = None,
     ) -> Callable[P, T]:
         """Add a tool for build-time materialization (pre-server)."""
+        if meta and "arcade" in meta:
+            raise ToolDefinitionError(
+                "The 'arcade' key in meta is reserved. "
+                "Use the 'metadata' parameter (ToolMetadata) instead."
+            )
+
         if not hasattr(func, "__tool_name__"):
             func = tool_decorator(
                 func,
@@ -253,6 +297,18 @@ class MCPApp:
             )
         except ToolDefinitionError as e:
             raise e.with_context(func.__name__) from e
+
+        # Store _meta extensions for the tool
+        if meta:
+            tool_name = snake_to_pascal_case(getattr(func, "__tool_name__", func.__name__))
+            fqn = None
+            for mat_tool in self._catalog:
+                if mat_tool.definition.name == tool_name:
+                    fqn = str(mat_tool.definition.fully_qualified_name)
+                    break
+            if fqn:
+                self._tool_meta_extensions[fqn] = meta
+
         logger.debug(f"Added tool: {func.__name__}")
         return func
 
@@ -260,6 +316,118 @@ class MCPApp:
         """Add all the tools in a module to the catalog."""
         self._catalog.add_module(
             module, self._toolkit_name, version=self.version, description=self.instructions
+        )
+
+    def add_resource(
+        self,
+        uri: str,
+        *,
+        name: str | None = None,
+        title: str | None = None,
+        description: str | None = None,
+        mime_type: str | None = None,
+        handler: Callable[..., Any] | None = None,
+        annotations: Annotations | None = None,
+        meta: dict[str, Any] | None = None,
+    ) -> None:
+        """Register a resource at build time (before server start).
+
+        If the URI contains ``{`` it is treated as a URI template and a
+        :class:`ResourceTemplate` is stored instead of a :class:`Resource`.
+        """
+        common_kwargs: dict[str, Any] = {
+            "name": name or uri,
+            "title": title,
+            "description": description,
+            "mimeType": mime_type,
+            "annotations": annotations,
+        }
+        if meta is not None:
+            common_kwargs["_meta"] = meta
+
+        if _is_template_uri(uri):
+            item: Resource | ResourceTemplate = ResourceTemplate(uriTemplate=uri, **common_kwargs)
+        else:
+            item = Resource(uri=uri, **common_kwargs)
+        self._initial_resources.append((item, handler))
+        logger.debug(f"Added resource: {uri}")
+
+    def resource(
+        self,
+        uri: str,
+        *,
+        name: str | None = None,
+        title: str | None = None,
+        description: str | None = None,
+        mime_type: str | None = None,
+        annotations: Annotations | None = None,
+        meta: dict[str, Any] | None = None,
+    ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+        """Decorator for registering a resource with a handler at build time."""
+
+        def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+            self.add_resource(
+                uri,
+                name=name or func.__name__,
+                title=title,
+                description=description,
+                mime_type=mime_type,
+                handler=func,
+                annotations=annotations,
+                meta=meta,
+            )
+            return func
+
+        return decorator
+
+    def add_text_resource(
+        self,
+        uri: str,
+        *,
+        text: str,
+        name: str | None = None,
+        title: str | None = None,
+        description: str | None = None,
+        mime_type: str = "text/plain",
+    ) -> None:
+        """Register a static text resource at build time."""
+        if _is_template_uri(uri):
+            raise ValueError(
+                f"Template URIs are not supported for static text resources: '{uri}'. "
+                "Use add_resource() with a handler that accepts template parameters instead."
+            )
+        self.add_resource(
+            uri,
+            name=name,
+            title=title,
+            description=description,
+            mime_type=mime_type,
+            handler=make_text_handler(text),
+        )
+
+    def add_file_resource(
+        self,
+        uri: str,
+        *,
+        path: str | Path,
+        name: str | None = None,
+        title: str | None = None,
+        description: str | None = None,
+        mime_type: str | None = None,
+    ) -> None:
+        """Register a file-backed resource at build time."""
+        if _is_template_uri(uri):
+            raise ValueError(
+                f"Template URIs are not supported for file resources: '{uri}'. "
+                "Use add_resource() with a handler that accepts template parameters instead."
+            )
+        self.add_resource(
+            uri,
+            name=name,
+            title=title,
+            description=description,
+            mime_type=mime_type,
+            handler=make_file_handler(path),
         )
 
     def tool(
@@ -272,6 +440,7 @@ class MCPApp:
         requires_metadata: list[str] | None = None,
         adapters: list[ErrorAdapter] | None = None,
         metadata: ToolMetadata | None = None,
+        meta: dict[str, Any] | None = None,
     ) -> Callable[[Callable[P, T]], Callable[P, T]] | Callable[P, T]:
         """Decorator for adding tools with optional parameters."""
 
@@ -285,6 +454,7 @@ class MCPApp:
                 requires_metadata=requires_metadata,
                 adapters=adapters,
                 metadata=metadata,
+                meta=meta,
             )
 
         if func is not None:
@@ -299,8 +469,10 @@ class MCPApp:
         transport: TransportType = "stdio",
         **kwargs: Any,
     ) -> None:
-        if len(self._catalog) == 0:
-            logger.error("No tools added to the server. Use @app.tool decorator or app.add_tool().")
+        if len(self._catalog) == 0 and len(self._initial_resources) == 0:
+            logger.error(
+                "No tools or resources added. Use @app.tool, app.add_tool(), @app.resource, or app.add_resource()."
+            )
             sys.exit(1)
 
         host, port, transport, reload = MCPApp._get_configuration_overrides(
@@ -314,7 +486,10 @@ class MCPApp:
             # parent watcher has already been setup
             reload = False
 
-        logger.info(f"Starting {self._name} v{self.version} with {len(self._catalog)} tools")
+        logger.info(
+            f"Starting {self._name} v{self.version}"
+            f" with {len(self._catalog)} tools and {len(self._initial_resources)} resources"
+        )
 
         if transport in ["http", "streamable-http", "streamable"]:
             resource_server_auth_enabled = isinstance(
@@ -354,6 +529,8 @@ class MCPApp:
                 run_stdio_server(
                     catalog=self._catalog,
                     settings=self._mcp_settings,
+                    initial_resources=self._initial_resources,
+                    tool_meta_extensions=self._tool_meta_extensions,
                     **self.server_kwargs,
                 )
             )
@@ -447,6 +624,8 @@ class MCPApp:
             mcp_settings=self._mcp_settings,
             debug=debug,
             resource_server_validator=self.resource_server_validator,
+            initial_resources=self._initial_resources,
+            tool_meta_extensions=self._tool_meta_extensions,
             **self.server_kwargs,
         )
 
