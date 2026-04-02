@@ -2,6 +2,7 @@
 
 import json
 import os
+import sys
 import time
 from unittest.mock import MagicMock, patch
 
@@ -281,7 +282,7 @@ class TestUpdateCommand:
             assert "recommend" in result.output.lower()
             assert "uv tool" in result.output.lower()
             cmd = mock_run.call_args[0][0]
-            assert cmd == ["uv", "pip", "install", "--upgrade", PACKAGE_NAME]
+            assert cmd == ["uv", "pip", "install", "--upgrade", "--python", sys.executable, PACKAGE_NAME]
 
     def test_update_available_pip_shows_warning(self) -> None:
         with (

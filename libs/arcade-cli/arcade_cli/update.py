@@ -249,7 +249,15 @@ def detect_install_method() -> InstallMethod:
 _UPGRADE_COMMANDS: dict[InstallMethod, list[str]] = {
     InstallMethod.UV_TOOL: ["uv", "tool", "upgrade", PACKAGE_NAME],
     InstallMethod.PIPX: ["pipx", "upgrade", PACKAGE_NAME],
-    InstallMethod.UV_PIP: ["uv", "pip", "install", "--upgrade", PACKAGE_NAME],
+    InstallMethod.UV_PIP: [
+        "uv",
+        "pip",
+        "install",
+        "--upgrade",
+        "--python",
+        sys.executable,
+        PACKAGE_NAME,
+    ],
     InstallMethod.PIP: ["pip", "install", "--upgrade", PACKAGE_NAME],
 }
 
