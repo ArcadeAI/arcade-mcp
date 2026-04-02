@@ -228,7 +228,20 @@ def detect_install_method() -> InstallMethod:
             logger.debug("Failed to check pipx list", exc_info=True)
 
     if shutil.which("uv"):
-        return InstallMethod.UV_PIP
+        # Only use uv pip if the package is actually installed in the current
+        # interpreter's environment.  Without this check we might upgrade into a
+        # different environment than the one backing the running ``arcade`` executable.
+        try:
+            result = subprocess.run(
+                ["uv", "pip", "show", PACKAGE_NAME, "--python", sys.executable],  # noqa: S607
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode == 0 and PACKAGE_NAME in result.stdout:
+                return InstallMethod.UV_PIP
+        except Exception:
+            logger.debug("Failed to check uv pip show", exc_info=True)
 
     return InstallMethod.PIP
 
