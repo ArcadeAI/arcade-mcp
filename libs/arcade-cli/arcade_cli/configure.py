@@ -526,6 +526,12 @@ def configure_client(
         server_name = Path.cwd().name
 
     if transport == "stdio":
+        if "/" in entrypoint_file or "\\" in entrypoint_file:
+            raise ValueError(
+                f"Entrypoint file '{entrypoint_file}' must be a filename in the current "
+                f"directory, not a path"
+            )
+
         if not (Path.cwd() / entrypoint_file).exists():
             raise ValueError(f"Entrypoint file '{entrypoint_file}' is not in the current directory")
 
