@@ -11,6 +11,7 @@ import pytest
 from arcade_cli.deploy import (
     DEPLOY_TIMEOUT_SECONDS,
     create_package_archive,
+    deploy_server_logic,
     deploy_server_to_engine,
     discover_entrypoint,
     find_project_root,
@@ -595,11 +596,12 @@ def test_discover_entrypoint_app_py_fallback(tmp_path: Path) -> None:
     assert discover_entrypoint(tmp_path) == "app.py"
 
 
-def test_discover_entrypoint_main_py_fallback(tmp_path: Path) -> None:
-    """Falls back to main.py as last resort."""
+def test_discover_entrypoint_main_py_not_a_candidate(tmp_path: Path) -> None:
+    """main.py is NOT treated as an entrypoint candidate (too ambiguous)."""
     _make_pyproject(tmp_path)
-    (tmp_path / "main.py").write_text("# entrypoint")
-    assert discover_entrypoint(tmp_path) == "main.py"
+    (tmp_path / "main.py").write_text("# not an entrypoint")
+    with pytest.raises(FileNotFoundError, match="Could not find an entrypoint"):
+        discover_entrypoint(tmp_path)
 
 
 def test_discover_entrypoint_prefers_server_py_over_src(tmp_path: Path) -> None:
@@ -626,3 +628,88 @@ def test_discover_entrypoint_hyphen_to_underscore(tmp_path: Path) -> None:
     pkg_dir.mkdir(parents=True)
     (pkg_dir / "server.py").write_text("# entrypoint")
     assert discover_entrypoint(tmp_path) == "src/my_cool_server/server.py"
+
+
+def test_discover_entrypoint_warns_when_no_project_name(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
+    """Logs a warning when pyproject.toml has no [project].name."""
+    # pyproject.toml without [project].name
+    (tmp_path / "pyproject.toml").write_text("[build-system]\nrequires = ['hatchling']\n")
+    (tmp_path / "server.py").write_text("# entrypoint")
+
+    import logging
+
+    with caplog.at_level(logging.WARNING, logger="arcade_cli.deploy"):
+        result = discover_entrypoint(tmp_path)
+
+    assert result == "server.py"
+    assert "Could not read [project].name" in caplog.text
+
+
+# ---------------------------------------------------------------------------
+# deploy_server_logic — .py positional arg detection
+# ---------------------------------------------------------------------------
+
+
+@patch("arcade_cli.deploy.validate_and_get_config")
+def test_deploy_server_logic_rejects_py_as_project_dir(mock_config: MagicMock) -> None:
+    """Passing a .py file as the positional arg raises a helpful error."""
+    mock_config.return_value = MagicMock(user=MagicMock(email="test@test.com"))
+
+    with pytest.raises(FileNotFoundError, match=r"looks like a Python file"):
+        deploy_server_logic(
+            entrypoint=None,
+            project_dir="src/server.py",
+            skip_validate=False,
+            server_name=None,
+            server_version=None,
+            secrets="auto",
+            host="localhost",
+            port=None,
+            force_tls=False,
+            force_no_tls=False,
+            debug=False,
+        )
+
+
+# ---------------------------------------------------------------------------
+# deploy_server_logic — .env search uses project_root
+# ---------------------------------------------------------------------------
+
+
+@patch("arcade_cli.deploy.verify_server_and_get_metadata")
+@patch("arcade_cli.deploy.find_env_file")
+@patch("arcade_cli.deploy.validate_and_get_config")
+def test_deploy_env_file_searched_from_project_root(
+    mock_config: MagicMock,
+    mock_find_env: MagicMock,
+    mock_verify: MagicMock,
+    tmp_path: Path,
+) -> None:
+    """find_env_file is called with start_dir=project_root, not CWD."""
+    # Set up a project dir that is NOT the CWD
+    project_dir = tmp_path / "my_project"
+    project_dir.mkdir()
+    _make_pyproject(project_dir, name="my-project")
+    (project_dir / "server.py").write_text("# entrypoint")
+
+    mock_config.return_value = MagicMock(user=MagicMock(email="test@test.com"))
+    mock_find_env.return_value = None
+    mock_verify.side_effect = Exception("stop early")
+
+    with pytest.raises(ValueError, match="Server verification failed"):
+        deploy_server_logic(
+            entrypoint=None,
+            project_dir=str(project_dir),
+            skip_validate=False,
+            server_name=None,
+            server_version=None,
+            secrets="auto",
+            host="localhost",
+            port=None,
+            force_tls=False,
+            force_no_tls=False,
+            debug=False,
+        )
+
+    # The key assertion: find_env_file was called with the project root, not CWD
+    mock_find_env.assert_called_once_with(start_dir=project_dir)

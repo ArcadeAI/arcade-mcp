@@ -48,6 +48,7 @@ logger = logging.getLogger(__name__)
 # Constants
 
 DEPLOY_TIMEOUT_SECONDS = 360
+# Covers common layouts: src/<pkg>/tests/ is 3 levels deep from pyproject.toml.
 MAX_PROJECT_ROOT_SEARCH_DEPTH = 3
 
 
@@ -114,7 +115,6 @@ def discover_entrypoint(project_root: Path) -> str:
     3. ``<project_name>/server.py``  — flat-src layout without ``src/`` prefix
     4. ``<project_name>/__main__.py``  — ``arcade new --full`` layout
     5. ``app.py``  — common alternative name
-    6. ``main.py``  — common alternative name
 
     Steps 2-4 derive ``<project_name>`` from ``[project].name`` in ``pyproject.toml``
     (with ``-`` replaced by ``_``).
@@ -139,8 +139,13 @@ def discover_entrypoint(project_root: Path) -> str:
             f"{pkg}/server.py",
             f"{pkg}/__main__.py",
         ])
+    else:
+        logger.warning(
+            "Could not read [project].name from pyproject.toml; "
+            "skipping name-based entrypoint candidates (src/<name>/server.py, etc.)"
+        )
 
-    candidates.extend(["app.py", "main.py"])
+    candidates.append("app.py")
 
     for candidate in candidates:
         if (project_root / candidate).is_file():
@@ -960,6 +965,12 @@ def deploy_server_logic(
 
     # Step 2: Find project root and entrypoint
     console.print("\nLocating project root...", style="dim")
+    if project_dir and project_dir.endswith(".py"):
+        raise FileNotFoundError(
+            f"'{project_dir}' looks like a Python file, not a project directory.\n"
+            "Did you mean to specify the entrypoint?\n"
+            f"  arcade deploy -e {project_dir}"
+        )
     start_dir = Path(project_dir).resolve() if project_dir else None
     project_root = find_project_root(start_dir)
     pyproject_path = project_root / "pyproject.toml"
@@ -984,12 +995,15 @@ def deploy_server_logic(
 
     # Step 3: Load .env file if it exists (searches upward through parent directories)
     console.print("\nSearching for .env file...", style="dim")
-    env_path = find_env_file()
+    env_path = find_env_file(start_dir=project_root)
     if env_path is not None:
         load_dotenv(env_path, override=False)
         console.print(f"✓ Loaded environment from {env_path}", style="green")
     else:
-        console.print("[!] No .env file found in current or parent directories", style="yellow")
+        console.print(
+            f"[!] No .env file found in {project_root} or its parent directories",
+            style="yellow",
+        )
 
     # Step 4: Verify server and extract metadata (or skip if --skip-validate)
     required_secrets_from_validation: set[str] = set()
