@@ -580,13 +580,14 @@ def test_discover_entrypoint_flat_pkg_layout(tmp_path: Path) -> None:
     assert discover_entrypoint(tmp_path) == "my_server/server.py"
 
 
-def test_discover_entrypoint_dunder_main(tmp_path: Path) -> None:
-    """Finds <pkg>/__main__.py (arcade new --full layout)."""
+def test_discover_entrypoint_dunder_main_not_a_candidate(tmp_path: Path) -> None:
+    """__main__.py is NOT auto-discovered (not runnable as `python pkg/__main__.py`)."""
     _make_pyproject(tmp_path, name="my-server")
     pkg_dir = tmp_path / "my_server"
     pkg_dir.mkdir()
     (pkg_dir / "__main__.py").write_text("# entrypoint")
-    assert discover_entrypoint(tmp_path) == "my_server/__main__.py"
+    with pytest.raises(FileNotFoundError, match="Could not find an entrypoint"):
+        discover_entrypoint(tmp_path)
 
 
 def test_discover_entrypoint_app_py_fallback(tmp_path: Path) -> None:
@@ -648,6 +649,27 @@ def test_discover_entrypoint_warns_when_no_project_name(tmp_path: Path, caplog: 
 # ---------------------------------------------------------------------------
 # deploy_server_logic — .py positional arg detection
 # ---------------------------------------------------------------------------
+
+
+@patch("arcade_cli.deploy.validate_and_get_config")
+def test_deploy_server_logic_rejects_nonexistent_project_dir(mock_config: MagicMock) -> None:
+    """Passing a non-existent directory as project_dir raises FileNotFoundError."""
+    mock_config.return_value = MagicMock(user=MagicMock(email="test@test.com"))
+
+    with pytest.raises(FileNotFoundError, match="Project directory not found"):
+        deploy_server_logic(
+            entrypoint=None,
+            project_dir="/nonexistent_path_for_test",
+            skip_validate=False,
+            server_name=None,
+            server_version=None,
+            secrets="auto",
+            host="localhost",
+            port=None,
+            force_tls=False,
+            force_no_tls=False,
+            debug=False,
+        )
 
 
 @patch("arcade_cli.deploy.validate_and_get_config")
