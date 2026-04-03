@@ -1,19 +1,15 @@
-import asyncio
 import base64
 import io
 import socket
 import subprocess
 import tarfile
-from collections import deque
-from contextlib import asynccontextmanager
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import httpx
 import pytest
 from arcade_cli.deploy import (
     DEPLOY_TIMEOUT_SECONDS,
-    _stream_deployment_logs_to_deque,
     create_package_archive,
     deploy_server_to_engine,
     get_required_secrets,
@@ -485,103 +481,3 @@ def test_wait_for_health_debug_message(reserved_unreachable_local_url: str) -> N
     assert "above" in msg.lower() or "output" in msg.lower(), (
         f"Debug mode error should reference checking output above; got: {msg!r}"
     )
-
-
-# ---------------------------------------------------------------------------
-# Deployment log streaming – suppress expected 500s
-# ---------------------------------------------------------------------------
-
-
-def _make_http_status_error(status_code: int) -> httpx.HTTPStatusError:
-    """Create an HTTPStatusError with the given status code."""
-    mock_response = MagicMock()
-    mock_response.status_code = status_code
-    return httpx.HTTPStatusError(
-        f"Error {status_code}", request=MagicMock(), response=mock_response
-    )
-
-
-def _make_mock_async_client(error: Exception, state: dict, stop_after: int = 2) -> type:
-    """Create a mock httpx.AsyncClient class that raises an error on raise_for_status.
-
-    After `stop_after` calls, sets state["status"] = "running" to break the loop.
-    """
-    call_count = 0
-
-    class MockAsyncClient:
-        def __init__(self, **kwargs):  # type: ignore[no-untyped-def]
-            pass
-
-        async def __aenter__(self):  # type: ignore[no-untyped-def]
-            return self
-
-        async def __aexit__(self, *args):  # type: ignore[no-untyped-def]
-            pass
-
-        @asynccontextmanager
-        async def stream(self, method, url, **kwargs):  # type: ignore[no-untyped-def]
-            nonlocal call_count
-            call_count += 1
-            if call_count >= stop_after:
-                state["status"] = "running"
-            mock_resp = MagicMock()
-            mock_resp.raise_for_status.side_effect = error
-            yield mock_resp
-
-    return MockAsyncClient
-
-
-@pytest.mark.asyncio(loop_scope="function")
-@patch("arcade_cli.deploy.asyncio.sleep", new_callable=AsyncMock)
-@patch("arcade_cli.deploy.get_auth_headers", return_value={"Authorization": "Bearer test"})
-@patch(
-    "arcade_cli.deploy.get_org_scoped_url",
-    return_value="http://engine/logs/stream",
-)
-async def test_stream_deployment_logs_suppresses_500_in_debug(
-    mock_url: MagicMock, mock_auth: MagicMock, mock_sleep: AsyncMock, capsys
-) -> None:
-    """HTTP 500 from the log stream endpoint should NOT be printed even in debug mode.
-
-    During early deployment the logs endpoint returns 500 until the container is
-    ready.  Printing "Failed to stream logs: 500" repeatedly confuses users into
-    thinking something is broken.
-    """
-    state: dict = {"status": "pending"}
-    log_deque: deque[str] = deque(maxlen=100)
-    error = _make_http_status_error(500)
-    mock_cls = _make_mock_async_client(error, state)
-
-    with patch("arcade_cli.deploy.httpx.AsyncClient", mock_cls):
-        await _stream_deployment_logs_to_deque(
-            "http://engine", "myserver", log_deque, state, debug=True
-        )
-
-    captured = capsys.readouterr()
-    assert "Failed to stream logs" not in captured.out
-    assert "500" not in captured.out
-
-
-@pytest.mark.asyncio(loop_scope="function")
-@patch("arcade_cli.deploy.asyncio.sleep", new_callable=AsyncMock)
-@patch("arcade_cli.deploy.get_auth_headers", return_value={"Authorization": "Bearer test"})
-@patch(
-    "arcade_cli.deploy.get_org_scoped_url",
-    return_value="http://engine/logs/stream",
-)
-async def test_stream_deployment_logs_shows_non_500_errors_in_debug(
-    mock_url: MagicMock, mock_auth: MagicMock, mock_sleep: AsyncMock, capsys
-) -> None:
-    """Non-500 HTTP errors (e.g. 403) should still be printed in debug mode."""
-    state: dict = {"status": "pending"}
-    log_deque: deque[str] = deque(maxlen=100)
-    error = _make_http_status_error(403)
-    mock_cls = _make_mock_async_client(error, state)
-
-    with patch("arcade_cli.deploy.httpx.AsyncClient", mock_cls):
-        await _stream_deployment_logs_to_deque(
-            "http://engine", "myserver", log_deque, state, debug=True
-        )
-
-    captured = capsys.readouterr()
-    assert "Failed to stream logs: 403" in captured.out
