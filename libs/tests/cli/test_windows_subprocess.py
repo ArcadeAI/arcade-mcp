@@ -79,7 +79,7 @@ class TestDeployCreateNoWindow:
         # sys.platform mock: verifies flag-construction logic with fully-mocked Popen.
         with _patch_win32_subprocess_flags():
             from arcade_cli.deploy import start_server_process
-            start_server_process("server.py")
+            start_server_process("server.py", project_root=Path("."))
 
         _, kwargs = mock_popen.call_args
         flags = kwargs.get("creationflags", 0)
@@ -97,7 +97,7 @@ class TestDeployCreateNoWindow:
         mock_popen.return_value = _running_process()
 
         from arcade_cli.deploy import start_server_process
-        start_server_process("server.py")
+        start_server_process("server.py", project_root=Path("."))
 
         _, kwargs = mock_popen.call_args
         assert kwargs.get("creationflags") == 0
@@ -126,7 +126,7 @@ class TestDeployCreateNoWindow:
         # sys.platform mock: verifies stream-mode logic with fully-mocked Popen.
         with _patch_win32_subprocess_flags():
             from arcade_cli.deploy import start_server_process
-            start_server_process("server.py", debug=debug)
+            start_server_process("server.py", project_root=Path("."), debug=debug)
 
         _, kwargs = mock_popen.call_args
         if expects_devnull:
