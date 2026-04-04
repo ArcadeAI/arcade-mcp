@@ -692,6 +692,38 @@ def test_deploy_server_logic_rejects_py_as_project_dir(mock_config: MagicMock) -
         )
 
 
+@patch("arcade_cli.deploy.validate_and_get_config")
+def test_deploy_server_logic_rejects_subdir_without_pyproject(
+    mock_config: MagicMock, tmp_path: Path
+) -> None:
+    """Passing a subdirectory that lacks pyproject.toml raises FileNotFoundError.
+
+    The upward-walk behavior should only apply when no project_dir is given.
+    An explicit project_dir must directly contain pyproject.toml.
+    """
+    mock_config.return_value = MagicMock(user=MagicMock(email="test@test.com"))
+
+    # Create a project root with pyproject.toml and a subdirectory without one
+    (tmp_path / "pyproject.toml").write_text("[project]\nname = 'x'\nversion = '0.1.0'\n")
+    subdir = tmp_path / "src" / "pkg"
+    subdir.mkdir(parents=True)
+
+    with pytest.raises(FileNotFoundError, match=r"No pyproject\.toml found in the specified project directory"):
+        deploy_server_logic(
+            entrypoint=None,
+            project_dir=str(subdir),
+            skip_validate=False,
+            server_name=None,
+            server_version=None,
+            secrets="auto",
+            host="localhost",
+            port=None,
+            force_tls=False,
+            force_no_tls=False,
+            debug=False,
+        )
+
+
 # ---------------------------------------------------------------------------
 # deploy_server_logic — .env search uses project_root
 # ---------------------------------------------------------------------------

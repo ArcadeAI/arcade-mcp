@@ -977,10 +977,15 @@ def deploy_server_logic(
             raise FileNotFoundError(
                 f"Project directory not found: {resolved}\n" "Please check the path and try again."
             )
-        start_dir: Path | None = resolved
+        if not (resolved / "pyproject.toml").is_file():
+            raise FileNotFoundError(
+                f"No pyproject.toml found in the specified project directory: {resolved}\n"
+                "The project directory must be the root of your project (containing pyproject.toml).\n"
+                "If you're unsure, run `arcade deploy` from the project root without a positional argument."
+            )
+        project_root = resolved
     else:
-        start_dir = None
-    project_root = find_project_root(start_dir)
+        project_root = find_project_root()
     pyproject_path = project_root / "pyproject.toml"
 
     if project_root != Path.cwd().resolve():
