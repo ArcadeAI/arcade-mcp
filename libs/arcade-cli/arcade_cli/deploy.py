@@ -113,9 +113,10 @@ def discover_entrypoint(project_root: Path) -> str:
     1. ``server.py``  — flat layout at project root
     2. ``src/<project_name>/server.py``  — ``arcade new`` (minimal) layout
     3. ``<project_name>/server.py``  — flat-src layout without ``src/`` prefix
-    4. ``app.py``  — common alternative name
+    4. ``<project_name>/__main__.py``  — ``arcade new --full`` layout
+    5. ``app.py``  — common alternative name
 
-    Steps 2-3 derive ``<project_name>`` from ``[project].name`` in ``pyproject.toml``
+    Steps 2-4 derive ``<project_name>`` from ``[project].name`` in ``pyproject.toml``
     (with ``-`` replaced by ``_``).
 
     Args:
@@ -136,6 +137,7 @@ def discover_entrypoint(project_root: Path) -> str:
         candidates.extend([
             f"src/{pkg}/server.py",
             f"{pkg}/server.py",
+            f"{pkg}/__main__.py",
         ])
     else:
         logger.warning(

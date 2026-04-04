@@ -580,14 +580,13 @@ def test_discover_entrypoint_flat_pkg_layout(tmp_path: Path) -> None:
     assert discover_entrypoint(tmp_path) == "my_server/server.py"
 
 
-def test_discover_entrypoint_dunder_main_not_a_candidate(tmp_path: Path) -> None:
-    """__main__.py is NOT auto-discovered (not runnable as `python pkg/__main__.py`)."""
+def test_discover_entrypoint_dunder_main(tmp_path: Path) -> None:
+    """Finds <pkg>/__main__.py (arcade new --full layout)."""
     _make_pyproject(tmp_path, name="my-server")
     pkg_dir = tmp_path / "my_server"
     pkg_dir.mkdir()
     (pkg_dir / "__main__.py").write_text("# entrypoint")
-    with pytest.raises(FileNotFoundError, match="Could not find an entrypoint"):
-        discover_entrypoint(tmp_path)
+    assert discover_entrypoint(tmp_path) == "my_server/__main__.py"
 
 
 def test_discover_entrypoint_app_py_fallback(tmp_path: Path) -> None:
