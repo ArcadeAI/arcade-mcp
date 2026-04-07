@@ -17,6 +17,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+from pathlib import Path
 from typing import Any, Callable, cast
 
 from arcade_core.auth_tokens import get_valid_access_token
@@ -71,6 +72,7 @@ from arcade_mcp_server.types import (
     PingRequest,
     ReadResourceRequest,
     ReadResourceResult,
+    Resource,
     ResourceTemplate,
     ServerCapabilities,
     SetLevelRequest,
@@ -81,6 +83,9 @@ from arcade_mcp_server.types import (
 from arcade_mcp_server.usage import ServerTracker
 
 logger = logging.getLogger("arcade.mcp")
+
+_AUTH_APP_RESOURCE_URI = "ui://arcade/auth"
+_AUTH_APP_HTML_PATH = Path(__file__).parent / "auth_app.html"
 
 
 class MCPServer:
@@ -367,10 +372,37 @@ class MCPServer:
         if self._tool_meta_extensions:
             await self._tool_manager.apply_meta_extensions(self._tool_meta_extensions)
 
+        # Auto-attach auth UI to tools that require authorization but don't already have a UI
+        auth_ui_extensions: dict[str, dict[str, Any]] = {}
+        for tool in self._initial_catalog:
+            if tool.definition.requirements and tool.definition.requirements.authorization:
+                fqn = tool.definition.fully_qualified_name
+                # Don't override a UI that was explicitly set by the developer
+                if (
+                    fqn not in self._tool_meta_extensions
+                    or "ui" not in self._tool_meta_extensions.get(fqn, {})
+                ):
+                    auth_ui_extensions[fqn] = {"ui": {"resourceUri": _AUTH_APP_RESOURCE_URI}}
+        if auth_ui_extensions:
+            await self._tool_manager.apply_meta_extensions(auth_ui_extensions)
+
         # Check for missing secrets and log warnings (only when worker routes are disabled)
         await self._check_and_warn_missing_secrets()
 
         await self._resource_manager.start()
+
+        # Register built-in auth UI resource (MCP App for authorization flows)
+        auth_resource = Resource(
+            uri=_AUTH_APP_RESOURCE_URI,
+            name="Arcade Auth",
+            description="Authorization UI for tools that require user permission",
+            mimeType="text/html;profile=mcp-app",
+        )
+        await self._resource_manager.add_resource(
+            auth_resource,
+            lambda uri: _AUTH_APP_HTML_PATH.read_text(encoding="utf-8"),
+        )
+
         for item, handler in self._initial_resources:
             if isinstance(item, ResourceTemplate):
                 if handler is not None:
@@ -1076,7 +1108,7 @@ class MCPServer:
                 user_message += "  3. Add to .env file:     ARCADE_API_KEY=your_key_here\n\n"
                 user_message += "  Then restart the server."
 
-                tool_response = {
+                tool_response: dict[str, Any] = {
                     "message": user_message,
                     "llm_instructions": (
                         f"The MCP server cannot execute the '{tool_name}' tool because it requires authorization "
@@ -1107,6 +1139,8 @@ class MCPServer:
                         "message": user_message,
                         "llm_instructions": f"Please show the following link to the end user formatted as markdown: {auth_result.url} \nInform the end user that the tool requires their authorization to be completed before the tool can be executed.",
                         "authorization_url": auth_result.url,
+                        "tool_name": tool_name,
+                        "tool_arguments": message.params.arguments or {},
                     }
                     return self._create_error_response(message, tool_response)
                 # Inject the authorization token into the tool context

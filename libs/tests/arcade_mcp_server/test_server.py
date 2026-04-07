@@ -329,6 +329,11 @@ class TestMCPServer:
         assert "message" in response.result.structuredContent
         assert "Authorization required" in response.result.structuredContent["message"]
         assert "needs your permission" in response.result.structuredContent["message"]
+        # Tool with auth requirement should have _meta.ui set on its definition
+        tools = await mcp_server._tool_manager.list_tools()
+        auth_tool = next(t for t in tools if "sample_tool_with_auth" in t.name.lower() or "SampleToolWithAuth" in t.name)
+        assert auth_tool.meta is not None
+        assert auth_tool.meta["ui"]["resourceUri"] == "ui://arcade/auth"
 
     @pytest.mark.asyncio
     async def test_handle_call_tool_with_requires_auth_no_api_key(self, mcp_server):
@@ -1587,7 +1592,7 @@ class TestServerToolMetaExtensions:
 
     @pytest.mark.asyncio
     async def test_no_tool_meta_extensions_by_default(self, tool_catalog, mcp_settings):
-        """Without extensions, tools that have no arcade meta have _meta=None or no ui key."""
+        """Without explicit extensions, only tools with auth requirements get auto-attached auth UI."""
         server = MCPServer(
             catalog=tool_catalog,
             settings=mcp_settings,
@@ -1596,8 +1601,9 @@ class TestServerToolMetaExtensions:
         try:
             tools = await server.tools.list_tools()
             for t in tools:
-                if t.meta:
-                    assert "ui" not in t.meta
+                if t.meta and "ui" in t.meta:
+                    # Only tools with auth requirements should have auto-attached UI
+                    assert t.meta["ui"]["resourceUri"] == "ui://arcade/auth"
         finally:
             await server.stop()
 
@@ -1634,7 +1640,7 @@ class TestServerInitialResources:
 
     @pytest.mark.asyncio
     async def test_server_no_initial_resources_by_default(self, tool_catalog, mcp_settings):
-        """Backward compat: no initial resources by default."""
+        """By default, only the built-in auth UI resource is registered."""
         server = MCPServer(
             catalog=tool_catalog,
             settings=mcp_settings,
@@ -1642,7 +1648,15 @@ class TestServerInitialResources:
         await server.start()
         try:
             resources = await server.resources.list_resources()
-            assert resources == []
+            assert len(resources) == 1
+            assert resources[0].uri == "ui://arcade/auth"
+            assert resources[0].mimeType == "text/html;profile=mcp-app"
+
+            # Verify the auth UI HTML can be read
+            contents = await server.resources.read_resource("ui://arcade/auth")
+            assert len(contents) == 1
+            assert "Authorization Required" in contents[0].text  # type: ignore[attr-defined]
+            assert "ui/initialize" in contents[0].text  # type: ignore[attr-defined]
         finally:
             await server.stop()
 

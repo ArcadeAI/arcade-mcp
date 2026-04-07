@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Authorization Required</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: transparent; color: #e4e4e7;
+    padding: 0.75rem; margin: 0;
+  }
+  .hidden { display: none; }
+  .card {
+    background: #1c1c1e; border: 1px solid #2c2c2e;
+    border-radius: 0.75rem; padding: 1.25rem 1.5rem;
+  }
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.25rem;
+  }
+  .header-left {
+    display: flex; align-items: center; gap: 0.625rem;
+  }
+  .dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #e87b35; flex-shrink: 0;
+  }
+  .title {
+    font-size: 0.9375rem; font-weight: 600; color: #f0f0f0;
+  }
+  .badge {
+    font-size: 0.8125rem; color: #9ca3af; white-space: nowrap;
+  }
+  .auth-btn {
+    display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    width: 100%; padding: 0.75rem 1rem;
+    background: rgba(232, 123, 53, 0.12); color: #f0f0f0;
+    border: 1.5px solid #e87b35; border-radius: 0.5rem;
+    font-size: 0.9375rem; font-weight: 500;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .auth-btn:hover { background: rgba(232, 123, 53, 0.22); }
+  .auth-btn svg { width: 16px; height: 16px; fill: currentColor; }
+  .cancel-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; padding: 0.75rem 1rem; margin-top: 0.625rem;
+    background: #2c2c2e; color: #d1d1d6;
+    border: 1px solid #3a3a3c; border-radius: 0.5rem;
+    font-size: 0.9375rem; font-weight: 500;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .cancel-btn:hover { background: #3a3a3c; }
+  .status-msg {
+    font-size: 0.8125rem; color: #9ca3af; text-align: center;
+    margin-top: 0.75rem;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+  .status-msg.active { animation: pulse 1.5s ease-in-out infinite; }
+</style>
+</head>
+<body>
+
+<!-- Auth UI — hidden until an authorization_url is received -->
+<div id="auth-content" class="hidden">
+  <div class="card">
+    <div class="header">
+      <div class="header-left">
+        <div class="dot"></div>
+        <span id="title" class="title">Authorize</span>
+      </div>
+      <span class="badge">Required to continue</span>
+    </div>
+    <button id="auth-link" class="auth-btn">
+      <svg viewBox="0 0 16 16"><path d="M8 1a3.5 3.5 0 0 0-3.5 3.5V6H3.5A1.5 1.5 0 0 0 2 7.5v6A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5v-6A1.5 1.5 0 0 0 12.5 6H11V4.5A3 3 0 0 0 8 1.5V1zm0 1.5A2 2 0 0 1 10 4.5V6H6V4.5A2 2 0 0 1 8 2.5zM8 9a1 1 0 0 1 .5 1.866V12.5a.5.5 0 0 1-1 0v-1.634A1 1 0 0 1 8 9z"/></svg>
+      Authorize
+    </button>
+    <button id="cancel-btn" class="cancel-btn">Cancel</button>
+    <p id="status-msg" class="status-msg hidden"></p>
+  </div>
+</div>
+
+
+<script type="module">
+const JSONRPC_VERSION = "2.0";
+const UI_PROTOCOL_VERSION = "2026-01-26";
+let nextId = 1;
+const pending = {};
+
+window.addEventListener("message", (e) => {
+  const msg = e.data;
+  if (!msg || typeof msg !== "object" || msg.jsonrpc !== JSONRPC_VERSION) return;
+
+  // Handle responses to our requests
+  if (msg.id !== undefined && pending[msg.id]) {
+    pending[msg.id](msg);
+    delete pending[msg.id];
+    return;
+  }
+
+  // Handle tool result notification pushed by the host after tool execution
+  if (msg.method === "ui/notifications/tool-result") {
+    handleToolResult(msg.params);
+  }
+});
+
+function rpcRequest(method, params) {
+  return new Promise((resolve, reject) => {
+    const id = nextId++;
+    pending[id] = (msg) => {
+      if (msg.error) reject(new Error(msg.error.message || "RPC error"));
+      else resolve(msg.result);
+    };
+    window.parent.postMessage(
+      { jsonrpc: JSONRPC_VERSION, id, method, params },
+      "*"
+    );
+  });
+}
+
+function rpcNotify(method, params) {
+  window.parent.postMessage(
+    { jsonrpc: JSONRPC_VERSION, method, params },
+    "*"
+  );
+}
+
+function extractAuthData(result) {
+  // Try structuredContent first (has authorization_url and tool_name directly)
+  if (result.structuredContent?.authorization_url) {
+    return result.structuredContent;
+  }
+
+  // Fall back to parsing text content for the authorization URL
+  const textItem = result.content?.find((c) => c.type === "text");
+  if (textItem?.text) {
+    try {
+      const parsed = JSON.parse(textItem.text);
+      if (parsed.authorization_url) return parsed;
+    } catch {
+      const urlMatch = textItem.text.match(/https?:\/\/\S+/);
+      if (urlMatch) return { authorization_url: urlMatch[0] };
+    }
+  }
+  return null;
+}
+
+function handleToolResult(result) {
+  if (!result) return;
+
+  const authData = extractAuthData(result);
+  if (authData) {
+    // Auth required — show the authorization UI
+    showAuth(authData);
+  }
+  // Non-auth result — do nothing. The iframe stays empty/hidden so the
+  // host can display the tool result to the LLM normally without our UI
+  // getting in the way.
+}
+
+let authUrl = null;
+let toolCallName = null;
+let toolCallArgs = {};
+let polling = false;
+
+function showAuth(data) {
+  authUrl = data.authorization_url;
+
+  // Capture tool name and arguments for retry after auth completes
+  if (data.tool_name) toolCallName = data.tool_name;
+  if (data.tool_arguments) toolCallArgs = data.tool_arguments;
+
+  if (data.tool_name) {
+    document.getElementById("title").textContent = `Authorize ${data.tool_name}`;
+  }
+
+  document.getElementById("auth-content").classList.remove("hidden");
+}
+
+async function deliverResultAndClose(result) {
+  // Build the context to pass to the model via ui/update-model-context.
+  // The host defers sending this until the next user message (including ui/message).
+  const updateParams = {};
+  if (result.structuredContent) {
+    updateParams.structuredContent = result.structuredContent;
+  }
+  if (result.content) {
+    updateParams.content = result.content;
+  }
+  if (!updateParams.content && !updateParams.structuredContent) {
+    updateParams.content = [{ type: "text", text: "Tool executed successfully." }];
+  }
+
+  // 1. Push the tool result into the model's context for the next turn
+  try {
+    await rpcRequest("ui/update-model-context", updateParams);
+  } catch { /* best-effort */ }
+
+  // 2. Send a user message to trigger a new LLM turn.
+  //    The host will include the model context update in this turn,
+  //    allowing the LLM to reason on the tool result and respond naturally.
+  try {
+    await rpcRequest("ui/message", {
+      role: "user",
+      content: { type: "text", text: `Authorization for "${toolCallName}" completed successfully. Please process the tool result.` },
+    });
+  } catch { /* best-effort */ }
+}
+
+// Open the auth URL in the host's browser, then poll the tool until auth completes.
+document.getElementById("auth-link").addEventListener("click", () => {
+  if (authUrl) {
+    rpcRequest("ui/open-link", { url: authUrl });
+
+    // Update button to show waiting state
+    const btn = document.getElementById("auth-link");
+    btn.textContent = "Waiting for authorization...";
+    btn.disabled = true;
+    btn.style.cursor = "not-allowed";
+    btn.style.opacity = "0.7";
+
+    startPolling();
+  }
+});
+
+// Cancel button dismisses the UI
+document.getElementById("cancel-btn").addEventListener("click", () => {
+  polling = false;
+  document.getElementById("auth-content").classList.add("hidden");
+});
+
+async function startPolling() {
+  if (polling || !toolCallName) return;
+  polling = true;
+
+  const statusMsg = document.getElementById("status-msg");
+  statusMsg.textContent = "Waiting for authorization to complete...";
+  statusMsg.classList.remove("hidden");
+  statusMsg.classList.add("active");
+
+  const POLL_INTERVAL_MS = 3000;
+  const MAX_ATTEMPTS = 60; // 3 minutes
+
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+
+    try {
+      const result = await rpcRequest("tools/call", {
+        name: toolCallName,
+        arguments: toolCallArgs,
+      });
+
+      // Check if the tool still returned an auth error
+      if (result.isError && result.structuredContent?.authorization_url) {
+        continue; // Auth not yet complete, keep polling
+      }
+
+      // Auth succeeded — push result to model and close the iframe
+      await deliverResultAndClose(result);
+      polling = false;
+      return;
+    } catch {
+      // RPC error — keep trying
+      continue;
+    }
+  }
+
+  statusMsg.textContent = "Authorization timed out. Please try the tool again.";
+  statusMsg.classList.remove("active");
+  polling = false;
+}
+
+// Initialize as MCP App
+try {
+  await rpcRequest("ui/initialize", {
+    appInfo: { name: "Arcade Auth", version: "1.0.0" },
+    protocolVersion: UI_PROTOCOL_VERSION,
+    capabilities: {},
+  });
+  rpcNotify("ui/notifications/initialized", {});
+} catch (err) {
+  console.error("MCP Apps init failed:", err);
+}
+</script>
+</body>
+</html>
