@@ -1,0 +1,31 @@
+name: Stale
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/stale@v9
+        with:
+          start-date: "2026-04-07"
+          days-before-stale: 14
+          days-before-close: 14
+          stale-pr-message: >
+            This pull request has been automatically marked as stale because it has had no
+            activity for 14 days. It will be closed in 14 days if no further activity occurs.
+            If this is still relevant, please leave a comment or remove the stale label.
+          close-pr-message: >
+            This pull request has been closed due to inactivity. Feel free to reopen it if
+            it is still relevant.
+          stale-pr-label: stale
+          exempt-pr-labels: "pinned,security"
+          days-before-issue-stale: -1
+          days-before-issue-close: -1
