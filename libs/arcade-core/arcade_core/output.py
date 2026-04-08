@@ -71,6 +71,8 @@ class ToolOutputFactory:
         status_code: int | None = None,
         extra: dict[str, Any] | None = None,
     ) -> ToolCallOutput:
+        if not message or not message.strip():
+            message = "Unspecified error during tool execution"
         return ToolCallOutput(
             error=ToolCallError(
                 message=message,

@@ -23,7 +23,7 @@ from arcade_core.auth_tokens import get_valid_access_token
 from arcade_core.catalog import MaterializedTool, ToolCatalog
 from arcade_core.executor import ToolExecutor
 from arcade_core.network.org_transport import build_org_scoped_async_http_client
-from arcade_core.schema import ToolAuthorizationContext, ToolContext
+from arcade_core.schema import ToolAuthorizationContext, ToolCallError, ToolContext
 from arcade_core.schema import ToolAuthRequirement as CoreToolAuthRequirement
 from arcadepy import ArcadeError, AsyncArcade
 from arcadepy.types.auth_authorize_params import AuthRequirement, AuthRequirementOauth2
@@ -927,13 +927,34 @@ class MCPServer:
                     ),
                 )
             else:
-                error = result.error or "Error calling tool"
-                content = convert_to_mcp_content(str(error))
-
-                # structuredContent should be the error as a JSON object
-                structured_content = convert_content_to_structured_content({"error": str(error)})
+                error = result.error
+                if error:
+                    error_text = error.message
+                    if error.additional_prompt_content:
+                        error_text += f"\n\n{error.additional_prompt_content}"
+                    if error.developer_message and error.developer_message != error.message:
+                        error_text += f"\n\nDetails: {error.developer_message}"
+                    content = convert_to_mcp_content(error_text)
+                    structured_content = error.model_dump(mode="json", exclude_none=True)
+                else:
+                    content = convert_to_mcp_content("Error calling tool")
+                    structured_content = {"error": "Error calling tool"}
 
                 self._tracker.track_tool_call(False, "error during tool execution")
+                if isinstance(error, ToolCallError):
+                    logger.warning(
+                        f"Tool {tool_name} error: {error.message}",
+                        extra={
+                            "error_kind": error.kind.value
+                            if hasattr(error.kind, "value")
+                            else str(error.kind),
+                            "error_message": error.message,
+                            "error_developer_message": error.developer_message,
+                            "error_status_code": error.status_code,
+                            "error_can_retry": error.can_retry,
+                            "tool_name": tool_name,
+                        },
+                    )
                 return JSONRPCResponse(
                     id=message.id,
                     result=CallToolResult(
