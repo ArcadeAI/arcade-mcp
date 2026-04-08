@@ -935,7 +935,13 @@ class MCPServer:
                     if error.developer_message and error.developer_message != error.message:
                         error_text += f"\n\nDetails: {error.developer_message}"
                     content = convert_to_mcp_content(error_text)
-                    structured_content = error.model_dump(mode="json", exclude_none=True)
+                    structured_content = error.model_dump(
+                        mode="json",
+                        exclude_none=True,
+                        exclude={"stacktrace", "developer_message", "extra"},
+                    )
+                    # Backward compatibility: consumers may access structuredContent["error"]
+                    structured_content["error"] = error.message
                 else:
                     content = convert_to_mcp_content("Error calling tool")
                     structured_content = {"error": "Error calling tool"}

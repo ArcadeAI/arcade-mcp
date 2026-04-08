@@ -102,7 +102,8 @@ class ToolExecutor:
 
         except ValidationError as e:
             summary = "; ".join(
-                f"{'.'.join(str(loc) for loc in err['loc'])}: {err['msg']}" for err in e.errors()
+                f"{'.'.join(str(loc) for loc in err['loc']) or '<root>'}: {err['msg']}"
+                for err in e.errors()
             )
             raise ToolInputError(
                 message=f"Invalid input: {summary}",

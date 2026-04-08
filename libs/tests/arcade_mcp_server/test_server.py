@@ -1844,6 +1844,13 @@ class TestToolErrorResponse:
         sc = response.result.structuredContent
         assert "message" in sc
         assert "kind" in sc
+        # Backward compatibility: "error" key mirrors "message"
+        assert "error" in sc
+        assert sc["error"] == sc["message"]
+        # Sensitive fields excluded
+        assert "stacktrace" not in sc
+        assert "developer_message" not in sc
+        assert "extra" not in sc
 
     @pytest.mark.asyncio
     async def test_tool_error_content_no_pydantic_repr(self, mcp_server):
