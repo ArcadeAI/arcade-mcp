@@ -14,6 +14,7 @@ from typing import (
     Annotated,
     Any,
     Literal,
+    Optional,
     Union,
     cast,
     get_args,
@@ -1223,13 +1224,19 @@ def create_model_from_typeddict(typeddict_class: type, model_name: str) -> type[
         # Check if field is required
         is_required = field_name in getattr(typeddict_class, "__required_keys__", set())
 
-        # Handle nested TypedDict
-        if is_typeddict(field_type):
-            nested_model = create_model_from_typeddict(field_type, f"{model_name}_{field_name}")
-            if is_required:
+        # Unwrap Optional[T] (i.e. T | None) so we can detect nested TypedDicts
+        is_optional_type = is_strict_optional(field_type)
+        inner_type = field_type
+        if is_optional_type:
+            inner_type = next(arg for arg in get_args(field_type) if arg is not type(None))
+
+        # Handle nested TypedDict (works for both T and Optional[T] after unwrapping)
+        if is_typeddict(inner_type):
+            nested_model = create_model_from_typeddict(inner_type, f"{model_name}_{field_name}")
+            if is_required and not is_optional_type:
                 field_definitions[field_name] = (nested_model, Field())
             else:
-                field_definitions[field_name] = (nested_model, Field(default=None))
+                field_definitions[field_name] = (Optional[nested_model], Field(default=None))
         else:
             if is_required:
                 field_definitions[field_name] = (field_type, Field())

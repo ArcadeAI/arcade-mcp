@@ -364,3 +364,47 @@ class TestTypeDictOutputExecution:
         assert result.value == {"name": "hello", "note": None}
         # Absent total=False field must NOT appear
         assert "tag" not in result.value
+
+    @pytest.mark.asyncio
+    async def test_optional_nested_typeddict_omits_absent_fields(self, catalog, context):
+        """A TypedDict field typed as Optional[NestedTypedDict] where the nested
+        TypedDict has total=False.
+
+        When the nested TypedDict omits optional fields, those fields must NOT
+        appear as None in the serialized output. This validates that
+        create_model_from_typeddict unwraps Optional before checking is_typeddict,
+        so the nested TypedDict gets the _TypedDictBaseModel (exclude_unset) treatment.
+        """
+
+        class _InnerPartial(TypedDict, total=False):
+            label: str
+            count: int
+
+        class _OuterWithOptionalNested(TypedDict):
+            id: int
+            nested: Optional[_InnerPartial]
+
+        @tool
+        def returns_optional_nested_partial() -> Annotated[
+            _OuterWithOptionalNested, "Outer with optional nested partial TypedDict"
+        ]:
+            """Tool returning an Optional nested TypedDict with absent fields."""
+            return {"id": 1, "nested": {"label": "hello"}}  # count intentionally absent
+
+        definition = catalog.create_tool_definition(
+            returns_optional_nested_partial, toolkit_name="test", toolkit_version="1.0.0"
+        )
+        input_model, output_model = create_func_models(returns_optional_nested_partial)
+
+        result = await ToolExecutor.run(
+            func=returns_optional_nested_partial,
+            definition=definition,
+            input_model=input_model,
+            output_model=output_model,
+            context=context,
+        )
+
+        assert result.error is None
+        assert result.value == {"id": 1, "nested": {"label": "hello"}}
+        # The absent total=False field in the nested TypedDict must NOT appear
+        assert "count" not in result.value["nested"]
