@@ -1233,8 +1233,11 @@ def create_model_from_typeddict(typeddict_class: type, model_name: str) -> type[
         # Handle nested TypedDict (works for both T and Optional[T] after unwrapping)
         if is_typeddict(inner_type):
             nested_model = create_model_from_typeddict(inner_type, f"{model_name}_{field_name}")
-            if is_required and not is_optional_type:
-                field_definitions[field_name] = (nested_model, Field())
+            if is_required:
+                if is_optional_type:
+                    field_definitions[field_name] = (Optional[nested_model], Field())
+                else:
+                    field_definitions[field_name] = (nested_model, Field())
             else:
                 field_definitions[field_name] = (Optional[nested_model], Field(default=None))
         else:
