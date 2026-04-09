@@ -7,17 +7,21 @@ fully-expanded JSON Schema output schemas, so MCP clients can validate and
 display tool results without guessing the shape of the data.
 
 Tools in this server progress from simple to complex:
-  - calculate_statistics  — flat TypedDict (all scalar fields)
-  - analyze_text          — TypedDict with a list field
-  - get_calendar_info     — TypedDict with a nested TypedDict field
-  - parse_url             — TypedDict with two levels of nesting
+  - calculate_statistics     — flat TypedDict (all scalar fields)
+  - analyze_text             — TypedDict with a list field
+  - get_calendar_info        — TypedDict with a nested TypedDict field
+  - parse_url                — TypedDict with two levels of nesting
+  - search_users             — TypedDict with total=False (all optional fields)
+  - get_user_profile         — mixed required/optional fields via inheritance
+  - lookup_record            — nullable fields (str | None)
+  - get_team_info            — optional nested TypedDict (Optional[TypedDict])
 """
 
 import sys
 from collections import Counter
 from datetime import datetime
 from statistics import mean, median
-from typing import Annotated
+from typing import Annotated, Optional
 from urllib.parse import urlparse
 
 from arcade_mcp_server import MCPApp
@@ -86,6 +90,69 @@ class ParsedUrl(TypedDict):
     components: UrlComponents
     is_secure: bool
     domain: str
+
+
+class SearchResult(TypedDict, total=False):
+    """Search result where every field is optional (total=False).
+
+    When a field is absent from the returned dict it must NOT appear in the
+    serialized output.  Before the total=False fix, absent fields leaked as
+    explicit ``null`` values, which violated the output schema.
+    """
+
+    username: str
+    email: str
+    display_name: str
+    avatar_url: str
+
+
+class _UserBase(TypedDict):
+    """Required fields that every user profile must include."""
+
+    user_id: int
+    username: str
+
+
+class UserProfile(_UserBase, total=False):
+    """Mixed required / optional fields via TypedDict inheritance.
+
+    ``user_id`` and ``username`` are required (from _UserBase);
+    ``bio`` and ``website`` are optional (total=False on this class).
+    The output schema's ``required`` array must list only the required keys.
+    """
+
+    bio: str
+    website: str
+
+
+class LookupResult(TypedDict):
+    """Demonstrates nullable fields (``str | None``).
+
+    A nullable field can hold either a real value or ``null``, and the
+    output schema must advertise the type as ``["string", "null"]``.
+    """
+
+    key: str
+    value: str | None
+    error_message: str | None
+
+
+class TeamMember(TypedDict, total=False):
+    """A team member with all-optional fields."""
+
+    name: str
+    role: str
+
+
+class TeamInfo(TypedDict):
+    """Demonstrates an optional nested TypedDict (``Optional[TeamMember]``).
+
+    The ``lead`` field is required-but-nullable: it must be present in the
+    output, but its value may be ``null`` when no lead is assigned.
+    """
+
+    team_name: str
+    lead: Optional[TeamMember]
 
 
 # ---------------------------------------------------------------------------
@@ -174,6 +241,76 @@ def parse_url(
         is_secure=parsed.scheme == "https",
         domain=domain,
     )
+
+
+@app.tool
+def search_users(
+    query: Annotated[str, "Search query to match against usernames"],
+) -> Annotated[SearchResult, "Matching user (only populated fields are returned)"]:
+    """Search for a user and return only the fields that matched.
+
+    Demonstrates total=False: absent fields are omitted from the output
+    rather than serialized as null.
+    """
+    # Simulate a search that only finds partial information
+    result = SearchResult(username=query.lower())
+    if "@" in query:
+        result["email"] = query.lower()
+    return result
+
+
+@app.tool
+def get_user_profile(
+    username: Annotated[str, "The username to look up"],
+) -> Annotated[UserProfile, "User profile with required and optional fields"]:
+    """Look up a user profile.
+
+    Demonstrates mixed required/optional fields: user_id and username are
+    always present; bio and website may be absent.
+    """
+    profile = UserProfile(user_id=42, username=username)
+    if username == "admin":
+        profile["bio"] = "Site administrator"
+        profile["website"] = "https://example.com"
+    # For any other user, bio and website are intentionally absent
+    return profile
+
+
+@app.tool
+def lookup_record(
+    key: Annotated[str, "The key to look up"],
+) -> Annotated[LookupResult, "The lookup result with nullable value and error fields"]:
+    """Look up a record by key.
+
+    Demonstrates nullable fields: value and error_message are typed as
+    str | None, so the output schema advertises ["string", "null"].
+    """
+    records = {"color": "blue", "size": "large"}
+    value = records.get(key)
+    return LookupResult(
+        key=key,
+        value=value,
+        error_message=None if value else f"No record found for key: {key}",
+    )
+
+
+@app.tool
+def get_team_info(
+    team_name: Annotated[str, "The team name to look up"],
+) -> Annotated[TeamInfo, "Team info with an optional nested TypedDict for the lead"]:
+    """Get team information including the team lead.
+
+    Demonstrates Optional[TypedDict]: the lead field is required-but-nullable.
+    When a lead exists, absent total=False fields inside the nested TeamMember
+    are properly omitted (not serialized as null).
+    """
+    if team_name == "backend":
+        return TeamInfo(
+            team_name=team_name,
+            lead=TeamMember(name="Alice"),  # role intentionally absent
+        )
+    # Team with no lead assigned
+    return TeamInfo(team_name=team_name, lead=None)
 
 
 # ---------------------------------------------------------------------------

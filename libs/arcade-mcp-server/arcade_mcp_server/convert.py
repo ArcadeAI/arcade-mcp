@@ -219,7 +219,9 @@ def _build_value_schema_json(value_schema: Any) -> dict[str, Any]:
     inner_schema = _value_schema_to_json_schema(value_schema)
 
     # Object return types are already top-level objects, emit directly.
-    if inner_schema.get("type") == "object":
+    # Check for both "object" and ["object", "null"] (nullable top-level TypedDict).
+    schema_type = inner_schema.get("type")
+    if schema_type == "object" or (isinstance(schema_type, list) and "object" in schema_type):
         return inner_schema
 
     # Primitives/arrays must be wrapped so outputSchema.type is "object" per MCP spec.
