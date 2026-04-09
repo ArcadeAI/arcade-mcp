@@ -86,6 +86,32 @@ def returns_dict_list() -> Annotated[list[dict], "Returns list of dicts"]:
     ]
 
 
+class MixedRequiredDict(TypedDict):
+    """Base TypedDict with required fields."""
+
+    name: str
+
+
+class MixedOptionalDict(MixedRequiredDict, total=False):
+    """TypedDict with both required and optional fields."""
+
+    optional_field: str
+
+
+@tool
+def returns_partial_optional_typeddict() -> Annotated[
+    OptionalFieldsDict, "Returns partial optional TypedDict"
+]:
+    """Tool that returns a TypedDict with some fields omitted."""
+    return {"required_field": "hello"}  # optional_field intentionally omitted
+
+
+@tool
+def returns_mixed_typeddict() -> Annotated[MixedOptionalDict, "Returns mixed TypedDict"]:
+    """Tool that returns a TypedDict with required + optional fields, omitting optional."""
+    return {"name": "hello"}  # optional_field intentionally omitted
+
+
 class TestTypeDictOutputExecution:
     """Test TypedDict outputs through the full execution pipeline."""
 
@@ -248,3 +274,93 @@ class TestTypeDictOutputExecution:
             {"name": "string", "data": "test"},
             {"name": "typed", "value": 99},  # TypedDict becomes regular dict at runtime
         ]
+
+    @pytest.mark.asyncio
+    async def test_total_false_typeddict_omits_absent_fields(self, catalog, context):
+        """When a total=False TypedDict omits a field, it must not appear as None in output.
+
+        Reproduces: model_dump() without exclude_none reintroduces None for absent
+        optional fields, which then fails JSON Schema validation against the outputSchema
+        (the schema declares "type": "string", not ["string", "null"]).
+        """
+        definition = catalog.create_tool_definition(
+            returns_partial_optional_typeddict, toolkit_name="test", toolkit_version="1.0.0"
+        )
+        input_model, output_model = create_func_models(returns_partial_optional_typeddict)
+
+        result = await ToolExecutor.run(
+            func=returns_partial_optional_typeddict,
+            definition=definition,
+            input_model=input_model,
+            output_model=output_model,
+            context=context,
+        )
+
+        assert result.error is None
+        # The absent optional field must NOT be present with a None value
+        assert result.value == {"required_field": "hello"}
+        assert "optional_field" not in result.value
+
+    @pytest.mark.asyncio
+    async def test_mixed_required_optional_typeddict_omits_absent_fields(self, catalog, context):
+        """A TypedDict inheriting required fields + total=False optional fields.
+
+        When the tool omits the optional field, the output must contain only the
+        required field. None values for absent optional fields corrupt the MCP
+        structuredContent because they don't match the schema type.
+        """
+        definition = catalog.create_tool_definition(
+            returns_mixed_typeddict, toolkit_name="test", toolkit_version="1.0.0"
+        )
+        input_model, output_model = create_func_models(returns_mixed_typeddict)
+
+        result = await ToolExecutor.run(
+            func=returns_mixed_typeddict,
+            definition=definition,
+            input_model=input_model,
+            output_model=output_model,
+            context=context,
+        )
+
+        assert result.error is None
+        assert result.value == {"name": "hello"}
+        assert "optional_field" not in result.value
+
+    @pytest.mark.asyncio
+    async def test_exclude_unset_omits_absent_but_keeps_explicit_none(self, catalog, context):
+        """TypedDict with total=False absent field AND total=True str|None field set to None.
+
+        The absent field must be excluded, but the explicitly-set None must be kept.
+        This validates exclude_unset (not exclude_none) semantics.
+        """
+
+        class _Required(TypedDict):
+            name: str
+            note: str | None  # total=True, explicitly nullable
+
+        class _WithOptional(_Required, total=False):
+            tag: str  # total=False, will be absent
+
+        @tool
+        def returns_mixed_nullable() -> Annotated[_WithOptional, "Mixed nullable output"]:
+            """Tool with both nullable required and absent optional fields."""
+            return {"name": "hello", "note": None}  # tag intentionally absent
+
+        definition = catalog.create_tool_definition(
+            returns_mixed_nullable, toolkit_name="test", toolkit_version="1.0.0"
+        )
+        input_model, output_model = create_func_models(returns_mixed_nullable)
+
+        result = await ToolExecutor.run(
+            func=returns_mixed_nullable,
+            definition=definition,
+            input_model=input_model,
+            output_model=output_model,
+            context=context,
+        )
+
+        assert result.error is None
+        # Explicit None must be kept (exclude_unset preserves it)
+        assert result.value == {"name": "hello", "note": None}
+        # Absent total=False field must NOT appear
+        assert "tag" not in result.value

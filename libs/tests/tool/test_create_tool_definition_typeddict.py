@@ -161,6 +161,7 @@ def func_returns_nested_typedicts() -> Annotated[CustomerDict, "Customer informa
                             "price": ValueSchema(val_type="integer", enum=None),
                             "stock_quantity": ValueSchema(val_type="integer", enum=None),
                         },
+                        required_keys=["price", "product_name", "stock_quantity"],
                     ),
                     available_modes=["value", "error"],
                     description="The product, price, and quantity",
@@ -181,6 +182,7 @@ def func_returns_nested_typedicts() -> Annotated[CustomerDict, "Customer informa
                             "price": ValueSchema(val_type="integer", enum=None),
                             "stock_quantity": ValueSchema(val_type="integer", enum=None),
                         },
+                        inner_required_keys=["price", "product_name", "stock_quantity"],
                     ),
                     available_modes=["value", "error"],
                     description="The product, price, and quantity",
@@ -206,6 +208,7 @@ def func_returns_nested_typedicts() -> Annotated[CustomerDict, "Customer informa
                                     "price": ValueSchema(val_type="integer", enum=None),
                                     "stock_quantity": ValueSchema(val_type="integer", enum=None),
                                 },
+                                required_keys=["price", "product_name", "stock_quantity"],
                             ),
                         )
                     ]
@@ -226,6 +229,7 @@ def func_returns_nested_typedicts() -> Annotated[CustomerDict, "Customer informa
                             "stock_quantity": ValueSchema(val_type="integer", enum=None),
                             "description": ValueSchema(val_type="string", enum=None, nullable=True),
                         },
+                        required_keys=["description", "price", "product_name", "stock_quantity"],
                     ),
                     available_modes=["value", "error"],
                     description="The product, price, and quantity",
@@ -252,6 +256,7 @@ def func_returns_nested_typedicts() -> Annotated[CustomerDict, "Customer informa
                                         val_type="array", inner_val_type="string", enum=None
                                     ),
                                 },
+                                required_keys=["category", "products"],
                             ),
                         )
                     ]
@@ -305,8 +310,10 @@ def func_returns_nested_typedicts() -> Annotated[CustomerDict, "Customer informa
                                     "city": ValueSchema(val_type="string", enum=None),
                                     "zip_code": ValueSchema(val_type="string", enum=None),
                                 },
+                                required_keys=["city", "street", "zip_code"],
                             ),
                         },
+                        required_keys=["address", "email", "name"],
                     ),
                     available_modes=["value", "error"],
                     description="Customer information with address",
