@@ -983,8 +983,24 @@ class MCPServer:
     def _create_error_response(
         self, message: CallToolRequest, tool_response: dict[str, Any]
     ) -> JSONRPCResponse[CallToolResult]:
-        """Create a consistent error response for tool requirement failures"""
-        content = convert_to_mcp_content(tool_response)
+        """Create a consistent error response for tool requirement failures.
+
+        NOTE: structuredContent must be None on error responses. Per the MCP spec,
+        structuredContent MUST validate against outputSchema — but error payloads
+        (e.g. {"error": "..."}) will violate a tool's declared TypedDict schema.
+        The error message is conveyed via `content` (TextContent) instead.
+
+        When tool_response contains a "message" key, that human-readable string is
+        used as the content text so that clients display a friendly message rather
+        than raw JSON. If there is no "message" key, the full dict is serialized
+        as a fallback.
+        """
+        # Use the human-readable message for content text when available,
+        # so clients don't display raw JSON to users.
+        if "message" in tool_response:
+            content = convert_to_mcp_content(tool_response["message"])
+        else:
+            content = convert_to_mcp_content(tool_response)
         return JSONRPCResponse(
             id=message.id,
             result=CallToolResult(

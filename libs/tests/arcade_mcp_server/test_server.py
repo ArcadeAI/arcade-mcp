@@ -2,7 +2,6 @@
 
 import asyncio
 import contextlib
-import json
 from typing import Annotated
 from unittest.mock import AsyncMock, Mock
 
@@ -326,10 +325,10 @@ class TestMCPServer:
         assert isinstance(response.result, CallToolResult)
         assert response.result.structuredContent is None
         content_text = response.result.content[0].text
-        content_data = json.loads(content_text)
-        assert content_data["authorization_url"] == "https://example.com/auth"
-        assert "Authorization required" in content_data["message"]
-        assert "needs your permission" in content_data["message"]
+        assert "Authorization required" in content_text
+        assert "needs your permission" in content_text
+        # The authorization URL is included in the human-readable message
+        assert "https://example.com/auth" in content_text
 
     @pytest.mark.asyncio
     async def test_handle_call_tool_with_requires_auth_no_api_key(self, mcp_server):
@@ -352,12 +351,10 @@ class TestMCPServer:
         assert isinstance(response.result, CallToolResult)
         assert response.result.structuredContent is None
         content_text = response.result.content[0].text
-        content_data = json.loads(content_text)
-        assert "Missing Arcade API key" in content_data["message"]
-        assert "requires authorization" in content_data["message"]
-        assert "arcade login" in content_data["message"]
-        assert "ARCADE_API_KEY" in content_data["message"]
-        assert "ARCADE_API_KEY" in content_data["llm_instructions"]
+        assert "Missing Arcade API key" in content_text
+        assert "requires authorization" in content_text
+        assert "arcade login" in content_text
+        assert "ARCADE_API_KEY" in content_text
 
     @pytest.mark.asyncio
     async def test_handle_call_tool_not_found(self, mcp_server):
@@ -609,11 +606,9 @@ class TestMCPServer:
         assert isinstance(result.result, CallToolResult)
         assert result.result.isError is True
         content_text = result.result.content[0].text
-        content_data = json.loads(content_text)
-        assert "Missing Arcade API key" in content_data["message"]
-        assert "requires authorization" in content_data["message"]
-        assert "ARCADE_API_KEY" in content_data["message"]
-        assert "ARCADE_API_KEY" in content_data["llm_instructions"]
+        assert "Missing Arcade API key" in content_text
+        assert "requires authorization" in content_text
+        assert "ARCADE_API_KEY" in content_text
         assert result.result.structuredContent is None
 
     @pytest.mark.asyncio
@@ -656,10 +651,10 @@ class TestMCPServer:
         assert result.result.isError is True
         assert result.result.structuredContent is None
         content_text = result.result.content[0].text
-        content_data = json.loads(content_text)
-        assert content_data["authorization_url"] == "https://example.com/auth"
-        assert "Authorization required" in content_data["message"]
-        assert "needs your permission" in content_data["message"]
+        assert "Authorization required" in content_text
+        assert "needs your permission" in content_text
+        # The authorization URL is included in the human-readable message
+        assert "https://example.com/auth" in content_text
 
     @pytest.mark.asyncio
     async def test_check_tool_requirements_auth_completed(self, mcp_server):
@@ -741,10 +736,9 @@ class TestMCPServer:
         assert result.result.isError is True
         assert result.result.structuredContent is None
         content_text = result.result.content[0].text
-        content_data = json.loads(content_text)
-        assert "Authorization error" in content_data["message"]
-        assert "failed to authorize" in content_data["message"]
-        assert "Auth failed" in content_data["message"]
+        assert "Authorization error" in content_text
+        assert "failed to authorize" in content_text
+        assert "Auth failed" in content_text
 
     @pytest.mark.asyncio
     async def test_check_tool_requirements_secrets_missing(self, mcp_server):
@@ -780,11 +774,9 @@ class TestMCPServer:
         assert result.result.isError is True
         assert result.result.structuredContent is None
         content_text = result.result.content[0].text
-        content_data = json.loads(content_text)
-        assert "Missing secret" in content_data["message"]
-        assert "API_KEY, DATABASE_URL" in content_data["message"]
-        assert ".env file" in content_data["message"]
-        assert ".env file" in content_data["llm_instructions"]
+        assert "Missing secret" in content_text
+        assert "API_KEY, DATABASE_URL" in content_text
+        assert ".env file" in content_text
 
     @pytest.mark.asyncio
     async def test_check_tool_requirements_secrets_partial_missing(self, mcp_server):
@@ -827,9 +819,8 @@ class TestMCPServer:
         assert result.result.isError is True
         assert result.result.structuredContent is None
         content_text = result.result.content[0].text
-        content_data = json.loads(content_text)
-        assert "DATABASE_URL" in content_data["message"]
-        assert "API_KEY" not in content_data["message"]
+        assert "DATABASE_URL" in content_text
+        assert "API_KEY" not in content_text
 
     @pytest.mark.asyncio
     async def test_check_tool_requirements_secrets_available(self, mcp_server):
@@ -960,8 +951,8 @@ class TestMCPServer:
         assert result.result.isError is True
         assert result.result.structuredContent is None
         content_text = result.result.content[0].text
-        content_data = json.loads(content_text)
-        assert "authorization_url" in content_data
+        # The authorization URL appears in the human-readable message text
+        assert "https://example.com/auth" in content_text
 
     @pytest.mark.asyncio
     async def test_http_transport_blocks_tool_with_auth(
@@ -988,8 +979,7 @@ class TestMCPServer:
         assert response.result.isError is True
         assert response.result.structuredContent is None
         content_text = response.result.content[0].text
-        content_data = json.loads(content_text)
-        assert "HTTP transport" in content_data["message"]
+        assert "HTTP transport" in content_text
 
     @pytest.mark.asyncio
     async def test_http_transport_blocks_tool_with_secrets(self, mcp_server):
@@ -1056,9 +1046,8 @@ class TestMCPServer:
         assert response.result.isError is True
         assert response.result.structuredContent is None
         content_text = response.result.content[0].text
-        content_data = json.loads(content_text)
-        assert "HTTP transport" in content_data["message"]
-        assert "secrets" in content_data["message"]
+        assert "HTTP transport" in content_text
+        assert "secrets" in content_text
 
     @pytest.mark.asyncio
     async def test_http_transport_blocks_tool_with_both_auth_and_secrets(self, mcp_server):
@@ -1137,10 +1126,9 @@ class TestMCPServer:
         assert response.result.isError is True
         assert response.result.structuredContent is None
         content_text = response.result.content[0].text
-        content_data = json.loads(content_text)
-        assert "Unsupported transport" in content_data["message"]
-        assert "HTTP transport" in content_data["message"]
-        assert "authorization" in content_data["message"]
+        assert "Unsupported transport" in content_text
+        assert "HTTP transport" in content_text
+        assert "authorization" in content_text
 
     @pytest.mark.asyncio
     async def test_stdio_transport_allows_tool_with_auth(
