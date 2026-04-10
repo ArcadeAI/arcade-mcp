@@ -988,17 +988,25 @@ class MCPServer:
         NOTE: structuredContent must be None on error responses. Per the MCP spec,
         structuredContent MUST validate against outputSchema — but error payloads
         (e.g. {"error": "..."}) will violate a tool's declared TypedDict schema.
-        The error message is conveyed via `content` (TextContent) instead.
+        The error message is conveyed via ``content`` (TextContent) instead.
 
         When tool_response contains a "message" key, that human-readable string is
-        used as the content text so that clients display a friendly message rather
-        than raw JSON. If there is no "message" key, the full dict is serialized
-        as a fallback.
+        used as content[0].text so that clients display a friendly message rather
+        than raw JSON.  If there are additional machine-readable fields (e.g.
+        ``authorization_url``, ``llm_instructions``), they are serialized as JSON
+        in a second content item so downstream consumers can still extract them.
+
+        If there is no "message" key, the full dict is serialized as a fallback.
         """
         # Use the human-readable message for content text when available,
         # so clients don't display raw JSON to users.
         if "message" in tool_response:
             content = convert_to_mcp_content(tool_response["message"])
+            # Preserve machine-readable fields (authorization_url, llm_instructions, etc.)
+            # in a second content item so they remain accessible to programmatic consumers.
+            extra_fields = {k: v for k, v in tool_response.items() if k != "message"}
+            if extra_fields:
+                content.extend(convert_to_mcp_content(extra_fields))
         else:
             content = convert_to_mcp_content(tool_response)
         return JSONRPCResponse(

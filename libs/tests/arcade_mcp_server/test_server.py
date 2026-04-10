@@ -2,6 +2,7 @@
 
 import asyncio
 import contextlib
+import json
 from typing import Annotated
 from unittest.mock import AsyncMock, Mock
 
@@ -655,6 +656,11 @@ class TestMCPServer:
         assert "needs your permission" in content_text
         # The authorization URL is included in the human-readable message
         assert "https://example.com/auth" in content_text
+        # Machine-readable fields (authorization_url, llm_instructions) are in content[1]
+        assert len(result.result.content) >= 2
+        extra_data = json.loads(result.result.content[1].text)
+        assert extra_data["authorization_url"] == "https://example.com/auth"
+        assert "llm_instructions" in extra_data
 
     @pytest.mark.asyncio
     async def test_check_tool_requirements_auth_completed(self, mcp_server):
