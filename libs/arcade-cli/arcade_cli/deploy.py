@@ -11,6 +11,11 @@ from collections import deque
 from pathlib import Path
 from typing import cast
 
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python 3.10
+    import tomli as tomllib  # type: ignore[no-redef]
+
 import httpx
 from arcade_core.subprocess_utils import (
     get_windows_no_window_creationflags,
@@ -43,6 +48,117 @@ logger = logging.getLogger(__name__)
 # Constants
 
 DEPLOY_TIMEOUT_SECONDS = 360
+# Covers common layouts: src/<pkg>/tests/ is 3 levels deep from pyproject.toml.
+MAX_PROJECT_ROOT_SEARCH_DEPTH = 3
+
+
+# Project Discovery Functions
+
+
+def find_project_root(start_dir: Path | None = None) -> Path:
+    """Find the project root by walking upward from *start_dir* looking for ``pyproject.toml``.
+
+    Searches up to :data:`MAX_PROJECT_ROOT_SEARCH_DEPTH` parent directories.
+    If *start_dir* itself contains ``pyproject.toml``, it is returned immediately.
+
+    Args:
+        start_dir: Directory to start searching from.  Defaults to :func:`Path.cwd`.
+
+    Returns:
+        The directory containing ``pyproject.toml``.
+
+    Raises:
+        FileNotFoundError: If no ``pyproject.toml`` is found within the search depth.
+    """
+    current = (start_dir or Path.cwd()).resolve()
+
+    for _depth in range(MAX_PROJECT_ROOT_SEARCH_DEPTH + 1):
+        if (current / "pyproject.toml").is_file():
+            return current
+        parent = current.parent
+        if parent == current:
+            # Reached filesystem root
+            break
+        current = parent
+
+    raise FileNotFoundError(
+        "pyproject.toml not found in the current directory or up to "
+        f"{MAX_PROJECT_ROOT_SEARCH_DEPTH} parent directories.\n"
+        "Please run this command from within your MCP server project, or pass the "
+        "project directory as a positional argument:\n"
+        "  arcade deploy /path/to/my_server"
+    )
+
+
+def _read_project_name(pyproject_path: Path) -> str | None:
+    """Read ``[project].name`` from a ``pyproject.toml`` file.
+
+    Returns ``None`` if the key is missing or the file cannot be parsed.
+    """
+    try:
+        with open(pyproject_path, "rb") as f:
+            data = tomllib.load(f)
+    except Exception:
+        return None
+    else:
+        name: str | None = data.get("project", {}).get("name")
+        return name
+
+
+def discover_entrypoint(project_root: Path) -> str:
+    """Try a series of conventional entrypoint paths and return the first that exists.
+
+    The search order is:
+
+    1. ``server.py``  — flat layout at project root
+    2. ``src/<project_name>/server.py``  — ``arcade new`` (minimal) layout
+    3. ``<project_name>/server.py``  — flat-src layout without ``src/`` prefix
+    4. ``<project_name>/__main__.py``  — ``arcade new --full`` layout
+    5. ``app.py``  — common alternative name
+
+    Steps 2-4 derive ``<project_name>`` from ``[project].name`` in ``pyproject.toml``
+    (with ``-`` replaced by ``_``).
+
+    Args:
+        project_root: The project root directory (containing ``pyproject.toml``).
+
+    Returns:
+        A relative path (as a string) to the discovered entrypoint.
+
+    Raises:
+        FileNotFoundError: If none of the candidates exist.
+    """
+    # Build the candidate list
+    candidates: list[str] = ["server.py"]
+
+    project_name = _read_project_name(project_root / "pyproject.toml")
+    if project_name:
+        pkg = project_name.replace("-", "_")
+        candidates.extend([
+            f"src/{pkg}/server.py",
+            f"{pkg}/server.py",
+            f"{pkg}/__main__.py",
+        ])
+    else:
+        logger.warning(
+            "Could not read [project].name from pyproject.toml; "
+            "skipping name-based entrypoint candidates (src/<name>/server.py, etc.)"
+        )
+
+    candidates.append("app.py")
+
+    for candidate in candidates:
+        if (project_root / candidate).is_file():
+            return candidate
+
+    tried = "\n".join(f"  - {c}" for c in candidates)
+    raise FileNotFoundError(
+        "Could not find an entrypoint file. Tried:\n"
+        f"{tried}\n"
+        "Specify the entrypoint explicitly:\n"
+        "  arcade deploy -e path/to/server.py"
+    )
+
 
 # Models
 
@@ -437,12 +553,15 @@ def _resolve_server_process_stdio(debug: bool) -> tuple[int | None, int | None]:
     return subprocess.DEVNULL, subprocess.DEVNULL
 
 
-def start_server_process(entrypoint: str, debug: bool = False) -> tuple[subprocess.Popen, int]:
+def start_server_process(
+    entrypoint: str, project_root: Path, debug: bool = False
+) -> tuple[subprocess.Popen, int]:
     """
     Start the MCP server process on a random port.
 
     Args:
-        entrypoint: Path to the entrypoint file that runs the MCPApp instance
+        entrypoint: Relative path to the entrypoint file that runs the MCPApp instance
+        project_root: The project root directory (used to locate .venv and as cwd)
         debug: Whether to show debug information
 
     Returns:
@@ -464,10 +583,11 @@ def start_server_process(entrypoint: str, debug: bool = False) -> tuple[subproce
     }
 
     # Use the project's Python environment, not the CLI's isolated environment.
-    # find_python_interpreter() looks for .venv/bin/python in cwd, falling back to sys.executable.
+    # find_python_interpreter() looks for .venv/bin/python relative to project_root,
+    # falling back to sys.executable.
     # This ensures the server runs in the project's environment even when the CLI is installed
     # in an isolated environment (e.g., via 'uv tool install arcade-mcp').
-    project_python = find_python_interpreter()
+    project_python = find_python_interpreter(project_root)
     cmd = [str(project_python), entrypoint]
 
     creationflags = get_windows_no_window_creationflags(new_process_group=True)
@@ -480,6 +600,7 @@ def start_server_process(entrypoint: str, debug: bool = False) -> tuple[subproce
         stderr=stderr_target,
         text=True,
         env=env,
+        cwd=str(project_root),
         creationflags=creationflags,
     )
 
@@ -648,7 +769,7 @@ def get_required_secrets(
 
 
 def verify_server_and_get_metadata(
-    entrypoint: str, debug: bool = False
+    entrypoint: str, project_root: Path, debug: bool = False
 ) -> tuple[str, str, set[str]]:
     """
     Start the server, verify it's healthy, and extract metadata.
@@ -662,7 +783,8 @@ def verify_server_and_get_metadata(
     6. Returning the metadata
 
     Args:
-        entrypoint: Path to the entrypoint file that runs the MCPApp instance
+        entrypoint: Relative path to the entrypoint file that runs the MCPApp instance
+        project_root: The project root directory
         debug: Whether to show debug information
 
     Returns:
@@ -671,7 +793,7 @@ def verify_server_and_get_metadata(
     Raises:
         ValueError: If the server fails to start or metadata extraction fails
     """
-    process, port = start_server_process(entrypoint, debug)
+    process, port = start_server_process(entrypoint, project_root, debug)
     console.print(f"✓ Server started on port {port}", style="green")
     base_url = f"http://127.0.0.1:{port}"
 
@@ -806,7 +928,8 @@ def deploy_server_to_engine(
 
 
 def deploy_server_logic(
-    entrypoint: str,
+    entrypoint: str | None,
+    project_dir: str | None,
     skip_validate: bool,
     server_name: str | None,
     server_version: str | None,
@@ -821,8 +944,9 @@ def deploy_server_logic(
     Main logic for deploying an MCP server to Arcade Engine.
 
     Args:
-        entrypoint: Path (relative to project root) to the entrypoint file that runs the MCPApp instance.
-                    This file must execute the `run()` method on your `MCPApp` instance when invoked directly.
+        entrypoint: Path (relative to project root) to the entrypoint file that runs the MCPApp
+                    instance, or ``None`` to auto-discover.
+        project_dir: Explicit project directory, or ``None`` to search upward from CWD.
         skip_validate: Skip running the server locally for health/metadata checks.
         server_name: Explicit server name to use when --skip-validate is set.
         server_version: Explicit server version to use when --skip-validate is set.
@@ -840,35 +964,60 @@ def deploy_server_logic(
     user_email = config.user.email if config.user else "User"
     console.print(f"✓ {user_email} is logged in", style="green")
 
-    # Step 2: Validate necessary files exist in the correct location
-    console.print("\nValidating pyproject.toml exists in current directory...", style="dim")
-    current_dir = Path.cwd()
-    pyproject_path = current_dir / "pyproject.toml"
+    # Step 2: Find project root and entrypoint
+    console.print("\nLocating project root...", style="dim")
+    if project_dir and project_dir.endswith(".py"):
+        raise FileNotFoundError(
+            f"'{project_dir}' looks like a Python file, not a project directory.\n"
+            "Did you mean to specify the entrypoint?\n"
+            f"  arcade deploy -e {project_dir}"
+        )
+    if project_dir:
+        resolved = Path(project_dir).resolve()
+        if not resolved.is_dir():
+            raise FileNotFoundError(
+                f"Project directory not found: {resolved}\n" "Please check the path and try again."
+            )
+        if not (resolved / "pyproject.toml").is_file():
+            raise FileNotFoundError(
+                f"No pyproject.toml found in the specified project directory: {resolved}\n"
+                "The project directory must be the root of your project (containing pyproject.toml).\n"
+                "If you're unsure, run `arcade deploy` from the project root without a positional argument."
+            )
+        project_root = resolved
+    else:
+        project_root = find_project_root()
+    pyproject_path = project_root / "pyproject.toml"
 
-    if not pyproject_path.exists():
-        raise FileNotFoundError(
-            f"pyproject.toml not found at {pyproject_path}\n"
-            "Please run this command from the root of your MCP server package (the same directory that contains pyproject.toml)."
-        )
+    if project_root != Path.cwd().resolve():
+        console.print(f"✓ Using project root: {project_root}", style="green")
     console.print(f"✓ pyproject.toml found at {pyproject_path}", style="green")
-    console.print("\nValidating entrypoint file exists at the specified location...", style="dim")
-    entrypoint_path = current_dir / entrypoint
-    if not entrypoint_path.exists():
-        raise FileNotFoundError(
-            f"Entrypoint file not found at {entrypoint_path}\n"
-            "Please specify the correct entrypoint file using the --entrypoint/-e flag.\n"
-            "For example: arcade deploy -e src/my_server/server.py"
-        )
-    console.print(f"✓ Entrypoint file found at {entrypoint_path}", style="green")
+
+    console.print("\nLocating entrypoint...", style="dim")
+    if entrypoint is not None:
+        # Explicit entrypoint — validate it exists
+        entrypoint_path = project_root / entrypoint
+        if not entrypoint_path.exists():
+            raise FileNotFoundError(
+                f"Entrypoint file not found at {entrypoint_path}\n"
+                "Please check the path and try again."
+            )
+    else:
+        # Auto-discover entrypoint from conventional paths
+        entrypoint = discover_entrypoint(project_root)
+    console.print(f"✓ Entrypoint: {entrypoint}", style="green")
 
     # Step 3: Load .env file if it exists (searches upward through parent directories)
     console.print("\nSearching for .env file...", style="dim")
-    env_path = find_env_file()
+    env_path = find_env_file(start_dir=project_root)
     if env_path is not None:
         load_dotenv(env_path, override=False)
         console.print(f"✓ Loaded environment from {env_path}", style="green")
     else:
-        console.print("[!] No .env file found in current or parent directories", style="yellow")
+        console.print(
+            f"[!] No .env file found in {project_root} or its parent directories",
+            style="yellow",
+        )
 
     # Step 4: Verify server and extract metadata (or skip if --skip-validate)
     required_secrets_from_validation: set[str] = set()
@@ -891,7 +1040,7 @@ def deploy_server_logic(
         )
         try:
             server_name, server_version, required_secrets_from_validation = (
-                verify_server_and_get_metadata(entrypoint, debug=debug)
+                verify_server_and_get_metadata(entrypoint, project_root, debug=debug)
             )
         except Exception as e:
             raise ValueError(
@@ -923,10 +1072,10 @@ def deploy_server_logic(
         else:
             console.print("\n✓ No required secrets found", style="green")
 
-    # Step 6: Create tar.gz archive of current directory
+    # Step 6: Create tar.gz archive of project directory
     console.print("\nCreating deployment package...", style="dim")
     try:
-        archive_base64 = create_package_archive(current_dir)
+        archive_base64 = create_package_archive(project_root)
         archive_size_kb = len(archive_base64) * 3 / 4 / 1024  # base64 is ~4/3 larger
         console.print(f"✓ Package created ({archive_size_kb:.1f} KB)", style="green")
     except Exception as e:

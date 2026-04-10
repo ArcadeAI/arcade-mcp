@@ -783,11 +783,17 @@ def configure(
     rich_help_panel="Run",
 )
 def deploy(
-    entrypoint: str = typer.Option(
-        "server.py",
+    project_dir: Optional[str] = typer.Argument(
+        None,
+        help="Path to the project directory (containing pyproject.toml). "
+        "If omitted, searches upward from the current directory.",
+    ),
+    entrypoint: Optional[str] = typer.Option(
+        None,
         "--entrypoint",
         "-e",
-        help="Relative path to the Python file that runs the MCPApp instance (relative to project root). This file must execute the `run()` method on your `MCPApp` instance when invoked directly.",
+        help="Relative path to the Python file that runs the MCPApp instance (relative to project root). "
+        "If omitted, auto-discovers from conventional locations (server.py, src/<name>/server.py, etc.).",
     ),
     skip_validate: bool = typer.Option(
         False,
@@ -858,12 +864,17 @@ def deploy(
     """
     Deploy an MCP server directly to Arcade Engine.
 
-    This command should be run from the root of your MCP server package
-    (the directory containing pyproject.toml).
+    The project root is found by searching upward from the current directory
+    for pyproject.toml (up to 3 levels). You can also pass the project
+    directory as a positional argument.
+
+    The entrypoint is auto-discovered from conventional locations
+    (server.py, src/<name>/server.py, <name>/__main__.py, etc.),
+    or can be specified explicitly with --entrypoint.
 
     Examples:
-        cd my_mcp_server/
         arcade deploy
+        arcade deploy ./my_mcp_server
         arcade deploy --entrypoint src/server.py
         arcade deploy --skip-validate --server-name my_server_name --server-version 1.0.0
     """
@@ -880,6 +891,7 @@ def deploy(
     try:
         deploy_server_logic(
             entrypoint=entrypoint,
+            project_dir=project_dir,
             skip_validate=skip_validate,
             server_name=server_name,
             server_version=server_version,
