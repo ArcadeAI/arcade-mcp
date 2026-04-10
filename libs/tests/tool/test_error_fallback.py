@@ -78,4 +78,25 @@ async def test_fallback_developer_message_is_repr():
 
     assert output.error is not None
     # developer_message has the prefix from with_context, but ends with repr(exception)
+    assert output.error.developer_message is not None
     assert "KeyError('x')" in output.error.developer_message
+
+
+@pytest.mark.asyncio
+async def test_fallback_empty_exception_has_no_developer_message():
+    """Verify that empty exceptions produce developer_message=None."""
+    tool_definition = catalog.find_tool_by_func(empty_exception_tool)
+    full_tool = catalog.get_tool(tool_definition.get_fully_qualified_name())
+    dummy_context = ToolContext()
+
+    output = await ToolExecutor.run(
+        func=empty_exception_tool,
+        definition=tool_definition,
+        input_model=full_tool.input_model,
+        output_model=full_tool.output_model,
+        context=dummy_context,
+    )
+
+    assert output.error is not None
+    # Empty exceptions don't get a developer_message to avoid redundant "Details:" in client output
+    assert output.error.developer_message is None

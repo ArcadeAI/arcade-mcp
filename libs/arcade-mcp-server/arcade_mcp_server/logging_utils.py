@@ -2,6 +2,7 @@
 
 import logging
 import sys
+from typing import ClassVar
 
 from loguru import logger
 
@@ -11,7 +12,35 @@ class LoguruInterceptHandler(logging.Handler):
 
     This handler bridges the standard Python logging module with Loguru,
     ensuring all logs (from both systems) use the same formatting.
+    Preserves custom 'extra' fields (used for structured logging).
     """
+
+    # Standard logging fields that should not be treated as custom extras
+    _STANDARD_FIELDS: ClassVar[set[str]] = {
+        "name",
+        "msg",
+        "args",
+        "created",
+        "msecs",
+        "levelname",
+        "levelno",
+        "pathname",
+        "filename",
+        "module",
+        "exc_info",
+        "exc_text",
+        "stack_info",
+        "lineno",
+        "funcName",
+        "relativeCreated",
+        "thread",
+        "threadName",
+        "processName",
+        "process",
+        "taskName",
+        "message",
+        "asctime",
+    }
 
     def emit(self, record: logging.LogRecord) -> None:
         try:
@@ -19,7 +48,17 @@ class LoguruInterceptHandler(logging.Handler):
         except ValueError:
             level = str(record.levelno)
 
-        logger.opt(exception=record.exc_info).log(level, record.getMessage())
+        # Extract custom extra fields from the log record.
+        # These are fields added via logger.warning(..., extra={...}).
+        # By preserving them and passing to loguru via bind(), they become
+        # part of the log record's extra dict, enabling Datadog faceting.
+        extras = {k: v for k, v in record.__dict__.items() if k not in self._STANDARD_FIELDS}
+
+        # Bind extras to loguru context, then log the message.
+        # logger.bind() merges extras into the record["extra"] dict,
+        # making them available to sinks (e.g., Datadog, ELK) that support
+        # structured logging.
+        logger.bind(**extras).opt(exception=record.exc_info).log(level, record.getMessage())
 
 
 def intercept_standard_logging() -> None:

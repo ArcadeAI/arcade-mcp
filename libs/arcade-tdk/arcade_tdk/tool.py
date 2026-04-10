@@ -103,9 +103,13 @@ def _raise_as_arcade_error(
     exc_type = type(exception).__name__
     exc_str = str(exception)
     message = f"{exc_type}: {exc_str}" if exc_str.strip() else f"{exc_type} (no details)"
+    # Only set developer_message if it would differ meaningfully from message
+    # Use repr only for additional debugging detail beyond the message type.
+    # If exception has no string representation or it's simple, don't duplicate in dev message.
+    developer_message = repr(exception) if exc_str.strip() else None
     raise FatalToolError(
         message=message,
-        developer_message=repr(exception),
+        developer_message=developer_message,
     ) from exception
 
 

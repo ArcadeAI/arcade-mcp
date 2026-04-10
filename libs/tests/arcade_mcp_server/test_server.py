@@ -1842,11 +1842,11 @@ class TestToolErrorResponse:
             response = await mcp_server._handle_call_tool(message)
 
         sc = response.result.structuredContent
-        assert "message" in sc
+        assert "message" not in sc
         assert "kind" in sc
-        # Backward compatibility: "error" key mirrors "message"
+        # Backward compatibility: "error" key contains enriched message
         assert "error" in sc
-        assert sc["error"] == sc["message"]
+        assert sc["error"] == "fail"
         # Sensitive fields excluded
         assert "stacktrace" not in sc
         assert "developer_message" not in sc
@@ -1893,8 +1893,7 @@ class TestToolErrorResponse:
             response = await mcp_server._handle_call_tool(message)
 
         text = response.result.content[0].text
-        assert "Details:" in text
-        assert "Traceback: line 42 in foo.py" in text
+        assert "Details:" not in text
 
     @pytest.mark.asyncio
     async def test_tool_error_developer_message_excluded_when_same(self, mcp_server):

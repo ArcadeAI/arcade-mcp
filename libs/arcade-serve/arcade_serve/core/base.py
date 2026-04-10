@@ -159,8 +159,8 @@ class BaseWorker(Worker):
                 "error_developer_message": output.error.developer_message,
                 "error_status_code": output.error.status_code,
                 "error_can_retry": output.error.can_retry,
-                "tool_name": str(tool_fqname),
-                "tool_version": str(tool_request.tool.version),
+                "tool_name": str(tool_fqname.name),
+                "tool_version": str(tool_fqname.toolkit_version),
                 "execution_id": execution_id,
             }
             logger.warning(
