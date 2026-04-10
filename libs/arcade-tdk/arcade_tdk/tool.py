@@ -100,9 +100,12 @@ def _raise_as_arcade_error(
         if isinstance(mapped, ToolRuntimeError):
             raise mapped from exception
 
+    exc_type = type(exception).__name__
+    exc_str = str(exception)
+    message = f"{exc_type}: {exc_str}" if exc_str.strip() else f"{exc_type} (no details)"
     raise FatalToolError(
-        message=f"{exception!s}",
-        developer_message=f"{exception!s}",
+        message=message,
+        developer_message=repr(exception),
     ) from exception
 
 

@@ -3,16 +3,18 @@
 import asyncio
 import contextlib
 from typing import Annotated
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from arcade_core.auth import OAuth2
 from arcade_core.catalog import MaterializedTool, ToolMeta, create_func_models
-from arcade_core.errors import ToolRuntimeError
+from arcade_core.errors import ErrorKind, ToolRuntimeError
 from arcade_core.schema import (
     InputParameter,
     OAuth2Requirement,
     ToolAuthRequirement,
+    ToolCallError,
+    ToolCallOutput,
     ToolContext,
     ToolDefinition,
     ToolInput,
@@ -1777,3 +1779,142 @@ class TestToolMetaExtensionEdgeCases:
             assert "skipped: tool not found" in caplog.text
         finally:
             await server.stop()
+
+
+class TestToolErrorResponse:
+    """Test that tool error responses surface structured error data to agents."""
+
+    def _make_error_output(
+        self,
+        message: str = "Something went wrong",
+        developer_message: str | None = None,
+        additional_prompt_content: str | None = None,
+        kind: ErrorKind = ErrorKind.TOOL_RUNTIME_FATAL,
+    ) -> ToolCallOutput:
+        return ToolCallOutput(
+            error=ToolCallError(
+                message=message,
+                developer_message=developer_message,
+                additional_prompt_content=additional_prompt_content,
+                kind=kind,
+            )
+        )
+
+    @pytest.mark.asyncio
+    async def test_tool_error_content_includes_additional_prompt(self, mcp_server):
+        error_output = self._make_error_output(
+            message="Spreadsheet not found",
+            additional_prompt_content="Available options: X, Y",
+        )
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=1,
+            method="tools/call",
+            params={"name": "TestToolkit.test_tool", "arguments": {"text": "test"}},
+        )
+
+        with patch(
+            "arcade_mcp_server.server.ToolExecutor.run",
+            new_callable=AsyncMock,
+            return_value=error_output,
+        ):
+            response = await mcp_server._handle_call_tool(message)
+
+        assert response.result.isError is True
+        text = response.result.content[0].text
+        assert "Available options: X, Y" in text
+
+    @pytest.mark.asyncio
+    async def test_tool_error_structured_content_is_model_dump(self, mcp_server):
+        error_output = self._make_error_output(message="fail")
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=1,
+            method="tools/call",
+            params={"name": "TestToolkit.test_tool", "arguments": {"text": "test"}},
+        )
+
+        with patch(
+            "arcade_mcp_server.server.ToolExecutor.run",
+            new_callable=AsyncMock,
+            return_value=error_output,
+        ):
+            response = await mcp_server._handle_call_tool(message)
+
+        sc = response.result.structuredContent
+        assert "message" in sc
+        assert "kind" in sc
+        # Backward compatibility: "error" key mirrors "message"
+        assert "error" in sc
+        assert sc["error"] == sc["message"]
+        # Sensitive fields excluded
+        assert "stacktrace" not in sc
+        assert "developer_message" not in sc
+        assert "extra" not in sc
+
+    @pytest.mark.asyncio
+    async def test_tool_error_content_no_pydantic_repr(self, mcp_server):
+        error_output = self._make_error_output(message="fail")
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=1,
+            method="tools/call",
+            params={"name": "TestToolkit.test_tool", "arguments": {"text": "test"}},
+        )
+
+        with patch(
+            "arcade_mcp_server.server.ToolExecutor.run",
+            new_callable=AsyncMock,
+            return_value=error_output,
+        ):
+            response = await mcp_server._handle_call_tool(message)
+
+        text = response.result.content[0].text
+        assert "kind=<ErrorKind" not in text
+
+    @pytest.mark.asyncio
+    async def test_tool_error_developer_message_included_when_different(self, mcp_server):
+        error_output = self._make_error_output(
+            message="Something failed",
+            developer_message="Traceback: line 42 in foo.py",
+        )
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=1,
+            method="tools/call",
+            params={"name": "TestToolkit.test_tool", "arguments": {"text": "test"}},
+        )
+
+        with patch(
+            "arcade_mcp_server.server.ToolExecutor.run",
+            new_callable=AsyncMock,
+            return_value=error_output,
+        ):
+            response = await mcp_server._handle_call_tool(message)
+
+        text = response.result.content[0].text
+        assert "Details:" in text
+        assert "Traceback: line 42 in foo.py" in text
+
+    @pytest.mark.asyncio
+    async def test_tool_error_developer_message_excluded_when_same(self, mcp_server):
+        error_output = self._make_error_output(
+            message="Something failed",
+            developer_message="Something failed",
+        )
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=1,
+            method="tools/call",
+            params={"name": "TestToolkit.test_tool", "arguments": {"text": "test"}},
+        )
+
+        with patch(
+            "arcade_mcp_server.server.ToolExecutor.run",
+            new_callable=AsyncMock,
+            return_value=error_output,
+        ):
+            response = await mcp_server._handle_call_tool(message)
+
+        text = response.result.content[0].text
+        assert "Details:" not in text

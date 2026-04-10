@@ -151,13 +151,26 @@ class BaseWorker(Worker):
         duration_ms = (end_time - start_time) * 1000  # Convert to milliseconds
 
         if output.error:
+            log_extra = {
+                "error_kind": output.error.kind.value
+                if hasattr(output.error.kind, "value")
+                else str(output.error.kind),
+                "error_message": output.error.message,
+                "error_developer_message": output.error.developer_message,
+                "error_status_code": output.error.status_code,
+                "error_can_retry": output.error.can_retry,
+                "tool_name": str(tool_fqname),
+                "tool_version": str(tool_request.tool.version),
+                "execution_id": execution_id,
+            }
             logger.warning(
-                f"{execution_id} | Tool {tool_fqname} version {tool_request.tool.version} failed"
+                f"{execution_id} | Tool {tool_fqname} version {tool_request.tool.version} failed: {output.error.message}",
+                extra=log_extra,
             )
-            logger.warning(f"{execution_id} | Tool error: {output.error.message}")
-            logger.warning(
-                f"{execution_id} | Tool developer message: {output.error.developer_message}"
-            )
+            if output.error.developer_message:
+                logger.warning(
+                    f"{execution_id} | Developer message: {output.error.developer_message}",
+                )
             logger.debug(
                 f"{execution_id} | duration: {duration_ms}ms | Tool output: {output.value}"
             )

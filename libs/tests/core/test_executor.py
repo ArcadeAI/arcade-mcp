@@ -185,9 +185,9 @@ for tool_func in tools:
             {},
             ToolCallOutput(
                 error=ToolCallError(
-                    message="[TOOL_RUNTIME_FATAL] FatalToolError during execution of tool 'unexpected_error_tool': test",
+                    message="[TOOL_RUNTIME_FATAL] FatalToolError during execution of tool 'unexpected_error_tool': RuntimeError: test",
                     kind=ErrorKind.TOOL_RUNTIME_FATAL,
-                    developer_message="[TOOL_RUNTIME_FATAL] FatalToolError during execution of tool 'unexpected_error_tool': test",
+                    developer_message="[TOOL_RUNTIME_FATAL] FatalToolError during execution of tool 'unexpected_error_tool': RuntimeError('test')",
                     can_retry=False,
                     status_code=500,
                 )
@@ -198,10 +198,10 @@ for tool_func in tools:
             {"inp": {"test": "test"}},  # takes in a string not a dict
             ToolCallOutput(
                 error=ToolCallError(
-                    message="[TOOL_RUNTIME_BAD_INPUT_VALUE] ToolInputError during execution of tool 'simple_tool': Error in tool input deserialization",
+                    message="[TOOL_RUNTIME_BAD_INPUT_VALUE] ToolInputError during execution of tool 'simple_tool': Invalid input: inp:",
                     kind=ErrorKind.TOOL_RUNTIME_BAD_INPUT_VALUE,
                     status_code=400,
-                    developer_message=None,  # can't gaurantee this will be the same
+                    developer_message=None,  # can't guarantee this will be the same
                 )
             ),
         ),
@@ -323,7 +323,12 @@ async def test_tool_executor(tool_func, inputs, expected_output):
 
 
 def check_output_error(output_error: ToolCallError, expected_error: ToolCallError):
-    assert output_error.message == expected_error.message, "message mismatch"
+    if "Invalid input:" in expected_error.message:
+        assert output_error.message.startswith(
+            expected_error.message
+        ), f"message mismatch: {output_error.message!r} does not start with {expected_error.message!r}"
+    else:
+        assert output_error.message == expected_error.message, "message mismatch"
     assert output_error.kind == expected_error.kind, "kind mismatch"
     if expected_error.developer_message:
         assert (
@@ -357,3 +362,37 @@ def check_output(output: ToolCallOutput, expected_output: ToolCallOutput):
             assert output_log.message == expected_log.message
             assert output_log.level == expected_log.level
             assert output_log.subtype == expected_log.subtype
+
+
+@tool
+def multi_field_tool(
+    name: Annotated[str, "a name"],
+    age: Annotated[int, "an age"],
+) -> Annotated[str, "output"]:
+    """Tool with multiple required fields"""
+    return f"{name} is {age}"
+
+
+catalog.add_tool(multi_field_tool, "MultiFieldToolkit")
+
+
+@pytest.mark.asyncio
+async def test_multiple_bad_fields_in_input_error():
+    tool_definition = catalog.find_tool_by_func(multi_field_tool)
+    full_tool = catalog.get_tool(tool_definition.get_fully_qualified_name())
+    dummy_context = ToolContext()
+
+    output = await ToolExecutor.run(
+        func=multi_field_tool,
+        definition=tool_definition,
+        input_model=full_tool.input_model,
+        output_model=full_tool.output_model,
+        context=dummy_context,
+        name=123,  # wrong type
+        age="not_an_int",  # wrong type
+    )
+
+    assert output.error is not None
+    assert "Invalid input:" in output.error.message
+    assert "name" in output.error.message
+    assert "age" in output.error.message
