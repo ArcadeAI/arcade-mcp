@@ -930,15 +930,12 @@ class MCPServer:
                 error = result.error or "Error calling tool"
                 content = convert_to_mcp_content(str(error))
 
-                # structuredContent should be the error as a JSON object
-                structured_content = convert_content_to_structured_content({"error": str(error)})
-
                 self._tracker.track_tool_call(False, "error during tool execution")
                 return JSONRPCResponse(
                     id=message.id,
                     result=CallToolResult(
                         content=content,
-                        structuredContent=structured_content,
+                        structuredContent=None,
                         isError=True,
                     ),
                 )
@@ -954,15 +951,12 @@ class MCPServer:
 
             content = convert_to_mcp_content(error_message)
 
-            # structuredContent should be the error as a JSON object
-            structured_content = convert_content_to_structured_content({"error": error_message})
-
             self._tracker.track_tool_call(False, "unknown tool")
             return JSONRPCResponse(
                 id=message.id,
                 result=CallToolResult(
                     content=content,
-                    structuredContent=structured_content,
+                    structuredContent=None,
                     isError=True,
                 ),
             )
@@ -991,12 +985,11 @@ class MCPServer:
     ) -> JSONRPCResponse[CallToolResult]:
         """Create a consistent error response for tool requirement failures"""
         content = convert_to_mcp_content(tool_response)
-        structured_content = convert_content_to_structured_content(tool_response)
         return JSONRPCResponse(
             id=message.id,
             result=CallToolResult(
                 content=content,
-                structuredContent=structured_content,
+                structuredContent=None,
                 isError=True,
             ),
         )
