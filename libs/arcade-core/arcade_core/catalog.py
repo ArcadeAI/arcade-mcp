@@ -14,6 +14,7 @@ from typing import (
     Annotated,
     Any,
     Literal,
+    Optional,
     Union,
     cast,
     get_args,
@@ -102,6 +103,9 @@ class WireTypeInfo:
     properties: dict[str, "WireTypeInfo"] | None = None
     inner_properties: dict[str, "WireTypeInfo"] | None = None
     description: str | None = None
+    required_keys: list[str] | None = None
+    inner_required_keys: list[str] | None = None
+    nullable: bool | None = None
 
 
 class ToolMeta(BaseModel):
@@ -762,6 +766,7 @@ def get_wire_type_info(_type: type) -> WireTypeInfo:
     # If so, get the inner (enclosed) type
     is_list = get_origin(_type) is list
     inner_properties = None
+    inner_required_keys = None
 
     if is_list:
         inner_type = get_args(_type)[0]
@@ -773,9 +778,11 @@ def get_wire_type_info(_type: type) -> WireTypeInfo:
         # If inner type has properties (it's a complex object), propagate them
         if inner_info.properties:
             inner_properties = inner_info.properties
+            inner_required_keys = inner_info.required_keys
         # If inner type is array (nested arrays), propagate inner_properties
         elif inner_info.inner_properties:
             inner_properties = inner_info.inner_properties
+            inner_required_keys = inner_info.inner_required_keys
     else:
         inner_wire_type = None
 
@@ -803,8 +810,9 @@ def get_wire_type_info(_type: type) -> WireTypeInfo:
 
     # Extract properties for complex types
     properties = None
+    required_keys = None
     if wire_type == "json" and not is_list:
-        properties = extract_properties(type_to_check)
+        properties, required_keys = extract_properties(type_to_check)
 
     return WireTypeInfo(
         wire_type,
@@ -812,6 +820,8 @@ def get_wire_type_info(_type: type) -> WireTypeInfo:
         enum_values if is_enum else None,
         properties,
         inner_properties,
+        required_keys=required_keys,
+        inner_required_keys=inner_required_keys,
     )
 
 
@@ -844,9 +854,14 @@ def _extract_typeddict_field_descriptions(typeddict_class: type) -> dict[str, st
     return descriptions
 
 
-def extract_properties(type_to_check: type) -> dict[str, WireTypeInfo] | None:
+def extract_properties(
+    type_to_check: type,
+) -> tuple[dict[str, WireTypeInfo] | None, list[str] | None]:
     """
     Extract properties from TypedDict, Pydantic models, or other structured types.
+
+    Returns (properties, required_keys). required_keys is a sorted list of required
+    property names for TypedDict types, or None for other types.
     """
     properties = {}
 
@@ -868,6 +883,8 @@ def extract_properties(type_to_check: type) -> dict[str, WireTypeInfo] | None:
             wire_info = get_wire_type_info(field_type)
             properties[field_name] = wire_info
 
+        return (properties or None, None)
+
     # Handle TypedDict
     elif is_typeddict(type_to_check):
         # Get type hints for the TypedDict
@@ -878,10 +895,13 @@ def extract_properties(type_to_check: type) -> dict[str, WireTypeInfo] | None:
 
         for field_name, field_type in type_hints.items():
             # Handle Optional types (Union[T, None])
-            if is_strict_optional(field_type):
+            is_nullable = is_strict_optional(field_type)
+            if is_nullable:
                 # Extract the non-None type from Optional
                 field_type = next(arg for arg in get_args(field_type) if arg is not type(None))
             wire_info = get_wire_type_info(field_type)
+            if is_nullable:
+                wire_info.nullable = True
 
             # Add description if available
             if field_name in field_descriptions:
@@ -889,12 +909,16 @@ def extract_properties(type_to_check: type) -> dict[str, WireTypeInfo] | None:
 
             properties[field_name] = wire_info
 
+        req = sorted(getattr(type_to_check, "__required_keys__", frozenset()))
+        required_keys = req or None  # normalize empty → None
+        return (properties or None, required_keys)
+
     # Handle regular dict with type annotations (e.g., dict[str, Any])
     elif get_origin(type_to_check) is dict:
         # For generic dicts, we can't extract specific properties
-        return None
+        return (None, None)
 
-    return properties if properties else None
+    return (properties or None, None)
 
 
 def wire_type_info_to_value_schema(wire_info: WireTypeInfo) -> ValueSchema:
@@ -924,6 +948,9 @@ def wire_type_info_to_value_schema(wire_info: WireTypeInfo) -> ValueSchema:
         properties=properties,
         inner_properties=inner_properties,
         description=wire_info.description,
+        required_keys=wire_info.required_keys,
+        inner_required_keys=wire_info.inner_required_keys,
+        nullable=wire_info.nullable,
     )
 
 
@@ -1171,6 +1198,18 @@ def determine_output_model(func: Callable) -> type[BaseModel]:
         )
 
 
+class _TypedDictBaseModel(BaseModel):
+    """Base for Pydantic models derived from TypedDict.
+
+    Defaults model_dump() to exclude_unset=True so that absent optional
+    fields (total=False) don't appear as None in serialized output.
+    """
+
+    def model_dump(self, **kwargs: Any) -> dict[str, Any]:
+        kwargs.setdefault("exclude_unset", True)
+        return super().model_dump(**kwargs)
+
+
 def create_model_from_typeddict(typeddict_class: type, model_name: str) -> type[BaseModel]:
     """
     Create a Pydantic model from a TypedDict class.
@@ -1185,13 +1224,22 @@ def create_model_from_typeddict(typeddict_class: type, model_name: str) -> type[
         # Check if field is required
         is_required = field_name in getattr(typeddict_class, "__required_keys__", set())
 
-        # Handle nested TypedDict
-        if is_typeddict(field_type):
-            nested_model = create_model_from_typeddict(field_type, f"{model_name}_{field_name}")
+        # Unwrap Optional[T] (i.e. T | None) so we can detect nested TypedDicts
+        is_optional_type = is_strict_optional(field_type)
+        inner_type = field_type
+        if is_optional_type:
+            inner_type = next(arg for arg in get_args(field_type) if arg is not type(None))
+
+        # Handle nested TypedDict (works for both T and Optional[T] after unwrapping)
+        if is_typeddict(inner_type):
+            nested_model = create_model_from_typeddict(inner_type, f"{model_name}_{field_name}")
             if is_required:
-                field_definitions[field_name] = (nested_model, Field())
+                if is_optional_type:
+                    field_definitions[field_name] = (Optional[nested_model], Field())
+                else:
+                    field_definitions[field_name] = (nested_model, Field())
             else:
-                field_definitions[field_name] = (nested_model, Field(default=None))
+                field_definitions[field_name] = (Optional[nested_model], Field(default=None))
         else:
             if is_required:
                 field_definitions[field_name] = (field_type, Field())
@@ -1199,7 +1247,7 @@ def create_model_from_typeddict(typeddict_class: type, model_name: str) -> type[
                 field_definitions[field_name] = (field_type, Field(default=None))
 
     # Create and return the Pydantic model
-    return create_model(model_name, **field_definitions)
+    return create_model(model_name, __base__=_TypedDictBaseModel, **field_definitions)
 
 
 def to_tool_secret_requirements(
