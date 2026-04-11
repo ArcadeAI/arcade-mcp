@@ -226,33 +226,35 @@ class MCPServer:
         # Handler registration
         self._handlers = self._register_handlers()
 
-    def _load_config_values(self) -> tuple[str | None, str | None]:
-        """Load access token and user_id from credentials file.
+    def _load_access_token(self) -> str | None:
+        """Load a valid access token from credentials file.
 
         Returns:
-            Tuple of (access_token, user_id) from credentials file, or (None, None) if not available
+            Access token string, or None if unavailable or expired.
+        """
+        try:
+            return get_valid_access_token()
+        except Exception as e:
+            logger.debug("Could not load access token: %s", e)
+            return None
+
+    def _load_config_user_id(self) -> str | None:
+        """Load user_id (email) from credentials file.
+
+        Returns:
+            User email from credentials, or None if unavailable.
         """
         try:
             from arcade_core.config import config
 
-            access_token = get_valid_access_token()
             user_id = config.user.email if config.user else None
-
-            if access_token or user_id:
-                config_path = config.get_config_file_path()
-                if access_token:
-                    logger.info(f"Loaded Arcade access token from {config_path}")
-                if user_id:
-                    logger.debug(f"Loaded user_id '{user_id}' from {config_path}")
-                return access_token, user_id
-            else:
-                logger.debug(
-                    "No access token or user_id found in credentials file. If this is unexpected, run 'arcade login' to authenticate."
-                )
-                return None, None
         except Exception as e:
-            logger.debug(f"Could not load values from credentials file: {e}")
-            return None, None
+            logger.debug("Could not load user_id from credentials file: %s", e)
+            return None
+        else:
+            if user_id:
+                logger.debug("Loaded user_id '%s' from %s", user_id, config.get_config_file_path())
+            return user_id
 
     def _load_org_project_context(self) -> tuple[str, str] | None:
         """
@@ -281,8 +283,7 @@ class MCPServer:
 
         # If no API key provided, try to load from credentials file
         if not final_api_key:
-            config_api_key, _ = self._load_config_values()
-            final_api_key = config_api_key
+            final_api_key = self._load_access_token()
 
         if final_api_key:
             logger.info(f"Using Arcade client with API URL: {api_url}")
@@ -803,7 +804,7 @@ class MCPServer:
             return settings_user_id
 
         # Third priority: configured user_id from credentials file
-        _, config_user_id = self._load_config_values()
+        config_user_id = self._load_config_user_id()
         if config_user_id:
             logger.debug(f"Context user_id set from credentials file: {config_user_id}")
             return config_user_id
@@ -1204,6 +1205,11 @@ class MCPServer:
                 "Authorization check called without Arcade API key configured. "
                 "This should be checked by the caller."
             )
+
+        # Refresh the access token for long-running sessions
+        refreshed = self._load_access_token()
+        if refreshed:
+            self.arcade.api_key = refreshed
 
         req = tool.definition.requirements.authorization
         provider_id = str(getattr(req, "provider_id", ""))
