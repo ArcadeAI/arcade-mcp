@@ -170,9 +170,10 @@ class MCPServer:
 
         # Initialize Arcade client
         # Fallback to API key in ~/.arcade/credentials.yaml if not provided
+        self._arcade_api_url = arcade_api_url or self.settings.arcade.api_url
         self._init_arcade_client(
             arcade_api_key or self.settings.arcade.api_key,
-            arcade_api_url or self.settings.arcade.api_url,
+            self._arcade_api_url,
         )
 
         # Component managers (passive)
@@ -285,34 +286,42 @@ class MCPServer:
         if not final_api_key:
             final_api_key = self._load_access_token()
 
+        # Track whether the key is a service key (arc_*) so the refresh path
+        # knows not to overwrite it with a CLI OAuth token.
+        self._has_service_key = bool(final_api_key and final_api_key.startswith("arc_"))
+
         if final_api_key:
-            logger.info(f"Using Arcade client with API URL: {api_url}")
-            client_kwargs: dict[str, Any] = {"api_key": final_api_key, "base_url": api_url}
-
-            # Non-service keys need org/project URL rewriting
-            if not final_api_key.startswith("arc_"):
-                context = self._load_org_project_context()
-                if context:
-                    org_id, project_id = context
-                    client_kwargs["http_client"] = build_org_scoped_async_http_client(
-                        org_id, project_id
-                    )
-                    logger.info(
-                        "Configured org-scoped Arcade client for org '%s' project '%s'",
-                        org_id,
-                        project_id,
-                    )
-                else:
-                    logger.warning(
-                        "Expected to find org/project context in arcade_core.config but no org/project context "
-                        "was found; using non-scoped Arcade client."
-                    )
-
-            self.arcade = AsyncArcade(**client_kwargs)
+            self._build_arcade_client(final_api_key, api_url)
         else:
             logger.warning(
                 "Arcade access token not configured. Tools requiring auth will return a login instruction."
             )
+
+    def _build_arcade_client(self, api_key: str, api_url: str) -> None:
+        """Build (or rebuild) the AsyncArcade client with the given key."""
+        logger.info(f"Using Arcade client with API URL: {api_url}")
+        client_kwargs: dict[str, Any] = {"api_key": api_key, "base_url": api_url}
+
+        # Non-service keys need org/project URL rewriting
+        if not api_key.startswith("arc_"):
+            context = self._load_org_project_context()
+            if context:
+                org_id, project_id = context
+                client_kwargs["http_client"] = build_org_scoped_async_http_client(
+                    org_id, project_id
+                )
+                logger.info(
+                    "Configured org-scoped Arcade client for org '%s' project '%s'",
+                    org_id,
+                    project_id,
+                )
+            else:
+                logger.warning(
+                    "Expected to find org/project context in arcade_core.config but no org/project context "
+                    "was found; using non-scoped Arcade client."
+                )
+
+        self.arcade = AsyncArcade(**client_kwargs)
 
     def _init_middleware(self, custom_middleware: list[Middleware] | None) -> None:
         """Initialize middleware chain."""
@@ -1206,10 +1215,15 @@ class MCPServer:
                 "This should be checked by the caller."
             )
 
-        # Refresh the access token for long-running sessions
-        refreshed = self._load_access_token()
-        if refreshed:
-            self.arcade.api_key = refreshed
+        # Refresh the access token for long-running sessions.
+        # Service keys (arc_*) never expire, so skip the refresh path entirely.
+        # When refreshing an OAuth token the key type stays the same, so the
+        # org-scoped HTTP transport created at init time remains valid and only
+        # the api_key needs to be swapped.
+        if not self._has_service_key:
+            refreshed = await asyncio.to_thread(self._load_access_token)
+            if refreshed:
+                self.arcade.api_key = refreshed
 
         req = tool.definition.requirements.authorization
         provider_id = str(getattr(req, "provider_id", ""))
