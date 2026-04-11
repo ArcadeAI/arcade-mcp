@@ -221,6 +221,10 @@ class MCPServer:
         self._sessions: dict[str, ServerSession] = {}
         self._sessions_lock = asyncio.Lock()
 
+        # Serialize token refresh attempts to avoid concurrent refreshes
+        # racing on the same refresh token (see _check_authorization).
+        self._refresh_lock = asyncio.Lock()
+
         # Usage tracking
         self._tracker = ServerTracker()
 
@@ -1220,10 +1224,17 @@ class MCPServer:
         # When refreshing an OAuth token the key type stays the same, so the
         # org-scoped HTTP transport created at init time remains valid and only
         # the api_key needs to be swapped.
+        #
+        # The lock serializes concurrent refresh attempts so that only one
+        # coroutine performs the (potentially token-rotating) refresh at a time.
+        # After acquiring the lock we re-load the token: if another coroutine
+        # already refreshed it, we just pick up the new value without hitting
+        # the OAuth server again.
         if not self._has_service_key:
-            refreshed = await asyncio.to_thread(self._load_access_token)
-            if refreshed:
-                self.arcade.api_key = refreshed
+            async with self._refresh_lock:
+                refreshed = await asyncio.to_thread(self._load_access_token)
+                if refreshed:
+                    self.arcade.api_key = refreshed
 
         req = tool.definition.requirements.authorization
         provider_id = str(getattr(req, "provider_id", ""))
