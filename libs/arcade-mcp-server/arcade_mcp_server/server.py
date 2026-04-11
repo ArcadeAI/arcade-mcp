@@ -170,9 +170,10 @@ class MCPServer:
 
         # Initialize Arcade client
         # Fallback to API key in ~/.arcade/credentials.yaml if not provided
+        self._arcade_api_url = arcade_api_url or self.settings.arcade.api_url
         self._init_arcade_client(
             arcade_api_key or self.settings.arcade.api_key,
-            arcade_api_url or self.settings.arcade.api_url,
+            self._arcade_api_url,
         )
 
         # Component managers (passive)
@@ -220,39 +221,45 @@ class MCPServer:
         self._sessions: dict[str, ServerSession] = {}
         self._sessions_lock = asyncio.Lock()
 
+        # Serialize token refresh attempts to avoid concurrent refreshes
+        # racing on the same refresh token (see _check_authorization).
+        self._refresh_lock = asyncio.Lock()
+
         # Usage tracking
         self._tracker = ServerTracker()
 
         # Handler registration
         self._handlers = self._register_handlers()
 
-    def _load_config_values(self) -> tuple[str | None, str | None]:
-        """Load access token and user_id from credentials file.
+    def _load_access_token(self) -> str | None:
+        """Load a valid access token from credentials file.
 
         Returns:
-            Tuple of (access_token, user_id) from credentials file, or (None, None) if not available
+            Access token string, or None if unavailable or expired.
+        """
+        try:
+            return get_valid_access_token()
+        except Exception as e:
+            logger.debug("Could not load access token: %s", e)
+            return None
+
+    def _load_config_user_id(self) -> str | None:
+        """Load user_id (email) from credentials file.
+
+        Returns:
+            User email from credentials, or None if unavailable.
         """
         try:
             from arcade_core.config import config
 
-            access_token = get_valid_access_token()
             user_id = config.user.email if config.user else None
-
-            if access_token or user_id:
-                config_path = config.get_config_file_path()
-                if access_token:
-                    logger.info(f"Loaded Arcade access token from {config_path}")
-                if user_id:
-                    logger.debug(f"Loaded user_id '{user_id}' from {config_path}")
-                return access_token, user_id
-            else:
-                logger.debug(
-                    "No access token or user_id found in credentials file. If this is unexpected, run 'arcade login' to authenticate."
-                )
-                return None, None
         except Exception as e:
-            logger.debug(f"Could not load values from credentials file: {e}")
-            return None, None
+            logger.debug("Could not load user_id from credentials file: %s", e)
+            return None
+        else:
+            if user_id:
+                logger.debug("Loaded user_id '%s' from %s", user_id, config.get_config_file_path())
+            return user_id
 
     def _load_org_project_context(self) -> tuple[str, str] | None:
         """
@@ -281,37 +288,44 @@ class MCPServer:
 
         # If no API key provided, try to load from credentials file
         if not final_api_key:
-            config_api_key, _ = self._load_config_values()
-            final_api_key = config_api_key
+            final_api_key = self._load_access_token()
+
+        # Track whether the key is a service key (arc_*) so the refresh path
+        # knows not to overwrite it with a CLI OAuth token.
+        self._has_service_key = bool(final_api_key and final_api_key.startswith("arc_"))
 
         if final_api_key:
-            logger.info(f"Using Arcade client with API URL: {api_url}")
-            client_kwargs: dict[str, Any] = {"api_key": final_api_key, "base_url": api_url}
-
-            # Non-service keys need org/project URL rewriting
-            if not final_api_key.startswith("arc_"):
-                context = self._load_org_project_context()
-                if context:
-                    org_id, project_id = context
-                    client_kwargs["http_client"] = build_org_scoped_async_http_client(
-                        org_id, project_id
-                    )
-                    logger.info(
-                        "Configured org-scoped Arcade client for org '%s' project '%s'",
-                        org_id,
-                        project_id,
-                    )
-                else:
-                    logger.warning(
-                        "Expected to find org/project context in arcade_core.config but no org/project context "
-                        "was found; using non-scoped Arcade client."
-                    )
-
-            self.arcade = AsyncArcade(**client_kwargs)
+            self._build_arcade_client(final_api_key, api_url)
         else:
             logger.warning(
                 "Arcade access token not configured. Tools requiring auth will return a login instruction."
             )
+
+    def _build_arcade_client(self, api_key: str, api_url: str) -> None:
+        """Build (or rebuild) the AsyncArcade client with the given key."""
+        logger.info(f"Using Arcade client with API URL: {api_url}")
+        client_kwargs: dict[str, Any] = {"api_key": api_key, "base_url": api_url}
+
+        # Non-service keys need org/project URL rewriting
+        if not api_key.startswith("arc_"):
+            context = self._load_org_project_context()
+            if context:
+                org_id, project_id = context
+                client_kwargs["http_client"] = build_org_scoped_async_http_client(
+                    org_id, project_id
+                )
+                logger.info(
+                    "Configured org-scoped Arcade client for org '%s' project '%s'",
+                    org_id,
+                    project_id,
+                )
+            else:
+                logger.warning(
+                    "Expected to find org/project context in arcade_core.config but no org/project context "
+                    "was found; using non-scoped Arcade client."
+                )
+
+        self.arcade = AsyncArcade(**client_kwargs)
 
     def _init_middleware(self, custom_middleware: list[Middleware] | None) -> None:
         """Initialize middleware chain."""
@@ -803,7 +817,7 @@ class MCPServer:
             return settings_user_id
 
         # Third priority: configured user_id from credentials file
-        _, config_user_id = self._load_config_values()
+        config_user_id = self._load_config_user_id()
         if config_user_id:
             logger.debug(f"Context user_id set from credentials file: {config_user_id}")
             return config_user_id
@@ -1204,6 +1218,23 @@ class MCPServer:
                 "Authorization check called without Arcade API key configured. "
                 "This should be checked by the caller."
             )
+
+        # Refresh the access token for long-running sessions.
+        # Service keys (arc_*) never expire, so skip the refresh path entirely.
+        # When refreshing an OAuth token the key type stays the same, so the
+        # org-scoped HTTP transport created at init time remains valid and only
+        # the api_key needs to be swapped.
+        #
+        # The lock serializes concurrent refresh attempts so that only one
+        # coroutine performs the (potentially token-rotating) refresh at a time.
+        # After acquiring the lock we re-load the token: if another coroutine
+        # already refreshed it, we just pick up the new value without hitting
+        # the OAuth server again.
+        if not self._has_service_key:
+            async with self._refresh_lock:
+                refreshed = await asyncio.to_thread(self._load_access_token)
+                if refreshed:
+                    self.arcade.api_key = refreshed
 
         req = tool.definition.requirements.authorization
         provider_id = str(getattr(req, "provider_id", ""))

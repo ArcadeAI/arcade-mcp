@@ -4,7 +4,7 @@ import asyncio
 import contextlib
 import json
 from typing import Annotated
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from arcade_core.auth import OAuth2
@@ -1736,9 +1736,7 @@ class TestServerInitialResources:
         """MCPServer with initial ResourceTemplate registers it as a template."""
         from arcade_mcp_server.types import ResourceTemplate
 
-        tmpl = ResourceTemplate(
-            uriTemplate="data://{item_id}", name="Data", mimeType="text/plain"
-        )
+        tmpl = ResourceTemplate(uriTemplate="data://{item_id}", name="Data", mimeType="text/plain")
 
         def handler(uri: str, item_id: str) -> str:
             return f"item-{item_id}"
@@ -1763,9 +1761,7 @@ class TestServerInitialResources:
         """MCPServer with ResourceTemplate and no handler registers template only."""
         from arcade_mcp_server.types import ResourceTemplate
 
-        tmpl = ResourceTemplate(
-            uriTemplate="schema://{type}", name="Schema"
-        )
+        tmpl = ResourceTemplate(uriTemplate="schema://{type}", name="Schema")
 
         server = MCPServer(
             catalog=tool_catalog,
@@ -1799,3 +1795,244 @@ class TestToolMetaExtensionEdgeCases:
             assert "skipped: tool not found" in caplog.text
         finally:
             await server.stop()
+
+
+class TestLoadAccessToken:
+    """Tests for MCPServer._load_access_token()."""
+
+    def test_returns_valid_token(self, tool_catalog):
+        with patch("arcade_mcp_server.server.get_valid_access_token", return_value="token-123"):
+            server = MCPServer(catalog=tool_catalog)
+            assert server._load_access_token() == "token-123"
+
+    def test_expired_refresh_fails(self, tool_catalog):
+        with patch(
+            "arcade_mcp_server.server.get_valid_access_token",
+            side_effect=ValueError("Token expired and refresh failed"),
+        ):
+            server = MCPServer(catalog=tool_catalog)
+            assert server._load_access_token() is None
+
+    def test_not_logged_in(self, tool_catalog):
+        with patch(
+            "arcade_mcp_server.server.get_valid_access_token",
+            side_effect=ValueError("Not logged in"),
+        ):
+            server = MCPServer(catalog=tool_catalog)
+            assert server._load_access_token() is None
+
+    def test_unexpected_exception(self, tool_catalog):
+        with patch(
+            "arcade_mcp_server.server.get_valid_access_token",
+            side_effect=RuntimeError("unexpected"),
+        ):
+            server = MCPServer(catalog=tool_catalog)
+            assert server._load_access_token() is None
+
+
+class TestLoadConfigUserId:
+    """Tests for MCPServer._load_config_user_id()."""
+
+    def test_returns_email(self, tool_catalog):
+        server = MCPServer(catalog=tool_catalog)
+        mock_config = Mock()
+        mock_config.user.email = "a@example.com"
+        mock_config.get_config_file_path.return_value = "/fake/path"
+        with (
+            patch("arcade_mcp_server.server.config", mock_config, create=True),
+            patch.dict(
+                "sys.modules",
+                {"arcade_core.config": Mock(config=mock_config)},
+            ),
+        ):
+            assert server._load_config_user_id() == "a@example.com"
+
+    def test_no_user_section(self, tool_catalog):
+        server = MCPServer(catalog=tool_catalog)
+        mock_config = Mock()
+        mock_config.user = None
+        with patch.dict(
+            "sys.modules",
+            {"arcade_core.config": Mock(config=mock_config)},
+        ):
+            assert server._load_config_user_id() is None
+
+    def test_email_is_none(self, tool_catalog):
+        server = MCPServer(catalog=tool_catalog)
+        mock_config = Mock()
+        mock_config.user.email = None
+        with patch.dict(
+            "sys.modules",
+            {"arcade_core.config": Mock(config=mock_config)},
+        ):
+            assert server._load_config_user_id() is None
+
+    def test_config_load_raises(self, tool_catalog):
+        server = MCPServer(catalog=tool_catalog)
+        # Force the import inside _load_config_user_id to raise
+        with patch.dict(
+            "sys.modules",
+            {"arcade_core.config": None},
+        ):
+            assert server._load_config_user_id() is None
+
+
+class TestInitArcadeClient:
+    """Tests for MCPServer._init_arcade_client() using _load_access_token."""
+
+    def test_explicit_api_key(self, tool_catalog):
+        server = MCPServer(catalog=tool_catalog, arcade_api_key="arc_key")
+        assert server.arcade is not None
+        assert server.arcade.api_key == "arc_key"
+
+    def test_falls_back_to_access_token(self, tool_catalog):
+        with patch("arcade_mcp_server.server.get_valid_access_token", return_value="oauth-tok"):
+            server = MCPServer(catalog=tool_catalog)
+            assert server.arcade is not None
+            assert server.arcade.api_key == "oauth-tok"
+
+    def test_no_key_no_token(self, tool_catalog):
+        with patch(
+            "arcade_mcp_server.server.get_valid_access_token",
+            side_effect=ValueError("Not logged in"),
+        ):
+            server = MCPServer(catalog=tool_catalog)
+            assert server.arcade is None
+
+
+class TestSelectUserId:
+    """Tests for MCPServer._select_user_id() using _load_config_user_id."""
+
+    def test_from_settings(self, tool_catalog):
+        from arcade_mcp_server.settings import ArcadeSettings, MCPSettings
+
+        settings = MCPSettings(arcade=ArcadeSettings(user_id="set-user"))
+        server = MCPServer(catalog=tool_catalog, settings=settings)
+        result = server._select_user_id(session=None)
+        assert result == "set-user"
+
+    def test_from_config_email(self, tool_catalog):
+        server = MCPServer(catalog=tool_catalog)
+        server._load_config_user_id = Mock(return_value="cfg@ex.com")
+        session = Mock()
+        session.session_id = "sess-123"
+        result = server._select_user_id(session=session)
+        assert result == "cfg@ex.com"
+
+    def test_fallback_to_session(self, tool_catalog):
+        server = MCPServer(catalog=tool_catalog)
+        server._load_config_user_id = Mock(return_value=None)
+        session = Mock()
+        session.session_id = "sess-456"
+        result = server._select_user_id(session=session)
+        assert result == "sess-456"
+
+    def test_email_survives_token_failure(self, tool_catalog):
+        """Email is returned even when access token retrieval fails."""
+        with patch(
+            "arcade_mcp_server.server.get_valid_access_token",
+            side_effect=ValueError("expired"),
+        ):
+            server = MCPServer(catalog=tool_catalog)
+
+        mock_config = Mock()
+        mock_config.user.email = "user@arcade.dev"
+        mock_config.get_config_file_path.return_value = "/fake/path"
+        with patch.dict(
+            "sys.modules",
+            {"arcade_core.config": Mock(config=mock_config)},
+        ):
+            session = Mock()
+            session.session_id = "sess-789"
+            result = server._select_user_id(session=session)
+            assert result == "user@arcade.dev"
+
+    def test_no_session_returns_none(self, tool_catalog):
+        server = MCPServer(catalog=tool_catalog)
+        server._load_config_user_id = Mock(return_value=None)
+        result = server._select_user_id(session=None)
+        assert result is None
+
+
+class TestLazyTokenRefresh:
+    """Tests for lazy token refresh in _check_authorization."""
+
+    @pytest.mark.asyncio
+    async def test_refreshes_token(self, tool_catalog):
+        server = MCPServer(catalog=tool_catalog, arcade_api_key="old")
+        assert server.arcade is not None
+        server._load_access_token = Mock(return_value="new")
+
+        mock_auth_response = Mock()
+        mock_auth_response.status = "completed"
+        mock_auth_response.context = Mock()
+        mock_auth_response.context.token = "tok"
+        mock_auth_response.context.user_info = {}
+
+        tool_mock = Mock()
+        tool_mock.definition.requirements.authorization = ToolAuthRequirement(
+            provider_type="oauth2", provider_id="test"
+        )
+
+        with patch.object(server.arcade.auth, "authorize", new_callable=AsyncMock) as mock_auth:
+            mock_auth.return_value = mock_auth_response
+            await server._check_authorization(tool_mock, user_id="u")
+
+        assert server.arcade.api_key == "new"
+
+    @pytest.mark.asyncio
+    async def test_refresh_fails_keeps_existing(self, tool_catalog):
+        server = MCPServer(catalog=tool_catalog, arcade_api_key="old")
+        assert server.arcade is not None
+        server._load_access_token = Mock(return_value=None)
+
+        mock_auth_response = Mock()
+        mock_auth_response.status = "completed"
+
+        tool_mock = Mock()
+        tool_mock.definition.requirements.authorization = ToolAuthRequirement(
+            provider_type="oauth2", provider_id="test"
+        )
+
+        with patch.object(server.arcade.auth, "authorize", new_callable=AsyncMock) as mock_auth:
+            mock_auth.return_value = mock_auth_response
+            await server._check_authorization(tool_mock, user_id="u")
+
+        assert server.arcade.api_key == "old"
+
+    @pytest.mark.asyncio
+    async def test_no_arcade_client_raises(self, tool_catalog):
+        server = MCPServer(catalog=tool_catalog)
+        server.arcade = None
+
+        tool_mock = Mock()
+        tool_mock.definition.requirements.authorization = ToolAuthRequirement(
+            provider_type="oauth2", provider_id="test"
+        )
+
+        with pytest.raises(ToolRuntimeError, match="without Arcade API key"):
+            await server._check_authorization(tool_mock)
+
+
+class TestTokenEmailDecoupling:
+    """End-to-end regression: email is preserved when token is expired."""
+
+    def test_tool_call_uses_email_when_token_expired(self, tool_catalog):
+        with patch(
+            "arcade_mcp_server.server.get_valid_access_token",
+            side_effect=ValueError("expired"),
+        ):
+            server = MCPServer(catalog=tool_catalog, arcade_api_key="valid")
+
+        mock_config = Mock()
+        mock_config.user.email = "user@arcade.dev"
+        mock_config.get_config_file_path.return_value = "/fake/path"
+        with patch.dict(
+            "sys.modules",
+            {"arcade_core.config": Mock(config=mock_config)},
+        ):
+            session = Mock()
+            session.session_id = "session-uuid"
+            result = server._select_user_id(session=session)
+            assert result == "user@arcade.dev"
+            assert result != "session-uuid"
