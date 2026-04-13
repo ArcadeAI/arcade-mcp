@@ -338,20 +338,19 @@ def configure_claude_local(
     console.print("   Restart Claude Desktop for changes to take effect.", style="yellow")
 
 
-def configure_claude_arcade(
+def _configure_mcpservers_arcade(
     server_name: str,
     gateway_url: str,
-    auth_token: str | None = None,
-    config_path: Path | None = None,
+    auth_token: str | None,
+    config_path: Path,
+    display_name: str,
 ) -> None:
-    """Configure Claude Desktop to connect to an Arcade Cloud MCP gateway.
+    """Shared helper for clients that use the ``mcpServers`` JSON key.
 
-    If *auth_token* is provided (API-key mode), an ``Authorization`` header is
-    written.  Otherwise only the URL is written and the MCP client handles
-    OAuth natively.
+    Used by Claude Desktop, Windsurf, and Amazon Q which all share
+    the same config format — only the file path and display name differ.
     """
-    config_path = config_path or get_claude_config_path()
-    if config_path and not config_path.is_absolute():
+    if not config_path.is_absolute():
         config_path = Path.cwd() / config_path
 
     config_path.parent.mkdir(parents=True, exist_ok=True)
@@ -374,10 +373,26 @@ def configure_claude_arcade(
     with open(config_path, "w", encoding="utf-8") as f:
         json.dump(config, f, indent=2)
 
-    console.print(f"[green]Configured Claude Desktop with Arcade gateway '{server_name}'[/green]")
+    console.print(f"[green]Configured {display_name} with Arcade gateway '{server_name}'[/green]")
     console.print(f"   Gateway URL: {gateway_url}", style="dim")
     console.print(f"   Config file: {_format_path_for_display(config_path)}", style="dim")
-    console.print("   Restart Claude Desktop for changes to take effect.", style="yellow")
+    console.print(f"   Restart {display_name} for changes to take effect.", style="yellow")
+
+
+def configure_claude_arcade(
+    server_name: str,
+    gateway_url: str,
+    auth_token: str | None = None,
+    config_path: Path | None = None,
+) -> None:
+    """Configure Claude Desktop to connect to an Arcade Cloud MCP gateway."""
+    _configure_mcpservers_arcade(
+        server_name,
+        gateway_url,
+        auth_token,
+        config_path or get_claude_config_path(),
+        "Claude Desktop",
+    )
 
 
 def configure_cursor_local(
@@ -633,38 +648,10 @@ def configure_windsurf_arcade(
     auth_token: str | None = None,
     config_path: Path | None = None,
 ) -> None:
-    """Configure Windsurf to connect to an Arcade Cloud MCP gateway.
-
-    Windsurf uses the same ``mcpServers`` format as Claude Desktop.
-    """
-    config_path = config_path or get_windsurf_config_path()
-    if config_path and not config_path.is_absolute():
-        config_path = Path.cwd() / config_path
-
-    config_path.parent.mkdir(parents=True, exist_ok=True)
-
-    config: dict = {}
-    if config_path.exists():
-        with open(config_path, encoding="utf-8") as f:
-            config = json.load(f)
-
-    if "mcpServers" not in config:
-        config["mcpServers"] = {}
-
-    _warn_overwrite(config, "mcpServers", server_name, config_path)
-
-    entry: dict = {"url": gateway_url}
-    if auth_token:
-        entry["headers"] = {"Authorization": f"Bearer {auth_token}"}
-    config["mcpServers"][server_name] = entry
-
-    with open(config_path, "w", encoding="utf-8") as f:
-        json.dump(config, f, indent=2)
-
-    console.print(f"[green]Configured Windsurf with Arcade gateway '{server_name}'[/green]")
-    console.print(f"   Gateway URL: {gateway_url}", style="dim")
-    console.print(f"   Config file: {_format_path_for_display(config_path)}", style="dim")
-    console.print("   Restart Windsurf for changes to take effect.", style="yellow")
+    """Configure Windsurf to connect to an Arcade Cloud MCP gateway."""
+    _configure_mcpservers_arcade(
+        server_name, gateway_url, auth_token, config_path or get_windsurf_config_path(), "Windsurf"
+    )
 
 
 def configure_amazonq_arcade(
@@ -673,38 +660,10 @@ def configure_amazonq_arcade(
     auth_token: str | None = None,
     config_path: Path | None = None,
 ) -> None:
-    """Configure Amazon Q Developer to connect to an Arcade Cloud MCP gateway.
-
-    Amazon Q uses ``mcpServers`` format similar to Claude Desktop.
-    """
-    config_path = config_path or get_amazonq_config_path()
-    if config_path and not config_path.is_absolute():
-        config_path = Path.cwd() / config_path
-
-    config_path.parent.mkdir(parents=True, exist_ok=True)
-
-    config: dict = {}
-    if config_path.exists():
-        with open(config_path, encoding="utf-8") as f:
-            config = json.load(f)
-
-    if "mcpServers" not in config:
-        config["mcpServers"] = {}
-
-    _warn_overwrite(config, "mcpServers", server_name, config_path)
-
-    entry: dict = {"url": gateway_url}
-    if auth_token:
-        entry["headers"] = {"Authorization": f"Bearer {auth_token}"}
-    config["mcpServers"][server_name] = entry
-
-    with open(config_path, "w", encoding="utf-8") as f:
-        json.dump(config, f, indent=2)
-
-    console.print(f"[green]Configured Amazon Q with Arcade gateway '{server_name}'[/green]")
-    console.print(f"   Gateway URL: {gateway_url}", style="dim")
-    console.print(f"   Config file: {_format_path_for_display(config_path)}", style="dim")
-    console.print("   Restart Amazon Q for changes to take effect.", style="yellow")
+    """Configure Amazon Q Developer to connect to an Arcade Cloud MCP gateway."""
+    _configure_mcpservers_arcade(
+        server_name, gateway_url, auth_token, config_path or get_amazonq_config_path(), "Amazon Q"
+    )
 
 
 def get_toolkit_stdio_config(tool_packages: list[str], server_name: str) -> dict:

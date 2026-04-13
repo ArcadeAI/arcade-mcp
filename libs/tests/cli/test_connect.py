@@ -204,6 +204,30 @@ class TestFindMatchingGateway:
     def test_returns_none_for_empty_gateways(self) -> None:
         assert find_matching_gateway([], ["Github.CreateIssue"]) is None
 
+    def test_skips_gateway_with_wrong_auth_type(self) -> None:
+        gateways = [
+            {
+                "slug": "oauth-gw",
+                "auth_type": "arcade",
+                "tool_filter": {"allowed_tools": ["Github.CreateIssue"]},
+            }
+        ]
+        # Looking for arcade_header auth — should not match the OAuth gateway
+        result = find_matching_gateway(gateways, ["Github.CreateIssue"], auth_type="arcade_header")
+        assert result is None
+
+    def test_matches_gateway_with_correct_auth_type(self) -> None:
+        gateways = [
+            {
+                "slug": "apikey-gw",
+                "auth_type": "arcade_header",
+                "tool_filter": {"allowed_tools": ["Github.CreateIssue"]},
+            }
+        ]
+        result = find_matching_gateway(gateways, ["Github.CreateIssue"], auth_type="arcade_header")
+        assert result is not None
+        assert result["slug"] == "apikey-gw"
+
 
 # ---------------------------------------------------------------------------
 # list_gateways

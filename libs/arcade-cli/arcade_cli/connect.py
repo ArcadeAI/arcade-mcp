@@ -324,11 +324,15 @@ def list_gateways(
 def find_matching_gateway(
     gateways: list[dict],
     tool_allow_list: list[str],
+    auth_type: str = "arcade",
     debug: bool = False,
 ) -> dict | None:
-    """Find an existing gateway whose allow-list is a superset of *tool_allow_list*."""
+    """Find an existing gateway whose allow-list is a superset of *tool_allow_list*
+    and whose ``auth_type`` matches."""
     needed = set(tool_allow_list)
     for gw in gateways:
+        if gw.get("auth_type", "arcade") != auth_type:
+            continue
         existing = set(gw.get("tool_filter", {}).get("allowed_tools", []))
         if needed <= existing:
             if debug:
@@ -665,9 +669,12 @@ def run_connect(
         raise SystemExit(1)
 
     # Check if an existing gateway already covers these tools
+    auth_type = "arcade_header" if use_api_key else "arcade"
     console.print("Checking existing gateways...", style="dim")
     existing_gateways = list_gateways(access_token, debug=debug)
-    existing = find_matching_gateway(existing_gateways, tool_allow_list, debug=debug)
+    existing = find_matching_gateway(
+        existing_gateways, tool_allow_list, auth_type=auth_type, debug=debug
+    )
 
     if existing:
         slug = existing["slug"]
@@ -677,7 +684,6 @@ def run_connect(
         )
     else:
         # Create a new gateway
-        auth_type = "arcade_header" if use_api_key else "arcade"
         if len(selected_toolkits) == 1:
             gateway_name = selected_toolkits[0].lower()
         else:
