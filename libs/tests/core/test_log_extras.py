@@ -1,10 +1,7 @@
-"""Tests for arcade_core.log_extras.build_tool_error_log_extra.
+"""Tests for ``build_tool_error_log_extra``.
 
-Locks the Datadog-facet contract that BOTH the MCP transport
-(``arcade_mcp_server.server.MCPServer._log_tool_call_error``) AND the worker
-transport (``arcade_serve.core.base.BaseWorker.call_tool``) emit on tool
-failure. Field names here are load-bearing for ops dashboards — renaming any
-of them is a breaking change for downstream alerts.
+Locks the Datadog-facet contract shared by the MCP and worker transports.
+Field names are load-bearing for dashboards.
 """
 
 import pytest
@@ -59,7 +56,7 @@ def test_kind_string_fallback_when_not_enum():
         status_code = None
         can_retry = False
 
-    extra = build_tool_error_log_extra(FakeError(), tool_name="t")  # type: ignore[arg-type]
+    extra = build_tool_error_log_extra(FakeError(), tool_name="t")
     assert extra["error_kind"] == "CUSTOM_KIND"
 
 

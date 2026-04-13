@@ -130,11 +130,8 @@ async def test_call_tool_success(base_worker_no_auth):
 async def test_call_tool_success_and_error_logs_use_same_tool_identifiers(
     base_worker_no_auth, caplog
 ):
-    """Cursor-bot review: success and error log lines must use the SAME
-    identifier strings so an on-call engineer can grep a single ``Tool <name>``
-    pattern across both states. Previously the success path printed the full
-    fqname via ``__str__`` and the error path printed only ``.name`` —
-    incompatible across log lines for the same tool."""
+    """Success and error log lines must use identical tool identifier strings
+    so logs can be correlated with a single grep pattern."""
     import logging
 
     base_worker_no_auth.register_tool(sample_tool, toolkit_name="test_kit")
@@ -217,14 +214,9 @@ async def test_call_tool_error_log_text_matches_structured_extras(base_worker_no
     primary = next(
         r for r in caplog.records if "exec_log_check" in r.getMessage() and "failed:" in r.getMessage()
     )
-    # Same name appears in both the rendered text and the structured extra.
+    # Text and structured extra must agree on name + version.
     assert "Tool ErrorTool " in primary.getMessage()
     assert getattr(primary, "tool_name", None) == "ErrorTool"
-    # Same version (whatever it is) in both — the key is consistency, not
-    # that it's non-None. With error_tool registered without an explicit
-    # toolkit version, both should reflect the same value (here: "None").
-    # Field name is ``toolkit_version`` to match the OTel span attribute and
-    # the ``tool_counter`` metric label set elsewhere in this function.
     extra_version = getattr(primary, "toolkit_version", None)
     assert f"version {extra_version}" in primary.getMessage()
 

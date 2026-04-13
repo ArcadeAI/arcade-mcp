@@ -993,13 +993,7 @@ class MCPServer:
             )
 
     def _log_tool_call_error(self, tool_name: str, error: ToolCallError) -> None:
-        """Emit a structured WARNING log for a failed tool call.
-
-        Delegates ``extra`` construction to ``arcade_core.log_extras`` so the
-        Datadog-facet contract stays in sync with the worker-side log emitted
-        by ``arcade_serve.core.base.BaseWorker.call_tool`` — both call sites
-        share the same canonical field names.
-        """
+        """Emit a structured WARNING log for a failed tool call."""
         logger.warning(
             f"Tool {tool_name} error: {error.message}",
             extra=build_tool_error_log_extra(error, tool_name=tool_name),

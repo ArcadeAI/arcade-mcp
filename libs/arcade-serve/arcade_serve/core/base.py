@@ -110,9 +110,7 @@ class BaseWorker(Worker):
         try:
             materialized_tool = self.catalog.get_tool(tool_fqname)
         except KeyError:
-            # Use the resolved fqname components so this error string agrees
-            # with the OTel span / metric labels and the success/failure log
-            # lines below — all keyed on tool_fqname.{name,toolkit_version}.
+            # Use resolved fqname components to match OTel span / metric labels.
             raise ValueError(
                 f"Tool {tool_fqname.name} not found in catalog with toolkit version {tool_fqname.toolkit_version}."
             )
@@ -156,8 +154,6 @@ class BaseWorker(Worker):
         duration_ms = (end_time - start_time) * 1000  # Convert to milliseconds
 
         if output.error:
-            # Use the shared helper so the Datadog-facet contract stays in sync
-            # with the MCP-side log emitted by ``MCPServer._log_tool_call_error``.
             log_extra = build_tool_error_log_extra(
                 output.error,
                 tool_name=str(tool_fqname.name),
@@ -165,8 +161,6 @@ class BaseWorker(Worker):
                 toolkit_version=str(tool_fqname.toolkit_version),
                 execution_id=execution_id,
             )
-            # Resolved fqname components in the human-readable text so it
-            # agrees with log_extra above and the OTel span/metric labels.
             logger.warning(
                 f"{execution_id} | Tool {tool_fqname.name} version {tool_fqname.toolkit_version} failed: {output.error.message}",
                 extra=log_extra,
@@ -181,9 +175,7 @@ class BaseWorker(Worker):
             if output.error.stacktrace:
                 logger.debug(f"{execution_id} | Tool traceback: {output.error.stacktrace}")
         else:
-            # Use the same resolved fqname components as the failure path above
-            # so success and error log lines correlate by a single tool name
-            # + toolkit_version string when grepping logs for incident review.
+            # Match the failure-path identifiers for log correlation.
             logger.info(
                 f"{execution_id} | Tool {tool_fqname.name} "
                 f"version {tool_fqname.toolkit_version} success"
