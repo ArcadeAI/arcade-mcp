@@ -1,4 +1,4 @@
-"""Tests for get_tool_secrets() in arcade configure."""
+"""Tests for get_tool_secrets() and gateway configuration in arcade configure."""
 
 import json
 import sys
@@ -11,8 +11,17 @@ from arcade_cli.configure import (
     _format_path_for_display,
     _resolve_windows_appdata,
     _warn_overwrite,
+    configure_amazonq_arcade,
+    configure_claude_arcade,
     configure_client,
+    configure_client_gateway,
+    configure_client_toolkit,
+    configure_cursor_arcade,
+    configure_vscode_arcade,
+    configure_windsurf_arcade,
     get_tool_secrets,
+    get_toolkit_http_config,
+    get_toolkit_stdio_config,
 )
 
 
@@ -89,8 +98,7 @@ def test_format_path_for_display_posix_escapes() -> None:
     else:
         path = Path("/tmp/with space/mcp.json")
         assert (
-            _format_path_for_display(path, platform_system="Linux")
-            == "/tmp/with\\ space/mcp.json"
+            _format_path_for_display(path, platform_system="Linux") == "/tmp/with\\ space/mcp.json"
         )
 
 
@@ -108,9 +116,7 @@ def test_resolve_windows_appdata_delegates_to_platformdirs(
     monkeypatch.delenv("USERPROFILE", raising=False)
 
     fake_platformdirs = types.ModuleType("platformdirs")
-    fake_platformdirs.user_data_dir = (
-        lambda *args, **kwargs: r"C:\Users\Alice\AppData\Roaming"
-    )
+    fake_platformdirs.user_data_dir = lambda *args, **kwargs: r"C:\Users\Alice\AppData\Roaming"
     monkeypatch.setitem(sys.modules, "platformdirs", fake_platformdirs)
 
     assert _resolve_windows_appdata() == Path(r"C:\Users\Alice\AppData\Roaming")
@@ -145,7 +151,9 @@ def test_resolve_windows_appdata_handles_older_platformdirs(
     assert len(received_args) == 1, "Fallback must make exactly one positional call"
     fallback_args = received_args[0]
     # args: (None, False, None, True) — roaming is the 4th positional arg
-    assert len(fallback_args) == 4, f"Expected 4 positional args, got {len(fallback_args)}: {fallback_args}"
+    assert len(fallback_args) == 4, (
+        f"Expected 4 positional args, got {len(fallback_args)}: {fallback_args}"
+    )
     assert fallback_args[3] is True, f"4th arg (roaming) must be True, got {fallback_args[3]}"
     assert fallback_args[2] is None, f"3rd arg (version) must be None, got {fallback_args[2]}"
 
@@ -273,7 +281,9 @@ def test_config_written_as_utf8(tmp_path: Path, monkeypatch: pytest.MonkeyPatch)
     assert "demo" in data["mcpServers"]
 
 
-def test_config_roundtrip_preserves_unicode(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_config_roundtrip_preserves_unicode(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Write a config with Unicode, then overwrite and verify it still decodes."""
     monkeypatch.chdir(tmp_path)
     _write_entrypoint(tmp_path)
@@ -507,3 +517,279 @@ def test_claude_config_stdio_only(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
             port=8000,
             config_path=config_path,
         )
+
+
+# ---------------------------------------------------------------------------
+# configure_*_arcade() — gateway configuration
+# ---------------------------------------------------------------------------
+
+
+class TestConfigureClaudeArcade:
+    def test_writes_gateway_url_and_headers(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "claude.json"
+        configure_claude_arcade(
+            server_name="my-gw",
+            gateway_url="https://api.arcade.dev/mcp/my-gw",
+            auth_token="tok_abc",
+            config_path=config_path,
+        )
+        config = _load_json(config_path)
+        entry = config["mcpServers"]["my-gw"]
+        assert entry["url"] == "https://api.arcade.dev/mcp/my-gw"
+        assert entry["headers"]["Authorization"] == "Bearer tok_abc"
+
+    def test_preserves_existing_entries(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "claude.json"
+        config_path.write_text(
+            json.dumps({"mcpServers": {"existing": {"command": "old"}}}),
+            encoding="utf-8",
+        )
+        configure_claude_arcade(
+            server_name="new-gw",
+            gateway_url="https://api.arcade.dev/mcp/new-gw",
+            auth_token="tok",
+            config_path=config_path,
+        )
+        config = _load_json(config_path)
+        assert "existing" in config["mcpServers"]
+        assert "new-gw" in config["mcpServers"]
+
+
+class TestConfigureCursorArcade:
+    def test_writes_sse_config(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "cursor.json"
+        configure_cursor_arcade(
+            server_name="my-gw",
+            gateway_url="https://api.arcade.dev/mcp/my-gw",
+            auth_token="tok_abc",
+            config_path=config_path,
+        )
+        config = _load_json(config_path)
+        entry = config["mcpServers"]["my-gw"]
+        assert entry["type"] == "sse"
+        assert entry["url"] == "https://api.arcade.dev/mcp/my-gw"
+        assert entry["headers"]["Authorization"] == "Bearer tok_abc"
+
+
+class TestConfigureVscodeArcade:
+    def test_writes_http_config(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "vscode.json"
+        configure_vscode_arcade(
+            server_name="my-gw",
+            gateway_url="https://api.arcade.dev/mcp/my-gw",
+            auth_token="tok_abc",
+            config_path=config_path,
+        )
+        config = _load_json(config_path)
+        entry = config["servers"]["my-gw"]
+        assert entry["type"] == "http"
+        assert entry["url"] == "https://api.arcade.dev/mcp/my-gw"
+        assert entry["headers"]["Authorization"] == "Bearer tok_abc"
+
+
+# ---------------------------------------------------------------------------
+# configure_client_gateway() — dispatcher
+# ---------------------------------------------------------------------------
+
+
+class TestConfigureClientGateway:
+    @pytest.mark.parametrize(
+        "client,section",
+        [
+            ("claude", "mcpServers"),
+            ("cursor", "mcpServers"),
+            ("vscode", "servers"),
+            ("windsurf", "mcpServers"),
+            ("amazonq", "mcpServers"),
+        ],
+    )
+    def test_dispatches_to_correct_client(self, tmp_path: Path, client: str, section: str) -> None:
+        config_path = tmp_path / f"{client}.json"
+        configure_client_gateway(
+            client=client,
+            server_name="test-gw",
+            gateway_url="https://api.arcade.dev/mcp/test-gw",
+            auth_token="tok",
+            config_path=config_path,
+        )
+        config = _load_json(config_path)
+        assert "test-gw" in config[section]
+
+
+# ---------------------------------------------------------------------------
+# configure_client_toolkit() — toolkit stdio config
+# ---------------------------------------------------------------------------
+
+
+class TestConfigureClientToolkit:
+    def test_claude_toolkit_stdio(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "claude.json"
+        configure_client_toolkit(
+            client="claude",
+            server_name="arcade-github",
+            tool_packages=["github"],
+            config_path=config_path,
+            transport="stdio",
+        )
+        config = _load_json(config_path)
+        entry = config["mcpServers"]["arcade-github"]
+        assert "command" in entry
+        assert "--tool-package" in entry["args"]
+        assert "github" in entry["args"]
+
+    def test_claude_toolkit_http(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "claude.json"
+        configure_client_toolkit(
+            client="claude",
+            server_name="arcade-github",
+            tool_packages=["github"],
+            config_path=config_path,
+            transport="http",
+            port=8000,
+        )
+        config = _load_json(config_path)
+        entry = config["mcpServers"]["arcade-github"]
+        assert entry["url"] == "http://localhost:8000/mcp"
+        assert "command" not in entry
+
+    def test_cursor_toolkit_http(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "cursor.json"
+        configure_client_toolkit(
+            client="cursor",
+            server_name="arcade-github",
+            tool_packages=["github"],
+            config_path=config_path,
+            transport="http",
+            port=9000,
+        )
+        config = _load_json(config_path)
+        entry = config["mcpServers"]["arcade-github"]
+        assert entry["type"] == "sse"
+        assert entry["url"] == "http://localhost:9000/mcp"
+
+    def test_vscode_toolkit_stdio(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "vscode.json"
+        configure_client_toolkit(
+            client="vscode",
+            server_name="arcade-tools",
+            tool_packages=["github", "slack"],
+            config_path=config_path,
+            transport="stdio",
+        )
+        config = _load_json(config_path)
+        entry = config["servers"]["arcade-tools"]
+        assert "command" in entry
+        args_str = " ".join(str(a) for a in entry["args"])
+        assert "github" in args_str
+        assert "slack" in args_str
+
+    def test_vscode_toolkit_http(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "vscode.json"
+        configure_client_toolkit(
+            client="vscode",
+            server_name="arcade-tools",
+            tool_packages=["github", "slack"],
+            config_path=config_path,
+            transport="http",
+        )
+        config = _load_json(config_path)
+        entry = config["servers"]["arcade-tools"]
+        assert entry["type"] == "http"
+        assert entry["url"] == "http://localhost:8000/mcp"
+
+
+# ---------------------------------------------------------------------------
+# get_toolkit_stdio_config()
+# ---------------------------------------------------------------------------
+
+
+class TestGetToolkitStdioConfig:
+    def test_uses_uv_when_available(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        import arcade_cli.configure as configure_mod
+
+        monkeypatch.setattr(
+            configure_mod.shutil, "which", lambda exe: "/usr/bin/uv" if exe == "uv" else None
+        )
+        config = get_toolkit_stdio_config(["github"], "arcade-github")
+        assert config["command"] == "/usr/bin/uv"
+        assert "tool" in config["args"]
+        assert "run" in config["args"]
+        assert "--tool-package" in config["args"]
+        assert "github" in config["args"]
+
+    def test_falls_back_to_python(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        import arcade_cli.configure as configure_mod
+
+        monkeypatch.setattr(configure_mod.shutil, "which", lambda exe: None)
+        config = get_toolkit_stdio_config(["github"], "arcade-github")
+        assert "python" in config["command"].lower() or config["command"].endswith("python3")
+        assert "--tool-package" in config["args"]
+
+
+# ---------------------------------------------------------------------------
+# get_toolkit_http_config()
+# ---------------------------------------------------------------------------
+
+
+class TestGetToolkitHttpConfig:
+    def test_claude_config(self) -> None:
+        config = get_toolkit_http_config("claude", ["github"])
+        assert config["url"] == "http://localhost:8000/mcp"
+        assert "type" not in config
+
+    def test_cursor_config(self) -> None:
+        config = get_toolkit_http_config("cursor", ["github"])
+        assert config["type"] == "sse"
+        assert config["url"] == "http://localhost:8000/mcp"
+
+    def test_vscode_config(self) -> None:
+        config = get_toolkit_http_config("vscode", ["github"])
+        assert config["type"] == "http"
+        assert config["url"] == "http://localhost:8000/mcp"
+
+    def test_custom_port(self) -> None:
+        config = get_toolkit_http_config("claude", ["github"], port=9000)
+        assert config["url"] == "http://localhost:9000/mcp"
+
+
+# ---------------------------------------------------------------------------
+# New clients: Windsurf, Amazon Q, Zed
+# ---------------------------------------------------------------------------
+
+
+class TestConfigureWindsurfArcade:
+    def test_writes_mcpservers_config(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "windsurf.json"
+        configure_windsurf_arcade(
+            server_name="my-gw",
+            gateway_url="https://api.arcade.dev/mcp/my-gw",
+            config_path=config_path,
+        )
+        config = _load_json(config_path)
+        entry = config["mcpServers"]["my-gw"]
+        assert entry["url"] == "https://api.arcade.dev/mcp/my-gw"
+        assert "headers" not in entry
+
+    def test_with_api_key(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "windsurf.json"
+        configure_windsurf_arcade(
+            server_name="my-gw",
+            gateway_url="https://api.arcade.dev/mcp/my-gw",
+            auth_token="arc_test",
+            config_path=config_path,
+        )
+        config = _load_json(config_path)
+        assert config["mcpServers"]["my-gw"]["headers"]["Authorization"] == "Bearer arc_test"
+
+
+class TestConfigureAmazonqArcade:
+    def test_writes_mcpservers_config(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "amazonq.json"
+        configure_amazonq_arcade(
+            server_name="my-gw",
+            gateway_url="https://api.arcade.dev/mcp/my-gw",
+            config_path=config_path,
+        )
+        config = _load_json(config_path)
+        entry = config["mcpServers"]["my-gw"]
+        assert entry["url"] == "https://api.arcade.dev/mcp/my-gw"

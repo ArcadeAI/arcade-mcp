@@ -778,6 +778,115 @@ def configure(
 
 
 @cli.command(
+    name="connect",
+    help="Connect your MCP client to Arcade tools and gateways in one step",
+    rich_help_panel="Run",
+)
+def connect(
+    client: str = typer.Argument(
+        ...,
+        help="MCP client to configure",
+        click_type=click.Choice(
+            ["claude", "cursor", "vscode", "windsurf", "amazonq"],
+            case_sensitive=False,
+        ),
+        show_choices=True,
+    ),
+    toolkit: Optional[list[str]] = typer.Option(
+        None,
+        "--toolkit",
+        "-t",
+        help="Toolkit(s) to set up — adds all tools from each toolkit. Can be repeated.",
+    ),
+    tool: Optional[list[str]] = typer.Option(
+        None,
+        "--tool",
+        help="Individual tool(s) by qualified name (e.g., Github.CreateIssue). Can be repeated.",
+    ),
+    preset: Optional[str] = typer.Option(
+        None,
+        "--preset",
+        help="Use a preset bundle (productivity, development, communication, devops, social, creative, project-management).",
+    ),
+    gateway: Optional[str] = typer.Option(
+        None,
+        "--gateway",
+        "-g",
+        help="Connect to an Arcade Cloud gateway by slug instead of local toolkits.",
+    ),
+    all_tools: bool = typer.Option(
+        False,
+        "--all",
+        help="Set up all available toolkits from your account without prompting.",
+    ),
+    slug: Optional[str] = typer.Option(
+        None,
+        "--slug",
+        "-s",
+        help="Custom slug for the created gateway (only with --toolkit/--tool/--preset).",
+    ),
+    api_key: bool = typer.Option(
+        False,
+        "--api-key",
+        help="Use API-key auth instead of OAuth. Creates a project API key and includes it in the client config.",
+    ),
+    config_path: Optional[Path] = typer.Option(
+        None,
+        "--config",
+        "-c",
+        exists=False,
+        help="Custom path to the MCP client config file (overrides default).",
+    ),
+    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
+) -> None:
+    """
+    Connect your MCP client to Arcade tools and gateways.
+
+    Logs you in (if needed), creates an Arcade Cloud gateway for the selected
+    toolkits, and configures your MCP client to connect — all in one step.
+    No local server required.
+
+    By default gateways use OAuth (the MCP client handles the auth flow).
+    Pass --api-key to use API-key auth instead (creates a key automatically).
+
+    Examples:\n
+        arcade connect claude --toolkit github\n
+        arcade connect cursor --preset productivity\n
+        arcade connect claude --tool Github.CreateIssue --tool Linear.UpdateIssue\n
+        arcade connect claude --gateway my-existing-gw\n
+        arcade connect vscode --all --api-key\n
+    """
+    from arcade_cli.connect import PRESET_BUNDLES, run_connect
+
+    # Resolve --preset to toolkit list
+    resolved_toolkits = list(toolkit) if toolkit else None
+    if preset:
+        preset_lower = preset.lower().replace("-", " ")
+        match = {k.lower(): v for k, v in PRESET_BUNDLES.items()}.get(preset_lower)
+        if not match:
+            available = ", ".join(k.lower().replace(" ", "-") for k in PRESET_BUNDLES)
+            handle_cli_error(f"Unknown preset '{preset}'. Available presets: {available}")
+        resolved_toolkits = (resolved_toolkits or []) + match
+
+    try:
+        run_connect(
+            client=client,
+            toolkits=resolved_toolkits,
+            tools=list(tool) if tool else None,
+            gateway=gateway,
+            all_tools=all_tools,
+            use_api_key=api_key,
+            gateway_slug=slug,
+            config_path=config_path,
+            debug=debug,
+        )
+    except SystemExit:
+        raise
+    except Exception as e:
+        handle_cli_error("Quickstart failed", e, debug)
+
+
+@cli.command(
     name="deploy",
     help="Deploy MCP servers to Arcade",
     rich_help_panel="Run",
@@ -1005,6 +1114,7 @@ def main_callback(
         new.__name__,
         show.__name__,
         configure.__name__,
+        connect.__name__,
         update.__name__,
         upgrade.__name__,
     }
