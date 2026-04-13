@@ -156,6 +156,13 @@ class ToolRuntimeError(ToolError, RuntimeError):
     Any failure starting from when the tool call begins until the tool call returns.
 
     Note: This class should typically not be instantiated directly, but rather subclassed.
+
+    Runtime error payload contract:
+    - ``message`` is agent/client-facing. It is returned to MCP clients and can be shown to
+      agents or end users, so it should contain only intentional, safe context.
+    - ``developer_message`` is for server-side diagnostics. It is preserved in structured
+      error payloads and logs for debugging, and may contain more implementation detail than
+      ``message``.
     """
 
     kind: ErrorKind = ErrorKind.TOOL_RUNTIME_FATAL
@@ -170,6 +177,16 @@ class ToolRuntimeError(ToolError, RuntimeError):
         *,
         extra: dict[str, Any] | None = None,
     ):
+        """
+        Args:
+            message: Safe summary intended for the agent/client. This value may be surfaced
+                directly in MCP error responses, so do not include secrets, tokens, raw API
+                responses, or other sensitive details unless you explicitly want them exposed.
+            developer_message: Additional server-side debugging context. Use this for verbose
+                diagnostics such as raw upstream errors, stack-oriented clues, or internal
+                identifiers that should not be the primary message shown to the agent/client.
+            extra: Structured metadata to preserve alongside the error.
+        """
         super().__init__(message)
         self.message = message
         self.developer_message = developer_message  # type: ignore[assignment]
