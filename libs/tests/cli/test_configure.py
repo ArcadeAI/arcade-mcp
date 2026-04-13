@@ -697,6 +697,32 @@ class TestConfigureClientToolkit:
         assert entry["type"] == "http"
         assert entry["url"] == "http://localhost:8000/mcp"
 
+    def test_windsurf_toolkit_stdio(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "windsurf.json"
+        configure_client_toolkit(
+            client="windsurf",
+            server_name="arcade-github",
+            tool_packages=["github"],
+            config_path=config_path,
+        )
+        config = _load_json(config_path)
+        entry = config["mcpServers"]["arcade-github"]
+        assert "command" in entry
+        assert "--tool-package" in entry["args"]
+
+    def test_amazonq_toolkit_stdio(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "amazonq.json"
+        configure_client_toolkit(
+            client="amazonq",
+            server_name="arcade-github",
+            tool_packages=["github"],
+            config_path=config_path,
+        )
+        config = _load_json(config_path)
+        entry = config["mcpServers"]["arcade-github"]
+        assert "command" in entry
+        assert "--tool-package" in entry["args"]
+
 
 # ---------------------------------------------------------------------------
 # get_toolkit_stdio_config()

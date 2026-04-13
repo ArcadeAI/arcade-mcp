@@ -468,10 +468,14 @@ def prompt_toolkit_selection(available: dict[str, list[str]]) -> list[str]:
 
     console.print("\n[bold]Available toolkits:[/bold]\n")
 
+    # Case-insensitive lookup: preset says "github", API returns "Github"
+    avail_lower: dict[str, str] = {k.lower(): k for k in available}
+
     # Show preset bundles first
     bundle_choices: list[tuple[str, list[str]]] = []
     for bundle_name, bundle_tks in PRESET_BUNDLES.items():
-        matching = [t for t in bundle_tks if t in available]
+        # Resolve each preset toolkit to its actual API key
+        matching = [avail_lower[t] for t in bundle_tks if t in avail_lower]
         if matching:
             bundle_choices.append((bundle_name, matching))
 
@@ -483,9 +487,10 @@ def prompt_toolkit_selection(available: dict[str, list[str]]) -> list[str]:
 
     for bundle_name, bundle_tks in bundle_choices:
         tool_count = sum(len(available.get(t, [])) for t in bundle_tks)
+        display_names = ", ".join(t.lower() for t in bundle_tks)
         console.print(
             f"  [bold cyan]{idx}.[/bold cyan] {bundle_name} bundle "
-            f"({', '.join(bundle_tks)}) — {tool_count} tools"
+            f"({display_names}) — {tool_count} tools"
         )
         option_map[idx] = bundle_tks
         idx += 1
