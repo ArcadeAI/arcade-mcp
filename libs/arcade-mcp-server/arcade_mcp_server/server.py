@@ -23,7 +23,7 @@ from arcade_core.auth_tokens import get_valid_access_token
 from arcade_core.catalog import MaterializedTool, ToolCatalog
 from arcade_core.executor import ToolExecutor
 from arcade_core.network.org_transport import build_org_scoped_async_http_client
-from arcade_core.schema import ToolAuthorizationContext, ToolCallError, ToolContext
+from arcade_core.schema import ToolAuthorizationContext, ToolContext
 from arcade_core.schema import ToolAuthRequirement as CoreToolAuthRequirement
 from arcadepy import ArcadeError, AsyncArcade
 from arcadepy.types.auth_authorize_params import AuthRequirement, AuthRequirementOauth2
@@ -933,19 +933,6 @@ class MCPServer:
                     if error.additional_prompt_content:
                         error_text += f"\n\n{error.additional_prompt_content}"
                     content = convert_to_mcp_content(error_text)
-                    structured_content = error.model_dump(
-                        mode="json",
-                        exclude_none=True,
-                        exclude={"stacktrace", "developer_message", "extra", "message"},
-                    )
-                    # Backward compatibility: consumers may access structuredContent["error"]
-                    structured_content["error"] = error_text
-                else:
-                    content = convert_to_mcp_content("Error calling tool")
-                    structured_content = {"error": "Error calling tool"}
-
-                self._tracker.track_tool_call(False, "error during tool execution")
-                if isinstance(error, ToolCallError):
                     logger.warning(
                         f"Tool {tool_name} error: {error.message}",
                         extra={
@@ -959,11 +946,19 @@ class MCPServer:
                             "tool_name": tool_name,
                         },
                     )
+                else:
+                    content = convert_to_mcp_content("Error calling tool")
+
+                self._tracker.track_tool_call(False, "error during tool execution")
+                # NOTE: structuredContent must be None on error responses.
+                # Per the MCP spec, structuredContent MUST validate against outputSchema —
+                # but error payloads will violate a tool's declared output schema.
+                # The error message is conveyed via ``content`` (TextContent) instead.
                 return JSONRPCResponse(
                     id=message.id,
                     result=CallToolResult(
                         content=content,
-                        structuredContent=structured_content,
+                        structuredContent=None,
                         isError=True,
                     ),
                 )
@@ -979,15 +974,12 @@ class MCPServer:
 
             content = convert_to_mcp_content(error_message)
 
-            # structuredContent should be the error as a JSON object
-            structured_content = convert_content_to_structured_content({"error": error_message})
-
             self._tracker.track_tool_call(False, "unknown tool")
             return JSONRPCResponse(
                 id=message.id,
                 result=CallToolResult(
                     content=content,
-                    structuredContent=structured_content,
+                    structuredContent=None,
                     isError=True,
                 ),
             )
@@ -1014,14 +1006,37 @@ class MCPServer:
     def _create_error_response(
         self, message: CallToolRequest, tool_response: dict[str, Any]
     ) -> JSONRPCResponse[CallToolResult]:
-        """Create a consistent error response for tool requirement failures"""
-        content = convert_to_mcp_content(tool_response)
-        structured_content = convert_content_to_structured_content(tool_response)
+        """Create a consistent error response for tool requirement failures.
+
+        NOTE: structuredContent must be None on error responses. Per the MCP spec,
+        structuredContent MUST validate against outputSchema — but error payloads
+        (e.g. {"error": "..."}) will violate a tool's declared TypedDict schema.
+        The error message is conveyed via ``content`` (TextContent) instead.
+
+        When tool_response contains a "message" key, that human-readable string is
+        used as content[0].text so that clients display a friendly message rather
+        than raw JSON.  If there are additional machine-readable fields (e.g.
+        ``authorization_url``, ``llm_instructions``), they are serialized as JSON
+        in a second content item so downstream consumers can still extract them.
+
+        If there is no "message" key, the full dict is serialized as a fallback.
+        """
+        # Use the human-readable message for content text when available,
+        # so clients don't display raw JSON to users.
+        if "message" in tool_response:
+            content = convert_to_mcp_content(tool_response["message"])
+            # Preserve machine-readable fields (authorization_url, llm_instructions, etc.)
+            # in a second content item so they remain accessible to programmatic consumers.
+            extra_fields = {k: v for k, v in tool_response.items() if k != "message"}
+            if extra_fields:
+                content.extend(convert_to_mcp_content(extra_fields))
+        else:
+            content = convert_to_mcp_content(tool_response)
         return JSONRPCResponse(
             id=message.id,
             result=CallToolResult(
                 content=content,
-                structuredContent=structured_content,
+                structuredContent=None,
                 isError=True,
             ),
         )

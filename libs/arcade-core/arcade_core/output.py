@@ -105,7 +105,8 @@ class ToolOutputFactory:
         DEPRECATED: Use ToolOutputFactory.fail instead.
         This method will be removed in version 3.0.0
         """
-
+        if not message or not message.strip():
+            message = "Unspecified error during tool execution"
         return ToolCallOutput(
             error=ToolCallError(
                 message=message,

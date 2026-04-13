@@ -2,6 +2,7 @@
 
 import asyncio
 import contextlib
+import json
 from typing import Annotated
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -325,12 +326,12 @@ class TestMCPServer:
         assert isinstance(response, JSONRPCResponse)
         assert response.id == 3
         assert isinstance(response.result, CallToolResult)
-        assert response.result.structuredContent is not None
-        assert "authorization_url" in response.result.structuredContent
-        assert response.result.structuredContent["authorization_url"] == "https://example.com/auth"
-        assert "message" in response.result.structuredContent
-        assert "Authorization required" in response.result.structuredContent["message"]
-        assert "needs your permission" in response.result.structuredContent["message"]
+        assert response.result.structuredContent is None
+        content_text = response.result.content[0].text
+        assert "Authorization required" in content_text
+        assert "needs your permission" in content_text
+        # The authorization URL is included in the human-readable message
+        assert "https://example.com/auth" in content_text
 
     @pytest.mark.asyncio
     async def test_handle_call_tool_with_requires_auth_no_api_key(self, mcp_server):
@@ -351,13 +352,12 @@ class TestMCPServer:
         assert isinstance(response, JSONRPCResponse)
         assert response.id == 3
         assert isinstance(response.result, CallToolResult)
-        assert response.result.structuredContent is not None
-        assert "message" in response.result.structuredContent
-        assert "Missing Arcade API key" in response.result.structuredContent["message"]
-        assert "requires authorization" in response.result.structuredContent["message"]
-        assert "arcade login" in response.result.structuredContent["message"]
-        assert "ARCADE_API_KEY" in response.result.structuredContent["message"]
-        assert "ARCADE_API_KEY" in response.result.structuredContent["llm_instructions"]
+        assert response.result.structuredContent is None
+        content_text = response.result.content[0].text
+        assert "Missing Arcade API key" in content_text
+        assert "requires authorization" in content_text
+        assert "arcade login" in content_text
+        assert "ARCADE_API_KEY" in content_text
 
     @pytest.mark.asyncio
     async def test_handle_call_tool_not_found(self, mcp_server):
@@ -373,8 +373,8 @@ class TestMCPServer:
 
         assert isinstance(response, JSONRPCResponse)
         assert response.result.isError
-        assert "error" in response.result.structuredContent
-        assert "Unknown tool" in response.result.structuredContent["error"]
+        assert response.result.structuredContent is None
+        assert "Unknown tool" in response.result.content[0].text
 
     @pytest.mark.asyncio
     async def test_handle_message_routing(self, mcp_server, initialized_server_session):
@@ -608,10 +608,11 @@ class TestMCPServer:
         assert isinstance(result, JSONRPCResponse)
         assert isinstance(result.result, CallToolResult)
         assert result.result.isError is True
-        assert "Missing Arcade API key" in result.result.structuredContent["message"]
-        assert "requires authorization" in result.result.structuredContent["message"]
-        assert "ARCADE_API_KEY" in result.result.structuredContent["message"]
-        assert "ARCADE_API_KEY" in result.result.structuredContent["llm_instructions"]
+        content_text = result.result.content[0].text
+        assert "Missing Arcade API key" in content_text
+        assert "requires authorization" in content_text
+        assert "ARCADE_API_KEY" in content_text
+        assert result.result.structuredContent is None
 
     @pytest.mark.asyncio
     async def test_check_tool_requirements_auth_pending(self, mcp_server):
@@ -647,14 +648,21 @@ class TestMCPServer:
             tool, tool_context, message, "TestToolkit.auth_tool"
         )
 
-        # Should return error response with authorization URL
+        # Should return error response with authorization URL in content
         assert isinstance(result, JSONRPCResponse)
         assert isinstance(result.result, CallToolResult)
         assert result.result.isError is True
-        assert "authorization_url" in result.result.structuredContent
-        assert result.result.structuredContent["authorization_url"] == "https://example.com/auth"
-        assert "Authorization required" in result.result.structuredContent["message"]
-        assert "needs your permission" in result.result.structuredContent["message"]
+        assert result.result.structuredContent is None
+        content_text = result.result.content[0].text
+        assert "Authorization required" in content_text
+        assert "needs your permission" in content_text
+        # The authorization URL is included in the human-readable message
+        assert "https://example.com/auth" in content_text
+        # Machine-readable fields (authorization_url, llm_instructions) are in content[1]
+        assert len(result.result.content) >= 2
+        extra_data = json.loads(result.result.content[1].text)
+        assert extra_data["authorization_url"] == "https://example.com/auth"
+        assert "llm_instructions" in extra_data
 
     @pytest.mark.asyncio
     async def test_check_tool_requirements_auth_completed(self, mcp_server):
@@ -734,9 +742,11 @@ class TestMCPServer:
         assert isinstance(result, JSONRPCResponse)
         assert isinstance(result.result, CallToolResult)
         assert result.result.isError is True
-        assert "Authorization error" in result.result.structuredContent["message"]
-        assert "failed to authorize" in result.result.structuredContent["message"]
-        assert "Auth failed" in result.result.structuredContent["message"]
+        assert result.result.structuredContent is None
+        content_text = result.result.content[0].text
+        assert "Authorization error" in content_text
+        assert "failed to authorize" in content_text
+        assert "Auth failed" in content_text
 
     @pytest.mark.asyncio
     async def test_check_tool_requirements_secrets_missing(self, mcp_server):
@@ -770,10 +780,11 @@ class TestMCPServer:
         assert isinstance(result, JSONRPCResponse)
         assert isinstance(result.result, CallToolResult)
         assert result.result.isError is True
-        assert "Missing secret" in result.result.structuredContent["message"]
-        assert "API_KEY, DATABASE_URL" in result.result.structuredContent["message"]
-        assert ".env file" in result.result.structuredContent["message"]
-        assert ".env file" in result.result.structuredContent["llm_instructions"]
+        assert result.result.structuredContent is None
+        content_text = result.result.content[0].text
+        assert "Missing secret" in content_text
+        assert "API_KEY, DATABASE_URL" in content_text
+        assert ".env file" in content_text
 
     @pytest.mark.asyncio
     async def test_check_tool_requirements_secrets_partial_missing(self, mcp_server):
@@ -814,8 +825,10 @@ class TestMCPServer:
         assert isinstance(result, JSONRPCResponse)
         assert isinstance(result.result, CallToolResult)
         assert result.result.isError is True
-        assert "DATABASE_URL" in result.result.structuredContent["message"]
-        assert "API_KEY" not in result.result.structuredContent["message"]
+        assert result.result.structuredContent is None
+        content_text = result.result.content[0].text
+        assert "DATABASE_URL" in content_text
+        assert "API_KEY" not in content_text
 
     @pytest.mark.asyncio
     async def test_check_tool_requirements_secrets_available(self, mcp_server):
@@ -944,7 +957,10 @@ class TestMCPServer:
         assert isinstance(result, JSONRPCResponse)
         assert isinstance(result.result, CallToolResult)
         assert result.result.isError is True
-        assert "authorization_url" in result.result.structuredContent
+        assert result.result.structuredContent is None
+        content_text = result.result.content[0].text
+        # The authorization URL appears in the human-readable message text
+        assert "https://example.com/auth" in content_text
 
     @pytest.mark.asyncio
     async def test_http_transport_blocks_tool_with_auth(
@@ -969,7 +985,9 @@ class TestMCPServer:
         assert isinstance(response, JSONRPCResponse)
         assert isinstance(response.result, CallToolResult)
         assert response.result.isError is True
-        assert "HTTP transport" in response.result.structuredContent["message"]
+        assert response.result.structuredContent is None
+        content_text = response.result.content[0].text
+        assert "HTTP transport" in content_text
 
     @pytest.mark.asyncio
     async def test_http_transport_blocks_tool_with_secrets(self, mcp_server):
@@ -1034,8 +1052,10 @@ class TestMCPServer:
         assert isinstance(response, JSONRPCResponse)
         assert isinstance(response.result, CallToolResult)
         assert response.result.isError is True
-        assert "HTTP transport" in response.result.structuredContent["message"]
-        assert "secrets" in response.result.structuredContent["message"]
+        assert response.result.structuredContent is None
+        content_text = response.result.content[0].text
+        assert "HTTP transport" in content_text
+        assert "secrets" in content_text
 
     @pytest.mark.asyncio
     async def test_http_transport_blocks_tool_with_both_auth_and_secrets(self, mcp_server):
@@ -1112,9 +1132,11 @@ class TestMCPServer:
         assert isinstance(response, JSONRPCResponse)
         assert isinstance(response.result, CallToolResult)
         assert response.result.isError is True
-        assert "Unsupported transport" in response.result.structuredContent["message"]
-        assert "HTTP transport" in response.result.structuredContent["message"]
-        assert "authorization" in response.result.structuredContent["message"]
+        assert response.result.structuredContent is None
+        content_text = response.result.content[0].text
+        assert "Unsupported transport" in content_text
+        assert "HTTP transport" in content_text
+        assert "authorization" in content_text
 
     @pytest.mark.asyncio
     async def test_stdio_transport_allows_tool_with_auth(
@@ -1825,7 +1847,10 @@ class TestToolErrorResponse:
         assert "Available options: X, Y" in text
 
     @pytest.mark.asyncio
-    async def test_tool_error_structured_content_is_model_dump(self, mcp_server):
+    async def test_tool_error_structured_content_is_none(self, mcp_server):
+        """Per MCP spec, structuredContent must be None on error responses so
+        consumers don't attempt to validate an error payload against the tool's
+        declared outputSchema. Error details are conveyed via content text."""
         error_output = self._make_error_output(message="fail")
         message = CallToolRequest(
             jsonrpc="2.0",
@@ -1841,16 +1866,9 @@ class TestToolErrorResponse:
         ):
             response = await mcp_server._handle_call_tool(message)
 
-        sc = response.result.structuredContent
-        assert "message" not in sc
-        assert "kind" in sc
-        # Backward compatibility: "error" key contains enriched message
-        assert "error" in sc
-        assert sc["error"] == "fail"
-        # Sensitive fields excluded
-        assert "stacktrace" not in sc
-        assert "developer_message" not in sc
-        assert "extra" not in sc
+        assert response.result.isError is True
+        assert response.result.structuredContent is None
+        assert "fail" in response.result.content[0].text
 
     @pytest.mark.asyncio
     async def test_tool_error_content_no_pydantic_repr(self, mcp_server):
@@ -1873,10 +1891,13 @@ class TestToolErrorResponse:
         assert "kind=<ErrorKind" not in text
 
     @pytest.mark.asyncio
-    async def test_tool_error_developer_message_included_when_different(self, mcp_server):
+    async def test_tool_error_developer_message_not_in_client_content(self, mcp_server):
+        """developer_message can contain stack frames/file paths/sensitive data
+        and must never appear in agent-facing content. It is logged structurally
+        for Datadog instead."""
         error_output = self._make_error_output(
             message="Something failed",
-            developer_message="Traceback: line 42 in foo.py",
+            developer_message="Traceback: /home/user/secret/foo.py line 42",
         )
         message = CallToolRequest(
             jsonrpc="2.0",
@@ -1893,27 +1914,6 @@ class TestToolErrorResponse:
             response = await mcp_server._handle_call_tool(message)
 
         text = response.result.content[0].text
-        assert "Details:" not in text
-
-    @pytest.mark.asyncio
-    async def test_tool_error_developer_message_excluded_when_same(self, mcp_server):
-        error_output = self._make_error_output(
-            message="Something failed",
-            developer_message="Something failed",
-        )
-        message = CallToolRequest(
-            jsonrpc="2.0",
-            id=1,
-            method="tools/call",
-            params={"name": "TestToolkit.test_tool", "arguments": {"text": "test"}},
-        )
-
-        with patch(
-            "arcade_mcp_server.server.ToolExecutor.run",
-            new_callable=AsyncMock,
-            return_value=error_output,
-        ):
-            response = await mcp_server._handle_call_tool(message)
-
-        text = response.result.content[0].text
+        assert "Traceback" not in text
+        assert "/home/user/secret" not in text
         assert "Details:" not in text

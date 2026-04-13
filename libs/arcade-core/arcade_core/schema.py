@@ -120,6 +120,15 @@ class ValueSchema(BaseModel):
     description: str | None = None
     """Optional description of the value."""
 
+    required_keys: list[str] | None = None
+    """For object types, the sorted list of required property names."""
+
+    inner_required_keys: list[str] | None = None
+    """For array types with object items, sorted required property names for each item."""
+
+    nullable: bool | None = None
+    """Whether this value can be null (from Optional/T|None annotation). None means not tracked."""
+
 
 class InputParameter(BaseModel):
     """A parameter that can be passed to a tool."""

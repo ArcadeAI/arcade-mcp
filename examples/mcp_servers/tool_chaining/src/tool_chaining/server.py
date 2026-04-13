@@ -56,9 +56,7 @@ async def get_secret_as_hash_value(
     if hash_response.isError:
         return (
             "Sorry, but I couldn't get the hash value of the secret, because: "
-            + hash_response.structuredContent.get(
-                "error", hash_response.structuredContent.get("message", "Unknown error")
-            )
+            + hash_response.content[0].text
         )
 
     return hash_response.structuredContent["result"]

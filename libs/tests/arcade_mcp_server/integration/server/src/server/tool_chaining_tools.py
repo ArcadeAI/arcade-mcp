@@ -18,7 +18,7 @@ async def call_other_tool(
     if other_tool_response.isError:
         return (
             "Sorry, but I couldn't call the other tool, because: "
-            + other_tool_response.structuredContent.get("error", other_tool_response.structuredContent.get("message", "Unknown error"))
+            + other_tool_response.content[0].text
         )
 
     return "SUCCESS: " + other_tool_response.structuredContent["result"]
