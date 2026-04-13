@@ -286,39 +286,6 @@ def fetch_available_toolkits(
     return toolkits
 
 
-def fetch_account_gateways(base_url: str | None = None) -> list[dict]:
-    """Fetch MCP gateways (workers of type 'mcp') from the user's account.
-
-    Returns a list of dicts with keys: id, enabled, uri.
-    """
-    from arcadepy import APIConnectionError
-
-    from arcade_cli.utils import compute_base_url, get_arcade_client
-
-    url = base_url or compute_base_url(False, False, PROD_ENGINE_HOST, None, default_port=None)
-    client = get_arcade_client(url)
-
-    gateways: list[dict] = []
-    try:
-        workers = client.workers.list(limit=100)
-        for w in workers.items:
-            entry: dict = {
-                "id": w.id,
-                "enabled": getattr(w, "enabled", True),
-                "type": getattr(w, "type", "unknown"),
-            }
-            mcp = getattr(w, "mcp", None)
-            if mcp:
-                entry["uri"] = getattr(mcp, "uri", None)
-            gateways.append(entry)
-    except APIConnectionError:
-        console.print(f"Could not connect to Arcade Engine at {url}.", style="bold red")
-    except Exception as e:
-        logger.debug("Failed to fetch gateways: %s", e)
-
-    return gateways
-
-
 def list_gateways(
     access_token: str,
     base_url: str | None = None,

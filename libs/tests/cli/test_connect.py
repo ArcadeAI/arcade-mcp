@@ -10,7 +10,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 from arcade_cli.connect import (
     ensure_login,
-    fetch_account_gateways,
     fetch_available_toolkits,
     get_toolkit_examples,
     run_connect,
@@ -117,43 +116,6 @@ class TestFetchAvailableToolkits:
             result = fetch_available_toolkits("https://api.example.com", skip_cache=True)
 
         assert result == {}
-
-
-# ---------------------------------------------------------------------------
-# fetch_account_gateways
-# ---------------------------------------------------------------------------
-
-
-class TestFetchAccountGateways:
-    def test_returns_gateway_list(self) -> None:
-        worker = SimpleNamespace(
-            id="my-gw",
-            enabled=True,
-            type="mcp",
-            mcp=SimpleNamespace(uri="https://api.arcade.dev/mcp/my-gw"),
-        )
-        mock_client = MagicMock()
-        mock_client.workers.list.return_value = SimpleNamespace(items=[worker])
-
-        with patch("arcade_cli.utils.get_arcade_client", return_value=mock_client):
-            result = fetch_account_gateways("https://api.example.com")
-
-        assert len(result) == 1
-        assert result[0]["id"] == "my-gw"
-        assert result[0]["enabled"] is True
-        assert result[0]["uri"] == "https://api.arcade.dev/mcp/my-gw"
-
-    @patch("arcade_cli.connect.console")
-    def test_connection_error_returns_empty(self, _console: MagicMock) -> None:
-        from arcadepy import APIConnectionError
-
-        mock_client = MagicMock()
-        mock_client.workers.list.side_effect = APIConnectionError(request=MagicMock())
-
-        with patch("arcade_cli.utils.get_arcade_client", return_value=mock_client):
-            result = fetch_account_gateways("https://api.example.com")
-
-        assert result == []
 
 
 # ---------------------------------------------------------------------------

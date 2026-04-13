@@ -897,10 +897,36 @@ def configure_client_toolkit(
         console.print(f"   Config file: {_format_path_for_display(_config_path)}", style="dim")
         console.print("   Restart VS Code for changes to take effect.", style="yellow")
 
-    else:
-        raise typer.BadParameter(
-            f"Unknown client: {client}. Supported clients: claude, cursor, vscode."
+    elif client_lower in ("windsurf", "amazonq"):
+        path_fn = (
+            get_windsurf_config_path if client_lower == "windsurf" else get_amazonq_config_path
         )
+        display = "Windsurf" if client_lower == "windsurf" else "Amazon Q"
+        _config_path = config_path or path_fn()
+        if _config_path and not _config_path.is_absolute():
+            _config_path = Path.cwd() / _config_path
+        _config_path.parent.mkdir(parents=True, exist_ok=True)
+
+        config = {}
+        if _config_path.exists():
+            with open(_config_path, encoding="utf-8") as f:
+                config = json.load(f)
+        if "mcpServers" not in config:
+            config["mcpServers"] = {}
+        _warn_overwrite(config, "mcpServers", server_name, _config_path)
+        config["mcpServers"][server_name] = server_config
+        with open(_config_path, "w", encoding="utf-8") as f:
+            json.dump(config, f, indent=2)
+
+        console.print(
+            f"[green]Configured {display} with Arcade toolkits: {', '.join(tool_packages)}[/green]"
+        )
+        console.print(f"   Config file: {_format_path_for_display(_config_path)}", style="dim")
+        console.print(f"   Restart {display} for changes to take effect.", style="yellow")
+
+    else:
+        supported = "claude, cursor, vscode, windsurf, amazonq"
+        raise typer.BadParameter(f"Unknown client: {client}. Supported clients: {supported}.")
 
 
 def configure_client(
