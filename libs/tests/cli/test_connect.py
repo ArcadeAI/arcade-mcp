@@ -740,7 +740,7 @@ class TestRunConnectAdvanced:
         assert "my-custom" in config["mcpServers"]
 
     def test_tool_with_toolkit_combo(self, tmp_path: Path) -> None:
-        """--toolkit github --tool Slack.SendMessage merges both."""
+        """--server github --tool Slack.SendMessage merges both."""
         config_path = tmp_path / "claude.json"
 
         with (

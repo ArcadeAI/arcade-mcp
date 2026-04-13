@@ -798,11 +798,11 @@ def connect(
         ),
         show_choices=True,
     ),
-    toolkit: Optional[list[str]] = typer.Option(
+    server: Optional[list[str]] = typer.Option(
         None,
-        "--toolkit",
+        "--server",
         "-t",
-        help="Toolkit(s) to set up — adds all tools from each toolkit. Can be repeated.",
+        help="Server(s) to set up — adds all tools from each server. Can be repeated.",
     ),
     tool: Optional[list[str]] = typer.Option(
         None,
@@ -829,7 +829,7 @@ def connect(
         None,
         "--slug",
         "-s",
-        help="Custom slug for the created gateway (only with --toolkit/--tool/--preset).",
+        help="Custom slug for the created gateway (only with --server/--tool/--preset).",
     ),
     api_key: bool = typer.Option(
         False,
@@ -858,7 +858,7 @@ def connect(
     To configure a local server on your filesystem instead, use 'arcade configure'.
 
     Examples:\n
-        arcade connect claude --toolkit github\n
+        arcade connect claude --server github\n
         arcade connect cursor --preset productivity\n
         arcade connect claude --tool Github.CreateIssue --tool Linear.UpdateIssue\n
         arcade connect claude --gateway my-existing-gw\n
@@ -867,7 +867,7 @@ def connect(
     from arcade_cli.connect import PRESET_BUNDLES, run_connect
 
     # Resolve --preset to toolkit list
-    resolved_toolkits = list(toolkit) if toolkit else None
+    resolved_toolkits = list(server) if server else None
     if preset:
         preset_lower = preset.lower().replace("-", " ")
         match = {k.lower(): v for k, v in PRESET_BUNDLES.items()}.get(preset_lower)
