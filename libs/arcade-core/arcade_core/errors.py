@@ -158,7 +158,7 @@ class ToolRuntimeError(ToolError, RuntimeError):
     Note: This class should typically not be instantiated directly, but rather subclassed.
 
     Runtime error payload contract:
-    - ``message`` is agent/client-facing. It is returned to MCP clients and can be shown to
+    - ``message`` is agent/client-facing. It is returned to tool consumers and can be shown to
       agents or end users, so it should contain only intentional, safe context.
     - ``developer_message`` is for server-side diagnostics. It is preserved in structured
       error payloads and logs for debugging, and may contain more implementation detail than
@@ -180,7 +180,7 @@ class ToolRuntimeError(ToolError, RuntimeError):
         """
         Args:
             message: Safe summary intended for the agent/client. This value may be surfaced
-                directly in MCP error responses, so do not include secrets, tokens, raw API
+                directly in tool-call error responses, so do not include secrets, tokens, raw API
                 responses, or other sensitive details unless you explicitly want them exposed.
             developer_message: Additional server-side debugging context. Use this for verbose
                 diagnostics such as raw upstream errors, stack-oriented clues, or internal

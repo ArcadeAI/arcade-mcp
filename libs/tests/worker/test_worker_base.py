@@ -124,6 +124,55 @@ async def test_call_tool_success(base_worker_no_auth):
     assert response.output.value == 8
     assert response.output.error is None
     assert response.execution_id == "test_exec_id"
+
+
+@pytest.mark.asyncio
+async def test_call_tool_success_and_error_logs_use_same_tool_identifiers(
+    base_worker_no_auth, caplog
+):
+    """Cursor-bot review: success and error log lines must use the SAME
+    identifier strings so an on-call engineer can grep a single ``Tool <name>``
+    pattern across both states. Previously the success path printed the full
+    fqname via ``__str__`` and the error path printed only ``.name`` —
+    incompatible across log lines for the same tool."""
+    import logging
+
+    base_worker_no_auth.register_tool(sample_tool, toolkit_name="test_kit")
+    base_worker_no_auth.register_tool(error_tool, toolkit_name="test_kit")
+
+    success_req = ToolCallRequest(
+        execution_id="exec_consistency_ok",
+        tool=ToolReference(toolkit="TestKit", name="SampleTool"),
+        inputs={"a": 1, "b": 2},
+    )
+    error_req = ToolCallRequest(
+        execution_id="exec_consistency_err",
+        tool=ToolReference(toolkit="TestKit", name="ErrorTool"),
+        inputs={},
+    )
+
+    with caplog.at_level(logging.DEBUG, logger="arcade_serve.core.base"):
+        await base_worker_no_auth.call_tool(success_req)
+        await base_worker_no_auth.call_tool(error_req)
+
+    success_line = next(
+        r for r in caplog.records if "exec_consistency_ok" in r.getMessage() and "success" in r.getMessage()
+    )
+    error_line = next(
+        r for r in caplog.records if "exec_consistency_err" in r.getMessage() and "failed:" in r.getMessage()
+    )
+    # Both must use the bare tool name (".name"), NOT the full ``Toolkit.Tool`` fqname.
+    assert "Tool SampleTool " in success_line.getMessage()
+    assert "Tool ErrorTool " in error_line.getMessage()
+    # Neither line should contain the full-fqname form ``TestKit.SampleTool``.
+    assert "TestKit.SampleTool" not in success_line.getMessage()
+    assert "TestKit.ErrorTool" not in error_line.getMessage()
+    # Both must use the same "version <X>" word — proves the same source
+    # (``tool_fqname.toolkit_version``) is read on both paths.
+    assert "version " in success_line.getMessage()
+    assert "version " in error_line.getMessage()
+
+
 @pytest.mark.asyncio
 async def test_call_tool_execution_error(base_worker_no_auth):
     # Tool is now defined at module level
@@ -174,7 +223,9 @@ async def test_call_tool_error_log_text_matches_structured_extras(base_worker_no
     # Same version (whatever it is) in both — the key is consistency, not
     # that it's non-None. With error_tool registered without an explicit
     # toolkit version, both should reflect the same value (here: "None").
-    extra_version = getattr(primary, "tool_version", None)
+    # Field name is ``toolkit_version`` to match the OTel span attribute and
+    # the ``tool_counter`` metric label set elsewhere in this function.
+    extra_version = getattr(primary, "toolkit_version", None)
     assert f"version {extra_version}" in primary.getMessage()
 
 

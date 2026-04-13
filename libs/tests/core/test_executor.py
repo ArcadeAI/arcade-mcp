@@ -187,9 +187,7 @@ for tool_func in tools:
                 error=ToolCallError(
                     message=(
                         "[TOOL_RUNTIME_FATAL] FatalToolError during execution of tool "
-                        "'unexpected_error_tool': An unhandled RuntimeError was raised by "
-                        "the tool. Wrap with FatalToolError to surface controlled context "
-                        "to agents."
+                        "'unexpected_error_tool': An unhandled RuntimeError was raised by the tool."
                     ),
                     kind=ErrorKind.TOOL_RUNTIME_FATAL,
                     developer_message=(

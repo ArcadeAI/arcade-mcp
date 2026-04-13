@@ -97,11 +97,10 @@ def _raise_as_arcade_error(
         framework cannot reliably distinguish secrets/PII from safe context.
 
         Resolution:
-        * ``message`` (agent-facing)  — exception **type only**, plus a hint
-          telling the tool author to wrap with ``FatalToolError`` if they
-          want to surface controlled context to agents.
+        * ``message`` (agent-facing) — exception **type only**, no
+          ``str(exception)`` content.
         * ``developer_message`` (server-side logs only — ``error_developer_message``
-          Datadog facet, never returned to the MCP client) — carries the
+          Datadog facet, never returned to the client) — carries the
           full ``f"{ExceptionType}: {str(exception)}"`` so on-call engineers
           retain debugging context. Authorized log access is the security
           boundary, not the agent transport.
@@ -120,10 +119,7 @@ def _raise_as_arcade_error(
     exc_type = type(exception).__name__
     exc_str = str(exception).strip()
     # Agent-facing: type only — never str(exception). See "Data-leak policy".
-    message = (
-        f"An unhandled {exc_type} was raised by the tool. "
-        f"Wrap with FatalToolError to surface controlled context to agents."
-    )
+    message = f"An unhandled {exc_type} was raised by the tool."
     # Server-side debugging: full content goes to logs only.
     developer_message = (
         f"{exc_type}: {exc_str}" if exc_str else f"{exc_type} (no exception message)"

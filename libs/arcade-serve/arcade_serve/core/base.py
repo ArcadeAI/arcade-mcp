@@ -6,6 +6,7 @@ from typing import Any, Callable, ClassVar
 
 from arcade_core.catalog import ToolCatalog, Toolkit
 from arcade_core.executor import ToolExecutor
+from arcade_core.log_extras import build_tool_error_log_extra
 from arcade_core.schema import (
     ToolCallRequest,
     ToolCallResponse,
@@ -109,8 +110,11 @@ class BaseWorker(Worker):
         try:
             materialized_tool = self.catalog.get_tool(tool_fqname)
         except KeyError:
+            # Use the resolved fqname components so this error string agrees
+            # with the OTel span / metric labels and the success/failure log
+            # lines below — all keyed on tool_fqname.{name,toolkit_version}.
             raise ValueError(
-                f"Tool {tool_fqname} not found in catalog with toolkit version {tool_request.tool.version}."
+                f"Tool {tool_fqname.name} not found in catalog with toolkit version {tool_fqname.toolkit_version}."
             )
 
         start_time = time.time()
@@ -127,7 +131,8 @@ class BaseWorker(Worker):
             )
         execution_id = tool_request.execution_id or ""
         logger.info(
-            f"{execution_id} | Calling tool: {tool_fqname} version: {tool_request.tool.version}"
+            f"{execution_id} | Calling tool: {tool_fqname.name} "
+            f"version: {tool_fqname.toolkit_version}"
         )
         logger.debug(f"{execution_id} | Tool inputs: {tool_request.inputs}")
 
@@ -151,22 +156,17 @@ class BaseWorker(Worker):
         duration_ms = (end_time - start_time) * 1000  # Convert to milliseconds
 
         if output.error:
-            log_extra = {
-                "error_kind": output.error.kind.value
-                if hasattr(output.error.kind, "value")
-                else str(output.error.kind),
-                "error_message": output.error.message,
-                "error_developer_message": output.error.developer_message,
-                "error_status_code": output.error.status_code,
-                "error_can_retry": output.error.can_retry,
-                "tool_name": str(tool_fqname.name),
-                "tool_version": str(tool_fqname.toolkit_version),
-                "execution_id": execution_id,
-            }
-            # Use the resolved tool fqname (matches log_extra above and the OTel
-            # span/metric labels emitted elsewhere in this function) so the
-            # human-readable text and structured Datadog facets agree on the
-            # same tool name + version.
+            # Use the shared helper so the Datadog-facet contract stays in sync
+            # with the MCP-side log emitted by ``MCPServer._log_tool_call_error``.
+            log_extra = build_tool_error_log_extra(
+                output.error,
+                tool_name=str(tool_fqname.name),
+                toolkit_name=str(tool_fqname.toolkit_name),
+                toolkit_version=str(tool_fqname.toolkit_version),
+                execution_id=execution_id,
+            )
+            # Resolved fqname components in the human-readable text so it
+            # agrees with log_extra above and the OTel span/metric labels.
             logger.warning(
                 f"{execution_id} | Tool {tool_fqname.name} version {tool_fqname.toolkit_version} failed: {output.error.message}",
                 extra=log_extra,
@@ -181,8 +181,12 @@ class BaseWorker(Worker):
             if output.error.stacktrace:
                 logger.debug(f"{execution_id} | Tool traceback: {output.error.stacktrace}")
         else:
+            # Use the same resolved fqname components as the failure path above
+            # so success and error log lines correlate by a single tool name
+            # + toolkit_version string when grepping logs for incident review.
             logger.info(
-                f"{execution_id} | Tool {tool_fqname} version {tool_request.tool.version} success"
+                f"{execution_id} | Tool {tool_fqname.name} "
+                f"version {tool_fqname.toolkit_version} success"
             )
             logger.debug(
                 f"{execution_id} | duration: {duration_ms}ms | Tool output: {output.value}"
