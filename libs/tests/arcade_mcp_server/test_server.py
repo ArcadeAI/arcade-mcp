@@ -4,16 +4,18 @@ import asyncio
 import contextlib
 import json
 from typing import Annotated
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from arcade_core.auth import OAuth2
 from arcade_core.catalog import MaterializedTool, ToolMeta, create_func_models
-from arcade_core.errors import ToolRuntimeError
+from arcade_core.errors import ErrorKind, ToolRuntimeError
 from arcade_core.schema import (
     InputParameter,
     OAuth2Requirement,
     ToolAuthRequirement,
+    ToolCallError,
+    ToolCallOutput,
     ToolContext,
     ToolDefinition,
     ToolInput,
@@ -1799,3 +1801,188 @@ class TestToolMetaExtensionEdgeCases:
             assert "skipped: tool not found" in caplog.text
         finally:
             await server.stop()
+
+
+class TestToolErrorResponse:
+    """Test that tool error responses surface structured error data to agents."""
+
+    def _make_error_output(
+        self,
+        message: str = "Something went wrong",
+        developer_message: str | None = None,
+        additional_prompt_content: str | None = None,
+        kind: ErrorKind = ErrorKind.TOOL_RUNTIME_FATAL,
+    ) -> ToolCallOutput:
+        return ToolCallOutput(
+            error=ToolCallError(
+                message=message,
+                developer_message=developer_message,
+                additional_prompt_content=additional_prompt_content,
+                kind=kind,
+            )
+        )
+
+    @pytest.mark.asyncio
+    async def test_tool_error_content_includes_additional_prompt(self, mcp_server):
+        error_output = self._make_error_output(
+            message="Spreadsheet not found",
+            additional_prompt_content="Available options: X, Y",
+        )
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=1,
+            method="tools/call",
+            params={"name": "TestToolkit.test_tool", "arguments": {"text": "test"}},
+        )
+
+        with patch(
+            "arcade_mcp_server.server.ToolExecutor.run",
+            new_callable=AsyncMock,
+            return_value=error_output,
+        ):
+            response = await mcp_server._handle_call_tool(message)
+
+        assert response.result.isError is True
+        text = response.result.content[0].text
+        assert "Available options: X, Y" in text
+
+    @pytest.mark.asyncio
+    async def test_tool_error_structured_content_is_none(self, mcp_server):
+        """Per MCP spec, structuredContent must be None on error responses so
+        consumers don't attempt to validate an error payload against the tool's
+        declared outputSchema. Error details are conveyed via content text."""
+        error_output = self._make_error_output(message="fail")
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=1,
+            method="tools/call",
+            params={"name": "TestToolkit.test_tool", "arguments": {"text": "test"}},
+        )
+
+        with patch(
+            "arcade_mcp_server.server.ToolExecutor.run",
+            new_callable=AsyncMock,
+            return_value=error_output,
+        ):
+            response = await mcp_server._handle_call_tool(message)
+
+        assert response.result.isError is True
+        assert response.result.structuredContent is None
+        assert "fail" in response.result.content[0].text
+
+    @pytest.mark.asyncio
+    async def test_tool_error_content_no_pydantic_repr(self, mcp_server):
+        error_output = self._make_error_output(message="fail")
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=1,
+            method="tools/call",
+            params={"name": "TestToolkit.test_tool", "arguments": {"text": "test"}},
+        )
+
+        with patch(
+            "arcade_mcp_server.server.ToolExecutor.run",
+            new_callable=AsyncMock,
+            return_value=error_output,
+        ):
+            response = await mcp_server._handle_call_tool(message)
+
+        text = response.result.content[0].text
+        assert "kind=<ErrorKind" not in text
+
+    @pytest.mark.asyncio
+    async def test_tool_error_developer_message_not_in_client_content(self, mcp_server):
+        """developer_message can contain stack frames/file paths/sensitive data
+        and must never appear in agent-facing content. It is logged structurally
+        for Datadog instead."""
+        error_output = self._make_error_output(
+            message="Something failed",
+            developer_message="Traceback: /home/user/secret/foo.py line 42",
+        )
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=1,
+            method="tools/call",
+            params={"name": "TestToolkit.test_tool", "arguments": {"text": "test"}},
+        )
+
+        with patch(
+            "arcade_mcp_server.server.ToolExecutor.run",
+            new_callable=AsyncMock,
+            return_value=error_output,
+        ):
+            response = await mcp_server._handle_call_tool(message)
+
+        text = response.result.content[0].text
+        assert "Traceback" not in text
+        assert "/home/user/secret" not in text
+        assert "Details:" not in text
+
+
+class TestLogToolCallError:
+    """Direct unit tests for MCPServer._log_tool_call_error.
+
+    The structured ``extra`` dict is the contract Datadog facets on; tests here
+    lock the field names and value sources so accidental renames can't silently
+    break ops dashboards. Tested in isolation (no full request flow needed)."""
+
+    def test_extra_fields_match_contract(self, mcp_server, caplog):
+        import logging
+
+        err = ToolCallError(
+            message="Spreadsheet not found",
+            developer_message="dev: ssn=123",
+            kind=ErrorKind.TOOL_RUNTIME_FATAL,
+            status_code=404,
+            can_retry=False,
+        )
+        with caplog.at_level(logging.WARNING, logger="arcade.mcp"):
+            mcp_server._log_tool_call_error("MyToolkit.MyTool", err)
+
+        record = next(r for r in caplog.records if "MyToolkit.MyTool error" in r.getMessage())
+        # Renderable text is the human-readable summary.
+        assert "Spreadsheet not found" in record.getMessage()
+        # Structured fields — the Datadog contract.
+        assert record.tool_name == "MyToolkit.MyTool"
+        assert record.error_kind == "TOOL_RUNTIME_FATAL"
+        assert record.error_message == "Spreadsheet not found"
+        assert record.error_developer_message == "dev: ssn=123"
+        assert record.error_status_code == 404
+        assert record.error_can_retry is False
+
+    def test_kind_value_used_when_available(self, mcp_server, caplog):
+        import logging
+
+        err = ToolCallError(message="x", kind=ErrorKind.UPSTREAM_RUNTIME_RATE_LIMIT)
+        with caplog.at_level(logging.WARNING, logger="arcade.mcp"):
+            mcp_server._log_tool_call_error("t", err)
+
+        record = next(r for r in caplog.records if "t error" in r.getMessage())
+        # Enum's .value (the string code) is what Datadog facets on, NOT repr().
+        assert record.error_kind == "UPSTREAM_RUNTIME_RATE_LIMIT"
+        assert "ErrorKind." not in record.error_kind
+
+    def test_emits_warning_level(self, mcp_server, caplog):
+        import logging
+
+        err = ToolCallError(message="boom", kind=ErrorKind.TOOL_RUNTIME_FATAL)
+        with caplog.at_level(logging.DEBUG, logger="arcade.mcp"):
+            mcp_server._log_tool_call_error("t", err)
+
+        record = next(r for r in caplog.records if "t error" in r.getMessage())
+        # WARNING (30) is the load-bearing level for ops alerting.
+        assert record.levelno == logging.WARNING
+
+    def test_optional_fields_propagate_none(self, mcp_server, caplog):
+        """status_code / developer_message default to None and must propagate
+        as None (not be dropped, not be coerced) so Datadog can distinguish
+        'unset' from 'set to falsy'."""
+        import logging
+
+        err = ToolCallError(message="x", kind=ErrorKind.TOOL_RUNTIME_FATAL)
+        with caplog.at_level(logging.WARNING, logger="arcade.mcp"):
+            mcp_server._log_tool_call_error("t", err)
+
+        record = next(r for r in caplog.records if "t error" in r.getMessage())
+        assert record.error_developer_message is None
+        assert record.error_status_code is None
