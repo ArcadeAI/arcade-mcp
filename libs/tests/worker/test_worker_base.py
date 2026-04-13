@@ -179,17 +179,19 @@ async def test_call_tool_error_log_text_matches_structured_extras(base_worker_no
 
 
 @pytest.mark.asyncio
-async def test_call_tool_error_suppresses_no_extra_context_secondary_log(
+async def test_call_tool_error_secondary_log_carries_full_exception_content(
     base_worker_no_auth, caplog
 ):
-    """When the @tool fallback sets the no-extra-context sentinel as
-    ``developer_message`` (i.e. when no error adapter could enrich the
-    exception), the secondary "Developer message:" warning must NOT fire — it
-    would emit a zero-value log line on every unhandled exception. The sentinel
-    is still preserved in the primary warning's structured extras for Datadog."""
+    """Under the strict data-leak policy, the @tool fallback puts the verbose
+    ``str(exception)`` content into ``developer_message`` (server-side only,
+    never returned to the MCP client). The secondary ``"Developer message: ..."``
+    warning must therefore fire and carry that full content so on-call
+    engineers retain debugging context — the channel where leakage WOULD
+    matter (agent-facing ``message``) is covered by the dedicated leak tests
+    in ``libs/tests/tool/test_error_fallback.py``."""
     base_worker_no_auth.register_tool(error_tool, toolkit_name="error_kit")
     tool_request = ToolCallRequest(
-        execution_id="exec_no_extra",
+        execution_id="exec_dev_msg",
         tool=ToolReference(toolkit="ErrorKit", name="ErrorTool"),
         inputs={},
     )
@@ -197,18 +199,14 @@ async def test_call_tool_error_suppresses_no_extra_context_secondary_log(
     with caplog.at_level("WARNING", logger="arcade_serve.core.base"):
         await base_worker_no_auth.call_tool(tool_request)
 
-    secondary_logs = [
+    secondary = [
         r for r in caplog.records
-        if "exec_no_extra" in r.getMessage() and "Developer message:" in r.getMessage()
+        if "exec_dev_msg" in r.getMessage() and "Developer message:" in r.getMessage()
     ]
-    assert secondary_logs == [], (
-        "secondary 'Developer message:' log should be suppressed for sentinel"
-    )
-    # Primary log still carries the developer_message in structured extras.
-    primary = next(
-        r for r in caplog.records if "exec_no_extra" in r.getMessage() and "failed:" in r.getMessage()
-    )
-    assert getattr(primary, "error_developer_message", None) is not None
+    assert len(secondary) == 1, "secondary 'Developer message:' log should fire once"
+    # The full exception content is in the secondary log (and in Datadog facets).
+    assert "ValueError" in secondary[0].getMessage()
+    assert "Something went wrong" in secondary[0].getMessage()
 
 
 @pytest.mark.asyncio
