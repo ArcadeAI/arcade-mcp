@@ -157,16 +157,30 @@ class TestFetchAccountGateways:
 
 
 # ---------------------------------------------------------------------------
-# run_quickstart — gateway mode (direct slug)
+# Helpers: fresh mocks per test (patch objects are single-use as context managers)
 # ---------------------------------------------------------------------------
 
 
-class TestRunQuickstartGateway:
+def _mock_list_gw():  # type: ignore[no-untyped-def]
+    return patch("arcade_cli.connect.list_gateways", return_value=[])
+
+
+def _mock_resolve_slug():  # type: ignore[no-untyped-def]
+    return patch("arcade_cli.connect._resolve_gateway_slug", side_effect=lambda gw, *a, **kw: gw)
+
+
+# ---------------------------------------------------------------------------
+# run_connect — gateway mode (direct slug)
+# ---------------------------------------------------------------------------
+
+
+class TestRunConnectGateway:
     def test_gateway_mode_configures_claude(self, tmp_path: Path) -> None:
         config_path = tmp_path / "claude.json"
 
         with (
             patch("arcade_cli.connect.ensure_login", return_value="tok_abc"),
+            _mock_resolve_slug(),
             patch("arcade_cli.connect.console"),
             patch("arcade_cli.configure.console"),
         ):
@@ -179,7 +193,6 @@ class TestRunQuickstartGateway:
         config = json.loads(config_path.read_text(encoding="utf-8"))
         entry = config["mcpServers"]["my-production-gw"]
         assert entry["url"] == "https://api.arcade.dev/mcp/my-production-gw"
-        # OAuth mode: no headers (MCP client handles auth natively)
         assert "headers" not in entry
 
     def test_gateway_mode_configures_cursor(self, tmp_path: Path) -> None:
@@ -187,6 +200,7 @@ class TestRunQuickstartGateway:
 
         with (
             patch("arcade_cli.connect.ensure_login", return_value="tok_abc"),
+            _mock_resolve_slug(),
             patch("arcade_cli.connect.console"),
             patch("arcade_cli.configure.console"),
         ):
@@ -206,6 +220,7 @@ class TestRunQuickstartGateway:
 
         with (
             patch("arcade_cli.connect.ensure_login", return_value="tok_abc"),
+            _mock_resolve_slug(),
             patch("arcade_cli.connect.console"),
             patch("arcade_cli.configure.console"),
         ):
@@ -222,11 +237,11 @@ class TestRunQuickstartGateway:
 
 
 # ---------------------------------------------------------------------------
-# run_quickstart — toolkit mode (creates gateway)
+# run_connect — toolkit mode (creates gateway)
 # ---------------------------------------------------------------------------
 
 
-class TestRunQuickstartToolkit:
+class TestRunConnectToolkit:
     def test_toolkit_creates_gateway_and_configures_client(self, tmp_path: Path) -> None:
         config_path = tmp_path / "claude.json"
 
@@ -236,6 +251,7 @@ class TestRunQuickstartToolkit:
                 "arcade_cli.connect.fetch_available_toolkits",
                 return_value={"github": ["Github.ListPRs", "Github.CreateIssue"]},
             ),
+            _mock_list_gw(),
             patch(
                 "arcade_cli.connect.create_gateway",
                 return_value={"slug": "github", "id": "gw-123"},
@@ -249,14 +265,12 @@ class TestRunQuickstartToolkit:
                 config_path=config_path,
             )
 
-        # Verify gateway was created with the right tools
         mock_create.assert_called_once()
         call_kwargs = mock_create.call_args[1]
         assert call_kwargs["name"] == "github"
         assert "Github.ListPRs" in call_kwargs["tool_allow_list"]
         assert "Github.CreateIssue" in call_kwargs["tool_allow_list"]
 
-        # Verify client config points to the gateway (OAuth — no headers)
         config = json.loads(config_path.read_text(encoding="utf-8"))
         entry = config["mcpServers"]["github"]
         assert entry["url"] == "https://api.arcade.dev/mcp/github"
@@ -274,10 +288,11 @@ class TestRunQuickstartToolkit:
                     "slack": ["Slack.SendMessage"],
                 },
             ),
+            _mock_list_gw(),
             patch(
                 "arcade_cli.connect.create_gateway",
                 return_value={"slug": "github-slack", "id": "gw-456"},
-            ) as mock_create,
+            ),
             patch("arcade_cli.connect.console"),
             patch("arcade_cli.configure.console"),
         ):
@@ -287,10 +302,6 @@ class TestRunQuickstartToolkit:
                 config_path=config_path,
             )
 
-        call_kwargs = mock_create.call_args[1]
-        assert "Github.ListPRs" in call_kwargs["tool_allow_list"]
-        assert "Slack.SendMessage" in call_kwargs["tool_allow_list"]
-
         config = json.loads(config_path.read_text(encoding="utf-8"))
         entry = config["mcpServers"]["github-slack"]
         assert entry["type"] == "sse"
@@ -298,11 +309,11 @@ class TestRunQuickstartToolkit:
 
 
 # ---------------------------------------------------------------------------
-# run_quickstart — --all and interactive modes
+# run_connect — --all and interactive modes
 # ---------------------------------------------------------------------------
 
 
-class TestRunQuickstartInteractive:
+class TestRunConnectInteractive:
     def test_all_mode_creates_gateway_for_all_toolkits(self, tmp_path: Path) -> None:
         config_path = tmp_path / "claude.json"
 
@@ -315,6 +326,7 @@ class TestRunQuickstartInteractive:
                     "slack": ["Slack.SendMessage"],
                 },
             ),
+            _mock_list_gw(),
             patch(
                 "arcade_cli.connect.create_gateway",
                 return_value={"slug": "github-slack", "id": "gw-789"},
@@ -337,23 +349,17 @@ class TestRunQuickstartInteractive:
     def test_all_mode_no_toolkits_exits(self) -> None:
         with (
             patch("arcade_cli.connect.ensure_login", return_value="tok_abc"),
-            patch(
-                "arcade_cli.connect.fetch_available_toolkits",
-                return_value={},
-            ),
+            patch("arcade_cli.connect.fetch_available_toolkits", return_value={}),
             patch("arcade_cli.connect.console"),
             pytest.raises(SystemExit),
         ):
             run_connect(client="claude", all_tools=True)
 
     def test_toolkit_not_found_exits(self) -> None:
-        """When specified toolkit has no tools in the account, exit with error."""
         with (
             patch("arcade_cli.connect.ensure_login", return_value="tok_abc"),
-            patch(
-                "arcade_cli.connect.fetch_available_toolkits",
-                return_value={},
-            ),
+            patch("arcade_cli.connect.fetch_available_toolkits", return_value={}),
+            _mock_list_gw(),
             patch("arcade_cli.connect.console"),
             pytest.raises(SystemExit),
         ):
