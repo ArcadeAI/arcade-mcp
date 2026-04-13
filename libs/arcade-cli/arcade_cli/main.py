@@ -693,7 +693,10 @@ def evals(
         handle_cli_error("Failed to run evaluations", e, debug)
 
 
-@cli.command(help="Configure an MCP client to use a local server on your filesystem", rich_help_panel="Manage")
+@cli.command(
+    help="Configure an MCP client to use a local server on your filesystem",
+    rich_help_panel="Manage",
+)
 def configure(
     client: str = typer.Argument(
         ...,
@@ -871,6 +874,7 @@ def connect(
         if not match:
             available = ", ".join(k.lower().replace(" ", "-") for k in PRESET_BUNDLES)
             handle_cli_error(f"Unknown preset '{preset}'. Available presets: {available}")
+            return
         resolved_toolkits = (resolved_toolkits or []) + match
 
     try:
