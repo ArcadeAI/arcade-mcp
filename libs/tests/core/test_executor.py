@@ -396,3 +396,36 @@ async def test_multiple_bad_fields_in_input_error():
     assert "Invalid input:" in output.error.message
     assert "name" in output.error.message
     assert "age" in output.error.message
+
+
+@pytest.mark.asyncio
+async def test_input_validation_error_does_not_leak_input_values():
+    """Pydantic's ``str(e)`` and ``err["input"]`` echo offending values back
+    verbatim — which may contain user secrets (passwords, tokens, PII).
+    Neither ``message`` (agent-facing) nor ``developer_message`` (Datadog log
+    facet) must contain the rejected input values."""
+    tool_definition = catalog.find_tool_by_func(multi_field_tool)
+    full_tool = catalog.get_tool(tool_definition.get_fully_qualified_name())
+    dummy_context = ToolContext()
+
+    secret = "SECRET_PASSWORD_DO_NOT_LEAK_42"
+    output = await ToolExecutor.run(
+        func=multi_field_tool,
+        definition=tool_definition,
+        input_model=full_tool.input_model,
+        output_model=full_tool.output_model,
+        context=dummy_context,
+        name=12345,  # wrong type, ignored for the leak check
+        age=secret,  # wrong type AND a "secret" value we want to ensure is not echoed
+    )
+
+    assert output.error is not None
+    # Field path + reason must be present (so agents can self-correct).
+    assert "age" in output.error.message
+    # But the actual rejected input value must NOT be anywhere in either field.
+    assert secret not in output.error.message
+    assert output.error.developer_message is not None
+    assert secret not in output.error.developer_message
+    # The integer wrong-type value also must not appear.
+    assert "12345" not in output.error.message
+    assert "12345" not in output.error.developer_message

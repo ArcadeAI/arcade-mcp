@@ -23,7 +23,7 @@ from arcade_core.auth_tokens import get_valid_access_token
 from arcade_core.catalog import MaterializedTool, ToolCatalog
 from arcade_core.executor import ToolExecutor
 from arcade_core.network.org_transport import build_org_scoped_async_http_client
-from arcade_core.schema import ToolAuthorizationContext, ToolContext
+from arcade_core.schema import ToolAuthorizationContext, ToolCallError, ToolContext
 from arcade_core.schema import ToolAuthRequirement as CoreToolAuthRequirement
 from arcadepy import ArcadeError, AsyncArcade
 from arcadepy.types.auth_authorize_params import AuthRequirement, AuthRequirementOauth2
@@ -933,19 +933,7 @@ class MCPServer:
                     if error.additional_prompt_content:
                         error_text += f"\n\n{error.additional_prompt_content}"
                     content = convert_to_mcp_content(error_text)
-                    logger.warning(
-                        f"Tool {tool_name} error: {error.message}",
-                        extra={
-                            "error_kind": error.kind.value
-                            if hasattr(error.kind, "value")
-                            else str(error.kind),
-                            "error_message": error.message,
-                            "error_developer_message": error.developer_message,
-                            "error_status_code": error.status_code,
-                            "error_can_retry": error.can_retry,
-                            "tool_name": tool_name,
-                        },
-                    )
+                    self._log_tool_call_error(tool_name, error)
                 else:
                     content = convert_to_mcp_content("Error calling tool")
 
@@ -1002,6 +990,30 @@ class MCPServer:
                     ),
                 },
             )
+
+    def _log_tool_call_error(self, tool_name: str, error: ToolCallError) -> None:
+        """Emit a structured WARNING log for a failed tool call.
+
+        The ``extra`` dict is the contract Datadog (and any other structured-log
+        sink that honors stdlib ``logging`` extras) facets on. Field names are
+        prefixed ``error_*`` / ``tool_*`` so they don't collide with stdlib
+        ``LogRecord`` fields and can be filtered as a group.
+
+        Kept as a dedicated method (rather than inline in ``_handle_call_tool``)
+        so the contract is testable in isolation — the structured fields are
+        load-bearing for ops dashboards and must not silently regress.
+        """
+        logger.warning(
+            f"Tool {tool_name} error: {error.message}",
+            extra={
+                "error_kind": error.kind.value if hasattr(error.kind, "value") else str(error.kind),
+                "error_message": error.message,
+                "error_developer_message": error.developer_message,
+                "error_status_code": error.status_code,
+                "error_can_retry": error.can_retry,
+                "tool_name": tool_name,
+            },
+        )
 
     def _create_error_response(
         self, message: CallToolRequest, tool_response: dict[str, Any]

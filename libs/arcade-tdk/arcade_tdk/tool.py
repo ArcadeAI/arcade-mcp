@@ -89,6 +89,16 @@ def _raise_as_arcade_error(
 
     Raises:
         ToolRuntimeError or some subclass thereof
+
+    Data-leak boundary:
+        The fallback path below surfaces ``str(exception)`` verbatim into the
+        agent-facing ``message`` (``"{ExceptionType}: {str(exception)}"``).
+        The framework never adds user input or other context beyond the
+        exception type — it only forwards what the tool author placed in the
+        exception. Tool authors are therefore responsible for not embedding
+        secrets/PII in raised exception messages. The covering test
+        ``test_fallback_message_only_contains_exception_type_and_str``
+        locks this contract.
     """
     for adapter in adapter_chain:
         try:
@@ -104,12 +114,8 @@ def _raise_as_arcade_error(
     exc_type = type(exception).__name__
     exc_str = str(exception).strip()
     message = f"{exc_type}: {exc_str}" if exc_str else f"{exc_type} (no details)"
-    # ``message`` already encodes the exception type and its str() form, so
-    # repr(exception) would just produce a near-duplicate (e.g. "ValueError:
-    # bad input" vs "ValueError('bad input')"), wasting a Datadog facet and
-    # adding visual noise. Use the shared sentinel so log consumers (e.g.
-    # arcade-serve's secondary "Developer message:" warning) can recognize and
-    # suppress the zero-value entry.
+    # Use the shared sentinel rather than repr(exception) — repr would near-
+    # duplicate ``message`` and trigger a noisy secondary log line.
     raise FatalToolError(
         message=message,
         developer_message=NO_EXTRA_CONTEXT_DEVELOPER_MESSAGE,

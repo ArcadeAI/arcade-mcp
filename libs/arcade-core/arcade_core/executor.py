@@ -101,13 +101,23 @@ class ToolExecutor:
             inputs = input_model(**kwargs)
 
         except ValidationError as e:
+            # IMPORTANT: do NOT include err["input"] or str(e) anywhere in the
+            # surfaced message/developer_message. Pydantic's ``str(e)`` and
+            # ``err["input"]`` echo the offending input value verbatim — which
+            # may contain user secrets (passwords, tokens, PII). Both fields
+            # below intentionally carry only field path + reason + Pydantic
+            # error type code, never the rejected value itself.
             summary = "; ".join(
                 f"{'.'.join(str(loc) for loc in err['loc']) or '<root>'}: {err['msg']}"
                 for err in e.errors()
             )
+            developer_summary = "; ".join(
+                f"{'.'.join(str(loc) for loc in err['loc']) or '<root>'}[{err['type']}]"
+                for err in e.errors()
+            )
             raise ToolInputError(
                 message=f"Invalid input: {summary}",
-                developer_message=str(e),
+                developer_message=f"Pydantic validation failed: {developer_summary}",
             ) from e
 
         return inputs

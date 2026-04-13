@@ -1917,3 +1917,72 @@ class TestToolErrorResponse:
         assert "Traceback" not in text
         assert "/home/user/secret" not in text
         assert "Details:" not in text
+
+
+class TestLogToolCallError:
+    """Direct unit tests for MCPServer._log_tool_call_error.
+
+    The structured ``extra`` dict is the contract Datadog facets on; tests here
+    lock the field names and value sources so accidental renames can't silently
+    break ops dashboards. Tested in isolation (no full request flow needed)."""
+
+    def test_extra_fields_match_contract(self, mcp_server, caplog):
+        import logging
+
+        err = ToolCallError(
+            message="Spreadsheet not found",
+            developer_message="dev: ssn=123",
+            kind=ErrorKind.TOOL_RUNTIME_FATAL,
+            status_code=404,
+            can_retry=False,
+        )
+        with caplog.at_level(logging.WARNING, logger="arcade.mcp"):
+            mcp_server._log_tool_call_error("MyToolkit.MyTool", err)
+
+        record = next(r for r in caplog.records if "MyToolkit.MyTool error" in r.getMessage())
+        # Renderable text is the human-readable summary.
+        assert "Spreadsheet not found" in record.getMessage()
+        # Structured fields — the Datadog contract.
+        assert record.tool_name == "MyToolkit.MyTool"
+        assert record.error_kind == "TOOL_RUNTIME_FATAL"
+        assert record.error_message == "Spreadsheet not found"
+        assert record.error_developer_message == "dev: ssn=123"
+        assert record.error_status_code == 404
+        assert record.error_can_retry is False
+
+    def test_kind_value_used_when_available(self, mcp_server, caplog):
+        import logging
+
+        err = ToolCallError(message="x", kind=ErrorKind.UPSTREAM_RUNTIME_RATE_LIMIT)
+        with caplog.at_level(logging.WARNING, logger="arcade.mcp"):
+            mcp_server._log_tool_call_error("t", err)
+
+        record = next(r for r in caplog.records if "t error" in r.getMessage())
+        # Enum's .value (the string code) is what Datadog facets on, NOT repr().
+        assert record.error_kind == "UPSTREAM_RUNTIME_RATE_LIMIT"
+        assert "ErrorKind." not in record.error_kind
+
+    def test_emits_warning_level(self, mcp_server, caplog):
+        import logging
+
+        err = ToolCallError(message="boom", kind=ErrorKind.TOOL_RUNTIME_FATAL)
+        with caplog.at_level(logging.DEBUG, logger="arcade.mcp"):
+            mcp_server._log_tool_call_error("t", err)
+
+        record = next(r for r in caplog.records if "t error" in r.getMessage())
+        # WARNING (30) is the load-bearing level for ops alerting.
+        assert record.levelno == logging.WARNING
+
+    def test_optional_fields_propagate_none(self, mcp_server, caplog):
+        """status_code / developer_message default to None and must propagate
+        as None (not be dropped, not be coerced) so Datadog can distinguish
+        'unset' from 'set to falsy'."""
+        import logging
+
+        err = ToolCallError(message="x", kind=ErrorKind.TOOL_RUNTIME_FATAL)
+        with caplog.at_level(logging.WARNING, logger="arcade.mcp"):
+            mcp_server._log_tool_call_error("t", err)
+
+        record = next(r for r in caplog.records if "t error" in r.getMessage())
+        assert record.error_developer_message is None
+        assert record.error_status_code is None

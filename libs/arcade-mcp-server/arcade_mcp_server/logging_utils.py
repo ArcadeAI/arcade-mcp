@@ -15,7 +15,27 @@ class LoguruInterceptHandler(logging.Handler):
     Preserves custom 'extra' fields (used for structured logging).
     """
 
-    # Standard logging fields that should not be treated as custom extras
+    # Standard fields populated on every ``logging.LogRecord`` by the stdlib
+    # logging module itself. They are NOT custom extras passed via
+    # ``logger.warning(..., extra={...})`` and forwarding them to loguru would
+    # both clobber loguru's own keys and pollute the structured log payload
+    # with redundant data.
+    #
+    # The set is the union of:
+    #   * Attributes assigned in ``logging.LogRecord.__init__`` (CPython source:
+    #     Lib/logging/__init__.py — ``LogRecord.__init__``). This covers
+    #     ``name, msg, args, levelname, levelno, pathname, filename, module,
+    #     exc_info, exc_text, stack_info, lineno, funcName, created, msecs,
+    #     relativeCreated, thread, threadName, processName, process``.
+    #   * ``taskName`` — added in Python 3.12 by ``LogRecord.__init__`` for
+    #     asyncio task identification. Included unconditionally so the set
+    #     stays correct on 3.10-3.11 (key just won't be present at runtime).
+    #   * ``message`` — set lazily by ``LogRecord.getMessage()``; appears on
+    #     ``record.__dict__`` after formatting.
+    #   * ``asctime`` — set lazily by formatters that reference ``%(asctime)s``.
+    #
+    # Anything else in ``record.__dict__`` is, by stdlib convention, a custom
+    # extra passed via the ``extra={...}`` kwarg, and IS forwarded to loguru.
     _STANDARD_FIELDS: ClassVar[set[str]] = {
         "name",
         "msg",
@@ -43,10 +63,17 @@ class LoguruInterceptHandler(logging.Handler):
     }
 
     def emit(self, record: logging.LogRecord) -> None:
+        # Resolve the loguru level: prefer the named level (DEBUG/INFO/WARNING/
+        # ERROR/CRITICAL — all built into loguru), and for custom or otherwise
+        # unknown levels fall back to the integer ``levelno``. We pass an int
+        # (not ``str(levelno)``) because loguru only resolves stringified
+        # levels via name lookup — passing ``"42"`` raises ValueError, while
+        # passing the integer ``42`` is accepted directly per loguru's API.
+        level: str | int
         try:
             level = logger.level(record.levelname).name
         except ValueError:
-            level = str(record.levelno)
+            level = record.levelno
 
         # Extract custom extra fields from the log record.
         # These are fields added via logger.warning(..., extra={...}).
