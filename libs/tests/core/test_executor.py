@@ -187,7 +187,7 @@ for tool_func in tools:
                 error=ToolCallError(
                     message="[TOOL_RUNTIME_FATAL] FatalToolError during execution of tool 'unexpected_error_tool': RuntimeError: test",
                     kind=ErrorKind.TOOL_RUNTIME_FATAL,
-                    developer_message="[TOOL_RUNTIME_FATAL] FatalToolError during execution of tool 'unexpected_error_tool': RuntimeError('test')",
+                    developer_message="[TOOL_RUNTIME_FATAL] FatalToolError during execution of tool 'unexpected_error_tool': No additional context available beyond the exception message.",
                     can_retry=False,
                     status_code=500,
                 )

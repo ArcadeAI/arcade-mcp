@@ -69,7 +69,12 @@ class ToolkitError(Exception, ABC):
             The error with the context added to the message.
         """
         prefix = self.create_message_prefix(name)
-        self.message = f"{prefix}{self.message}"  # type: ignore[has-type]
+        # Guard against empty/whitespace-only messages so the prefixed result
+        # always has a non-empty body. Without this, errors raised as
+        # ``FatalToolError("")`` produce log/agent text like
+        # ``"...tool 'foo': "`` which carries no diagnostic payload.
+        body = self.message if self.message and self.message.strip() else "(no details provided)"  # type: ignore[has-type]
+        self.message = f"{prefix}{body}"
         if hasattr(self, "developer_message") and self.developer_message:  # type: ignore[has-type]
             self.developer_message = f"{prefix}{self.developer_message}"  # type: ignore[has-type]
 

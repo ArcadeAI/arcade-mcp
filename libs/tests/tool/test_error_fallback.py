@@ -63,7 +63,10 @@ async def test_fallback_empty_exception_shows_type():
 
 
 @pytest.mark.asyncio
-async def test_fallback_developer_message_is_repr():
+async def test_fallback_developer_message_is_static_sentinel():
+    """The fallback path sets a static developer_message sentinel rather than
+    repr(exception), which would just near-duplicate ``message`` (e.g.
+    ``"KeyError: 'x'"`` vs ``"KeyError('x')"``) and waste a Datadog facet."""
     tool_definition = catalog.find_tool_by_func(keyerror_tool)
     full_tool = catalog.get_tool(tool_definition.get_fully_qualified_name())
     dummy_context = ToolContext()
@@ -77,14 +80,17 @@ async def test_fallback_developer_message_is_repr():
     )
 
     assert output.error is not None
-    # developer_message has the prefix from with_context, but ends with repr(exception)
     assert output.error.developer_message is not None
-    assert "KeyError('x')" in output.error.developer_message
+    # The sentinel string is preserved (with prefix prepended by with_context).
+    assert "No additional context available" in output.error.developer_message
+    # Crucially, repr-style content is NOT in developer_message (no near-duplication
+    # of the ``message`` content).
+    assert "KeyError('x')" not in output.error.developer_message
 
 
 @pytest.mark.asyncio
-async def test_fallback_empty_exception_has_no_developer_message():
-    """Verify that empty exceptions produce developer_message=None."""
+async def test_fallback_empty_exception_has_sentinel_developer_message():
+    """Empty exceptions also get the static sentinel — same uniform contract."""
     tool_definition = catalog.find_tool_by_func(empty_exception_tool)
     full_tool = catalog.get_tool(tool_definition.get_fully_qualified_name())
     dummy_context = ToolContext()
@@ -98,5 +104,5 @@ async def test_fallback_empty_exception_has_no_developer_message():
     )
 
     assert output.error is not None
-    # Empty exceptions don't get a developer_message to avoid redundant "Details:" in client output
-    assert output.error.developer_message is None
+    assert output.error.developer_message is not None
+    assert "No additional context available" in output.error.developer_message

@@ -101,12 +101,15 @@ def _raise_as_arcade_error(
             raise mapped from exception
 
     exc_type = type(exception).__name__
-    exc_str = str(exception)
-    message = f"{exc_type}: {exc_str}" if exc_str.strip() else f"{exc_type} (no details)"
-    # Only set developer_message if it would differ meaningfully from message
-    # Use repr only for additional debugging detail beyond the message type.
-    # If exception has no string representation or it's simple, don't duplicate in dev message.
-    developer_message = repr(exception) if exc_str.strip() else None
+    exc_str = str(exception).strip()
+    message = f"{exc_type}: {exc_str}" if exc_str else f"{exc_type} (no details)"
+    # ``message`` already encodes the exception type and its str() form, so
+    # repr(exception) would just produce a near-duplicate (e.g. "ValueError:
+    # bad input" vs "ValueError('bad input')"), wasting a Datadog facet and
+    # adding visual noise. Use a static sentinel to communicate that no
+    # additional debugging detail was available beyond what is already in
+    # ``message``.
+    developer_message = "No additional context available beyond the exception message."
     raise FatalToolError(
         message=message,
         developer_message=developer_message,
