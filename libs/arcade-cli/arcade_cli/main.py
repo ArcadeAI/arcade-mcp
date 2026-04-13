@@ -693,7 +693,7 @@ def evals(
         handle_cli_error("Failed to run evaluations", e, debug)
 
 
-@cli.command(help="Configure MCP clients to connect to your server", rich_help_panel="Manage")
+@cli.command(help="Configure an MCP client to use a local server on your filesystem", rich_help_panel="Manage")
 def configure(
     client: str = typer.Argument(
         ...,
@@ -727,7 +727,7 @@ def configure(
         "local",
         "--host",
         "-h",
-        help="The host of the HTTP server to configure. Use 'local' to connect to a local MCP server or 'arcade' to connect to an Arcade Cloud MCP server.",
+        help="The host for HTTP transport. Use 'local' for a local server. ('arcade' is supported but 'arcade connect' is the recommended way to set up remote gateways.)",
         click_type=click.Choice(["local", "arcade"], case_sensitive=False),
         show_choices=True,
         rich_help_panel="HTTP Options",
@@ -750,16 +750,19 @@ def configure(
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
-    Configure MCP clients to connect to your server.
+    Configure an MCP client to use a local server on your filesystem.
 
-    The default behavior is to configure the specified client for a local stdio server that
-    runs when the server.py file in the current directory is invoked directly.
+    Points your MCP client at a server you are developing or running locally.
+    By default, configures a stdio transport that launches the server.py file
+    in the current directory. Use --transport http for a running local HTTP server.
+
+    To connect to remote Arcade Cloud gateways instead, use 'arcade connect'.
 
     Examples:
         arcade configure claude
         arcade configure cursor --transport http --port 8080
-        arcade configure vscode --host arcade --entrypoint my_server.py --config .vscode/mcp.json
-        arcade configure claude --host local --name my_server_name
+        arcade configure vscode --entrypoint my_server.py --config .vscode/mcp.json
+        arcade configure claude --name my_server_name
     """
     from arcade_cli.configure import configure_client
 
@@ -779,13 +782,13 @@ def configure(
 
 @cli.command(
     name="connect",
-    help="Connect your MCP client to Arcade tools and gateways in one step",
+    help="Connect an MCP client to a remote Arcade Cloud gateway",
     rich_help_panel="Run",
 )
 def connect(
     client: str = typer.Argument(
         ...,
-        help="MCP client to configure",
+        help="MCP client to connect to the remote gateway",
         click_type=click.Choice(
             ["claude", "cursor", "vscode", "windsurf", "amazonq"],
             case_sensitive=False,
@@ -840,14 +843,16 @@ def connect(
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
-    Connect your MCP client to Arcade tools and gateways.
+    Connect an MCP client to a remote Arcade Cloud gateway.
 
-    Logs you in (if needed), creates an Arcade Cloud gateway for the selected
-    toolkits, and configures your MCP client to connect — all in one step.
-    No local server required.
+    No local server needed — tools run in the cloud. Logs you in (if needed),
+    creates an Arcade Cloud gateway for the selected toolkits, and writes your
+    MCP client config, all in one step.
 
     By default gateways use OAuth (the MCP client handles the auth flow).
     Pass --api-key to use API-key auth instead (creates a key automatically).
+
+    To configure a local server on your filesystem instead, use 'arcade configure'.
 
     Examples:\n
         arcade connect claude --toolkit github\n
