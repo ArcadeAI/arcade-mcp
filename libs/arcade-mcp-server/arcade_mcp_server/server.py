@@ -998,10 +998,6 @@ class MCPServer:
         sink that honors stdlib ``logging`` extras) facets on. Field names are
         prefixed ``error_*`` / ``tool_*`` so they don't collide with stdlib
         ``LogRecord`` fields and can be filtered as a group.
-
-        Kept as a dedicated method (rather than inline in ``_handle_call_tool``)
-        so the contract is testable in isolation — the structured fields are
-        load-bearing for ops dashboards and must not silently regress.
         """
         logger.warning(
             f"Tool {tool_name} error: {error.message}",
