@@ -148,6 +148,70 @@ async def test_call_tool_execution_error(base_worker_no_auth):
 
 
 @pytest.mark.asyncio
+async def test_call_tool_error_log_text_matches_structured_extras(base_worker_no_auth, caplog):
+    """The primary failure warning's f-string must use the same resolved
+    ``tool_fqname.name`` / ``tool_fqname.toolkit_version`` values that
+    ``log_extra`` exposes — otherwise the human-readable text and the
+    Datadog facets disagree on which tool/version produced the error.
+    Previously the f-string used ``tool_request.tool.version`` (the *requested*
+    version, often ``None``) while the extras used the resolved version."""
+    base_worker_no_auth.register_tool(error_tool, toolkit_name="error_kit")
+    tool_request = ToolCallRequest(
+        execution_id="exec_log_check",
+        tool=ToolReference(toolkit="ErrorKit", name="ErrorTool"),
+        inputs={},
+    )
+
+    with caplog.at_level("WARNING", logger="arcade_serve.core.base"):
+        await base_worker_no_auth.call_tool(tool_request)
+
+    primary = next(
+        r for r in caplog.records if "exec_log_check" in r.getMessage() and "failed:" in r.getMessage()
+    )
+    # Same name appears in both the rendered text and the structured extra.
+    assert "Tool ErrorTool " in primary.getMessage()
+    assert getattr(primary, "tool_name", None) == "ErrorTool"
+    # Same version (whatever it is) in both — the key is consistency, not
+    # that it's non-None. With error_tool registered without an explicit
+    # toolkit version, both should reflect the same value (here: "None").
+    extra_version = getattr(primary, "tool_version", None)
+    assert f"version {extra_version}" in primary.getMessage()
+
+
+@pytest.mark.asyncio
+async def test_call_tool_error_suppresses_no_extra_context_secondary_log(
+    base_worker_no_auth, caplog
+):
+    """When the @tool fallback sets the no-extra-context sentinel as
+    ``developer_message`` (i.e. when no error adapter could enrich the
+    exception), the secondary "Developer message:" warning must NOT fire — it
+    would emit a zero-value log line on every unhandled exception. The sentinel
+    is still preserved in the primary warning's structured extras for Datadog."""
+    base_worker_no_auth.register_tool(error_tool, toolkit_name="error_kit")
+    tool_request = ToolCallRequest(
+        execution_id="exec_no_extra",
+        tool=ToolReference(toolkit="ErrorKit", name="ErrorTool"),
+        inputs={},
+    )
+
+    with caplog.at_level("WARNING", logger="arcade_serve.core.base"):
+        await base_worker_no_auth.call_tool(tool_request)
+
+    secondary_logs = [
+        r for r in caplog.records
+        if "exec_no_extra" in r.getMessage() and "Developer message:" in r.getMessage()
+    ]
+    assert secondary_logs == [], (
+        "secondary 'Developer message:' log should be suppressed for sentinel"
+    )
+    # Primary log still carries the developer_message in structured extras.
+    primary = next(
+        r for r in caplog.records if "exec_no_extra" in r.getMessage() and "failed:" in r.getMessage()
+    )
+    assert getattr(primary, "error_developer_message", None) is not None
+
+
+@pytest.mark.asyncio
 async def test_call_tool_not_found(base_worker_no_auth):
     # Use ToolReference without version for lookup consistency
     tool_ref = ToolReference(toolkit="nonexistent", name="nosuchtool")

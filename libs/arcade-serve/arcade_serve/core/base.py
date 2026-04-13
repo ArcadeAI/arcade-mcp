@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Any, Callable, ClassVar
 
 from arcade_core.catalog import ToolCatalog, Toolkit
+from arcade_core.errors import NO_EXTRA_CONTEXT_DEVELOPER_MESSAGE
 from arcade_core.executor import ToolExecutor
 from arcade_core.schema import (
     ToolCallRequest,
@@ -163,11 +164,23 @@ class BaseWorker(Worker):
                 "tool_version": str(tool_fqname.toolkit_version),
                 "execution_id": execution_id,
             }
+            # Use the resolved tool fqname (matches log_extra above and the OTel
+            # span/metric labels emitted elsewhere in this function) so the
+            # human-readable text and structured Datadog facets agree on the
+            # same tool name + version.
             logger.warning(
-                f"{execution_id} | Tool {tool_fqname} version {tool_request.tool.version} failed: {output.error.message}",
+                f"{execution_id} | Tool {tool_fqname.name} version {tool_fqname.toolkit_version} failed: {output.error.message}",
                 extra=log_extra,
             )
-            if output.error.developer_message:
+            # Suppress the secondary "Developer message:" warning when the
+            # @tool fallback set the no-extra-context sentinel — otherwise every
+            # unhandled exception emits a zero-value log line. The sentinel is
+            # still preserved in ``log_extra["error_developer_message"]`` for
+            # Datadog faceting.
+            if (
+                output.error.developer_message
+                and NO_EXTRA_CONTEXT_DEVELOPER_MESSAGE not in output.error.developer_message
+            ):
                 logger.warning(
                     f"{execution_id} | Developer message: {output.error.developer_message}",
                 )

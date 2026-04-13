@@ -3,6 +3,19 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any
 
+# Sentinel used by ``arcade_tdk.tool._raise_as_arcade_error`` to populate
+# ``developer_message`` when no error adapter matched the exception. It signals
+# to log consumers that ``message`` already encodes everything we know (type +
+# str(exception)) and no extra debugging detail is available — repr(exception)
+# would just be a near-duplicate of ``message`` (e.g. ``"ValueError: bad input"``
+# vs ``"ValueError('bad input')"``), so we substitute this static string instead.
+#
+# Defined in arcade-core (the only common dependency of arcade-tdk and
+# arcade-serve) so that secondary logging sites (e.g. the per-error
+# "Developer message: ..." warning in arcade_serve.core.base) can suppress the
+# zero-value log line by comparison.
+NO_EXTRA_CONTEXT_DEVELOPER_MESSAGE = "No additional context available beyond the exception message."
+
 
 class ErrorKind(str, Enum):
     """Error kind that is comprised of

@@ -3,6 +3,7 @@ import inspect
 import logging
 from typing import Any, Callable, TypeVar
 
+from arcade_core.errors import NO_EXTRA_CONTEXT_DEVELOPER_MESSAGE
 from arcade_core.metadata import ToolMetadata
 
 from arcade_tdk.auth import ToolAuthorization
@@ -106,13 +107,12 @@ def _raise_as_arcade_error(
     # ``message`` already encodes the exception type and its str() form, so
     # repr(exception) would just produce a near-duplicate (e.g. "ValueError:
     # bad input" vs "ValueError('bad input')"), wasting a Datadog facet and
-    # adding visual noise. Use a static sentinel to communicate that no
-    # additional debugging detail was available beyond what is already in
-    # ``message``.
-    developer_message = "No additional context available beyond the exception message."
+    # adding visual noise. Use the shared sentinel so log consumers (e.g.
+    # arcade-serve's secondary "Developer message:" warning) can recognize and
+    # suppress the zero-value entry.
     raise FatalToolError(
         message=message,
-        developer_message=developer_message,
+        developer_message=NO_EXTRA_CONTEXT_DEVELOPER_MESSAGE,
     ) from exception
 
 
