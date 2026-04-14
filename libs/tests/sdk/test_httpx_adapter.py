@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from unittest.mock import Mock, patch
 
 import httpx
+import requests
 
 from arcade_core.errors import ErrorKind, UpstreamError, UpstreamRateLimitError
 from arcade_tdk.providers.http.error_adapter import BaseHTTPErrorMapper, HTTPErrorAdapter
@@ -292,6 +293,108 @@ class TestHTTPErrorAdapter:
             result = self.adapter.from_exception(mock_exc)
 
         assert result is None
+
+    def test_requests_timeout_exception_handling(self):
+        """Timeout exceptions should map to retryable upstream timeouts."""
+        request = requests.Request("GET", "https://api.example.com/slow?token=secret").prepare()
+        exc = requests.exceptions.ReadTimeout("Request timed out", request=request)
+
+        result = self.adapter.from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert result.status_code == 504
+        assert result.can_retry is True
+        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
+        assert result.message == "Upstream HTTP timeout: ReadTimeout"
+        assert result.extra["service"] == "_http"
+        assert result.extra["error_type"] == "ReadTimeout"
+        assert result.extra["endpoint"] == "https://api.example.com/slow"
+        assert result.extra["http_method"] == "GET"
+
+    def test_requests_transport_exception_handling(self):
+        """Connection errors should map to retryable transport failures."""
+        request = requests.Request("POST", "https://api.example.com/ping").prepare()
+        exc = requests.exceptions.ConnectionError("Connection failed", request=request)
+
+        result = self.adapter.from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert result.status_code == 503
+        assert result.can_retry is True
+        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
+        assert result.message == "Upstream HTTP transport error: ConnectionError"
+        assert result.extra["service"] == "_http"
+        assert result.extra["error_type"] == "ConnectionError"
+        assert result.extra["endpoint"] == "https://api.example.com/ping"
+        assert result.extra["http_method"] == "POST"
+
+    def test_requests_invalid_url_is_non_retryable_bad_request(self):
+        """Invalid URL errors should map to non-retryable bad request."""
+        request = requests.Request("GET", "https://api.example.com/bad").prepare()
+        exc = requests.exceptions.InvalidURL("Invalid URL", request=request)
+
+        result = self.adapter.from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert result.status_code == 400
+        assert result.can_retry is False
+        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST
+        assert result.message == "Upstream HTTP request is invalid: InvalidURL"
+        assert result.extra["service"] == "_http"
+        assert result.extra["error_type"] == "InvalidURL"
+        assert result.extra["endpoint"] == "https://api.example.com/bad"
+        assert result.extra["http_method"] == "GET"
+
+    def test_requests_content_decoding_error_handling(self):
+        """Decode failures should map to retryable upstream decode errors."""
+        request = requests.Request("GET", "https://api.example.com/json").prepare()
+        exc = requests.exceptions.ContentDecodingError("Bad payload", request=request)
+
+        result = self.adapter.from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert result.status_code == 502
+        assert result.can_retry is True
+        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
+        assert result.message == "Upstream HTTP response decoding failed: ContentDecodingError"
+        assert result.extra["service"] == "_http"
+        assert result.extra["error_type"] == "ContentDecodingError"
+        assert result.extra["endpoint"] == "https://api.example.com/json"
+        assert result.extra["http_method"] == "GET"
+
+    def test_requests_too_many_redirects_is_non_retryable_bad_request(self):
+        """Redirect loops should map to non-retryable bad request errors."""
+        request = requests.Request("GET", "https://api.example.com/redirect-loop").prepare()
+        exc = requests.exceptions.TooManyRedirects("Exceeded redirect limit", request=request)
+
+        result = self.adapter.from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert result.status_code == 400
+        assert result.can_retry is False
+        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST
+        assert result.message == "Upstream HTTP request redirect limit exceeded: TooManyRedirects"
+        assert result.extra["service"] == "_http"
+        assert result.extra["error_type"] == "TooManyRedirects"
+        assert result.extra["endpoint"] == "https://api.example.com/redirect-loop"
+        assert result.extra["http_method"] == "GET"
+
+    def test_requests_request_exception_fallback(self):
+        """Unhandled requests base exceptions should map as upstream errors."""
+        request = requests.Request("DELETE", "https://api.example.com/resource/123").prepare()
+        exc = requests.exceptions.RequestException("Request failed", request=request)
+
+        result = self.adapter.from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert result.status_code == 502
+        assert result.can_retry is True
+        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
+        assert result.message == "Upstream HTTP request failed: RequestException"
+        assert result.extra["service"] == "_http"
+        assert result.extra["error_type"] == "RequestException"
+        assert result.extra["endpoint"] == "https://api.example.com/resource/123"
+        assert result.extra["http_method"] == "DELETE"
 
     def test_unhandled_exception_logs_warning(self, caplog):
         """Test that unhandled exceptions log a warning."""

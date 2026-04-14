@@ -295,6 +295,26 @@ class _HTTPXExceptionHandler:
 class _RequestsExceptionHandler:
     """Handler for requests-specific exceptions."""
 
+    def _build_upstream_error(
+        self,
+        *,
+        mapper: BaseHTTPErrorMapper,
+        exc: Exception,
+        status_code: int,
+        message: str,
+        request_url: str | None,
+        request_method: str | None,
+    ) -> UpstreamError:
+        return UpstreamError(
+            message=message,
+            status_code=status_code,
+            developer_message=str(exc),
+            extra={
+                **mapper._build_extra_metadata(request_url, request_method),
+                "error_type": type(exc).__name__,
+            },
+        )
+
     def handle_exception(self, exc: Any, mapper: BaseHTTPErrorMapper) -> ToolRuntimeError | None:
         """Handle requests exceptions with HTTP responses.
 
@@ -307,33 +327,113 @@ class _RequestsExceptionHandler:
         """
         # Lazy import requests types locally to avoid import errors for toolkits that don't use requests
         try:
-            from requests.exceptions import HTTPError  # type: ignore[import-untyped]
+            from requests.exceptions import (  # type: ignore[import-untyped]
+                ConnectionError,
+                ContentDecodingError,
+                HTTPError,
+                InvalidProxyURL,
+                InvalidSchema,
+                InvalidURL,
+                RequestException,
+                Timeout,
+                TooManyRedirects,
+            )
         except ImportError:
             return None
 
-        if not isinstance(exc, HTTPError):
-            return None
-
-        response = getattr(exc, "response", None)
-        if response is None:
-            return None
-
-        # Extract request information
         request_url = None
         request_method = None
-        if hasattr(response, "request") and response.request:
-            request_url = response.request.url
-            request_method = response.request.method
-        elif hasattr(response, "url"):
-            request_url = response.url
+        request = getattr(exc, "request", None)
+        if request is not None:
+            request_url_obj = getattr(request, "url", None)
+            if request_url_obj is not None:
+                request_url = str(request_url_obj)
+            request_method_obj = getattr(request, "method", None)
+            if request_method_obj is not None:
+                request_method = str(request_method_obj)
 
-        return mapper._map_status_to_error(
-            response.status_code,
-            dict(response.headers),
-            str(exc),
-            request_url=request_url,
-            request_method=request_method,
-        )
+        if isinstance(exc, HTTPError):
+            response = getattr(exc, "response", None)
+            if response is None:
+                return None
+
+            # Extract request information from HTTP response if available
+            if hasattr(response, "request") and response.request:
+                request_url = response.request.url
+                request_method = response.request.method
+            elif hasattr(response, "url"):
+                request_url = response.url
+
+            return mapper._map_status_to_error(
+                response.status_code,
+                dict(response.headers),
+                str(exc),
+                request_url=request_url,
+                request_method=request_method,
+            )
+
+        # Order is intentional: specific subclasses before broad base classes.
+        if isinstance(exc, Timeout):
+            return self._build_upstream_error(
+                mapper=mapper,
+                exc=exc,
+                status_code=504,
+                message=f"Upstream HTTP timeout: {type(exc).__name__}",
+                request_url=request_url,
+                request_method=request_method,
+            )
+
+        if isinstance(exc, TooManyRedirects):
+            return self._build_upstream_error(
+                mapper=mapper,
+                exc=exc,
+                status_code=400,
+                message=f"Upstream HTTP request redirect limit exceeded: {type(exc).__name__}",
+                request_url=request_url,
+                request_method=request_method,
+            )
+
+        if isinstance(exc, (InvalidURL, InvalidSchema, InvalidProxyURL)):
+            return self._build_upstream_error(
+                mapper=mapper,
+                exc=exc,
+                status_code=400,
+                message=f"Upstream HTTP request is invalid: {type(exc).__name__}",
+                request_url=request_url,
+                request_method=request_method,
+            )
+
+        if isinstance(exc, ContentDecodingError):
+            return self._build_upstream_error(
+                mapper=mapper,
+                exc=exc,
+                status_code=502,
+                message=f"Upstream HTTP response decoding failed: {type(exc).__name__}",
+                request_url=request_url,
+                request_method=request_method,
+            )
+
+        if isinstance(exc, ConnectionError):
+            return self._build_upstream_error(
+                mapper=mapper,
+                exc=exc,
+                status_code=503,
+                message=f"Upstream HTTP transport error: {type(exc).__name__}",
+                request_url=request_url,
+                request_method=request_method,
+            )
+
+        if isinstance(exc, RequestException):
+            return self._build_upstream_error(
+                mapper=mapper,
+                exc=exc,
+                status_code=502,
+                message=f"Upstream HTTP request failed: {type(exc).__name__}",
+                request_url=request_url,
+                request_method=request_method,
+            )
+
+        return None
 
 
 class HTTPErrorAdapter(BaseHTTPErrorMapper):
