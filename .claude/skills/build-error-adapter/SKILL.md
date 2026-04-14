@@ -1,22 +1,27 @@
 ---
 name: build-error-adapter
-description: Build new Arcade error adapters from scratch using the monorepo's established patterns. Use when adding provider integrations, mapping SDK exceptions, or extending HTTP/GraphQL/auth adapter behavior.
+description: Build new Arcade error adapters from scratch using public Arcade TDK patterns. Use when adding provider integrations, mapping SDK exceptions, or extending HTTP/GraphQL/auth adapter behavior.
 ---
 
 # Build Error Adapter
 
-Use this workflow to create new error adapters that fit Arcade TDK conventions.
+Use this workflow to create new error adapters that fit Arcade TDK conventions without relying on private monorepo paths.
+
+## Official Reference
+
+Start here and align behavior with this doc:
+
+- [Arcade docs: Providing useful tool errors (Error adapters)](https://docs.arcade.dev/en/guides/create-tools/error-handling/useful-tool-errors#error-adapters)
 
 ## Quick Context
 
-- Adapter protocol: `libs/arcade-tdk/arcade_tdk/error_adapters/base.py`
-- Adapter chain builder: `libs/arcade-tdk/arcade_tdk/tool.py` (`_build_adapter_chain`)
-- Existing references:
-  - `libs/arcade-tdk/arcade_tdk/providers/http/error_adapter.py`
-  - `libs/arcade-tdk/arcade_tdk/providers/graphql/error_adapter.py`
-  - `libs/arcade-tdk/arcade_tdk/providers/google/error_adapter.py`
-  - `libs/arcade-tdk/arcade_tdk/providers/microsoft/error_adapter.py`
-  - `libs/arcade-tdk/arcade_tdk/providers/slack/error_adapter.py`
+- Adapter protocol: `arcade_tdk.error_adapters.base.ErrorAdapter`
+- Common error classes:
+  - `arcade_tdk.errors.UpstreamError`
+  - `arcade_tdk.errors.UpstreamRateLimitError`
+  - `arcade_tdk.errors.RetryableToolError`
+  - `arcade_tdk.errors.ContextRequiredToolError`
+  - `arcade_tdk.errors.FatalToolError`
 
 ## Rules To Follow
 
@@ -30,7 +35,20 @@ Use this workflow to create new error adapters that fit Arcade TDK conventions.
    - Agent-facing `message` must be safe.
    - Put raw vendor detail into `developer_message` when needed.
 6. Add tests for every new mapping path.
-7. If `libs/arcade-tdk` code changes, bump `libs/arcade-tdk/pyproject.toml` version once.
+7. Match your installed Arcade version's decorator API and parameter names.
+
+## Decide: Adapter vs explicit tool error
+
+Use an **error adapter** when:
+
+- You need repeatable translation from vendor exceptions to Arcade errors.
+- The same exception family appears across multiple tools.
+
+Raise explicit tool errors in tool code when:
+
+- You need user guidance for immediate retry (`RetryableToolError`).
+- You need user/orchestrator input before retry (`ContextRequiredToolError`).
+- You need a special business rule for one endpoint/tool path only.
 
 ## Implementation Pattern
 
@@ -64,7 +82,7 @@ Example ordering:
 
 ### 3) Normalize metadata
 
-Follow the HTTP/GraphQL adapters:
+For adapted errors:
 
 - Include `extra["service"] = self.slug`
 - Include `extra["error_type"] = type(exc).__name__` for non-status failures
@@ -80,30 +98,34 @@ Use deterministic mappings so retry behavior is predictable (`UpstreamError` der
 
 ### 5) Optional dependency handling
 
-For SDK-specific adapters, lazy-import the SDK module inside `from_exception`.
+For SDK-specific adapters, lazy-import the SDK module inside `from_exception` if that dependency may be optional.
 
 - If import fails, log and return `None`.
 - Do not raise import errors from adapter code paths.
 
-## Chain Integration Pattern
+## Registration Pattern
 
-Adapters are executed in order in `_build_adapter_chain`:
+For `httpx` and `requests`, automatic adaptation is typically available.
 
-1. user-provided adapters
-2. auth-provider adapter (if mapped)
-3. `GraphQLErrorAdapter`
-4. `HTTPErrorAdapter` fallback
+For SDK-specific adapters, register explicitly on tools.
 
-Integrate your adapter in one of two ways:
+```python
+from arcade_mcp_server import tool
+from arcade_tdk.error_adapters import GoogleErrorAdapter
 
-- User opt-in: pass via `@tool(adapters=[...])`
-- Auth-driven: wire it in `error_adapters/utils.py` if tied to a specific auth provider
+@tool(
+    # Depending on Arcade version, this may be `adapters=` or `error_adapters=`.
+    adapters=[GoogleErrorAdapter()],
+)
+def my_tool(...) -> ...:
+    ...
+```
 
-Deduplication is by adapter type, first occurrence wins.
+If your project uses a different parameter name, follow your installed API docs/signature.
 
 ## Required Test Matrix
 
-Create/extend tests in `libs/tests/sdk/` (or relevant area):
+Create or extend tests in your project test suite:
 
 - recognized typed exception -> expected `ToolRuntimeError` subclass
 - expected `status_code`, `kind`, `can_retry`
@@ -111,23 +133,11 @@ Create/extend tests in `libs/tests/sdk/` (or relevant area):
 - unknown exception returns `None`
 - optional dependency missing path returns `None`
 
-Suggested command:
-
-```bash
-uv run pytest libs/tests/sdk/test_httpx_adapter.py -q
-```
-
-Then run broader checks:
-
-```bash
-make check
-```
-
 ## Done Checklist
 
 - Adapter returns `ToolRuntimeError | None`
 - Safe agent-facing messages
 - Typed exception coverage added
 - Tests added/updated and passing
-- TDK version bumped (if TDK code changed)
-- No stdout/stderr noise added in MCP runtime paths
+- Any required package versioning updated for your repo rules
+- No noisy stdout/stderr output in MCP tool runtime paths
