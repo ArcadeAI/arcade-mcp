@@ -37,6 +37,25 @@ Start here and align behavior with this doc:
 6. Add tests for every new mapping path.
 7. Match your installed Arcade version's decorator API and parameter names.
 
+## Privacy Rule When Uncertain
+
+If you are not fully sure what `str(exc)`, vendor `reason`, or nested payload fields can contain, treat them as potentially sensitive.
+
+- Default to a safe agent-facing message template:
+  - `"Upstream <Service> request failed with status code <code>."`
+  - `"Upstream <Service> error: unhandled <ExceptionType>."`
+- Put raw details in `developer_message` instead of `message`.
+- Prefer structured non-secret context in `message` (status code, error class, stable provider error code).
+- Never put tokens, auth headers, full URLs with query params, raw response bodies, or stack traces in agent-facing `message`.
+
+Use this decision rule:
+
+1. **Known-safe field** (documented stable code/reason without sensitive payload): may be included in `message`.
+2. **Unknown or mixed-content field**: keep out of `message`; include only in `developer_message`.
+3. **High-risk content** (headers/body/credential-like strings): never include in `message`; sanitize or omit even in `developer_message` if policy requires.
+
+When in doubt, prefer slightly less detail in `message` and richer diagnostics in `developer_message`.
+
 ## Decide: Adapter vs explicit tool error
 
 Use an **error adapter** when:
@@ -132,11 +151,15 @@ Create or extend tests in your project test suite:
 - expected `extra` keys (`service`, `error_type`, endpoint/method when applicable)
 - unknown exception returns `None`
 - optional dependency missing path returns `None`
+- privacy split is verified:
+  - `message` stays safe for uncertain/raw exceptions
+  - `developer_message` carries deep diagnostics
 
 ## Done Checklist
 
 - Adapter returns `ToolRuntimeError | None`
 - Safe agent-facing messages
+- Uncertain exception content defaults to safe templates
 - Typed exception coverage added
 - Tests added/updated and passing
 - Any required package versioning updated for your repo rules
