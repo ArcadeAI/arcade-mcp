@@ -224,6 +224,7 @@ Set one repository secret in `arcade-mcp` with write access to `ArcadeAI/monorep
 - `MONOREPO_PAT`
 - `GH_PAT`
 - `PAT`
+- `PROMOTE_PAT_TOKEN`
 
 Without one of these secrets, cross-repo branch/PR automation cannot run.
 

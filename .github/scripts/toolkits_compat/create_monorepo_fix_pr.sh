@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [[ -z "${GH_TOKEN:-}" ]]; then
-  for candidate in "${MONOREPO_WRITE_PAT:-}" "${MONOREPO_PAT:-}" "${GH_PAT:-}" "${PAT:-}"; do
+  for candidate in "${MONOREPO_WRITE_PAT:-}" "${MONOREPO_PAT:-}" "${GH_PAT:-}" "${PAT:-}" "${PROMOTE_PAT_TOKEN:-}"; do
     if [[ -n "${candidate}" ]]; then
       export GH_TOKEN="${candidate}"
       break
@@ -11,7 +11,7 @@ if [[ -z "${GH_TOKEN:-}" ]]; then
 fi
 
 if [[ -z "${GH_TOKEN:-}" ]]; then
-  echo "Missing token. Configure MONOREPO_WRITE_PAT, MONOREPO_PAT, GH_PAT, PAT, or GH_TOKEN." >&2
+  echo "Missing token. Configure MONOREPO_WRITE_PAT, MONOREPO_PAT, GH_PAT, PAT, PROMOTE_PAT_TOKEN, or GH_TOKEN." >&2
   exit 1
 fi
 

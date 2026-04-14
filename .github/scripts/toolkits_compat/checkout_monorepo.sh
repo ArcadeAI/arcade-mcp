@@ -4,7 +4,7 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage: checkout_monorepo.sh --repo <org/repo> --ref <git-ref> --path <dir>
-Requires one of: MONOREPO_WRITE_PAT, MONOREPO_PAT, GH_PAT, PAT
+Requires one of: MONOREPO_WRITE_PAT, MONOREPO_PAT, GH_PAT, PAT, PROMOTE_PAT_TOKEN
 EOF
 }
 
@@ -39,7 +39,7 @@ if [[ -z "${repo}" || -z "${ref}" || -z "${target_path}" ]]; then
 fi
 
 monorepo_token=""
-for candidate in "${MONOREPO_WRITE_PAT:-}" "${MONOREPO_PAT:-}" "${GH_PAT:-}" "${PAT:-}"; do
+for candidate in "${MONOREPO_WRITE_PAT:-}" "${MONOREPO_PAT:-}" "${GH_PAT:-}" "${PAT:-}" "${PROMOTE_PAT_TOKEN:-}"; do
   if [[ -n "${candidate}" ]]; then
     monorepo_token="${candidate}"
     break
@@ -47,7 +47,7 @@ for candidate in "${MONOREPO_WRITE_PAT:-}" "${MONOREPO_PAT:-}" "${GH_PAT:-}" "${
 done
 
 if [[ -z "${monorepo_token}" ]]; then
-  echo "Missing monorepo token. Configure MONOREPO_WRITE_PAT, MONOREPO_PAT, GH_PAT, or PAT." >&2
+  echo "Missing monorepo token. Configure MONOREPO_WRITE_PAT, MONOREPO_PAT, GH_PAT, PAT, or PROMOTE_PAT_TOKEN." >&2
   exit 1
 fi
 

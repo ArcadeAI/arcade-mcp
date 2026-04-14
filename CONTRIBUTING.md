@@ -158,3 +158,4 @@ To enable branch + PR automation in CI, configure one of these repository secret
 - `MONOREPO_PAT`
 - `GH_PAT`
 - `PAT`
+- `PROMOTE_PAT_TOKEN`
