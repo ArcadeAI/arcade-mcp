@@ -5,6 +5,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from arcade_core.errors import (
+    ToolRuntimeError,
     UpstreamError,
     UpstreamRateLimitError,
 )
@@ -170,11 +171,31 @@ class BaseHTTPErrorMapper:
 class _HTTPXExceptionHandler:
     """Handler for httpx-specific exceptions."""
 
-    def handle_exception(self, exc: Any, mapper: BaseHTTPErrorMapper) -> UpstreamError | None:
-        """Handle httpx HTTPStatusError exceptions.
+    def _build_upstream_error(
+        self,
+        *,
+        mapper: BaseHTTPErrorMapper,
+        exc: Exception,
+        status_code: int,
+        message: str,
+        request_url: str | None,
+        request_method: str | None,
+    ) -> UpstreamError:
+        return UpstreamError(
+            message=message,
+            status_code=status_code,
+            developer_message=str(exc),
+            extra={
+                **mapper._build_extra_metadata(request_url, request_method),
+                "error_type": type(exc).__name__,
+            },
+        )
+
+    def handle_exception(self, exc: Any, mapper: BaseHTTPErrorMapper) -> ToolRuntimeError | None:
+        """Handle typed httpx exceptions.
 
         Args:
-            exc: An httpx.HTTPStatusError exception
+            exc: An httpx exception instance
             mapper: The BaseHTTPErrorMapper instance to use for mapping
 
         Returns:
@@ -186,33 +207,99 @@ class _HTTPXExceptionHandler:
         except ImportError:
             return None
 
-        if not isinstance(exc, httpx.HTTPStatusError):
-            return None
-
-        response = exc.response
         request_url = None
         request_method = None
-        if hasattr(exc, "request") and exc.request:
-            request_url = str(exc.request.url)
-            request_method = exc.request.method
+        request = getattr(exc, "request", None)
+        if request is not None:
+            request_url_obj = getattr(request, "url", None)
+            if request_url_obj is not None:
+                request_url = str(request_url_obj)
+            request_method_obj = getattr(request, "method", None)
+            if request_method_obj is not None:
+                request_method = str(request_method_obj)
 
-        return mapper._map_status_to_error(
-            response.status_code,
-            dict(response.headers),
-            str(exc),
-            request_url=request_url,
-            request_method=request_method,
-        )
+        if isinstance(exc, httpx.HTTPStatusError):
+            response = exc.response
+            return mapper._map_status_to_error(
+                response.status_code,
+                dict(response.headers),
+                str(exc),
+                request_url=request_url,
+                request_method=request_method,
+            )
+
+        # Order is intentional: specific subclasses before broad base classes.
+        if isinstance(exc, httpx.TimeoutException):
+            return self._build_upstream_error(
+                mapper=mapper,
+                exc=exc,
+                status_code=504,
+                message=f"Upstream HTTP timeout: {type(exc).__name__}",
+                request_url=request_url,
+                request_method=request_method,
+            )
+
+        if isinstance(exc, httpx.TooManyRedirects):
+            return self._build_upstream_error(
+                mapper=mapper,
+                exc=exc,
+                status_code=400,
+                message=f"Upstream HTTP request redirect limit exceeded: {type(exc).__name__}",
+                request_url=request_url,
+                request_method=request_method,
+            )
+
+        if isinstance(exc, (httpx.UnsupportedProtocol, httpx.LocalProtocolError)):
+            return self._build_upstream_error(
+                mapper=mapper,
+                exc=exc,
+                status_code=400,
+                message=f"Upstream HTTP request is invalid: {type(exc).__name__}",
+                request_url=request_url,
+                request_method=request_method,
+            )
+
+        if isinstance(exc, httpx.DecodingError):
+            return self._build_upstream_error(
+                mapper=mapper,
+                exc=exc,
+                status_code=502,
+                message=f"Upstream HTTP response decoding failed: {type(exc).__name__}",
+                request_url=request_url,
+                request_method=request_method,
+            )
+
+        if isinstance(exc, httpx.TransportError):
+            return self._build_upstream_error(
+                mapper=mapper,
+                exc=exc,
+                status_code=503,
+                message=f"Upstream HTTP transport error: {type(exc).__name__}",
+                request_url=request_url,
+                request_method=request_method,
+            )
+
+        if isinstance(exc, httpx.RequestError):
+            return self._build_upstream_error(
+                mapper=mapper,
+                exc=exc,
+                status_code=502,
+                message=f"Upstream HTTP request failed: {type(exc).__name__}",
+                request_url=request_url,
+                request_method=request_method,
+            )
+
+        return None
 
 
 class _RequestsExceptionHandler:
     """Handler for requests-specific exceptions."""
 
-    def handle_exception(self, exc: Any, mapper: BaseHTTPErrorMapper) -> UpstreamError | None:
-        """Handle requests library exceptions.
+    def handle_exception(self, exc: Any, mapper: BaseHTTPErrorMapper) -> ToolRuntimeError | None:
+        """Handle requests exceptions with HTTP responses.
 
         Args:
-            exc: A requests.exceptions.HTTPError exception
+            exc: A requests exception candidate
             mapper: The BaseHTTPErrorMapper instance to use for mapping
 
         Returns:
@@ -258,7 +345,7 @@ class HTTPErrorAdapter(BaseHTTPErrorMapper):
         self._httpx_handler = _HTTPXExceptionHandler()
         self._requests_handler = _RequestsExceptionHandler()
 
-    def from_exception(self, exc: Exception) -> UpstreamError | None:
+    def from_exception(self, exc: Exception) -> ToolRuntimeError | None:
         """Convert HTTP library exceptions into Arcade errors."""
 
         httpx_result = self._httpx_handler.handle_exception(exc, self)

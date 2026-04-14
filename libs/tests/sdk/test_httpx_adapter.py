@@ -2,7 +2,9 @@ import logging
 from datetime import datetime, timezone
 from unittest.mock import Mock, patch
 
-from arcade_core.errors import UpstreamError, UpstreamRateLimitError
+import httpx
+
+from arcade_core.errors import ErrorKind, UpstreamError, UpstreamRateLimitError
 from arcade_tdk.providers.http.error_adapter import BaseHTTPErrorMapper, HTTPErrorAdapter
 
 
@@ -327,6 +329,142 @@ class TestHTTPErrorAdapter:
         assert result.extra["service"] == "_http"
         assert "endpoint" not in result.extra
         assert "http_method" not in result.extra
+
+    def test_httpx_timeout_exception_handling(self):
+        """Timeout exceptions should map to retryable upstream timeouts."""
+        request = httpx.Request("GET", "https://api.example.com/slow?token=secret")
+        exc = httpx.ReadTimeout("Read timed out", request=request)
+
+        result = self.adapter.from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert result.status_code == 504
+        assert result.can_retry is True
+        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
+        assert result.message == "Upstream HTTP timeout: ReadTimeout"
+        assert result.extra["service"] == "_http"
+        assert result.extra["error_type"] == "ReadTimeout"
+        assert result.extra["endpoint"] == "https://api.example.com/slow"
+        assert result.extra["http_method"] == "GET"
+
+    def test_httpx_transport_exception_handling(self):
+        """Transport exceptions should map to retryable upstream transport errors."""
+        request = httpx.Request("POST", "https://api.example.com/ping")
+        exc = httpx.ConnectError("Connection failed", request=request)
+
+        result = self.adapter.from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert result.status_code == 503
+        assert result.can_retry is True
+        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
+        assert result.message == "Upstream HTTP transport error: ConnectError"
+        assert result.extra["service"] == "_http"
+        assert result.extra["error_type"] == "ConnectError"
+        assert result.extra["endpoint"] == "https://api.example.com/ping"
+        assert result.extra["http_method"] == "POST"
+
+    def test_httpx_unsupported_protocol_is_non_retryable_bad_request(self):
+        """Unsupported protocol should map to a non-retryable bad request."""
+        request = httpx.Request("GET", "ftp://api.example.com/resource")
+        exc = httpx.UnsupportedProtocol("Unsupported protocol", request=request)
+
+        result = self.adapter.from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert result.status_code == 400
+        assert result.can_retry is False
+        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST
+        assert result.message == "Upstream HTTP request is invalid: UnsupportedProtocol"
+        assert result.extra["service"] == "_http"
+        assert result.extra["error_type"] == "UnsupportedProtocol"
+        assert result.extra["endpoint"] == "ftp://api.example.com/resource"
+        assert result.extra["http_method"] == "GET"
+
+    def test_httpx_request_error_fallback(self):
+        """Unhandled httpx RequestError subclasses should still map as upstream errors."""
+        request = httpx.Request("DELETE", "https://api.example.com/resource/123")
+        exc = httpx.RequestError("Request failed", request=request)
+
+        result = self.adapter.from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert result.status_code == 502
+        assert result.can_retry is True
+        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
+        assert result.message == "Upstream HTTP request failed: RequestError"
+        assert result.extra["service"] == "_http"
+        assert result.extra["error_type"] == "RequestError"
+        assert result.extra["endpoint"] == "https://api.example.com/resource/123"
+        assert result.extra["http_method"] == "DELETE"
+
+    def test_httpx_decoding_error_handling(self):
+        """Decoding errors should map to retryable server-side upstream errors."""
+        request = httpx.Request("GET", "https://api.example.com/json")
+        exc = httpx.DecodingError("Unable to decode response body", request=request)
+
+        result = self.adapter.from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert result.status_code == 502
+        assert result.can_retry is True
+        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
+        assert result.message == "Upstream HTTP response decoding failed: DecodingError"
+        assert result.extra["service"] == "_http"
+        assert result.extra["error_type"] == "DecodingError"
+        assert result.extra["endpoint"] == "https://api.example.com/json"
+        assert result.extra["http_method"] == "GET"
+
+    def test_httpx_local_protocol_error_is_non_retryable_bad_request(self):
+        """Local protocol errors should map to non-retryable bad request errors."""
+        request = httpx.Request("GET", "https://api.example.com/broken")
+        exc = httpx.LocalProtocolError("Malformed local protocol state", request=request)
+
+        result = self.adapter.from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert result.status_code == 400
+        assert result.can_retry is False
+        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST
+        assert result.message == "Upstream HTTP request is invalid: LocalProtocolError"
+        assert result.extra["service"] == "_http"
+        assert result.extra["error_type"] == "LocalProtocolError"
+        assert result.extra["endpoint"] == "https://api.example.com/broken"
+        assert result.extra["http_method"] == "GET"
+
+    def test_httpx_remote_protocol_error_is_retryable_transport_error(self):
+        """Remote protocol errors should map to retryable transport errors."""
+        request = httpx.Request("GET", "https://api.example.com/protocol")
+        exc = httpx.RemoteProtocolError("Malformed upstream protocol response", request=request)
+
+        result = self.adapter.from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert result.status_code == 503
+        assert result.can_retry is True
+        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
+        assert result.message == "Upstream HTTP transport error: RemoteProtocolError"
+        assert result.extra["service"] == "_http"
+        assert result.extra["error_type"] == "RemoteProtocolError"
+        assert result.extra["endpoint"] == "https://api.example.com/protocol"
+        assert result.extra["http_method"] == "GET"
+
+    def test_httpx_too_many_redirects_is_non_retryable_bad_request(self):
+        """Redirect loops should map to non-retryable bad request errors."""
+        request = httpx.Request("GET", "https://api.example.com/redirect-loop")
+        exc = httpx.TooManyRedirects("Exceeded redirect limit", request=request)
+
+        result = self.adapter.from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert result.status_code == 400
+        assert result.can_retry is False
+        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST
+        assert result.message == "Upstream HTTP request redirect limit exceeded: TooManyRedirects"
+        assert result.extra["service"] == "_http"
+        assert result.extra["error_type"] == "TooManyRedirects"
+        assert result.extra["endpoint"] == "https://api.example.com/redirect-loop"
+        assert result.extra["http_method"] == "GET"
 
     def test_adapter_slug(self):
         """Test that the adapter has the correct slug."""
