@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [[ -z "${GH_TOKEN:-}" ]]; then
-  for candidate in "${MONOREPO_WRITE_PAT:-}" "${MONOREPO_PAT:-}" "${GH_PAT:-}" "${PAT:-}" "${PROMOTE_PAT_TOKEN:-}"; do
+  for candidate in "${MONOREPO_WRITE_PAT:-}" "${MONOREPO_PAT:-}" "${GH_PAT:-}" "${PROMOTE_PAT_TOKEN:-}" "${PAT:-}"; do
     if [[ -n "${candidate}" ]]; then
       export GH_TOKEN="${candidate}"
       break

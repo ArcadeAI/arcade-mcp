@@ -39,7 +39,7 @@ if [[ -z "${repo}" || -z "${ref}" || -z "${target_path}" ]]; then
 fi
 
 monorepo_token=""
-for candidate in "${MONOREPO_WRITE_PAT:-}" "${MONOREPO_PAT:-}" "${GH_PAT:-}" "${PAT:-}" "${PROMOTE_PAT_TOKEN:-}"; do
+for candidate in "${MONOREPO_WRITE_PAT:-}" "${MONOREPO_PAT:-}" "${GH_PAT:-}" "${PROMOTE_PAT_TOKEN:-}" "${PAT:-}"; do
   if [[ -n "${candidate}" ]]; then
     monorepo_token="${candidate}"
     break
