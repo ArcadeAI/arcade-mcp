@@ -47,8 +47,9 @@ class SlackErrorAdapter:
                 exc_info=True,
             )
             return UpstreamError(
-                message=f"Upstream Slack SDK error: {exc}",
+                message=f"Upstream Slack SDK error: unhandled {exc.__class__.__name__}.",
                 status_code=500,
+                developer_message=str(exc),
                 extra={
                     "service": self.slug,
                     "error_type": exc.__class__.__name__,

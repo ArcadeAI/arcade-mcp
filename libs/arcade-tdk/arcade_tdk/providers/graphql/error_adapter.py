@@ -147,7 +147,8 @@ class GraphQLErrorAdapter(BaseHTTPErrorMapper):
         return self._map_status_to_error(
             status=status,
             headers=headers or {},
-            msg=f"Upstream GraphQL error: {_extract_error_message(str(exc))}",
+            msg=f"Upstream GraphQL request failed with status code {status}.",
+            developer_message=str(exc),
             request_url=url,
             request_method=method,
         )

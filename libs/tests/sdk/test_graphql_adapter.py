@@ -170,6 +170,8 @@ class TestGraphQLErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+        assert result.message == "Upstream GraphQL request failed with status code 500."
+        assert result.developer_message == "Server error"
 
     def test_server_error_extracts_headers_from_cause(self) -> None:
         """Should extract headers from __cause__ if not on exception."""
@@ -265,6 +267,8 @@ class TestGraphQLErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 503
+        assert result.message == "Upstream GraphQL request failed with status code 503."
+        assert result.developer_message == "Unknown error"
 
     # --- Edge cases ---
 

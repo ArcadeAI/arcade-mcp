@@ -485,7 +485,8 @@ class TestGoogleErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 500
-        assert result.message == "Upstream Google API error: Some unhandled Google error"
+        assert result.message == "Upstream Google API error: unhandled MockUnhandledError."
+        assert result.developer_message == "Some unhandled Google error"
         assert result.extra["service"] == "_google_api_client"
         assert result.extra["error_type"] == "MockUnhandledError"
 

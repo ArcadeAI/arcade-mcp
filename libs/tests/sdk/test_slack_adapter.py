@@ -470,38 +470,28 @@ class TestSlackErrorAdapter:
 
     def test_from_exception_fallback_for_unhandled_slack_error(self):
         """Test from_exception fallback for unhandled Slack SDK errors."""
-        mock_error = Mock()
-        mock_error.__class__.__name__ = "UnhandledSlackError"
+        class MockUnhandledSlackError(Exception):
+            pass
+
+        mock_error = MockUnhandledSlackError("Bearer xoxb-super-secret-token")
         mock_error.__module__ = "slack_sdk.some_module"
         errors_module = self._create_mock_errors_module()
 
-        # Test that unhandled errors don't match any isinstance checks
-        api_result = self.adapter._handle_api_errors(mock_error, errors_module)
-        other_result = self.adapter._handle_other_errors(mock_error, errors_module)
+        mock_slack_sdk = Mock()
+        mock_slack_sdk.errors = errors_module
 
-        # Both should return None since the error doesn't match any known types
-        assert api_result is None
-        assert other_result is None
-
-        # Test the failsafe logic directly
-        if (
-            hasattr(mock_error, "__module__")
-            and mock_error.__module__
-            and "slack_sdk" in mock_error.__module__
+        with patch.dict(
+            "sys.modules",
+            {"slack_sdk": mock_slack_sdk, "slack_sdk.errors": errors_module},
         ):
-            result = UpstreamError(
-                message=f"Upstream Slack SDK error: {mock_error}",
-                status_code=500,
-                extra={
-                    "service": self.adapter.slug,
-                    "error_type": mock_error.__class__.__name__,
-                },
-            )
+            result = self.adapter.from_exception(mock_error)
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 500
+        assert result.message == "Upstream Slack SDK error: unhandled MockUnhandledSlackError."
+        assert result.developer_message == "Bearer xoxb-super-secret-token"
         assert result.extra["service"] == "_slack_sdk"
-        assert result.extra["error_type"] == "UnhandledSlackError"
+        assert result.extra["error_type"] == "MockUnhandledSlackError"
 
     def test_from_exception_non_slack_error(self):
         """Test from_exception with non-Slack error."""
