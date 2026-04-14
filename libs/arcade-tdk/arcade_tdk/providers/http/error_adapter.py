@@ -92,6 +92,7 @@ class BaseHTTPErrorMapper:
         status: int,
         headers: dict[str, str],
         msg: str,
+        developer_message: str | None = None,
         request_url: str | None = None,
         request_method: str | None = None,
     ) -> UpstreamError:
@@ -103,6 +104,7 @@ class BaseHTTPErrorMapper:
             return UpstreamRateLimitError(
                 retry_after_ms=self._parse_retry_ms(headers),
                 message=msg,
+                developer_message=developer_message,
                 extra=extra,
             )
 
@@ -110,10 +112,16 @@ class BaseHTTPErrorMapper:
             return UpstreamRateLimitError(
                 retry_after_ms=self._parse_retry_ms(headers),
                 message=msg,
+                developer_message=developer_message,
                 extra=extra,
             )
 
-        return UpstreamError(message=msg, status_code=status, extra=extra)
+        return UpstreamError(
+            message=msg,
+            status_code=status,
+            developer_message=developer_message,
+            extra=extra,
+        )
 
     def _is_rate_limit_403(self, headers: dict[str, str], msg: str) -> bool:
         """
@@ -220,10 +228,12 @@ class _HTTPXExceptionHandler:
 
         if isinstance(exc, httpx.HTTPStatusError):
             response = exc.response
+            safe_message = f"Upstream HTTP request failed with status code {response.status_code}."
             return mapper._map_status_to_error(
                 response.status_code,
                 dict(response.headers),
-                str(exc),
+                safe_message,
+                developer_message=str(exc),
                 request_url=request_url,
                 request_method=request_method,
             )
@@ -364,10 +374,12 @@ class _RequestsExceptionHandler:
             elif hasattr(response, "url"):
                 request_url = response.url
 
+            safe_message = f"Upstream HTTP request failed with status code {response.status_code}."
             return mapper._map_status_to_error(
                 response.status_code,
                 dict(response.headers),
-                str(exc),
+                safe_message,
+                developer_message=str(exc),
                 request_url=request_url,
                 request_method=request_method,
             )

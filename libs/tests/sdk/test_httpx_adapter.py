@@ -189,7 +189,8 @@ class TestHTTPErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 404
-        assert result.message == "404 Client Error: Not Found"
+        assert result.message == "Upstream HTTP request failed with status code 404."
+        assert result.developer_message == "404 Client Error: Not Found"
         assert result.extra["service"] == "_http"
         assert result.extra["endpoint"] == "https://api.example.com/users/123"
         assert result.extra["http_method"] == "GET"
@@ -218,7 +219,8 @@ class TestHTTPErrorAdapter:
 
         assert isinstance(result, UpstreamRateLimitError)
         assert result.retry_after_ms == 60_000
-        assert result.message == "429 Too Many Requests"
+        assert result.message == "Upstream HTTP request failed with status code 429."
+        assert result.developer_message == "429 Too Many Requests"
         assert result.extra["service"] == "_http"
         assert result.extra["endpoint"] == "https://api.example.com/upload"
         assert result.extra["http_method"] == "POST"
@@ -248,7 +250,8 @@ class TestHTTPErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 403
-        assert result.message == "403 Forbidden"
+        assert result.message == "Upstream HTTP request failed with status code 403."
+        assert result.developer_message == "403 Forbidden"
         assert result.extra["service"] == "_http"
         assert result.extra["endpoint"] == "https://api.example.com/protected"
         assert result.extra["http_method"] == "GET"
@@ -274,7 +277,8 @@ class TestHTTPErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 500
-        assert result.message == "500 Internal Server Error"
+        assert result.message == "Upstream HTTP request failed with status code 500."
+        assert result.developer_message == "500 Internal Server Error"
         assert result.extra["service"] == "_http"
         assert result.extra["endpoint"] == "https://api.example.com/server-error"
         assert "http_method" not in result.extra  # No method available
@@ -428,7 +432,8 @@ class TestHTTPErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 400
-        assert result.message == "400 Bad Request"
+        assert result.message == "Upstream HTTP request failed with status code 400."
+        assert result.developer_message == "400 Bad Request"
         assert result.extra["service"] == "_http"
         assert "endpoint" not in result.extra
         assert "http_method" not in result.extra
@@ -744,7 +749,8 @@ class TestHTTPErrorAdapter:
 
         assert isinstance(result, UpstreamRateLimitError)
         assert result.retry_after_ms == 120_000
-        assert result.message == "403 Forbidden"
+        assert result.message == "Upstream HTTP request failed with status code 403."
+        assert result.developer_message == "403 Forbidden"
 
     def test_requests_403_rate_limit_handling(self):
         """Test handling requests 403 rate limit with exhausted quota."""
@@ -774,4 +780,5 @@ class TestHTTPErrorAdapter:
 
         assert isinstance(result, UpstreamRateLimitError)
         assert result.retry_after_ms == 30_000
-        assert result.message == "403 Forbidden"
+        assert result.message == "Upstream HTTP request failed with status code 403."
+        assert result.developer_message == "403 Forbidden"
