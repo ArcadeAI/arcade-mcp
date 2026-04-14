@@ -57,7 +57,7 @@ result_file="${results_dir}/${toolkit_name}.json"
 write_result() {
   local status="$1"
   local exit_code="$2"
-  python - "${result_file}" "${toolkit_name}" "${status}" "${exit_code}" <<'PY'
+  uv run python - "${result_file}" "${toolkit_name}" "${status}" "${exit_code}" <<'PY'
 from __future__ import annotations
 
 import json
