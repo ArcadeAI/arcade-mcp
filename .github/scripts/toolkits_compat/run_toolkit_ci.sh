@@ -87,6 +87,14 @@ if [[ "${with_db_setup}" == "true" && -f tests/test_setup.sh ]]; then
   bash tests/test_setup.sh
 fi
 
+# Temporary deterministic canary: force one toolkit failure to exercise the
+# auto-create monorepo fix PR flow end-to-end.
+if [[ "${toolkit_name}" == "math" ]]; then
+  echo "Forcing canary failure for toolkit ${toolkit_name}."
+  write_result "failed" 99
+  exit 99
+fi
+
 set +e
 uv run pytest -W ignore -v --cov --cov-report=xml
 test_exit_code=$?
