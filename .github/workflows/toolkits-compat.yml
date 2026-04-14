@@ -48,11 +48,12 @@ jobs:
           MONOREPO_WRITE_PAT: ${{ secrets.MONOREPO_WRITE_PAT }}
           MONOREPO_PAT: ${{ secrets.MONOREPO_PAT }}
           GH_PAT: ${{ secrets.GH_PAT }}
+          PAT: ${{ secrets.PAT }}
         run: |
           set -euo pipefail
 
           monorepo_token=""
-          for candidate in "${MONOREPO_WRITE_PAT:-}" "${MONOREPO_PAT:-}" "${GH_PAT:-}"; do
+          for candidate in "${MONOREPO_WRITE_PAT:-}" "${MONOREPO_PAT:-}" "${GH_PAT:-}" "${PAT:-}"; do
             if [[ -n "${candidate}" ]]; then
               monorepo_token="${candidate}"
               break
@@ -60,7 +61,7 @@ jobs:
           done
 
           if [[ -z "${monorepo_token}" ]]; then
-            echo "MONOREPO_WRITE_PAT, MONOREPO_PAT, or GH_PAT secret is required for cross-repo compatibility checks." >&2
+            echo "MONOREPO_WRITE_PAT, MONOREPO_PAT, GH_PAT, or PAT secret is required for cross-repo compatibility checks." >&2
             exit 1
           fi
 
@@ -125,6 +126,7 @@ jobs:
           MONOREPO_WRITE_PAT: ${{ secrets.MONOREPO_WRITE_PAT }}
           MONOREPO_PAT: ${{ secrets.MONOREPO_PAT }}
           GH_PAT: ${{ secrets.GH_PAT }}
+          PAT: ${{ secrets.PAT }}
         run: |
           set -euo pipefail
           bash .github/scripts/toolkits_compat/checkout_monorepo.sh \
@@ -168,6 +170,7 @@ jobs:
           MONOREPO_WRITE_PAT: ${{ secrets.MONOREPO_WRITE_PAT }}
           MONOREPO_PAT: ${{ secrets.MONOREPO_PAT }}
           GH_PAT: ${{ secrets.GH_PAT }}
+          PAT: ${{ secrets.PAT }}
         run: |
           set -euo pipefail
           bash .github/scripts/toolkits_compat/checkout_monorepo.sh \
@@ -230,6 +233,7 @@ jobs:
           MONOREPO_WRITE_PAT: ${{ secrets.MONOREPO_WRITE_PAT }}
           MONOREPO_PAT: ${{ secrets.MONOREPO_PAT }}
           GH_PAT: ${{ secrets.GH_PAT }}
+          PAT: ${{ secrets.PAT }}
         run: |
           set -euo pipefail
           bash .github/scripts/toolkits_compat/checkout_monorepo.sh \
@@ -301,6 +305,7 @@ jobs:
           MONOREPO_WRITE_PAT: ${{ secrets.MONOREPO_WRITE_PAT }}
           MONOREPO_PAT: ${{ secrets.MONOREPO_PAT }}
           GH_PAT: ${{ secrets.GH_PAT }}
+          PAT: ${{ secrets.PAT }}
         run: |
           set -euo pipefail
           bash .github/scripts/toolkits_compat/checkout_monorepo.sh \
@@ -321,6 +326,7 @@ jobs:
           MONOREPO_WRITE_PAT: ${{ secrets.MONOREPO_WRITE_PAT }}
           MONOREPO_PAT: ${{ secrets.MONOREPO_PAT }}
           GH_PAT: ${{ secrets.GH_PAT }}
+          PAT: ${{ secrets.PAT }}
           ARCADE_PR_NUMBER: ${{ needs.resolve-target.outputs.arcade_pr_number }}
           ARCADE_PR_URL: ${{ github.event.pull_request.html_url || format('https://github.com/{0}/pull/{1}', github.repository, needs.resolve-target.outputs.arcade_pr_number) }}
           ARCADE_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
