@@ -1,0 +1,342 @@
+name: Toolkits Compatibility
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, edited]
+    paths:
+      - "libs/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "Makefile"
+      - ".github/workflows/toolkits-compat.yml"
+      - ".github/scripts/toolkits_compat/**"
+  workflow_dispatch:
+    inputs:
+      arcade_pr_number:
+        description: "Arcade PR number to inspect for toolkits-fix-pr trailer"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  MONOREPO_REPO: ArcadeAI/monorepo
+  TOOLKITS_FIX_TRAILER: toolkits-fix-pr
+  MONOREPO_TOKEN: ${{ secrets.MONOREPO_WRITE_PAT || secrets.MONOREPO_PAT || secrets.GH_PAT || '' }}
+
+jobs:
+  resolve-target:
+    name: Resolve monorepo target ref
+    runs-on: ubuntu-latest
+    outputs:
+      arcade_pr_number: ${{ steps.resolve.outputs.arcade_pr_number }}
+      monorepo_ref: ${{ steps.resolve.outputs.monorepo_ref }}
+      linked_fix_pr_url: ${{ steps.resolve.outputs.linked_fix_pr_url }}
+      has_linked_fix_pr: ${{ steps.resolve.outputs.has_linked_fix_pr }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Resolve PR linkage
+        id: resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARCADE_PR_NUMBER_INPUT: ${{ github.event.inputs.arcade_pr_number || '' }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${MONOREPO_TOKEN}" ]]; then
+            echo "MONOREPO_WRITE_PAT, MONOREPO_PAT, or GH_PAT secret is required for cross-repo compatibility checks." >&2
+            exit 1
+          fi
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            arcade_pr_number="${{ github.event.pull_request.number }}"
+          else
+            arcade_pr_number="${ARCADE_PR_NUMBER_INPUT}"
+          fi
+
+          if [[ -z "${arcade_pr_number}" ]]; then
+            echo "arcade_pr_number is required for workflow_dispatch runs." >&2
+            exit 1
+          fi
+
+          pr_body_file="$(mktemp)"
+          gh pr view "${arcade_pr_number}" --repo "${{ github.repository }}" --json body,comments --jq '(.body // "") + "\n\n" + ([.comments[].body // ""] | join("\n\n"))' > "${pr_body_file}"
+
+          linked_fix_pr_url="$(python .github/scripts/toolkits_compat/parse_fix_pr_trailer.py \
+            --body-file "${pr_body_file}" \
+            --trailer-key "${TOOLKITS_FIX_TRAILER}" \
+            --repo "${MONOREPO_REPO}" \
+            --print-url)"
+
+          if [[ -n "${linked_fix_pr_url}" ]]; then
+            linked_fix_pr_number="${linked_fix_pr_url##*/}"
+            monorepo_ref="$(
+              GH_TOKEN="${MONOREPO_TOKEN}" gh pr view "${linked_fix_pr_number}" \
+                --repo "${MONOREPO_REPO}" \
+                --json headRefName \
+                --jq .headRefName
+            )"
+            echo "has_linked_fix_pr=true" >> "${GITHUB_OUTPUT}"
+            echo "linked_fix_pr_url=${linked_fix_pr_url}" >> "${GITHUB_OUTPUT}"
+            echo "monorepo_ref=${monorepo_ref}" >> "${GITHUB_OUTPUT}"
+          else
+            echo "has_linked_fix_pr=false" >> "${GITHUB_OUTPUT}"
+            echo "linked_fix_pr_url=" >> "${GITHUB_OUTPUT}"
+            echo "monorepo_ref=main" >> "${GITHUB_OUTPUT}"
+          fi
+
+          echo "arcade_pr_number=${arcade_pr_number}" >> "${GITHUB_OUTPUT}"
+
+  discover-toolkits:
+    name: Discover toolkits
+    needs: resolve-target
+    runs-on: ubuntu-latest
+    outputs:
+      toolkits: ${{ steps.find.outputs.toolkits }}
+      toolkits_with_db: ${{ steps.find.outputs.toolkits_with_db }}
+    steps:
+      - name: Checkout monorepo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.MONOREPO_REPO }}
+          ref: ${{ needs.resolve-target.outputs.monorepo_ref }}
+          token: ${{ env.MONOREPO_TOKEN }}
+          path: monorepo
+
+      - name: Find toolkits
+        id: find
+        working-directory: monorepo
+        run: |
+          set -euo pipefail
+          all_toolkits=$(find apps/worker/toolkits -maxdepth 1 -type d -not -name "toolkits" -exec test -f {}/pyproject.toml \; -exec basename {} \; | jq -R -s -c 'split("\n")[:-1]')
+          toolkits_with_db='["postgres", "clickhouse", "mongodb"]'
+          toolkits=$(echo "${all_toolkits}" | jq -c --argjson with "${toolkits_with_db}" '[.[] | select(. as $t | $with | index($t) | not)]')
+          echo "toolkits=${toolkits}" >> "${GITHUB_OUTPUT}"
+          echo "toolkits_with_db=${toolkits_with_db}" >> "${GITHUB_OUTPUT}"
+
+  test-toolkits:
+    name: Test toolkit (${{ matrix.toolkit }})
+    needs: [resolve-target, discover-toolkits]
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        toolkit: ${{ fromJson(needs.discover-toolkits.outputs.toolkits) }}
+    steps:
+      - name: Checkout arcade-mcp
+        uses: actions/checkout@v4
+
+      - name: Checkout monorepo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.MONOREPO_REPO }}
+          ref: ${{ needs.resolve-target.outputs.monorepo_ref }}
+          token: ${{ env.MONOREPO_TOKEN }}
+          path: monorepo
+
+      - name: Configure local overrides for arcade libs
+        run: |
+          set -euo pipefail
+          cat <<EOF > monorepo/apps/worker/toolkits/.local-overrides
+          ${GITHUB_WORKSPACE}
+          ${GITHUB_WORKSPACE}/libs/arcade-core
+          ${GITHUB_WORKSPACE}/libs/arcade-tdk
+          ${GITHUB_WORKSPACE}/libs/arcade-serve
+          ${GITHUB_WORKSPACE}/libs/arcade-mcp-server
+          EOF
+
+      - name: Setup Python for toolkit
+        uses: ./monorepo/.github/actions/setup-python
+        with:
+          working-directory: monorepo/apps/worker/toolkits/${{ matrix.toolkit }}
+          python-version: "3.11"
+          enable-cache: "false"
+
+      - name: Build and test toolkit
+        run: |
+          set -euo pipefail
+          bash .github/scripts/toolkits_compat/run_toolkit_ci.sh \
+            --toolkit-name "${{ matrix.toolkit }}" \
+            --toolkit-dir "monorepo/apps/worker/toolkits/${{ matrix.toolkit }}"
+
+      - name: Upload toolkit result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: toolkit-result-${{ matrix.toolkit }}
+          path: toolkits-compat-results/${{ matrix.toolkit }}.json
+          if-no-files-found: ignore
+
+  test-toolkits-with-db:
+    name: Test DB toolkit (${{ matrix.toolkit }})
+    needs: [resolve-target, discover-toolkits]
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        toolkit: ${{ fromJson(needs.discover-toolkits.outputs.toolkits_with_db) }}
+    steps:
+      - name: Checkout arcade-mcp
+        uses: actions/checkout@v4
+
+      - name: Checkout monorepo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.MONOREPO_REPO }}
+          ref: ${{ needs.resolve-target.outputs.monorepo_ref }}
+          token: ${{ env.MONOREPO_TOKEN }}
+          path: monorepo
+
+      - name: Configure local overrides for arcade libs
+        run: |
+          set -euo pipefail
+          cat <<EOF > monorepo/apps/worker/toolkits/.local-overrides
+          ${GITHUB_WORKSPACE}
+          ${GITHUB_WORKSPACE}/libs/arcade-core
+          ${GITHUB_WORKSPACE}/libs/arcade-tdk
+          ${GITHUB_WORKSPACE}/libs/arcade-serve
+          ${GITHUB_WORKSPACE}/libs/arcade-mcp-server
+          EOF
+
+      - name: Setup Python for toolkit
+        uses: ./monorepo/.github/actions/setup-python
+        with:
+          working-directory: monorepo/apps/worker/toolkits/${{ matrix.toolkit }}
+          python-version: "3.11"
+          enable-cache: "false"
+
+      - name: Install mongosh
+        if: matrix.toolkit == 'mongodb'
+        run: |
+          set -euo pipefail
+          wget -qO- https://www.mongodb.org/static/pgp/server-6.0.asc | sudo gpg --dearmor -o /usr/share/keyrings/mongodb-server-6.0.gpg
+          echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-6.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+          sudo apt-get update
+          sudo apt-get install -y mongodb-mongosh
+
+      - name: Build and test toolkit
+        run: |
+          set -euo pipefail
+          bash .github/scripts/toolkits_compat/run_toolkit_ci.sh \
+            --toolkit-name "${{ matrix.toolkit }}" \
+            --toolkit-dir "monorepo/apps/worker/toolkits/${{ matrix.toolkit }}" \
+            --with-db-setup
+
+      - name: Upload toolkit result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: toolkit-result-${{ matrix.toolkit }}
+          path: toolkits-compat-results/${{ matrix.toolkit }}.json
+          if-no-files-found: ignore
+
+  create-monorepo-fix-pr:
+    name: Create monorepo compatibility PR
+    needs: [resolve-target, test-toolkits, test-toolkits-with-db]
+    if: |
+      always() &&
+      (needs.test-toolkits.result == 'failure' || needs.test-toolkits-with-db.result == 'failure') &&
+      needs.resolve-target.outputs.has_linked_fix_pr == 'false'
+    runs-on: ubuntu-latest
+    outputs:
+      created_pr_url: ${{ steps.create.outputs.pr_url }}
+    steps:
+      - name: Checkout arcade-mcp
+        uses: actions/checkout@v4
+
+      - name: Checkout monorepo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.MONOREPO_REPO }}
+          ref: main
+          token: ${{ env.MONOREPO_TOKEN }}
+          path: monorepo
+
+      - name: Download toolkit result artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: toolkit-result-*
+          path: toolkit-results
+          merge-multiple: true
+
+      - name: Create or reuse monorepo compatibility PR
+        id: create
+        env:
+          GH_TOKEN: ${{ env.MONOREPO_TOKEN }}
+          ARCADE_PR_NUMBER: ${{ needs.resolve-target.outputs.arcade_pr_number }}
+          ARCADE_PR_URL: ${{ github.event.pull_request.html_url || format('https://github.com/{0}/pull/{1}', github.repository, needs.resolve-target.outputs.arcade_pr_number) }}
+          ARCADE_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          MONOREPO_BASE_REF: main
+          TEMPLATE_FILE: ${{ github.workspace }}/.github/scripts/toolkits_compat/monorepo_fix_pr_template.md
+          RESULTS_DIR: ${{ github.workspace }}/toolkit-results
+        working-directory: monorepo
+        run: |
+          set -euo pipefail
+          bash "${GITHUB_WORKSPACE}/.github/scripts/toolkits_compat/create_monorepo_fix_pr.sh"
+
+      - name: Add toolkits-fix-pr trailer to arcade PR body
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARCADE_PR_NUMBER: ${{ needs.resolve-target.outputs.arcade_pr_number }}
+          CREATED_PR_URL: ${{ steps.create.outputs.pr_url }}
+          TRAILER_KEY: ${{ env.TOOLKITS_FIX_TRAILER }}
+        run: |
+          set -euo pipefail
+          body_file="$(mktemp)"
+          gh pr view "${ARCADE_PR_NUMBER}" --repo "${{ github.repository }}" --json body --jq .body > "${body_file}"
+          python .github/scripts/toolkits_compat/upsert_fix_pr_trailer.py \
+            --body-file "${body_file}" \
+            --url "${CREATED_PR_URL}" \
+            --trailer-key "${TRAILER_KEY}" \
+            > "${body_file}.updated"
+          gh pr edit "${ARCADE_PR_NUMBER}" --repo "${{ github.repository }}" --body-file "${body_file}.updated"
+
+      - name: Comment with compatibility PR link
+        if: steps.create.outputs.pr_url != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARCADE_PR_NUMBER: ${{ needs.resolve-target.outputs.arcade_pr_number }}
+          CREATED_PR_URL: ${{ steps.create.outputs.pr_url }}
+        run: |
+          set -euo pipefail
+          gh pr comment "${ARCADE_PR_NUMBER}" --repo "${{ github.repository }}" --body "Toolkits compatibility failed on monorepo main. Created follow-up PR: ${CREATED_PR_URL}. CI will validate against that PR branch on the next run."
+
+  final-status:
+    name: Toolkits compatibility gate
+    needs: [resolve-target, test-toolkits, test-toolkits-with-db, create-monorepo-fix-pr]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate compatibility status
+        run: |
+          set -euo pipefail
+
+          tests_failed="false"
+          if [[ "${{ needs.test-toolkits.result }}" == "failure" || "${{ needs.test-toolkits-with-db.result }}" == "failure" ]]; then
+            tests_failed="true"
+          fi
+
+          if [[ "${tests_failed}" == "false" ]]; then
+            echo "All toolkit compatibility checks passed."
+            exit 0
+          fi
+
+          if [[ "${{ needs.resolve-target.outputs.has_linked_fix_pr }}" == "true" ]]; then
+            echo "Toolkit compatibility failed while testing linked monorepo PR branch: ${{ needs.resolve-target.outputs.linked_fix_pr_url }}" >&2
+            exit 1
+          fi
+
+          if [[ "${{ needs.create-monorepo-fix-pr.result }}" == "success" && -n "${{ needs.create-monorepo-fix-pr.outputs.created_pr_url }}" ]]; then
+            echo "Toolkit compatibility failed on monorepo main. Created follow-up PR: ${{ needs.create-monorepo-fix-pr.outputs.created_pr_url }}" >&2
+            echo "Apply fixes in that PR branch and rerun this workflow." >&2
+            exit 1
+          fi
+
+          echo "Toolkit compatibility failed and follow-up PR could not be created automatically." >&2
+          exit 1

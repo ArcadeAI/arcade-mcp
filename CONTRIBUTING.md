@@ -137,3 +137,23 @@ Before you submit a pull request, check that it meets these guidelines:
 
 3. If making contributions to multiple servers (i.e. Google and Slack, etc.), submit a separate pull request for each.
    This helps us segregate the changes during the review process making it more efficient.
+
+## Toolkit Compatibility Follow-Up PRs
+
+Changes in `arcade-mcp` can break toolkits in `ArcadeAI/monorepo` before a release is published.
+
+The `Toolkits Compatibility` workflow validates toolkits against the current `arcade-mcp` PR branch by:
+
+1. Testing against `monorepo` `main` by default.
+2. Auto-creating a draft monorepo PR when compatibility fails.
+3. Switching validation to the linked monorepo PR branch when the `arcade-mcp` PR body includes:
+
+`toolkits-fix-pr: https://github.com/ArcadeAI/monorepo/pull/<number>`
+
+The workflow now writes this trailer automatically when it creates the monorepo draft PR.
+
+To enable branch + PR automation in CI, configure one of these repository secrets with a token that can write to `ArcadeAI/monorepo`:
+
+- `MONOREPO_WRITE_PAT`
+- `MONOREPO_PAT`
+- `GH_PAT`
