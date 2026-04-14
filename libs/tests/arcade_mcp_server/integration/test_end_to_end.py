@@ -28,6 +28,9 @@ def get_entrypoint_path() -> str:
 
 
 HTTP_STARTUP_TIMEOUT_SECONDS = 30 if sys.platform == "win32" else 10
+# First stdio response can be delayed on fresh CI machines while `uv run`
+# creates the integration server virtualenv and installs dependencies.
+STDIO_INIT_TIMEOUT_SECONDS = 45 if sys.platform == "win32" else 30
 
 
 def _find_open_tcp_port() -> int:
@@ -438,7 +441,7 @@ async def test_stdio_e2e():
             },
         )
 
-        init_response = client.read_response()
+        init_response = client.read_response(timeout=STDIO_INIT_TIMEOUT_SECONDS)
         assert init_response["jsonrpc"] == "2.0"
         assert init_response["id"] == init_id
         assert "result" in init_response
