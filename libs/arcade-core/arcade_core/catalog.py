@@ -65,8 +65,6 @@ from arcade_core.utils import (
 
 logger = logging.getLogger(__name__)
 
-raise RuntimeError("canary break for toolkit compatibility workflow")
-
 InnerWireType = Literal["string", "integer", "number", "boolean", "json"]
 WireType = Union[InnerWireType, Literal["array"]]
 
