@@ -194,6 +194,43 @@ arcade configure vscode --entrypoint my_server.py # Configure VSCode to connect 
 git clone https://github.com/ArcadeAI/arcade-mcp.git && cd arcade-mcp && make install
 ```
 
+## Cross-Repo Toolkit Compatibility Gate
+
+`arcade-mcp` changes can break toolkits that live in `ArcadeAI/monorepo/apps/worker/toolkits`.
+To catch this before release, this repository includes a dedicated CI workflow:
+
+- Workflow: `.github/workflows/toolkits-compat.yml`
+- Trigger: `pull_request` (plus `workflow_dispatch`)
+- Scope: validates monorepo toolkits against the current unmerged `arcade-mcp` PR branch
+
+### How it works
+
+1. Checks toolkit compatibility against `ArcadeAI/monorepo` `main`.
+2. If tests fail and no fix PR is linked yet, it auto-creates a draft monorepo PR with a bootstrap branch.
+3. It writes a trailer to the `arcade-mcp` PR body:
+
+```text
+toolkits-fix-pr: https://github.com/ArcadeAI/monorepo/pull/<number>
+```
+
+4. On the next run, compatibility tests switch from monorepo `main` to that linked PR branch.
+5. The `Toolkits Compatibility` check remains failing until compatibility passes.
+
+### Required secret for automation
+
+Set one repository secret in `arcade-mcp` with write access to `ArcadeAI/monorepo`:
+
+- `MONOREPO_WRITE_PAT` (preferred)
+- `MONOREPO_PAT`
+- `GH_PAT`
+
+Without one of these secrets, cross-repo branch/PR automation cannot run.
+
+### Developer notes
+
+- This gate uses monorepo-style toolkit commands (`make install`, `make build`, `pytest`) and local overrides to test against the current branch's `arcade-*` libs.
+- Helper scripts live in `.github/scripts/toolkits_compat/`.
+
 ## Support and Community
 
 -   **Discord:** Join our [Discord community](https://discord.com/invite/GUZEMpEZ9p) for real-time support and discussions.

@@ -16,7 +16,7 @@ def _extract_fix_pr_url(body: str, trailer_key: str, repo: str) -> str:
         rf"(?im)^\s*{escaped_key}\s*:\s*(https://github\.com/{escaped_repo}/pull/\d+)\s*$"
     )
     matches = pattern.findall(body)
-    return matches[-1] if matches else ""
+    return matches[0] if matches else ""
 
 
 def main() -> None:

@@ -2,7 +2,16 @@
 set -euo pipefail
 
 if [[ -z "${GH_TOKEN:-}" ]]; then
-  echo "GH_TOKEN must be set to a token with write access to ${MONOREPO_REPO:-ArcadeAI/monorepo}." >&2
+  for candidate in "${MONOREPO_WRITE_PAT:-}" "${MONOREPO_PAT:-}" "${GH_PAT:-}"; do
+    if [[ -n "${candidate}" ]]; then
+      export GH_TOKEN="${candidate}"
+      break
+    fi
+  done
+fi
+
+if [[ -z "${GH_TOKEN:-}" ]]; then
+  echo "Missing token. Configure MONOREPO_WRITE_PAT, MONOREPO_PAT, GH_PAT, or GH_TOKEN." >&2
   exit 1
 fi
 
@@ -17,6 +26,9 @@ if [[ -z "${TEMPLATE_FILE:-}" || ! -f "${TEMPLATE_FILE}" ]]; then
 fi
 
 results_dir="${RESULTS_DIR:-}"
+if [[ -n "${results_dir}" ]]; then
+  export RESULTS_DIR="${results_dir}"
+fi
 
 MONOREPO_REPO="${MONOREPO_REPO:-ArcadeAI/monorepo}"
 MONOREPO_BASE_REF="${MONOREPO_BASE_REF:-main}"
@@ -30,23 +42,33 @@ existing_pr_url="$(gh pr list \
   --state open \
   --head "${branch_name}" \
   --json url \
-  --jq '.[0].url')"
+  --jq '.[0].url // ""')"
 
 if [[ -n "${existing_pr_url}" ]]; then
   echo "pr_url=${existing_pr_url}" >> "${GITHUB_OUTPUT}"
   exit 0
 fi
 
+branch_exists_remote="false"
+origin_url="$(git remote get-url origin)"
+if [[ "${origin_url}" != *"${MONOREPO_REPO}"* ]]; then
+  echo "Expected monorepo origin remote to target ${MONOREPO_REPO}, got ${origin_url}" >&2
+  exit 1
+fi
+
 git fetch origin "${MONOREPO_BASE_REF}"
 
-if git ls-remote --heads origin "${branch_name}" | grep -q "${branch_name}"; then
+if git ls-remote --heads origin | grep -q "refs/heads/${branch_name}$"; then
+  branch_exists_remote="true"
+  git fetch origin "${branch_name}"
   git checkout -B "${branch_name}" "origin/${branch_name}"
 else
   git checkout -B "${branch_name}" "origin/${MONOREPO_BASE_REF}"
 fi
 
-mkdir -p "${bootstrap_dir}"
-cat <<EOF > "${bootstrap_file}"
+if [[ "${branch_exists_remote}" == "false" ]]; then
+  mkdir -p "${bootstrap_dir}"
+  cat <<EOF > "${bootstrap_file}"
 # Arcade MCP compatibility follow-up
 
 This branch was generated automatically because toolkit compatibility checks failed for:
@@ -57,14 +79,15 @@ This branch was generated automatically because toolkit compatibility checks fai
 Add fixes for toolkit compatibility on this branch.
 EOF
 
-git add "${bootstrap_file}"
+  git add "${bootstrap_file}"
 
-if ! git diff --cached --quiet; then
-  git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-    commit -m "chore: bootstrap compatibility branch for arcade-mcp #${ARCADE_PR_NUMBER}"
+  if ! git diff --cached --quiet; then
+    git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+      commit -m "chore: bootstrap compatibility branch for arcade-mcp #${ARCADE_PR_NUMBER}"
+  fi
+
+  git push --set-upstream origin "${branch_name}"
 fi
-
-git push --set-upstream origin "${branch_name}"
 
 export BRANCH_NAME="${branch_name}"
 
@@ -106,12 +129,15 @@ print(rendered)
 PY
 )"
 
+pr_body_file="$(mktemp)"
+printf '%s\n' "${pr_body}" > "${pr_body_file}"
+
 created_pr_url="$(gh pr create \
   --repo "${MONOREPO_REPO}" \
   --base "${MONOREPO_BASE_REF}" \
   --head "${branch_name}" \
   --title "${title}" \
-  --body "${pr_body}" \
+  --body-file "${pr_body_file}" \
   --draft)"
 
 echo "pr_url=${created_pr_url}" >> "${GITHUB_OUTPUT}"

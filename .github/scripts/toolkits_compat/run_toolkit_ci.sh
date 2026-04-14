@@ -14,10 +14,18 @@ with_db_setup="false"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --toolkit-name)
+      if [[ $# -lt 2 ]]; then
+        usage
+        exit 2
+      fi
       toolkit_name="${2:-}"
       shift 2
       ;;
     --toolkit-dir)
+      if [[ $# -lt 2 ]]; then
+        usage
+        exit 2
+      fi
       toolkit_dir="${2:-}"
       shift 2
       ;;
@@ -49,13 +57,24 @@ result_file="${results_dir}/${toolkit_name}.json"
 write_result() {
   local status="$1"
   local exit_code="$2"
-  python - <<PY > "${result_file}"
+  python - "${result_file}" "${toolkit_name}" "${status}" "${exit_code}" <<'PY'
+from __future__ import annotations
+
 import json
-print(json.dumps({
-  "toolkit": "${toolkit_name}",
-  "status": "${status}",
-  "exit_code": ${exit_code},
-}, sort_keys=True))
+from pathlib import Path
+import sys
+
+result_path = Path(sys.argv[1])
+toolkit_name = sys.argv[2]
+status = sys.argv[3]
+exit_code = int(sys.argv[4])
+
+payload = {
+    "toolkit": toolkit_name,
+    "status": status,
+    "exit_code": exit_code,
+}
+result_path.write_text(json.dumps(payload, sort_keys=True) + "\n", encoding="utf-8")
 PY
 }
 
@@ -69,7 +88,7 @@ if [[ "${with_db_setup}" == "true" && -f tests/test_setup.sh ]]; then
 fi
 
 set +e
-uv run pytest -W ignore -v --cov="arcade_${toolkit_name}" --cov-report=xml
+uv run pytest -W ignore -v --cov --cov-report=xml
 test_exit_code=$?
 set -e
 

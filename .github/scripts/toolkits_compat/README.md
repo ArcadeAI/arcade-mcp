@@ -18,6 +18,8 @@ This directory powers `.github/workflows/toolkits-compat.yml`.
   - extracts `toolkits-fix-pr: https://github.com/ArcadeAI/monorepo/pull/<n>`
 - `upsert_fix_pr_trailer.py`:
   - updates or appends the trailer in the `arcade-mcp` PR body
+- `checkout_monorepo.sh`:
+  - clones monorepo at a specific ref with step-scoped token selection
 - `create_monorepo_fix_pr.sh`:
   - creates/reuses `arcade-mcp-compat/pr-<arcade_pr_number>` branch
   - opens a draft PR from template
