@@ -280,11 +280,34 @@ class ServerSession:
         self._session_data: dict[str, Any] = {}
         self._request_meta: Any = None
 
+        # Version negotiation state (set during initialize)
+        self.negotiated_version: str | None = None
+        self._negotiated_capabilities: dict[str, Any] = {}
+
         # Request management
         self._request_manager = RequestManager(write_stream) if write_stream else None
 
         # Context for current request
         self._current_context: Context | None = None
+
+    def supports_version(self, version: str) -> bool:
+        """Whether negotiated version includes all features of the given version.
+        Uses feature-set subset check -- NOT lexical string comparison."""
+        from arcade_mcp_server.types import VERSION_FEATURES
+
+        if self.negotiated_version is None:
+            return False
+        negotiated_features = VERSION_FEATURES.get(self.negotiated_version, set())
+        required_features = VERSION_FEATURES.get(version, set())
+        return required_features.issubset(negotiated_features)
+
+    def has_feature(self, feature: str) -> bool:
+        """Whether negotiated version supports a specific feature."""
+        from arcade_mcp_server.types import version_has_feature
+
+        if self.negotiated_version is None:
+            return False
+        return version_has_feature(self.negotiated_version, feature)
 
     def set_client_params(self, params: InitializeParams) -> None:
         """Set client initialization parameters."""

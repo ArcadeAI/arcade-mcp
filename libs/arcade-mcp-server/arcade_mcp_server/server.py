@@ -44,7 +44,6 @@ from arcade_mcp_server.resource_server.base import ResourceOwner
 from arcade_mcp_server.session import InitializationState, NotificationManager, ServerSession
 from arcade_mcp_server.settings import MCPSettings, ServerSettings
 from arcade_mcp_server.types import (
-    LATEST_PROTOCOL_VERSION,
     BlobResourceContents,
     CallToolRequest,
     CallToolResult,
@@ -77,6 +76,8 @@ from arcade_mcp_server.types import (
     SubscribeRequest,
     TextResourceContents,
     UnsubscribeRequest,
+    negotiate_version,
+    version_has_feature,
 )
 from arcade_mcp_server.usage import ServerTracker
 
@@ -706,27 +707,78 @@ class MCPServer:
         if session:
             session.set_client_params(message.params)
 
-        caps_kwargs: dict[str, Any] = {
+        # Negotiate protocol version
+        client_version = message.params.protocolVersion
+        negotiated = negotiate_version(client_version)
+
+        # Build capabilities and server info for the negotiated version
+        stateless = session.stateless if session else False
+        caps_dict = self._build_capabilities(negotiated, stateless=stateless)
+        server_info_dict = self._build_server_info(negotiated)
+
+        # Store negotiation results on the session
+        if session:
+            session.negotiated_version = negotiated
+            session._negotiated_capabilities = caps_dict
+
+        result = InitializeResult(
+            protocolVersion=negotiated,
+            capabilities=ServerCapabilities(**caps_dict),
+            serverInfo=Implementation(**server_info_dict),
+            instructions=self.instructions,
+        )
+
+        return JSONRPCResponse(id=message.id, result=result)
+
+    def _build_capabilities(
+        self,
+        version: str,
+        *,
+        stateless: bool = False,
+    ) -> dict[str, Any]:
+        """Build server capabilities dict for the given protocol version.
+
+        Returns a dict suitable for both ServerCapabilities construction and
+        storage on session._negotiated_capabilities for Phase 3 dispatch.
+        """
+        caps: dict[str, Any] = {
             "tools": {"listChanged": True},
             "logging": {},
             "prompts": {"listChanged": True},
             "resources": {"subscribe": True, "listChanged": True},
         }
+
+        # Add middleware-contributed capabilities
         if self._extra_capabilities:
-            caps_kwargs.update(self._extra_capabilities)
+            caps.update(self._extra_capabilities)
 
-        result = InitializeResult(
-            protocolVersion=LATEST_PROTOCOL_VERSION,
-            capabilities=ServerCapabilities(**caps_kwargs),
-            serverInfo=Implementation(
-                name=self.name,
-                version=self.version,
-                title=self.title,
-            ),
-            instructions=self.instructions,
-        )
+        # 2025-11-25+ adds tasks capability (excluded for stateless sessions per AD 13)
+        if version_has_feature(version, "tasks") and not stateless:
+            caps["tasks"] = {
+                "list": {},
+                "cancel": {},
+                "requests": {"tools": {"call": {}}},
+            }
 
-        return JSONRPCResponse(id=message.id, result=result)
+        return caps
+
+    def _build_server_info(self, version: str) -> dict[str, Any]:
+        """Build server info dict for the given protocol version.
+
+        For 2025-06-18: returns name, version, title.
+        For 2025-11-25+: same for now. Phase 2 will add icons/description/websiteUrl
+        when the Implementation type gains those fields.
+        """
+        info: dict[str, Any] = {
+            "name": self.name,
+            "version": self.version,
+            "title": self.title,
+        }
+
+        # TODO (Phase 2): For 2025-11-25+, include icons, description, websiteUrl
+        # when Implementation type gains those optional fields.
+
+        return info
 
     async def _handle_list_tools(
         self,

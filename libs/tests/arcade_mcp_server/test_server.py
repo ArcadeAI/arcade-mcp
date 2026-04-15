@@ -1758,6 +1758,141 @@ class TestServerInitialResources:
             await server.stop()
 
 
+class TestVersionNegotiationInInitialize:
+    """Test version negotiation during initialize handshake."""
+
+    @pytest.mark.asyncio
+    async def test_initialize_with_2025_06_18_returns_2025_06_18(self, mcp_server, server_session):
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2025-06-18",
+                "capabilities": {},
+                "clientInfo": {"name": "test", "version": "1.0.0"},
+            },
+        }
+        response = await mcp_server.handle_message(message, session=server_session)
+        assert isinstance(response.result, InitializeResult)
+        assert response.result.protocolVersion == "2025-06-18"
+
+    @pytest.mark.asyncio
+    async def test_initialize_with_2025_11_25_returns_2025_11_25(self, mcp_server, server_session):
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2025-11-25",
+                "capabilities": {},
+                "clientInfo": {"name": "test", "version": "1.0.0"},
+            },
+        }
+        response = await mcp_server.handle_message(message, session=server_session)
+        assert isinstance(response.result, InitializeResult)
+        assert response.result.protocolVersion == "2025-11-25"
+
+    @pytest.mark.asyncio
+    async def test_initialize_with_unsupported_returns_latest(self, mcp_server, server_session):
+        """Unsupported version -> server returns latest (2025-11-25)."""
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2030-01-01",
+                "capabilities": {},
+                "clientInfo": {"name": "test", "version": "1.0.0"},
+            },
+        }
+        response = await mcp_server.handle_message(message, session=server_session)
+        assert isinstance(response.result, InitializeResult)
+        assert response.result.protocolVersion == "2025-11-25"
+
+    @pytest.mark.asyncio
+    async def test_initialize_2025_06_18_has_no_tasks_capability(self, mcp_server, server_session):
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2025-06-18",
+                "capabilities": {},
+                "clientInfo": {"name": "test", "version": "1.0.0"},
+            },
+        }
+        response = await mcp_server.handle_message(message, session=server_session)
+        result_dict = response.result.capabilities.model_dump(exclude_none=True)
+        assert "tasks" not in result_dict
+
+    @pytest.mark.asyncio
+    async def test_initialize_2025_11_25_has_tasks_capability_with_nested_structure(
+        self, mcp_server, server_session
+    ):
+        """2025-11-25 tasks capability includes nested requests structure.
+        tasks.list is included for ALL session types (auth and non-auth)."""
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2025-11-25",
+                "capabilities": {},
+                "clientInfo": {"name": "test", "version": "1.0.0"},
+            },
+        }
+        response = await mcp_server.handle_message(message, session=server_session)
+        # ServerCapabilities uses extra="allow", so tasks will be accessible via model_dump
+        caps_dict = response.result.capabilities.model_dump(exclude_none=True)
+        assert "tasks" in caps_dict
+        tasks_cap = caps_dict["tasks"]
+        assert "list" in tasks_cap
+        assert "cancel" in tasks_cap
+        assert "requests" in tasks_cap
+        assert "tools" in tasks_cap["requests"]
+        assert "call" in tasks_cap["requests"]["tools"]
+
+    @pytest.mark.asyncio
+    async def test_session_stores_negotiated_version(self, mcp_server, server_session):
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2025-11-25",
+                "capabilities": {},
+                "clientInfo": {"name": "test", "version": "1.0.0"},
+            },
+        }
+        await mcp_server.handle_message(message, session=server_session)
+        assert server_session.negotiated_version == "2025-11-25"
+
+    @pytest.mark.asyncio
+    async def test_initialize_2025_06_18_server_info_no_2025_11_25_fields(
+        self, mcp_server, server_session
+    ):
+        """2025-06-18 already supports title (present in 2025-06-18 schema), but
+        icons/description/websiteUrl are 2025-11-25-only and must not appear."""
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2025-06-18",
+                "capabilities": {},
+                "clientInfo": {"name": "test", "version": "1.0.0"},
+            },
+        }
+        response = await mcp_server.handle_message(message, session=server_session)
+        result_dict = response.result.model_dump(exclude_none=True)
+        server_info = result_dict.get("serverInfo", {})
+        # title IS allowed for 2025-06-18 (already in 2025-06-18 schema)
+        assert "icons" not in server_info
+        assert "description" not in server_info
+        assert "websiteUrl" not in server_info
+
+
 class TestToolMetaExtensionEdgeCases:
     """Test apply_meta_extensions edge cases on ToolManager directly."""
 

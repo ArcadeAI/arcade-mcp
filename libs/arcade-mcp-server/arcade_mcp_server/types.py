@@ -12,7 +12,49 @@ from arcade_mcp_server.resource_server.base import ResourceOwner
 # -----------------------------------------------------------------------------
 
 JSONRPC_VERSION: Literal["2.0"] = "2.0"
-LATEST_PROTOCOL_VERSION: str = "2025-06-18"
+
+SUPPORTED_PROTOCOL_VERSIONS: list[str] = ["2025-06-18", "2025-11-25"]
+LATEST_PROTOCOL_VERSION: str = "2025-11-25"
+
+# Feature registry — explicit per-version feature set to avoid lexical string comparison.
+# Non-date identifiers like "DRAFT-2025-v3" exist in spec artifacts and would break
+# lexical comparison. This is also how we add future versions cleanly — just add an entry.
+VERSION_FEATURES: dict[str, set[str]] = {
+    "2025-06-18": {"base", "sampling", "elicitation_form", "resources", "prompts", "tools"},
+    "2025-11-25": {
+        "base",
+        "sampling",
+        "elicitation_form",
+        "elicitation_url",
+        "resources",
+        "prompts",
+        "tools",
+        "tasks",
+        "tool_calling_in_sampling",
+        "icons",
+        "tool_execution",
+        "enum_schemas",
+        "implementation_metadata",
+    },
+}
+
+
+def negotiate_version(client_version: str) -> str:
+    """Negotiate the protocol version for this session.
+
+    Spec rule (lifecycle.mdx:167-177): if the server supports the client's requested
+    version, return it. Otherwise, return the server's latest supported version (the
+    client will decide whether to disconnect). This is NOT a 'latest <= client' rule.
+    """
+    if client_version in SUPPORTED_PROTOCOL_VERSIONS:
+        return client_version
+    return LATEST_PROTOCOL_VERSION
+
+
+def version_has_feature(version: str, feature: str) -> bool:
+    """Check if a protocol version supports a given feature."""
+    return feature in VERSION_FEATURES.get(version, set())
+
 
 # -----------------------------------------------------------------------------
 # Basic types

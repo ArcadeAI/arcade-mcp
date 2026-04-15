@@ -342,3 +342,42 @@ class TestServerSession:
         assert server_session.client_params == client_params
         assert server_session.client_params["clientInfo"]["name"] == "test-client"
         assert server_session.initialization_state == InitializationState.INITIALIZING
+
+
+class TestSessionVersion:
+    """Test version negotiation state on ServerSession."""
+
+    def test_negotiated_version_defaults_to_none(self, server_session):
+        assert server_session.negotiated_version is None
+
+    def test_supports_version_false_when_none(self, server_session):
+        assert server_session.supports_version("2025-11-25") is False
+
+    def test_supports_version_false_for_old_version(self, server_session):
+        server_session.negotiated_version = "2025-06-18"
+        assert server_session.supports_version("2025-11-25") is False
+
+    def test_supports_version_true_for_exact(self, server_session):
+        server_session.negotiated_version = "2025-11-25"
+        assert server_session.supports_version("2025-11-25") is True
+
+    def test_supports_version_uses_feature_subset_not_lexical(self, server_session):
+        """supports_version uses feature set subset check, not lexical string comparison.
+        This is critical because spec uses non-date identifiers like DRAFT-2025-v3."""
+        server_session.negotiated_version = "2025-11-25"
+        assert server_session.supports_version("2025-06-18") is True  # 06-18 features subset of 11-25
+
+    def test_has_feature_tasks(self, server_session):
+        server_session.negotiated_version = "2025-11-25"
+        assert server_session.has_feature("tasks") is True
+
+    def test_has_feature_tasks_false_for_old_version(self, server_session):
+        server_session.negotiated_version = "2025-06-18"
+        assert server_session.has_feature("tasks") is False
+
+    def test_has_feature_false_when_none(self, server_session):
+        assert server_session.has_feature("tasks") is False
+
+    def test_has_feature_base_always_present(self, server_session):
+        server_session.negotiated_version = "2025-06-18"
+        assert server_session.has_feature("base") is True
