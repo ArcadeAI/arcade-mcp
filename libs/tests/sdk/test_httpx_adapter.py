@@ -189,7 +189,7 @@ class TestHTTPErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 404
-        assert result.message == "Upstream HTTP request failed (404 Not Found, client error)."
+        assert result.message == "Upstream HTTP request failed (Not Found, client error)."
         assert result.developer_message == "404 Client Error: Not Found"
         assert result.extra["service"] == "_http"
         assert result.extra["endpoint"] == "https://api.example.com/users/123"
@@ -220,7 +220,7 @@ class TestHTTPErrorAdapter:
         assert isinstance(result, UpstreamRateLimitError)
         assert result.retry_after_ms == 60_000
         assert result.message == (
-            "Upstream HTTP request failed (429 Too Many Requests, client error). "
+            "Upstream HTTP request failed (Too Many Requests, client error). "
             "Retry after 60 second(s)."
         )
         assert result.developer_message == "429 Too Many Requests"
@@ -253,7 +253,7 @@ class TestHTTPErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 403
-        assert result.message == "Upstream HTTP request failed (403 Forbidden, client error)."
+        assert result.message == "Upstream HTTP request failed (Forbidden, client error)."
         assert result.developer_message == "403 Forbidden"
         assert result.extra["service"] == "_http"
         assert result.extra["endpoint"] == "https://api.example.com/protected"
@@ -280,7 +280,7 @@ class TestHTTPErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 500
-        assert result.message == "Upstream HTTP request failed (500 Internal Server Error, server error)."
+        assert result.message == "Upstream HTTP request failed (Internal Server Error, server error)."
         assert result.developer_message == "500 Internal Server Error"
         assert result.extra["service"] == "_http"
         assert result.extra["endpoint"] == "https://api.example.com/server-error"
@@ -309,10 +309,13 @@ class TestHTTPErrorAdapter:
         result = self.adapter.from_exception(exc)
 
         assert isinstance(result, UpstreamError)
-        assert result.status_code == 504
+        assert result.status_code is None
         assert result.can_retry is True
         assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
-        assert result.message == "Upstream HTTP timeout: ReadTimeout"
+        assert (
+            result.message
+            == "Upstream HTTP request timed out before receiving a response: ReadTimeout"
+        )
         assert result.extra["service"] == "_http"
         assert result.extra["error_type"] == "ReadTimeout"
         assert result.extra["endpoint"] == "https://api.example.com/slow"
@@ -326,7 +329,7 @@ class TestHTTPErrorAdapter:
         result = self.adapter.from_exception(exc)
 
         assert isinstance(result, UpstreamError)
-        assert result.status_code == 503
+        assert result.status_code is None
         assert result.can_retry is True
         assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
         assert result.message == "Upstream HTTP transport error: ConnectionError"
@@ -343,7 +346,7 @@ class TestHTTPErrorAdapter:
         result = self.adapter.from_exception(exc)
 
         assert isinstance(result, UpstreamError)
-        assert result.status_code == 400
+        assert result.status_code is None
         assert result.can_retry is False
         assert result.kind == ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST
         assert result.message == "Upstream HTTP request is invalid: InvalidURL"
@@ -360,7 +363,7 @@ class TestHTTPErrorAdapter:
         result = self.adapter.from_exception(exc)
 
         assert isinstance(result, UpstreamError)
-        assert result.status_code == 502
+        assert result.status_code is None
         assert result.can_retry is True
         assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
         assert result.message == "Upstream HTTP response decoding failed: ContentDecodingError"
@@ -377,7 +380,7 @@ class TestHTTPErrorAdapter:
         result = self.adapter.from_exception(exc)
 
         assert isinstance(result, UpstreamError)
-        assert result.status_code == 400
+        assert result.status_code is None
         assert result.can_retry is False
         assert result.kind == ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST
         assert result.message == "Upstream HTTP request redirect limit exceeded: TooManyRedirects"
@@ -394,7 +397,7 @@ class TestHTTPErrorAdapter:
         result = self.adapter.from_exception(exc)
 
         assert isinstance(result, UpstreamError)
-        assert result.status_code == 502
+        assert result.status_code is None
         assert result.can_retry is True
         assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
         assert result.message == "Upstream HTTP request failed: RequestException"
@@ -435,7 +438,7 @@ class TestHTTPErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 400
-        assert result.message == "Upstream HTTP request failed (400 Bad Request, client error)."
+        assert result.message == "Upstream HTTP request failed (Bad Request, client error)."
         assert result.developer_message == "400 Bad Request"
         assert result.extra["service"] == "_http"
         assert "endpoint" not in result.extra
@@ -449,10 +452,13 @@ class TestHTTPErrorAdapter:
         result = self.adapter.from_exception(exc)
 
         assert isinstance(result, UpstreamError)
-        assert result.status_code == 504
+        assert result.status_code is None
         assert result.can_retry is True
         assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
-        assert result.message == "Upstream HTTP timeout: ReadTimeout"
+        assert (
+            result.message
+            == "Upstream HTTP request timed out before receiving a response: ReadTimeout"
+        )
         assert result.extra["service"] == "_http"
         assert result.extra["error_type"] == "ReadTimeout"
         assert result.extra["endpoint"] == "https://api.example.com/slow"
@@ -466,7 +472,7 @@ class TestHTTPErrorAdapter:
         result = self.adapter.from_exception(exc)
 
         assert isinstance(result, UpstreamError)
-        assert result.status_code == 503
+        assert result.status_code is None
         assert result.can_retry is True
         assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
         assert result.message == "Upstream HTTP transport error: ConnectError"
@@ -483,7 +489,7 @@ class TestHTTPErrorAdapter:
         result = self.adapter.from_exception(exc)
 
         assert isinstance(result, UpstreamError)
-        assert result.status_code == 400
+        assert result.status_code is None
         assert result.can_retry is False
         assert result.kind == ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST
         assert result.message == "Upstream HTTP request is invalid: UnsupportedProtocol"
@@ -500,7 +506,7 @@ class TestHTTPErrorAdapter:
         result = self.adapter.from_exception(exc)
 
         assert isinstance(result, UpstreamError)
-        assert result.status_code == 502
+        assert result.status_code is None
         assert result.can_retry is True
         assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
         assert result.message == "Upstream HTTP request failed: RequestError"
@@ -517,7 +523,7 @@ class TestHTTPErrorAdapter:
         result = self.adapter.from_exception(exc)
 
         assert isinstance(result, UpstreamError)
-        assert result.status_code == 502
+        assert result.status_code is None
         assert result.can_retry is True
         assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
         assert result.message == "Upstream HTTP response decoding failed: DecodingError"
@@ -534,7 +540,7 @@ class TestHTTPErrorAdapter:
         result = self.adapter.from_exception(exc)
 
         assert isinstance(result, UpstreamError)
-        assert result.status_code == 400
+        assert result.status_code is None
         assert result.can_retry is False
         assert result.kind == ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST
         assert result.message == "Upstream HTTP request is invalid: LocalProtocolError"
@@ -551,7 +557,7 @@ class TestHTTPErrorAdapter:
         result = self.adapter.from_exception(exc)
 
         assert isinstance(result, UpstreamError)
-        assert result.status_code == 503
+        assert result.status_code is None
         assert result.can_retry is True
         assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
         assert result.message == "Upstream HTTP transport error: RemoteProtocolError"
@@ -568,7 +574,7 @@ class TestHTTPErrorAdapter:
         result = self.adapter.from_exception(exc)
 
         assert isinstance(result, UpstreamError)
-        assert result.status_code == 400
+        assert result.status_code is None
         assert result.can_retry is False
         assert result.kind == ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST
         assert result.message == "Upstream HTTP request redirect limit exceeded: TooManyRedirects"
@@ -753,7 +759,7 @@ class TestHTTPErrorAdapter:
         assert isinstance(result, UpstreamRateLimitError)
         assert result.retry_after_ms == 120_000
         assert result.message == (
-            "Upstream HTTP request failed (403 Forbidden, client error). "
+            "Upstream HTTP request failed (Forbidden, client error). "
             "Retry after 120 second(s)."
         )
         assert result.developer_message == "403 Forbidden"
@@ -787,7 +793,7 @@ class TestHTTPErrorAdapter:
         assert isinstance(result, UpstreamRateLimitError)
         assert result.retry_after_ms == 30_000
         assert result.message == (
-            "Upstream HTTP request failed (403 Forbidden, client error). "
+            "Upstream HTTP request failed (Forbidden, client error). "
             "Retry after 30 second(s)."
         )
         assert result.developer_message == "403 Forbidden"
@@ -811,7 +817,7 @@ class TestHTTPErrorAdapter:
         result = self.adapter.from_exception(exc)
 
         assert isinstance(result, UpstreamError)
-        assert result.message == "Upstream HTTP request failed (401 Unauthorized, client error)."
+        assert result.message == "Upstream HTTP request failed (Unauthorized, client error)."
         assert "secret-token" not in result.message
         assert "Bearer" not in result.message
         assert "payload" not in result.message

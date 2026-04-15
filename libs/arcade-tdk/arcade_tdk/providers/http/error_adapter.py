@@ -41,7 +41,7 @@ class BaseHTTPErrorMapper:
     def _build_safe_status_message(self, status: int, headers: dict[str, str]) -> str:
         phrase = self._status_phrase(status)
         status_class = self._status_class_label(status)
-        base_message = f"Upstream HTTP request failed ({status} {phrase}, {status_class})."
+        base_message = f"Upstream HTTP request failed ({phrase}, {status_class})."
 
         if status == 429 or (status == 403 and self._is_rate_limit_403(headers, base_message)):
             retry_after_ms = self._parse_retry_ms(headers)
@@ -220,8 +220,10 @@ class _HTTPXExceptionHandler:
         message: str,
         request_url: str | None,
         request_method: str | None,
+        observed_status_code: int | None = None,
+        include_status_code: bool = False,
     ) -> UpstreamError:
-        return UpstreamError(
+        error = UpstreamError(
             message=message,
             status_code=status_code,
             developer_message=str(exc),
@@ -230,6 +232,11 @@ class _HTTPXExceptionHandler:
                 "error_type": type(exc).__name__,
             },
         )
+        if not include_status_code:
+            error.status_code = None
+        if observed_status_code is not None:
+            error.status_code = observed_status_code
+        return error
 
     def handle_exception(self, exc: Any, mapper: BaseHTTPErrorMapper) -> ToolRuntimeError | None:
         """Handle typed httpx exceptions.
@@ -249,6 +256,7 @@ class _HTTPXExceptionHandler:
 
         request_url = None
         request_method = None
+        observed_status_code = None
         request = getattr(exc, "request", None)
         if request is not None:
             request_url_obj = getattr(request, "url", None)
@@ -257,6 +265,11 @@ class _HTTPXExceptionHandler:
             request_method_obj = getattr(request, "method", None)
             if request_method_obj is not None:
                 request_method = str(request_method_obj)
+        response = getattr(exc, "response", None)
+        if response is not None:
+            status_code_obj = getattr(response, "status_code", None)
+            if isinstance(status_code_obj, int):
+                observed_status_code = status_code_obj
 
         if isinstance(exc, httpx.HTTPStatusError):
             response = exc.response
@@ -277,10 +290,12 @@ class _HTTPXExceptionHandler:
             return self._build_upstream_error(
                 mapper=mapper,
                 exc=exc,
-                status_code=504,
-                message=f"Upstream HTTP timeout: {type(exc).__name__}",
+                status_code=503,
+                message=f"Upstream HTTP request timed out before receiving a response: {type(exc).__name__}",
                 request_url=request_url,
                 request_method=request_method,
+                observed_status_code=observed_status_code,
+                include_status_code=False,
             )
 
         if isinstance(exc, httpx.TooManyRedirects):
@@ -291,6 +306,8 @@ class _HTTPXExceptionHandler:
                 message=f"Upstream HTTP request redirect limit exceeded: {type(exc).__name__}",
                 request_url=request_url,
                 request_method=request_method,
+                observed_status_code=observed_status_code,
+                include_status_code=False,
             )
 
         if isinstance(exc, (httpx.UnsupportedProtocol, httpx.LocalProtocolError)):
@@ -301,6 +318,8 @@ class _HTTPXExceptionHandler:
                 message=f"Upstream HTTP request is invalid: {type(exc).__name__}",
                 request_url=request_url,
                 request_method=request_method,
+                observed_status_code=observed_status_code,
+                include_status_code=False,
             )
 
         if isinstance(exc, httpx.DecodingError):
@@ -311,6 +330,8 @@ class _HTTPXExceptionHandler:
                 message=f"Upstream HTTP response decoding failed: {type(exc).__name__}",
                 request_url=request_url,
                 request_method=request_method,
+                observed_status_code=observed_status_code,
+                include_status_code=False,
             )
 
         if isinstance(exc, httpx.TransportError):
@@ -321,6 +342,8 @@ class _HTTPXExceptionHandler:
                 message=f"Upstream HTTP transport error: {type(exc).__name__}",
                 request_url=request_url,
                 request_method=request_method,
+                observed_status_code=observed_status_code,
+                include_status_code=False,
             )
 
         if isinstance(exc, httpx.RequestError):
@@ -331,6 +354,8 @@ class _HTTPXExceptionHandler:
                 message=f"Upstream HTTP request failed: {type(exc).__name__}",
                 request_url=request_url,
                 request_method=request_method,
+                observed_status_code=observed_status_code,
+                include_status_code=False,
             )
 
         return None
@@ -348,8 +373,10 @@ class _RequestsExceptionHandler:
         message: str,
         request_url: str | None,
         request_method: str | None,
+        observed_status_code: int | None = None,
+        include_status_code: bool = False,
     ) -> UpstreamError:
-        return UpstreamError(
+        error = UpstreamError(
             message=message,
             status_code=status_code,
             developer_message=str(exc),
@@ -358,6 +385,11 @@ class _RequestsExceptionHandler:
                 "error_type": type(exc).__name__,
             },
         )
+        if not include_status_code:
+            error.status_code = None
+        if observed_status_code is not None:
+            error.status_code = observed_status_code
+        return error
 
     def handle_exception(self, exc: Any, mapper: BaseHTTPErrorMapper) -> ToolRuntimeError | None:
         """Handle requests exceptions with HTTP responses.
@@ -387,6 +419,7 @@ class _RequestsExceptionHandler:
 
         request_url = None
         request_method = None
+        observed_status_code = None
         request = getattr(exc, "request", None)
         if request is not None:
             request_url_obj = getattr(request, "url", None)
@@ -395,6 +428,24 @@ class _RequestsExceptionHandler:
             request_method_obj = getattr(request, "method", None)
             if request_method_obj is not None:
                 request_method = str(request_method_obj)
+        response = getattr(exc, "response", None)
+        if response is not None:
+            status_code_obj = getattr(response, "status_code", None)
+            if isinstance(status_code_obj, int):
+                observed_status_code = status_code_obj
+            response_request = getattr(response, "request", None)
+            if request_url is None and response_request is not None:
+                response_request_url = getattr(response_request, "url", None)
+                if response_request_url is not None:
+                    request_url = str(response_request_url)
+            if request_method is None and response_request is not None:
+                response_request_method = getattr(response_request, "method", None)
+                if response_request_method is not None:
+                    request_method = str(response_request_method)
+            if request_url is None:
+                response_url = getattr(response, "url", None)
+                if response_url is not None:
+                    request_url = str(response_url)
 
         if isinstance(exc, HTTPError):
             response = getattr(exc, "response", None)
@@ -425,10 +476,12 @@ class _RequestsExceptionHandler:
             return self._build_upstream_error(
                 mapper=mapper,
                 exc=exc,
-                status_code=504,
-                message=f"Upstream HTTP timeout: {type(exc).__name__}",
+                status_code=503,
+                message=f"Upstream HTTP request timed out before receiving a response: {type(exc).__name__}",
                 request_url=request_url,
                 request_method=request_method,
+                observed_status_code=observed_status_code,
+                include_status_code=False,
             )
 
         if isinstance(exc, TooManyRedirects):
@@ -439,6 +492,8 @@ class _RequestsExceptionHandler:
                 message=f"Upstream HTTP request redirect limit exceeded: {type(exc).__name__}",
                 request_url=request_url,
                 request_method=request_method,
+                observed_status_code=observed_status_code,
+                include_status_code=False,
             )
 
         if isinstance(exc, (InvalidURL, InvalidSchema, InvalidProxyURL)):
@@ -449,6 +504,8 @@ class _RequestsExceptionHandler:
                 message=f"Upstream HTTP request is invalid: {type(exc).__name__}",
                 request_url=request_url,
                 request_method=request_method,
+                observed_status_code=observed_status_code,
+                include_status_code=False,
             )
 
         if isinstance(exc, ContentDecodingError):
@@ -459,6 +516,8 @@ class _RequestsExceptionHandler:
                 message=f"Upstream HTTP response decoding failed: {type(exc).__name__}",
                 request_url=request_url,
                 request_method=request_method,
+                observed_status_code=observed_status_code,
+                include_status_code=False,
             )
 
         if isinstance(exc, ConnectionError):
@@ -469,6 +528,8 @@ class _RequestsExceptionHandler:
                 message=f"Upstream HTTP transport error: {type(exc).__name__}",
                 request_url=request_url,
                 request_method=request_method,
+                observed_status_code=observed_status_code,
+                include_status_code=False,
             )
 
         if isinstance(exc, RequestException):
@@ -479,6 +540,8 @@ class _RequestsExceptionHandler:
                 message=f"Upstream HTTP request failed: {type(exc).__name__}",
                 request_url=request_url,
                 request_method=request_method,
+                observed_status_code=observed_status_code,
+                include_status_code=False,
             )
 
         return None
