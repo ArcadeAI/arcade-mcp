@@ -37,9 +37,11 @@ __all__ = [
     "ServerError",
     "ServerRequestError",
     "SessionError",
+    "SessionNotInitializedError",
     "ToolExecutionError",
     "ToolRuntimeError",
     "TransportError",
+    "UnsupportedSchemaDialectError",
     "UpstreamError",
     "UpstreamRateLimitError",
 ]
@@ -118,3 +120,11 @@ class ProtocolError(MCPRuntimeError):
 
 class IncompleteAuthContextError(MCPError):
     """Auth context is missing required claims (e.g., iss) for task scoping."""
+
+
+class UnsupportedSchemaDialectError(MCPError):
+    """Raised when a JSON Schema $schema URI declares an unsupported dialect."""
+
+
+class SessionNotInitializedError(SessionError):
+    """Raised when an outbound request is attempted before session initialization."""

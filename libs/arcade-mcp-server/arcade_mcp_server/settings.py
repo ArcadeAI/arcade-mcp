@@ -146,6 +146,20 @@ class TransportSettings(BaseSettings):
         ge=10,
         le=10000,
     )
+    allowed_origins: list[str] | None = Field(
+        default=None,
+        description="Allowed Origin headers (comma-separated). None = reject any Origin. ['*'] = allow all.",
+    )
+
+    @field_validator("allowed_origins", mode="before")
+    @classmethod
+    def parse_allowed_origins(cls, v: Any) -> list[str] | None:
+        """Parse comma-separated origins from env var."""
+        if v is None:
+            return None
+        if isinstance(v, str):
+            return [s.strip() for s in v.split(",") if s.strip()]
+        return v
 
     model_config = {"env_prefix": "MCP_TRANSPORT_"}
 

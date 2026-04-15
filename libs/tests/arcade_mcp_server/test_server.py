@@ -363,7 +363,7 @@ class TestMCPServer:
 
     @pytest.mark.asyncio
     async def test_handle_call_tool_not_found(self, mcp_server):
-        """Test calling a non-existent tool."""
+        """Test calling a non-existent tool returns JSON-RPC error (AD 15)."""
         message = CallToolRequest(
             jsonrpc="2.0",
             id=3,
@@ -373,10 +373,9 @@ class TestMCPServer:
 
         response = await mcp_server._handle_call_tool(message)
 
-        assert isinstance(response, JSONRPCResponse)
-        assert response.result.isError
-        assert "error" in response.result.structuredContent
-        assert "Unknown tool" in response.result.structuredContent["error"]
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32602
+        assert "Unknown tool" in response.error["message"]
 
     @pytest.mark.asyncio
     async def test_handle_message_routing(self, mcp_server, initialized_server_session):
@@ -2495,3 +2494,195 @@ class TestURLElicitationRequiredErrorType:
             data={"elicitations": []}
         )
         assert err.code == -32042
+
+
+# ============================================================================
+# Phase 7 tests
+# ============================================================================
+
+from arcade_mcp_server.exceptions import UnsupportedSchemaDialectError
+from arcade_mcp_server.server import _validate_schema_dialect, is_valid_tool_name
+
+
+class TestToolNameValidation:
+    """Tests for tool name validation guidance (spec tools.mdx:213-224).
+    Rules are SHOULD (not MUST), so we warn at registration time, not reject."""
+
+    def test_valid_tool_name_accepted(self):
+        assert is_valid_tool_name("getUser")
+        assert is_valid_tool_name("DATA_EXPORT_v2")
+        assert is_valid_tool_name("admin.tools.list")
+        assert is_valid_tool_name("my-tool-123")
+
+    def test_tool_name_with_spaces_warns(self):
+        assert not is_valid_tool_name("my tool")
+
+    def test_tool_name_too_long_warns(self):
+        assert not is_valid_tool_name("a" * 129)
+
+    def test_tool_name_empty_warns(self):
+        assert not is_valid_tool_name("")
+
+    def test_tool_name_special_chars_warns(self):
+        assert not is_valid_tool_name("tool@name")
+        assert not is_valid_tool_name("tool,name")
+
+
+class TestSchemaDialectValidation:
+    """Tests for JSON Schema 2020-12 dialect support (spec index.mdx:182-184)."""
+
+    def test_schema_without_dollar_schema_is_valid(self):
+        schema = {"type": "object", "properties": {"x": {"type": "integer"}}}
+        _validate_schema_dialect(schema)
+
+    def test_schema_with_2020_12_dialect_is_valid(self):
+        schema = {"$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object"}
+        _validate_schema_dialect(schema)
+
+    def test_schema_with_unsupported_dialect_raises_error(self):
+        schema = {"$schema": "https://json-schema.org/draft/04/schema",
+                  "type": "object"}
+        with pytest.raises(UnsupportedSchemaDialectError):
+            _validate_schema_dialect(schema)
+
+    def test_schema_with_mcp_spec_version_tagged_uri_is_valid(self):
+        schema = {"$schema": "https://json-schema.org/2025-11-25/2020-12/schema",
+                  "type": "object"}
+        _validate_schema_dialect(schema)
+
+    def test_schema_with_2020_12_http_variant_is_valid(self):
+        schema = {"$schema": "http://json-schema.org/draft/2020-12/schema",
+                  "type": "object"}
+        _validate_schema_dialect(schema)
+
+    def test_schema_with_draft_07_raises_error(self):
+        schema = {"$schema": "http://json-schema.org/draft-07/schema#",
+                  "type": "object"}
+        with pytest.raises(UnsupportedSchemaDialectError):
+            _validate_schema_dialect(schema)
+
+
+class TestInputValidationAsToolError:
+    """Input validation behavior is VERSION-GATED (response shape differs):
+    - 2025-11-25: invalid args -> CallToolResult(isError=True)
+    - 2025-06-18: invalid args -> JSONRPCError -32602 (Invalid params)"""
+
+    @pytest.mark.asyncio
+    async def test_invalid_tool_params_returns_tool_error_for_2025_11_25(
+        self, mcp_server, initialized_server_session
+    ):
+        """2025-11-25: Input validation errors should be CallToolResult(isError=True)."""
+        initialized_server_session.negotiated_version = "2025-11-25"
+        # Pass a dict for a string param to trigger ValidationError -> ToolInputError
+        message = {
+            "jsonrpc": "2.0", "id": 1, "method": "tools/call",
+            "params": {"name": "TestToolkit.test_tool", "arguments": {"text": {"nested": "dict"}}},
+        }
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert not isinstance(response, JSONRPCError)
+        assert response.result.isError is True
+
+    @pytest.mark.asyncio
+    async def test_invalid_tool_params_returns_json_rpc_error_for_2025_06_18(
+        self, mcp_server, initialized_server_session
+    ):
+        """2025-06-18: Input validation errors are JSONRPCError with -32602."""
+        initialized_server_session.negotiated_version = "2025-06-18"
+        # Pass a dict for a string param to trigger ValidationError -> ToolInputError
+        message = {
+            "jsonrpc": "2.0", "id": 1, "method": "tools/call",
+            "params": {"name": "TestToolkit.test_tool", "arguments": {"text": {"nested": "dict"}}},
+        }
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32602
+
+
+class TestUnknownToolProtocolError:
+    """Unknown tools are protocol errors (JSON-RPC -32602), NOT tool execution errors."""
+
+    @pytest.mark.asyncio
+    async def test_unknown_tool_returns_json_rpc_error(
+        self, mcp_server, initialized_server_session
+    ):
+        message = {
+            "jsonrpc": "2.0", "id": 1, "method": "tools/call",
+            "params": {"name": "nonexistent_tool", "arguments": {}},
+        }
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32602
+
+    @pytest.mark.asyncio
+    async def test_known_tool_bad_input_returns_tool_error_for_2025_11_25(
+        self, mcp_server, initialized_server_session
+    ):
+        initialized_server_session.negotiated_version = "2025-11-25"
+        message = {
+            "jsonrpc": "2.0", "id": 1, "method": "tools/call",
+            "params": {"name": "TestToolkit.test_tool", "arguments": {"text": {"nested": "dict"}}},
+        }
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert not isinstance(response, JSONRPCError)
+        assert response.result.isError is True
+
+    @pytest.mark.asyncio
+    async def test_known_tool_bad_input_returns_json_rpc_error_for_2025_06_18(
+        self, mcp_server, initialized_server_session
+    ):
+        initialized_server_session.negotiated_version = "2025-06-18"
+        message = {
+            "jsonrpc": "2.0", "id": 1, "method": "tools/call",
+            "params": {"name": "TestToolkit.test_tool", "arguments": {"text": {"nested": "dict"}}},
+        }
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+
+
+import json
+
+
+class TestJSONRPCErrorIdHandling:
+    """Tests that JSON-RPC error responses use proper id values (AD 18)."""
+
+    @pytest.mark.asyncio
+    async def test_error_with_none_id_serializes_as_json_null(self):
+        """When request id is unknown, error id is None -> serializes as JSON null."""
+        error = JSONRPCError(id=None, error={"code": -32600, "message": "Invalid"})
+        json_str = error.model_dump_json()
+        parsed = json.loads(json_str)
+        assert parsed["id"] is None
+
+    @pytest.mark.asyncio
+    async def test_invalid_request_no_method_uses_actual_id(self, mcp_server):
+        """Invalid request (no method field) uses the id from the message."""
+        session = Mock()
+        session.initialization_state = InitializationState.NOT_INITIALIZED
+        message = {"jsonrpc": "2.0", "id": 99}  # no "method" field
+        response = await mcp_server.handle_message(message, session)
+        assert isinstance(response, JSONRPCError)
+        assert response.id == 99
+
+    @pytest.mark.asyncio
+    async def test_method_not_found_uses_request_id(self, mcp_server, initialized_server_session):
+        """Method-not-found error uses the request's id."""
+        message = {"jsonrpc": "2.0", "id": "req-1", "method": "nonexistent/method"}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.id == "req-1"
+
+    @pytest.mark.asyncio
+    async def test_broad_except_handler_uses_request_id(self, mcp_server, initialized_server_session):
+        """Broad except handler uses the request's actual id."""
+        from unittest.mock import patch
+
+        # Patch _parse_message to raise an unexpected error, triggering the broad except
+        message = {
+            "jsonrpc": "2.0", "id": "abc-123", "method": "tools/call",
+            "params": {"name": "TestToolkit.test_tool", "arguments": {"text": "hello"}},
+        }
+        with patch.object(mcp_server, "_parse_message", side_effect=RuntimeError("unexpected")):
+            response = await mcp_server.handle_message(message, initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.id == "abc-123"

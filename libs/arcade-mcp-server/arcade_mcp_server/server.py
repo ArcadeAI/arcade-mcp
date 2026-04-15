@@ -18,20 +18,28 @@ import asyncio
 import contextlib
 import logging
 import os
+import re
 from typing import Any, Callable, cast
 
 from arcade_core.auth_tokens import get_valid_access_token
 from arcade_core.catalog import MaterializedTool, ToolCatalog
+from arcade_core.errors import ToolInputError
 from arcade_core.executor import ToolExecutor
 from arcade_core.network.org_transport import build_org_scoped_async_http_client
 from arcade_core.schema import ToolAuthorizationContext, ToolContext
 from arcade_core.schema import ToolAuthRequirement as CoreToolAuthRequirement
 from arcadepy import ArcadeError, AsyncArcade
 from arcadepy.types.auth_authorize_params import AuthRequirement, AuthRequirementOauth2
+from pydantic import ValidationError
 
 from arcade_mcp_server.context import Context, get_current_model_context, set_current_model_context
 from arcade_mcp_server.convert import convert_content_to_structured_content, convert_to_mcp_content
-from arcade_mcp_server.exceptions import IncompleteAuthContextError, NotFoundError, ToolRuntimeError
+from arcade_mcp_server.exceptions import (
+    IncompleteAuthContextError,
+    NotFoundError,
+    ToolRuntimeError,
+    UnsupportedSchemaDialectError,
+)
 from arcade_mcp_server.lifespan import LifespanManager
 from arcade_mcp_server.managers import PromptManager, ResourceManager, TaskManager, ToolManager
 from arcade_mcp_server.managers.task_manager import (
@@ -87,6 +95,7 @@ from arcade_mcp_server.types import (
     SubscribeRequest,
     TaskStatus,
     TaskStatusNotification,
+    TextContent,
     TextResourceContents,
     UnsubscribeRequest,
     negotiate_version,
@@ -95,6 +104,48 @@ from arcade_mcp_server.types import (
 from arcade_mcp_server.usage import ServerTracker
 
 logger = logging.getLogger("arcade.mcp")
+
+# Tool name validation pattern: 1-128 chars, only [A-Za-z0-9_.-]
+_TOOL_NAME_RE = re.compile(r"^[A-Za-z0-9_.\-]{1,128}$")
+
+# Accepted JSON Schema 2020-12 dialect URIs
+_ACCEPTED_SCHEMA_DIALECTS: set[str] = {
+    "https://json-schema.org/draft/2020-12/schema",
+    "https://json-schema.org/draft/2020-12/schema#",
+    "http://json-schema.org/draft/2020-12/schema",
+    "http://json-schema.org/draft/2020-12/schema#",
+    "https://json-schema.org/2025-11-25/2020-12/schema",
+}
+
+
+def is_valid_tool_name(name: str) -> bool:
+    """Check if a tool name conforms to spec rules (tools.mdx:213-224).
+
+    Rules: 1-128 chars, only [A-Za-z0-9_.-]. This is a SHOULD rule
+    so we return bool rather than raising.
+    """
+    if not name:
+        return False
+    return _TOOL_NAME_RE.fullmatch(name) is not None
+
+
+def _validate_schema_dialect(schema: dict[str, Any]) -> None:
+    """Validate that a JSON Schema uses a supported dialect (2020-12).
+
+    If $schema is absent, the schema is treated as 2020-12 (valid).
+    If $schema is present and matches a recognized 2020-12 URI, it is valid.
+    Otherwise, raises UnsupportedSchemaDialectError.
+    """
+    dollar_schema = schema.get("$schema")
+    if dollar_schema is None:
+        return  # No $schema -> default to 2020-12 (valid)
+    if dollar_schema in _ACCEPTED_SCHEMA_DIALECTS:
+        return
+    raise UnsupportedSchemaDialectError(
+        f"Unsupported JSON Schema dialect: {dollar_schema}. "
+        f"Only JSON Schema 2020-12 is supported."
+    )
+
 
 # Methods that require a specific negotiated sub-capability. Dot notation matches
 # the nested capability structure (see AD 4 in plan).
@@ -149,6 +200,10 @@ class MCPServer:
         arcade_api_url: str | None = None,
         initial_resources: list[tuple[Any, Callable[..., Any] | None]] | None = None,
         tool_meta_extensions: dict[str, dict[str, Any]] | None = None,
+        icons: list[Any] | None = None,
+        description: str | None = None,
+        website_url: str | None = None,
+        allowed_origins: list[str] | None = None,
     ):
         """
         Initialize MCP server.
@@ -184,6 +239,11 @@ class MCPServer:
             self.title = self.settings.server.title
         else:
             self.title = self.name
+
+        self.icons = icons
+        self.description = description
+        self.website_url = website_url
+        self.allowed_origins = allowed_origins
 
         self.instructions = (
             instructions or self.settings.server.instructions or self._default_instructions()
@@ -520,7 +580,7 @@ class MCPServer:
             or not isinstance(message["method"], str)
         ):
             return JSONRPCError(
-                id="null",
+                id=message.get("id") if isinstance(message, dict) else None,
                 error={
                     "code": -32600,
                     "message": (
@@ -556,7 +616,7 @@ class MCPServer:
             and method not in ["initialize", "ping"]
         ):
             return JSONRPCError(
-                id=str(msg_id or "null"),
+                id=msg_id,
                 error={
                     "code": -32600,
                     "message": (
@@ -575,7 +635,7 @@ class MCPServer:
         handler = self._handlers.get(method)
         if not handler:
             return JSONRPCError(
-                id=str(msg_id or "null"),
+                id=msg_id,
                 error={
                     "code": -32601,
                     "message": (
@@ -598,7 +658,7 @@ class MCPServer:
             required_cap = CAPABILITY_GATED_METHODS[method]
             if not session.has_capability(required_cap):
                 return JSONRPCError(
-                    id=str(msg_id or "null"),
+                    id=msg_id,
                     error={"code": -32601, "message": "Method not found"},
                 )
 
@@ -668,7 +728,7 @@ class MCPServer:
         except Exception:
             logger.exception("Error handling message")
             return JSONRPCError(
-                id=str(msg_id or "null"),
+                id=msg_id,
                 error={
                     "code": -32603,
                     "message": (
@@ -816,8 +876,7 @@ class MCPServer:
         """Build server info dict for the given protocol version.
 
         For 2025-06-18: returns name, version, title.
-        For 2025-11-25+: same for now. Phase 2 will add icons/description/websiteUrl
-        when the Implementation type gains those fields.
+        For 2025-11-25+: also includes icons, description, websiteUrl.
         """
         info: dict[str, Any] = {
             "name": self.name,
@@ -825,10 +884,43 @@ class MCPServer:
             "title": self.title,
         }
 
-        # TODO (Phase 2): For 2025-11-25+, include icons, description, websiteUrl
-        # when Implementation type gains those optional fields.
+        # 2025-11-25+ fields
+        if version_has_feature(version, "tasks"):
+            if self.icons is not None:
+                info["icons"] = self.icons
+            if self.description is not None:
+                info["description"] = self.description
+            if self.website_url is not None:
+                info["websiteUrl"] = self.website_url
 
         return info
+
+    def _project_for_version(
+        self,
+        items: list[Any],
+        session: ServerSession | None,
+        strip_fields: list[str] | None = None,
+    ) -> list[dict[str, Any]]:
+        """Project list items for the negotiated version.
+
+        For 2025-06-18 sessions, strip fields like icons/execution.
+        NEVER MUTATE cached DTOs — always dump first.
+        """
+        if strip_fields is None:
+            strip_fields = ["icons"]
+
+        is_legacy = session is None or not session.has_feature("tasks")
+        result = []
+        for item in items:
+            if hasattr(item, "model_dump"):
+                d = item.model_dump(exclude_none=True, by_alias=True)
+            else:
+                d = dict(item)
+            if is_legacy:
+                for field in strip_fields:
+                    d.pop(field, None)
+            result.append(d)
+        return result
 
     async def _handle_list_tools(
         self,
@@ -838,7 +930,10 @@ class MCPServer:
         """Handle list tools request."""
         try:
             tools = await self._tool_manager.list_tools()
-            return JSONRPCResponse(id=message.id, result=ListToolsResult(tools=tools))
+            projected = self._project_for_version(
+                tools, session, strip_fields=["icons", "execution"]
+            )
+            return JSONRPCResponse(id=message.id, result=ListToolsResult(tools=projected))
         except Exception:
             logger.exception("Error listing tools")
             return JSONRPCError(
@@ -1132,6 +1227,21 @@ class MCPServer:
                 )
             else:
                 error = result.error or "Error calling tool"
+
+                # Check for input validation errors (version-gated response)
+                from arcade_core.errors import ErrorKind
+
+                error_kind = getattr(error, "kind", None)
+                if error_kind == ErrorKind.TOOL_RUNTIME_BAD_INPUT_VALUE and (
+                    session and not session.has_feature("tool_execution")
+                ):
+                    # 2025-06-18: input validation → JSONRPCError -32602
+                    self._tracker.track_tool_call(False, "invalid tool input")
+                    return JSONRPCError(
+                        id=message.id,
+                        error={"code": -32602, "message": str(error)},
+                    )
+
                 content = convert_to_mcp_content(str(error))
 
                 # structuredContent should be the error as a JSON object
@@ -1147,29 +1257,33 @@ class MCPServer:
                     ),
                 )
         except NotFoundError:
-            # Match test expectation: return a normal response with isError=True
-            error_message = f"✗ Unknown tool: {tool_name}\n\n"
-            error_message += "  The requested tool does not exist or is not loaded.\n\n"
-            error_message += "  To fix:\n"
-            error_message += "  1. Check the tool name is correct\n"
-            error_message += "  2. List available tools with tools/list\n"
-            error_message += "  3. Ensure the server is properly installed\n\n"
-            error_message += "  Available tools can be found by calling the tools/list method."
-
-            content = convert_to_mcp_content(error_message)
-
-            # structuredContent should be the error as a JSON object
-            structured_content = convert_content_to_structured_content({"error": error_message})
-
+            # Unknown tool is a protocol error (spec tools.mdx:453-454)
             self._tracker.track_tool_call(False, "unknown tool")
-            return JSONRPCResponse(
+            return JSONRPCError(
                 id=message.id,
-                result=CallToolResult(
-                    content=content,
-                    structuredContent=structured_content,
-                    isError=True,
-                ),
+                error={
+                    "code": -32602,
+                    "message": f"Unknown tool: {tool_name}",
+                },
             )
+        except (ValidationError, ToolInputError) as e:
+            # Input validation errors: version-gated response shape
+            self._tracker.track_tool_call(False, "invalid tool input")
+            if session and session.has_feature("tool_execution"):
+                # 2025-11-25: input validation → CallToolResult(isError=True)
+                return JSONRPCResponse(
+                    id=message.id,
+                    result=CallToolResult(
+                        isError=True,
+                        content=[TextContent(type="text", text=str(e))],
+                    ),
+                )
+            else:
+                # 2025-06-18: input validation → JSONRPCError -32602
+                return JSONRPCError(
+                    id=message.id,
+                    error={"code": -32602, "message": str(e)},
+                )
         except Exception:
             logger.exception("Error calling tool")
             self._tracker.track_tool_call(False, "internal error calling tool")
@@ -1436,7 +1550,8 @@ class MCPServer:
         """Handle list resources request."""
         try:
             resources = await self._resource_manager.list_resources()
-            return JSONRPCResponse(id=message.id, result=ListResourcesResult(resources=resources))
+            projected = self._project_for_version(resources, session)
+            return JSONRPCResponse(id=message.id, result=ListResourcesResult(resources=projected))
         except Exception:
             logger.exception("Error listing resources")
             return JSONRPCError(
@@ -1463,9 +1578,10 @@ class MCPServer:
         """Handle list resource templates request."""
         try:
             templates = await self._resource_manager.list_resource_templates()
+            projected = self._project_for_version(templates, session)
             return JSONRPCResponse(
                 id=message.id,
-                result=ListResourceTemplatesResult(resourceTemplates=templates),
+                result=ListResourceTemplatesResult(resourceTemplates=projected),
             )
         except Exception:
             logger.exception("Error listing resource templates")
@@ -1544,7 +1660,8 @@ class MCPServer:
         """Handle list prompts request."""
         try:
             prompts = await self._prompt_manager.list_prompts()
-            return JSONRPCResponse(id=message.id, result=ListPromptsResult(prompts=prompts))
+            projected = self._project_for_version(prompts, session)
+            return JSONRPCResponse(id=message.id, result=ListPromptsResult(prompts=projected))
         except Exception:
             logger.exception("Error listing prompts")
             return JSONRPCError(
@@ -1673,7 +1790,7 @@ class MCPServer:
         task_id = params.get("taskId")
         if not task_id:
             return JSONRPCError(
-                id=str(msg_id or "null"),
+                id=msg_id,
                 error={"code": -32602, "message": "Missing taskId parameter"},
             )
 
@@ -1687,12 +1804,12 @@ class MCPServer:
             task = await self._task_manager.get_task(task_id, context_key)
         except TaskNotFoundError:
             return JSONRPCError(
-                id=str(msg_id or "null"),
+                id=msg_id,
                 error={"code": -32602, "message": "Task not found"},
             )
         except IncompleteAuthContextError as e:
             return JSONRPCError(
-                id=str(msg_id or "null"),
+                id=msg_id,
                 error={"code": -32603, "message": str(e)},
             )
 
@@ -1705,7 +1822,7 @@ class MCPServer:
             statusMessage=task.statusMessage,
             pollInterval=task.pollInterval,
         )
-        return JSONRPCResponse(id=str(msg_id or "null"), result=result)
+        return JSONRPCResponse(id=msg_id, result=result)
 
     async def _handle_list_tasks(
         self,
@@ -1730,12 +1847,12 @@ class MCPServer:
             )
         except IncompleteAuthContextError as e:
             return JSONRPCError(
-                id=str(msg_id or "null"),
+                id=msg_id,
                 error={"code": -32603, "message": str(e)},
             )
 
         result = ListTasksResult(tasks=tasks)
-        return JSONRPCResponse(id=str(msg_id or "null"), result=result)
+        return JSONRPCResponse(id=msg_id, result=result)
 
     async def _handle_cancel_task(
         self,
@@ -1748,7 +1865,7 @@ class MCPServer:
         task_id = params.get("taskId")
         if not task_id:
             return JSONRPCError(
-                id=str(msg_id or "null"),
+                id=msg_id,
                 error={"code": -32602, "message": "Missing taskId parameter"},
             )
 
@@ -1762,17 +1879,17 @@ class MCPServer:
             task = await self._task_manager.cancel_task(task_id, context_key)
         except TaskNotFoundError:
             return JSONRPCError(
-                id=str(msg_id or "null"),
+                id=msg_id,
                 error={"code": -32602, "message": "Task not found"},
             )
         except InvalidTaskStateError:
             return JSONRPCError(
-                id=str(msg_id or "null"),
+                id=msg_id,
                 error={"code": -32602, "message": "Task is already in a terminal state"},
             )
         except IncompleteAuthContextError as e:
             return JSONRPCError(
-                id=str(msg_id or "null"),
+                id=msg_id,
                 error={"code": -32603, "message": str(e)},
             )
 
@@ -1785,7 +1902,7 @@ class MCPServer:
             statusMessage=task.statusMessage,
             pollInterval=task.pollInterval,
         )
-        return JSONRPCResponse(id=str(msg_id or "null"), result=result)
+        return JSONRPCResponse(id=msg_id, result=result)
 
     async def _handle_get_task_result(
         self,
@@ -1798,7 +1915,7 @@ class MCPServer:
         task_id = params.get("taskId")
         if not task_id:
             return JSONRPCError(
-                id=str(msg_id or "null"),
+                id=msg_id,
                 error={"code": -32602, "message": "Missing taskId parameter"},
             )
 
@@ -1812,19 +1929,19 @@ class MCPServer:
             result = await self._task_manager.get_result(task_id, context_key)
         except TaskNotFoundError:
             return JSONRPCError(
-                id=str(msg_id or "null"),
+                id=msg_id,
                 error={"code": -32602, "message": "Task not found"},
             )
         except IncompleteAuthContextError as e:
             return JSONRPCError(
-                id=str(msg_id or "null"),
+                id=msg_id,
                 error={"code": -32603, "message": str(e)},
             )
 
         # Check if it's an error result (tasks/result error path -- return unchanged)
         if isinstance(result, dict) and "code" in result and "message" in result:
             return JSONRPCError(
-                id=str(msg_id or "null"),
+                id=msg_id,
                 error=result,
             )
 
@@ -1838,7 +1955,7 @@ class MCPServer:
                 result.meta = {}
             result.meta["io.modelcontextprotocol/related-task"] = {"taskId": task_id}
 
-        return JSONRPCResponse(id=str(msg_id or "null"), result=result)
+        return JSONRPCResponse(id=msg_id, result=result)
 
     def _get_resource_owner_from_context(self) -> ResourceOwner | None:
         """Get the resource owner from the current model context."""

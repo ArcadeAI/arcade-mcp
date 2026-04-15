@@ -88,6 +88,10 @@ class MCPApp:
         port: int = 8000,
         reload: bool = False,
         auth: ResourceServerValidator | None = None,
+        icons: list[Any] | None = None,
+        description: str | None = None,
+        website_url: str | None = None,
+        allowed_origins: list[str] | None = None,
         **kwargs: Any,
     ):
         """
@@ -112,6 +116,10 @@ class MCPApp:
         self.instructions = instructions
         self.log_level = log_level
         self.resource_server_validator = auth
+        self.icons = icons
+        self.description = description
+        self.website_url = website_url
+        self.allowed_origins = allowed_origins
         self.server_kwargs = kwargs
         self.transport = transport
         self.host = host

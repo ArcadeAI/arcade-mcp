@@ -1,6 +1,7 @@
 """Tests for MCP ServerSession implementation."""
 
 import json
+from typing import Any
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -173,6 +174,9 @@ class TestServerSession:
     @pytest.mark.asyncio
     async def test_server_initiated_request(self, server_session):
         """Test server-initiated requests to client."""
+        # Must be initialized for outbound requests
+        server_session.mark_initialized()
+
         # Test create_message request
         messages = [{"role": "user", "content": {"type": "text", "text": "Hello"}}]
 
@@ -334,7 +338,7 @@ class TestServerSession:
         sent_data = json.loads(server_session.write_stream.send.call_args[0][0].strip())
         assert "error" in sent_data
         assert sent_data["error"]["code"] == -32700  # Parse error
-        assert sent_data["id"] == "null"
+        assert sent_data["id"] is None  # JSON null, not string "null" (AD 18)
 
     def test_client_info_extraction(self, server_session):
         """Test extracting client information."""
@@ -419,6 +423,11 @@ class TestHasCapability:
 
 
 class TestSamplingWithTools:
+    @pytest.fixture(autouse=True)
+    def _init_session(self, server_session: Any) -> None:
+        """Mark server_session as initialized for all tests in this class."""
+        server_session.mark_initialized()
+
     @pytest.mark.asyncio
     async def test_create_message_with_tools_includes_tools_param(self, server_session):
         """When tools are passed, they appear in the sent request params."""
@@ -615,6 +624,10 @@ class TestSamplingWithTools:
 
 
 class TestURLModeElicitation:
+    @pytest.fixture(autouse=True)
+    def _init_session(self, server_session: Any) -> None:
+        server_session.mark_initialized()
+
     @pytest.mark.asyncio
     async def test_elicit_url_mode_includes_elicitation_id(self, server_session):
         """URL mode requires elicitationId in the request."""
@@ -695,6 +708,10 @@ class TestElicitationCompleteNotification:
 class TestEnumSchemaValidation:
     """Tests for enhanced enum schema types in elicitation."""
 
+    @pytest.fixture(autouse=True)
+    def _init_session(self, server_session: Any) -> None:
+        server_session.mark_initialized()
+
     def test_form_mode_with_untitled_single_select(self):
         """Untitled single-select enum works in elicitation schemas."""
         schema = {"type": "object", "properties": {
@@ -732,6 +749,10 @@ class TestEnumSchemaValidation:
 class TestElicitationCapabilityGating:
     """Tests for elicitation capability gating (elicitation.mdx:72:
     'Servers MUST NOT send elicitation requests with modes that are not supported by the client')."""
+
+    @pytest.fixture(autouse=True)
+    def _init_session(self, server_session: Any) -> None:
+        server_session.mark_initialized()
 
     @pytest.mark.asyncio
     async def test_elicit_rejected_when_client_has_no_elicitation_capability(self, server_session):
@@ -857,3 +878,44 @@ class TestElicitationCompletionNotification:
         data = json.loads(sent_messages[0])
         assert data["method"] == "notifications/elicitation/complete"
         assert data["params"]["elicitationId"] == "elic_123"
+
+
+class TestLifecycleOutboundGuard:
+    """Server SHOULD NOT send requests other than ping/logging before initialized."""
+
+    @pytest.mark.asyncio
+    async def test_create_message_rejected_before_initialized(self, server_session):
+        from arcade_mcp_server.exceptions import SessionNotInitializedError
+
+        server_session._request_manager = AsyncMock()
+        with pytest.raises(SessionNotInitializedError):
+            await server_session.create_message(
+                messages=[{"role": "user", "content": {"type": "text", "text": "hello"}}],
+                max_tokens=100,
+            )
+
+    @pytest.mark.asyncio
+    async def test_elicit_rejected_before_initialized(self, server_session):
+        from arcade_mcp_server.exceptions import SessionNotInitializedError
+
+        server_session._request_manager = AsyncMock()
+        with pytest.raises(SessionNotInitializedError):
+            await server_session.elicit(
+                message="Enter name",
+                requested_schema={"type": "object", "properties": {"name": {"type": "string"}}},
+            )
+
+    @pytest.mark.asyncio
+    async def test_create_message_allowed_after_initialized(self, server_session):
+        server_session.mark_initialized()
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(return_value={
+            "role": "assistant",
+            "content": {"type": "text", "text": "hi"},
+            "model": "test-model", "stopReason": "endTurn",
+        })
+        result = await server_session.create_message(
+            messages=[{"role": "user", "content": {"type": "text", "text": "hello"}}],
+            max_tokens=100,
+        )
+        assert result is not None

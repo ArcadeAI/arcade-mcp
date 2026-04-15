@@ -1083,3 +1083,33 @@ class TestMCPAppResourceAnnotationsMetaTemplates:
         _, handler = app._initial_resources[0]
         with pytest.raises(NotFoundError, match="File not found"):
             handler("file:///missing.txt")
+
+
+class TestMCPAppMetadata:
+    """MCPApp metadata (title, icons, description, websiteUrl) wired through."""
+
+    def test_mcp_app_accepts_title(self):
+        app = MCPApp(name="TestApp", version="1.0.0", title="My Test Server")
+        assert app.title == "My Test Server"
+
+    def test_mcp_app_accepts_icons(self):
+        from arcade_mcp_server.types import Icon
+
+        app = MCPApp(
+            name="TestApp", version="1.0.0",
+            icons=[Icon(src="https://example.com/icon.png")],
+        )
+        assert app.icons is not None
+        assert len(app.icons) == 1
+
+    def test_mcp_app_accepts_description(self):
+        app = MCPApp(name="TestApp", version="1.0.0", description="A test server")
+        assert app.description == "A test server"
+
+    def test_mcp_app_accepts_website_url(self):
+        app = MCPApp(name="TestApp", version="1.0.0", website_url="https://example.com")
+        assert app.website_url == "https://example.com"
+
+    def test_mcp_app_accepts_allowed_origins(self):
+        app = MCPApp(name="TestApp", version="1.0.0", allowed_origins=["https://example.com"])
+        assert app.allowed_origins == ["https://example.com"]

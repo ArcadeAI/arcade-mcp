@@ -21,6 +21,7 @@ from arcade_mcp_server.exceptions import (
     ElicitationNotSupportedError,
     RequestError,
     SessionError,
+    SessionNotInitializedError,
 )
 from arcade_mcp_server.resource_server.base import ResourceOwner
 from arcade_mcp_server.types import (
@@ -449,7 +450,11 @@ class ServerSession:
             # Send response if any
             if response and self.write_stream:
                 if hasattr(response, "model_dump_json"):
-                    response_data = response.model_dump_json(exclude_none=True, by_alias=True)
+                    if isinstance(response, JSONRPCError):
+                        # §5.1: error responses MUST include "id" even when null
+                        response_data = response.model_dump_json(by_alias=True)
+                    else:
+                        response_data = response.model_dump_json(exclude_none=True, by_alias=True)
                 else:
                     response_data = json.dumps(response)
 
@@ -490,11 +495,12 @@ class ServerSession:
             return
 
         error_response = JSONRPCError(
-            id=str(request_id) if request_id else "null",
+            id=request_id,
             error={"code": code, "message": message},
         )
 
-        response_data = error_response.model_dump_json() + "\n"
+        # §5.1: error responses MUST include "id" even when null
+        response_data = error_response.model_dump_json(by_alias=True) + "\n"
         await self.write_stream.send(response_data)
 
     async def _cleanup_pending_requests(self) -> None:
@@ -598,6 +604,11 @@ class ServerSession:
         """
         if not self._request_manager:
             raise SessionError("Cannot send requests without request manager")
+
+        if self.initialization_state != InitializationState.INITIALIZED:
+            raise SessionNotInitializedError(
+                "Cannot send sampling request before session is initialized"
+            )
 
         # Determine if the client supports tools in sampling
         client_has_sampling_tools = False
@@ -862,6 +873,11 @@ class ServerSession:
         """
         if not self._request_manager:
             raise SessionError("Cannot send requests without request manager")
+
+        if self.initialization_state != InitializationState.INITIALIZED:
+            raise SessionNotInitializedError(
+                "Cannot send elicitation request before session is initialized"
+            )
 
         # Default to form mode
         effective_mode = mode or "form"

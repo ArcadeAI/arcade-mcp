@@ -201,7 +201,7 @@ class HTTPStreamableTransport:
         except Exception:
             # Fallback: treat as error
             return JSONRPCError(
-                id=str(parsed.get("id", "null")),
+                id=parsed.get("id"),
                 error={"code": -32600, "message": "Invalid message"},
             )
 
@@ -222,8 +222,8 @@ class HTTPStreamableTransport:
             "Content-Type": CONTENT_TYPE_JSON,
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "GET, POST, DELETE",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept, Mcp-Session-Id",
-            "Access-Control-Expose-Headers": "Mcp-Session-Id",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept, Mcp-Session-Id, MCP-Protocol-Version",
+            "Access-Control-Expose-Headers": "Mcp-Session-Id, MCP-Protocol-Version",
         }
         if headers:
             response_headers.update(headers)
@@ -257,10 +257,16 @@ class HTTPStreamableTransport:
         if self.mcp_session_id:
             response_headers[MCP_SESSION_ID_HEADER] = self.mcp_session_id
 
+        if response_message is None:
+            body = None
+        elif isinstance(response_message, JSONRPCError):
+            # §5.1: error responses MUST include "id" even when null
+            body = response_message.model_dump_json(by_alias=True)
+        else:
+            body = response_message.model_dump_json(by_alias=True, exclude_none=True)
+
         return Response(
-            response_message.model_dump_json(by_alias=True, exclude_none=True)
-            if response_message
-            else None,
+            body,
             status_code=status_code,
             headers=response_headers,
         )
@@ -271,9 +277,15 @@ class HTTPStreamableTransport:
 
     def _create_event_data(self, event_message: EventMessage) -> dict[str, str]:
         """Create event data dictionary from EventMessage."""
+        msg = event_message.message
+        if isinstance(msg, JSONRPCError):
+            # §5.1: error responses MUST include "id" even when null
+            data = msg.model_dump_json(by_alias=True)
+        else:
+            data = msg.model_dump_json(by_alias=True, exclude_none=True)
         event_data = {
             "event": "message",
-            "data": event_message.message.model_dump_json(by_alias=True, exclude_none=True),
+            "data": data,
         }
 
         if event_message.event_id:

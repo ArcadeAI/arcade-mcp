@@ -149,8 +149,8 @@ class ResourceServerMiddleware:
             headers={
                 "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type, Authorization, Mcp-Session-Id, Accept",
-                "Access-Control-Expose-Headers": "WWW-Authenticate, Mcp-Session-Id",
+                "Access-Control-Allow-Headers": "Content-Type, Authorization, Mcp-Session-Id, Accept, MCP-Protocol-Version",
+                "Access-Control-Expose-Headers": "WWW-Authenticate, Mcp-Session-Id, MCP-Protocol-Version",
                 "Access-Control-Max-Age": "86400",  # 24 hr
             },
         )
@@ -195,7 +195,7 @@ class ResourceServerMiddleware:
                 "WWW-Authenticate": www_auth_value,
                 "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type, Authorization, Mcp-Session-Id, Accept",
-                "Access-Control-Expose-Headers": "WWW-Authenticate, Mcp-Session-Id",
+                "Access-Control-Allow-Headers": "Content-Type, Authorization, Mcp-Session-Id, Accept, MCP-Protocol-Version",
+                "Access-Control-Expose-Headers": "WWW-Authenticate, Mcp-Session-Id, MCP-Protocol-Version",
             },
         )

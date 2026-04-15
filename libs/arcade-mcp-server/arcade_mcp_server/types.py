@@ -124,7 +124,7 @@ class ErrorData(BaseModel):
 
 
 class JSONRPCError(JSONRPCMessage):
-    id: RequestId
+    id: str | int | None
     error: dict[str, Any]
 
 
