@@ -147,32 +147,38 @@ class TestContext:
     @pytest.mark.asyncio
     async def test_progress_reporting(self, mcp_server):
         """Test progress reporting functionality."""
+        from arcade_mcp_server.request_context import reset_request_meta, set_request_meta
+
         session = Mock()
         session.send_progress_notification = AsyncMock()
-        session._request_meta = Mock(progressToken="task-123")
 
         context = Context(server=mcp_server)
         context.set_session(session)
 
-        # Report progress
-        await context.progress.report(50, 100, "Processing...")
+        # Set request meta via ContextVar
+        token = set_request_meta({"progressToken": "task-123"})
+        try:
+            # Report progress
+            await context.progress.report(50, 100, "Processing...")
 
-        session.send_progress_notification.assert_called_once_with(
-            progress_token="task-123", progress=50, total=100, message="Processing..."
-        )
+            session.send_progress_notification.assert_called_once_with(
+                progress_token="task-123", progress=50, total=100, message="Processing..."
+            )
 
-        # Without total
-        await context.progress.report(0.75, message="Almost done")
+            # Without total
+            await context.progress.report(0.75, message="Almost done")
 
-        assert session.send_progress_notification.call_count == 2
+            assert session.send_progress_notification.call_count == 2
+        finally:
+            reset_request_meta(token)
 
         # Test without progress token - should not call send_progress_notification
         session2 = Mock(spec=["send_progress_notification"])
         session2.send_progress_notification = AsyncMock()
-        # Without _request_meta attribute, progress won't be reported
         context2 = Context(server=mcp_server)
         context2.set_session(session2)
 
+        # No ContextVar set, so progress won't be reported
         await context2.progress.report(25, 100)
         session2.send_progress_notification.assert_not_called()
 

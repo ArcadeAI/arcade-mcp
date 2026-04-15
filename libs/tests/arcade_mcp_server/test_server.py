@@ -1912,3 +1912,117 @@ class TestToolMetaExtensionEdgeCases:
             assert "skipped: tool not found" in caplog.text
         finally:
             await server.stop()
+
+
+class TestSubCapabilityGatedDispatch:
+    """Tests that sub-capability-gated methods are rejected when specific sub-capability not negotiated.
+    Per spec (lifecycle.mdx:221): parties MUST only use capabilities that were successfully negotiated.
+    Tasks sub-capabilities (tasks.mdx:45-107): tasks.list, tasks.cancel, tasks.requests.tools.call."""
+
+    # Full tasks capability structure for tests
+    FULL_TASKS_CAP = {
+        "tasks": {"list": {}, "cancel": {}, "requests": {"tools": {"call": {}}}}
+    }
+    # Tasks without list
+    TASKS_NO_LIST = {
+        "tasks": {"cancel": {}, "requests": {"tools": {"call": {}}}}
+    }
+    # Tasks without cancel
+    TASKS_NO_CANCEL = {
+        "tasks": {"list": {}, "requests": {"tools": {"call": {}}}}
+    }
+
+    @pytest.mark.asyncio
+    async def test_tasks_get_rejected_without_tasks_capability(self, mcp_server, initialized_server_session):
+        """tasks/get must return method-not-found when base tasks capability not declared."""
+        initialized_server_session.negotiated_version = "2025-06-18"
+        # 2025-06-18 sessions have no tasks capability
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tasks/get",
+                   "params": {"taskId": "t1"}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32601  # METHOD_NOT_FOUND
+
+    @pytest.mark.asyncio
+    async def test_tasks_list_rejected_without_tasks_list_sub_capability(self, mcp_server, initialized_server_session):
+        """tasks/list requires tasks.list sub-capability, not just base tasks."""
+        initialized_server_session.negotiated_version = "2025-11-25"
+        initialized_server_session._negotiated_capabilities = self.TASKS_NO_LIST
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tasks/list", "params": {}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32601
+
+    @pytest.mark.asyncio
+    async def test_tasks_list_accepted_with_tasks_list_sub_capability(self, mcp_server, initialized_server_session):
+        """tasks/list works when tasks.list sub-capability is declared."""
+        initialized_server_session.negotiated_version = "2025-11-25"
+        initialized_server_session._negotiated_capabilities = self.FULL_TASKS_CAP
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tasks/list", "params": {}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        if isinstance(response, JSONRPCError):
+            assert response.error["code"] != -32601  # NOT method-not-found
+
+    @pytest.mark.asyncio
+    async def test_tasks_cancel_rejected_without_tasks_cancel_sub_capability(self, mcp_server, initialized_server_session):
+        """tasks/cancel requires tasks.cancel sub-capability."""
+        initialized_server_session.negotiated_version = "2025-11-25"
+        initialized_server_session._negotiated_capabilities = self.TASKS_NO_CANCEL
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tasks/cancel",
+                   "params": {"taskId": "t1"}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32601
+
+    @pytest.mark.asyncio
+    async def test_tasks_result_rejected_without_tasks_capability(self, mcp_server, initialized_server_session):
+        """tasks/result requires base tasks capability."""
+        initialized_server_session.negotiated_version = "2025-06-18"
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tasks/result",
+                   "params": {"taskId": "t1"}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32601
+
+    @pytest.mark.asyncio
+    async def test_tasks_get_accepted_with_base_tasks_capability(self, mcp_server, initialized_server_session):
+        """tasks/get only requires base tasks capability (always present when tasks declared).
+        (May return 'task not found' error, but not -32601.)"""
+        initialized_server_session.negotiated_version = "2025-11-25"
+        initialized_server_session._negotiated_capabilities = self.TASKS_NO_LIST  # no list, but base tasks exists
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tasks/get",
+                   "params": {"taskId": "nonexistent"}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        if isinstance(response, JSONRPCError):
+            assert response.error["code"] != -32601  # NOT method-not-found
+
+    @pytest.mark.asyncio
+    async def test_2025_11_25_session_without_tasks_capability_rejects_all_tasks(self, mcp_server, initialized_server_session):
+        """Dispatch gating works even with manually cleared capabilities."""
+        initialized_server_session.negotiated_version = "2025-11-25"
+        initialized_server_session._negotiated_capabilities = {}  # no tasks at all
+        for method in ["tasks/get", "tasks/result", "tasks/list", "tasks/cancel"]:
+            message = {"jsonrpc": "2.0", "id": 1, "method": method,
+                       "params": {"taskId": "t1"} if method != "tasks/list" else {}}
+            response = await mcp_server.handle_message(message, initialized_server_session)
+            assert isinstance(response, JSONRPCError), f"{method} should be rejected"
+            assert response.error["code"] == -32601
+
+    @pytest.mark.asyncio
+    async def test_existing_methods_work_for_both_versions(self, mcp_server, initialized_server_session):
+        """tools/list, ping, etc. work regardless of version."""
+        for version in ["2025-06-18", "2025-11-25"]:
+            initialized_server_session.negotiated_version = version
+            message = {"jsonrpc": "2.0", "id": 1, "method": "ping"}
+            response = await mcp_server.handle_message(message, initialized_server_session)
+            assert not isinstance(response, JSONRPCError)
+
+    @pytest.mark.asyncio
+    async def test_capability_gated_methods_rejected_when_no_negotiated_version(self, mcp_server, initialized_server_session):
+        """If session has no negotiated_version (shouldn't happen, but defensive), reject gated methods."""
+        initialized_server_session.negotiated_version = None
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tasks/get",
+                   "params": {"taskId": "t1"}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32601

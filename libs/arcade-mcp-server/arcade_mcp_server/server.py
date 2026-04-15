@@ -83,6 +83,15 @@ from arcade_mcp_server.usage import ServerTracker
 
 logger = logging.getLogger("arcade.mcp")
 
+# Methods that require a specific negotiated sub-capability. Dot notation matches
+# the nested capability structure (see AD 4 in plan).
+CAPABILITY_GATED_METHODS: dict[str, str] = {
+    "tasks/get": "tasks",
+    "tasks/result": "tasks",
+    "tasks/list": "tasks.list",
+    "tasks/cancel": "tasks.cancel",
+}
+
 
 class MCPServer:
     """
@@ -346,6 +355,11 @@ class MCPServer:
             "prompts/list": self._handle_list_prompts,
             "prompts/get": self._handle_get_prompt,
             "logging/setLevel": self._handle_set_log_level,
+            # Task methods (placeholder handlers — Phase 4 replaces these)
+            "tasks/get": self._handle_get_task,
+            "tasks/list": self._handle_list_tasks,
+            "tasks/cancel": self._handle_cancel_task,
+            "tasks/result": self._handle_get_task_result,
         }
 
     def _default_instructions(self) -> str:
@@ -562,13 +576,31 @@ class MCPServer:
                 },
             )
 
+        # Capability gate: reject methods that require a sub-capability
+        # that was not negotiated for this session.
+        if method in CAPABILITY_GATED_METHODS and session is not None:
+            required_cap = CAPABILITY_GATED_METHODS[method]
+            if not session.has_capability(required_cap):
+                return JSONRPCError(
+                    id=str(msg_id or "null"),
+                    error={"code": -32601, "message": "Method not found"},
+                )
+
         # Create context and apply middleware
         try:
-            # Store the request's meta in the session
+            # Store the request's meta via ContextVar for per-request isolation
+            from arcade_mcp_server.request_context import (
+                reset_request_meta,
+            )
+            from arcade_mcp_server.request_context import (
+                set_request_meta as set_req_meta,
+            )
+
+            meta_token = None
             if session:
                 params = message.get("params", {})
                 meta = params.get("_meta")
-                session.set_request_meta(meta)
+                meta_token = set_req_meta(meta)
 
             # Create request context
             context = (
@@ -614,7 +646,8 @@ class MCPServer:
                 set_current_model_context(None, token)
                 if session:
                     await session.cleanup_request_context(context)
-                    session.clear_request_meta()
+                if meta_token is not None:
+                    reset_request_meta(meta_token)
 
         except Exception:
             logger.exception("Error handling message")
@@ -654,6 +687,7 @@ class MCPServer:
             "completion/complete": CompleteRequest,
             "roots/list": ListRootsRequest,
             "elicitation/create": ElicitRequest,
+            # Task methods parse as raw dicts (no typed request model yet — Phase 4)
         }
 
         message_type = message_types.get(method)
@@ -1475,6 +1509,56 @@ class MCPServer:
             logger.setLevel(logging.INFO)
 
         return JSONRPCResponse(id=message.id, result={})
+
+    # ---- Placeholder task handlers (Phase 4 replaces these) ----
+
+    async def _handle_get_task(
+        self,
+        message: Any,
+        session: ServerSession | None = None,
+    ) -> JSONRPCError:
+        """Placeholder handler for tasks/get."""
+        msg_id = message.get("id") if isinstance(message, dict) else getattr(message, "id", None)
+        return JSONRPCError(
+            id=str(msg_id or "null"),
+            error={"code": -32602, "message": "Task not found"},
+        )
+
+    async def _handle_list_tasks(
+        self,
+        message: Any,
+        session: ServerSession | None = None,
+    ) -> JSONRPCError:
+        """Placeholder handler for tasks/list."""
+        msg_id = message.get("id") if isinstance(message, dict) else getattr(message, "id", None)
+        return JSONRPCError(
+            id=str(msg_id or "null"),
+            error={"code": -32602, "message": "No tasks available"},
+        )
+
+    async def _handle_cancel_task(
+        self,
+        message: Any,
+        session: ServerSession | None = None,
+    ) -> JSONRPCError:
+        """Placeholder handler for tasks/cancel."""
+        msg_id = message.get("id") if isinstance(message, dict) else getattr(message, "id", None)
+        return JSONRPCError(
+            id=str(msg_id or "null"),
+            error={"code": -32602, "message": "Task not found"},
+        )
+
+    async def _handle_get_task_result(
+        self,
+        message: Any,
+        session: ServerSession | None = None,
+    ) -> JSONRPCError:
+        """Placeholder handler for tasks/result."""
+        msg_id = message.get("id") if isinstance(message, dict) else getattr(message, "id", None)
+        return JSONRPCError(
+            id=str(msg_id or "null"),
+            error={"code": -32602, "message": "Task not found"},
+        )
 
     # Resource support for Context
     async def _mcp_read_resource(self, uri: str) -> list[Any]:

@@ -11,7 +11,6 @@ import json
 import logging
 import uuid
 from enum import Enum
-from types import SimpleNamespace
 from typing import Any
 
 import anyio
@@ -278,7 +277,6 @@ class ServerSession:
         self.initialization_state = InitializationState.NOT_INITIALIZED
         self.client_params: InitializeParams | None = None
         self._session_data: dict[str, Any] = {}
-        self._request_meta: Any = None
 
         # Version negotiation state (set during initialize)
         self.negotiated_version: str | None = None
@@ -308,6 +306,20 @@ class ServerSession:
         if self.negotiated_version is None:
             return False
         return version_has_feature(self.negotiated_version, feature)
+
+    def has_capability(self, dotted_name: str) -> bool:
+        """Check if a nested sub-capability was negotiated (dot notation).
+
+        has_capability("tasks") -> capabilities["tasks"] exists
+        has_capability("tasks.list") -> capabilities["tasks"]["list"] exists
+        """
+        parts = dotted_name.split(".")
+        current: Any = self._negotiated_capabilities
+        for part in parts:
+            if not isinstance(current, dict) or part not in current:
+                return False
+            current = current[part]
+        return True
 
     def set_client_params(self, params: InitializeParams) -> None:
         """Set client initialization parameters."""
@@ -673,15 +685,6 @@ class ServerSession:
         )
 
         return ElicitResult(**result)
-
-    # Request metadata management
-    def set_request_meta(self, meta: dict[str, Any] | None) -> None:
-        """Store meta for the current request"""
-        self._request_meta = SimpleNamespace(**meta) if meta else None
-
-    def clear_request_meta(self) -> None:
-        """Clear the request's meta after the request is complete"""
-        self._request_meta = None
 
     # Context management
     async def create_request_context(self, resource_owner: ResourceOwner | None = None) -> Context:

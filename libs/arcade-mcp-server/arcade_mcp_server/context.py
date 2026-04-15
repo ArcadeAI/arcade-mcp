@@ -450,9 +450,10 @@ class Progress(_ContextComponent):
         session = self._ctx._session
         if session is None:
             return
-        progress_token = None
-        if hasattr(session, "_request_meta") and session._request_meta is not None:
-            progress_token = getattr(session._request_meta, "progressToken", None)
+        from arcade_mcp_server.request_context import get_request_meta
+
+        request_meta = get_request_meta()
+        progress_token = getattr(request_meta, "progressToken", None) if request_meta else None
         if progress_token is None:
             return
         await session.send_progress_notification(

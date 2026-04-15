@@ -321,13 +321,21 @@ class TestNs:
 
 
 def _make_otel_context(*, request: bool = True, detailed: bool = False, traceparent: str | None = None):
-    """Build a MiddlewareContext with otel meta configured."""
-    session = MagicMock()
-    meta = MagicMock()
-    meta.traceparent = traceparent
-    meta.otel = {"traces": {"request": request, "detailed": detailed}}
-    session._request_meta = meta
+    """Build a MiddlewareContext with otel meta configured.
 
+    Sets the request_context ContextVar so TelemetryPassbackMiddleware reads it
+    from the ContextVar instead of the old session._request_meta attribute.
+    """
+    from arcade_mcp_server.request_context import set_request_meta
+
+    meta_dict = {
+        "traceparent": traceparent,
+        "otel": {"traces": {"request": request, "detailed": detailed}},
+    }
+    # Set the ContextVar — tests must reset via _reset_contextvar fixture or manually
+    set_request_meta(meta_dict)
+
+    session = MagicMock()
     mcp_ctx = MagicMock()
     mcp_ctx._session = session
     return mcp_ctx
@@ -339,9 +347,13 @@ class TestTelemetryPassbackMiddleware:
 
     @pytest.fixture(autouse=True)
     def _reset_contextvar(self):
+        from arcade_mcp_server.request_context import _current_request_meta
+
         _request_spans.set(None)
+        _current_request_meta.set(None)
         yield
         _request_spans.set(None)
+        _current_request_meta.set(None)
 
     @pytest.fixture
     def tracer_provider(self):

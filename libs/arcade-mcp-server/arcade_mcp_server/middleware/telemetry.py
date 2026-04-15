@@ -213,7 +213,9 @@ class TelemetryPassbackMiddleware(Middleware):
         session = getattr(mcp_ctx, "_session", None)
         if session is None:
             return {}
-        meta = getattr(session, "_request_meta", None)
+        from arcade_mcp_server.request_context import get_request_meta
+
+        meta = get_request_meta()
         if meta is None:
             return {}
 

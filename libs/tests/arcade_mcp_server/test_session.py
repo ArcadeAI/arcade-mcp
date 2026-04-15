@@ -381,3 +381,31 @@ class TestSessionVersion:
     def test_has_feature_base_always_present(self, server_session):
         server_session.negotiated_version = "2025-06-18"
         assert server_session.has_feature("base") is True
+
+
+class TestHasCapability:
+    """Test has_capability() dot-notation sub-capability lookup."""
+
+    def test_has_capability_base(self, server_session):
+        server_session._negotiated_capabilities = {"tasks": {}}
+        assert server_session.has_capability("tasks") is True
+
+    def test_has_capability_nested(self, server_session):
+        server_session._negotiated_capabilities = {"tasks": {"list": {}}}
+        assert server_session.has_capability("tasks.list") is True
+        assert server_session.has_capability("tasks.cancel") is False
+
+    def test_has_capability_missing(self, server_session):
+        server_session._negotiated_capabilities = {}
+        assert server_session.has_capability("tasks") is False
+        assert server_session.has_capability("tasks.list") is False
+
+    def test_has_capability_dot_notation_depth(self, server_session):
+        server_session._negotiated_capabilities = {
+            "tasks": {"requests": {"tools": {"call": {}}}}
+        }
+        assert server_session.has_capability("tasks.requests.tools.call") is True
+        assert server_session.has_capability("tasks.requests.tools") is True
+        assert server_session.has_capability("tasks.requests") is True
+        assert server_session.has_capability("tasks") is True
+        assert server_session.has_capability("tasks.list") is False
