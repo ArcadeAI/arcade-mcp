@@ -126,6 +126,8 @@ class Context(ToolContext):
         session: Any | None = None,
         request_id: str | None = None,
         resource_owner: ResourceOwner | None = None,
+        task_id: str | None = None,
+        task_manager: Any | None = None,
     ):
         """Initialize context with server reference."""
         super().__init__()
@@ -137,6 +139,10 @@ class Context(ToolContext):
 
         # Resource owner from front-door auth (if the server is protected)
         self._resource_owner: ResourceOwner | None = resource_owner
+
+        # Task context for background task execution (Phase 4)
+        self._task_id: str | None = task_id
+        self._task_manager: Any | None = task_manager
 
         # Namespaced adapters
         self._log = Logs(self)
@@ -450,17 +456,32 @@ class Progress(_ContextComponent):
         session = self._ctx._session
         if session is None:
             return
+
+        # Check if task is terminal -- progress MUST stop after terminal status
+        # (spec progress.mdx:73)
+        task_id = self._ctx._task_id
+        task_manager = self._ctx._task_manager
+        if task_id is not None and task_manager is not None and task_manager.is_terminal(task_id):
+            return  # silently drop
+
         from arcade_mcp_server.request_context import get_request_meta
 
         request_meta = get_request_meta()
         progress_token = getattr(request_meta, "progressToken", None) if request_meta else None
         if progress_token is None:
             return
+
+        # Build _meta with related-task if in task context
+        _meta: dict[str, Any] | None = None
+        if task_id is not None:
+            _meta = {"io.modelcontextprotocol/related-task": {"taskId": task_id}}
+
         await session.send_progress_notification(
             progress_token=progress_token,
             progress=progress,
             total=total,
             message=message,
+            _meta=_meta,
         )
 
 

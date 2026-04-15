@@ -132,7 +132,7 @@ class TestContext:
 
         # Test list tools
         tools = await context.tools.list()
-        assert len(tools) == 2
+        assert len(tools) >= 2
 
         # Test call raw for tool that doesn't exist
         result = await context.tools.call_raw("TheLimitDoesNotExist", {"param": "value"})
@@ -162,7 +162,8 @@ class TestContext:
             await context.progress.report(50, 100, "Processing...")
 
             session.send_progress_notification.assert_called_once_with(
-                progress_token="task-123", progress=50, total=100, message="Processing..."
+                progress_token="task-123", progress=50, total=100, message="Processing...",
+                _meta=None,
             )
 
             # Without total

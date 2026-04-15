@@ -13,6 +13,7 @@ from arcade_core.schema import (
     OAuth2Requirement,
     ToolAuthRequirement,
     ToolDefinition,
+    ToolExecution,
     ToolInput,
     ToolkitDefinition,
     ToolOutput,
@@ -55,6 +56,7 @@ def sample_tool_def() -> ToolDefinition:
         ),
         output=ToolOutput(description="Tool output", value_schema=ValueSchema(val_type="string")),
         requirements=ToolRequirements(),
+        execution=ToolExecution(taskSupport="optional"),
     )
 
 
@@ -155,16 +157,226 @@ def materialized_tool_with_auth(
     )
 
 
+def _make_tool_def(
+    name: str,
+    fqn: str,
+    *,
+    params: list[InputParameter] | None = None,
+    execution: ToolExecution | None = None,
+) -> ToolDefinition:
+    """Helper to create a ToolDefinition with optional execution config."""
+    return ToolDefinition(
+        name=name,
+        fully_qualified_name=fqn,
+        description=f"A test tool: {name}",
+        toolkit=ToolkitDefinition(name="TestToolkit", description="Test toolkit", version="1.0.0"),
+        input=ToolInput(parameters=params or []),
+        output=ToolOutput(description="Tool output", value_schema=ValueSchema(val_type="string")),
+        requirements=ToolRequirements(),
+        execution=execution,
+    )
+
+
+def _materialize(func: Any, defn: ToolDefinition) -> MaterializedTool:
+    """Helper to materialize a tool from function + definition."""
+    input_model, output_model = create_func_models(func)
+    meta = ToolMeta(module=func.__module__, toolkit=defn.toolkit.name)
+    return MaterializedTool(
+        tool=func,
+        definition=defn,
+        meta=meta,
+        input_model=input_model,
+        output_model=output_model,
+    )
+
+
+@pytest.fixture
+def failing_tool_func():
+    """A tool that always raises an exception."""
+
+    @tool
+    def failing_tool() -> Annotated[str, "Never returned"]:
+        """A tool that always fails."""
+        raise RuntimeError("Tool execution failed")
+
+    return failing_tool
+
+
+@pytest.fixture
+def failing_tool_def() -> ToolDefinition:
+    return _make_tool_def(
+        "failing_tool",
+        "TestToolkit.failing_tool",
+        execution=ToolExecution(taskSupport="optional"),
+    )
+
+
+@pytest.fixture
+def materialized_failing_tool(failing_tool_func, failing_tool_def) -> MaterializedTool:
+    return _materialize(failing_tool_func, failing_tool_def)
+
+
+@pytest.fixture
+def slow_tool_func():
+    """A tool that sleeps for a long time (for cancellation tests)."""
+
+    @tool
+    async def slow_tool() -> Annotated[str, "Result"]:
+        """A tool that sleeps."""
+        await asyncio.sleep(60)
+        return "done"
+
+    return slow_tool
+
+
+@pytest.fixture
+def slow_tool_def() -> ToolDefinition:
+    return _make_tool_def(
+        "slow_tool",
+        "TestToolkit.slow_tool",
+        execution=ToolExecution(taskSupport="optional"),
+    )
+
+
+@pytest.fixture
+def materialized_slow_tool(slow_tool_func, slow_tool_def) -> MaterializedTool:
+    return _materialize(slow_tool_func, slow_tool_def)
+
+
+@pytest.fixture
+def error_result_tool_func():
+    """A tool that returns isError=True (not an exception)."""
+
+    @tool
+    def error_result_tool() -> Annotated[str, "Error result"]:
+        """A tool that indicates error via return value."""
+        return None  # type: ignore[return-value]
+
+    return error_result_tool
+
+
+@pytest.fixture
+def error_result_tool_def() -> ToolDefinition:
+    return _make_tool_def(
+        "error_result_tool",
+        "TestToolkit.error_result_tool",
+        execution=ToolExecution(taskSupport="optional"),
+    )
+
+
+@pytest.fixture
+def materialized_error_result_tool(error_result_tool_func, error_result_tool_def) -> MaterializedTool:
+    return _materialize(error_result_tool_func, error_result_tool_def)
+
+
+@pytest.fixture
+def forbidden_task_tool_func():
+    """A tool with taskSupport=forbidden."""
+
+    @tool
+    def forbidden_task_tool() -> Annotated[str, "Result"]:
+        """A tool that forbids task augmentation."""
+        return "ok"
+
+    return forbidden_task_tool
+
+
+@pytest.fixture
+def forbidden_task_tool_def() -> ToolDefinition:
+    return _make_tool_def(
+        "forbidden_task_tool",
+        "TestToolkit.forbidden_task_tool",
+        execution=ToolExecution(taskSupport="forbidden"),
+    )
+
+
+@pytest.fixture
+def materialized_forbidden_task_tool(
+    forbidden_task_tool_func, forbidden_task_tool_def
+) -> MaterializedTool:
+    return _materialize(forbidden_task_tool_func, forbidden_task_tool_def)
+
+
+@pytest.fixture
+def required_task_tool_func():
+    """A tool with taskSupport=required."""
+
+    @tool
+    def required_task_tool() -> Annotated[str, "Result"]:
+        """A tool that requires task augmentation."""
+        return "ok"
+
+    return required_task_tool
+
+
+@pytest.fixture
+def required_task_tool_def() -> ToolDefinition:
+    return _make_tool_def(
+        "required_task_tool",
+        "TestToolkit.required_task_tool",
+        execution=ToolExecution(taskSupport="required"),
+    )
+
+
+@pytest.fixture
+def materialized_required_task_tool(
+    required_task_tool_func, required_task_tool_def
+) -> MaterializedTool:
+    return _materialize(required_task_tool_func, required_task_tool_def)
+
+
+@pytest.fixture
+def no_execution_tool_func():
+    """A tool with no execution field (default = forbidden)."""
+
+    @tool
+    def no_execution_tool() -> Annotated[str, "Result"]:
+        """A tool with no execution config."""
+        return "ok"
+
+    return no_execution_tool
+
+
+@pytest.fixture
+def no_execution_tool_def() -> ToolDefinition:
+    return _make_tool_def(
+        "no_execution_tool",
+        "TestToolkit.no_execution_tool",
+        # No execution field -- defaults to None which means forbidden
+    )
+
+
+@pytest.fixture
+def materialized_no_execution_tool(
+    no_execution_tool_func, no_execution_tool_def
+) -> MaterializedTool:
+    return _materialize(no_execution_tool_func, no_execution_tool_def)
+
+
 @pytest.fixture
 def tool_catalog(
-    materialized_tool: MaterializedTool, materialized_tool_with_auth: MaterializedTool
+    materialized_tool: MaterializedTool,
+    materialized_tool_with_auth: MaterializedTool,
+    materialized_failing_tool: MaterializedTool,
+    materialized_slow_tool: MaterializedTool,
+    materialized_error_result_tool: MaterializedTool,
+    materialized_forbidden_task_tool: MaterializedTool,
+    materialized_required_task_tool: MaterializedTool,
+    materialized_no_execution_tool: MaterializedTool,
 ) -> ToolCatalog:
     """Create a tool catalog with sample tools."""
     catalog = ToolCatalog()
-    catalog._tools[materialized_tool.definition.get_fully_qualified_name()] = materialized_tool
-    catalog._tools[materialized_tool_with_auth.definition.get_fully_qualified_name()] = (
-        materialized_tool_with_auth
-    )
+    for mt in [
+        materialized_tool,
+        materialized_tool_with_auth,
+        materialized_failing_tool,
+        materialized_slow_tool,
+        materialized_error_result_tool,
+        materialized_forbidden_task_tool,
+        materialized_required_task_tool,
+        materialized_no_execution_tool,
+    ]:
+        catalog._tools[mt.definition.get_fully_qualified_name()] = mt
     return catalog
 
 

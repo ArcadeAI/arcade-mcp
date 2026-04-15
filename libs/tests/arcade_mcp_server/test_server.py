@@ -23,7 +23,9 @@ from arcade_core.schema import (
     ValueSchema,
 )
 from arcade_mcp_server import tool
+from arcade_mcp_server.exceptions import IncompleteAuthContextError
 from arcade_mcp_server.middleware import Middleware
+from arcade_mcp_server.resource_server.base import ResourceOwner
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.session import InitializationState
 from arcade_mcp_server.types import (
@@ -36,6 +38,7 @@ from arcade_mcp_server.types import (
     ListToolsRequest,
     ListToolsResult,
     PingRequest,
+    TaskStatus,
 )
 
 
@@ -2026,3 +2029,427 @@ class TestSubCapabilityGatedDispatch:
         response = await mcp_server.handle_message(message, initialized_server_session)
         assert isinstance(response, JSONRPCError)
         assert response.error["code"] == -32601
+
+
+def _enable_tasks(session):
+    """Set up a session with 2025-11-25 and full tasks capability."""
+    session.negotiated_version = "2025-11-25"
+    session._negotiated_capabilities = {
+        "tools": {"listChanged": True},
+        "logging": {},
+        "prompts": {"listChanged": True},
+        "resources": {"subscribe": True, "listChanged": True},
+        "tasks": {
+            "list": {},
+            "cancel": {},
+            "requests": {"tools": {"call": {}}},
+        },
+    }
+
+
+class TestTaskContextKey:
+    """Tests for _get_task_context_key."""
+
+    @pytest.mark.asyncio
+    async def test_session_fallback_when_no_resource_owner(self, mcp_server, initialized_server_session):
+        key = mcp_server._get_task_context_key(initialized_server_session, None)
+        assert key == f"session:{initialized_server_session.session_id}"
+
+    @pytest.mark.asyncio
+    async def test_auth_context_with_full_claims(self, mcp_server, initialized_server_session):
+        owner = ResourceOwner(
+            user_id="alice",
+            client_id="my-app",
+            claims={"iss": "https://accounts.google.com", "sub": "alice", "azp": "my-app"},
+        )
+        key = mcp_server._get_task_context_key(initialized_server_session, owner)
+        assert key.startswith("auth:")
+        assert "alice" in key
+
+    @pytest.mark.asyncio
+    async def test_percent_encoding_of_issuer(self, mcp_server, initialized_server_session):
+        owner = ResourceOwner(
+            user_id="alice",
+            client_id="app1",
+            claims={"iss": "https://accounts.google.com", "sub": "alice"},
+        )
+        key = mcp_server._get_task_context_key(initialized_server_session, owner)
+        # The issuer URL should be percent-encoded (colons encoded)
+        assert "https" not in key.split(":")[1:]  # raw "https" not appearing as a split component
+
+    @pytest.mark.asyncio
+    async def test_missing_iss_raises(self, mcp_server, initialized_server_session):
+        owner = ResourceOwner(
+            user_id="alice",
+            client_id="app1",
+            claims={"client_id": "app1"},  # no iss
+        )
+        with pytest.raises(IncompleteAuthContextError):
+            mcp_server._get_task_context_key(initialized_server_session, owner)
+
+    @pytest.mark.asyncio
+    async def test_unknown_client_id_produces_key(self, mcp_server, initialized_server_session):
+        owner = ResourceOwner(
+            user_id="alice",
+            client_id="unknown",
+            claims={"iss": "https://accounts.google.com", "sub": "alice"},
+        )
+        key = mcp_server._get_task_context_key(initialized_server_session, owner)
+        assert key.startswith("auth:")
+        assert "unknown" in key
+
+    @pytest.mark.asyncio
+    async def test_unknown_client_id_logs_warning(self, mcp_server, initialized_server_session, caplog):
+        owner = ResourceOwner(
+            user_id="alice",
+            client_id="unknown",
+            claims={"iss": "https://accounts.google.com", "sub": "alice"},
+        )
+        mcp_server._get_task_context_key(initialized_server_session, owner)
+        assert any("lacks azp/client_id claims" in record.message for record in caplog.records)
+
+    @pytest.mark.asyncio
+    async def test_colons_in_claims_are_encoded(self, mcp_server, initialized_server_session):
+        owner = ResourceOwner(
+            user_id="alice",
+            client_id="client:with:colons",
+            claims={"iss": "https://accounts.google.com", "azp": "client:with:colons"},
+        )
+        key = mcp_server._get_task_context_key(initialized_server_session, owner)
+        assert key.startswith("auth:")
+        # Raw "https" shouldn't appear as its own split component
+        parts = key.split(":")
+        assert "https" not in parts
+
+
+class TestTaskHandlers:
+    """Task handler tests."""
+
+    @pytest.mark.asyncio
+    async def test_handle_get_task_returns_flat_result(self, mcp_server, initialized_server_session):
+        _enable_tasks(initialized_server_session)
+        sid = initialized_server_session.session_id
+        task = await mcp_server._task_manager.create_task(context_key=f"session:{sid}")
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tasks/get",
+                   "params": {"taskId": task.taskId}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert not isinstance(response, JSONRPCError)
+        assert response.result.taskId == task.taskId
+
+    @pytest.mark.asyncio
+    async def test_handle_get_task_returns_immediately(self, mcp_server, initialized_server_session):
+        _enable_tasks(initialized_server_session)
+        sid = initialized_server_session.session_id
+        task = await mcp_server._task_manager.create_task(context_key=f"session:{sid}")
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tasks/get",
+                   "params": {"taskId": task.taskId}}
+        response = await asyncio.wait_for(
+            mcp_server.handle_message(message, initialized_server_session), timeout=1.0
+        )
+        assert response.result.status == TaskStatus.WORKING
+
+    @pytest.mark.asyncio
+    async def test_handle_get_task_not_found(self, mcp_server, initialized_server_session):
+        _enable_tasks(initialized_server_session)
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tasks/get",
+                   "params": {"taskId": "nonexistent"}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32602
+
+    @pytest.mark.asyncio
+    async def test_handle_get_task_cross_context_isolation(self, mcp_server, initialized_server_session):
+        _enable_tasks(initialized_server_session)
+        task = await mcp_server._task_manager.create_task(
+            context_key="auth:https://other-issuer.com:other-client:other-user"
+        )
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tasks/get",
+                   "params": {"taskId": task.taskId}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+
+    @pytest.mark.asyncio
+    async def test_handle_list_tasks(self, mcp_server, initialized_server_session):
+        _enable_tasks(initialized_server_session)
+        sid = initialized_server_session.session_id
+        await mcp_server._task_manager.create_task(context_key=f"session:{sid}")
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tasks/list", "params": {}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert not isinstance(response, JSONRPCError)
+        assert len(response.result.tasks) >= 1
+
+    @pytest.mark.asyncio
+    async def test_handle_cancel_task_returns_flat_result(self, mcp_server, initialized_server_session):
+        _enable_tasks(initialized_server_session)
+        sid = initialized_server_session.session_id
+        task = await mcp_server._task_manager.create_task(context_key=f"session:{sid}")
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tasks/cancel",
+                   "params": {"taskId": task.taskId}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert not isinstance(response, JSONRPCError)
+        assert response.result.status == TaskStatus.CANCELLED
+
+    @pytest.mark.asyncio
+    async def test_handle_tasks_result_blocks_until_complete(self, mcp_server, initialized_server_session):
+        _enable_tasks(initialized_server_session)
+        sid = initialized_server_session.session_id
+        task = await mcp_server._task_manager.create_task(context_key=f"session:{sid}")
+        result_data = {"content": [{"type": "text", "text": "answer"}], "isError": False}
+
+        async def complete_later():
+            await asyncio.sleep(0.1)
+            await mcp_server._task_manager.set_result(task.taskId, result_data)
+            await mcp_server._task_manager.update_status(task.taskId, TaskStatus.COMPLETED)
+
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tasks/result",
+                   "params": {"taskId": task.taskId}}
+
+        async with asyncio.TaskGroup() as tg:
+            tg.create_task(complete_later())
+            response = await asyncio.wait_for(
+                mcp_server.handle_message(message, initialized_server_session), timeout=5.0
+            )
+        assert not isinstance(response, JSONRPCError)
+
+    @pytest.mark.asyncio
+    async def test_handle_tasks_result_returns_immediately_for_completed(self, mcp_server, initialized_server_session):
+        _enable_tasks(initialized_server_session)
+        sid = initialized_server_session.session_id
+        task = await mcp_server._task_manager.create_task(context_key=f"session:{sid}")
+        result_data = {"content": [{"type": "text", "text": "done"}]}
+        await mcp_server._task_manager.set_result(task.taskId, result_data)
+        await mcp_server._task_manager.update_status(task.taskId, TaskStatus.COMPLETED)
+
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tasks/result",
+                   "params": {"taskId": task.taskId}}
+        response = await asyncio.wait_for(
+            mcp_server.handle_message(message, initialized_server_session), timeout=1.0
+        )
+        assert not isinstance(response, JSONRPCError)
+
+
+class TestTaskAugmentedToolCall:
+    """Tests for task-augmented tools/call."""
+
+    @pytest.mark.asyncio
+    async def test_tool_call_with_task_returns_create_task_result(self, mcp_server, initialized_server_session):
+        _enable_tasks(initialized_server_session)
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                   "params": {"name": "TestToolkit.test_tool", "arguments": {"text": "hello"},
+                              "_meta": {}, "task": {"ttl": 60000}}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert not isinstance(response, JSONRPCError)
+        assert hasattr(response.result, "task")
+        assert response.result.task.status == TaskStatus.WORKING
+        assert response.result.task.taskId is not None
+
+    @pytest.mark.asyncio
+    async def test_tool_call_without_task_returns_normal_result(self, mcp_server, initialized_server_session):
+        _enable_tasks(initialized_server_session)
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                   "params": {"name": "TestToolkit.test_tool", "arguments": {"text": "hello"}}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert not isinstance(response, JSONRPCError)
+        assert hasattr(response.result, "content")
+        assert not hasattr(response.result, "task")
+
+    @pytest.mark.asyncio
+    async def test_task_augmented_tool_completes_in_background(self, mcp_server, initialized_server_session):
+        _enable_tasks(initialized_server_session)
+        sid = initialized_server_session.session_id
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                   "params": {"name": "TestToolkit.test_tool", "arguments": {"text": "hello"},
+                              "task": {"ttl": 60000}}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        task_id = response.result.task.taskId
+
+        result = await asyncio.wait_for(
+            mcp_server._task_manager.get_result(task_id, context_key=f"session:{sid}"), timeout=5.0
+        )
+        task = await mcp_server._task_manager.get_task(task_id, context_key=f"session:{sid}")
+        assert task.status in [TaskStatus.COMPLETED, TaskStatus.FAILED]
+
+    @pytest.mark.asyncio
+    async def test_task_augmented_tool_error_captured(self, mcp_server, initialized_server_session):
+        _enable_tasks(initialized_server_session)
+        sid = initialized_server_session.session_id
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                   "params": {"name": "TestToolkit.failing_tool", "arguments": {},
+                              "task": {"ttl": 60000}}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        task_id = response.result.task.taskId
+        await asyncio.wait_for(
+            mcp_server._task_manager.get_result(task_id, context_key=f"session:{sid}"), timeout=5.0
+        )
+        task = await mcp_server._task_manager.get_task(task_id, context_key=f"session:{sid}")
+        assert task.status == TaskStatus.FAILED
+
+    @pytest.mark.asyncio
+    async def test_cancel_running_task_cancels_tool_execution(self, mcp_server, initialized_server_session):
+        _enable_tasks(initialized_server_session)
+        sid = initialized_server_session.session_id
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                   "params": {"name": "TestToolkit.slow_tool", "arguments": {},
+                              "task": {"ttl": 60000}}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        task_id = response.result.task.taskId
+
+        # Cancel while running
+        cancel_msg = {"jsonrpc": "2.0", "id": 2, "method": "tasks/cancel",
+                      "params": {"taskId": task_id}}
+        await mcp_server.handle_message(cancel_msg, initialized_server_session)
+        task = await mcp_server._task_manager.get_task(task_id, context_key=f"session:{sid}")
+        assert task.status == TaskStatus.CANCELLED
+
+
+class TestRelatedTaskMetadata:
+    """Tests for _meta.io.modelcontextprotocol/related-task propagation."""
+
+    @pytest.mark.asyncio
+    async def test_create_task_result_includes_related_task_meta(self, mcp_server, initialized_server_session):
+        _enable_tasks(initialized_server_session)
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                   "params": {"name": "TestToolkit.test_tool", "arguments": {"text": "hello"},
+                              "task": {"ttl": 60000}}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        result_dict = response.result.model_dump(exclude_none=True, by_alias=True)
+        meta = result_dict.get("_meta", {})
+        related = meta.get("io.modelcontextprotocol/related-task", {})
+        assert "taskId" in related
+        assert related["taskId"] == response.result.task.taskId
+
+    @pytest.mark.asyncio
+    async def test_tasks_result_success_response_includes_related_task_meta(self, mcp_server, initialized_server_session):
+        _enable_tasks(initialized_server_session)
+        sid = initialized_server_session.session_id
+        task = await mcp_server._task_manager.create_task(context_key=f"session:{sid}")
+        result_data = {"content": [{"type": "text", "text": "done"}]}
+        await mcp_server._task_manager.set_result(task.taskId, result_data)
+        await mcp_server._task_manager.update_status(task.taskId, TaskStatus.COMPLETED)
+
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tasks/result",
+                   "params": {"taskId": task.taskId}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        # The result should be a dict with _meta injected
+        result = response.result
+        if isinstance(result, dict):
+            meta = result.get("_meta", {})
+            related = meta.get("io.modelcontextprotocol/related-task", {})
+            assert related.get("taskId") == task.taskId
+        else:
+            # Pydantic model
+            result_dict = result.model_dump(exclude_none=True, by_alias=True) if hasattr(result, "model_dump") else {}
+            meta = result_dict.get("_meta", {})
+            related = meta.get("io.modelcontextprotocol/related-task", {})
+            assert related.get("taskId") == task.taskId
+
+    @pytest.mark.asyncio
+    async def test_tasks_result_error_response_returns_underlying_error_unchanged(self, mcp_server, initialized_server_session):
+        """tasks/result for a FAILED task returns the underlying JSON-RPC error unchanged."""
+        _enable_tasks(initialized_server_session)
+        sid = initialized_server_session.session_id
+        task = await mcp_server._task_manager.create_task(context_key=f"session:{sid}")
+        error_data = {"code": -32603, "message": "Internal error"}
+        await mcp_server._task_manager.set_error(task.taskId, error_data)
+        await mcp_server._task_manager.update_status(task.taskId, TaskStatus.FAILED)
+
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tasks/result",
+                   "params": {"taskId": task.taskId}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32603
+
+    @pytest.mark.asyncio
+    async def test_tasks_get_response_should_not_include_related_task_meta(self, mcp_server, initialized_server_session):
+        _enable_tasks(initialized_server_session)
+        sid = initialized_server_session.session_id
+        task = await mcp_server._task_manager.create_task(context_key=f"session:{sid}")
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tasks/get",
+                   "params": {"taskId": task.taskId}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        result_dict = response.result.model_dump(exclude_none=True, by_alias=True) if hasattr(response.result, "model_dump") else {}
+        meta = result_dict.get("_meta", {})
+        assert "io.modelcontextprotocol/related-task" not in meta
+
+    @pytest.mark.asyncio
+    async def test_tasks_cancel_response_should_not_include_related_task_meta(self, mcp_server, initialized_server_session):
+        _enable_tasks(initialized_server_session)
+        sid = initialized_server_session.session_id
+        task = await mcp_server._task_manager.create_task(context_key=f"session:{sid}")
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tasks/cancel",
+                   "params": {"taskId": task.taskId}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        result_dict = response.result.model_dump(exclude_none=True, by_alias=True) if hasattr(response.result, "model_dump") else {}
+        meta = result_dict.get("_meta", {})
+        assert "io.modelcontextprotocol/related-task" not in meta
+
+
+class TestToolTaskNegotiationEnforcement:
+    """Tests for Tool.execution.taskSupport enforcement rules."""
+
+    @pytest.mark.asyncio
+    async def test_forbidden_tool_rejects_task_metadata(self, mcp_server, initialized_server_session):
+        _enable_tasks(initialized_server_session)
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                   "params": {"name": "TestToolkit.forbidden_task_tool", "arguments": {},
+                              "task": {"ttl": 60000}}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32601
+
+    @pytest.mark.asyncio
+    async def test_required_tool_rejects_non_task_call(self, mcp_server, initialized_server_session):
+        _enable_tasks(initialized_server_session)
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                   "params": {"name": "TestToolkit.required_task_tool", "arguments": {}}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32601
+
+    @pytest.mark.asyncio
+    async def test_optional_tool_accepts_task_metadata(self, mcp_server, initialized_server_session):
+        _enable_tasks(initialized_server_session)
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                   "params": {"name": "TestToolkit.test_tool", "arguments": {"text": "hello"},
+                              "task": {"ttl": 60000}}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert not isinstance(response, JSONRPCError)
+
+    @pytest.mark.asyncio
+    async def test_optional_tool_accepts_normal_call(self, mcp_server, initialized_server_session):
+        _enable_tasks(initialized_server_session)
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                   "params": {"name": "TestToolkit.test_tool", "arguments": {"text": "hello"}}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert not isinstance(response, JSONRPCError)
+
+    @pytest.mark.asyncio
+    async def test_default_no_execution_rejects_task_metadata(self, mcp_server, initialized_server_session):
+        _enable_tasks(initialized_server_session)
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                   "params": {"name": "TestToolkit.no_execution_tool", "arguments": {},
+                              "task": {"ttl": 60000}}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32601
+
+
+class TestCapabilityFallback:
+    """Tests for capability fallback: task metadata ignored when not negotiated."""
+
+    @pytest.mark.asyncio
+    async def test_2025_06_18_session_ignores_task_metadata(self, mcp_server, initialized_server_session):
+        initialized_server_session.negotiated_version = "2025-06-18"
+        initialized_server_session._negotiated_capabilities = {
+            "tools": {"listChanged": True},
+            "logging": {},
+            "prompts": {"listChanged": True},
+            "resources": {"subscribe": True, "listChanged": True},
+        }
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                   "params": {"name": "TestToolkit.test_tool", "arguments": {"text": "hello"},
+                              "task": {"ttl": 60000}}}
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert not isinstance(response, JSONRPCError)
+        assert hasattr(response.result, "content")  # CallToolResult shape
+        assert not hasattr(response.result, "task")  # NOT CreateTaskResult

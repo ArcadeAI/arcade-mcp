@@ -16,33 +16,30 @@ from arcade_core.errors import (
 )
 
 __all__ = [
-    # Re-exports
+    "AuthorizationError",
+    "ContextRequiredToolError",
     "ErrorKind",
     "FatalToolError",
-    "RetryableToolError",
-    "ToolExecutionError",
-    "ToolRuntimeError",
-    "UpstreamError",
-    "UpstreamRateLimitError",
-    "ContextRequiredToolError",
-    # Base exceptions
+    "IncompleteAuthContextError",
+    "LifespanError",
+    "MCPContextError",
     "MCPError",
     "MCPRuntimeError",
-    # Server exceptions
-    "ServerError",
-    "SessionError",
-    "RequestError",
-    "ResponseError",
-    "ServerRequestError",
-    "LifespanError",
-    # Context exceptions
-    "MCPContextError",
     "NotFoundError",
-    "AuthorizationError",
     "PromptError",
-    "ResourceError",
-    "TransportError",
     "ProtocolError",
+    "RequestError",
+    "ResourceError",
+    "ResponseError",
+    "RetryableToolError",
+    "ServerError",
+    "ServerRequestError",
+    "SessionError",
+    "ToolExecutionError",
+    "ToolRuntimeError",
+    "TransportError",
+    "UpstreamError",
+    "UpstreamRateLimitError",
 ]
 
 
@@ -107,3 +104,7 @@ class TransportError(MCPRuntimeError):
 
 class ProtocolError(MCPRuntimeError):
     """Error in MCP protocol handling."""
+
+
+class IncompleteAuthContextError(MCPError):
+    """Auth context is missing required claims (e.g., iss) for task scoping."""

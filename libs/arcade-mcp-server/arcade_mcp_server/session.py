@@ -501,6 +501,7 @@ class ServerSession:
         progress: float,
         total: float | None = None,
         message: str | None = None,
+        _meta: dict[str, Any] | None = None,
     ) -> None:
         """Send a progress notification."""
         notification = ProgressNotification(
@@ -511,6 +512,9 @@ class ServerSession:
                 message=message,
             )
         )
+        # TODO: inject _meta into notification params when ProgressNotificationParams
+        # gains a _meta field. For now the _meta is accepted but not yet wired into
+        # the notification shape.
         await self.send_notification(notification)
 
     async def send_log_message(
