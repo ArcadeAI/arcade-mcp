@@ -240,6 +240,12 @@ class ProgressNotificationParams(BaseModel):
     progress: float
     total: float | None = None
     message: str | None = None
+    # Inherits _meta from NotificationParams per schema.ts:586. Used in 2025-11-25
+    # to carry io.modelcontextprotocol/related-task when the progress notification
+    # originates from a background task execution.
+    meta: dict[str, Any] | None = Field(alias="_meta", default=None)
+
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class ProgressNotification(JSONRPCMessage, Notification):
@@ -668,6 +674,12 @@ class CreateMessageParams(BaseModel):
     metadata: dict[str, Any] | None = None
     tools: list[MCPTool] | None = None
     toolChoice: ToolChoice | None = None
+    # Standard MCP _meta field (schema.ts:570). In 2025-11-25 this carries
+    # io.modelcontextprotocol/related-task when sampling originates from a
+    # background task execution.
+    meta: dict[str, Any] | None = Field(alias="_meta", default=None)
+
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class CreateMessageRequest(JSONRPCRequest):
@@ -759,6 +771,11 @@ ElicitRequestedSchema = dict[str, Any]
 class ElicitParams(BaseModel):
     message: str
     requestedSchema: ElicitRequestedSchema
+    # Standard MCP _meta (schema.ts:570). Carries io.modelcontextprotocol/related-task
+    # when elicitation originates from a background task execution (2025-11-25).
+    meta: dict[str, Any] | None = Field(alias="_meta", default=None)
+
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class ElicitRequest(JSONRPCRequest):
@@ -782,8 +799,11 @@ class ElicitRequestFormParams(BaseModel):
     mode: Literal["form"] | None = None
     message: str
     requestedSchema: dict[str, Any]
+    # Standard MCP _meta (schema.ts:570). Carries io.modelcontextprotocol/related-task
+    # when elicitation originates from a background task execution (2025-11-25).
+    meta: dict[str, Any] | None = Field(alias="_meta", default=None)
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
 
 class ElicitRequestURLParams(BaseModel):

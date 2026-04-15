@@ -600,6 +600,13 @@ class Sampling(_ContextComponent):
         if not self._ctx._check_client_capability(ClientCapabilities(sampling={})):
             raise ValueError("Client does not support sampling")
 
+        # Auto-inject io.modelcontextprotocol/related-task _meta when running in a
+        # task context (spec tasks.mdx:472 — all task-related outbound requests MUST
+        # include related-task metadata).
+        outbound_meta: dict[str, Any] | None = None
+        if self._ctx._task_id is not None:
+            outbound_meta = {"io.modelcontextprotocol/related-task": {"taskId": self._ctx._task_id}}
+
         result = await self._ctx._session.create_message(
             messages=sampling_messages,
             system_prompt=system_prompt,
@@ -609,6 +616,7 @@ class Sampling(_ContextComponent):
             model_preferences=parsed_prefs,
             tools=tools,
             tool_choice=tool_choice,
+            _meta=outbound_meta,
         )
 
         return result.content if hasattr(result, "content") else result  # type: ignore[no-any-return]
@@ -622,6 +630,11 @@ class UI(_ContextComponent):
         """Validate that the schema conforms to MCP elicitation restrictions."""
         if not isinstance(schema, dict):
             raise TypeError("Schema must be a dictionary")
+
+        # Enforce JSON Schema 2020-12 dialect (MCP spec index.mdx:182-184)
+        from arcade_mcp_server.server import _validate_schema_dialect
+
+        _validate_schema_dialect(schema)
 
         if schema.get("type") != "object":
             raise ValueError("Schema must have type 'object'")
@@ -691,12 +704,20 @@ class UI(_ContextComponent):
             # Validate schema conforms to MCP restrictions
             self._validate_elicitation_schema(schema)
 
+        # Auto-inject io.modelcontextprotocol/related-task _meta when running in a
+        # task context (spec tasks.mdx:472 — all task-related outbound requests MUST
+        # include related-task metadata).
+        outbound_meta: dict[str, Any] | None = None
+        if self._ctx._task_id is not None:
+            outbound_meta = {"io.modelcontextprotocol/related-task": {"taskId": self._ctx._task_id}}
+
         result = await self._ctx._session.elicit(
             message=message,
             requested_schema=schema,
             mode=mode,
             url=url,
             elicitation_id=elicitation_id,
+            _meta=outbound_meta,
             timeout=timeout,
         )
         return cast(ElicitResult, result)

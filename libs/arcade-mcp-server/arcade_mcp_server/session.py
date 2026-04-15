@@ -188,7 +188,7 @@ class RequestManager:
 
         try:
             for note in notifications:
-                message = note.model_dump_json(exclude_none=True) + "\n"
+                message = note.model_dump_json(exclude_none=True, by_alias=True) + "\n"
                 await self._write_stream.send(message)
         except Exception:
             # Swallow transport errors during shutdown; proceed to cancel futures
@@ -515,7 +515,9 @@ class ServerSession:
         if not self.write_stream:
             return
 
-        message = notification.model_dump_json(exclude_none=True) + "\n"
+        # by_alias=True ensures Pydantic Field aliases (e.g. meta -> _meta) are
+        # serialized using the wire-format keys required by the MCP spec.
+        message = notification.model_dump_json(exclude_none=True, by_alias=True) + "\n"
         await self.write_stream.send(message)
 
     async def send_progress_notification(
@@ -533,11 +535,9 @@ class ServerSession:
                 progress=progress,
                 total=total,
                 message=message,
+                meta=_meta,
             )
         )
-        # TODO: inject _meta into notification params when ProgressNotificationParams
-        # gains a _meta field. For now the _meta is accepted but not yet wired into
-        # the notification shape.
         await self.send_notification(notification)
 
     async def send_log_message(
@@ -581,6 +581,7 @@ class ServerSession:
         metadata: dict[str, Any] | None = None,
         tools: list[dict[str, Any]] | None = None,
         tool_choice: dict[str, Any] | None = None,
+        _meta: dict[str, Any] | None = None,
         timeout: float = 60.0,
     ) -> CreateMessageResult:
         """
@@ -668,6 +669,10 @@ class ServerSession:
             params["tools"] = tools
             if tool_choice is not None:
                 params["toolChoice"] = tool_choice
+
+        # Attach _meta if provided (e.g. related-task meta from background tasks)
+        if _meta is not None:
+            params["_meta"] = _meta
 
         result = await self._request_manager.send_request(
             "sampling/createMessage",
@@ -855,6 +860,7 @@ class ServerSession:
         mode: str | None = None,
         url: str | None = None,
         elicitation_id: str | None = None,
+        _meta: dict[str, Any] | None = None,
         timeout: float = 300.0,
     ) -> ElicitResult:
         """
@@ -906,6 +912,10 @@ class ServerSession:
             }
             if requested_schema is not None:
                 params["requestedSchema"] = requested_schema
+
+        # Attach _meta if provided (e.g. related-task meta from background tasks)
+        if _meta is not None:
+            params["_meta"] = _meta
 
         result = await self._request_manager.send_request(
             "elicitation/create",

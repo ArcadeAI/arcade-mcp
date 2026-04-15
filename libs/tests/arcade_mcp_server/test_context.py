@@ -282,6 +282,7 @@ class TestContext:
             mode=None,
             url=None,
             elicitation_id=None,
+            _meta=None,
             timeout=300.0,
         )
 
@@ -297,6 +298,7 @@ class TestContext:
             mode=None,
             url=None,
             elicitation_id=None,
+            _meta=None,
             timeout=300,
         )
 
@@ -415,3 +417,61 @@ class TestContext:
 
         # After exit, context should be reset
         assert get_current_context() is None
+
+
+class TestElicitSchemaDialectEnforcement:
+    """UI.elicit() must reject schemas that declare an unsupported JSON Schema
+    dialect. Spec index.mdx:182-184 requires 2020-12."""
+
+    @pytest.mark.asyncio
+    async def test_elicit_rejects_unsupported_dialect(self, mcp_server):
+        from arcade_mcp_server.context import Context
+        from arcade_mcp_server.exceptions import UnsupportedSchemaDialectError
+
+        session = Mock()
+        session.elicit = AsyncMock(return_value={"action": "accept"})
+        context = Context(server=mcp_server)
+        context.set_session(session)
+
+        bad_schema = {
+            "$schema": "http://json-schema.org/draft-07/schema#",  # Draft-07, not 2020-12
+            "type": "object",
+            "properties": {"name": {"type": "string"}},
+        }
+
+        with pytest.raises(UnsupportedSchemaDialectError):
+            await context.ui.elicit("Enter", schema=bad_schema)
+        # Session elicit must NOT have been called since validation failed first
+        session.elicit.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_elicit_accepts_2020_12_dialect(self, mcp_server):
+        from arcade_mcp_server.context import Context
+
+        session = Mock()
+        session.elicit = AsyncMock(return_value={"action": "accept", "content": {}})
+        context = Context(server=mcp_server)
+        context.set_session(session)
+
+        ok_schema = {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {"name": {"type": "string"}},
+        }
+
+        await context.ui.elicit("Enter", schema=ok_schema)
+        session.elicit.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_elicit_accepts_missing_dollar_schema(self, mcp_server):
+        """Omitted $schema defaults to 2020-12 (valid)."""
+        from arcade_mcp_server.context import Context
+
+        session = Mock()
+        session.elicit = AsyncMock(return_value={"action": "accept", "content": {}})
+        context = Context(server=mcp_server)
+        context.set_session(session)
+
+        schema = {"type": "object", "properties": {"name": {"type": "string"}}}
+        await context.ui.elicit("Enter", schema=schema)
+        session.elicit.assert_called_once()
