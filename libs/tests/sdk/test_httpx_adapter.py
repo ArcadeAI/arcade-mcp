@@ -189,7 +189,7 @@ class TestHTTPErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 404
-        assert result.message == "Upstream HTTP request failed with status code 404."
+        assert result.message == "Upstream HTTP request failed (404 Not Found, client error)."
         assert result.developer_message == "404 Client Error: Not Found"
         assert result.extra["service"] == "_http"
         assert result.extra["endpoint"] == "https://api.example.com/users/123"
@@ -219,7 +219,10 @@ class TestHTTPErrorAdapter:
 
         assert isinstance(result, UpstreamRateLimitError)
         assert result.retry_after_ms == 60_000
-        assert result.message == "Upstream HTTP request failed with status code 429."
+        assert result.message == (
+            "Upstream HTTP request failed (429 Too Many Requests, client error). "
+            "Retry after 60 second(s)."
+        )
         assert result.developer_message == "429 Too Many Requests"
         assert result.extra["service"] == "_http"
         assert result.extra["endpoint"] == "https://api.example.com/upload"
@@ -250,7 +253,7 @@ class TestHTTPErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 403
-        assert result.message == "Upstream HTTP request failed with status code 403."
+        assert result.message == "Upstream HTTP request failed (403 Forbidden, client error)."
         assert result.developer_message == "403 Forbidden"
         assert result.extra["service"] == "_http"
         assert result.extra["endpoint"] == "https://api.example.com/protected"
@@ -277,7 +280,7 @@ class TestHTTPErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 500
-        assert result.message == "Upstream HTTP request failed with status code 500."
+        assert result.message == "Upstream HTTP request failed (500 Internal Server Error, server error)."
         assert result.developer_message == "500 Internal Server Error"
         assert result.extra["service"] == "_http"
         assert result.extra["endpoint"] == "https://api.example.com/server-error"
@@ -432,7 +435,7 @@ class TestHTTPErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 400
-        assert result.message == "Upstream HTTP request failed with status code 400."
+        assert result.message == "Upstream HTTP request failed (400 Bad Request, client error)."
         assert result.developer_message == "400 Bad Request"
         assert result.extra["service"] == "_http"
         assert "endpoint" not in result.extra
@@ -749,7 +752,10 @@ class TestHTTPErrorAdapter:
 
         assert isinstance(result, UpstreamRateLimitError)
         assert result.retry_after_ms == 120_000
-        assert result.message == "Upstream HTTP request failed with status code 403."
+        assert result.message == (
+            "Upstream HTTP request failed (403 Forbidden, client error). "
+            "Retry after 120 second(s)."
+        )
         assert result.developer_message == "403 Forbidden"
 
     def test_requests_403_rate_limit_handling(self):
@@ -780,5 +786,33 @@ class TestHTTPErrorAdapter:
 
         assert isinstance(result, UpstreamRateLimitError)
         assert result.retry_after_ms == 30_000
-        assert result.message == "Upstream HTTP request failed with status code 403."
+        assert result.message == (
+            "Upstream HTTP request failed (403 Forbidden, client error). "
+            "Retry after 30 second(s)."
+        )
         assert result.developer_message == "403 Forbidden"
+
+    def test_http_status_message_keeps_sensitive_data_in_developer_message_only(self):
+        """Status messages should remain descriptive while avoiding sensitive payload leaks."""
+        request = httpx.Request("GET", "https://api.example.com/users?token=secret-token")
+        response = httpx.Response(
+            401,
+            request=request,
+            headers={"authorization": "Bearer super-secret"},
+            json={"error": "token secret-token is invalid"},
+        )
+        exc = httpx.HTTPStatusError(
+            "401 Client Error: Unauthorized for url: "
+            "https://api.example.com/users?token=secret-token payload=secret-token",
+            request=request,
+            response=response,
+        )
+
+        result = self.adapter.from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert result.message == "Upstream HTTP request failed (401 Unauthorized, client error)."
+        assert "secret-token" not in result.message
+        assert "Bearer" not in result.message
+        assert "payload" not in result.message
+        assert "secret-token" in (result.developer_message or "")

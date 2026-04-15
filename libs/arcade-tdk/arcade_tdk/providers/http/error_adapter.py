@@ -1,6 +1,7 @@
 import logging
 import re
 from datetime import datetime, timezone
+from http import HTTPStatus
 from typing import Any
 from urllib.parse import urlparse
 
@@ -19,6 +20,37 @@ RATE_HEADERS = ("retry-after", "x-ratelimit-reset", "x-ratelimit-reset-ms")
 
 class BaseHTTPErrorMapper:
     """Base class for HTTP error mapping functionality."""
+
+    def _status_class_label(self, status: int) -> str:
+        if 400 <= status < 500:
+            return "client error"
+        if 500 <= status < 600:
+            return "server error"
+        if 300 <= status < 400:
+            return "redirection"
+        if 100 <= status < 200:
+            return "informational"
+        return "response"
+
+    def _status_phrase(self, status: int) -> str:
+        try:
+            return HTTPStatus(status).phrase
+        except ValueError:
+            return "Unknown Status"
+
+    def _build_safe_status_message(self, status: int, headers: dict[str, str]) -> str:
+        phrase = self._status_phrase(status)
+        status_class = self._status_class_label(status)
+        base_message = f"Upstream HTTP request failed ({status} {phrase}, {status_class})."
+
+        if status == 429 or (status == 403 and self._is_rate_limit_403(headers, base_message)):
+            retry_after_ms = self._parse_retry_ms(headers)
+            retry_after_seconds = retry_after_ms // 1000
+            if retry_after_seconds > 0:
+                return f"{base_message} Retry after {retry_after_seconds} second(s)."
+            return f"{base_message} Rate limit encountered."
+
+        return base_message
 
     def _parse_numeric_header(self, value: str | None) -> float | None:
         """Convert numeric header values to float without relying on exceptions."""
@@ -228,7 +260,9 @@ class _HTTPXExceptionHandler:
 
         if isinstance(exc, httpx.HTTPStatusError):
             response = exc.response
-            safe_message = f"Upstream HTTP request failed with status code {response.status_code}."
+            safe_message = mapper._build_safe_status_message(
+                response.status_code, dict(response.headers)
+            )
             return mapper._map_status_to_error(
                 response.status_code,
                 dict(response.headers),
@@ -374,7 +408,9 @@ class _RequestsExceptionHandler:
             elif hasattr(response, "url"):
                 request_url = response.url
 
-            safe_message = f"Upstream HTTP request failed with status code {response.status_code}."
+            safe_message = mapper._build_safe_status_message(
+                response.status_code, dict(response.headers)
+            )
             return mapper._map_status_to_error(
                 response.status_code,
                 dict(response.headers),
