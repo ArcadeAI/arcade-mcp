@@ -8,6 +8,53 @@ def test_basic_imports():
     assert Context is not None
 
 
+def test_v2025_11_25_type_imports():
+    """Test that all 2025-11-25 types are importable from the top-level package."""
+    from arcade_mcp_server import (
+        CancelTaskResult,
+        CreateTaskResult,
+        ElicitationCompleteNotification,
+        ElicitRequestURLParams,
+        GetTaskResult,
+        Icon,
+        LegacyTitledEnumSchema,
+        ListTasksResult,
+        Task,
+        TaskStatus,
+        TaskStatusNotification,
+        TitledMultiSelectEnumSchema,
+        TitledSingleSelectEnumSchema,
+        ToolChoice,
+        ToolExecution,
+        ToolResultContent,
+        ToolUseContent,
+        URLElicitationRequiredError,
+        UntitledMultiSelectEnumSchema,
+        UntitledSingleSelectEnumSchema,
+    )
+
+    assert Icon is not None
+    assert ToolUseContent is not None
+    assert ToolResultContent is not None
+    assert ToolChoice is not None
+    assert ToolExecution is not None
+    assert TaskStatus is not None
+    assert Task is not None
+    assert CreateTaskResult is not None
+    assert GetTaskResult is not None
+    assert CancelTaskResult is not None
+    assert ListTasksResult is not None
+    assert TaskStatusNotification is not None
+    assert ElicitRequestURLParams is not None
+    assert ElicitationCompleteNotification is not None
+    assert URLElicitationRequiredError is not None
+    assert UntitledSingleSelectEnumSchema is not None
+    assert TitledSingleSelectEnumSchema is not None
+    assert UntitledMultiSelectEnumSchema is not None
+    assert TitledMultiSelectEnumSchema is not None
+    assert LegacyTitledEnumSchema is not None
+
+
 def test_manager_imports():
     """Test manager imports."""
     from arcade_mcp_server.managers.prompt import PromptManager
@@ -43,6 +90,7 @@ def test_transport_imports():
 
 if __name__ == "__main__":
     test_basic_imports()
+    test_v2025_11_25_type_imports()
     test_manager_imports()
     test_middleware_imports()
     test_transport_imports()
