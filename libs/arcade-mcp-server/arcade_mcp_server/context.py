@@ -570,6 +570,8 @@ class Sampling(_ContextComponent):
         temperature: float | None = None,
         max_tokens: int | None = None,
         model_preferences: ModelPreferences | str | list[str] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: dict[str, Any] | None = None,
     ) -> TextContent | ImageContent | AudioContent | CreateMessageResult:
         if self._ctx._session is None:
             raise ValueError("Session not available")
@@ -605,6 +607,8 @@ class Sampling(_ContextComponent):
             temperature=temperature,
             max_tokens=max_tokens or 512,
             model_preferences=parsed_prefs,
+            tools=tools,
+            tool_choice=tool_choice,
         )
 
         return result.content if hasattr(result, "content") else result  # type: ignore[no-any-return]

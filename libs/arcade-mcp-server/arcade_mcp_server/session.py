@@ -282,6 +282,9 @@ class ServerSession:
         self.negotiated_version: str | None = None
         self._negotiated_capabilities: dict[str, Any] = {}
 
+        # Client capabilities (set during initialize)
+        self._client_capabilities: ClientCapabilities | None = None
+
         # Request management
         self._request_manager = RequestManager(write_stream) if write_stream else None
 
@@ -324,6 +327,15 @@ class ServerSession:
     def set_client_params(self, params: InitializeParams) -> None:
         """Set client initialization parameters."""
         self.client_params = params
+        # Extract client capabilities (params may be a dict in tests)
+        if isinstance(params, dict):
+            caps = params.get("capabilities")  # type: ignore[union-attr]
+            if isinstance(caps, ClientCapabilities):
+                self._client_capabilities = caps
+            elif isinstance(caps, dict):
+                self._client_capabilities = ClientCapabilities(**caps)
+        elif hasattr(params, "capabilities"):
+            self._client_capabilities = params.capabilities
         self.initialization_state = InitializationState.INITIALIZING
 
     def mark_initialized(self) -> None:
@@ -556,6 +568,8 @@ class ServerSession:
         model_preferences: dict[str, Any] | None = None,
         stop_sequences: list[str] | None = None,
         metadata: dict[str, Any] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: dict[str, Any] | None = None,
         timeout: float = 60.0,
     ) -> CreateMessageResult:
         """
@@ -570,6 +584,8 @@ class ServerSession:
             model_preferences: Model preferences
             stop_sequences: Stop sequences
             metadata: Request metadata
+            tools: Tools available for the model (2025-11-25 only)
+            tool_choice: Tool choice mode (2025-11-25 only)
             timeout: Request timeout
 
         Returns:
@@ -578,7 +594,41 @@ class ServerSession:
         if not self._request_manager:
             raise SessionError("Cannot send requests without request manager")
 
-        params = {
+        # Determine if the client supports tools in sampling
+        client_has_sampling_tools = False
+        if self.negotiated_version == "2025-11-25":
+            client_caps = self._client_capabilities
+            if (
+                client_caps is not None
+                and isinstance(client_caps.sampling, dict)
+                and "tools" in client_caps.sampling
+            ):
+                client_has_sampling_tools = True
+
+        # Tools are only included if both caller passed them AND client supports them
+        tools_allowed = tools is not None and client_has_sampling_tools
+
+        # Validate message content for tool_use/tool_result constraints
+        # (only relevant for 2025-11-25 sessions with sampling.tools capability)
+        if client_has_sampling_tools:
+            self._validate_sampling_messages(messages)
+
+        # Gate includeContext on client capability
+        if (
+            include_context is not None
+            and include_context != "none"
+            and self.negotiated_version == "2025-11-25"
+        ):
+            client_caps = self._client_capabilities
+            context_allowed = (
+                client_caps is not None
+                and isinstance(client_caps.sampling, dict)
+                and "context" in client_caps.sampling
+            )
+            if not context_allowed:
+                include_context = None  # strip it
+
+        params: dict[str, Any] = {
             "messages": messages,
             "maxTokens": max_tokens,
         }
@@ -597,6 +647,12 @@ class ServerSession:
         if metadata is not None:
             params["metadata"] = metadata
 
+        # Include tools/toolChoice only when allowed
+        if tools_allowed and tools is not None:
+            params["tools"] = tools
+            if tool_choice is not None:
+                params["toolChoice"] = tool_choice
+
         result = await self._request_manager.send_request(
             "sampling/createMessage",
             params,
@@ -604,6 +660,68 @@ class ServerSession:
         )
 
         return CreateMessageResult(**result)
+
+    @staticmethod
+    def _validate_sampling_messages(messages: list[dict[str, Any]]) -> None:
+        """Validate message content for tool_use/tool_result constraints.
+
+        - User messages with tool_result content must contain ONLY tool results.
+        - Every assistant message with tool_use must be followed by a user message
+          with only tool_result content blocks.
+        """
+        for i, msg in enumerate(messages):
+            content = msg.get("content")
+            if content is None:
+                continue
+
+            # Normalize to list
+            blocks = content if isinstance(content, list) else [content]
+
+            role = msg.get("role")
+
+            # Check: user messages with any tool_result must be ALL tool_result
+            if role == "user":
+                has_tool_result = any(
+                    isinstance(b, dict) and b.get("type") == "tool_result" for b in blocks
+                )
+                if has_tool_result:
+                    all_tool_result = all(
+                        isinstance(b, dict) and b.get("type") == "tool_result" for b in blocks
+                    )
+                    if not all_tool_result:
+                        raise ValueError(
+                            "user messages with tool results must contain only tool results"
+                        )
+
+            # Check: assistant messages with tool_use must be followed by user
+            # message with all tool_result blocks
+            if role == "assistant":
+                has_tool_use = any(
+                    isinstance(b, dict) and b.get("type") == "tool_use" for b in blocks
+                )
+                if has_tool_use:
+                    if i + 1 >= len(messages):
+                        raise ValueError(
+                            "assistant message with tool_use must be followed by a "
+                            "user message containing tool result blocks"
+                        )
+                    next_msg = messages[i + 1]
+                    next_role = next_msg.get("role")
+                    next_content = next_msg.get("content")
+                    next_blocks = (
+                        next_content
+                        if isinstance(next_content, list)
+                        else [next_content]
+                        if next_content is not None
+                        else []
+                    )
+                    if next_role != "user" or not all(
+                        isinstance(b, dict) and b.get("type") == "tool_result" for b in next_blocks
+                    ):
+                        raise ValueError(
+                            "assistant message with tool_use must be followed by a "
+                            "user message containing tool result blocks"
+                        )
 
     async def list_roots(self, timeout: float = 60.0) -> ListRootsResult:
         """

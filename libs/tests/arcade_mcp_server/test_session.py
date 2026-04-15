@@ -409,3 +409,199 @@ class TestHasCapability:
         assert server_session.has_capability("tasks.requests") is True
         assert server_session.has_capability("tasks") is True
         assert server_session.has_capability("tasks.list") is False
+
+
+class TestSamplingWithTools:
+    @pytest.mark.asyncio
+    async def test_create_message_with_tools_includes_tools_param(self, server_session):
+        """When tools are passed, they appear in the sent request params."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(sampling={"tools": {}})
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(return_value={
+            "role": "assistant",
+            "content": {"type": "text", "text": "result"},
+            "model": "test-model", "stopReason": "endTurn"
+        })
+        tools = [{"name": "my_tool", "inputSchema": {"type": "object"}}]
+        await server_session.create_message(
+            messages=[{"role": "user", "content": {"type": "text", "text": "hi"}}],
+            max_tokens=100,
+            tools=tools,
+            tool_choice={"mode": "auto"},
+        )
+        call_args = server_session._request_manager.send_request.call_args
+        params = call_args[0][1]  # second positional arg
+        assert "tools" in params
+        assert "toolChoice" in params
+
+    @pytest.mark.asyncio
+    async def test_create_message_without_tools_backward_compat(self, server_session):
+        """When no tools passed, params look identical to before."""
+        server_session.negotiated_version = "2025-06-18"
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(return_value={
+            "role": "assistant",
+            "content": {"type": "text", "text": "result"},
+            "model": "test-model", "stopReason": "endTurn"
+        })
+        await server_session.create_message(
+            messages=[{"role": "user", "content": {"type": "text", "text": "hi"}}],
+            max_tokens=100,
+        )
+        call_args = server_session._request_manager.send_request.call_args
+        params = call_args[0][1]
+        assert "tools" not in params
+        assert "toolChoice" not in params
+
+    @pytest.mark.asyncio
+    async def test_create_message_tools_rejected_for_old_version(self, server_session):
+        """Passing tools to create_message on a 2025-06-18 session silently strips them."""
+        server_session.negotiated_version = "2025-06-18"
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(return_value={
+            "role": "assistant",
+            "content": {"type": "text", "text": "result"},
+            "model": "test-model", "stopReason": "endTurn"
+        })
+        await server_session.create_message(
+            messages=[], max_tokens=100, tools=[{"name": "t", "inputSchema": {}}]
+        )
+        call_args = server_session._request_manager.send_request.call_args
+        params = call_args[0][1]
+        assert "tools" not in params
+
+    @pytest.mark.asyncio
+    async def test_create_message_tools_rejected_when_client_lacks_sampling_tools_capability(
+        self, server_session
+    ):
+        """Servers MUST NOT send tool-enabled sampling requests to clients that haven't
+        declared sampling.tools capability."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(sampling={})  # no "tools" key
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(return_value={
+            "role": "assistant",
+            "content": {"type": "text", "text": "result"},
+            "model": "test-model", "stopReason": "endTurn"
+        })
+        await server_session.create_message(
+            messages=[], max_tokens=100, tools=[{"name": "t", "inputSchema": {}}]
+        )
+        call_args = server_session._request_manager.send_request.call_args
+        params = call_args[0][1]
+        assert "tools" not in params
+
+    @pytest.mark.asyncio
+    async def test_create_message_tools_included_when_client_declares_sampling_tools(
+        self, server_session
+    ):
+        """Tools ARE included when client declared sampling.tools capability."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(sampling={"tools": {}})
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(return_value={
+            "role": "assistant",
+            "content": {"type": "text", "text": "result"},
+            "model": "test-model", "stopReason": "endTurn"
+        })
+        await server_session.create_message(
+            messages=[], max_tokens=100,
+            tools=[{"name": "t", "inputSchema": {"type": "object"}}],
+            tool_choice={"mode": "auto"},
+        )
+        call_args = server_session._request_manager.send_request.call_args
+        params = call_args[0][1]
+        assert "tools" in params
+        assert "toolChoice" in params
+
+    @pytest.mark.asyncio
+    async def test_create_message_tool_result_only_messages(self, server_session):
+        """When a user message contains tool results, it MUST contain ONLY tool results."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(sampling={"tools": {}})
+        messages = [
+            {"role": "user", "content": [
+                {"type": "tool_result", "toolUseId": "c1", "content": [{"type": "text", "text": "ok"}]},
+                {"type": "text", "text": "also some text"}  # INVALID -- mixed content
+            ]}
+        ]
+        server_session._request_manager = AsyncMock()
+        with pytest.raises(ValueError, match="tool results"):
+            await server_session.create_message(messages=messages, max_tokens=100)
+
+    @pytest.mark.asyncio
+    async def test_create_message_tool_use_must_be_followed_by_tool_result(self, server_session):
+        """Every assistant message with ToolUseContent MUST be followed by a user message
+        with ToolResultContent."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(sampling={"tools": {}})
+        messages = [
+            {"role": "assistant", "content": [
+                {"type": "tool_use", "id": "c1", "name": "t", "input": {}}
+            ]},
+            {"role": "user", "content": {"type": "text", "text": "not a tool result"}}
+        ]
+        server_session._request_manager = AsyncMock()
+        with pytest.raises(ValueError, match="tool result"):
+            await server_session.create_message(messages=messages, max_tokens=100)
+
+    @pytest.mark.asyncio
+    async def test_include_context_stripped_without_sampling_context_capability(
+        self, server_session
+    ):
+        """includeContext values 'thisServer'/'allServers' stripped when client lacks
+        sampling.context capability."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(sampling={})  # no "context"
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(return_value={
+            "role": "assistant",
+            "content": {"type": "text", "text": "result"},
+            "model": "test-model", "stopReason": "endTurn"
+        })
+        await server_session.create_message(
+            messages=[], max_tokens=100, include_context="thisServer"
+        )
+        call_args = server_session._request_manager.send_request.call_args
+        params = call_args[0][1]
+        assert params.get("includeContext", "none") == "none"
+
+    @pytest.mark.asyncio
+    async def test_include_context_preserved_with_sampling_context_capability(
+        self, server_session
+    ):
+        """includeContext preserved when client declares sampling.context."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(sampling={"context": {}})
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(return_value={
+            "role": "assistant",
+            "content": {"type": "text", "text": "result"},
+            "model": "test-model", "stopReason": "endTurn"
+        })
+        await server_session.create_message(
+            messages=[], max_tokens=100, include_context="thisServer"
+        )
+        call_args = server_session._request_manager.send_request.call_args
+        params = call_args[0][1]
+        assert params.get("includeContext") == "thisServer"
+
+    @pytest.mark.asyncio
+    async def test_create_message_result_array_content_with_tool_use(self, server_session):
+        """CreateMessageResult with array content and stopReason=toolUse is handled correctly."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(return_value={
+            "role": "assistant",
+            "content": [
+                {"type": "text", "text": "I'll call the tool"},
+                {"type": "tool_use", "id": "call_1", "name": "my_tool", "input": {"x": 1}}
+            ],
+            "model": "test-model", "stopReason": "toolUse"
+        })
+        result = await server_session.create_message(messages=[], max_tokens=100)
+        assert result.stopReason == "toolUse"
+        assert isinstance(result.content, list)
+        assert len(result.content) == 2
+        assert result.content[1].type == "tool_use"
