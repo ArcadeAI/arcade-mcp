@@ -5,7 +5,6 @@ import contextlib
 
 import pytest
 import pytest_asyncio
-
 from arcade_mcp_server.managers.task_manager import (
     InvalidTaskStateError,
     NotFoundError,
@@ -439,3 +438,80 @@ class TestTaskProgressTerminalStop:
         task = await task_manager.create_task(context_key=CONTEXT_A)
         await task_manager.cancel_task(task.taskId, context_key=CONTEXT_A)
         assert task_manager.is_terminal(task.taskId)
+
+
+class TestLazyAndPeriodicExpiration:
+    """Verify cleanup_expired() is invoked on access (lazy) and by a periodic
+    background task (eager). These guard against the implementation regressing
+    back to 'cleanup_expired defined but never called'."""
+
+    @pytest.mark.asyncio
+    async def test_get_task_triggers_lazy_cleanup(self):
+        manager = TaskManager()
+        await manager.start()
+        try:
+            task = await manager.create_task(context_key=CONTEXT_A, ttl=1)  # 1ms
+            await asyncio.sleep(0.05)
+            # Accessing an EXPIRED task must raise NotFoundError (proving
+            # cleanup was run before the lookup).
+            with pytest.raises(NotFoundError):
+                await manager.get_task(task.taskId, context_key=CONTEXT_A)
+            # The task must have been actually removed from the internal map.
+            assert task.taskId not in manager._tasks
+        finally:
+            await manager.stop()
+
+    @pytest.mark.asyncio
+    async def test_list_tasks_triggers_lazy_cleanup(self):
+        manager = TaskManager()
+        await manager.start()
+        try:
+            expired = await manager.create_task(context_key=CONTEXT_A, ttl=1)
+            fresh = await manager.create_task(context_key=CONTEXT_A, ttl=60_000)
+            await asyncio.sleep(0.05)
+            listed = await manager.list_tasks(context_key=CONTEXT_A)
+            ids = {t.taskId for t in listed}
+            assert fresh.taskId in ids
+            assert expired.taskId not in ids
+            # Expired task must be gone from the map.
+            assert expired.taskId not in manager._tasks
+        finally:
+            await manager.stop()
+
+    @pytest.mark.asyncio
+    async def test_periodic_cleanup_task_runs(self):
+        """Periodic cleanup task removes expired tasks without explicit access."""
+        manager = TaskManager()
+        # Use a very short interval for testing
+        manager._cleanup_interval_seconds = 0.05
+        await manager.start()
+        try:
+            assert manager._cleanup_task is not None
+            assert not manager._cleanup_task.done()
+            task = await manager.create_task(context_key=CONTEXT_A, ttl=1)  # 1ms
+            # Wait long enough for the periodic loop to fire at least once.
+            await asyncio.sleep(0.2)
+            # Task should have been removed by the periodic cleanup loop
+            # without any access to get_task/list_tasks.
+            assert task.taskId not in manager._tasks
+        finally:
+            await manager.stop()
+
+    @pytest.mark.asyncio
+    async def test_start_is_idempotent_for_cleanup_task(self):
+        """Calling start() twice does not spawn a second cleanup loop."""
+        manager = TaskManager()
+        await manager.start()
+        first = manager._cleanup_task
+        await manager.start()
+        assert manager._cleanup_task is first
+        await manager.stop()
+
+    @pytest.mark.asyncio
+    async def test_stop_cancels_cleanup_task(self):
+        manager = TaskManager()
+        await manager.start()
+        assert manager._cleanup_task is not None
+        await manager.stop()
+        # After stop(), the cleanup task reference is cleared.
+        assert manager._cleanup_task is None

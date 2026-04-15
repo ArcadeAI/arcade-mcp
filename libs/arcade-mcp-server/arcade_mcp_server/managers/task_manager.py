@@ -7,6 +7,7 @@ tracking, TTL-based expiration, and authorization-context-scoped isolation.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import uuid
 from datetime import datetime, timezone
@@ -64,14 +65,39 @@ class TaskManager:
         # Tracked background asyncio.Tasks
         self._bg_tasks: dict[str, asyncio.Task[Any]] = {}
 
+        # Periodic cleanup task (TTL expiration). Interval in seconds.
+        self._cleanup_interval_seconds: float = 60.0
+        self._cleanup_task: asyncio.Task[None] | None = None
+
         self._started = False
 
     async def start(self) -> None:
-        """Start the task manager."""
+        """Start the task manager.
+
+        Spawns a periodic TTL-cleanup task so that expired tasks are removed
+        from memory even without explicit access. The loop runs until
+        stop() cancels it.
+        """
         self._started = True
+        if self._cleanup_task is None or self._cleanup_task.done():
+            try:
+                self._cleanup_task = asyncio.create_task(self._cleanup_loop())
+            except RuntimeError:
+                # No running event loop (e.g. constructed outside async ctx);
+                # lazy cleanup in get_task/list_tasks will still enforce TTL.
+                self._cleanup_task = None
 
     async def stop(self) -> None:
         """Stop the task manager and cancel all background tasks."""
+        # Stop periodic cleanup first
+        if self._cleanup_task is not None and not self._cleanup_task.done():
+            self._cleanup_task.cancel()
+            # The cleanup loop surfaces CancelledError; swallow it and any
+            # unexpected shutdown-time error so stop() is always safe to call.
+            with contextlib.suppress(asyncio.CancelledError, Exception):
+                await self._cleanup_task
+        self._cleanup_task = None
+
         # Cancel all tracked background tasks
         for _task_id, bg in list(self._bg_tasks.items()):
             if not bg.done():
@@ -82,6 +108,19 @@ class TaskManager:
             await asyncio.gather(*bg_list, return_exceptions=True)
         self._bg_tasks.clear()
         self._started = False
+
+    async def _cleanup_loop(self) -> None:
+        """Run cleanup_expired() on a fixed interval until cancelled."""
+        while True:
+            try:
+                await asyncio.sleep(self._cleanup_interval_seconds)
+                await self.cleanup_expired()
+            except asyncio.CancelledError:
+                raise
+            except Exception:
+                # Don't let a cleanup failure tear down the whole manager.
+                # Log but keep looping so next iteration retries.
+                logger.warning("TaskManager cleanup loop iteration failed", exc_info=True)
 
     async def create_task(
         self,
@@ -135,6 +174,10 @@ class TaskManager:
 
         Raises NotFoundError for missing task OR context mismatch (no info leak).
         """
+        # Lazy TTL enforcement on access -- ensures expired tasks are not
+        # returned even if the periodic cleanup loop is behind.
+        await self.cleanup_expired()
+
         entry = self._tasks.get(task_id)
         if entry is None or entry[0] != context_key:
             raise NotFoundError(f"Task not found: {task_id}")
@@ -151,6 +194,9 @@ class TaskManager:
         Simple cursor: skip tasks until cursor task_id is found, then return
         from the next one. Returns (tasks, next_cursor).
         """
+        # Lazy TTL enforcement on access.
+        await self.cleanup_expired()
+
         all_tasks = [task for ctx_key, task in self._tasks.values() if ctx_key == context_key]
 
         if cursor is not None:
