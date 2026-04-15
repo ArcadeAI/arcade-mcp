@@ -384,12 +384,21 @@ class ToolAnnotations(BaseModel):
     model_config = ConfigDict(extra="allow")
 
 
+class ToolExecution(BaseModel):
+    """How a tool can be executed (MCP 2025-11-25 task augmentation)."""
+
+    taskSupport: Literal["forbidden", "optional", "required"] | None = None
+
+    model_config = ConfigDict(extra="allow")
+
+
 class MCPTool(BaseModel):
     name: str
     description: str | None = None
     inputSchema: dict[str, Any]
     outputSchema: dict[str, Any] | None = None
     annotations: ToolAnnotations | None = None
+    execution: ToolExecution | None = None
     title: str | None = None
     meta: dict[str, Any] | None = Field(alias="_meta", default=None)
 

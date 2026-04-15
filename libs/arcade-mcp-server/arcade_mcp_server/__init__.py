@@ -22,6 +22,7 @@ from arcade_mcp_server.types import (
     Resource,
     ResourceTemplate,
     TextResourceContents,
+    ToolExecution,
 )
 from arcade_mcp_server.worker import create_arcade_mcp, run_arcade_mcp
 
@@ -35,6 +36,7 @@ __all__ = [
     "Resource",
     "ResourceTemplate",
     "TextResourceContents",
+    "ToolExecution",
     "create_arcade_mcp",
     "run_arcade_mcp",
     "tool",

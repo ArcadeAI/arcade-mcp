@@ -7,6 +7,7 @@ from arcade_core.catalog import MaterializedTool
 from arcade_core.schema import ToolDefinition
 
 from arcade_mcp_server.types import MCPContent, MCPTool, TextContent, ToolAnnotations
+from arcade_mcp_server.types import ToolExecution as MCPToolExecution
 
 logger = logging.getLogger("arcade.mcp")
 
@@ -78,6 +79,11 @@ def create_mcp_tool(materialized_tool: MaterializedTool) -> MCPTool:
     else:
         annotations = ToolAnnotations(title=title)
 
+    # Map execution field from core ToolExecution to MCP ToolExecution
+    mcp_execution: MCPToolExecution | None = None
+    if definition.execution is not None:
+        mcp_execution = MCPToolExecution(taskSupport=definition.execution.taskSupport)
+
     # Build _meta.arcade structure
     arcade_meta = _build_arcade_meta(definition)
     meta = {"arcade": arcade_meta} if arcade_meta else None
@@ -89,6 +95,7 @@ def create_mcp_tool(materialized_tool: MaterializedTool) -> MCPTool:
         inputSchema=build_input_schema_from_definition(definition),
         outputSchema=output_schema if output_schema else None,
         annotations=annotations,
+        execution=mcp_execution,
         _meta=meta,
     )
 

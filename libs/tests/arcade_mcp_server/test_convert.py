@@ -9,6 +9,7 @@ from arcade_core.catalog import MaterializedTool, ToolMeta, create_func_models
 from arcade_core.schema import (
     InputParameter,
     ToolDefinition,
+    ToolExecution,
     ToolInput,
     ToolkitDefinition,
     ToolOutput,
@@ -660,3 +661,68 @@ class TestConvertContentToStructuredContent:
 
         result = convert_content_to_structured_content(Custom())
         assert result == {"result": "custom-str"}
+
+
+class TestConvertToolExecution:
+    """Phase 0: MCP conversion populates execution field (cached DTO, no version param)."""
+
+    def test_convert_no_execution_on_definition(self):
+        """Tool without execution field -> no execution on MCPTool."""
+        tool_def = ToolDefinition(
+            name="test",
+            fully_qualified_name="Toolkit.test",
+            description="test",
+            toolkit=ToolkitDefinition(name="Toolkit"),
+            input=ToolInput(parameters=[]),
+            output=ToolOutput(available_modes=["value"]),
+            requirements=ToolRequirements(),
+            execution=None,
+        )
+
+        @tool
+        def f() -> str:
+            return "result"
+
+        input_model, output_model = create_func_models(f)
+        meta = ToolMeta(module=f.__module__, toolkit=tool_def.toolkit.name)
+        mat_tool = MaterializedTool(
+            tool=f,
+            definition=tool_def,
+            meta=meta,
+            input_model=input_model,
+            output_model=output_model,
+        )
+
+        mcp_tool = create_mcp_tool(mat_tool)
+        assert mcp_tool.execution is None
+
+    def test_convert_populates_execution(self):
+        """Tool with execution field -> execution populated on MCPTool."""
+        tool_def = ToolDefinition(
+            name="test",
+            fully_qualified_name="Toolkit.test",
+            description="test",
+            toolkit=ToolkitDefinition(name="Toolkit"),
+            input=ToolInput(parameters=[]),
+            output=ToolOutput(available_modes=["value"]),
+            requirements=ToolRequirements(),
+            execution=ToolExecution(taskSupport="optional"),
+        )
+
+        @tool
+        def f() -> str:
+            return "result"
+
+        input_model, output_model = create_func_models(f)
+        meta = ToolMeta(module=f.__module__, toolkit=tool_def.toolkit.name)
+        mat_tool = MaterializedTool(
+            tool=f,
+            definition=tool_def,
+            meta=meta,
+            input_model=input_model,
+            output_model=output_model,
+        )
+
+        mcp_tool = create_mcp_tool(mat_tool)
+        assert mcp_tool.execution is not None
+        assert mcp_tool.execution.taskSupport == "optional"

@@ -243,6 +243,18 @@ class ToolRequirements(BaseModel):
     """The metadata requirements for the tool, if any."""
 
 
+class ToolExecution(BaseModel):
+    """How a tool can be executed, especially with respect to MCP task augmentation (2025-11-25)."""
+
+    taskSupport: Literal["forbidden", "optional", "required"] | None = Field(
+        default=None,
+        description="Whether the tool accepts task-augmented calls. "
+        "'forbidden' (or None) = tool MUST NOT be called with task metadata; "
+        "'optional' = MAY include task metadata; "
+        "'required' = MUST include task metadata.",
+    )
+
+
 class ToolkitDefinition(BaseModel):
     """The specification of a toolkit."""
 
@@ -330,6 +342,9 @@ class ToolDefinition(BaseModel):
 
     metadata: ToolMetadata | None = None
     """Metadata about the tool"""
+
+    execution: ToolExecution | None = None
+    """How the tool can be executed (e.g. MCP task-augmented calls)."""
 
     def get_fully_qualified_name(self) -> FullyQualifiedName:
         return FullyQualifiedName(self.name, self.toolkit.name, self.toolkit.version)
