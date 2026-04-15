@@ -279,6 +279,9 @@ class TestContext:
         session.elicit.assert_called_once_with(
             message="Enter your name:",
             requested_schema={"type": "object", "properties": {}},
+            mode=None,
+            url=None,
+            elicitation_id=None,
             timeout=300.0,
         )
 
@@ -289,7 +292,12 @@ class TestContext:
         assert result == {"value": "user input"}
         assert session.elicit.call_count == 2
         session.elicit.assert_called_with(
-            message="Enter details:", requested_schema=schema, timeout=300
+            message="Enter details:",
+            requested_schema=schema,
+            mode=None,
+            url=None,
+            elicitation_id=None,
+            timeout=300,
         )
 
     @pytest.mark.asyncio

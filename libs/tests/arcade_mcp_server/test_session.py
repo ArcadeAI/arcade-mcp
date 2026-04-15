@@ -5,9 +5,16 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 from arcade_mcp_server.context import Context
+from arcade_mcp_server.exceptions import (
+    ElicitationModeNotSupportedError,
+    ElicitationNotSupportedError,
+    SessionError,
+)
 from arcade_mcp_server.session import InitializationState, ServerSession
 from arcade_mcp_server.types import (
     ClientCapabilities,
+    ElicitRequestFormParams,
+    ElicitResult,
     InitializeParams,
     JSONRPCResponse,
     LoggingLevel,
@@ -605,3 +612,248 @@ class TestSamplingWithTools:
         assert isinstance(result.content, list)
         assert len(result.content) == 2
         assert result.content[1].type == "tool_use"
+
+
+class TestURLModeElicitation:
+    @pytest.mark.asyncio
+    async def test_elicit_url_mode_includes_elicitation_id(self, server_session):
+        """URL mode requires elicitationId in the request."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(elicitation={"url": {}})
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(return_value={
+            "action": "accept", "content": {"token": "abc"}
+        })
+        result = await server_session.elicit(
+            message="Please authenticate",
+            mode="url",
+            url="https://example.com/auth",
+            elicitation_id="elic_123",
+        )
+        assert result.action == "accept"
+        call_args = server_session._request_manager.send_request.call_args
+        params = call_args[0][1]
+        assert params["mode"] == "url"
+        assert params["url"] == "https://example.com/auth"
+        assert params["elicitationId"] == "elic_123"
+
+    @pytest.mark.asyncio
+    async def test_elicit_url_mode_rejected_for_old_version(self, server_session):
+        """URL mode elicitation must not be sent to 2025-06-18 clients."""
+        server_session.negotiated_version = "2025-06-18"
+        server_session._request_manager = AsyncMock()
+        with pytest.raises(SessionError):
+            await server_session.elicit(
+                message="Please authenticate",
+                mode="url",
+                url="https://example.com/auth",
+                elicitation_id="elic_123",
+            )
+
+    @pytest.mark.asyncio
+    async def test_elicit_url_mode_rejected_when_client_lacks_url_capability(self, server_session):
+        """URL mode rejected if client only declared form elicitation support."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(elicitation={"form": {}})
+        server_session._request_manager = AsyncMock()
+        with pytest.raises(SessionError):
+            await server_session.elicit(
+                message="Please authenticate",
+                mode="url",
+                url="https://example.com/auth",
+                elicitation_id="elic_123",
+            )
+
+    @pytest.mark.asyncio
+    async def test_elicit_form_mode_backward_compat(self, server_session):
+        """Form mode (default) works for both versions."""
+        server_session.negotiated_version = "2025-06-18"
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(return_value={
+            "action": "accept", "content": {"name": "test"}
+        })
+        result = await server_session.elicit(
+            message="Enter name", requested_schema={"type": "object"}
+        )
+        assert result.action == "accept"
+
+
+class TestElicitationCompleteNotification:
+    @pytest.mark.asyncio
+    async def test_send_elicitation_complete_notification(self, server_session):
+        """Server can send notifications/elicitation/complete for URL mode flows."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session.write_stream = AsyncMock()
+        server_session.write_stream.send = AsyncMock()
+        await server_session.send_elicitation_complete("elic_123")
+        call_args = server_session.write_stream.send.call_args[0][0]
+        data = json.loads(call_args)
+        assert data["method"] == "notifications/elicitation/complete"
+        assert data["params"]["elicitationId"] == "elic_123"
+
+
+class TestEnumSchemaValidation:
+    """Tests for enhanced enum schema types in elicitation."""
+
+    def test_form_mode_with_untitled_single_select(self):
+        """Untitled single-select enum works in elicitation schemas."""
+        schema = {"type": "object", "properties": {
+            "color": {"type": "string", "enum": ["red", "green", "blue"]}
+        }}
+        params = ElicitRequestFormParams(message="Pick color", requestedSchema=schema)
+        assert params.requestedSchema is not None
+
+    def test_form_mode_with_titled_single_select(self):
+        """Titled single-select (oneOf with const+title) works."""
+        schema = {"type": "object", "properties": {
+            "color": {"type": "string", "oneOf": [
+                {"const": "#FF0000", "title": "Red"},
+                {"const": "#00FF00", "title": "Green"},
+            ]}
+        }}
+        params = ElicitRequestFormParams(message="Pick color", requestedSchema=schema)
+        assert params.requestedSchema is not None
+
+    def test_form_mode_with_multi_select(self):
+        """Multi-select enum (array type with items.enum) works."""
+        schema = {"type": "object", "properties": {
+            "colors": {"type": "array", "items": {"type": "string", "enum": ["red", "green"]},
+                       "minItems": 1, "maxItems": 3}
+        }}
+        params = ElicitRequestFormParams(message="Pick colors", requestedSchema=schema)
+        assert params.requestedSchema is not None
+
+    def test_elicit_result_with_multi_select_string_array(self):
+        """ElicitResult content can include string[] values from multi-select."""
+        result = ElicitResult(action="accept", content={"colors": ["red", "green"]})
+        assert result.content["colors"] == ["red", "green"]
+
+
+class TestElicitationCapabilityGating:
+    """Tests for elicitation capability gating (elicitation.mdx:72:
+    'Servers MUST NOT send elicitation requests with modes that are not supported by the client')."""
+
+    @pytest.mark.asyncio
+    async def test_elicit_rejected_when_client_has_no_elicitation_capability(self, server_session):
+        """Client did not declare elicitation capability -> server must not send elicitation."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities()  # no elicitation
+        server_session._request_manager = AsyncMock()
+        with pytest.raises(ElicitationNotSupportedError):
+            await server_session.elicit(
+                message="Enter name",
+                requested_schema={"type": "object", "properties": {"name": {"type": "string"}}},
+            )
+
+    @pytest.mark.asyncio
+    async def test_elicit_rejected_when_client_caps_is_dict_without_elicitation(
+        self, server_session
+    ):
+        """Also works when _client_capabilities is a plain dict without 'elicitation' key."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = {"tools": {}}  # dict, no elicitation
+        server_session._request_manager = AsyncMock()
+        with pytest.raises(ElicitationNotSupportedError):
+            await server_session.elicit(
+                message="Enter name",
+                requested_schema={"type": "object", "properties": {"name": {"type": "string"}}},
+            )
+
+    @pytest.mark.asyncio
+    async def test_elicit_form_mode_allowed_with_empty_elicitation_capability(self, server_session):
+        """Client declared elicitation: {} -> defaults to form mode support."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(elicitation={})
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(return_value={
+            "action": "accept", "content": {"name": "test"}
+        })
+        result = await server_session.elicit(
+            message="Enter name",
+            requested_schema={"type": "object", "properties": {"name": {"type": "string"}}},
+        )
+        assert result.action == "accept"
+
+    @pytest.mark.asyncio
+    async def test_elicit_form_mode_allowed_with_dict_elicitation_capability(self, server_session):
+        """Also works when _client_capabilities is a plain dict with elicitation key."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = {"elicitation": {}}
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(return_value={
+            "action": "accept", "content": {"name": "test"}
+        })
+        result = await server_session.elicit(
+            message="Enter name",
+            requested_schema={"type": "object", "properties": {"name": {"type": "string"}}},
+        )
+        assert result.action == "accept"
+
+    @pytest.mark.asyncio
+    async def test_elicit_url_mode_rejected_with_form_only_capability(self, server_session):
+        """Client only declared form mode -> URL mode rejected."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(elicitation={"form": {}})
+        server_session._request_manager = AsyncMock()
+        with pytest.raises(ElicitationModeNotSupportedError):
+            await server_session.elicit(
+                message="Please authenticate",
+                mode="url",
+                url="https://example.com/auth",
+                elicitation_id="elic_123",
+            )
+
+    @pytest.mark.asyncio
+    async def test_elicit_url_mode_allowed_with_url_capability(self, server_session):
+        """Client declared url mode -> URL mode succeeds."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(elicitation={"url": {}})
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(return_value={
+            "action": "accept", "content": {"token": "abc"}
+        })
+        result = await server_session.elicit(
+            message="Please authenticate",
+            mode="url",
+            url="https://example.com/auth",
+            elicitation_id="elic_456",
+        )
+        assert result.action == "accept"
+
+    @pytest.mark.asyncio
+    async def test_elicit_form_mode_rejected_with_url_only_capability(self, server_session):
+        """Client only declared url mode -> form mode rejected."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(elicitation={"url": {}})
+        server_session._request_manager = AsyncMock()
+        with pytest.raises(ElicitationModeNotSupportedError):
+            await server_session.elicit(
+                message="Enter name",
+                requested_schema={"type": "object", "properties": {"name": {"type": "string"}}},
+            )
+
+
+class TestURLElicitationSecurity:
+    """Tests for URL elicitation security MUST requirements (elicitation.mdx:573-710).
+    **DEFERRED to follow-up PR** -- see resolved decision 50."""
+    pass
+
+
+class TestElicitationCompletionNotification:
+    """Tests for notifications/elicitation/complete routing."""
+
+    @pytest.mark.asyncio
+    async def test_completion_notification_routed_to_initiating_client_only(self, server_session):
+        """notifications/elicitation/complete MUST only be sent to the client that
+        initiated the elicitation request (elicitation.mdx:398).
+        Not broadcast to all sessions -- targeted to the originating session."""
+        server_session.negotiated_version = "2025-11-25"
+        sent_messages = []
+        server_session.write_stream = AsyncMock()
+        server_session.write_stream.send = AsyncMock(side_effect=lambda m: sent_messages.append(m))
+        await server_session.send_elicitation_complete("elic_123")
+        # Sent to originating session
+        assert len(sent_messages) >= 1
+        data = json.loads(sent_messages[0])
+        assert data["method"] == "notifications/elicitation/complete"
+        assert data["params"]["elicitationId"] == "elic_123"

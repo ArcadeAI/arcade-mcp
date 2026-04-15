@@ -636,9 +636,21 @@ class UI(_ContextComponent):
                 raise TypeError(f"Property '{prop_name}' schema must be a dictionary")
 
             prop_type = prop_schema.get("type")
-            if prop_type not in ["string", "number", "integer", "boolean"]:
+
+            # Allow "array" type for multi-select enum schemas (MCP 2025-11-25)
+            # Also allow properties with oneOf (titled single-select) or enum
+            # without an explicit type
+            has_enum = "enum" in prop_schema
+            has_one_of = "oneOf" in prop_schema
+            if prop_type == "array":
+                # Multi-select enum — valid for 2025-11-25 enum schemas
+                pass
+            elif prop_type not in ["string", "number", "integer", "boolean"] and not (
+                has_enum or has_one_of
+            ):
                 raise ValueError(
-                    f"Property '{prop_name}' has unsupported type '{prop_type}'. Only primitive types are allowed."
+                    f"Property '{prop_name}' has unsupported type '{prop_type}'. "
+                    f"Only primitive types and array (for multi-select enum) are allowed."
                 )
 
             # Validate string formats
@@ -650,19 +662,41 @@ class UI(_ContextComponent):
                     )
 
     async def elicit(
-        self, message: str, schema: dict[str, Any] | None = None, timeout: float = 300.0
+        self,
+        message: str,
+        schema: dict[str, Any] | None = None,
+        mode: str | None = None,
+        url: str | None = None,
+        elicitation_id: str | None = None,
+        timeout: float = 300.0,
     ) -> ElicitResult:
+        """Elicit input from the user.
+
+        Args:
+            message: Message to display to the user
+            schema: JSON schema for form-mode elicitation (ignored in URL mode)
+            mode: Elicitation mode - "form" (default) or "url" (2025-11-25 only)
+            url: URL for URL-mode elicitation
+            elicitation_id: Elicitation ID for URL-mode elicitation
+            timeout: Request timeout
+        """
         if self._ctx._session is None:
             raise ValueError("Session not available")
-        if schema is None:
-            schema = {"type": "object", "properties": {}}
 
-        # Validate schema conforms to MCP restrictions
-        self._validate_elicitation_schema(schema)
+        effective_mode = mode or "form"
+
+        if effective_mode == "form":
+            if schema is None:
+                schema = {"type": "object", "properties": {}}
+            # Validate schema conforms to MCP restrictions
+            self._validate_elicitation_schema(schema)
 
         result = await self._ctx._session.elicit(
             message=message,
             requested_schema=schema,
+            mode=mode,
+            url=url,
+            elicitation_id=elicitation_id,
             timeout=timeout,
         )
         return cast(ElicitResult, result)

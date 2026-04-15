@@ -39,6 +39,7 @@ from arcade_mcp_server.types import (
     ListToolsResult,
     PingRequest,
     TaskStatus,
+    URLElicitationRequiredError,
 )
 
 
@@ -2453,3 +2454,44 @@ class TestCapabilityFallback:
         assert not isinstance(response, JSONRPCError)
         assert hasattr(response.result, "content")  # CallToolResult shape
         assert not hasattr(response.result, "task")  # NOT CreateTaskResult
+
+
+class TestURLElicitationRequiredErrorType:
+    """Tests that the URLElicitationRequiredError type and error code -32042 are
+    correctly modeled. Full end-to-end workflow tests (third-party auth detection,
+    retry-after-completion, auth-context-bound state) are DEFERRED to follow-up PR
+    -- see resolved decision 50."""
+
+    def test_error_code_is_minus_32042(self):
+        """URLElicitationRequiredError must use code -32042."""
+        err = URLElicitationRequiredError(
+            code=-32042, message="Elicitation required",
+            data={"elicitations": [
+                {"mode": "url", "elicitationId": "e1",
+                 "url": "https://example.com/auth", "message": "Auth needed"}
+            ]}
+        )
+        assert err.code == -32042
+
+    def test_error_data_structure(self):
+        """Error data must include elicitations array with mode, elicitationId, url."""
+        err = URLElicitationRequiredError(
+            code=-32042, message="Elicitation required",
+            data={"elicitations": [
+                {"mode": "url", "elicitationId": "e1",
+                 "url": "https://example.com/auth", "message": "Auth needed"}
+            ]}
+        )
+        elicitations = err.data["elicitations"]
+        assert len(elicitations) == 1
+        assert elicitations[0]["mode"] == "url"
+        assert "elicitationId" in elicitations[0]
+        assert "url" in elicitations[0]
+
+    def test_error_default_code(self):
+        """URLElicitationRequiredError defaults to -32042 when code not specified."""
+        err = URLElicitationRequiredError(
+            message="Elicitation required",
+            data={"elicitations": []}
+        )
+        assert err.code == -32042

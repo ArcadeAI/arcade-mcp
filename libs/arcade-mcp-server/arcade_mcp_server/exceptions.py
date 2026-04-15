@@ -18,6 +18,8 @@ from arcade_core.errors import (
 __all__ = [
     "AuthorizationError",
     "ContextRequiredToolError",
+    "ElicitationModeNotSupportedError",
+    "ElicitationNotSupportedError",
     "ErrorKind",
     "FatalToolError",
     "IncompleteAuthContextError",
@@ -57,6 +59,14 @@ class ServerError(MCPRuntimeError):
 
 class SessionError(ServerError):
     """Error in session management"""
+
+
+class ElicitationNotSupportedError(SessionError):
+    """Client did not declare elicitation capability — server must not send elicitation."""
+
+
+class ElicitationModeNotSupportedError(SessionError):
+    """Client does not support the requested elicitation mode (form or url)."""
 
 
 class RequestError(ServerError):

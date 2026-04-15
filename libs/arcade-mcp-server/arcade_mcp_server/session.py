@@ -16,7 +16,12 @@ from typing import Any
 import anyio
 
 from arcade_mcp_server.context import Context
-from arcade_mcp_server.exceptions import RequestError, SessionError
+from arcade_mcp_server.exceptions import (
+    ElicitationModeNotSupportedError,
+    ElicitationNotSupportedError,
+    RequestError,
+    SessionError,
+)
 from arcade_mcp_server.resource_server.base import ResourceOwner
 from arcade_mcp_server.types import (
     CancelledNotification,
@@ -772,10 +777,73 @@ class ServerSession:
 
         return CompleteResult(**result)
 
+    def _check_elicitation_capability(self, mode: str) -> None:
+        """Check that the client supports the requested elicitation mode.
+
+        Spec elicitation.mdx:72: "Servers MUST NOT send elicitation requests
+        with modes that are not supported by the client."
+
+        Rules:
+        - client_capabilities is None (e.g. tests, 2025-06-18 without caps): allow form
+        - client declared caps but no "elicitation" key: forbid all
+        - elicitation: {} (empty dict): default to form-only
+        - elicitation: {form: {}} : form allowed, url rejected
+        - elicitation: {url: {}} : url allowed, form rejected
+        - elicitation: {form: {}, url: {}}: both allowed
+        """
+        client_caps = self._client_capabilities
+
+        # Get elicitation capability value
+        elicitation_cap: Any = None
+        if client_caps is not None:
+            if isinstance(client_caps, ClientCapabilities):
+                elicitation_cap = client_caps.elicitation
+            elif isinstance(client_caps, dict):
+                elicitation_cap = client_caps.get("elicitation")
+            else:
+                elicitation_cap = getattr(client_caps, "elicitation", None)
+
+        # If client declared capabilities but elicitation is absent -> forbid all
+        if client_caps is not None and elicitation_cap is None:
+            raise ElicitationNotSupportedError("Client did not declare elicitation capability")
+
+        # client_caps is None (tests / legacy) -> allow form only
+        if client_caps is None:
+            if mode == "url":
+                raise ElicitationModeNotSupportedError(
+                    "URL elicitation mode not supported: no client capabilities declared"
+                )
+            return
+
+        # Normalize to dict
+        if hasattr(elicitation_cap, "model_dump"):
+            elicitation_cap = elicitation_cap.model_dump(exclude_none=True)
+
+        # At this point elicitation_cap is a dict (possibly empty)
+        if not isinstance(elicitation_cap, dict):
+            elicitation_cap = {}
+
+        if mode == "url":
+            if "url" not in elicitation_cap:
+                raise ElicitationModeNotSupportedError(
+                    "Client does not support URL elicitation mode"
+                )
+        else:
+            # form mode (default)
+            # Empty dict -> default to form support (spec)
+            # URL-only (only "url" key, no "form") -> form rejected
+            if elicitation_cap and "form" not in elicitation_cap and "url" in elicitation_cap:
+                raise ElicitationModeNotSupportedError(
+                    "Client only supports URL elicitation mode, not form"
+                )
+
     async def elicit(
         self,
         message: str,
         requested_schema: dict[str, Any] | None = None,
+        mode: str | None = None,
+        url: str | None = None,
+        elicitation_id: str | None = None,
         timeout: float = 300.0,
     ) -> ElicitResult:
         """
@@ -783,7 +851,10 @@ class ServerSession:
 
         Args:
             message: Elicitation message to display
-            requested_schema: JSON schema for the requested response
+            requested_schema: JSON schema for the requested response (form mode)
+            mode: Elicitation mode - "form" (default) or "url" (2025-11-25 only)
+            url: URL for URL-mode elicitation
+            elicitation_id: Elicitation ID for URL-mode elicitation
             timeout: Request timeout
 
         Returns:
@@ -792,13 +863,33 @@ class ServerSession:
         if not self._request_manager:
             raise SessionError("Cannot send requests without request manager")
 
-        params: dict[str, Any] = {
-            "message": message,
-        }
+        # Default to form mode
+        effective_mode = mode or "form"
 
-        # Add schema if provided
-        if requested_schema is not None:
-            params["requestedSchema"] = requested_schema
+        # Version gate: URL mode requires 2025-11-25
+        if effective_mode == "url" and self.negotiated_version != "2025-11-25":
+            raise SessionError("URL elicitation mode requires protocol version 2025-11-25")
+
+        # URL mode validation
+        if effective_mode == "url" and (not url or not elicitation_id):
+            raise ValueError("URL mode elicitation requires both 'url' and 'elicitation_id'")
+
+        # Capability gate
+        self._check_elicitation_capability(effective_mode)
+
+        if effective_mode == "url":
+            params: dict[str, Any] = {
+                "mode": "url",
+                "url": url,
+                "elicitationId": elicitation_id,
+                "message": message,
+            }
+        else:
+            params = {
+                "message": message,
+            }
+            if requested_schema is not None:
+                params["requestedSchema"] = requested_schema
 
         result = await self._request_manager.send_request(
             "elicitation/create",
@@ -807,6 +898,27 @@ class ServerSession:
         )
 
         return ElicitResult(**result)
+
+    async def send_elicitation_complete(self, elicitation_id: str) -> None:
+        """Send a notifications/elicitation/complete notification to this session's client.
+
+        This MUST be sent only to the client that initiated the elicitation
+        (elicitation.mdx:398), NOT broadcast to all sessions.
+        """
+        if not self.write_stream:
+            return
+
+        notification = {
+            "jsonrpc": "2.0",
+            "method": "notifications/elicitation/complete",
+            "params": {"elicitationId": elicitation_id},
+        }
+        try:
+            message = json.dumps(notification) + "\n"
+            await self.write_stream.send(message)
+        except Exception:
+            # Swallow errors if stream is disconnected
+            logger.debug("Failed to send elicitation complete notification", exc_info=True)
 
     # Context management
     async def create_request_context(self, resource_owner: ResourceOwner | None = None) -> Context:
