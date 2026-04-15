@@ -48,6 +48,40 @@ def _create_transport_error_response(
     )
 
 
+def _replay_receive(body: bytes) -> Receive:
+    """Return a fresh Receive callable that replays ``body`` as a single
+    ``http.request`` message, then yields ``http.disconnect``.
+
+    After the session manager reads and parses the incoming HTTP body (to detect
+    ``initialize``), the inner transport creates a new Starlette Request and
+    calls ``request.body()`` again. On ASGI servers that do not internally
+    buffer (e.g. ``httpx.ASGITransport``), the original receive callable is
+    exhausted — the inner call would then hang waiting for more messages.
+    This helper lets the outer handler hand the inner handler a receive
+    callable that replays the body so the second read succeeds.
+    """
+    state = {"sent_request": False, "sent_disconnect": False}
+
+    async def receive() -> dict:
+        if not state["sent_request"]:
+            state["sent_request"] = True
+            return {
+                "type": "http.request",
+                "body": body,
+                "more_body": False,
+            }
+        if not state["sent_disconnect"]:
+            state["sent_disconnect"] = True
+            return {"type": "http.disconnect"}
+        # After disconnect, block forever -- the ASGI spec says no further
+        # messages are sent after http.disconnect.
+        event = anyio.Event()
+        await event.wait()
+        return {"type": "http.disconnect"}  # unreachable
+
+    return receive
+
+
 def _validate_origin(request: Request, allowed_origins: list[str] | None) -> Response | None:
     """Validate Origin header per spec transports.mdx:80-81.
 
@@ -295,13 +329,18 @@ class HTTPSessionManager:
 
         # --- Detect if this is an initialize request ---
         is_initialize = False
+        body_bytes: bytes | None = None
         if request.method == "POST":
             try:
-                body = await request.body()
-                raw = json.loads(body) if body else {}
+                body_bytes = await request.body()
+                raw = json.loads(body_bytes) if body_bytes else {}
                 is_initialize = isinstance(raw, dict) and raw.get("method") == "initialize"
             except Exception:  # noqa: S110
                 pass
+
+        # Replay the body for the inner transport so ASGI servers that do not
+        # buffer receive() (e.g. httpx.ASGITransport) can still read the body.
+        inner_receive: Receive = _replay_receive(body_bytes) if body_bytes is not None else receive
 
         # --- Accept header validation (POST only, skip initialize) ---
         if request.method == "POST" and not is_initialize:
@@ -321,8 +360,7 @@ class HTTPSessionManager:
         # --- Stateless version conflict check for initialize ---
         if is_initialize and header_version:
             try:
-                body = await request.body()
-                raw = json.loads(body) if body else {}
+                raw = json.loads(body_bytes) if body_bytes else {}
                 init_version = raw.get("params", {}).get("protocolVersion")
                 if init_version and init_version != header_version:
                     error_resp = _create_transport_error_response(
@@ -383,8 +421,8 @@ class HTTPSessionManager:
             raise RuntimeError("Task group not initialized")
         await self._task_group.start(run_stateless_server)
 
-        # Handle the HTTP request
-        await http_transport.handle_request(scope, receive, send)
+        # Handle the HTTP request (replay body so inner Request() can read it)
+        await http_transport.handle_request(scope, inner_receive, send)
 
         # Terminate the transport
         await http_transport.terminate()
@@ -401,13 +439,19 @@ class HTTPSessionManager:
 
         # --- Detect if this is an initialize request ---
         is_initialize = False
+        body_bytes: bytes | None = None
         if request.method == "POST" and request_mcp_session_id is None:
             try:
-                body = await request.body()
-                raw = json.loads(body) if body else {}
+                body_bytes = await request.body()
+                raw = json.loads(body_bytes) if body_bytes else {}
                 is_initialize = isinstance(raw, dict) and raw.get("method") == "initialize"
             except Exception:  # noqa: S110
                 pass
+
+        # If we consumed the body, provide a replay receive so the inner
+        # transport (which creates its own Request and calls .body()) can
+        # still read it on ASGI hosts that don't buffer receive().
+        inner_receive: Receive = _replay_receive(body_bytes) if body_bytes is not None else receive
 
         # --- Accept header validation (POST only, skip initialize) ---
         if request.method == "POST" and not is_initialize:
@@ -434,7 +478,7 @@ class HTTPSessionManager:
         if request_mcp_session_id and request_mcp_session_id in self._server_instances:
             transport = self._server_instances[request_mcp_session_id]
             logger.debug("Session already exists, handling request directly")
-            await transport.handle_request(scope, receive, send)
+            await transport.handle_request(scope, inner_receive, send)
             return
 
         if request_mcp_session_id is None:
@@ -498,8 +542,9 @@ class HTTPSessionManager:
                     raise RuntimeError("Task group not initialized")
                 await self._task_group.start(run_server)
 
-                # Handle the HTTP request
-                await http_transport.handle_request(scope, receive, send)
+                # Handle the HTTP request (replay body so inner Request() can
+                # read it on ASGI hosts that do not buffer receive()).
+                await http_transport.handle_request(scope, inner_receive, send)
         else:
             # Invalid session ID
             response = Response(

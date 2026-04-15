@@ -44,7 +44,7 @@ class TestNegotiateVersion:
         assert SUPPORTED_PROTOCOL_VERSIONS == ["2025-06-18", "2025-11-25"]
 
     def test_latest_is_last_supported(self) -> None:
-        assert LATEST_PROTOCOL_VERSION == SUPPORTED_PROTOCOL_VERSIONS[-1]
+        assert SUPPORTED_PROTOCOL_VERSIONS[-1] == LATEST_PROTOCOL_VERSION
 
     def test_no_duplicate_versions(self) -> None:
         assert len(SUPPORTED_PROTOCOL_VERSIONS) == len(set(SUPPORTED_PROTOCOL_VERSIONS))

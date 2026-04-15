@@ -5,9 +5,6 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import pytest
-from opentelemetry.sdk.trace import ReadableSpan, TracerProvider
-from opentelemetry.trace import SpanKind, StatusCode
-
 from arcade_mcp_server.middleware.base import MiddlewareContext
 from arcade_mcp_server.middleware.telemetry import (
     ContextVarSpanCollector,
@@ -27,7 +24,8 @@ from arcade_mcp_server.types import (
     TextContent,
     TextResourceContents,
 )
-
+from opentelemetry.sdk.trace import ReadableSpan, TracerProvider
+from opentelemetry.trace import SpanKind, StatusCode
 
 # ---------------------------------------------------------------------------
 # Helpers

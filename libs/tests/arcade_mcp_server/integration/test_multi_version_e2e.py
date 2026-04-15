@@ -13,21 +13,16 @@ from __future__ import annotations
 
 import asyncio
 import json
-from dataclasses import dataclass, field
 from typing import Any
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, Mock
 
 import pytest
-import pytest_asyncio
 from arcade_mcp_server.resource_server.base import ResourceOwner
 from arcade_mcp_server.server import INSUFFICIENT_SCOPE_ERROR_CODE, MCPServer
 from arcade_mcp_server.session import InitializationState, ServerSession
 from arcade_mcp_server.types import (
-    SUPPORTED_PROTOCOL_VERSIONS,
     TaskStatus,
-    negotiate_version,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -843,9 +838,8 @@ class TestE2ETransportCompliance:
 
     def test_origin_enforcement_rejects_invalid_origin(self) -> None:
         """HTTP transport rejects requests with invalid Origin header."""
-        from starlette.requests import Request as StarletteRequest
-
         from arcade_mcp_server.transports.http_session_manager import _validate_origin
+        from starlette.requests import Request as StarletteRequest
 
         def _make_req(headers: dict[str, str]) -> StarletteRequest:
             raw_headers = [(k.lower().encode(), v.encode()) for k, v in headers.items()]
@@ -872,11 +866,10 @@ class TestE2ETransportCompliance:
 
     def test_stateful_header_mismatch_returns_400(self) -> None:
         """Stateful session: MCP-Protocol-Version header mismatch -> 400."""
-        from starlette.requests import Request as StarletteRequest
-
         from arcade_mcp_server.transports.http_session_manager import (
             _validate_protocol_version_header,
         )
+        from starlette.requests import Request as StarletteRequest
 
         def _make_req(headers: dict[str, str]) -> StarletteRequest:
             raw_headers = [(k.lower().encode(), v.encode()) for k, v in headers.items()]
@@ -901,11 +894,10 @@ class TestE2ETransportCompliance:
 
     def test_stateless_header_required(self) -> None:
         """Stateless mode: MCP-Protocol-Version header is required (400 if absent)."""
-        from starlette.requests import Request as StarletteRequest
-
         from arcade_mcp_server.transports.http_session_manager import (
             _validate_protocol_version_header,
         )
+        from starlette.requests import Request as StarletteRequest
 
         def _make_req(headers: dict[str, str]) -> StarletteRequest:
             raw_headers = [(k.lower().encode(), v.encode()) for k, v in headers.items()]

@@ -7,12 +7,7 @@ for pragmatic reasons (the ASGI plumbing is complex to set up).
 """
 
 import json
-
-import pytest
-from starlette.datastructures import Headers
-from starlette.requests import Request
-from starlette.testclient import TestClient
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import Mock
 
 from arcade_mcp_server.transports.http_session_manager import (
     _create_transport_error_response,
@@ -22,6 +17,7 @@ from arcade_mcp_server.transports.http_session_manager import (
 )
 from arcade_mcp_server.transports.http_streamable import HTTPStreamableTransport
 from arcade_mcp_server.types import JSONRPCError
+from starlette.requests import Request
 
 
 def _make_request(headers: dict[str, str] | None = None, method: str = "POST") -> Request:

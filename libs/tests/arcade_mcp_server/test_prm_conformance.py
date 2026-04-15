@@ -10,13 +10,11 @@ Covers:
 from __future__ import annotations
 
 import json
-from http import HTTPStatus
 from typing import Any
 from unittest.mock import AsyncMock
 
 import pytest
 import pytest_asyncio
-
 from arcade_mcp_server.resource_server.base import (
     InsufficientScopeError,
     ResourceOwner,
@@ -29,7 +27,6 @@ from arcade_mcp_server.server import (
 from arcade_mcp_server.session import ServerSession
 from arcade_mcp_server.transports.http_streamable import HTTPStreamableTransport
 from arcade_mcp_server.types import JSONRPCError
-
 
 # ---------------------------------------------------------------------------
 # TestExtractScopes — pure unit tests

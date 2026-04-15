@@ -28,9 +28,9 @@ def test_v2025_11_25_type_imports():
         ToolExecution,
         ToolResultContent,
         ToolUseContent,
-        URLElicitationRequiredError,
         UntitledMultiSelectEnumSchema,
         UntitledSingleSelectEnumSchema,
+        URLElicitationRequiredError,
     )
 
     assert Icon is not None

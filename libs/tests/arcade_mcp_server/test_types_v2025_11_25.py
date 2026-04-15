@@ -1,8 +1,6 @@
 """Tests for MCP 2025-11-25 types added in Phase 2."""
 
 import pytest
-from pydantic import ValidationError
-
 from arcade_mcp_server.types import (
     CancelledNotification,
     CancelTaskRequest,
@@ -18,7 +16,6 @@ from arcade_mcp_server.types import (
     GetTaskRequest,
     GetTaskResult,
     Icon,
-    ImageContent,
     Implementation,
     LegacyTitledEnumSchema,
     ListTasksRequest,
@@ -31,7 +28,6 @@ from arcade_mcp_server.types import (
     ServerCapabilities,
     Task,
     TaskStatus,
-    TaskStatusNotification,
     TextContent,
     TitledMultiSelectEnumSchema,
     TitledSingleSelectEnumSchema,
@@ -43,6 +39,7 @@ from arcade_mcp_server.types import (
     UntitledSingleSelectEnumSchema,
     URLElicitationRequiredError,
 )
+from pydantic import ValidationError
 
 
 class TestIcon:
