@@ -354,6 +354,63 @@ def materialized_no_execution_tool(
 
 
 @pytest.fixture
+def scoped_tool_func():
+    """A tool with OAuth2 scope requirements for scope-check tests."""
+
+    @tool(
+        requires_auth=OAuth2(
+            id="scope-provider",
+            scopes=["files:read", "files:write"],
+        ),
+    )
+    def scoped_tool(
+        text: Annotated[str, "Input text"],
+    ) -> Annotated[str, "Result"]:
+        """A tool that requires specific OAuth2 scopes."""
+        return f"scoped: {text}"
+
+    return scoped_tool
+
+
+@pytest.fixture
+def scoped_tool_def() -> ToolDefinition:
+    """Tool definition with OAuth2 scopes for scope-check tests."""
+    return ToolDefinition(
+        name="scoped_tool",
+        fully_qualified_name="TestToolkit.scoped_tool",
+        description="A tool with scopes",
+        toolkit=ToolkitDefinition(name="TestToolkit", description="Test toolkit", version="1.0.0"),
+        input=ToolInput(
+            parameters=[
+                InputParameter(
+                    name="text",
+                    required=True,
+                    description="Input text",
+                    value_schema=ValueSchema(val_type="string"),
+                )
+            ]
+        ),
+        output=ToolOutput(description="Tool output", value_schema=ValueSchema(val_type="string")),
+        requirements=ToolRequirements(
+            authorization=ToolAuthRequirement(
+                provider_type="oauth2",
+                provider_id="scope-provider",
+                id="scope-provider",
+                oauth2=OAuth2Requirement(
+                    scopes=["files:read", "files:write"],
+                ),
+            ),
+        ),
+    )
+
+
+@pytest.fixture
+def materialized_scoped_tool(scoped_tool_func, scoped_tool_def) -> MaterializedTool:
+    """Materialized tool with OAuth2 scopes."""
+    return _materialize(scoped_tool_func, scoped_tool_def)
+
+
+@pytest.fixture
 def tool_catalog(
     materialized_tool: MaterializedTool,
     materialized_tool_with_auth: MaterializedTool,
@@ -363,6 +420,7 @@ def tool_catalog(
     materialized_forbidden_task_tool: MaterializedTool,
     materialized_required_task_tool: MaterializedTool,
     materialized_no_execution_tool: MaterializedTool,
+    materialized_scoped_tool: MaterializedTool,
 ) -> ToolCatalog:
     """Create a tool catalog with sample tools."""
     catalog = ToolCatalog()
@@ -375,6 +433,7 @@ def tool_catalog(
         materialized_forbidden_task_tool,
         materialized_required_task_tool,
         materialized_no_execution_tool,
+        materialized_scoped_tool,
     ]:
         catalog._tools[mt.definition.get_fully_qualified_name()] = mt
     return catalog

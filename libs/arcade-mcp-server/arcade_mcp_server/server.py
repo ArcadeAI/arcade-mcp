@@ -105,6 +105,30 @@ from arcade_mcp_server.usage import ServerTracker
 
 logger = logging.getLogger("arcade.mcp")
 
+# Reserved JSON-RPC error code for insufficient OAuth scope (AD 11).
+# The HTTP transport inspects this code to convert the response to HTTP 403.
+INSUFFICIENT_SCOPE_ERROR_CODE = -32043
+
+
+def _extract_scopes(claims: dict[str, Any]) -> set[str]:
+    """Normalise scope extraction across OAuth provider formats.
+
+    Handles:
+    - ``scope`` claim (RFC 6749 §3.3, space-delimited string)
+    - ``scp`` claim (Azure AD / Microsoft Entra, space-delimited string)
+    - Both may also be JSON arrays of strings
+    """
+    for claim_key in ("scope", "scp"):
+        raw = claims.get(claim_key)
+        if raw is None:
+            continue
+        if isinstance(raw, str):
+            return set(raw.split())
+        if isinstance(raw, list):
+            return {s for s in raw if isinstance(s, str)}
+    return set()
+
+
 # Tool name validation pattern: 1-128 chars, only [A-Za-z0-9_.-]
 _TOOL_NAME_RE = re.compile(r"^[A-Za-z0-9_.\-]{1,128}$")
 
@@ -1162,6 +1186,52 @@ class MCPServer:
 
             # ---- Normal (non-task) flow ----
 
+            # ---- Scope sufficiency check (AD 11, Phase 8.4) ----
+            resource_owner = self._get_resource_owner_from_context()
+            if (
+                resource_owner is not None
+                and tool.definition.requirements
+                and tool.definition.requirements.authorization
+            ):
+                auth_req = tool.definition.requirements.authorization
+                oauth2_req = getattr(auth_req, "oauth2", None)
+                required_scopes = (
+                    list(oauth2_req.scopes)
+                    if oauth2_req and getattr(oauth2_req, "scopes", None)
+                    else []
+                )
+                if required_scopes:
+                    granted_scopes = _extract_scopes(getattr(resource_owner, "claims", None) or {})
+                    missing = set(required_scopes) - granted_scopes
+                    if missing:
+                        # Build WWW-Authenticate header value
+                        resource_metadata_url = self._resolve_resource_metadata_url(session)
+                        rm_part = (
+                            f', resource_metadata="{resource_metadata_url}"'
+                            if resource_metadata_url
+                            else ""
+                        )
+                        www_auth = (
+                            f'Bearer error="insufficient_scope", '
+                            f'scope="{" ".join(required_scopes)}"'
+                            f"{rm_part}"
+                        )
+                        return JSONRPCError(
+                            id=message.id,
+                            error={
+                                "code": INSUFFICIENT_SCOPE_ERROR_CODE,
+                                "message": "Insufficient scope",
+                                "data": {
+                                    "_transport": {
+                                        "http_status": 403,
+                                        "www_authenticate": www_auth,
+                                    },
+                                    "required_scopes": required_scopes,
+                                    "granted_scopes": sorted(granted_scopes),
+                                },
+                            },
+                        )
+
             # Create tool context
             tool_context = self._create_tool_context(tool, session)
 
@@ -1963,6 +2033,27 @@ class MCPServer:
         if mctx is not None and hasattr(mctx, "_resource_owner"):
             return mctx._resource_owner
         return None
+
+    def _resolve_resource_metadata_url(self, session: ServerSession | None) -> str | None:
+        """Best-effort resolution of the PRM (Protected Resource Metadata) URL.
+
+        Inspects session init_options for a canonical_url set by the transport,
+        then falls back to server settings.  Returns ``None`` when the URL
+        cannot be determined (e.g. stdio transport).
+        """
+        from urllib.parse import urlparse, urlunparse
+
+        canonical: str | None = None
+        if session and session.init_options:
+            canonical = session.init_options.get("canonical_url")
+        if not canonical:
+            canonical = getattr(self.settings.server, "canonical_url", None)
+        if not canonical:
+            return None
+
+        parsed = urlparse(canonical)
+        well_known_path = f"/.well-known/oauth-protected-resource{parsed.path}"
+        return urlunparse((parsed.scheme, parsed.netloc, well_known_path, "", "", ""))
 
     async def _execute_tool_in_background(
         self,
