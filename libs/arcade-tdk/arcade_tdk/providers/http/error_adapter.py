@@ -155,6 +155,32 @@ class BaseHTTPErrorMapper:
             extra=extra,
         )
 
+    def _build_upstream_error(
+        self,
+        *,
+        exc: Exception,
+        status_code: int,
+        message: str,
+        request_url: str | None,
+        request_method: str | None,
+        observed_status_code: int | None = None,
+        include_status_code: bool = False,
+    ) -> UpstreamError:
+        error = UpstreamError(
+            message=message,
+            status_code=status_code,
+            developer_message=str(exc),
+            extra={
+                **self._build_extra_metadata(request_url, request_method),
+                "error_type": type(exc).__name__,
+            },
+        )
+        if not include_status_code:
+            error.status_code = None
+        if observed_status_code is not None:
+            error.status_code = observed_status_code
+        return error
+
     def _is_rate_limit_403(self, headers: dict[str, str], msg: str) -> bool:
         """
         Determine if a 403 error is actually a rate limiting error.
@@ -211,33 +237,6 @@ class BaseHTTPErrorMapper:
 class _HTTPXExceptionHandler:
     """Handler for httpx-specific exceptions."""
 
-    def _build_upstream_error(
-        self,
-        *,
-        mapper: BaseHTTPErrorMapper,
-        exc: Exception,
-        status_code: int,
-        message: str,
-        request_url: str | None,
-        request_method: str | None,
-        observed_status_code: int | None = None,
-        include_status_code: bool = False,
-    ) -> UpstreamError:
-        error = UpstreamError(
-            message=message,
-            status_code=status_code,
-            developer_message=str(exc),
-            extra={
-                **mapper._build_extra_metadata(request_url, request_method),
-                "error_type": type(exc).__name__,
-            },
-        )
-        if not include_status_code:
-            error.status_code = None
-        if observed_status_code is not None:
-            error.status_code = observed_status_code
-        return error
-
     def handle_exception(self, exc: Any, mapper: BaseHTTPErrorMapper) -> ToolRuntimeError | None:
         """Handle typed httpx exceptions.
 
@@ -287,8 +286,7 @@ class _HTTPXExceptionHandler:
 
         # Order is intentional: specific subclasses before broad base classes.
         if isinstance(exc, httpx.TimeoutException):
-            return self._build_upstream_error(
-                mapper=mapper,
+            return mapper._build_upstream_error(
                 exc=exc,
                 status_code=503,
                 message=f"Upstream HTTP request timed out before receiving a response: {type(exc).__name__}",
@@ -299,8 +297,7 @@ class _HTTPXExceptionHandler:
             )
 
         if isinstance(exc, httpx.TooManyRedirects):
-            return self._build_upstream_error(
-                mapper=mapper,
+            return mapper._build_upstream_error(
                 exc=exc,
                 status_code=400,
                 message=f"Upstream HTTP request redirect limit exceeded: {type(exc).__name__}",
@@ -311,8 +308,7 @@ class _HTTPXExceptionHandler:
             )
 
         if isinstance(exc, (httpx.UnsupportedProtocol, httpx.LocalProtocolError)):
-            return self._build_upstream_error(
-                mapper=mapper,
+            return mapper._build_upstream_error(
                 exc=exc,
                 status_code=400,
                 message=f"Upstream HTTP request is invalid: {type(exc).__name__}",
@@ -323,8 +319,7 @@ class _HTTPXExceptionHandler:
             )
 
         if isinstance(exc, httpx.DecodingError):
-            return self._build_upstream_error(
-                mapper=mapper,
+            return mapper._build_upstream_error(
                 exc=exc,
                 status_code=502,
                 message=f"Upstream HTTP response decoding failed: {type(exc).__name__}",
@@ -335,8 +330,7 @@ class _HTTPXExceptionHandler:
             )
 
         if isinstance(exc, httpx.TransportError):
-            return self._build_upstream_error(
-                mapper=mapper,
+            return mapper._build_upstream_error(
                 exc=exc,
                 status_code=503,
                 message=f"Upstream HTTP transport error: {type(exc).__name__}",
@@ -347,8 +341,7 @@ class _HTTPXExceptionHandler:
             )
 
         if isinstance(exc, httpx.RequestError):
-            return self._build_upstream_error(
-                mapper=mapper,
+            return mapper._build_upstream_error(
                 exc=exc,
                 status_code=502,
                 message=f"Upstream HTTP request failed: {type(exc).__name__}",
@@ -363,33 +356,6 @@ class _HTTPXExceptionHandler:
 
 class _RequestsExceptionHandler:
     """Handler for requests-specific exceptions."""
-
-    def _build_upstream_error(
-        self,
-        *,
-        mapper: BaseHTTPErrorMapper,
-        exc: Exception,
-        status_code: int,
-        message: str,
-        request_url: str | None,
-        request_method: str | None,
-        observed_status_code: int | None = None,
-        include_status_code: bool = False,
-    ) -> UpstreamError:
-        error = UpstreamError(
-            message=message,
-            status_code=status_code,
-            developer_message=str(exc),
-            extra={
-                **mapper._build_extra_metadata(request_url, request_method),
-                "error_type": type(exc).__name__,
-            },
-        )
-        if not include_status_code:
-            error.status_code = None
-        if observed_status_code is not None:
-            error.status_code = observed_status_code
-        return error
 
     def handle_exception(self, exc: Any, mapper: BaseHTTPErrorMapper) -> ToolRuntimeError | None:
         """Handle requests exceptions with HTTP responses.
@@ -473,8 +439,7 @@ class _RequestsExceptionHandler:
 
         # Order is intentional: specific subclasses before broad base classes.
         if isinstance(exc, Timeout):
-            return self._build_upstream_error(
-                mapper=mapper,
+            return mapper._build_upstream_error(
                 exc=exc,
                 status_code=503,
                 message=f"Upstream HTTP request timed out before receiving a response: {type(exc).__name__}",
@@ -485,8 +450,7 @@ class _RequestsExceptionHandler:
             )
 
         if isinstance(exc, TooManyRedirects):
-            return self._build_upstream_error(
-                mapper=mapper,
+            return mapper._build_upstream_error(
                 exc=exc,
                 status_code=400,
                 message=f"Upstream HTTP request redirect limit exceeded: {type(exc).__name__}",
@@ -497,8 +461,7 @@ class _RequestsExceptionHandler:
             )
 
         if isinstance(exc, (InvalidURL, InvalidSchema, InvalidProxyURL)):
-            return self._build_upstream_error(
-                mapper=mapper,
+            return mapper._build_upstream_error(
                 exc=exc,
                 status_code=400,
                 message=f"Upstream HTTP request is invalid: {type(exc).__name__}",
@@ -509,8 +472,7 @@ class _RequestsExceptionHandler:
             )
 
         if isinstance(exc, ContentDecodingError):
-            return self._build_upstream_error(
-                mapper=mapper,
+            return mapper._build_upstream_error(
                 exc=exc,
                 status_code=502,
                 message=f"Upstream HTTP response decoding failed: {type(exc).__name__}",
@@ -521,8 +483,7 @@ class _RequestsExceptionHandler:
             )
 
         if isinstance(exc, ConnectionError):
-            return self._build_upstream_error(
-                mapper=mapper,
+            return mapper._build_upstream_error(
                 exc=exc,
                 status_code=503,
                 message=f"Upstream HTTP transport error: {type(exc).__name__}",
@@ -533,8 +494,7 @@ class _RequestsExceptionHandler:
             )
 
         if isinstance(exc, RequestException):
-            return self._build_upstream_error(
-                mapper=mapper,
+            return mapper._build_upstream_error(
                 exc=exc,
                 status_code=502,
                 message=f"Upstream HTTP request failed: {type(exc).__name__}",
