@@ -1,14 +1,20 @@
 """Tests for TaskManager (Phase 4 of MCP 2025-11-25 support)."""
 
 import asyncio
+import base64
 import contextlib
+import json
 
 import pytest
 import pytest_asyncio
 from arcade_mcp_server.managers.task_manager import (
+    DEFAULT_LIST_PAGE_SIZE,
+    InvalidCursorError,
     InvalidTaskStateError,
     NotFoundError,
     TaskManager,
+    _decode_cursor,
+    _encode_cursor,
 )
 from arcade_mcp_server.types import TaskStatus
 
@@ -62,8 +68,8 @@ class TestTaskManager:
         """list_tasks only returns tasks belonging to the requesting authorization context."""
         t1 = await task_manager.create_task(context_key=CONTEXT_A)
         t2 = await task_manager.create_task(context_key=CONTEXT_B)
-        tasks_a = await task_manager.list_tasks(context_key=CONTEXT_A)
-        tasks_b = await task_manager.list_tasks(context_key=CONTEXT_B)
+        tasks_a, _ = await task_manager.list_tasks(context_key=CONTEXT_A)
+        tasks_b, _ = await task_manager.list_tasks(context_key=CONTEXT_B)
         assert len(tasks_a) == 1
         assert tasks_a[0].taskId == t1.taskId
         assert len(tasks_b) == 1
@@ -122,16 +128,19 @@ class TestTaskManager:
     async def test_list_tasks(self, task_manager):
         t1 = await task_manager.create_task(context_key=CONTEXT_A)
         t2 = await task_manager.create_task(context_key=CONTEXT_A)
-        tasks = await task_manager.list_tasks(context_key=CONTEXT_A)
+        tasks, next_cursor = await task_manager.list_tasks(context_key=CONTEXT_A)
         assert len(tasks) >= 2
         task_ids = {t.taskId for t in tasks}
         assert t1.taskId in task_ids
         assert t2.taskId in task_ids
+        # Only 2 tasks, default page size is 20, so there's no next page.
+        assert next_cursor is None
 
     @pytest.mark.asyncio
     async def test_list_tasks_empty(self, task_manager):
-        tasks = await task_manager.list_tasks(context_key=CONTEXT_A)
+        tasks, next_cursor = await task_manager.list_tasks(context_key=CONTEXT_A)
         assert tasks == []
+        assert next_cursor is None
 
     @pytest.mark.asyncio
     async def test_task_ttl_expiration(self, task_manager):
@@ -469,7 +478,7 @@ class TestLazyAndPeriodicExpiration:
             expired = await manager.create_task(context_key=CONTEXT_A, ttl=1)
             fresh = await manager.create_task(context_key=CONTEXT_A, ttl=60_000)
             await asyncio.sleep(0.05)
-            listed = await manager.list_tasks(context_key=CONTEXT_A)
+            listed, _ = await manager.list_tasks(context_key=CONTEXT_A)
             ids = {t.taskId for t in listed}
             assert fresh.taskId in ids
             assert expired.taskId not in ids
@@ -515,3 +524,150 @@ class TestLazyAndPeriodicExpiration:
         await manager.stop()
         # After stop(), the cleanup task reference is cleared.
         assert manager._cleanup_task is None
+
+
+class TestListTasksPaginationContract:
+    """Resolved decision 38: tasks/list pagination contract.
+
+    - Ordering: ``createdAt`` descending (newest first); ``taskId`` ascending
+      tiebreaker for identical timestamps.
+    - Default page size: :data:`DEFAULT_LIST_PAGE_SIZE` (20).
+    - Cursor: opaque base64url-encoded ``{taskId, createdAt}``.
+    - Invalid/expired cursor -> :class:`InvalidCursorError` (handler maps to
+      ``-32602``).
+    """
+
+    @pytest_asyncio.fixture
+    async def tm(self):
+        manager = TaskManager()
+        await manager.start()
+        yield manager
+        await manager.stop()
+
+    @pytest.mark.asyncio
+    async def test_default_page_size_is_20(self, tm):
+        for _ in range(25):
+            await tm.create_task(context_key=CONTEXT_A)
+        tasks, next_cursor = await tm.list_tasks(context_key=CONTEXT_A)
+        assert len(tasks) == DEFAULT_LIST_PAGE_SIZE == 20
+        assert next_cursor is not None
+
+    @pytest.mark.asyncio
+    async def test_no_next_cursor_when_all_fit(self, tm):
+        for _ in range(5):
+            await tm.create_task(context_key=CONTEXT_A)
+        tasks, next_cursor = await tm.list_tasks(context_key=CONTEXT_A)
+        assert len(tasks) == 5
+        assert next_cursor is None
+
+    @pytest.mark.asyncio
+    async def test_ordering_is_newest_first(self, tm):
+        created = []
+        for _ in range(5):
+            t = await tm.create_task(context_key=CONTEXT_A)
+            created.append(t)
+            await asyncio.sleep(0.01)  # ensure different createdAt timestamps
+        tasks, _ = await tm.list_tasks(context_key=CONTEXT_A)
+        returned_ids = [t.taskId for t in tasks]
+        # Newest first -- reverse of creation order.
+        assert returned_ids == [t.taskId for t in reversed(created)]
+
+    @pytest.mark.asyncio
+    async def test_taskid_tiebreaker_when_createdat_equal(self, tm):
+        """When two tasks share createdAt, taskId ascending is the tiebreaker."""
+        # Create two tasks with the same timestamp by patching.
+        t1 = await tm.create_task(context_key=CONTEXT_A)
+        t2 = await tm.create_task(context_key=CONTEXT_A)
+        # Force equal createdAt
+        _ck, task1 = tm._tasks[t1.taskId]
+        _ck2, task2 = tm._tasks[t2.taskId]
+        shared = "2025-01-01T00:00:00+00:00"
+        task1.createdAt = shared
+        task2.createdAt = shared
+        tasks, _ = await tm.list_tasks(context_key=CONTEXT_A)
+        returned_ids = [t.taskId for t in tasks]
+        # With equal createdAt, taskId ascending order is the tiebreaker.
+        assert returned_ids == sorted(returned_ids)
+
+    @pytest.mark.asyncio
+    async def test_cursor_paginates_to_next_page_without_overlap(self, tm):
+        for _ in range(25):
+            await tm.create_task(context_key=CONTEXT_A)
+        page1, cursor = await tm.list_tasks(context_key=CONTEXT_A)
+        assert cursor is not None
+        page2, cursor2 = await tm.list_tasks(context_key=CONTEXT_A, cursor=cursor)
+        page1_ids = {t.taskId for t in page1}
+        page2_ids = {t.taskId for t in page2}
+        assert page1_ids.isdisjoint(page2_ids)
+        # 25 tasks total, 20 on page1, 5 on page2, no further pages.
+        assert len(page2) == 5
+        assert cursor2 is None
+
+    @pytest.mark.asyncio
+    async def test_exhaustive_pagination_covers_all_tasks_exactly_once(self, tm):
+        all_created = set()
+        for _ in range(25):
+            t = await tm.create_task(context_key=CONTEXT_A)
+            all_created.add(t.taskId)
+        seen = set()
+        cursor = None
+        for _ in range(10):  # safety bound
+            page, cursor = await tm.list_tasks(context_key=CONTEXT_A, cursor=cursor)
+            for t in page:
+                assert t.taskId not in seen  # no duplicates
+                seen.add(t.taskId)
+            if cursor is None:
+                break
+        assert seen == all_created
+
+    @pytest.mark.asyncio
+    async def test_invalid_cursor_raises_invalid_cursor_error(self, tm):
+        await tm.create_task(context_key=CONTEXT_A)
+        with pytest.raises(InvalidCursorError):
+            await tm.list_tasks(context_key=CONTEXT_A, cursor="not-a-valid-cursor!!")
+
+    @pytest.mark.asyncio
+    async def test_cursor_for_nonexistent_task_raises(self, tm):
+        """A syntactically valid cursor pointing at an unknown task -> InvalidCursorError."""
+        stale = _encode_cursor_literal(task_id="ghost-task", created_at="2025-01-01T00:00:00+00:00")
+        await tm.create_task(context_key=CONTEXT_A)
+        with pytest.raises(InvalidCursorError):
+            await tm.list_tasks(context_key=CONTEXT_A, cursor=stale)
+
+    @pytest.mark.asyncio
+    async def test_cursor_roundtrip(self, tm):
+        t = await tm.create_task(context_key=CONTEXT_A)
+        cursor = _encode_cursor(t)
+        task_id, created_at = _decode_cursor(cursor)
+        assert task_id == t.taskId
+        assert created_at == t.createdAt
+
+    @pytest.mark.asyncio
+    async def test_cursor_is_opaque_base64url(self, tm):
+        t = await tm.create_task(context_key=CONTEXT_A)
+        cursor = _encode_cursor(t)
+        # Must decode as base64url (tolerating missing padding); payload is JSON
+        # with taskId and createdAt.
+        padding = "=" * (-len(cursor) % 4)
+        raw = base64.urlsafe_b64decode((cursor + padding).encode("ascii"))
+        payload = json.loads(raw)
+        assert payload["taskId"] == t.taskId
+        assert payload["createdAt"] == t.createdAt
+
+    @pytest.mark.asyncio
+    async def test_explicit_limit_overrides_default_page_size(self, tm):
+        for _ in range(10):
+            await tm.create_task(context_key=CONTEXT_A)
+        tasks, cursor = await tm.list_tasks(context_key=CONTEXT_A, limit=3)
+        assert len(tasks) == 3
+        assert cursor is not None  # 10 > 3
+
+
+def _encode_cursor_literal(*, task_id: str, created_at: str) -> str:
+    """Helper to build a syntactically-valid cursor for a non-existent task."""
+    payload = json.dumps(
+        {"taskId": task_id, "createdAt": created_at},
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+    return base64.urlsafe_b64encode(payload.encode("utf-8")).decode("ascii").rstrip("=")

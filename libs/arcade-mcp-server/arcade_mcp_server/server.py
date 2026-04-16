@@ -43,6 +43,7 @@ from arcade_mcp_server.exceptions import (
 from arcade_mcp_server.lifespan import LifespanManager
 from arcade_mcp_server.managers import PromptManager, ResourceManager, TaskManager, ToolManager
 from arcade_mcp_server.managers.task_manager import (
+    InvalidCursorError,
     InvalidTaskStateError,
 )
 from arcade_mcp_server.managers.task_manager import (
@@ -166,8 +167,7 @@ def _validate_schema_dialect(schema: dict[str, Any]) -> None:
     if dollar_schema in _ACCEPTED_SCHEMA_DIALECTS:
         return
     raise UnsupportedSchemaDialectError(
-        f"Unsupported JSON Schema dialect: {dollar_schema}. "
-        f"Only JSON Schema 2020-12 is supported."
+        f"Unsupported JSON Schema dialect: {dollar_schema}. Only JSON Schema 2020-12 is supported."
     )
 
 
@@ -1910,10 +1910,16 @@ class MCPServer:
                 if session
                 else "session:unknown"
             )
-            tasks = await self._task_manager.list_tasks(
+            tasks, next_cursor = await self._task_manager.list_tasks(
                 context_key=context_key,
                 cursor=params.get("cursor"),
                 limit=params.get("limit"),
+            )
+        except InvalidCursorError as e:
+            # Resolved decision 38: invalid/expired cursors return -32602.
+            return JSONRPCError(
+                id=msg_id,
+                error={"code": -32602, "message": f"Invalid cursor: {e}"},
             )
         except IncompleteAuthContextError as e:
             return JSONRPCError(
@@ -1921,7 +1927,7 @@ class MCPServer:
                 error={"code": -32603, "message": str(e)},
             )
 
-        result = ListTasksResult(tasks=tasks)
+        result = ListTasksResult(tasks=tasks, nextCursor=next_cursor)
         return JSONRPCResponse(id=msg_id, result=result)
 
     async def _handle_cancel_task(
@@ -2154,14 +2160,13 @@ class MCPServer:
             return
         _ctx_key, task = entry
         with contextlib.suppress(Exception):
-            notification = TaskStatusNotification(
-                params={
-                    "taskId": task.taskId,
-                    "status": task.status.value,
-                    "lastUpdatedAt": task.lastUpdatedAt,
-                    "statusMessage": task.statusMessage,
-                }
-            )
+            # Plan line 3479 + resolved decision 38: params are
+            # `NotificationParams & Task` (allOf) -- the FULL Task object,
+            # not just {taskId, status}. Dump with by_alias=True so any
+            # aliased fields (e.g. _meta) serialize correctly, and drop
+            # None-valued optional fields.
+            task_fields = task.model_dump(by_alias=True, exclude_none=True)
+            notification = TaskStatusNotification(params=task_fields)
             await session.send_notification(notification)
 
     # Resource support for Context

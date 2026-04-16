@@ -7,7 +7,10 @@ tracking, TTL-based expiration, and authorization-context-scoped isolation.
 from __future__ import annotations
 
 import asyncio
+import base64
+import binascii
 import contextlib
+import json
 import logging
 import uuid
 from datetime import datetime, timezone
@@ -19,6 +22,9 @@ logger = logging.getLogger("arcade.mcp.tasks")
 
 TERMINAL_STATUSES = {TaskStatus.COMPLETED, TaskStatus.FAILED, TaskStatus.CANCELLED}
 
+# Default page size for tasks/list pagination (resolved decision 38).
+DEFAULT_LIST_PAGE_SIZE = 20
+
 
 class NotFoundError(Exception):
     """Task not found or context mismatch (same error for both -- no info leak)."""
@@ -26,6 +32,47 @@ class NotFoundError(Exception):
 
 class InvalidTaskStateError(Exception):
     """Attempted invalid state transition on a task."""
+
+
+class InvalidCursorError(Exception):
+    """Cursor is malformed, unrecognized, or points at a task that no longer exists.
+
+    Per plan resolved decision 38, invalid/expired cursors result in JSON-RPC
+    -32602 (invalid params) at the handler boundary.
+    """
+
+
+def _encode_cursor(task: Task) -> str:
+    """Opaque base64url-encoded cursor with {taskId, createdAt}.
+
+    Resolved decision 38: cursor format is an internal detail -- clients treat
+    it as an opaque string.
+    """
+    payload = json.dumps(
+        {"taskId": task.taskId, "createdAt": task.createdAt},
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+    return base64.urlsafe_b64encode(payload.encode("utf-8")).decode("ascii").rstrip("=")
+
+
+def _decode_cursor(cursor: str) -> tuple[str, str]:
+    """Decode a cursor issued by ``_encode_cursor``.
+
+    Raises InvalidCursorError on any malformed input.
+    """
+    try:
+        # base64url, tolerating missing padding
+        padding = "=" * (-len(cursor) % 4)
+        raw = base64.urlsafe_b64decode((cursor + padding).encode("ascii")).decode("utf-8")
+        data = json.loads(raw)
+        task_id = data["taskId"]
+        created_at = data["createdAt"]
+    except (binascii.Error, ValueError, UnicodeDecodeError, KeyError, TypeError) as e:
+        raise InvalidCursorError("malformed cursor") from e
+    if not isinstance(task_id, str) or not isinstance(created_at, str):
+        raise InvalidCursorError("cursor payload has wrong types")
+    return task_id, created_at
 
 
 class TaskManager:
@@ -188,32 +235,58 @@ class TaskManager:
         context_key: str,
         cursor: str | None = None,
         limit: int | None = None,
-    ) -> list[Task]:
-        """List tasks owned by a context key.
+    ) -> tuple[list[Task], str | None]:
+        """List tasks owned by a context key with deterministic pagination.
 
-        Simple cursor: skip tasks until cursor task_id is found, then return
-        from the next one. Returns (tasks, next_cursor).
+        Contract (resolved decision 38):
+        - Ordering: ``createdAt`` descending (newest first), with ``taskId``
+          ascending as tiebreaker for identical timestamps.
+        - Default page size: :data:`DEFAULT_LIST_PAGE_SIZE` (20).
+        - Cursor: opaque base64url-encoded ``{taskId, createdAt}`` of the last
+          item on the previously-returned page.
+        - Invalid or unresolvable cursors raise :class:`InvalidCursorError`;
+          the handler translates that into a JSON-RPC ``-32602``.
+        - Mutation semantics: best-effort; no snapshot isolation.
+
+        Returns a tuple ``(tasks, next_cursor)``. ``next_cursor`` is ``None``
+        when no further pages exist.
         """
         # Lazy TTL enforcement on access.
         await self.cleanup_expired()
 
-        all_tasks = [task for ctx_key, task in self._tasks.values() if ctx_key == context_key]
+        # Scope to context.
+        owned = [task for ctx_key, task in self._tasks.values() if ctx_key == context_key]
 
+        # Deterministic ordering: createdAt desc, taskId asc tiebreaker.
+        # Build a sort key that inverts the primary dimension (createdAt) while
+        # leaving taskId ascending. Since createdAt is an ISO-8601 string, we
+        # sort ascending and then reverse via a two-pass stable sort.
+        owned.sort(key=lambda t: t.taskId)  # asc tiebreaker, stable
+        owned.sort(key=lambda t: t.createdAt, reverse=True)  # createdAt desc
+
+        # Apply cursor.
         if cursor is not None:
-            # Find cursor position
-            found = False
-            filtered = []
-            for t in all_tasks:
-                if found:
-                    filtered.append(t)
-                if t.taskId == cursor:
-                    found = True
-            all_tasks = filtered
+            cur_task_id, cur_created_at = _decode_cursor(cursor)
+            idx: int | None = None
+            for i, t in enumerate(owned):
+                if t.taskId == cur_task_id and t.createdAt == cur_created_at:
+                    idx = i
+                    break
+            if idx is None:
+                # Cursor refers to a task that no longer exists / was expired.
+                raise InvalidCursorError("cursor does not match any known task")
+            owned = owned[idx + 1 :]
 
-        if limit is not None and limit > 0:
-            all_tasks = all_tasks[:limit]
+        # Apply limit (default page size).
+        effective_limit = limit if (limit is not None and limit > 0) else DEFAULT_LIST_PAGE_SIZE
+        page = owned[:effective_limit]
 
-        return all_tasks
+        # Compute nextCursor only if more items remain beyond this page.
+        next_cursor: str | None = None
+        if len(owned) > effective_limit and page:
+            next_cursor = _encode_cursor(page[-1])
+
+        return page, next_cursor
 
     async def cancel_task(self, task_id: str, context_key: str) -> Task:
         """Cancel a task. Raises NotFoundError or InvalidTaskStateError."""
