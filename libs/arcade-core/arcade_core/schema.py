@@ -614,6 +614,12 @@ class ToolCallError(BaseModel):
         """Check if this error originated from an upstream service."""
         return self.kind.name.startswith("UPSTREAM_")
 
+    @property
+    def is_network_transport_error(self) -> bool:
+        """Check if this error originated from a network-transport-level failure
+        (no complete response from the upstream was received)."""
+        return self.kind.name.startswith("NETWORK_TRANSPORT_")
+
 
 class ToolCallRequiresAuthorization(BaseModel):
     """The authorization requirements for the tool invocation."""
