@@ -186,9 +186,8 @@ def build_input_schema_from_definition(definition: ToolDefinition) -> dict[str, 
             val_schema = getattr(param, "value_schema", None)
             schema = _value_schema_to_json_schema(val_schema) if val_schema else {"type": "string"}
 
-            description = getattr(param, "description", None)
-            if isinstance(description, str):
-                schema["description"] = description
+            if getattr(param, "description", None):
+                schema["description"] = param.description
 
             properties[param.name] = schema
             if getattr(param, "required", False):

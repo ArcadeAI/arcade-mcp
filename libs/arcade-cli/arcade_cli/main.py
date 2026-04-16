@@ -334,11 +334,11 @@ def mcp(
         # window from appearing (e.g. when an MCP client spawns this
         # command without an attached console).  The child process still
         # inherits stdin/stdout/stderr for stdio transport communication.
+        run_kwargs: dict[str, object] = {"check": False}
         creation_flags = get_windows_no_window_creationflags()
         if creation_flags:
-            result = subprocess.run(cmd, check=False, creationflags=creation_flags)
-        else:
-            result = subprocess.run(cmd, check=False)
+            run_kwargs["creationflags"] = creation_flags
+        result = subprocess.run(cmd, **run_kwargs)
 
         # Exit with the same code as the subprocess
         if result.returncode != 0:
