@@ -14,6 +14,7 @@ from arcade_core.errors import (
     ToolkitLoadError,
     UpstreamError,
 )
+from arcade_core.schema import ToolCallError
 
 
 @pytest.mark.parametrize("empty_message", ["", " ", "\t", "\n  \n"])
@@ -101,3 +102,38 @@ def test_network_transport_error_to_payload_omits_status_code():
     assert payload["kind"] is ErrorKind.NETWORK_TRANSPORT_RUNTIME_TIMEOUT
     assert payload["can_retry"] is True
     assert payload["error_type"] == "PoolTimeout"
+
+
+# ---- ToolCallError classification properties (wire-format schema) ----------
+
+
+@pytest.mark.parametrize(
+    "kind, expected_tool, expected_upstream, expected_network, expected_toolkit",
+    [
+        (ErrorKind.TOOL_RUNTIME_FATAL, True, False, False, False),
+        (ErrorKind.TOOL_RUNTIME_RETRY, True, False, False, False),
+        (ErrorKind.TOOL_RUNTIME_CONTEXT_REQUIRED, True, False, False, False),
+        (ErrorKind.TOOL_RUNTIME_BAD_INPUT_VALUE, True, False, False, False),
+        (ErrorKind.TOOL_RUNTIME_BAD_OUTPUT_VALUE, True, False, False, False),
+        (ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR, False, True, False, False),
+        (ErrorKind.UPSTREAM_RUNTIME_AUTH_ERROR, False, True, False, False),
+        (ErrorKind.UPSTREAM_RUNTIME_NOT_FOUND, False, True, False, False),
+        (ErrorKind.UPSTREAM_RUNTIME_RATE_LIMIT, False, True, False, False),
+        (ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST, False, True, False, False),
+        (ErrorKind.UPSTREAM_RUNTIME_UNMAPPED, False, True, False, False),
+        (ErrorKind.NETWORK_TRANSPORT_RUNTIME_TIMEOUT, False, False, True, False),
+        (ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNREACHABLE, False, False, True, False),
+        (ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED, False, False, True, False),
+        (ErrorKind.TOOLKIT_LOAD_FAILED, False, False, False, True),
+    ],
+)
+def test_tool_call_error_classification_properties(
+    kind, expected_tool, expected_upstream, expected_network, expected_toolkit
+):
+    """ToolCallError (Pydantic wire-format model) classification helpers must
+    be consistent with the ToolkitError class hierarchy helpers."""
+    err = ToolCallError(message="test", kind=kind, can_retry=False)
+    assert err.is_tool_error is expected_tool
+    assert err.is_upstream_error is expected_upstream
+    assert err.is_network_transport_error is expected_network
+    assert err.is_toolkit_error is expected_toolkit
