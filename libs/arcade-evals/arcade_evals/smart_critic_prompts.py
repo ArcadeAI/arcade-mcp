@@ -265,14 +265,6 @@ def build_user_message(criteria: str, expected: object, actual: object) -> str:
     return f"{criteria}\n\nEXPECTED:\n{expected!r}\n\nACTUAL:\n{actual!r}"
 
 
-def build_rubric_criteria_block(rubric: tuple[RubricCriterion, ...]) -> str:
-    """Format the rubric as a numbered checklist for the user prompt."""
-    lines = []
-    for i, c in enumerate(rubric, 1):
-        lines.append(f"{i}. `{c.key}`: {c.question}")
-    return "Answer the following criteria:\n\n" + "\n".join(lines)
-
-
 def build_rubric_output_instructions(
     rubric: tuple[RubricCriterion, ...],
 ) -> str:
