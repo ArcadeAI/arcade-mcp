@@ -4,12 +4,7 @@ from functools import lru_cache
 from http import HTTPStatus
 from typing import Any
 
-from arcade_core.errors import (
-    ErrorKind,
-    NetworkTransportError,
-    ToolRuntimeError,
-    UpstreamError,
-)
+from arcade_core.errors import ToolRuntimeError, UpstreamError
 
 from arcade_tdk.providers.http.error_adapter import BaseHTTPErrorMapper
 
@@ -86,14 +81,12 @@ class GraphQLErrorAdapter(BaseHTTPErrorMapper):
         if isinstance(exc, TransportServerError):
             return self._handle_transport_error(exc)
 
-        # Network/protocol errors — the upstream was never reached or never
-        # produced a complete response. No HTTP status is available.
+        # Network/protocol errors - simple 502
         if isinstance(exc, (TransportConnectionFailed, TransportProtocolError)):
-            return NetworkTransportError(
-                message=("GraphQL request failed before a complete response was received."),
-                developer_message=f"{type(exc).__name__}: {exc}",
-                kind=ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNREACHABLE,
-                can_retry=True,
+            return UpstreamError(
+                message=f"Upstream GraphQL error: {type(exc).__name__}",
+                status_code=HTTPStatus.BAD_GATEWAY.value,
+                developer_message=str(exc),
                 extra={"service": self.slug, "error_type": type(exc).__name__},
             )
 
@@ -185,12 +178,9 @@ class GraphQLErrorAdapter(BaseHTTPErrorMapper):
         return None, None
 
     def _build_extra_metadata(
-        self,
-        request_url: str | None = None,
-        request_method: str | None = None,
-        error_type: str | None = None,
+        self, request_url: str | None = None, request_method: str | None = None
     ) -> dict[str, str]:
         """Override to use GraphQL service slug."""
-        extra = super()._build_extra_metadata(request_url, request_method, error_type)
+        extra = super()._build_extra_metadata(request_url, request_method)
         extra["service"] = self.slug
         return extra

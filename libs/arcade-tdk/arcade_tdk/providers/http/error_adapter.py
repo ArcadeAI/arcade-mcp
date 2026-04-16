@@ -5,10 +5,6 @@ from typing import Any
 from urllib.parse import urlparse
 
 from arcade_core.errors import (
-    ErrorKind,
-    FatalToolError,
-    NetworkTransportError,
-    ToolRuntimeError,
     UpstreamError,
     UpstreamRateLimitError,
 )
@@ -75,10 +71,7 @@ class BaseHTTPErrorMapper:
         return f"{parsed.scheme}://{parsed.netloc.strip('/')}/{parsed.path.strip('/')}"
 
     def _build_extra_metadata(
-        self,
-        request_url: str | None = None,
-        request_method: str | None = None,
-        error_type: str | None = None,
+        self, request_url: str | None = None, request_method: str | None = None
     ) -> dict[str, str]:
         """Build extra metadata for error reporting."""
         extra = {
@@ -90,9 +83,6 @@ class BaseHTTPErrorMapper:
 
         if request_method:
             extra["http_method"] = request_method.upper()
-
-        if error_type:
-            extra["error_type"] = error_type
 
         return extra
 
@@ -177,147 +167,34 @@ class BaseHTTPErrorMapper:
         return bool(has_meaningful_retry_after and has_rate_limit_headers)
 
 
-def _request_info_from_attr(obj: Any) -> tuple[str | None, str | None]:
-    """Pull ``(url, method)`` from an object that exposes ``.url`` / ``.method``."""
-    if obj is None:
-        return None, None
-    url = getattr(obj, "url", None)
-    method = getattr(obj, "method", None)
-    return (str(url) if url else None, method)
-
-
-def _safe_request_attr(exc: Any) -> Any:
-    """Safely read ``exc.request`` without triggering httpx's ``.request`` lazy-raise.
-
-    ``httpx.RequestError.request`` is a property that raises ``RuntimeError``
-    when the request has not been attached — which happens for many transport
-    errors we want to map. Fall back to ``None`` in that case.
-    """
-    try:
-        return getattr(exc, "request", None)
-    except RuntimeError:
-        return None
-
-
 class _HTTPXExceptionHandler:
-    """Handler for httpx-specific exceptions.
+    """Handler for httpx-specific exceptions."""
 
-    Ordering of ``isinstance`` checks matters — httpx's hierarchy is:
+    def handle_exception(self, exc: Any, mapper: BaseHTTPErrorMapper) -> UpstreamError | None:
+        """Handle httpx HTTPStatusError exceptions.
 
-    - ``HTTPStatusError`` (has a real response)
-    - ``RequestError``
-      - ``InvalidURL`` (construction bug)
-      - ``TransportError``
-        - ``UnsupportedProtocol`` (construction bug)
-        - ``ProtocolError``
-          - ``LocalProtocolError`` (construction bug)
-          - ``RemoteProtocolError`` (upstream sent malformed HTTP — unreachable)
-        - ``TimeoutException`` (``ConnectTimeout`` / ``ReadTimeout`` /
-          ``WriteTimeout`` / ``PoolTimeout``)
-        - ``NetworkError`` (``ConnectError``, ``ReadError``, ``WriteError``,
-          ``CloseError``)
-        - ``ProxyError``
-      - ``DecodingError``
-      - ``TooManyRedirects``
+        Args:
+            exc: An httpx.HTTPStatusError exception
+            mapper: The BaseHTTPErrorMapper instance to use for mapping
 
-    Check construction bugs before their transport-level ancestors so client
-    bugs don't get swallowed by the generic transport bucket.
-    """
-
-    def handle_exception(self, exc: Any, mapper: BaseHTTPErrorMapper) -> ToolRuntimeError | None:
-        """Convert an httpx exception into the appropriate Arcade error."""
+        Returns:
+            An Arcade error instance or None if not an httpx exception
+        """
+        # Lazy import httpx types locally to avoid import errors for toolkits that don't use httpx
         try:
             import httpx
         except ImportError:
             return None
 
-        # 1. Real HTTP response with a status code → UpstreamError.
-        if isinstance(exc, httpx.HTTPStatusError):
-            return self._handle_status_error(exc, mapper)
-
-        # 2. Client construction bugs → FatalToolError.
-        #    ``httpx.InvalidURL`` is a bare ``Exception`` (not a ``RequestError``
-        #    subclass in current httpx), so it must be checked before the
-        #    ``RequestError`` guard below.
-        if isinstance(
-            exc,
-            (httpx.InvalidURL, httpx.UnsupportedProtocol, httpx.LocalProtocolError),
-        ):
-            request_url, request_method = _request_info_from_attr(_safe_request_attr(exc))
-            return _build_construction_error(
-                exc, mapper, request_url=request_url, request_method=request_method
-            )
-
-        # Everything remaining is a RequestError subclass; short-circuit if not httpx.
-        if not isinstance(exc, httpx.RequestError):
+        if not isinstance(exc, httpx.HTTPStatusError):
             return None
 
-        request_url, request_method = _request_info_from_attr(_safe_request_attr(exc))
-
-        # 3. Timeouts → NetworkTransportError (TIMEOUT, retryable).
-        if isinstance(exc, httpx.TimeoutException):
-            return _build_network_transport_error(
-                exc,
-                mapper,
-                kind=ErrorKind.NETWORK_TRANSPORT_RUNTIME_TIMEOUT,
-                can_retry=True,
-                message="HTTP request timed out before a complete response was received.",
-                request_url=request_url,
-                request_method=request_method,
-            )
-
-        # 4. Transport-level reachability failures (connection, DNS, TLS handshake,
-        #    proxy, RemoteProtocolError) → NetworkTransportError (UNREACHABLE).
-        if isinstance(exc, httpx.TransportError):
-            return _build_network_transport_error(
-                exc,
-                mapper,
-                kind=ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNREACHABLE,
-                can_retry=True,
-                message="HTTP request failed before reaching the upstream service.",
-                request_url=request_url,
-                request_method=request_method,
-            )
-
-        # 5. Decoding failure after a (partial) response started arriving.
-        if isinstance(exc, httpx.DecodingError):
-            return _build_network_transport_error(
-                exc,
-                mapper,
-                kind=ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED,
-                can_retry=True,
-                message="HTTP response from upstream could not be decoded.",
-                request_url=request_url,
-                request_method=request_method,
-            )
-
-        # 6. Redirect-loop exhaustion — not retryable (same redirect chain will loop again).
-        if isinstance(exc, httpx.TooManyRedirects):
-            return _build_network_transport_error(
-                exc,
-                mapper,
-                kind=ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED,
-                can_retry=False,
-                message="HTTP redirect limit exceeded before a final response was received.",
-                request_url=request_url,
-                request_method=request_method,
-            )
-
-        # 7. RequestError fallback — unknown subclass, assume transient.
-        return _build_network_transport_error(
-            exc,
-            mapper,
-            kind=ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED,
-            can_retry=True,
-            message="HTTP request failed before a complete response was received.",
-            request_url=request_url,
-            request_method=request_method,
-        )
-
-    def _handle_status_error(self, exc: Any, mapper: BaseHTTPErrorMapper) -> ToolRuntimeError:
         response = exc.response
-        request = _safe_request_attr(exc)
-        request_url, request_method = _request_info_from_attr(request)
+        request_url = None
+        request_method = None
+        if hasattr(exc, "request") and exc.request:
+            request_url = str(exc.request.url)
+            request_method = exc.request.method
 
         return mapper._map_status_to_error(
             response.status_code,
@@ -329,159 +206,39 @@ class _HTTPXExceptionHandler:
 
 
 class _RequestsExceptionHandler:
-    """Handler for requests-specific exceptions.
+    """Handler for requests-specific exceptions."""
 
-    Relevant parts of the ``requests`` hierarchy:
+    def handle_exception(self, exc: Any, mapper: BaseHTTPErrorMapper) -> UpstreamError | None:
+        """Handle requests library exceptions.
 
-    - ``RequestException``
-      - ``HTTPError`` (has a response)
-      - ``ConnectionError``
-        - ``ConnectTimeout`` (also ``Timeout``)
-        - ``SSLError`` (cert / trust config — construction bug)
-        - ``ProxyError``
-      - ``Timeout``
-        - ``ConnectTimeout``
-        - ``ReadTimeout``
-      - ``URLRequired`` / ``MissingSchema`` / ``InvalidSchema`` / ``InvalidURL``
-        / ``InvalidProxyURL`` / ``InvalidHeader`` (construction bugs)
-      - ``TooManyRedirects``
-      - ``ContentDecodingError``
+        Args:
+            exc: A requests.exceptions.HTTPError exception
+            mapper: The BaseHTTPErrorMapper instance to use for mapping
 
-    Check SSLError before ConnectionError (it's a subclass), and check
-    Timeout before ConnectionError so that ConnectTimeout — which inherits
-    from both — is classified as a timeout.
-    """
-
-    def handle_exception(self, exc: Any, mapper: BaseHTTPErrorMapper) -> ToolRuntimeError | None:
-        """Convert a requests exception into the appropriate Arcade error."""
+        Returns:
+            An Arcade error instance or None if not a requests exception
+        """
+        # Lazy import requests types locally to avoid import errors for toolkits that don't use requests
         try:
-            from requests import exceptions as rexc  # type: ignore[import-untyped]
+            from requests.exceptions import HTTPError  # type: ignore[import-untyped]
         except ImportError:
             return None
 
-        # 1. HTTPError (with response) → UpstreamError.
-        if isinstance(exc, rexc.HTTPError):
-            return self._handle_http_error(exc, mapper)
-
-        if not isinstance(exc, rexc.RequestException):
+        if not isinstance(exc, HTTPError):
             return None
 
-        request_url, request_method = _requests_request_info(exc)
-
-        # 2. Construction bugs → FatalToolError.
-        if isinstance(
-            exc,
-            (
-                rexc.MissingSchema,
-                rexc.InvalidSchema,
-                rexc.InvalidURL,
-                rexc.InvalidProxyURL,
-                rexc.InvalidHeader,
-                rexc.URLRequired,
-            ),
-        ):
-            return _build_construction_error(
-                exc, mapper, request_url=request_url, request_method=request_method
-            )
-
-        # 3. TLS / cert / trust failures → FatalToolError.
-        #    (SSLError is a ConnectionError subclass — check before ConnectionError.)
-        if isinstance(exc, rexc.SSLError):
-            return _build_construction_error(
-                exc,
-                mapper,
-                request_url=request_url,
-                request_method=request_method,
-                message_override=(
-                    "TLS handshake failed — likely a local certificate or trust "
-                    "configuration issue."
-                ),
-            )
-
-        # 4. Timeouts → NetworkTransportError (TIMEOUT).
-        #    (Timeout must be checked before ConnectionError: ConnectTimeout inherits
-        #    from both.)
-        if isinstance(exc, rexc.Timeout):
-            return _build_network_transport_error(
-                exc,
-                mapper,
-                kind=ErrorKind.NETWORK_TRANSPORT_RUNTIME_TIMEOUT,
-                can_retry=True,
-                message="HTTP request timed out before a complete response was received.",
-                request_url=request_url,
-                request_method=request_method,
-            )
-
-        # 5. ConnectionError (non-SSL, non-Timeout) → UNREACHABLE.
-        if isinstance(exc, rexc.ConnectionError):
-            return _build_network_transport_error(
-                exc,
-                mapper,
-                kind=ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNREACHABLE,
-                can_retry=True,
-                message="HTTP request failed before reaching the upstream service.",
-                request_url=request_url,
-                request_method=request_method,
-            )
-
-        # 6. Content decoding failure.
-        if isinstance(exc, rexc.ContentDecodingError):
-            return _build_network_transport_error(
-                exc,
-                mapper,
-                kind=ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED,
-                can_retry=True,
-                message="HTTP response from upstream could not be decoded.",
-                request_url=request_url,
-                request_method=request_method,
-            )
-
-        # 7. Redirect-loop exhaustion — not retryable.
-        if isinstance(exc, rexc.TooManyRedirects):
-            return _build_network_transport_error(
-                exc,
-                mapper,
-                kind=ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED,
-                can_retry=False,
-                message="HTTP redirect limit exceeded before a final response was received.",
-                request_url=request_url,
-                request_method=request_method,
-            )
-
-        # 8. RequestException fallback.
-        return _build_network_transport_error(
-            exc,
-            mapper,
-            kind=ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED,
-            can_retry=True,
-            message="HTTP request failed before a complete response was received.",
-            request_url=request_url,
-            request_method=request_method,
-        )
-
-    def _handle_http_error(self, exc: Any, mapper: BaseHTTPErrorMapper) -> ToolRuntimeError | None:
         response = getattr(exc, "response", None)
         if response is None:
-            # No response means requests gave up before getting a status code;
-            # treat as a transport-level failure.
-            request_url, request_method = _requests_request_info(exc)
-            return _build_network_transport_error(
-                exc,
-                mapper,
-                kind=ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED,
-                can_retry=True,
-                message="HTTP request failed before a complete response was received.",
-                request_url=request_url,
-                request_method=request_method,
-            )
+            return None
 
+        # Extract request information
         request_url = None
         request_method = None
-        request = getattr(response, "request", None)
-        if request is not None:
-            request_url, request_method = _request_info_from_attr(request)
-        if request_url is None:
-            request_url = getattr(response, "url", None)
+        if hasattr(response, "request") and response.request:
+            request_url = response.request.url
+            request_method = response.request.method
+        elif hasattr(response, "url"):
+            request_url = response.url
 
         return mapper._map_status_to_error(
             response.status_code,
@@ -490,79 +247,6 @@ class _RequestsExceptionHandler:
             request_url=request_url,
             request_method=request_method,
         )
-
-
-def _requests_request_info(exc: Any) -> tuple[str | None, str | None]:
-    """Best-effort ``(url, method)`` extraction from a requests exception."""
-    request = getattr(exc, "request", None)
-    if request is not None:
-        return _request_info_from_attr(request)
-    response = getattr(exc, "response", None)
-    if response is not None:
-        inner_request = getattr(response, "request", None)
-        if inner_request is not None:
-            return _request_info_from_attr(inner_request)
-        url = getattr(response, "url", None)
-        if url:
-            return str(url), None
-    return None, None
-
-
-def _build_network_transport_error(
-    exc: Exception,
-    mapper: BaseHTTPErrorMapper,
-    *,
-    kind: ErrorKind,
-    can_retry: bool,
-    message: str,
-    request_url: str | None,
-    request_method: str | None,
-) -> NetworkTransportError:
-    """Construct a NetworkTransportError with consistent extras/developer_message."""
-    extra = mapper._build_extra_metadata(
-        request_url=request_url,
-        request_method=request_method,
-        error_type=type(exc).__name__,
-    )
-    developer_message = f"{type(exc).__name__}: {exc}" if str(exc) else type(exc).__name__
-    return NetworkTransportError(
-        message=message,
-        developer_message=developer_message,
-        kind=kind,
-        can_retry=can_retry,
-        extra=extra,
-    )
-
-
-def _build_construction_error(
-    exc: Exception,
-    mapper: BaseHTTPErrorMapper,
-    *,
-    request_url: str | None,
-    request_method: str | None,
-    message_override: str | None = None,
-) -> FatalToolError:
-    """Construct a FatalToolError for client-side HTTP construction bugs.
-
-    Returned for cases where the tool built an invalid request (bad URL,
-    missing scheme, unsupported protocol, bad headers) or where local trust
-    configuration prevents the request from being sent (SSL/TLS). Retrying
-    won't help — the tool's code or the environment needs to change.
-    """
-    extra = mapper._build_extra_metadata(
-        request_url=request_url,
-        request_method=request_method,
-        error_type=type(exc).__name__,
-    )
-    message = message_override or (
-        "Tool constructed an invalid HTTP request — likely a tool-authoring bug."
-    )
-    developer_message = f"{type(exc).__name__}: {exc}" if str(exc) else type(exc).__name__
-    return FatalToolError(
-        message=message,
-        developer_message=developer_message,
-        extra=extra,
-    )
 
 
 class HTTPErrorAdapter(BaseHTTPErrorMapper):
@@ -574,7 +258,7 @@ class HTTPErrorAdapter(BaseHTTPErrorMapper):
         self._httpx_handler = _HTTPXExceptionHandler()
         self._requests_handler = _RequestsExceptionHandler()
 
-    def from_exception(self, exc: Exception) -> ToolRuntimeError | None:
+    def from_exception(self, exc: Exception) -> UpstreamError | None:
         """Convert HTTP library exceptions into Arcade errors."""
 
         httpx_result = self._httpx_handler.handle_exception(exc, self)

@@ -2,13 +2,7 @@ import logging
 from datetime import datetime, timezone
 from unittest.mock import Mock, patch
 
-from arcade_core.errors import (
-    ErrorKind,
-    FatalToolError,
-    NetworkTransportError,
-    UpstreamError,
-    UpstreamRateLimitError,
-)
+from arcade_core.errors import UpstreamError, UpstreamRateLimitError
 from arcade_tdk.providers.http.error_adapter import BaseHTTPErrorMapper, HTTPErrorAdapter
 
 
@@ -282,24 +276,20 @@ class TestHTTPErrorAdapter:
         assert result.extra["endpoint"] == "https://api.example.com/server-error"
         assert "http_method" not in result.extra  # No method available
 
-    def test_requests_http_error_no_response_is_network_transport(self):
-        """HTTPError with no response means we never received a complete response."""
+    def test_requests_http_error_no_response(self):
+        """Test handling requests HTTPError with no response."""
 
-        import requests
-
-        class MockHTTPError(requests.exceptions.HTTPError):
+        # Create a mock HTTPError class
+        class MockHTTPError(Exception):
             pass
 
         mock_exc = MockHTTPError("No response")
         mock_exc.response = None
 
-        result = self.adapter.from_exception(mock_exc)
+        with patch("requests.exceptions.HTTPError", MockHTTPError):
+            result = self.adapter.from_exception(mock_exc)
 
-        assert isinstance(result, NetworkTransportError)
-        assert result.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED
-        assert result.can_retry is True
-        assert result.status_code is None
-        assert result.extra["error_type"] == "MockHTTPError"
+        assert result is None
 
     def test_unhandled_exception_logs_warning(self, caplog):
         """Test that unhandled exceptions log a warning."""
@@ -544,235 +534,3 @@ class TestHTTPErrorAdapter:
         assert isinstance(result, UpstreamRateLimitError)
         assert result.retry_after_ms == 30_000
         assert result.message == "403 Forbidden"
-
-
-class TestHTTPXExceptionRouting:
-    """Verify httpx exception routing — network-transport failures that never
-    received a response must not be classified as UpstreamError, and
-    client-construction bugs must become FatalToolError."""
-
-    def setup_method(self):
-        self.adapter = HTTPErrorAdapter()
-
-    def test_pool_timeout_routes_to_network_transport_timeout(self):
-        import httpx
-
-        result = self.adapter.from_exception(httpx.PoolTimeout("pool exhausted"))
-
-        assert isinstance(result, NetworkTransportError)
-        assert result.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_TIMEOUT
-        assert result.can_retry is True
-        assert result.status_code is None
-        assert result.extra["error_type"] == "PoolTimeout"
-        assert result.extra["service"] == "_http"
-
-    def test_connect_timeout_routes_to_network_transport_timeout(self):
-        import httpx
-
-        result = self.adapter.from_exception(httpx.ConnectTimeout("deadline"))
-
-        assert isinstance(result, NetworkTransportError)
-        assert result.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_TIMEOUT
-        assert result.can_retry is True
-
-    def test_connect_error_routes_to_network_transport_unreachable(self):
-        import httpx
-
-        result = self.adapter.from_exception(httpx.ConnectError("refused"))
-
-        assert isinstance(result, NetworkTransportError)
-        assert result.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNREACHABLE
-        assert result.can_retry is True
-
-    def test_remote_protocol_error_is_network_transport(self):
-        """Upstream sent malformed HTTP — not reachable in a usable way."""
-        import httpx
-
-        result = self.adapter.from_exception(httpx.RemoteProtocolError("garbage"))
-
-        assert isinstance(result, NetworkTransportError)
-        assert result.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNREACHABLE
-
-    def test_unsupported_protocol_routes_to_fatal_tool_error(self):
-        """Construction bug — tool used a scheme httpx doesn't support."""
-        import httpx
-
-        result = self.adapter.from_exception(httpx.UnsupportedProtocol("ftp://"))
-
-        assert isinstance(result, FatalToolError)
-        assert result.kind == ErrorKind.TOOL_RUNTIME_FATAL
-        assert result.status_code == 500
-        assert result.extra["error_type"] == "UnsupportedProtocol"
-
-    def test_invalid_url_routes_to_fatal_tool_error(self):
-        """Construction bug — tool built a URL httpx can't parse.
-
-        Note: httpx.InvalidURL is NOT a RequestError subclass, so this also
-        verifies the adapter checks construction bugs before the RequestError
-        short-circuit."""
-        import httpx
-
-        result = self.adapter.from_exception(httpx.InvalidURL("bad"))
-
-        assert isinstance(result, FatalToolError)
-        assert result.extra["error_type"] == "InvalidURL"
-
-    def test_local_protocol_error_routes_to_fatal_tool_error(self):
-        """LocalProtocolError = our HTTP framing was invalid (construction bug)."""
-        import httpx
-
-        result = self.adapter.from_exception(httpx.LocalProtocolError("bad"))
-
-        assert isinstance(result, FatalToolError)
-
-    def test_decoding_error_routes_to_network_transport_unmapped(self):
-        """Response body couldn't be decoded — transport-level, retryable."""
-        import httpx
-
-        result = self.adapter.from_exception(httpx.DecodingError("bad gzip"))
-
-        assert isinstance(result, NetworkTransportError)
-        assert result.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED
-        assert result.can_retry is True
-
-    def test_too_many_redirects_is_non_retryable(self):
-        """Redirect loop — retrying the same chain will loop again."""
-        import httpx
-
-        result = self.adapter.from_exception(httpx.TooManyRedirects("loop"))
-
-        assert isinstance(result, NetworkTransportError)
-        assert result.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED
-        assert result.can_retry is False
-
-
-class TestRequestsExceptionRouting:
-    """Verify requests exception routing — mirrors TestHTTPXExceptionRouting."""
-
-    def setup_method(self):
-        self.adapter = HTTPErrorAdapter()
-
-    def test_connect_timeout_routes_to_network_transport_timeout(self):
-        """ConnectTimeout inherits from both Timeout and ConnectionError —
-        must be classified as a timeout, not unreachable."""
-        import requests
-
-        result = self.adapter.from_exception(requests.exceptions.ConnectTimeout("x"))
-
-        assert isinstance(result, NetworkTransportError)
-        assert result.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_TIMEOUT
-        assert result.can_retry is True
-
-    def test_read_timeout_routes_to_network_transport_timeout(self):
-        import requests
-
-        result = self.adapter.from_exception(requests.exceptions.ReadTimeout("x"))
-
-        assert isinstance(result, NetworkTransportError)
-        assert result.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_TIMEOUT
-
-    def test_connection_error_routes_to_network_transport_unreachable(self):
-        """Plain ConnectionError (non-SSL, non-timeout) — upstream unreachable."""
-        import requests
-
-        result = self.adapter.from_exception(requests.exceptions.ConnectionError("refused"))
-
-        assert isinstance(result, NetworkTransportError)
-        assert result.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNREACHABLE
-        assert result.can_retry is True
-
-    def test_ssl_error_routes_to_fatal_tool_error(self):
-        """TLS/SSL failures are typically cert/trust config issues, not transient."""
-        import requests
-
-        result = self.adapter.from_exception(requests.exceptions.SSLError("bad cert"))
-
-        assert isinstance(result, FatalToolError)
-        assert "TLS" in result.message
-        assert result.extra["error_type"] == "SSLError"
-
-    def test_missing_schema_routes_to_fatal_tool_error(self):
-        import requests
-
-        result = self.adapter.from_exception(requests.exceptions.MissingSchema("x"))
-
-        assert isinstance(result, FatalToolError)
-
-    def test_invalid_schema_routes_to_fatal_tool_error(self):
-        import requests
-
-        result = self.adapter.from_exception(requests.exceptions.InvalidSchema("x"))
-
-        assert isinstance(result, FatalToolError)
-
-    def test_invalid_url_routes_to_fatal_tool_error(self):
-        import requests
-
-        result = self.adapter.from_exception(requests.exceptions.InvalidURL("x"))
-
-        assert isinstance(result, FatalToolError)
-
-    def test_invalid_header_routes_to_fatal_tool_error(self):
-        import requests
-
-        result = self.adapter.from_exception(requests.exceptions.InvalidHeader("bad"))
-
-        assert isinstance(result, FatalToolError)
-
-    def test_content_decoding_error_routes_to_network_transport_unmapped(self):
-        import requests
-
-        result = self.adapter.from_exception(requests.exceptions.ContentDecodingError("x"))
-
-        assert isinstance(result, NetworkTransportError)
-        assert result.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED
-        assert result.can_retry is True
-
-    def test_too_many_redirects_is_non_retryable(self):
-        import requests
-
-        result = self.adapter.from_exception(requests.exceptions.TooManyRedirects("loop"))
-
-        assert isinstance(result, NetworkTransportError)
-        assert result.can_retry is False
-
-
-class TestNetworkTransportErrorClass:
-    """Unit tests for the NetworkTransportError class itself."""
-
-    def test_defaults(self):
-        err = NetworkTransportError("boom")
-        assert err.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED
-        assert err.can_retry is True
-        assert err.status_code is None
-        assert err.is_network_transport_error is True
-        assert err.is_upstream_error is False
-        assert err.is_tool_error is False
-
-    def test_explicit_kind_and_retry(self):
-        err = NetworkTransportError(
-            "timeout",
-            kind=ErrorKind.NETWORK_TRANSPORT_RUNTIME_TIMEOUT,
-            can_retry=True,
-        )
-        assert err.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_TIMEOUT
-        assert err.can_retry is True
-
-    def test_rejects_non_network_kind(self):
-        import pytest
-
-        with pytest.raises(ValueError, match="NETWORK_TRANSPORT_"):
-            NetworkTransportError("x", kind=ErrorKind.TOOL_RUNTIME_FATAL)
-
-    def test_payload_omits_status_code(self):
-        err = NetworkTransportError(
-            "timeout",
-            kind=ErrorKind.NETWORK_TRANSPORT_RUNTIME_TIMEOUT,
-            can_retry=True,
-            extra={"error_type": "PoolTimeout"},
-        )
-        payload = err.to_payload()
-        assert payload["status_code"] is None
-        assert payload["kind"] == ErrorKind.NETWORK_TRANSPORT_RUNTIME_TIMEOUT
-        assert payload["can_retry"] is True
-        assert payload["error_type"] == "PoolTimeout"

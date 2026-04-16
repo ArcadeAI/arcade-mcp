@@ -406,8 +406,6 @@ class NetworkTransportError(ToolExecutionError):
             )
         self.kind = kind
         self.can_retry = can_retry
-        # ``status_code`` intentionally left at its class default (``None``):
-        # no complete upstream response was received, so no HTTP status applies.
 
 
 class UpstreamRateLimitError(UpstreamError):
