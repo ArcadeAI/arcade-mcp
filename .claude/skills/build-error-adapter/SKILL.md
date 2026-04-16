@@ -17,11 +17,18 @@ Start here and align behavior with this doc:
 
 - Adapter protocol: `arcade_tdk.error_adapters.base.ErrorAdapter`
 - Common error classes:
-  - `arcade_tdk.errors.UpstreamError`
-  - `arcade_tdk.errors.UpstreamRateLimitError`
-  - `arcade_tdk.errors.RetryableToolError`
-  - `arcade_tdk.errors.ContextRequiredToolError`
-  - `arcade_tdk.errors.FatalToolError`
+  - `arcade_tdk.errors.UpstreamError` — upstream responded with an HTTP status code
+  - `arcade_tdk.errors.UpstreamRateLimitError` — 429 / quota-exhausted with `retry_after_ms`
+  - `arcade_tdk.errors.NetworkTransportError` — no complete response was received
+    (timeouts, connection/DNS/TLS failures, decoding errors, redirect exhaustion).
+    `status_code` is always `None`; use one of the `NETWORK_TRANSPORT_RUNTIME_*`
+    kinds: `_TIMEOUT`, `_UNREACHABLE`, `_UNMAPPED`.
+  - `arcade_tdk.errors.FatalToolError` — unrecoverable tool-authoring bug or
+    environment misconfiguration (invalid URL, unsupported protocol, bad headers,
+    TLS trust failures). Never retried.
+  - `arcade_tdk.errors.RetryableToolError` — transient tool-body failure with a
+    hint for the LLM to retry.
+  - `arcade_tdk.errors.ContextRequiredToolError` — needs human input before retry.
 
 ## Rules To Follow
 
@@ -109,11 +116,38 @@ For adapted errors:
 
 ### 4) Map status-like semantics consistently
 
-- 429 -> `UpstreamRateLimitError` with `retry_after_ms`
-- 5xx/transient transport -> retryable `UpstreamError` (`status_code >= 500`)
-- 4xx client/config issues -> non-retryable `UpstreamError`
+**Upstream responded with an HTTP status code → `UpstreamError`:**
 
-Use deterministic mappings so retry behavior is predictable (`UpstreamError` derives retryability from status code).
+- 429 → `UpstreamRateLimitError` with `retry_after_ms`
+- 5xx → retryable `UpstreamError` (`status_code >= 500`)
+- 4xx → non-retryable `UpstreamError`
+
+`UpstreamError` derives retryability from status code, so predictable behavior is automatic.
+
+**No complete response from upstream → `NetworkTransportError`:**
+
+Use this class when the exception inherently means the request never reached the
+upstream, or no complete response came back. `status_code` is `None` by design.
+
+| Exception kind | `kind=` | `can_retry=` |
+|---|---|---|
+| Timeouts (connect, read, pool) | `NETWORK_TRANSPORT_RUNTIME_TIMEOUT` | `True` |
+| Connection refused, DNS, TLS handshake, remote-protocol errors | `NETWORK_TRANSPORT_RUNTIME_UNREACHABLE` | `True` |
+| Decoding failures, generic transport fallback | `NETWORK_TRANSPORT_RUNTIME_UNMAPPED` | `True` |
+| Redirect-loop exhaustion | `NETWORK_TRANSPORT_RUNTIME_UNMAPPED` | `False` |
+
+**Tool-authoring bugs / local environment misconfiguration → `FatalToolError`:**
+
+Use this class for exceptions that will never succeed on retry — the tool's
+code or environment needs to change:
+
+- Invalid URL, unsupported scheme, missing scheme, bad headers, malformed local
+  HTTP protocol state
+- TLS / certificate / trust configuration failures (`ssl.SSLError` and siblings)
+
+Do **not** dress these up as `UpstreamError` — an UpstreamError implies the
+upstream service actually said "no". Miscategorizing pollutes telemetry and
+sends the wrong retry signal.
 
 ### 5) Optional dependency handling
 
