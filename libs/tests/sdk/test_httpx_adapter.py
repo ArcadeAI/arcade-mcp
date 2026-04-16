@@ -349,20 +349,50 @@ class TestHTTPErrorAdapter:
         assert isinstance(result, FatalToolError)
         assert result.can_retry is False
         assert result.kind == ErrorKind.TOOL_RUNTIME_FATAL
+        assert result.message == "HTTP request URL is invalid or malformed."
         assert result.extra["service"] == "_http"
         assert result.extra["error_type"] == "InvalidURL"
         assert result.extra["endpoint"] == "https://api.example.com/bad"
         assert result.extra["http_method"] == "GET"
 
     def test_requests_missing_schema_routes_to_fatal_tool_error(self):
-        """MissingSchema is a construction bug — FatalToolError."""
+        """MissingSchema is a construction bug — FatalToolError with specific message."""
         exc = requests.exceptions.MissingSchema("No scheme")
 
         result = self.adapter.from_exception(exc)
 
         assert isinstance(result, FatalToolError)
         assert result.can_retry is False
+        assert (
+            result.message
+            == "HTTP request URL is missing a scheme (expected http:// or https://)."
+        )
         assert result.extra["error_type"] == "MissingSchema"
+
+    def test_requests_invalid_schema_routes_to_fatal_tool_error(self):
+        """InvalidSchema (unsupported scheme like ftp://) → FatalToolError."""
+        exc = requests.exceptions.InvalidSchema("Bad scheme")
+
+        result = self.adapter.from_exception(exc)
+
+        assert isinstance(result, FatalToolError)
+        assert result.can_retry is False
+        assert (
+            result.message
+            == "HTTP request URL uses an unsupported scheme (expected http or https)."
+        )
+        assert result.extra["error_type"] == "InvalidSchema"
+
+    def test_requests_invalid_proxy_url_routes_to_fatal_tool_error(self):
+        """InvalidProxyURL is a subclass of InvalidURL — proxy-specific message."""
+        exc = requests.exceptions.InvalidProxyURL("bad proxy")
+
+        result = self.adapter.from_exception(exc)
+
+        assert isinstance(result, FatalToolError)
+        assert result.can_retry is False
+        assert result.message == "HTTP proxy URL is invalid or malformed."
+        assert result.extra["error_type"] == "InvalidProxyURL"
 
     def test_requests_invalid_header_routes_to_fatal_tool_error(self):
         """InvalidHeader is a construction bug — FatalToolError."""
@@ -372,7 +402,19 @@ class TestHTTPErrorAdapter:
 
         assert isinstance(result, FatalToolError)
         assert result.can_retry is False
+        assert result.message == "HTTP request contains an invalid header name or value."
         assert result.extra["error_type"] == "InvalidHeader"
+
+    def test_requests_url_required_routes_to_fatal_tool_error(self):
+        """URLRequired (no URL provided) → FatalToolError."""
+        exc = requests.exceptions.URLRequired("No URL")
+
+        result = self.adapter.from_exception(exc)
+
+        assert isinstance(result, FatalToolError)
+        assert result.can_retry is False
+        assert result.message == "HTTP request requires a URL but none was provided."
+        assert result.extra["error_type"] == "URLRequired"
 
     def test_requests_ssl_error_routes_to_fatal_tool_error(self):
         """SSLError is typically a local cert/trust config issue — FatalToolError."""
@@ -382,7 +424,11 @@ class TestHTTPErrorAdapter:
 
         assert isinstance(result, FatalToolError)
         assert result.can_retry is False
-        assert "TLS" in result.message
+        assert (
+            result.message
+            == "TLS handshake failed — likely a local certificate or trust "
+            "configuration issue."
+        )
         assert result.extra["error_type"] == "SSLError"
 
     def test_requests_content_decoding_error_handling(self):
@@ -455,6 +501,9 @@ class TestHTTPErrorAdapter:
         mock_response = Mock()
         mock_response.status_code = 400
         mock_response.headers = {}
+        # Fully detached: neither the exception nor the response carries a Request.
+        mock_response.request = None
+        mock_response.url = None
 
         mock_exc = MockHTTPStatusError("400 Bad Request")
         mock_exc.response = mock_response
@@ -516,7 +565,7 @@ class TestHTTPErrorAdapter:
         assert result.extra["http_method"] == "POST"
 
     def test_httpx_unsupported_protocol_routes_to_fatal_tool_error(self):
-        """Unsupported protocol is a construction bug — FatalToolError."""
+        """Unsupported scheme is a construction bug — FatalToolError with specific msg."""
         request = httpx.Request("GET", "ftp://api.example.com/resource")
         exc = httpx.UnsupportedProtocol("Unsupported protocol", request=request)
 
@@ -525,6 +574,10 @@ class TestHTTPErrorAdapter:
         assert isinstance(result, FatalToolError)
         assert result.can_retry is False
         assert result.kind == ErrorKind.TOOL_RUNTIME_FATAL
+        assert (
+            result.message
+            == "HTTP request URL uses an unsupported scheme (expected http or https)."
+        )
         assert result.extra["service"] == "_http"
         assert result.extra["error_type"] == "UnsupportedProtocol"
         assert result.extra["endpoint"] == "ftp://api.example.com/resource"
@@ -538,6 +591,7 @@ class TestHTTPErrorAdapter:
 
         assert isinstance(result, FatalToolError)
         assert result.can_retry is False
+        assert result.message == "HTTP request URL is invalid or malformed."
         assert result.extra["error_type"] == "InvalidURL"
 
     def test_httpx_request_error_fallback(self):
@@ -582,6 +636,11 @@ class TestHTTPErrorAdapter:
         assert isinstance(result, FatalToolError)
         assert result.can_retry is False
         assert result.kind == ErrorKind.TOOL_RUNTIME_FATAL
+        assert (
+            result.message
+            == "HTTP request violated the HTTP protocol before it was sent "
+            "(malformed headers or body)."
+        )
         assert result.extra["service"] == "_http"
         assert result.extra["error_type"] == "LocalProtocolError"
         assert result.extra["endpoint"] == "https://api.example.com/broken"

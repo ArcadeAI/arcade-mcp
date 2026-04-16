@@ -209,6 +209,43 @@ class BaseHTTPErrorMapper:
             },
         )
 
+    @staticmethod
+    def _extract_request_info(exc: Any) -> tuple[str | None, str | None]:
+        """Pull ``(url, method)`` from an exception, trying in order:
+
+        1. ``exc.request.{url,method}`` — present on requests and httpx
+           exceptions when a Request was built and attached.
+        2. ``exc.response.request.{url,method}`` — set on response-bearing
+           exceptions like ``requests.HTTPError``.
+        3. ``exc.response.url`` — final fallback for URL only (no method).
+
+        Guards each access because ``httpx.RequestError.request`` raises
+        ``RuntimeError`` when no request is attached, and arbitrary mocks
+        may omit attributes entirely.
+        """
+
+        def _safe_get(obj: Any, name: str) -> Any:
+            try:
+                return getattr(obj, name, None)
+            except RuntimeError:
+                return None
+
+        def _as_str(value: Any) -> str | None:
+            return str(value) if value is not None else None
+
+        url: str | None = None
+        method: str | None = None
+        for source in (_safe_get(exc, "request"), _safe_get(_safe_get(exc, "response"), "request")):
+            if source is None:
+                continue
+            url = url or _as_str(_safe_get(source, "url"))
+            method = method or _as_str(_safe_get(source, "method"))
+            if url and method:
+                break
+        if url is None:
+            url = _as_str(_safe_get(_safe_get(exc, "response"), "url"))
+        return url, method
+
     def _is_rate_limit_403(self, headers: dict[str, str], msg: str) -> bool:
         """
         Determine if a 403 error is actually a rate limiting error.
@@ -281,21 +318,7 @@ class _HTTPXExceptionHandler:
         except ImportError:
             return None
 
-        # httpx.RequestError exposes .request as a property that raises
-        # RuntimeError if the request hasn't been attached. Guard the access.
-        request_url = None
-        request_method = None
-        try:
-            request = getattr(exc, "request", None)
-        except RuntimeError:
-            request = None
-        if request is not None:
-            request_url_obj = getattr(request, "url", None)
-            if request_url_obj is not None:
-                request_url = str(request_url_obj)
-            request_method_obj = getattr(request, "method", None)
-            if request_method_obj is not None:
-                request_method = str(request_method_obj)
+        request_url, request_method = mapper._extract_request_info(exc)
 
         if isinstance(exc, httpx.HTTPStatusError):
             response = exc.response
@@ -311,16 +334,32 @@ class _HTTPXExceptionHandler:
                 request_method=request_method,
             )
 
-        # Construction bugs (checked before transport base classes, and also
-        # before the RequestError guard because ``httpx.InvalidURL`` is a bare
-        # ``Exception`` — not a ``RequestError`` subclass).
-        if isinstance(
-            exc,
-            (httpx.InvalidURL, httpx.UnsupportedProtocol, httpx.LocalProtocolError),
-        ):
+        # Construction bugs — per-exception messages so the agent can tell
+        # the failures apart without reading developer_message. Checked before
+        # transport base classes, and before the RequestError guard because
+        # ``httpx.InvalidURL`` is a bare ``Exception`` (not a RequestError
+        # subclass in current httpx).
+        if isinstance(exc, httpx.InvalidURL):
             return mapper._build_construction_error(
                 exc=exc,
-                message="Tool constructed an invalid HTTP request — likely a tool-authoring bug.",
+                message="HTTP request URL is invalid or malformed.",
+                request_url=request_url,
+                request_method=request_method,
+            )
+        if isinstance(exc, httpx.UnsupportedProtocol):
+            return mapper._build_construction_error(
+                exc=exc,
+                message="HTTP request URL uses an unsupported scheme (expected http or https).",
+                request_url=request_url,
+                request_method=request_method,
+            )
+        if isinstance(exc, httpx.LocalProtocolError):
+            return mapper._build_construction_error(
+                exc=exc,
+                message=(
+                    "HTTP request violated the HTTP protocol before it was sent "
+                    "(malformed headers or body)."
+                ),
                 request_url=request_url,
                 request_method=request_method,
             )
@@ -412,43 +451,12 @@ class _RequestsExceptionHandler:
         except ImportError:
             return None
 
-        request_url = None
-        request_method = None
-        request = getattr(exc, "request", None)
-        if request is not None:
-            request_url_obj = getattr(request, "url", None)
-            if request_url_obj is not None:
-                request_url = str(request_url_obj)
-            request_method_obj = getattr(request, "method", None)
-            if request_method_obj is not None:
-                request_method = str(request_method_obj)
-        response = getattr(exc, "response", None)
-        if response is not None:
-            response_request = getattr(response, "request", None)
-            if request_url is None and response_request is not None:
-                response_request_url = getattr(response_request, "url", None)
-                if response_request_url is not None:
-                    request_url = str(response_request_url)
-            if request_method is None and response_request is not None:
-                response_request_method = getattr(response_request, "method", None)
-                if response_request_method is not None:
-                    request_method = str(response_request_method)
-            if request_url is None:
-                response_url = getattr(response, "url", None)
-                if response_url is not None:
-                    request_url = str(response_url)
+        request_url, request_method = mapper._extract_request_info(exc)
 
         if isinstance(exc, HTTPError):
             response = getattr(exc, "response", None)
             if response is None:
                 return None
-
-            # Extract request information from HTTP response if available
-            if hasattr(response, "request") and response.request:
-                request_url = response.request.url
-                request_method = response.request.method
-            elif hasattr(response, "url"):
-                request_url = response.url
 
             safe_message = mapper._build_safe_status_message(
                 response.status_code, dict(response.headers)
@@ -462,15 +470,49 @@ class _RequestsExceptionHandler:
                 request_method=request_method,
             )
 
-        # Construction bugs — tool built an invalid request or environment is
-        # misconfigured. Retrying will not help.
-        if isinstance(
-            exc,
-            (MissingSchema, InvalidSchema, InvalidURL, InvalidProxyURL, InvalidHeader, URLRequired),
-        ):
+        # Construction bugs — per-exception messages so each failure mode is
+        # distinguishable in the agent-facing message without reading
+        # developer_message.
+        if isinstance(exc, MissingSchema):
             return mapper._build_construction_error(
                 exc=exc,
-                message="Tool constructed an invalid HTTP request — likely a tool-authoring bug.",
+                message="HTTP request URL is missing a scheme (expected http:// or https://).",
+                request_url=request_url,
+                request_method=request_method,
+            )
+        if isinstance(exc, InvalidSchema):
+            return mapper._build_construction_error(
+                exc=exc,
+                message="HTTP request URL uses an unsupported scheme (expected http or https).",
+                request_url=request_url,
+                request_method=request_method,
+            )
+        # InvalidProxyURL is a subclass of InvalidURL — check proxy first.
+        if isinstance(exc, InvalidProxyURL):
+            return mapper._build_construction_error(
+                exc=exc,
+                message="HTTP proxy URL is invalid or malformed.",
+                request_url=request_url,
+                request_method=request_method,
+            )
+        if isinstance(exc, InvalidURL):
+            return mapper._build_construction_error(
+                exc=exc,
+                message="HTTP request URL is invalid or malformed.",
+                request_url=request_url,
+                request_method=request_method,
+            )
+        if isinstance(exc, InvalidHeader):
+            return mapper._build_construction_error(
+                exc=exc,
+                message="HTTP request contains an invalid header name or value.",
+                request_url=request_url,
+                request_method=request_method,
+            )
+        if isinstance(exc, URLRequired):
+            return mapper._build_construction_error(
+                exc=exc,
+                message="HTTP request requires a URL but none was provided.",
                 request_url=request_url,
                 request_method=request_method,
             )
