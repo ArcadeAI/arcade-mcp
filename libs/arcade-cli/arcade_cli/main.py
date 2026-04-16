@@ -693,7 +693,10 @@ def evals(
         handle_cli_error("Failed to run evaluations", e, debug)
 
 
-@cli.command(help="Configure MCP clients to connect to your server", rich_help_panel="Manage")
+@cli.command(
+    help="Configure an MCP client to use a local server on your filesystem",
+    rich_help_panel="Manage",
+)
 def configure(
     client: str = typer.Argument(
         ...,
@@ -727,7 +730,7 @@ def configure(
         "local",
         "--host",
         "-h",
-        help="The host of the HTTP server to configure. Use 'local' to connect to a local MCP server or 'arcade' to connect to an Arcade Cloud MCP server.",
+        help="The host for HTTP transport. Use 'local' for a local server. ('arcade' is supported but 'arcade connect' is the recommended way to set up remote gateways.)",
         click_type=click.Choice(["local", "arcade"], case_sensitive=False),
         show_choices=True,
         rich_help_panel="HTTP Options",
@@ -750,16 +753,19 @@ def configure(
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
-    Configure MCP clients to connect to your server.
+    Configure an MCP client to use a local server on your filesystem.
 
-    The default behavior is to configure the specified client for a local stdio server that
-    runs when the server.py file in the current directory is invoked directly.
+    Points your MCP client at a server you are developing or running locally.
+    By default, configures a stdio transport that launches the server.py file
+    in the current directory. Use --transport http for a running local HTTP server.
+
+    To connect to remote Arcade Cloud gateways instead, use 'arcade connect'.
 
     Examples:
         arcade configure claude
         arcade configure cursor --transport http --port 8080
-        arcade configure vscode --host arcade --entrypoint my_server.py --config .vscode/mcp.json
-        arcade configure claude --host local --name my_server_name
+        arcade configure vscode --entrypoint my_server.py --config .vscode/mcp.json
+        arcade configure claude --name my_server_name
     """
     from arcade_cli.configure import configure_client
 
@@ -775,6 +781,118 @@ def configure(
         )
     except Exception as e:
         handle_cli_error(f"Failed to configure {client}", e, debug)
+
+
+@cli.command(
+    name="connect",
+    help="Connect an MCP client to a remote Arcade Cloud gateway",
+    rich_help_panel="Run",
+)
+def connect(
+    client: str = typer.Argument(
+        ...,
+        help="MCP client to connect to the remote gateway",
+        click_type=click.Choice(
+            ["claude", "cursor", "vscode", "windsurf", "amazonq"],
+            case_sensitive=False,
+        ),
+        show_choices=True,
+    ),
+    server: Optional[list[str]] = typer.Option(
+        None,
+        "--server",
+        "-t",
+        help="Server(s) to set up — adds all tools from each server. Can be repeated.",
+    ),
+    tool: Optional[list[str]] = typer.Option(
+        None,
+        "--tool",
+        help="Individual tool(s) by qualified name (e.g., Github.CreateIssue). Can be repeated.",
+    ),
+    preset: Optional[str] = typer.Option(
+        None,
+        "--preset",
+        help="Use a preset bundle (productivity, development, communication, devops, social, creative, project-management).",
+    ),
+    gateway: Optional[str] = typer.Option(
+        None,
+        "--gateway",
+        "-g",
+        help="Connect to an Arcade Cloud gateway by slug instead of local toolkits.",
+    ),
+    all_tools: bool = typer.Option(
+        False,
+        "--all",
+        help="Set up all available toolkits from your account without prompting.",
+    ),
+    slug: Optional[str] = typer.Option(
+        None,
+        "--slug",
+        "-s",
+        help="Custom slug for the created gateway (only with --server/--tool/--preset).",
+    ),
+    api_key: bool = typer.Option(
+        False,
+        "--api-key",
+        help="Use API-key auth instead of OAuth. Creates a project API key and includes it in the client config.",
+    ),
+    config_path: Optional[Path] = typer.Option(
+        None,
+        "--config",
+        "-c",
+        exists=False,
+        help="Custom path to the MCP client config file (overrides default).",
+    ),
+    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
+) -> None:
+    """
+    Connect an MCP client to a remote Arcade Cloud gateway.
+
+    No local server needed — tools run in the cloud. Logs you in (if needed),
+    creates an Arcade Cloud gateway for the selected toolkits, and writes your
+    MCP client config, all in one step.
+
+    By default gateways use OAuth (the MCP client handles the auth flow).
+    Pass --api-key to use API-key auth instead (creates a key automatically).
+
+    To configure a local server on your filesystem instead, use 'arcade configure'.
+
+    Examples:\n
+        arcade connect claude --server github\n
+        arcade connect cursor --preset productivity\n
+        arcade connect claude --tool Github.CreateIssue --tool Linear.UpdateIssue\n
+        arcade connect claude --gateway my-existing-gw\n
+        arcade connect vscode --all --api-key\n
+    """
+    from arcade_cli.connect import PRESET_BUNDLES, run_connect
+
+    # Resolve --preset to toolkit list
+    resolved_toolkits = list(server) if server else None
+    if preset:
+        preset_lower = preset.lower().replace("-", " ")
+        match = {k.lower(): v for k, v in PRESET_BUNDLES.items()}.get(preset_lower)
+        if not match:
+            available = ", ".join(k.lower().replace(" ", "-") for k in PRESET_BUNDLES)
+            handle_cli_error(f"Unknown preset '{preset}'. Available presets: {available}")
+            return
+        resolved_toolkits = (resolved_toolkits or []) + match
+
+    try:
+        run_connect(
+            client=client,
+            toolkits=resolved_toolkits,
+            tools=list(tool) if tool else None,
+            gateway=gateway,
+            all_tools=all_tools,
+            use_api_key=api_key,
+            gateway_slug=slug,
+            config_path=config_path,
+            debug=debug,
+        )
+    except SystemExit:
+        raise
+    except Exception as e:
+        handle_cli_error("Quickstart failed", e, debug)
 
 
 @cli.command(
@@ -1005,6 +1123,7 @@ def main_callback(
         new.__name__,
         show.__name__,
         configure.__name__,
+        connect.__name__,
         update.__name__,
         upgrade.__name__,
     }
