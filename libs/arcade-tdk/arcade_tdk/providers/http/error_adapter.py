@@ -47,21 +47,13 @@ class BaseHTTPErrorMapper:
         base_message = f"Upstream HTTP request failed ({phrase}, {status_class})."
 
         if status == 429 or (status == 403 and self._is_rate_limit_403(headers, base_message)):
-            # Only synthesize a "retry after N seconds" hint when the server
-            # actually provided a rate-limit header. Otherwise ``_parse_retry_ms``
-            # would fall back to 1000ms and we'd be inventing timing the server
-            # never promised.
-            if self._has_rate_limit_header(headers):
-                retry_after_seconds = self._parse_retry_ms(headers) // 1000
-                if retry_after_seconds > 0:
-                    return f"{base_message} Retry after {retry_after_seconds} second(s)."
+            retry_after_ms = self._parse_retry_ms(headers)
+            retry_after_seconds = retry_after_ms // 1000
+            if retry_after_seconds > 0:
+                return f"{base_message} Retry after {retry_after_seconds} second(s)."
             return f"{base_message} Rate limit encountered."
 
         return base_message
-
-    def _has_rate_limit_header(self, headers: dict[str, str]) -> bool:
-        """Return True iff at least one known rate-limit header is present."""
-        return any(headers.get(h) for h in RATE_HEADERS)
 
     def _parse_numeric_header(self, value: str | None) -> float | None:
         """Convert numeric header values to float without relying on exceptions."""
@@ -451,9 +443,13 @@ class _RequestsExceptionHandler:
             if response is None:
                 return None
 
-            # ``request_url`` / ``request_method`` were already populated above
-            # from ``exc.request`` → ``response.request`` → ``response.url``
-            # with consistent ``str(...)`` normalization. Don't re-extract here.
+            # Extract request information from HTTP response if available
+            if hasattr(response, "request") and response.request:
+                request_url = response.request.url
+                request_method = response.request.method
+            elif hasattr(response, "url"):
+                request_url = response.url
+
             safe_message = mapper._build_safe_status_message(
                 response.status_code, dict(response.headers)
             )
