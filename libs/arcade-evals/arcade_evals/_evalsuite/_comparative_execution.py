@@ -55,6 +55,10 @@ class _EvalSuiteComparativeMixin:
         seed: str | int | None,
         pass_rule: str,
         registry: EvalSuiteToolRegistry | None = None,
+        api_key: str | None = None,
+        judge_provider: str | None = None,
+        judge_model: str | None = None,
+        judge_override: bool = False,
     ) -> dict[str, Any]:
         raise NotImplementedError  # Implemented in EvalSuite
 
@@ -115,6 +119,11 @@ class _EvalSuiteComparativeMixin:
         num_runs: int = 1,
         seed: str | int | None = "constant",
         multi_run_pass_rule: str = PASS_RULE_LAST,
+        *,
+        api_key: str | None = None,
+        judge_provider: str | None = None,
+        judge_model: str | None = None,
+        judge_override: bool = False,
     ) -> dict[str, dict[str, Any]]:
         """Run comparative cases across all configured tracks.
 
@@ -230,6 +239,10 @@ class _EvalSuiteComparativeMixin:
                             seed=seed,
                             pass_rule=multi_run_pass_rule,
                             registry=_reg,
+                            api_key=api_key,
+                            judge_provider=judge_provider,
+                            judge_model=judge_model,
+                            judge_override=judge_override,
                         )
                         elapsed = time.time() - start
                         logger.debug("[TASK DONE] %s @ %s (%.1fs)", _case.name, _t_name, elapsed)

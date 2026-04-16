@@ -40,6 +40,61 @@ class Critic(ABC):
     def evaluate(self, expected: Any, actual: Any) -> dict[str, Any]:
         pass
 
+    async def async_evaluate(self, expected: Any, actual: Any) -> dict[str, Any]:
+        """
+        Asynchronous evaluation entry point.
+
+        The default implementation delegates to the synchronous :meth:`evaluate`
+        method, so all existing critics work unchanged. Critics that need to
+        perform asynchronous work (for example, calling an LLM judge) should
+        override this method instead of :meth:`evaluate`.
+
+        Args:
+            expected: The expected value.
+            actual: The actual value to evaluate.
+
+        Returns:
+            A dict with at least ``"match"`` and ``"score"`` keys (same shape
+            as :meth:`evaluate`).
+        """
+        return self.evaluate(expected, actual)
+
+    def configure_runtime(
+        self,
+        eval_provider: str | None,
+        eval_model: str | None,
+        eval_api_key: str | None,
+        *,
+        cli_judge_provider: str | None = None,
+        cli_judge_model: str | None = None,
+        judge_override: bool = False,
+    ) -> None:
+        """
+        Inject runtime context from the eval run.
+
+        Called by the eval runner before evaluation starts so critics that
+        need a live LLM client (for example, :class:`SmartCritic`) can
+        resolve their judge provider/model. The default implementation is a
+        no-op — deterministic critics ignore runtime configuration.
+
+        Resolution precedence for smart critics (highest first):
+
+        1. CLI override: ``cli_judge_*`` values when ``judge_override=True``
+        2. Per-critic config: values passed at construction time
+        3. CLI default: ``cli_judge_*`` values when ``judge_override=False``
+        4. Eval fallback: ``eval_*`` values (what the eval is running with)
+
+        Args:
+            eval_provider: The eval's provider name (e.g., "openai").
+            eval_model: The eval's model identifier.
+            eval_api_key: The eval's API key.
+            cli_judge_provider: Judge provider from the CLI, if any.
+            cli_judge_model: Judge model from the CLI, if any.
+            judge_override: If True, the CLI values force-override per-critic
+                configuration. If False (default), per-critic config wins.
+        """
+        return None
+
 
 @dataclass
 class NoneCritic(Critic):

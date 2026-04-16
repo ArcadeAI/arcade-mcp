@@ -176,6 +176,9 @@ class TestRunEvalTask:
             num_runs=1,
             seed="constant",
             multi_run_pass_rule=RUN_RULE_LAST,
+            judge_provider=None,
+            judge_model=None,
+            judge_override=False,
         )
 
 

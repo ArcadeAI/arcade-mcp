@@ -18,6 +18,8 @@ from .loaders import (
     load_mcp_remote_async,
     load_stdio_arcade_async,
 )
+from .smart_critic import SmartCritic
+from .smart_critic_mode import SmartCriticMode
 from .weights import FuzzyWeight, Weight, validate_and_normalize_critic_weights
 
 __all__ = [
@@ -39,6 +41,8 @@ __all__ = [
     "NumericCritic",
     "ProviderName",
     "SimilarityCritic",
+    "SmartCritic",
+    "SmartCriticMode",
     "Weight",
     "clear_tools_cache",
     "load_arcade_mcp_gateway_async",

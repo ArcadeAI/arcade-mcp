@@ -496,6 +496,21 @@ def evals(
         "--port",
         help="Arcade API port for gateway connections (default: 443 for HTTPS)",
     ),
+    judge_model: Optional[str] = typer.Option(
+        None,
+        "--judge-model",
+        help="Judge model for SmartCritic LLM-as-judge evaluations. "
+        "Format: 'provider:model'. "
+        "Example: --judge-model anthropic:claude-sonnet-4-5-20250929. "
+        "When not set, SmartCritic falls back to the eval's own model.",
+    ),
+    judge_override: bool = typer.Option(
+        False,
+        "--judge-override",
+        help="When --judge-model is set, force it onto every SmartCritic "
+        "even if the critic has its own per-instance judge configuration. "
+        "Defaults to False (per-critic config wins).",
+    ),
     debug: bool = typer.Option(False, "--debug", help="Show debug information"),
 ) -> None:
     """
@@ -646,6 +661,39 @@ def evals(
             style="bold",
         )
 
+    # --- Parse --judge-model (format: 'provider:model') ---
+    judge_provider_value: str | None = None
+    judge_model_value: str | None = None
+    if judge_model:
+        # Accept 'provider:model' or just 'model' (default provider = openai)
+        if ":" in judge_model:
+            prov_part, mod_part = judge_model.split(":", 1)
+            prov_part = prov_part.strip().lower()
+            mod_part = mod_part.strip()
+            if prov_part not in {"openai", "anthropic"}:
+                handle_cli_error(
+                    f"Invalid --judge-model provider '{prov_part}'. "
+                    "Supported providers: openai, anthropic.",
+                    should_exit=True,
+                )
+                return
+            if not mod_part:
+                handle_cli_error(
+                    "--judge-model must specify a model after the ':'. "
+                    "Example: --judge-model openai:gpt-4o",
+                    should_exit=True,
+                )
+                return
+            judge_provider_value = prov_part
+            judge_model_value = mod_part
+        else:
+            # No colon → default provider to openai so the dispatch matches
+            # the model name (the docstring on --judge-model promises this).
+            judge_provider_value = "openai"
+            judge_model_value = judge_model.strip()
+    elif judge_override:
+        console.print("[yellow]⚠️  --judge-override has no effect without --judge-model[/yellow]")
+
     # Parse output paths with smart format detection
     final_output_file: str | None = None
     final_output_formats: list[str] = []
@@ -687,6 +735,9 @@ def evals(
                     num_runs=num_runs,
                     seed=seed_value,
                     multi_run_pass_rule=pass_rule,
+                    judge_provider=judge_provider_value,
+                    judge_model=judge_model_value,
+                    judge_override=judge_override,
                 )
             )
     except Exception as e:

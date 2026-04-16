@@ -163,6 +163,9 @@ async def _run_eval_task(
     seed: str | int,
     multi_run_pass_rule: str,
     include_context: bool = False,
+    judge_provider: str | None = None,
+    judge_model: str | None = None,
+    judge_override: bool = False,
 ) -> EvalTaskResult:
     """
     Run a single evaluation task with error handling.
@@ -181,6 +184,9 @@ async def _run_eval_task(
             num_runs=num_runs,
             seed=seed,
             multi_run_pass_rule=multi_run_pass_rule,
+            judge_provider=judge_provider,
+            judge_model=judge_model,
+            judge_override=judge_override,
         )
         return EvalTaskResult.from_success(
             suite_name, model_spec.model, model_spec.provider.value, result
@@ -260,6 +266,9 @@ async def run_evaluations(
     seed: str | int,
     multi_run_pass_rule: str,
     include_context: bool = False,
+    judge_provider: str | None = None,
+    judge_model: str | None = None,
+    judge_override: bool = False,
 ) -> None:
     """
     Run evaluation suites and display results.
@@ -299,6 +308,9 @@ async def run_evaluations(
                     num_runs=num_runs,
                     seed=seed,
                     multi_run_pass_rule=multi_run_pass_rule,
+                    judge_provider=judge_provider,
+                    judge_model=judge_model,
+                    judge_override=judge_override,
                 )
             )
             tasks.append(task)

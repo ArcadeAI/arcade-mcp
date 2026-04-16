@@ -297,18 +297,17 @@ class EvalCase:
         expected_count = len(self.expected_tool_calls)
         return self.rubric.fail_on_tool_call_quantity and expected_count != actual_count
 
-    def evaluate(
+    def _precheck_evaluation(
         self,
         actual_tool_calls: list[tuple[str, dict[str, Any]]],
-    ) -> EvaluationResult:
-        """
-        Evaluate the actual tool calls against the expected tool calls and critics.
+    ) -> tuple[EvaluationResult, bool]:
+        """Run the cheap pre-checks shared by sync/async evaluation.
 
-        Args:
-            actual_tool_calls: A list of tuples containing the actual tool name and arguments.
-
-        Returns:
-            An EvaluationResult object containing the evaluation results.
+        Returns ``(result, stop)``. When ``stop`` is True, the caller should
+        return ``result`` immediately — one of the short-circuit conditions
+        (quantity mismatch, empty case, tool-selection failure, no critics)
+        already determined the outcome. Otherwise, the caller proceeds with
+        the critic loop.
         """
         evaluation_result = EvaluationResult()
 
@@ -326,24 +325,65 @@ class EvalCase:
                 f"Expected {expected_count} tool call(s), but got {actual_count}. "
                 + f"\nExpected tool calls: {expected_tool_names}.\nActual tool calls: {', '.join(actual_tools)}"
             )
-            return evaluation_result
+            return evaluation_result, True
 
         if not self.expected_tool_calls and not actual_tools:
             evaluation_result.score = 1.0
             evaluation_result.passed = True
-            return evaluation_result
+            return evaluation_result, True
 
         if self.check_tool_selection_failure(actual_tools):
             evaluation_result.score = 0.0
             evaluation_result.passed = False
             expected_tools = [tc.name for tc in self.expected_tool_calls]
             evaluation_result.failure_reason = f"Tool selection mismatch. Expected tools: {expected_tools}, but got: {actual_tools}"
-            return evaluation_result
+            return evaluation_result, True
 
         if not self.critics:
             evaluation_result.score = 1.0
             evaluation_result.passed = True
+            return evaluation_result, True
+
+        return evaluation_result, False
+
+    def _finalize_evaluation(
+        self,
+        evaluation_result: EvaluationResult,
+        total_weight: float,
+    ) -> EvaluationResult:
+        """Compute the final score and pass/warning status (shared by sync/async)."""
+        evaluation_result.compute_final_score(total_weight)
+        evaluation_result.passed = evaluation_result.score >= self.rubric.fail_threshold
+        evaluation_result.warning = (
+            not evaluation_result.passed and evaluation_result.score >= self.rubric.warn_threshold
+        )
+        return evaluation_result
+
+    def evaluate(
+        self,
+        actual_tool_calls: list[tuple[str, dict[str, Any]]],
+    ) -> EvaluationResult:
+        """
+        Evaluate the actual tool calls against the expected tool calls and critics.
+
+        This is the synchronous entry point. It only supports synchronous
+        critics — LLM-based critics like :class:`SmartCritic` require
+        :meth:`evaluate_async` instead.
+
+        Args:
+            actual_tool_calls: A list of tuples containing the actual tool name and arguments.
+
+        Returns:
+            An EvaluationResult object containing the evaluation results.
+        """
+        evaluation_result, stop = self._precheck_evaluation(actual_tool_calls)
+        if stop:
             return evaluation_result
+
+        # _precheck_evaluation already returned stop=True when critics was
+        # empty, so we know self.critics is a non-empty list here. Narrow
+        # the Optional away for mypy.
+        critics = self.critics or []
 
         # Create a cost matrix for the assignment problem
         cost_matrix = self._create_cost_matrix(actual_tool_calls, self.expected_tool_calls)
@@ -367,7 +407,7 @@ class EvalCase:
                 total_weight += self.rubric.tool_selection_weight
 
                 # Evaluate arguments using critics
-                for critic in self.critics:
+                for critic in critics:
                     expected_value = expected.args.get(critic.critic_field)
                     actual_value = actual_args.get(critic.critic_field)
 
@@ -398,16 +438,85 @@ class EvalCase:
                         )
                         continue
 
-        # Compute the final score
-        evaluation_result.compute_final_score(total_weight)
+        return self._finalize_evaluation(evaluation_result, total_weight)
 
-        # Set pass/fail and warning status
-        evaluation_result.passed = evaluation_result.score >= self.rubric.fail_threshold
-        evaluation_result.warning = (
-            not evaluation_result.passed and evaluation_result.score >= self.rubric.warn_threshold
-        )
+    async def evaluate_async(
+        self,
+        actual_tool_calls: list[tuple[str, dict[str, Any]]],
+    ) -> EvaluationResult:
+        """
+        Asynchronous variant of :meth:`evaluate`.
 
-        return evaluation_result
+        Calls ``await critic.async_evaluate(...)`` instead of the sync
+        ``critic.evaluate(...)`` so critics that need to await LLM calls
+        (e.g. :class:`SmartCritic`) work correctly. All existing synchronous
+        critics continue to work because :meth:`Critic.async_evaluate`
+        delegates to :meth:`Critic.evaluate` by default.
+
+        Args:
+            actual_tool_calls: A list of tuples containing the actual tool name and arguments.
+
+        Returns:
+            An EvaluationResult object containing the evaluation results.
+        """
+        evaluation_result, stop = self._precheck_evaluation(actual_tool_calls)
+        if stop:
+            return evaluation_result
+
+        # _precheck_evaluation already returned stop=True when critics was empty.
+        critics = self.critics or []
+
+        # Cost matrix stays synchronous — smart critics are skipped there to
+        # avoid doubling LLM calls (see _create_cost_matrix).
+        cost_matrix = self._create_cost_matrix(actual_tool_calls, self.expected_tool_calls)
+        row_ind, col_ind = linear_sum_assignment(cost_matrix, maximize=True)
+
+        total_score = 0.0
+        total_weight = 0.0
+
+        for i, j in zip(row_ind, col_ind):
+            if i < len(self.expected_tool_calls) and j < len(actual_tool_calls):
+                expected = self.expected_tool_calls[i]
+                actual_name, actual_args = actual_tool_calls[j]
+
+                tool_selection_score = evaluation_result.score_tool_selection(
+                    expected.name, actual_name, self.rubric.tool_selection_weight
+                )
+                total_score += tool_selection_score
+                total_weight += self.rubric.tool_selection_weight
+
+                for critic in critics:
+                    expected_value = expected.args.get(critic.critic_field)
+                    actual_value = actual_args.get(critic.critic_field)
+
+                    try:
+                        result = await critic.async_evaluate(expected_value, actual_value)
+                        total_score += result["score"]
+                        total_weight += critic.resolved_weight
+                        evaluation_result.add(
+                            critic.critic_field,
+                            result,
+                            critic.resolved_weight,
+                            expected_value,
+                            actual_value,
+                        )
+                    except Exception as e:
+                        logger.warning(
+                            "Critic evaluation failed for field '%s': %s",
+                            critic.critic_field,
+                            e,
+                            exc_info=True,
+                        )
+                        evaluation_result.add(
+                            critic.critic_field,
+                            {"match": False, "score": 0.0},
+                            critic.resolved_weight,
+                            expected_value,
+                            actual_value,
+                        )
+                        continue
+
+        return self._finalize_evaluation(evaluation_result, total_weight)
 
     def _create_cost_matrix(
         self,
@@ -443,6 +552,13 @@ class EvalCase:
 
                     # Critics evaluation
                     for critic in self.critics:  # type: ignore[union-attr]
+                        # Skip LLM-based critics in the cost matrix: they run
+                        # asynchronously and each call costs real money. The
+                        # cost matrix only ranks expected/actual pairings, so
+                        # contributing 0 here does not affect the final score
+                        # computed by evaluate()/evaluate_async().
+                        if getattr(critic, "_is_smart_critic", False):
+                            continue
                         expected_value = expected.args.get(critic.critic_field)
                         actual_value = actual_args.get(critic.critic_field)
                         if expected_value is not None and actual_value is not None:
@@ -868,9 +984,33 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
         seed: str | int | None,
         pass_rule: str,
         registry: EvalSuiteToolRegistry | None = None,
+        api_key: str | None = None,
+        judge_provider: str | None = None,
+        judge_model: str | None = None,
+        judge_override: bool = False,
     ) -> dict[str, Any]:
         if num_runs < 1:
             raise ValueError("num_runs must be >= 1")
+
+        # Inject runtime context into every critic before evaluation. The base
+        # Critic.configure_runtime() is a no-op, so deterministic critics are
+        # unaffected. SmartCritic uses these values to resolve its judge model.
+        for critic in case.critics or []:
+            try:
+                critic.configure_runtime(
+                    provider,
+                    model,
+                    api_key,
+                    cli_judge_provider=judge_provider,
+                    cli_judge_model=judge_model,
+                    judge_override=judge_override,
+                )
+            except Exception as e:  # pragma: no cover - defensive
+                logger.warning(
+                    "configure_runtime failed for critic on field '%s': %s",
+                    getattr(critic, "critic_field", "?"),
+                    e,
+                )
 
         seed_policy, seed_value = _resolve_seed_spec(seed)
         seed_policy_display = seed_policy
@@ -904,7 +1044,7 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
                 )
 
             processed_calls = self._process_tool_calls(predicted_args, registry=registry)
-            evaluation = case.evaluate(processed_calls)
+            evaluation = await case.evaluate_async(processed_calls)
 
             run_evaluations.append(evaluation)
             run_scores.append(evaluation.score)
@@ -978,6 +1118,11 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
         num_runs: int = 1,
         seed: str | int | None = "constant",
         multi_run_pass_rule: str = PASS_RULE_LAST,
+        *,
+        api_key: str | None = None,
+        judge_provider: str | None = None,
+        judge_model: str | None = None,
+        judge_override: bool = False,
     ) -> dict[str, Any]:
         """
         Run the evaluation suite.
@@ -989,6 +1134,12 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
             num_runs: Number of runs per case.
             seed: Seed policy ("constant", "random", or an integer seed).
             multi_run_pass_rule: How to determine pass/warn for multi-run cases.
+            api_key: The eval's API key. Required for :class:`SmartCritic` so
+                it can fall back to the eval's client when no per-critic judge
+                is configured.
+            judge_provider: CLI-supplied judge provider (see :class:`SmartCritic`).
+            judge_model: CLI-supplied judge model.
+            judge_override: If True, CLI judge values override per-critic config.
 
         Returns:
             A dictionary containing the evaluation results.
@@ -1027,6 +1178,10 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
                     num_runs=num_runs,
                     seed=seed,
                     pass_rule=multi_run_pass_rule,
+                    api_key=api_key,
+                    judge_provider=judge_provider,
+                    judge_model=judge_model,
+                    judge_override=judge_override,
                 )
 
                 # Prepare the result
@@ -1235,6 +1390,9 @@ def tool_eval() -> Callable[[Callable], Callable]:
             num_runs: int = 1,
             seed: str | int | None = "constant",
             multi_run_pass_rule: str = PASS_RULE_LAST,
+            judge_provider: str | None = None,
+            judge_model: str | None = None,
+            judge_override: bool = False,
         ) -> list[Any]:
             """
             Run evaluation or capture mode.
@@ -1292,6 +1450,9 @@ def tool_eval() -> Callable[[Callable], Callable]:
                         num_runs=num_runs,
                         seed=seed,
                         multi_run_pass_rule=multi_run_pass_rule,
+                        judge_provider=judge_provider,
+                        judge_model=judge_model,
+                        judge_override=judge_override,
                     )
                 else:
                     eval_result = await _run_with_openai(
@@ -1301,6 +1462,9 @@ def tool_eval() -> Callable[[Callable], Callable]:
                         num_runs=num_runs,
                         seed=seed,
                         multi_run_pass_rule=multi_run_pass_rule,
+                        judge_provider=judge_provider,
+                        judge_model=judge_model,
+                        judge_override=judge_override,
                     )
 
                 # For comparative evaluations, eval_result is already a list of track results
@@ -1323,6 +1487,9 @@ async def _run_with_openai(
     num_runs: int = 1,
     seed: str | int | None = "constant",
     multi_run_pass_rule: str = PASS_RULE_LAST,
+    judge_provider: str | None = None,
+    judge_model: str | None = None,
+    judge_override: bool = False,
 ) -> dict[str, Any] | list[dict[str, Any]]:
     """Run evaluation suite with OpenAI client.
 
@@ -1341,6 +1508,10 @@ async def _run_with_openai(
                 num_runs=num_runs,
                 seed=seed,
                 multi_run_pass_rule=multi_run_pass_rule,
+                api_key=api_key,
+                judge_provider=judge_provider,
+                judge_model=judge_model,
+                judge_override=judge_override,
             )
             # Convert to list of results for consistent handling
             return list(track_results.values())
@@ -1353,6 +1524,10 @@ async def _run_with_openai(
                 num_runs=num_runs,
                 seed=seed,
                 multi_run_pass_rule=multi_run_pass_rule,
+                api_key=api_key,
+                judge_provider=judge_provider,
+                judge_model=judge_model,
+                judge_override=judge_override,
             )
 
 
@@ -1364,6 +1539,9 @@ async def _run_with_anthropic(
     num_runs: int = 1,
     seed: str | int | None = "constant",
     multi_run_pass_rule: str = PASS_RULE_LAST,
+    judge_provider: str | None = None,
+    judge_model: str | None = None,
+    judge_override: bool = False,
 ) -> dict[str, Any] | list[dict[str, Any]]:
     """Run evaluation suite with Anthropic client.
 
@@ -1390,6 +1568,10 @@ async def _run_with_anthropic(
                 num_runs=num_runs,
                 seed=seed,
                 multi_run_pass_rule=multi_run_pass_rule,
+                api_key=api_key,
+                judge_provider=judge_provider,
+                judge_model=judge_model,
+                judge_override=judge_override,
             )
             # Convert to list of results for consistent handling
             return list(track_results.values())
@@ -1402,4 +1584,8 @@ async def _run_with_anthropic(
                 num_runs=num_runs,
                 seed=seed,
                 multi_run_pass_rule=multi_run_pass_rule,
+                api_key=api_key,
+                judge_provider=judge_provider,
+                judge_model=judge_model,
+                judge_override=judge_override,
             )

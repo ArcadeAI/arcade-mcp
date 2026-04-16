@@ -22,6 +22,11 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "evals: marks tests that require eval dependencies (openai, anthropic, mcp)"
     )
+    config.addinivalue_line(
+        "markers",
+        "smart_critic_live: marks tests that hit real OpenAI/Anthropic APIs "
+        "(requires OPENAI_API_KEY / ANTHROPIC_API_KEY; auto-skipped otherwise)",
+    )
 
 
 def pytest_collection_modifyitems(config, items):
