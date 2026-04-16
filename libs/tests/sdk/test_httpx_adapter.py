@@ -5,7 +5,13 @@ from unittest.mock import Mock, patch
 import httpx
 import requests
 
-from arcade_core.errors import ErrorKind, UpstreamError, UpstreamRateLimitError
+from arcade_core.errors import (
+    ErrorKind,
+    FatalToolError,
+    NetworkTransportError,
+    UpstreamError,
+    UpstreamRateLimitError,
+)
 from arcade_tdk.providers.http.error_adapter import BaseHTTPErrorMapper, HTTPErrorAdapter
 
 
@@ -302,105 +308,126 @@ class TestHTTPErrorAdapter:
         assert result is None
 
     def test_requests_timeout_exception_handling(self):
-        """Timeout exceptions should map to retryable upstream timeouts."""
+        """Timeout exceptions should map to retryable NetworkTransportError (TIMEOUT)."""
         request = requests.Request("GET", "https://api.example.com/slow?token=secret").prepare()
         exc = requests.exceptions.ReadTimeout("Request timed out", request=request)
 
         result = self.adapter.from_exception(exc)
 
-        assert isinstance(result, UpstreamError)
+        assert isinstance(result, NetworkTransportError)
         assert result.status_code is None
         assert result.can_retry is True
-        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
-        assert (
-            result.message
-            == "Upstream HTTP request timed out before receiving a response: ReadTimeout"
-        )
+        assert result.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_TIMEOUT
         assert result.extra["service"] == "_http"
         assert result.extra["error_type"] == "ReadTimeout"
         assert result.extra["endpoint"] == "https://api.example.com/slow"
         assert result.extra["http_method"] == "GET"
 
     def test_requests_transport_exception_handling(self):
-        """Connection errors should map to retryable transport failures."""
+        """Connection errors should map to NetworkTransportError (UNREACHABLE)."""
         request = requests.Request("POST", "https://api.example.com/ping").prepare()
         exc = requests.exceptions.ConnectionError("Connection failed", request=request)
 
         result = self.adapter.from_exception(exc)
 
-        assert isinstance(result, UpstreamError)
+        assert isinstance(result, NetworkTransportError)
         assert result.status_code is None
         assert result.can_retry is True
-        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
-        assert result.message == "Upstream HTTP transport error: ConnectionError"
+        assert result.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNREACHABLE
         assert result.extra["service"] == "_http"
         assert result.extra["error_type"] == "ConnectionError"
         assert result.extra["endpoint"] == "https://api.example.com/ping"
         assert result.extra["http_method"] == "POST"
 
-    def test_requests_invalid_url_is_non_retryable_bad_request(self):
-        """Invalid URL errors should map to non-retryable bad request."""
+    def test_requests_invalid_url_routes_to_fatal_tool_error(self):
+        """Invalid URL is a client construction bug — FatalToolError, not retryable."""
         request = requests.Request("GET", "https://api.example.com/bad").prepare()
         exc = requests.exceptions.InvalidURL("Invalid URL", request=request)
 
         result = self.adapter.from_exception(exc)
 
-        assert isinstance(result, UpstreamError)
-        assert result.status_code is None
+        assert isinstance(result, FatalToolError)
         assert result.can_retry is False
-        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST
-        assert result.message == "Upstream HTTP request is invalid: InvalidURL"
+        assert result.kind == ErrorKind.TOOL_RUNTIME_FATAL
         assert result.extra["service"] == "_http"
         assert result.extra["error_type"] == "InvalidURL"
         assert result.extra["endpoint"] == "https://api.example.com/bad"
         assert result.extra["http_method"] == "GET"
 
+    def test_requests_missing_schema_routes_to_fatal_tool_error(self):
+        """MissingSchema is a construction bug — FatalToolError."""
+        exc = requests.exceptions.MissingSchema("No scheme")
+
+        result = self.adapter.from_exception(exc)
+
+        assert isinstance(result, FatalToolError)
+        assert result.can_retry is False
+        assert result.extra["error_type"] == "MissingSchema"
+
+    def test_requests_invalid_header_routes_to_fatal_tool_error(self):
+        """InvalidHeader is a construction bug — FatalToolError."""
+        exc = requests.exceptions.InvalidHeader("Bad header")
+
+        result = self.adapter.from_exception(exc)
+
+        assert isinstance(result, FatalToolError)
+        assert result.can_retry is False
+        assert result.extra["error_type"] == "InvalidHeader"
+
+    def test_requests_ssl_error_routes_to_fatal_tool_error(self):
+        """SSLError is typically a local cert/trust config issue — FatalToolError."""
+        exc = requests.exceptions.SSLError("bad cert")
+
+        result = self.adapter.from_exception(exc)
+
+        assert isinstance(result, FatalToolError)
+        assert result.can_retry is False
+        assert "TLS" in result.message
+        assert result.extra["error_type"] == "SSLError"
+
     def test_requests_content_decoding_error_handling(self):
-        """Decode failures should map to retryable upstream decode errors."""
+        """Decode failures should map to NetworkTransportError (UNMAPPED, retryable)."""
         request = requests.Request("GET", "https://api.example.com/json").prepare()
         exc = requests.exceptions.ContentDecodingError("Bad payload", request=request)
 
         result = self.adapter.from_exception(exc)
 
-        assert isinstance(result, UpstreamError)
+        assert isinstance(result, NetworkTransportError)
         assert result.status_code is None
         assert result.can_retry is True
-        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
-        assert result.message == "Upstream HTTP response decoding failed: ContentDecodingError"
+        assert result.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED
         assert result.extra["service"] == "_http"
         assert result.extra["error_type"] == "ContentDecodingError"
         assert result.extra["endpoint"] == "https://api.example.com/json"
         assert result.extra["http_method"] == "GET"
 
-    def test_requests_too_many_redirects_is_non_retryable_bad_request(self):
-        """Redirect loops should map to non-retryable bad request errors."""
+    def test_requests_too_many_redirects_is_non_retryable(self):
+        """Redirect loops → NetworkTransportError (UNMAPPED, not retryable)."""
         request = requests.Request("GET", "https://api.example.com/redirect-loop").prepare()
         exc = requests.exceptions.TooManyRedirects("Exceeded redirect limit", request=request)
 
         result = self.adapter.from_exception(exc)
 
-        assert isinstance(result, UpstreamError)
+        assert isinstance(result, NetworkTransportError)
         assert result.status_code is None
         assert result.can_retry is False
-        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST
-        assert result.message == "Upstream HTTP request redirect limit exceeded: TooManyRedirects"
+        assert result.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED
         assert result.extra["service"] == "_http"
         assert result.extra["error_type"] == "TooManyRedirects"
         assert result.extra["endpoint"] == "https://api.example.com/redirect-loop"
         assert result.extra["http_method"] == "GET"
 
     def test_requests_request_exception_fallback(self):
-        """Unhandled requests base exceptions should map as upstream errors."""
+        """Unhandled requests base exceptions → NetworkTransportError (UNMAPPED)."""
         request = requests.Request("DELETE", "https://api.example.com/resource/123").prepare()
         exc = requests.exceptions.RequestException("Request failed", request=request)
 
         result = self.adapter.from_exception(exc)
 
-        assert isinstance(result, UpstreamError)
+        assert isinstance(result, NetworkTransportError)
         assert result.status_code is None
         assert result.can_retry is True
-        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
-        assert result.message == "Upstream HTTP request failed: RequestException"
+        assert result.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED
         assert result.extra["service"] == "_http"
         assert result.extra["error_type"] == "RequestException"
         assert result.extra["endpoint"] == "https://api.example.com/resource/123"
@@ -445,139 +472,148 @@ class TestHTTPErrorAdapter:
         assert "http_method" not in result.extra
 
     def test_httpx_timeout_exception_handling(self):
-        """Timeout exceptions should map to retryable upstream timeouts."""
+        """Timeout exceptions → NetworkTransportError (TIMEOUT, retryable)."""
         request = httpx.Request("GET", "https://api.example.com/slow?token=secret")
         exc = httpx.ReadTimeout("Read timed out", request=request)
 
         result = self.adapter.from_exception(exc)
 
-        assert isinstance(result, UpstreamError)
+        assert isinstance(result, NetworkTransportError)
         assert result.status_code is None
         assert result.can_retry is True
-        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
-        assert (
-            result.message
-            == "Upstream HTTP request timed out before receiving a response: ReadTimeout"
-        )
+        assert result.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_TIMEOUT
         assert result.extra["service"] == "_http"
         assert result.extra["error_type"] == "ReadTimeout"
         assert result.extra["endpoint"] == "https://api.example.com/slow"
         assert result.extra["http_method"] == "GET"
 
+    def test_httpx_pool_timeout_routes_to_timeout(self):
+        """PoolTimeout (local pool exhaustion) → NetworkTransportError (TIMEOUT)."""
+        exc = httpx.PoolTimeout("pool exhausted")
+
+        result = self.adapter.from_exception(exc)
+
+        assert isinstance(result, NetworkTransportError)
+        assert result.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_TIMEOUT
+        assert result.can_retry is True
+        assert result.status_code is None
+        assert result.extra["error_type"] == "PoolTimeout"
+
     def test_httpx_transport_exception_handling(self):
-        """Transport exceptions should map to retryable upstream transport errors."""
+        """Transport exceptions → NetworkTransportError (UNREACHABLE, retryable)."""
         request = httpx.Request("POST", "https://api.example.com/ping")
         exc = httpx.ConnectError("Connection failed", request=request)
 
         result = self.adapter.from_exception(exc)
 
-        assert isinstance(result, UpstreamError)
+        assert isinstance(result, NetworkTransportError)
         assert result.status_code is None
         assert result.can_retry is True
-        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
-        assert result.message == "Upstream HTTP transport error: ConnectError"
+        assert result.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNREACHABLE
         assert result.extra["service"] == "_http"
         assert result.extra["error_type"] == "ConnectError"
         assert result.extra["endpoint"] == "https://api.example.com/ping"
         assert result.extra["http_method"] == "POST"
 
-    def test_httpx_unsupported_protocol_is_non_retryable_bad_request(self):
-        """Unsupported protocol should map to a non-retryable bad request."""
+    def test_httpx_unsupported_protocol_routes_to_fatal_tool_error(self):
+        """Unsupported protocol is a construction bug — FatalToolError."""
         request = httpx.Request("GET", "ftp://api.example.com/resource")
         exc = httpx.UnsupportedProtocol("Unsupported protocol", request=request)
 
         result = self.adapter.from_exception(exc)
 
-        assert isinstance(result, UpstreamError)
-        assert result.status_code is None
+        assert isinstance(result, FatalToolError)
         assert result.can_retry is False
-        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST
-        assert result.message == "Upstream HTTP request is invalid: UnsupportedProtocol"
+        assert result.kind == ErrorKind.TOOL_RUNTIME_FATAL
         assert result.extra["service"] == "_http"
         assert result.extra["error_type"] == "UnsupportedProtocol"
         assert result.extra["endpoint"] == "ftp://api.example.com/resource"
         assert result.extra["http_method"] == "GET"
 
+    def test_httpx_invalid_url_routes_to_fatal_tool_error(self):
+        """httpx.InvalidURL is a bare Exception (not RequestError); still → FatalToolError."""
+        exc = httpx.InvalidURL("bad url")
+
+        result = self.adapter.from_exception(exc)
+
+        assert isinstance(result, FatalToolError)
+        assert result.can_retry is False
+        assert result.extra["error_type"] == "InvalidURL"
+
     def test_httpx_request_error_fallback(self):
-        """Unhandled httpx RequestError subclasses should still map as upstream errors."""
+        """Unhandled httpx RequestError subclasses → NetworkTransportError (UNMAPPED)."""
         request = httpx.Request("DELETE", "https://api.example.com/resource/123")
         exc = httpx.RequestError("Request failed", request=request)
 
         result = self.adapter.from_exception(exc)
 
-        assert isinstance(result, UpstreamError)
+        assert isinstance(result, NetworkTransportError)
         assert result.status_code is None
         assert result.can_retry is True
-        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
-        assert result.message == "Upstream HTTP request failed: RequestError"
+        assert result.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED
         assert result.extra["service"] == "_http"
         assert result.extra["error_type"] == "RequestError"
         assert result.extra["endpoint"] == "https://api.example.com/resource/123"
         assert result.extra["http_method"] == "DELETE"
 
     def test_httpx_decoding_error_handling(self):
-        """Decoding errors should map to retryable server-side upstream errors."""
+        """Decoding errors → NetworkTransportError (UNMAPPED, retryable)."""
         request = httpx.Request("GET", "https://api.example.com/json")
         exc = httpx.DecodingError("Unable to decode response body", request=request)
 
         result = self.adapter.from_exception(exc)
 
-        assert isinstance(result, UpstreamError)
+        assert isinstance(result, NetworkTransportError)
         assert result.status_code is None
         assert result.can_retry is True
-        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
-        assert result.message == "Upstream HTTP response decoding failed: DecodingError"
+        assert result.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED
         assert result.extra["service"] == "_http"
         assert result.extra["error_type"] == "DecodingError"
         assert result.extra["endpoint"] == "https://api.example.com/json"
         assert result.extra["http_method"] == "GET"
 
-    def test_httpx_local_protocol_error_is_non_retryable_bad_request(self):
-        """Local protocol errors should map to non-retryable bad request errors."""
+    def test_httpx_local_protocol_error_routes_to_fatal_tool_error(self):
+        """LocalProtocolError = our HTTP framing was invalid (construction bug)."""
         request = httpx.Request("GET", "https://api.example.com/broken")
         exc = httpx.LocalProtocolError("Malformed local protocol state", request=request)
 
         result = self.adapter.from_exception(exc)
 
-        assert isinstance(result, UpstreamError)
-        assert result.status_code is None
+        assert isinstance(result, FatalToolError)
         assert result.can_retry is False
-        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST
-        assert result.message == "Upstream HTTP request is invalid: LocalProtocolError"
+        assert result.kind == ErrorKind.TOOL_RUNTIME_FATAL
         assert result.extra["service"] == "_http"
         assert result.extra["error_type"] == "LocalProtocolError"
         assert result.extra["endpoint"] == "https://api.example.com/broken"
         assert result.extra["http_method"] == "GET"
 
     def test_httpx_remote_protocol_error_is_retryable_transport_error(self):
-        """Remote protocol errors should map to retryable transport errors."""
+        """RemoteProtocolError (upstream sent malformed HTTP) → UNREACHABLE, retryable."""
         request = httpx.Request("GET", "https://api.example.com/protocol")
         exc = httpx.RemoteProtocolError("Malformed upstream protocol response", request=request)
 
         result = self.adapter.from_exception(exc)
 
-        assert isinstance(result, UpstreamError)
+        assert isinstance(result, NetworkTransportError)
         assert result.status_code is None
         assert result.can_retry is True
-        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
-        assert result.message == "Upstream HTTP transport error: RemoteProtocolError"
+        assert result.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNREACHABLE
         assert result.extra["service"] == "_http"
         assert result.extra["error_type"] == "RemoteProtocolError"
         assert result.extra["endpoint"] == "https://api.example.com/protocol"
         assert result.extra["http_method"] == "GET"
 
-    def test_httpx_too_many_redirects_is_non_retryable_bad_request(self):
-        """Redirect loops should map to non-retryable bad request errors."""
+    def test_httpx_too_many_redirects_is_non_retryable(self):
+        """Redirect loops → NetworkTransportError (UNMAPPED, not retryable)."""
         request = httpx.Request("GET", "https://api.example.com/redirect-loop")
         exc = httpx.TooManyRedirects("Exceeded redirect limit", request=request)
 
         result = self.adapter.from_exception(exc)
 
-        assert isinstance(result, UpstreamError)
+        assert isinstance(result, NetworkTransportError)
         assert result.status_code is None
         assert result.can_retry is False
-        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST
-        assert result.message == "Upstream HTTP request redirect limit exceeded: TooManyRedirects"
+        assert result.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED
         assert result.extra["service"] == "_http"
         assert result.extra["error_type"] == "TooManyRedirects"
         assert result.extra["endpoint"] == "https://api.example.com/redirect-loop"

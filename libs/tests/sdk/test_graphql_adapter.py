@@ -8,7 +8,12 @@ from typing import Any
 from unittest.mock import patch
 
 import pytest
-from arcade_core.errors import UpstreamError, UpstreamRateLimitError
+from arcade_core.errors import (
+    ErrorKind,
+    NetworkTransportError,
+    UpstreamError,
+    UpstreamRateLimitError,
+)
 
 LIBS_DIR = Path(__file__).resolve().parents[2]
 TDK_SRC = LIBS_DIR / "arcade-tdk"
@@ -234,26 +239,30 @@ class TestGraphQLErrorAdapter:
 
     # --- Connection/Protocol error tests ---
 
-    def test_connection_failed_returns_502(self) -> None:
-        """Connection failures should map to 502."""
+    def test_connection_failed_maps_to_network_transport_unreachable(self) -> None:
+        """Connection failures never reached upstream — NetworkTransportError."""
         exc = DummyTransportConnectionFailed("Connection refused")
 
         with _patch_loader():
             result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
 
-        assert isinstance(result, UpstreamError)
-        assert result.status_code == HTTPStatus.BAD_GATEWAY
+        assert isinstance(result, NetworkTransportError)
+        assert result.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNREACHABLE
+        assert result.can_retry is True
+        assert result.status_code is None
         assert result.extra["error_type"] == "DummyTransportConnectionFailed"
 
-    def test_protocol_error_returns_502(self) -> None:
-        """Protocol errors should map to 502."""
+    def test_protocol_error_maps_to_network_transport_unreachable(self) -> None:
+        """Protocol errors (incomplete / malformed exchange) → NetworkTransportError."""
         exc = DummyTransportProtocolError("Invalid response")
 
         with _patch_loader():
             result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
 
-        assert isinstance(result, UpstreamError)
-        assert result.status_code == HTTPStatus.BAD_GATEWAY
+        assert isinstance(result, NetworkTransportError)
+        assert result.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNREACHABLE
+        assert result.can_retry is True
+        assert result.status_code is None
         assert result.extra["error_type"] == "DummyTransportProtocolError"
 
     # --- Generic TransportError catch-all ---

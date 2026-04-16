@@ -6,6 +6,9 @@ from typing import Any
 from urllib.parse import urlparse
 
 from arcade_core.errors import (
+    ErrorKind,
+    FatalToolError,
+    NetworkTransportError,
     ToolRuntimeError,
     UpstreamError,
     UpstreamRateLimitError,
@@ -155,31 +158,56 @@ class BaseHTTPErrorMapper:
             extra=extra,
         )
 
-    def _build_upstream_error(
+    def _build_network_transport_error(
         self,
         *,
         exc: Exception,
-        status_code: int,
+        kind: ErrorKind,
+        can_retry: bool,
         message: str,
         request_url: str | None,
         request_method: str | None,
-        observed_status_code: int | None = None,
-        include_status_code: bool = False,
-    ) -> UpstreamError:
-        error = UpstreamError(
+    ) -> NetworkTransportError:
+        """Build a NetworkTransportError for no-response HTTP failures.
+
+        Used for transport-level failures (timeouts, connection errors, decoding
+        failures, redirect-loop exhaustion) where no complete HTTP response was
+        received from the upstream service.
+        """
+        return NetworkTransportError(
             message=message,
-            status_code=status_code,
+            developer_message=str(exc),
+            kind=kind,
+            can_retry=can_retry,
+            extra={
+                **self._build_extra_metadata(request_url, request_method),
+                "error_type": type(exc).__name__,
+            },
+        )
+
+    def _build_construction_error(
+        self,
+        *,
+        exc: Exception,
+        message: str,
+        request_url: str | None,
+        request_method: str | None,
+    ) -> FatalToolError:
+        """Build a FatalToolError for client-side HTTP construction bugs.
+
+        Used for exceptions that indicate the tool built an invalid request
+        (bad URL, unsupported scheme, malformed headers) or local trust
+        configuration prevents the request from being sent (TLS/SSL).
+        Retrying will not help — the tool's code or environment must change.
+        """
+        return FatalToolError(
+            message=message,
             developer_message=str(exc),
             extra={
                 **self._build_extra_metadata(request_url, request_method),
                 "error_type": type(exc).__name__,
             },
         )
-        if not include_status_code:
-            error.status_code = None
-        if observed_status_code is not None:
-            error.status_code = observed_status_code
-        return error
 
     def _is_rate_limit_403(self, headers: dict[str, str], msg: str) -> bool:
         """
@@ -253,10 +281,14 @@ class _HTTPXExceptionHandler:
         except ImportError:
             return None
 
+        # httpx.RequestError exposes .request as a property that raises
+        # RuntimeError if the request hasn't been attached. Guard the access.
         request_url = None
         request_method = None
-        observed_status_code = None
-        request = getattr(exc, "request", None)
+        try:
+            request = getattr(exc, "request", None)
+        except RuntimeError:
+            request = None
         if request is not None:
             request_url_obj = getattr(request, "url", None)
             if request_url_obj is not None:
@@ -264,11 +296,6 @@ class _HTTPXExceptionHandler:
             request_method_obj = getattr(request, "method", None)
             if request_method_obj is not None:
                 request_method = str(request_method_obj)
-        response = getattr(exc, "response", None)
-        if response is not None:
-            status_code_obj = getattr(response, "status_code", None)
-            if isinstance(status_code_obj, int):
-                observed_status_code = status_code_obj
 
         if isinstance(exc, httpx.HTTPStatusError):
             response = exc.response
@@ -284,71 +311,69 @@ class _HTTPXExceptionHandler:
                 request_method=request_method,
             )
 
-        # Order is intentional: specific subclasses before broad base classes.
-        if isinstance(exc, httpx.TimeoutException):
-            return mapper._build_upstream_error(
+        # Construction bugs (checked before transport base classes, and also
+        # before the RequestError guard because ``httpx.InvalidURL`` is a bare
+        # ``Exception`` — not a ``RequestError`` subclass).
+        if isinstance(
+            exc,
+            (httpx.InvalidURL, httpx.UnsupportedProtocol, httpx.LocalProtocolError),
+        ):
+            return mapper._build_construction_error(
                 exc=exc,
-                status_code=503,
-                message=f"Upstream HTTP request timed out before receiving a response: {type(exc).__name__}",
+                message="Tool constructed an invalid HTTP request — likely a tool-authoring bug.",
                 request_url=request_url,
                 request_method=request_method,
-                observed_status_code=observed_status_code,
-                include_status_code=False,
+            )
+
+        # Order is intentional: specific subclasses before broad base classes.
+        if isinstance(exc, httpx.TimeoutException):
+            return mapper._build_network_transport_error(
+                exc=exc,
+                kind=ErrorKind.NETWORK_TRANSPORT_RUNTIME_TIMEOUT,
+                can_retry=True,
+                message="HTTP request timed out before a complete response was received.",
+                request_url=request_url,
+                request_method=request_method,
             )
 
         if isinstance(exc, httpx.TooManyRedirects):
-            return mapper._build_upstream_error(
+            return mapper._build_network_transport_error(
                 exc=exc,
-                status_code=400,
-                message=f"Upstream HTTP request redirect limit exceeded: {type(exc).__name__}",
+                kind=ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED,
+                can_retry=False,
+                message="HTTP redirect limit exceeded before a final response was received.",
                 request_url=request_url,
                 request_method=request_method,
-                observed_status_code=observed_status_code,
-                include_status_code=False,
-            )
-
-        if isinstance(exc, (httpx.UnsupportedProtocol, httpx.LocalProtocolError)):
-            return mapper._build_upstream_error(
-                exc=exc,
-                status_code=400,
-                message=f"Upstream HTTP request is invalid: {type(exc).__name__}",
-                request_url=request_url,
-                request_method=request_method,
-                observed_status_code=observed_status_code,
-                include_status_code=False,
             )
 
         if isinstance(exc, httpx.DecodingError):
-            return mapper._build_upstream_error(
+            return mapper._build_network_transport_error(
                 exc=exc,
-                status_code=502,
-                message=f"Upstream HTTP response decoding failed: {type(exc).__name__}",
+                kind=ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED,
+                can_retry=True,
+                message="HTTP response from upstream could not be decoded.",
                 request_url=request_url,
                 request_method=request_method,
-                observed_status_code=observed_status_code,
-                include_status_code=False,
             )
 
         if isinstance(exc, httpx.TransportError):
-            return mapper._build_upstream_error(
+            return mapper._build_network_transport_error(
                 exc=exc,
-                status_code=503,
-                message=f"Upstream HTTP transport error: {type(exc).__name__}",
+                kind=ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNREACHABLE,
+                can_retry=True,
+                message="HTTP request failed before reaching the upstream service.",
                 request_url=request_url,
                 request_method=request_method,
-                observed_status_code=observed_status_code,
-                include_status_code=False,
             )
 
         if isinstance(exc, httpx.RequestError):
-            return mapper._build_upstream_error(
+            return mapper._build_network_transport_error(
                 exc=exc,
-                status_code=502,
-                message=f"Upstream HTTP request failed: {type(exc).__name__}",
+                kind=ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED,
+                can_retry=True,
+                message="HTTP request failed before a complete response was received.",
                 request_url=request_url,
                 request_method=request_method,
-                observed_status_code=observed_status_code,
-                include_status_code=False,
             )
 
         return None
@@ -373,19 +398,22 @@ class _RequestsExceptionHandler:
                 ConnectionError,
                 ContentDecodingError,
                 HTTPError,
+                InvalidHeader,
                 InvalidProxyURL,
                 InvalidSchema,
                 InvalidURL,
+                MissingSchema,
                 RequestException,
+                SSLError,
                 Timeout,
                 TooManyRedirects,
+                URLRequired,
             )
         except ImportError:
             return None
 
         request_url = None
         request_method = None
-        observed_status_code = None
         request = getattr(exc, "request", None)
         if request is not None:
             request_url_obj = getattr(request, "url", None)
@@ -396,9 +424,6 @@ class _RequestsExceptionHandler:
                 request_method = str(request_method_obj)
         response = getattr(exc, "response", None)
         if response is not None:
-            status_code_obj = getattr(response, "status_code", None)
-            if isinstance(status_code_obj, int):
-                observed_status_code = status_code_obj
             response_request = getattr(response, "request", None)
             if request_url is None and response_request is not None:
                 response_request_url = getattr(response_request, "url", None)
@@ -437,71 +462,83 @@ class _RequestsExceptionHandler:
                 request_method=request_method,
             )
 
+        # Construction bugs — tool built an invalid request or environment is
+        # misconfigured. Retrying will not help.
+        if isinstance(
+            exc,
+            (MissingSchema, InvalidSchema, InvalidURL, InvalidProxyURL, InvalidHeader, URLRequired),
+        ):
+            return mapper._build_construction_error(
+                exc=exc,
+                message="Tool constructed an invalid HTTP request — likely a tool-authoring bug.",
+                request_url=request_url,
+                request_method=request_method,
+            )
+
+        # TLS / cert / trust failures — typically a local configuration issue.
+        # (SSLError is a ConnectionError subclass, so it must be checked first.)
+        if isinstance(exc, SSLError):
+            return mapper._build_construction_error(
+                exc=exc,
+                message=(
+                    "TLS handshake failed — likely a local certificate or trust "
+                    "configuration issue."
+                ),
+                request_url=request_url,
+                request_method=request_method,
+            )
+
         # Order is intentional: specific subclasses before broad base classes.
+        # ``ConnectTimeout`` inherits from BOTH ``Timeout`` and ``ConnectionError`` —
+        # check ``Timeout`` first so it's classified as a timeout.
         if isinstance(exc, Timeout):
-            return mapper._build_upstream_error(
+            return mapper._build_network_transport_error(
                 exc=exc,
-                status_code=503,
-                message=f"Upstream HTTP request timed out before receiving a response: {type(exc).__name__}",
+                kind=ErrorKind.NETWORK_TRANSPORT_RUNTIME_TIMEOUT,
+                can_retry=True,
+                message="HTTP request timed out before a complete response was received.",
                 request_url=request_url,
                 request_method=request_method,
-                observed_status_code=observed_status_code,
-                include_status_code=False,
-            )
-
-        if isinstance(exc, TooManyRedirects):
-            return mapper._build_upstream_error(
-                exc=exc,
-                status_code=400,
-                message=f"Upstream HTTP request redirect limit exceeded: {type(exc).__name__}",
-                request_url=request_url,
-                request_method=request_method,
-                observed_status_code=observed_status_code,
-                include_status_code=False,
-            )
-
-        if isinstance(exc, (InvalidURL, InvalidSchema, InvalidProxyURL)):
-            return mapper._build_upstream_error(
-                exc=exc,
-                status_code=400,
-                message=f"Upstream HTTP request is invalid: {type(exc).__name__}",
-                request_url=request_url,
-                request_method=request_method,
-                observed_status_code=observed_status_code,
-                include_status_code=False,
-            )
-
-        if isinstance(exc, ContentDecodingError):
-            return mapper._build_upstream_error(
-                exc=exc,
-                status_code=502,
-                message=f"Upstream HTTP response decoding failed: {type(exc).__name__}",
-                request_url=request_url,
-                request_method=request_method,
-                observed_status_code=observed_status_code,
-                include_status_code=False,
             )
 
         if isinstance(exc, ConnectionError):
-            return mapper._build_upstream_error(
+            return mapper._build_network_transport_error(
                 exc=exc,
-                status_code=503,
-                message=f"Upstream HTTP transport error: {type(exc).__name__}",
+                kind=ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNREACHABLE,
+                can_retry=True,
+                message="HTTP request failed before reaching the upstream service.",
                 request_url=request_url,
                 request_method=request_method,
-                observed_status_code=observed_status_code,
-                include_status_code=False,
+            )
+
+        if isinstance(exc, ContentDecodingError):
+            return mapper._build_network_transport_error(
+                exc=exc,
+                kind=ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED,
+                can_retry=True,
+                message="HTTP response from upstream could not be decoded.",
+                request_url=request_url,
+                request_method=request_method,
+            )
+
+        if isinstance(exc, TooManyRedirects):
+            return mapper._build_network_transport_error(
+                exc=exc,
+                kind=ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED,
+                can_retry=False,
+                message="HTTP redirect limit exceeded before a final response was received.",
+                request_url=request_url,
+                request_method=request_method,
             )
 
         if isinstance(exc, RequestException):
-            return mapper._build_upstream_error(
+            return mapper._build_network_transport_error(
                 exc=exc,
-                status_code=502,
-                message=f"Upstream HTTP request failed: {type(exc).__name__}",
+                kind=ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED,
+                can_retry=True,
+                message="HTTP request failed before a complete response was received.",
                 request_url=request_url,
                 request_method=request_method,
-                observed_status_code=observed_status_code,
-                include_status_code=False,
             )
 
         return None
