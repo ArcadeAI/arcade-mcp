@@ -26,6 +26,9 @@ class ErrorKind(str, Enum):
     UPSTREAM_RUNTIME_RATE_LIMIT = "UPSTREAM_RUNTIME_RATE_LIMIT"
     UPSTREAM_RUNTIME_SERVER_ERROR = "UPSTREAM_RUNTIME_SERVER_ERROR"
     UPSTREAM_RUNTIME_UNMAPPED = "UPSTREAM_RUNTIME_UNMAPPED"
+    NETWORK_TRANSPORT_RUNTIME_TIMEOUT = "NETWORK_TRANSPORT_RUNTIME_TIMEOUT"
+    NETWORK_TRANSPORT_RUNTIME_UNREACHABLE = "NETWORK_TRANSPORT_RUNTIME_UNREACHABLE"
+    NETWORK_TRANSPORT_RUNTIME_UNMAPPED = "NETWORK_TRANSPORT_RUNTIME_UNMAPPED"
     UNKNOWN = "UNKNOWN"
 
 
@@ -92,6 +95,12 @@ class ToolkitError(Exception, ABC):
     def is_upstream_error(self) -> bool:
         """Check if this error originated from an upstream service."""
         return hasattr(self, "kind") and self.kind.name.startswith("UPSTREAM_")
+
+    @property
+    def is_network_transport_error(self) -> bool:
+        """Check if this error originated from a network-transport-level failure
+        (no complete response from the upstream was received)."""
+        return hasattr(self, "kind") and self.kind.name.startswith("NETWORK_TRANSPORT_")
 
     def __str__(self) -> str:
         return self.message
@@ -360,6 +369,45 @@ class UpstreamError(ToolExecutionError):
             self.kind = ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST
         else:
             self.kind = ErrorKind.UPSTREAM_RUNTIME_UNMAPPED
+
+
+# 4. ------  network-transport errors in tool body ------
+class NetworkTransportError(ToolExecutionError):
+    """
+    Error from a network-transport-level failure during tool execution.
+
+    Raised when a tool's outbound request could not complete an exchange with the
+    upstream service: the request either never reached the upstream, or a complete
+    response never came back. Covers timeouts, connection failures, DNS errors,
+    pool exhaustion, response decoding failures, and redirect-loop exhaustion.
+
+    Distinct from ``UpstreamError``: here the upstream never produced a complete
+    HTTP response, so no status code is available. Distinct from
+    ``FatalToolError``: the failure is a runtime transport issue (typically
+    transient) rather than a tool-authoring bug.
+    """
+
+    _ALLOWED_KIND_PREFIX = "NETWORK_TRANSPORT_"
+
+    def __init__(
+        self,
+        message: str,
+        developer_message: str | None = None,
+        *,
+        kind: ErrorKind = ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED,
+        can_retry: bool = True,
+        extra: dict[str, Any] | None = None,
+    ):
+        super().__init__(message, developer_message=developer_message, extra=extra)
+        if not kind.name.startswith(self._ALLOWED_KIND_PREFIX):
+            raise ValueError(
+                f"NetworkTransportError kind must start with "
+                f"{self._ALLOWED_KIND_PREFIX!r}, got {kind.name!r}"
+            )
+        self.kind = kind
+        self.can_retry = can_retry
+        # ``status_code`` intentionally left at its class default (``None``):
+        # no complete upstream response was received, so no HTTP status applies.
 
 
 class UpstreamRateLimitError(UpstreamError):
