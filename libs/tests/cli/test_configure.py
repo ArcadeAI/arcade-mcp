@@ -10,13 +10,17 @@ import pytest
 from arcade_cli.configure import (
     _format_path_for_display,
     _resolve_windows_appdata,
+    _upsert_codex_mcp_server,
     _warn_overwrite,
     configure_amazonq_arcade,
     configure_claude_arcade,
     configure_client,
     configure_client_gateway,
     configure_client_toolkit,
+    configure_codex_arcade,
     configure_cursor_arcade,
+    configure_gemini_arcade,
+    configure_opencode_arcade,
     configure_vscode_arcade,
     configure_windsurf_arcade,
     get_tool_secrets,
@@ -525,7 +529,7 @@ def test_claude_config_stdio_only(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
 
 
 class TestConfigureClaudeArcade:
-    def test_writes_gateway_url_and_headers(self, tmp_path: Path) -> None:
+    def test_writes_http_config(self, tmp_path: Path) -> None:
         config_path = tmp_path / "claude.json"
         configure_claude_arcade(
             server_name="my-gw",
@@ -535,13 +539,17 @@ class TestConfigureClaudeArcade:
         )
         config = _load_json(config_path)
         entry = config["mcpServers"]["my-gw"]
+        assert entry["type"] == "http"
         assert entry["url"] == "https://api.arcade.dev/mcp/my-gw"
         assert entry["headers"]["Authorization"] == "Bearer tok_abc"
 
     def test_preserves_existing_entries(self, tmp_path: Path) -> None:
         config_path = tmp_path / "claude.json"
         config_path.write_text(
-            json.dumps({"mcpServers": {"existing": {"command": "old"}}}),
+            json.dumps({
+                "projects": {"/some/path": {"mcpServers": {}}},
+                "mcpServers": {"existing": {"type": "http", "url": "https://old"}},
+            }),
             encoding="utf-8",
         )
         configure_claude_arcade(
@@ -553,6 +561,7 @@ class TestConfigureClaudeArcade:
         config = _load_json(config_path)
         assert "existing" in config["mcpServers"]
         assert "new-gw" in config["mcpServers"]
+        assert "projects" in config
 
 
 class TestConfigureCursorArcade:
@@ -819,3 +828,559 @@ class TestConfigureAmazonqArcade:
         config = _load_json(config_path)
         entry = config["mcpServers"]["my-gw"]
         assert entry["url"] == "https://api.arcade.dev/mcp/my-gw"
+
+
+# ---------------------------------------------------------------------------
+# Codex CLI
+# ---------------------------------------------------------------------------
+
+
+class TestUpsertCodexMcpServer:
+    def test_appends_when_missing(self) -> None:
+        result = _upsert_codex_mcp_server("", "arcade", {"url": "https://example.com/mcp"})
+        assert result == '[mcp_servers.arcade]\nurl = "https://example.com/mcp"\n'
+
+    def test_preserves_other_content(self) -> None:
+        existing = "# user config\nmodel = \"gpt-5\"\n\n[mcp_servers.other]\nurl = \"https://other\"\n"
+        result = _upsert_codex_mcp_server(
+            existing, "arcade", {"url": "https://arcade", "bearer_token": "tok"}
+        )
+        # Original content is preserved verbatim
+        assert "# user config" in result
+        assert 'model = "gpt-5"' in result
+        assert "[mcp_servers.other]" in result
+        assert 'url = "https://other"' in result
+        # New section added at the end
+        assert "[mcp_servers.arcade]" in result
+        assert 'url = "https://arcade"' in result
+        assert 'bearer_token = "tok"' in result
+
+    def test_replaces_existing_section(self) -> None:
+        existing = (
+            "[mcp_servers.arcade]\n"
+            'url = "https://old"\n'
+            'bearer_token = "old_tok"\n'
+            "\n"
+            "[mcp_servers.other]\n"
+            'url = "https://other"\n'
+        )
+        result = _upsert_codex_mcp_server(existing, "arcade", {"url": "https://new"})
+        # Old url/bearer_token are gone; new url is present
+        assert 'url = "https://old"' not in result
+        assert 'bearer_token = "old_tok"' not in result
+        assert 'url = "https://new"' in result
+        # Other section is untouched
+        assert "[mcp_servers.other]" in result
+        assert 'url = "https://other"' in result
+
+    def test_escapes_special_characters_in_values(self) -> None:
+        result = _upsert_codex_mcp_server(
+            "", "arcade", {"url": 'https://example.com/"weird"\\path'}
+        )
+        # Backslashes and quotes must be escaped per TOML basic-string rules
+        assert r'url = "https://example.com/\"weird\"\\path"' in result
+
+
+class TestConfigureCodexArcade:
+    def test_writes_url_only(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "codex_config.toml"
+        configure_codex_arcade(
+            server_name="my-gw",
+            gateway_url="https://api.arcade.dev/mcp/my-gw",
+            config_path=config_path,
+        )
+        content = config_path.read_text(encoding="utf-8")
+        assert "[mcp_servers.my-gw]" in content
+        assert 'url = "https://api.arcade.dev/mcp/my-gw"' in content
+        assert "bearer_token" not in content
+
+    def test_writes_bearer_token_when_auth_token_given(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "codex_config.toml"
+        configure_codex_arcade(
+            server_name="my-gw",
+            gateway_url="https://api.arcade.dev/mcp/my-gw",
+            auth_token="arc_abc",
+            config_path=config_path,
+        )
+        content = config_path.read_text(encoding="utf-8")
+        assert 'bearer_token = "arc_abc"' in content
+
+    def test_preserves_existing_config(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "codex_config.toml"
+        config_path.write_text(
+            'model = "gpt-5"\n\n[mcp_servers.keep]\nurl = "https://keep"\n',
+            encoding="utf-8",
+        )
+        configure_codex_arcade(
+            server_name="new-gw",
+            gateway_url="https://new",
+            config_path=config_path,
+        )
+        content = config_path.read_text(encoding="utf-8")
+        assert 'model = "gpt-5"' in content
+        assert "[mcp_servers.keep]" in content
+        assert 'url = "https://keep"' in content
+        assert "[mcp_servers.new-gw]" in content
+
+
+# ---------------------------------------------------------------------------
+# OpenCode
+# ---------------------------------------------------------------------------
+
+
+class TestConfigureOpencodeArcade:
+    def test_writes_remote_mcp_entry(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "opencode.json"
+        configure_opencode_arcade(
+            server_name="my-gw",
+            gateway_url="https://api.arcade.dev/mcp/my-gw",
+            config_path=config_path,
+        )
+        config = _load_json(config_path)
+        entry = config["mcp"]["my-gw"]
+        assert entry["type"] == "remote"
+        assert entry["url"] == "https://api.arcade.dev/mcp/my-gw"
+        assert entry["enabled"] is True
+        assert "headers" not in entry
+
+    def test_with_auth_token(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "opencode.json"
+        configure_opencode_arcade(
+            server_name="my-gw",
+            gateway_url="https://api.arcade.dev/mcp/my-gw",
+            auth_token="arc_test",
+            config_path=config_path,
+        )
+        config = _load_json(config_path)
+        assert config["mcp"]["my-gw"]["headers"]["Authorization"] == "Bearer arc_test"
+
+    def test_preserves_existing_entries(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "opencode.json"
+        config_path.write_text(
+            json.dumps({
+                "$schema": "https://opencode.ai/config.json",
+                "mcp": {"existing": {"type": "remote", "url": "https://old"}},
+                "theme": "dark",
+            }),
+            encoding="utf-8",
+        )
+        configure_opencode_arcade(
+            server_name="new-gw",
+            gateway_url="https://new",
+            config_path=config_path,
+        )
+        config = _load_json(config_path)
+        assert "existing" in config["mcp"]
+        assert "new-gw" in config["mcp"]
+        assert config["$schema"] == "https://opencode.ai/config.json"
+        assert config["theme"] == "dark"
+
+
+# ---------------------------------------------------------------------------
+# Gemini CLI
+# ---------------------------------------------------------------------------
+
+
+class TestConfigureGeminiArcade:
+    def test_writes_httpurl_entry(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "gemini.json"
+        configure_gemini_arcade(
+            server_name="my-gw",
+            gateway_url="https://api.arcade.dev/mcp/my-gw",
+            config_path=config_path,
+        )
+        config = _load_json(config_path)
+        entry = config["mcpServers"]["my-gw"]
+        assert entry["httpUrl"] == "https://api.arcade.dev/mcp/my-gw"
+        # Gemini CLI uses httpUrl (not url) for streamable HTTP
+        assert "url" not in entry
+        assert "headers" not in entry
+
+    def test_with_auth_token(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "gemini.json"
+        configure_gemini_arcade(
+            server_name="my-gw",
+            gateway_url="https://api.arcade.dev/mcp/my-gw",
+            auth_token="arc_test",
+            config_path=config_path,
+        )
+        config = _load_json(config_path)
+        assert config["mcpServers"]["my-gw"]["headers"]["Authorization"] == "Bearer arc_test"
+
+    def test_preserves_existing_entries(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "gemini.json"
+        config_path.write_text(
+            json.dumps({
+                "mcpServers": {"keep": {"httpUrl": "https://keep"}},
+                "theme": "Default",
+            }),
+            encoding="utf-8",
+        )
+        configure_gemini_arcade(
+            server_name="new-gw",
+            gateway_url="https://new",
+            config_path=config_path,
+        )
+        config = _load_json(config_path)
+        assert "keep" in config["mcpServers"]
+        assert "new-gw" in config["mcpServers"]
+        assert config["theme"] == "Default"
+
+
+# ---------------------------------------------------------------------------
+# configure_client_gateway dispatch for new clients
+# ---------------------------------------------------------------------------
+
+
+class TestConfigureClientGatewayNewClients:
+    def test_dispatches_to_codex(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "codex_config.toml"
+        configure_client_gateway(
+            client="codex",
+            server_name="my-gw",
+            gateway_url="https://api.arcade.dev/mcp/my-gw",
+            config_path=config_path,
+        )
+        content = config_path.read_text(encoding="utf-8")
+        assert "[mcp_servers.my-gw]" in content
+
+    def test_dispatches_to_opencode(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "opencode.json"
+        configure_client_gateway(
+            client="opencode",
+            server_name="my-gw",
+            gateway_url="https://api.arcade.dev/mcp/my-gw",
+            config_path=config_path,
+        )
+        assert "my-gw" in _load_json(config_path)["mcp"]
+
+    def test_dispatches_to_gemini(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "gemini.json"
+        configure_client_gateway(
+            client="gemini",
+            server_name="my-gw",
+            gateway_url="https://api.arcade.dev/mcp/my-gw",
+            config_path=config_path,
+        )
+        assert "my-gw" in _load_json(config_path)["mcpServers"]
+
+
+# ---------------------------------------------------------------------------
+# Preservation contract: configure_*_arcade must never delete or mutate any
+# pre-existing entry in the user's config. It may only add or replace the
+# single entry keyed by server_name. These tests compare the full original
+# config to the post-write config to prove no unrelated data was lost.
+# ---------------------------------------------------------------------------
+
+
+def _rich_claude_config() -> dict:
+    """Config that mimics the real ~/.claude.json: many top-level keys,
+    projects map with per-project mcpServers, and a user-scope mcpServers
+    with a pre-existing entry we must not disturb."""
+    return {
+        "numStartups": 42,
+        "userID": "abc-123",
+        "hasCompletedOnboarding": True,
+        "mcpServers": {
+            "keep-me": {"type": "http", "url": "https://keep.example.com/mcp"},
+            "also-keep": {
+                "type": "http",
+                "url": "https://also.example.com/mcp",
+                "headers": {"Authorization": "Bearer OLD_TOKEN"},
+            },
+        },
+        "projects": {
+            "/Users/me/project-a": {
+                "allowedTools": ["Read", "Write"],
+                "mcpServers": {
+                    "project-scoped": {"type": "http", "url": "https://proj.example"},
+                },
+                "hasTrustDialogAccepted": True,
+            },
+            "/Users/me/project-b": {
+                "mcpContextUris": [],
+                "lastCost": 0.12,
+            },
+        },
+        "oauthAccount": {"email": "user@example.com"},
+        "cachedDynamicConfigs": {"featureFlag": True},
+    }
+
+
+def _rich_opencode_config() -> dict:
+    return {
+        "$schema": "https://opencode.ai/config.json",
+        "theme": "github-dark",
+        "model": "claude-3-5-sonnet",
+        "mcp": {
+            "keep-me": {
+                "type": "remote",
+                "url": "https://keep.example.com",
+                "enabled": True,
+            },
+            "stdio-server": {
+                "type": "local",
+                "command": ["node", "server.js"],
+            },
+        },
+        "provider": {"anthropic": {"apiKey": "{env:ANTHROPIC_API_KEY}"}},
+        "experimental": {"something": True},
+    }
+
+
+def _rich_gemini_config() -> dict:
+    return {
+        "theme": "Default",
+        "selectedAuthType": "oauth-personal",
+        "mcpServers": {
+            "keep-me": {"httpUrl": "https://keep.example.com/mcp"},
+            "with-auth": {
+                "httpUrl": "https://auth.example.com/mcp",
+                "headers": {"Authorization": "Bearer OLD"},
+                "timeout": 10000,
+            },
+        },
+        "contextFileName": "GEMINI.md",
+        "fileFiltering": {"respectGitIgnore": True},
+    }
+
+
+def _rich_codex_toml() -> str:
+    """A realistic Codex config.toml with comments, top-level keys, other
+    server sections, and an unrelated table. All of this must survive."""
+    return (
+        "# User preferences for Codex\n"
+        'model = "gpt-5"\n'
+        'model_provider = "openai"\n'
+        "approval_policy = \"on-request\"\n"
+        "\n"
+        "[model_providers.openai]\n"
+        'name = "OpenAI"\n'
+        'base_url = "https://api.openai.com/v1"\n'
+        "\n"
+        "[mcp_servers.keep-me]\n"
+        'url = "https://keep.example.com/mcp"\n'
+        'bearer_token = "KEEP_TOKEN"\n'
+        "\n"
+        "# Another server, don't touch\n"
+        "[mcp_servers.also-keep]\n"
+        'url = "https://also.example.com/mcp"\n'
+        "\n"
+        "[shell_environment_policy]\n"
+        'inherit = "core"\n'
+    )
+
+
+def _assert_only_added(original: dict, updated: dict, parent_key: str, server_name: str) -> None:
+    """Assert that ``updated`` equals ``original`` except for a single new or
+    replaced entry at ``updated[parent_key][server_name]``. Every other key
+    and nested value at every depth must be byte-for-byte identical."""
+    # Top-level keys: same set
+    assert set(updated.keys()) == set(original.keys()), (
+        f"top-level keys changed: added {set(updated) - set(original)}, "
+        f"removed {set(original) - set(updated)}"
+    )
+    # Every top-level key except parent_key is deeply equal
+    for key in original:
+        if key == parent_key:
+            continue
+        assert updated[key] == original[key], f"key '{key}' was modified"
+    # Inside parent_key, every server except server_name is preserved exactly
+    for name, entry in original[parent_key].items():
+        if name == server_name:
+            continue
+        assert name in updated[parent_key], f"existing server '{name}' was deleted"
+        assert updated[parent_key][name] == entry, f"existing server '{name}' was mutated"
+
+
+class TestClaudePreservesEverything:
+    def test_preserves_full_original_config(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "claude.json"
+        original = _rich_claude_config()
+        config_path.write_text(json.dumps(original), encoding="utf-8")
+
+        configure_claude_arcade(
+            server_name="new-gw",
+            gateway_url="https://new.example/mcp",
+            auth_token="new_tok",
+            config_path=config_path,
+        )
+
+        updated = _load_json(config_path)
+        _assert_only_added(original, updated, "mcpServers", "new-gw")
+        # New entry has the expected shape
+        assert updated["mcpServers"]["new-gw"] == {
+            "type": "http",
+            "url": "https://new.example/mcp",
+            "headers": {"Authorization": "Bearer new_tok"},
+        }
+
+    def test_repeated_writes_accumulate(self, tmp_path: Path) -> None:
+        """Running connect twice with different names keeps both entries."""
+        config_path = tmp_path / "claude.json"
+        configure_claude_arcade(
+            server_name="first", gateway_url="https://first/mcp", config_path=config_path
+        )
+        configure_claude_arcade(
+            server_name="second", gateway_url="https://second/mcp", config_path=config_path
+        )
+        servers = _load_json(config_path)["mcpServers"]
+        assert set(servers) == {"first", "second"}
+        assert servers["first"]["url"] == "https://first/mcp"
+        assert servers["second"]["url"] == "https://second/mcp"
+
+    def test_replacing_same_name_leaves_others_intact(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "claude.json"
+        original = _rich_claude_config()
+        config_path.write_text(json.dumps(original), encoding="utf-8")
+
+        # Write the same server name twice — should only replace that one entry.
+        configure_claude_arcade(
+            server_name="keep-me", gateway_url="https://replacement/mcp", config_path=config_path
+        )
+        updated = _load_json(config_path)
+        # keep-me was replaced
+        assert updated["mcpServers"]["keep-me"] == {
+            "type": "http",
+            "url": "https://replacement/mcp",
+        }
+        # Everything else survived
+        assert updated["mcpServers"]["also-keep"] == original["mcpServers"]["also-keep"]
+        assert updated["projects"] == original["projects"]
+        assert updated["oauthAccount"] == original["oauthAccount"]
+
+
+class TestOpencodePreservesEverything:
+    def test_preserves_full_original_config(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "opencode.json"
+        original = _rich_opencode_config()
+        config_path.write_text(json.dumps(original), encoding="utf-8")
+
+        configure_opencode_arcade(
+            server_name="new-gw",
+            gateway_url="https://new.example/mcp",
+            auth_token="new_tok",
+            config_path=config_path,
+        )
+
+        updated = _load_json(config_path)
+        _assert_only_added(original, updated, "mcp", "new-gw")
+        assert updated["mcp"]["new-gw"] == {
+            "type": "remote",
+            "url": "https://new.example/mcp",
+            "enabled": True,
+            "headers": {"Authorization": "Bearer new_tok"},
+        }
+
+    def test_repeated_writes_accumulate(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "opencode.json"
+        configure_opencode_arcade(
+            server_name="first", gateway_url="https://first", config_path=config_path
+        )
+        configure_opencode_arcade(
+            server_name="second", gateway_url="https://second", config_path=config_path
+        )
+        entries = _load_json(config_path)["mcp"]
+        assert set(entries) == {"first", "second"}
+
+
+class TestGeminiPreservesEverything:
+    def test_preserves_full_original_config(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "gemini.json"
+        original = _rich_gemini_config()
+        config_path.write_text(json.dumps(original), encoding="utf-8")
+
+        configure_gemini_arcade(
+            server_name="new-gw",
+            gateway_url="https://new.example/mcp",
+            auth_token="new_tok",
+            config_path=config_path,
+        )
+
+        updated = _load_json(config_path)
+        _assert_only_added(original, updated, "mcpServers", "new-gw")
+        assert updated["mcpServers"]["new-gw"] == {
+            "httpUrl": "https://new.example/mcp",
+            "headers": {"Authorization": "Bearer new_tok"},
+        }
+
+    def test_repeated_writes_accumulate(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "gemini.json"
+        configure_gemini_arcade(
+            server_name="first", gateway_url="https://first", config_path=config_path
+        )
+        configure_gemini_arcade(
+            server_name="second", gateway_url="https://second", config_path=config_path
+        )
+        entries = _load_json(config_path)["mcpServers"]
+        assert set(entries) == {"first", "second"}
+
+
+class TestCodexPreservesEverything:
+    def test_preserves_full_original_toml(self, tmp_path: Path) -> None:
+        """Every line from the original TOML (comments, other tables, other
+        mcp_servers sections) must still be present after writing a new
+        ``[mcp_servers.new-gw]`` section."""
+        config_path = tmp_path / "codex_config.toml"
+        original = _rich_codex_toml()
+        config_path.write_text(original, encoding="utf-8")
+
+        configure_codex_arcade(
+            server_name="new-gw",
+            gateway_url="https://new.example/mcp",
+            auth_token="new_tok",
+            config_path=config_path,
+        )
+
+        updated = config_path.read_text(encoding="utf-8")
+        # Every non-empty line from the original must appear verbatim.
+        for line in original.splitlines():
+            if line == "":
+                continue
+            assert line in updated, f"Line lost from Codex config: {line!r}"
+        # And the new section was added.
+        assert "[mcp_servers.new-gw]" in updated
+        assert 'url = "https://new.example/mcp"' in updated
+        assert 'bearer_token = "new_tok"' in updated
+
+    def test_replacing_existing_leaves_sibling_sections_intact(self, tmp_path: Path) -> None:
+        """Replacing ``[mcp_servers.keep-me]`` must not disturb
+        ``[mcp_servers.also-keep]`` or unrelated tables."""
+        config_path = tmp_path / "codex_config.toml"
+        original = _rich_codex_toml()
+        config_path.write_text(original, encoding="utf-8")
+
+        configure_codex_arcade(
+            server_name="keep-me",
+            gateway_url="https://replacement/mcp",
+            config_path=config_path,
+        )
+
+        updated = config_path.read_text(encoding="utf-8")
+        # The old URL and token for keep-me are gone (replaced).
+        assert 'url = "https://keep.example.com/mcp"' not in updated
+        assert "KEEP_TOKEN" not in updated
+        # The replacement is present.
+        assert 'url = "https://replacement/mcp"' in updated
+        # Sibling section survives intact.
+        assert "[mcp_servers.also-keep]" in updated
+        assert 'url = "https://also.example.com/mcp"' in updated
+        # Non-mcp tables and top-level keys survive.
+        assert "[model_providers.openai]" in updated
+        assert 'model = "gpt-5"' in updated
+        assert "[shell_environment_policy]" in updated
+        assert "# User preferences for Codex" in updated
+
+    def test_repeated_writes_accumulate(self, tmp_path: Path) -> None:
+        config_path = tmp_path / "codex_config.toml"
+        configure_codex_arcade(
+            server_name="first", gateway_url="https://first", config_path=config_path
+        )
+        configure_codex_arcade(
+            server_name="second", gateway_url="https://second", config_path=config_path
+        )
+        content = config_path.read_text(encoding="utf-8")
+        assert "[mcp_servers.first]" in content
+        assert "[mcp_servers.second]" in content
+        assert 'url = "https://first"' in content
+        assert 'url = "https://second"' in content
