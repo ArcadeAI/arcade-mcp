@@ -1,8 +1,30 @@
+import logging
 from typing import Any
 
 import pytest
+from arcade_core import output as output_module
 from arcade_core.output import ToolOutputFactory
 from pydantic import BaseModel
+
+_LEAK_MAGIC = "yes-i-accept-leaking-internals-to-the-agent"
+_ENV_DEV_MSG = "ARCADE_UNSAFE_DEBUG_LEAK_DEVELOPER_MESSAGE_TO_AGENT"
+_ENV_STACKTRACE = "ARCADE_UNSAFE_DEBUG_LEAK_STACKTRACE_TO_AGENT"
+
+
+@pytest.fixture(autouse=True)
+def _reset_leak_warn_state(monkeypatch):
+    """Clear the per-process one-shot warning state so each test starts clean.
+
+    The debug-leak flags emit a loud warning on first activation per process.
+    Without a reset, later tests in this module would silently lose coverage of
+    that warning branch because the module-level ``_warned_flags`` set is already
+    populated from earlier tests.
+    """
+    monkeypatch.delenv(_ENV_DEV_MSG, raising=False)
+    monkeypatch.delenv(_ENV_STACKTRACE, raising=False)
+    output_module._warned_flags.clear()
+    yield
+    output_module._warned_flags.clear()
 
 
 @pytest.fixture
@@ -160,3 +182,140 @@ def test_fail_retry(
     assert output.error.can_retry is True
     assert output.error.additional_prompt_content == additional_prompt_content
     assert output.error.retry_after_ms == retry_after_ms
+
+
+# --- Debug-leak flag tests ----------------------------------------------------
+
+
+def test_fail_no_leak_by_default(output_factory):
+    """With both flags unset, message must not be augmented."""
+    output = output_factory.fail(
+        message="public error",
+        developer_message="secret internals",
+        stacktrace="Traceback...\n  line",
+    )
+    assert output.error is not None
+    assert output.error.message == "public error"
+    assert output.error.developer_message == "secret internals"
+    assert output.error.stacktrace == "Traceback...\n  line"
+
+
+@pytest.mark.parametrize("bad_value", ["true", "1", "yes", "on", "TRUE", "True"])
+def test_fail_rejects_boolean_activation(output_factory, monkeypatch, caplog, bad_value):
+    """Any truthy-looking value that isn't the magic string must be rejected."""
+    monkeypatch.setenv(_ENV_DEV_MSG, bad_value)
+    with caplog.at_level(logging.WARNING, logger="arcade_core.output"):
+        output = output_factory.fail(
+            message="public error",
+            developer_message="secret internals",
+        )
+    assert output.error is not None
+    assert output.error.message == "public error"
+    assert any(
+        "set to a truthy value but not to the required" in rec.message for rec in caplog.records
+    )
+
+
+def test_fail_rejects_random_non_magic_value(output_factory, monkeypatch, caplog):
+    """A non-boolean-looking value that isn't the magic string is silently off."""
+    monkeypatch.setenv(_ENV_DEV_MSG, "debug-please")
+    with caplog.at_level(logging.WARNING, logger="arcade_core.output"):
+        output = output_factory.fail(
+            message="public error",
+            developer_message="secret internals",
+        )
+    assert output.error is not None
+    assert output.error.message == "public error"
+    # No "truthy but not magic" warning for non-bool-looking values.
+    assert not any(
+        "set to a truthy value but not to the required" in rec.message for rec in caplog.records
+    )
+
+
+def test_fail_developer_message_flag_enabled(output_factory, monkeypatch, caplog):
+    monkeypatch.setenv(_ENV_DEV_MSG, _LEAK_MAGIC)
+    with caplog.at_level(logging.WARNING, logger="arcade_core.output"):
+        output = output_factory.fail(
+            message="public error",
+            developer_message="secret internals",
+            stacktrace="trace",
+        )
+    assert output.error is not None
+    assert "public error" in output.error.message
+    assert "[DEBUG] developer_message: secret internals" in output.error.message
+    # Stacktrace flag is off → stacktrace must NOT be in the message.
+    assert "trace" not in output.error.message.replace("public error", "")
+    # developer_message field is preserved regardless.
+    assert output.error.developer_message == "secret internals"
+    assert any("is ENABLED" in rec.message for rec in caplog.records)
+
+
+def test_fail_stacktrace_flag_enabled(output_factory, monkeypatch):
+    monkeypatch.setenv(_ENV_STACKTRACE, _LEAK_MAGIC)
+    output = output_factory.fail(
+        message="public error",
+        developer_message="secret internals",
+        stacktrace="Traceback (most recent call last):\n  File ...",
+    )
+    assert output.error is not None
+    assert "public error" in output.error.message
+    assert "[DEBUG] stacktrace:" in output.error.message
+    assert "File ..." in output.error.message
+    # Developer-message flag off → dev message must NOT leak into message.
+    assert "secret internals" not in output.error.message
+
+
+def test_fail_both_flags_enabled(output_factory, monkeypatch):
+    monkeypatch.setenv(_ENV_DEV_MSG, _LEAK_MAGIC)
+    monkeypatch.setenv(_ENV_STACKTRACE, _LEAK_MAGIC)
+    output = output_factory.fail(
+        message="public error",
+        developer_message="dev info",
+        stacktrace="trace info",
+    )
+    assert output.error is not None
+    assert "[DEBUG] developer_message: dev info" in output.error.message
+    assert "[DEBUG] stacktrace:\ntrace info" in output.error.message
+
+
+def test_fail_flag_enabled_but_no_content_to_leak(output_factory, monkeypatch):
+    """Flag on but developer_message/stacktrace are None → message unchanged."""
+    monkeypatch.setenv(_ENV_DEV_MSG, _LEAK_MAGIC)
+    monkeypatch.setenv(_ENV_STACKTRACE, _LEAK_MAGIC)
+    output = output_factory.fail(message="public error")
+    assert output.error is not None
+    assert output.error.message == "public error"
+
+
+def test_fail_activation_warning_emitted_once_per_process(output_factory, monkeypatch, caplog):
+    """Second call with the flag on must NOT emit another activation warning."""
+    monkeypatch.setenv(_ENV_DEV_MSG, _LEAK_MAGIC)
+    with caplog.at_level(logging.WARNING, logger="arcade_core.output"):
+        output_factory.fail(message="a", developer_message="dev")
+        first_count = sum("is ENABLED" in r.message for r in caplog.records)
+        output_factory.fail(message="b", developer_message="dev")
+        second_count = sum("is ENABLED" in r.message for r in caplog.records)
+    assert first_count == 1
+    assert second_count == 1  # still one — one-shot per process.
+
+
+def test_fail_retry_honors_developer_message_flag(output_factory, monkeypatch):
+    monkeypatch.setenv(_ENV_DEV_MSG, _LEAK_MAGIC)
+    output = output_factory.fail_retry(
+        message="retry error",
+        developer_message="retry internals",
+    )
+    assert output.error is not None
+    assert "[DEBUG] developer_message: retry internals" in output.error.message
+    assert output.error.can_retry is True
+
+
+def test_fail_magic_value_ignores_surrounding_whitespace(output_factory, monkeypatch):
+    """Leading/trailing whitespace around the magic string still activates the flag."""
+    monkeypatch.setenv(_ENV_DEV_MSG, f"  {_LEAK_MAGIC}  ")
+    output = output_factory.fail(
+        message="public error",
+        developer_message="secret internals",
+    )
+    assert output.error is not None
+    assert "[DEBUG] developer_message: secret internals" in output.error.message
