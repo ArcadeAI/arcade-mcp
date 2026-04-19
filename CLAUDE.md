@@ -253,6 +253,17 @@ The `arcade` CLI (`libs/arcade-cli/arcade_cli/main.py`) is typer-based. Key comm
 | `ARCADE_DISABLE_AUTOUPDATE=1` | Disable CLI auto-update checks |
 | Any non-`MCP_`/`_` prefixed var | Automatically available as a tool secret via `context.get_secret()` |
 
+### Unsafe debug-only leak flags (toolkit authors)
+
+These intentionally bypass the `developer_message`/`stacktrace` safety boundary and append that content to the agent-facing `ToolCallError.message`. Use ONLY for local toolkit debugging. Both require the exact value `yes-i-accept-leaking-internals-to-the-agent` (nothing else is accepted — `true`, `1`, etc. are rejected and log a warning). Each logs a loud WARNING on first activation. Implemented in `libs/arcade-core/arcade_core/output.py`.
+
+| Env var | Effect when set to the magic ack value |
+|---------|-----------------------------------------|
+| `ARCADE_UNSAFE_DEBUG_LEAK_DEVELOPER_MESSAGE_TO_AGENT` | Appends `developer_message` to agent-facing error `message` |
+| `ARCADE_UNSAFE_DEBUG_LEAK_STACKTRACE_TO_AGENT` | Appends the tool stacktrace to agent-facing error `message` |
+
+**Never enable in production.** Messages can reach the model, be persisted in transcripts, and surface in end-user UIs.
+
 ## Project Layout
 
 - `libs/arcade-*/` — Core libraries, each with own `pyproject.toml` (except cli/evals → root)
