@@ -44,9 +44,12 @@ _DEBUG_LEAK_MAGIC = "yes-i-accept-leaking-internals-to-the-agent"
 _ENV_LEAK_DEVELOPER_MESSAGE = "ARCADE_UNSAFE_DEBUG_LEAK_DEVELOPER_MESSAGE_TO_AGENT"
 _ENV_LEAK_STACKTRACE = "ARCADE_UNSAFE_DEBUG_LEAK_STACKTRACE_TO_AGENT"
 
-# Track whether we've already shouted about a given leak being on, so the
-# warning only fires once per process per flag.
-_warned_flags: set[str] = set()
+# Track one-shot warning state per flag. The rejection warning (truthy but
+# not the magic string) and the activation warning (magic string set) are
+# tracked in *separate* sets so that fixing a misconfigured flag within the
+# same process still fires the critical activation warning.
+_warned_rejected: set[str] = set()
+_warned_activated: set[str] = set()
 
 
 def _leak_enabled(env_var: str) -> bool:
@@ -57,16 +60,16 @@ def _leak_enabled(env_var: str) -> bool:
         # A value is set but it isn't the magic ack. Treat as off and, if it
         # looks like someone tried a boolean, nudge them via a log so the
         # silence isn't confusing.
-        if raw.strip().lower() in {"1", "true", "yes", "on"} and env_var not in _warned_flags:
-            _warned_flags.add(env_var)
+        if raw.strip().lower() in {"1", "true", "yes", "on"} and env_var not in _warned_rejected:
+            _warned_rejected.add(env_var)
             _logger.warning(
                 "%s is set to a truthy value but not to the required "
                 "acknowledgement string. Flag remains OFF. See arcade_core/output.py.",
                 env_var,
             )
         return False
-    if env_var not in _warned_flags:
-        _warned_flags.add(env_var)
+    if env_var not in _warned_activated:
+        _warned_activated.add(env_var)
         _logger.warning(
             "%s is ENABLED. Tool error internals will be appended to agent-facing "
             "messages. This can leak paths, tokens, or PII to the model and any "

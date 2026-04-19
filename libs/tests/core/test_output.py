@@ -15,16 +15,19 @@ _ENV_STACKTRACE = "ARCADE_UNSAFE_DEBUG_LEAK_STACKTRACE_TO_AGENT"
 def _reset_leak_warn_state(monkeypatch):
     """Clear the per-process one-shot warning state so each test starts clean.
 
-    The debug-leak flags emit a loud warning on first activation per process.
-    Without a reset, later tests in this module would silently lose coverage of
-    that warning branch because the module-level ``_warned_flags`` set is already
-    populated from earlier tests.
+    The debug-leak flags emit a loud warning on first activation per process,
+    and a separate warning when a truthy-but-non-magic value is rejected. Both
+    are one-shot per flag. Without a reset, later tests in this module would
+    silently lose coverage of either branch because the module-level tracking
+    sets are already populated from earlier tests.
     """
     monkeypatch.delenv(_ENV_DEV_MSG, raising=False)
     monkeypatch.delenv(_ENV_STACKTRACE, raising=False)
-    output_module._warned_flags.clear()
+    output_module._warned_rejected.clear()
+    output_module._warned_activated.clear()
     yield
-    output_module._warned_flags.clear()
+    output_module._warned_rejected.clear()
+    output_module._warned_activated.clear()
 
 
 @pytest.fixture
@@ -297,6 +300,45 @@ def test_fail_activation_warning_emitted_once_per_process(output_factory, monkey
         second_count = sum("is ENABLED" in r.message for r in caplog.records)
     assert first_count == 1
     assert second_count == 1  # still one — one-shot per process.
+
+
+def test_fail_rejection_does_not_suppress_later_activation_warning(
+    output_factory, monkeypatch, caplog
+):
+    """Regression: once a truthy-but-non-magic value has been rejected for a
+    flag, correcting the value to the magic string within the same process
+    must still emit the critical "ENABLED ... DO NOT USE IN PRODUCTION"
+    warning. Previously both paths shared one state set, so the activation
+    warning was silently swallowed in this scenario.
+    """
+    with caplog.at_level(logging.WARNING, logger="arcade_core.output"):
+        # 1. Misconfigure with a truthy value → rejection warning fires, flag OFF.
+        monkeypatch.setenv(_ENV_DEV_MSG, "true")
+        out_rejected = output_factory.fail(
+            message="public error",
+            developer_message="secret internals",
+        )
+        assert out_rejected.error is not None
+        assert "[DEBUG]" not in out_rejected.error.message
+        rejection_count = sum(
+            "set to a truthy value but not to the required" in r.message
+            for r in caplog.records
+        )
+        assert rejection_count == 1
+
+        # 2. Correct to the magic string → activation warning MUST fire.
+        monkeypatch.setenv(_ENV_DEV_MSG, _LEAK_MAGIC)
+        out_activated = output_factory.fail(
+            message="public error",
+            developer_message="secret internals",
+        )
+        assert out_activated.error is not None
+        assert "[DEBUG] developer_message: secret internals" in out_activated.error.message
+        activation_count = sum("is ENABLED" in r.message for r in caplog.records)
+        assert activation_count == 1, (
+            "activation warning must fire even after the rejection warning "
+            "has already been emitted for the same flag in this process"
+        )
 
 
 def test_fail_retry_honors_developer_message_flag(output_factory, monkeypatch):
