@@ -130,9 +130,10 @@ Each mode's rubric:
 Per-criterion contributions are returned in `result["criteria_breakdown"]`
 so you can audit which axis drove the final score.
 
-To opt out and use the legacy free-score prompt (e.g. if you're prompt-
-tuning), pass `use_rubric=False`. `CUSTOM` mode always uses free-score
-since the user provides the criteria.
+For user-defined criteria that don't fit a rubric, use `SmartCriticMode.CUSTOM`
+and supply a `criteria_prompt`. CUSTOM mode asks the judge for a single
+float score in `[0, 1]` (no rubric), since arbitrary user criteria can't
+be mapped to a fixed set of sub-questions.
 
 #### Judge model recommendations
 

@@ -1,19 +1,19 @@
 """Prompt templates and rubric definitions for :class:`SmartCritic`.
 
-This module defines two styles of prompting:
+Two prompt styles, one per mode family:
 
-* **Rubric style (default for built-in modes).** The judge LLM answers a
-  fixed set of 3 positively-phrased sub-criteria with discrete values
+* **Rubric style (every built-in mode).** The judge answers a fixed set
+  of 3 positively-phrased sub-criteria with discrete values
   (``"yes"`` / ``"partial"`` / ``"no"``). The final score is computed
   deterministically in Python as a weighted sum, eliminating the "judge
-  picks a number out of thin air" source of variance.
+  picks a number out of thin air" source of variance. Each mode's
+  rubric weights sum to 1.0, so the unweighted score lies in
+  ``[0.0, 1.0]`` before being scaled by the critic's own weight.
 
-* **Legacy free-score style (for CUSTOM mode and user-overridden prompts).**
-  The judge returns a single float in ``[0, 1]``. Less deterministic but
-  more flexible — lets the user specify any criteria they want.
-
-Rubric weights for each built-in mode sum to 1.0, so the final score is in
-``[0.0, 1.0]`` before being multiplied by the critic's own ``resolved_weight``.
+* **Free-score style (CUSTOM mode only).** When the user supplies their
+  own criteria via ``criteria_prompt``, the judge returns a single float
+  in ``[0, 1]`` because arbitrary user criteria don't map to a fixed
+  rubric. Less deterministic than rubric mode, but flexible.
 """
 
 from __future__ import annotations
@@ -34,8 +34,8 @@ DEFAULT_SYSTEM_PROMPT = (
     "fences, no commentary."
 )
 
-# Legacy-style output instructions (for CUSTOM mode or user overrides).
-OUTPUT_FORMAT_INSTRUCTIONS = (
+# Output instructions for CUSTOM mode — the one remaining free-score path.
+CUSTOM_OUTPUT_FORMAT_INSTRUCTIONS = (
     "\n\nRespond with ONLY a JSON object in this exact shape:\n"
     '{"score": <float between 0.0 and 1.0>, "reasoning": "<one short sentence>"}\n'
     "Do not include any text before or after the JSON object. Do not wrap it "
@@ -208,48 +208,9 @@ MODE_RUBRICS: dict[SmartCriticMode, tuple[RubricCriterion, ...]] = {
 }
 
 
-# ---------------------------------------------------------------------------
-# Legacy free-score criteria (only used by CUSTOM mode now, and as a
-# reference for anyone overriding criteria_prompt in a pre-rubric way).
-# ---------------------------------------------------------------------------
-
-_LEGACY_SIMILARITY = (
-    "Rate how semantically similar the ACTUAL value is to the EXPECTED value. "
-    "Use 1.0 for identical meaning, 0.0 for completely unrelated, and "
-    "intermediate values for partial matches. Ignore superficial formatting "
-    "differences (case, whitespace, punctuation)."
-)
-_LEGACY_CORRECTNESS = (
-    "Rate how factually correct the ACTUAL value is compared to the EXPECTED "
-    "ground truth. Use 1.0 for fully correct, 0.0 for completely wrong, and "
-    "intermediate values when only part of the value is correct."
-)
-_LEGACY_RELEVANCE = (
-    "Rate how relevant the ACTUAL value is to the EXPECTED topic/intent. Use "
-    "1.0 for perfectly on-topic, 0.0 for totally off-topic, and intermediate "
-    "values for tangentially related content."
-)
-_LEGACY_COMPLETENESS = (
-    "Rate how completely the ACTUAL value covers the information present in "
-    "the EXPECTED value. Use 1.0 when every important aspect is covered, 0.0 "
-    "when nothing is covered, and intermediate values for partial coverage."
-)
-_LEGACY_COHERENCE = (
-    "Rate the logical consistency, clarity, and internal coherence of the "
-    "ACTUAL value. Use the EXPECTED value as a reference for the required "
-    "level of coherence. Use 1.0 for fully coherent, 0.0 for incoherent."
-)
-
-# Kept exported for backward compatibility — tests that imported MODE_CRITERIA
-# still work, and users who explicitly want the old free-score prompt can pass
-# these through ``criteria_prompt=...``.
-MODE_CRITERIA: dict[SmartCriticMode, str] = {
-    SmartCriticMode.SIMILARITY: _LEGACY_SIMILARITY,
-    SmartCriticMode.CORRECTNESS: _LEGACY_CORRECTNESS,
-    SmartCriticMode.RELEVANCE: _LEGACY_RELEVANCE,
-    SmartCriticMode.COMPLETENESS: _LEGACY_COMPLETENESS,
-    SmartCriticMode.COHERENCE: _LEGACY_COHERENCE,
-}
+# No per-mode free-score prompts remain: built-in modes always use the
+# rubric. The only free-score path is `CUSTOM` mode, where the user
+# supplies the criteria text via ``SmartCritic.criteria_prompt``.
 
 
 # ---------------------------------------------------------------------------
@@ -260,7 +221,7 @@ MODE_CRITERIA: dict[SmartCriticMode, str] = {
 def build_user_message(criteria: str, expected: object, actual: object) -> str:
     """Render the judge user message given a criteria block and the values.
 
-    Used by both rubric and legacy prompt paths.
+    Used by both rubric and CUSTOM-mode prompt paths.
     """
     return f"{criteria}\n\nEXPECTED:\n{expected!r}\n\nACTUAL:\n{actual!r}"
 
@@ -314,7 +275,28 @@ def score_rubric_response(
 
 
 def _normalize_rubric_value(raw: object) -> str:
-    """Coerce common judge-output variants to our canonical yes/partial/no."""
+    """Coerce common judge-output variants to our canonical yes/partial/no.
+
+    Handles:
+    * ``"yes"`` / ``"no"`` / ``"partial"`` (canonical)
+    * JSON booleans — some models emit ``true`` / ``false`` despite the
+      prompt asking for strings. Without this branch, ``json.loads`` turns
+      those into Python ``bool`` and every criterion silently scores 0.
+    * Synonyms like ``"partially"``, ``"somewhat"``, ``"maybe"``.
+    * Numeric ``1`` / ``0`` (handled via the string-cast branch).
+    """
+    # bool must be checked BEFORE str, because bool is a subclass of int
+    # (so ``True`` is falsy under ``isinstance(x, str)`` but passes any
+    # numeric cast). Judges occasionally return `{"key": true}`.
+    if isinstance(raw, bool):
+        return "yes" if raw else "no"
+    if isinstance(raw, (int, float)):
+        # 1 → yes, 0 → no, anything else → partial (0 < x < 1) or no.
+        if raw >= 1:
+            return "yes"
+        if raw <= 0:
+            return "no"
+        return "partial"
     if not isinstance(raw, str):
         return "no"
     s = raw.strip().lower()

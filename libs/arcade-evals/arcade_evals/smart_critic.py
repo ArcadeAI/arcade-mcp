@@ -35,10 +35,9 @@ from typing import Any, ClassVar
 from arcade_evals.critic import Critic
 from arcade_evals.smart_critic_mode import SmartCriticMode
 from arcade_evals.smart_critic_prompts import (
+    CUSTOM_OUTPUT_FORMAT_INSTRUCTIONS,
     DEFAULT_SYSTEM_PROMPT,
-    MODE_CRITERIA,
     MODE_RUBRICS,
-    OUTPUT_FORMAT_INSTRUCTIONS,
     RubricCriterion,
     build_rubric_output_instructions,
     build_user_message,
@@ -58,19 +57,27 @@ _ENV_KEY_FOR_PROVIDER = {
 class SmartCritic(Critic):
     """LLM-based critic for semantic / qualitative scoring.
 
+    Every built-in :class:`SmartCriticMode` (SIMILARITY, CORRECTNESS,
+    RELEVANCE, COMPLETENESS, COHERENCE) uses a fixed yes/partial/no rubric
+    whose final score is computed deterministically in Python. Only
+    :attr:`SmartCriticMode.CUSTOM` takes a free-form ``criteria_prompt``
+    and returns a single float score directly from the judge.
+
     Args:
         critic_field: Name of the tool-call argument this critic evaluates.
         weight: Weight for this critic (float or :class:`FuzzyWeight`).
-        mode: Which default evaluation criteria to use. For
-            :attr:`SmartCriticMode.CUSTOM`, ``criteria_prompt`` is required.
+        mode: Which built-in evaluation rubric to use, or CUSTOM for a
+            user-defined prompt. CUSTOM requires ``criteria_prompt``.
         judge_provider: Override provider for the judge LLM (``"openai"`` or
             ``"anthropic"``). If not set, the eval's provider is used.
         judge_model: Override model for the judge LLM. If not set, the eval's
             model is used.
-        system_prompt: Override the default system prompt. The output-format
-            instructions are always appended so parsing still works.
-        criteria_prompt: Override the mode-specific criteria block. Required
-            when ``mode is SmartCriticMode.CUSTOM``.
+        system_prompt: Override the default judge system prompt. The
+            output-format contract (rubric or free-score) is always appended
+            so parsing still works.
+        criteria_prompt: User-defined criteria text. Required when
+            ``mode is SmartCriticMode.CUSTOM``; rejected otherwise (use
+            CUSTOM mode if you need custom criteria).
         match_threshold: Score (after clamping to [0, 1], before weighting)
             at which :meth:`async_evaluate` reports a match.
     """
@@ -81,12 +88,6 @@ class SmartCritic(Critic):
     system_prompt: str | None = None
     criteria_prompt: str | None = None
     match_threshold: float = 0.7
-    #: When True (default for built-in non-CUSTOM modes), the judge answers a
-    #: fixed yes/partial/no rubric and the final score is computed
-    #: deterministically in Python. Reduces variance substantially. When
-    #: False, or when ``criteria_prompt`` is set, the judge returns a single
-    #: free-form score in ``[0, 1]`` instead (legacy behavior).
-    use_rubric: bool = True
 
     # Runtime context injected by EvalSuite before evaluation. Init=False so
     # they aren't part of the constructor signature.
@@ -103,10 +104,21 @@ class SmartCritic(Critic):
 
     def __post_init__(self) -> None:
         super().__post_init__()
-        if self.mode is SmartCriticMode.CUSTOM and not self.criteria_prompt:
+        if self.mode is SmartCriticMode.CUSTOM:
+            if not self.criteria_prompt:
+                raise ValueError(
+                    "CUSTOM mode requires a 'criteria_prompt' describing how "
+                    "to evaluate the actual vs expected value."
+                )
+        elif self.criteria_prompt is not None:
+            # Built-in modes use their fixed rubric; accepting a free-form
+            # criteria_prompt here would silently bypass the rubric's
+            # determinism. Force the user to pick CUSTOM if they really want
+            # their own text.
             raise ValueError(
-                "CUSTOM mode requires a 'criteria_prompt' describing how to "
-                "evaluate the actual vs expected value."
+                "criteria_prompt is only valid for SmartCriticMode.CUSTOM. "
+                "Built-in modes use their fixed rubric; switch to CUSTOM "
+                "mode if you need user-defined criteria."
             )
 
     # ------------------------------------------------------------------
@@ -201,15 +213,11 @@ class SmartCritic(Critic):
     # Prompt building
     # ------------------------------------------------------------------
     def _rubric(self) -> tuple[RubricCriterion, ...] | None:
-        """Return the rubric for this critic, or None if legacy-style.
+        """Return the rubric for this critic, or None for CUSTOM mode.
 
-        Rubric scoring is used when:
-        * ``self.use_rubric`` is True (the default), AND
-        * ``self.criteria_prompt`` is NOT set (custom criteria use free-score), AND
-        * the mode has a rubric defined (``MODE_RUBRICS``; CUSTOM does not).
+        Only :attr:`SmartCriticMode.CUSTOM` has no rubric — every other
+        built-in mode is rubric-scored.
         """
-        if not self.use_rubric or self.criteria_prompt:
-            return None
         return MODE_RUBRICS.get(self.mode)
 
     def _build_prompt(self, expected: Any, actual: Any) -> tuple[str, str]:
@@ -219,9 +227,9 @@ class SmartCritic(Critic):
         prompt — users overriding ``system_prompt`` don't need to remember
         to include them, which keeps response parsing reliable.
 
-        When a rubric is active, the system prompt lists the sub-criteria
-        and their allowed yes/partial/no values, and the user message only
-        carries the expected/actual values.
+        Rubric modes emit the rubric's yes/partial/no contract in the
+        system prompt and carry the values in the user message. CUSTOM
+        mode inlines the user's criteria and uses the free-score contract.
         """
         base_system = self.system_prompt or DEFAULT_SYSTEM_PROMPT
         rubric = self._rubric()
@@ -235,9 +243,12 @@ class SmartCritic(Critic):
                 actual,
             )
         else:
-            system = base_system + OUTPUT_FORMAT_INSTRUCTIONS
-            criteria = self.criteria_prompt or MODE_CRITERIA[self.mode]
-            user = build_user_message(criteria, expected, actual)
+            # CUSTOM mode — __post_init__ guaranteed criteria_prompt is set.
+            # Default to empty string in the type narrower just for mypy;
+            # the path is unreachable at runtime thanks to __post_init__.
+            criteria_prompt = self.criteria_prompt or ""
+            system = base_system + CUSTOM_OUTPUT_FORMAT_INSTRUCTIONS
+            user = build_user_message(criteria_prompt, expected, actual)
 
         return system, user
 
@@ -266,7 +277,7 @@ class SmartCritic(Critic):
         4. Fallback — score 0.0, reasoning explains the parse failure.
 
         When rubric mode is active, step 5 applies the rubric aggregation;
-        otherwise we read a legacy ``score`` float.
+        otherwise (CUSTOM mode only) we read a free-score ``score`` float.
         """
         payload = self._try_parse_json(text)
         if payload is None:
@@ -310,17 +321,10 @@ class SmartCritic(Critic):
         return parsed if isinstance(parsed, dict) else None
 
     # ------------------------------------------------------------------
-    # Evaluation
+    # Evaluation — async_evaluate is the primary entry point; the sync
+    # evaluate() below exists only as a clear error surface for callers
+    # that haven't migrated to the async path yet.
     # ------------------------------------------------------------------
-    def evaluate(self, expected: Any, actual: Any) -> dict[str, Any]:
-        """Sync entry point — smart critics require async evaluation."""
-        raise RuntimeError(
-            "SmartCritic requires async evaluation. It is called automatically "
-            "via EvalCase.evaluate_async() during EvalSuite.run(); if you are "
-            "invoking a critic directly in a test, use "
-            "'await critic.async_evaluate(...)' instead."
-        )
-
     async def async_evaluate(self, expected: Any, actual: Any) -> dict[str, Any]:
         """Call the judge LLM and return the scored result dict.
 
@@ -332,7 +336,7 @@ class SmartCritic(Critic):
         * ``comment``: str, the judge's one-line reasoning.
         * ``criteria_breakdown``: dict[str, float] when rubric mode is
           active — per-criterion weighted contributions to the raw score.
-          Absent when using legacy free-score mode.
+          Absent in CUSTOM mode (which uses the free-score prompt).
         """
         provider, model = self._resolve_judge()
         api_key = self._resolve_api_key(provider)
@@ -352,6 +356,21 @@ class SmartCritic(Critic):
         if breakdown is not None:
             result["criteria_breakdown"] = breakdown
         return result
+
+    def evaluate(self, expected: Any, actual: Any) -> dict[str, Any]:
+        """Sync entry point — smart critics require async evaluation.
+
+        Kept adjacent to :meth:`async_evaluate` so the two variants live
+        in the same section of the file. The sync signature has to exist
+        because :class:`Critic` declares it ``@abstractmethod``; calling
+        it on a :class:`SmartCritic` always raises.
+        """
+        raise RuntimeError(
+            "SmartCritic requires async evaluation. It is called automatically "
+            "via EvalCase.evaluate_async() during EvalSuite.run(); if you are "
+            "invoking a critic directly in a test, use "
+            "'await critic.async_evaluate(...)' instead."
+        )
 
     # ------------------------------------------------------------------
     # LLM transport

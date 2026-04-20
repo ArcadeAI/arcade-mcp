@@ -14,9 +14,9 @@ import pytest
 from arcade_evals.errors import WeightError
 from arcade_evals.smart_critic import SmartCritic, SmartCriticMode
 from arcade_evals.smart_critic_prompts import (
+    CUSTOM_OUTPUT_FORMAT_INSTRUCTIONS,
     DEFAULT_SYSTEM_PROMPT,
-    MODE_CRITERIA,
-    OUTPUT_FORMAT_INSTRUCTIONS,
+    MODE_RUBRICS,
 )
 from arcade_evals.weights import FuzzyWeight
 
@@ -43,12 +43,20 @@ class TestSmartCriticMode:
         }
         assert expected == {m.name for m in SmartCriticMode}
 
-    def test_non_custom_modes_have_default_criteria(self) -> None:
+    def test_non_custom_modes_have_rubrics(self) -> None:
+        """Every non-CUSTOM mode must have a defined rubric. CUSTOM is the
+        only free-score path remaining."""
         for mode in SmartCriticMode:
             if mode is SmartCriticMode.CUSTOM:
                 continue
-            assert mode in MODE_CRITERIA
-            assert MODE_CRITERIA[mode].strip(), f"{mode} criteria is empty"
+            assert mode in MODE_RUBRICS
+            rubric = MODE_RUBRICS[mode]
+            assert len(rubric) > 0, f"{mode} has no rubric criteria"
+            # Rubric weights must sum to 1.0 so the unweighted score is
+            # always in [0, 1] before the critic's own weight is applied.
+            assert abs(sum(c.weight for c in rubric) - 1.0) < 1e-9, (
+                f"{mode} rubric weights do not sum to 1.0"
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -106,7 +114,7 @@ class TestSmartCriticConstruction:
 
 class TestPromptBuilding:
     def test_default_system_prompt_used_when_not_overridden(self) -> None:
-        # Default = SIMILARITY + use_rubric=True → rubric-style prompt.
+        # Built-in modes (like SIMILARITY) always use rubric-style prompts.
         critic = SmartCritic(critic_field="x", weight=1.0, mode=SmartCriticMode.SIMILARITY)
         system, user = critic._build_prompt("expected_value", "actual_value")
         assert DEFAULT_SYSTEM_PROMPT in system
@@ -146,35 +154,34 @@ class TestPromptBuilding:
             for criterion in MODE_RUBRICS[mode]:
                 assert criterion.key in system
 
-    def test_legacy_prompt_when_use_rubric_false(self) -> None:
-        critic = SmartCritic(
-            critic_field="x",
-            weight=1.0,
-            mode=SmartCriticMode.SIMILARITY,
-            use_rubric=False,
-        )
-        system, user = critic._build_prompt("e", "a")
-        # Legacy free-score instructions, not the rubric listing.
-        assert OUTPUT_FORMAT_INSTRUCTIONS in system
-        # Legacy mode inlines the mode criteria into the user message.
-        assert MODE_CRITERIA[SmartCriticMode.SIMILARITY] in user
+    def test_criteria_prompt_rejected_for_builtin_modes(self) -> None:
+        """Built-in modes use their fixed rubric; allowing criteria_prompt
+        here would silently bypass the rubric's determinism. We force the
+        user to pick CUSTOM mode if they want free-form criteria."""
+        with pytest.raises(ValueError, match="CUSTOM"):
+            SmartCritic(
+                critic_field="x",
+                weight=1.0,
+                mode=SmartCriticMode.CORRECTNESS,
+                criteria_prompt="Focus only on numeric precision.",
+            )
 
-    def test_criteria_prompt_override_switches_to_legacy_format(self) -> None:
-        """Providing a custom criteria_prompt disables rubric mode so users
-        can write any criteria they want."""
+    def test_custom_mode_uses_free_score_prompt(self) -> None:
+        """CUSTOM mode is the one remaining free-score path — it inlines
+        the user's criteria and asks for a single float score."""
         critic = SmartCritic(
             critic_field="x",
             weight=1.0,
-            mode=SmartCriticMode.CORRECTNESS,
+            mode=SmartCriticMode.CUSTOM,
             criteria_prompt="Focus only on numeric precision.",
         )
         system, user = critic._build_prompt("e", "a")
-        # User criteria inlined; legacy free-score output expected.
         assert "Focus only on numeric precision." in user
-        assert OUTPUT_FORMAT_INSTRUCTIONS in system
-        # Mode rubric should NOT be used when user overrides criteria.
+        assert CUSTOM_OUTPUT_FORMAT_INSTRUCTIONS in system
+        # Rubric keys must NOT leak into CUSTOM prompts. "factually_accurate"
+        # is a CORRECTNESS-rubric criterion; CUSTOM mode doesn't have it.
         assert "factually_accurate" not in system
-        assert MODE_CRITERIA[SmartCriticMode.CORRECTNESS] not in user
+        # (Already asserted above via the rubric-key leak check.)
 
 
 # ---------------------------------------------------------------------------
@@ -247,6 +254,33 @@ class TestResponseParsing:
         # true→1.0, partially→0.5, false→0.0
         assert score == pytest.approx(0.5 + 0.15)
 
+    def test_rubric_accepts_json_booleans(self) -> None:
+        """Regression: some judges emit JSON true/false instead of the
+        requested strings. json.loads turns those into Python bools, and
+        without a bool-aware normalizer every criterion silently scores 0."""
+        raw = (
+            '{"criteria": {"same_core_meaning": true, "no_contradiction": '
+            'true, "same_key_entities": false}, "reasoning": "."}'
+        )
+        score, _, breakdown = self._critic()._parse_response(raw)
+        # true * 0.5 + true * 0.3 + false * 0.2 = 0.80
+        assert score == pytest.approx(0.8)
+        assert breakdown == pytest.approx({
+            "same_core_meaning": 0.5,
+            "no_contradiction": 0.3,
+            "same_key_entities": 0.0,
+        })
+
+    def test_rubric_accepts_numeric_scores(self) -> None:
+        """Numeric rubric answers (0 / 0.5 / 1) should also be tolerated."""
+        raw = (
+            '{"criteria": {"same_core_meaning": 1, "no_contradiction": 0.5, '
+            '"same_key_entities": 0}, "reasoning": "."}'
+        )
+        score, _, _ = self._critic()._parse_response(raw)
+        # 1*0.5 + 0.5*0.3 + 0*0.2 = 0.65
+        assert score == pytest.approx(0.65)
+
     def test_rubric_in_markdown_code_block(self) -> None:
         raw = (
             'Here:\n```json\n{"criteria": {"same_core_meaning": "yes", '
@@ -264,24 +298,8 @@ class TestResponseParsing:
         assert "parse" in reasoning.lower() or "unable" in reasoning.lower()
         assert breakdown is None
 
-    def test_legacy_mode_when_use_rubric_false(self) -> None:
-        critic = self._critic(use_rubric=False)
-        score, reasoning, breakdown = critic._parse_response(
-            '{"score": 0.8, "reasoning": "good"}'
-        )
-        assert score == 0.8
-        assert reasoning == "good"
-        assert breakdown is None  # legacy mode — no breakdown
-
-    def test_legacy_clamping(self) -> None:
-        critic = self._critic(use_rubric=False)
-        score_low, _, _ = critic._parse_response('{"score": -0.5}')
-        score_high, _, _ = critic._parse_response('{"score": 1.5}')
-        assert score_low == 0.0
-        assert score_high == 1.0
-
-    def test_custom_mode_uses_legacy_parsing(self) -> None:
-        """CUSTOM mode has no rubric, so it uses the free-score parser."""
+    def test_custom_mode_uses_free_score_parsing(self) -> None:
+        """CUSTOM mode has no rubric, so it parses a single score float."""
         critic = SmartCritic(
             critic_field="x",
             weight=1.0,
@@ -294,6 +312,18 @@ class TestResponseParsing:
         assert score == 0.42
         assert reasoning == "ok"
         assert breakdown is None
+
+    def test_custom_mode_score_is_clamped(self) -> None:
+        critic = SmartCritic(
+            critic_field="x",
+            weight=1.0,
+            mode=SmartCriticMode.CUSTOM,
+            criteria_prompt="Rate.",
+        )
+        score_low, _, _ = critic._parse_response('{"score": -0.5}')
+        score_high, _, _ = critic._parse_response('{"score": 1.5}')
+        assert score_low == 0.0
+        assert score_high == 1.0
 
 
 # ---------------------------------------------------------------------------
@@ -426,7 +456,7 @@ class TestAsyncEvaluate:
         critic = SmartCritic(critic_field="x", weight=1.0, mode=SmartCriticMode.SIMILARITY)
         critic.configure_runtime("openai", "gpt-4o", "sk-eval")
 
-        # Default mode (SIMILARITY with use_rubric=True) expects a rubric response.
+        # SIMILARITY always uses the rubric; the mock must match that shape.
         mocked = AsyncMock(return_value=(
             '{"criteria": {"same_core_meaning": "yes", "no_contradiction": '
             '"yes", "same_key_entities": "partial"}, "reasoning": "close match"}'

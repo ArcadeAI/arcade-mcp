@@ -78,7 +78,6 @@ def _mk(
     model: str,
     api_key: str,
     mode: SmartCriticMode = SmartCriticMode.SIMILARITY,
-    use_rubric: bool = True,
     criteria_prompt: str | None = None,
     match_threshold: float = 0.7,
 ) -> SmartCritic:
@@ -88,7 +87,6 @@ def _mk(
         mode=mode,
         judge_provider=provider,
         judge_model=model,
-        use_rubric=use_rubric,
         criteria_prompt=criteria_prompt,
         match_threshold=match_threshold,
     )
@@ -97,8 +95,9 @@ def _mk(
 
 
 # ---------------------------------------------------------------------------
-# Permutation 1: rubric ON vs OFF end-to-end on the same fail case.
-# Both should mark it as a non-match; rubric should additionally surface
+# Permutation 1: rubric end-to-end on fail cases.
+# Built-in modes are rubric-only since the legacy free-score path was
+# removed. The rubric must still correctly call a non-match and surface
 # a criteria_breakdown dict.
 # ---------------------------------------------------------------------------
 
@@ -115,15 +114,14 @@ def _mk(
 async def test_rubric_catches_fail_cases_end_to_end(
     pair: tuple[str, str], threshold: float
 ) -> None:
-    """Rubric mode must correctly score both easy (mismatch) and hard
+    """The rubric must correctly score both easy (mismatch) and hard
     (contradiction) fail cases at or below the per-case threshold, with
     the criteria_breakdown field populated."""
     exp, act = pair
-    rubric = _mk(
+    critic = _mk(
         provider="openai", model=OPENAI_MODEL, api_key=OPENAI_API_KEY or "",
-        use_rubric=True,
     )
-    res = await rubric.async_evaluate(exp, act)
+    res = await critic.async_evaluate(exp, act)
 
     assert res["match"] is False, res
     assert res["score"] <= threshold, res
@@ -135,49 +133,28 @@ async def test_rubric_catches_fail_cases_end_to_end(
 
 @needs_openai
 @pytest.mark.asyncio
-async def test_legacy_mode_catches_easy_mismatch() -> None:
-    """Legacy (free-score) mode should correctly handle the easy
-    unrelated-topics case. Serves as the baseline for legacy correctness."""
-    legacy = _mk(
-        provider="openai", model=OPENAI_MODEL, api_key=OPENAI_API_KEY or "",
-        use_rubric=False,
-    )
-    res = await legacy.async_evaluate(*CLEAR_MISMATCH)
-    assert res["match"] is False, res
-    assert res["score"] <= 0.3, res
-    # Legacy mode returns no breakdown.
-    assert "criteria_breakdown" not in res
+async def test_rubric_catches_hot_cold_contradiction() -> None:
+    """Regression guard for the motivating case: on "hot vs cold" where
+    tokens overlap but meaning flips, a free-score judge tends to anchor
+    on structural similarity and score it high (~0.75 was observed on
+    gpt-5.4-mini with legacy prompts before this refactor).
 
-
-@needs_openai
-@pytest.mark.asyncio
-async def test_rubric_outperforms_legacy_on_contradiction() -> None:
-    """The motivating experiment: on the "hot vs cold" contradiction
-    where tokens overlap but meaning flips, legacy free-score prompts
-    tend to anchor on structural similarity and score it high (~0.75 in
-    empirical runs with gpt-5.4-mini). Rubric mode splits this into an
-    explicit `no_contradiction` criterion that forces a low score.
-
-    This test asserts **rubric scores strictly lower than legacy** on
-    this input — i.e. rubric is measurably better at the hard case.
+    The rubric splits scoring into an explicit ``no_contradiction``
+    criterion that forces a low score on this input. Assertion: the
+    rubric scores the hot/cold pair well below 0.5 and the
+    ``no_contradiction`` contribution is at or below its partial weight.
     """
-    rubric = _mk(
+    critic = _mk(
         provider="openai", model=OPENAI_MODEL, api_key=OPENAI_API_KEY or "",
-        use_rubric=True,
     )
-    legacy = _mk(
-        provider="openai", model=OPENAI_MODEL, api_key=OPENAI_API_KEY or "",
-        use_rubric=False,
-    )
-    r_res = await rubric.async_evaluate(*CONTRADICTION)
-    l_res = await legacy.async_evaluate(*CONTRADICTION)
+    res = await critic.async_evaluate(*CONTRADICTION)
 
-    # Rubric catches the contradiction; legacy is known to struggle.
-    assert r_res["score"] < l_res["score"], {
-        "rubric": r_res, "legacy": l_res,
-    }
-    assert r_res["score"] <= 0.5, r_res
-    assert r_res["match"] is False, r_res
+    assert res["score"] <= 0.5, res
+    assert res["match"] is False, res
+    # no_contradiction weight = 0.3; "partial" = 0.15 contribution. A
+    # correct judgment on this input is "no" → 0 contribution, but allow
+    # up to 0.15 so we don't flap on judge variance.
+    assert res["criteria_breakdown"]["no_contradiction"] <= 0.15, res
 
 
 # ---------------------------------------------------------------------------
