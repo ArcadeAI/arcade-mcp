@@ -421,6 +421,53 @@ def show(
     )
 
 
+_SUPPORTED_JUDGE_PROVIDERS = frozenset({"openai", "anthropic"})
+
+
+def parse_judge_model_spec(spec: Optional[str]) -> tuple[Optional[str], Optional[str]]:
+    """Parse the value of ``--judge-model`` into ``(provider, model)``.
+
+    Accepts the following shapes:
+
+    * ``None`` / empty / whitespace-only → ``(None, None)`` (no override).
+    * ``"provider:model"`` → ``(provider, model)``. ``provider`` is
+      lowercased and must be one of the supported providers.
+    * ``"model"`` (no colon) → ``("openai", "model")``. The docstring on
+      the CLI flag promises an implicit ``openai`` default.
+
+    Raises :class:`ValueError` with a caller-friendly message on malformed
+    input (unknown provider, missing model after colon). Extracted here
+    so the CLI surface is a thin wrapper and this parser can be tested
+    without Typer machinery.
+    """
+    if spec is None:
+        return None, None
+    stripped = spec.strip()
+    if not stripped:
+        return None, None
+
+    if ":" in stripped:
+        prov_part, mod_part = stripped.split(":", 1)
+        prov_part = prov_part.strip().lower()
+        mod_part = mod_part.strip()
+        if prov_part not in _SUPPORTED_JUDGE_PROVIDERS:
+            supported = ", ".join(sorted(_SUPPORTED_JUDGE_PROVIDERS))
+            raise ValueError(
+                f"Invalid --judge-model provider '{prov_part}'. "
+                f"Supported providers: {supported}."
+            )
+        if not mod_part:
+            raise ValueError(
+                "--judge-model must specify a model after the ':'. "
+                "Example: --judge-model openai:gpt-4o"
+            )
+        return prov_part, mod_part
+
+    # No colon → default provider to openai so the dispatch matches the
+    # model name (the docstring on --judge-model promises this).
+    return "openai", stripped
+
+
 @cli.command(help="Run tool calling evaluations", rich_help_panel="Build")
 def evals(
     directory: str = typer.Argument(".", help="Directory containing evaluation files"),
@@ -662,36 +709,12 @@ def evals(
         )
 
     # --- Parse --judge-model (format: 'provider:model') ---
-    judge_provider_value: str | None = None
-    judge_model_value: str | None = None
-    if judge_model:
-        # Accept 'provider:model' or just 'model' (default provider = openai)
-        if ":" in judge_model:
-            prov_part, mod_part = judge_model.split(":", 1)
-            prov_part = prov_part.strip().lower()
-            mod_part = mod_part.strip()
-            if prov_part not in {"openai", "anthropic"}:
-                handle_cli_error(
-                    f"Invalid --judge-model provider '{prov_part}'. "
-                    "Supported providers: openai, anthropic.",
-                    should_exit=True,
-                )
-                return
-            if not mod_part:
-                handle_cli_error(
-                    "--judge-model must specify a model after the ':'. "
-                    "Example: --judge-model openai:gpt-4o",
-                    should_exit=True,
-                )
-                return
-            judge_provider_value = prov_part
-            judge_model_value = mod_part
-        else:
-            # No colon → default provider to openai so the dispatch matches
-            # the model name (the docstring on --judge-model promises this).
-            judge_provider_value = "openai"
-            judge_model_value = judge_model.strip()
-    elif judge_override:
+    try:
+        judge_provider_value, judge_model_value = parse_judge_model_spec(judge_model)
+    except ValueError as e:
+        handle_cli_error(str(e), should_exit=True)
+        return
+    if judge_model_value is None and judge_override:
         console.print("[yellow]⚠️  --judge-override has no effect without --judge-model[/yellow]")
 
     # Parse output paths with smart format detection

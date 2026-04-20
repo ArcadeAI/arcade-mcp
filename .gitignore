@@ -187,3 +187,5 @@ libs/arcade-mcp-server/site/*
 # SmartCritic comparison report + generator — produced locally, embedded in PR body
 scripts/generate_smart_critic_comparison.py
 SMART_CRITIC_COMPARISON.md
+scripts/benchmark_smart_critic_models.py
+SMART_CRITIC_MODEL_BENCHMARK.md

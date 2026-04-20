@@ -115,7 +115,8 @@ continuous score out of thin air" approach.
 `gpt-5.4-mini` returned scores varying by ~0.15 on identical inputs. With
 rubric scoring it varies by ~0.02 — a ~7× improvement in reproducibility,
 without changing the `result["score"]` contract seen by the rest of the
-eval pipeline. See `SMART_CRITIC_MODEL_BENCHMARK.md` for the data.
+eval pipeline. See the original pull request (#824) for the full
+benchmark data used to back this claim.
 
 Each mode's rubric:
 
@@ -137,7 +138,7 @@ be mapped to a fixed set of sub-questions.
 
 #### Judge model recommendations
 
-Benchmark results (see `SMART_CRITIC_MODEL_BENCHMARK.md` for methodology):
+Benchmark results (see #824 for the full methodology + per-mode matrix):
 
 - **Recommended default (cheap tier):** `openai:gpt-5.4-mini` or
   `anthropic:claude-haiku-4-5-20251001` — both accuracy-perfect under
