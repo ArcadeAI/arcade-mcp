@@ -479,6 +479,39 @@ class TestHTTPErrorAdapter:
         assert result.extra["endpoint"] == "https://api.example.com/resource/123"
         assert result.extra["http_method"] == "DELETE"
 
+    def test_requests_handler_survives_missing_invalid_proxy_url(self, monkeypatch):
+        """Older ``requests`` (<2.21.0) is missing ``InvalidProxyURL``.
+
+        The whole requests handler used to bail out with ``return None`` in that
+        case because ``InvalidProxyURL`` was included in the single bulk
+        ``from ... import`` — regression guard.
+        """
+        import requests.exceptions as rex
+
+        monkeypatch.delattr(rex, "InvalidProxyURL", raising=False)
+
+        request = requests.Request("GET", "https://api.example.com/x").prepare()
+        exc = requests.exceptions.Timeout("timed out", request=request)
+
+        result = self.adapter.from_exception(exc)
+
+        assert isinstance(result, NetworkTransportError)
+        assert result.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_TIMEOUT
+
+    def test_requests_handler_survives_missing_invalid_header(self, monkeypatch):
+        """Older ``requests`` (<2.12.0) is missing ``InvalidHeader`` — same guard."""
+        import requests.exceptions as rex
+
+        monkeypatch.delattr(rex, "InvalidHeader", raising=False)
+
+        request = requests.Request("GET", "https://api.example.com/x").prepare()
+        exc = requests.exceptions.Timeout("timed out", request=request)
+
+        result = self.adapter.from_exception(exc)
+
+        assert isinstance(result, NetworkTransportError)
+        assert result.kind == ErrorKind.NETWORK_TRANSPORT_RUNTIME_TIMEOUT
+
     def test_unhandled_exception_logs_warning(self, caplog):
         """Test that unhandled exceptions log a warning."""
         with caplog.at_level(logging.INFO):

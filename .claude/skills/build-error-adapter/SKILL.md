@@ -5,7 +5,7 @@ description: Build new Arcade error adapters from scratch using public Arcade TD
 
 # Build Error Adapter
 
-Use this workflow to create new error adapters that fit Arcade TDK conventions without relying on private monorepo paths.
+Use this workflow to create new error adapters that fit Arcade TDK conventions.
 
 ## Official Reference
 

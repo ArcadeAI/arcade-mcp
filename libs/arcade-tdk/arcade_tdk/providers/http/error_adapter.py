@@ -437,8 +437,6 @@ class _RequestsExceptionHandler:
                 ConnectionError,
                 ContentDecodingError,
                 HTTPError,
-                InvalidHeader,
-                InvalidProxyURL,
                 InvalidSchema,
                 InvalidURL,
                 MissingSchema,
@@ -450,6 +448,26 @@ class _RequestsExceptionHandler:
             )
         except ImportError:
             return None
+
+        # Resolve version-gated exception classes separately so an older
+        # ``requests`` install that is missing one of them doesn't silently
+        # disable the entire requests adapter chain. Missing classes are
+        # replaced with a sentinel that no real exception is an instance of,
+        # turning the downstream ``isinstance()`` check into a no-op.
+        #   - ``InvalidProxyURL``: added in requests 2.21.0 (Dec 2018).
+        #   - ``InvalidHeader``:   added in requests 2.12.0 (Nov 2016).
+        class _UnavailableRequestsException(Exception):
+            """Placeholder for a requests.exceptions class missing on this install."""
+
+        try:
+            from requests.exceptions import InvalidProxyURL
+        except ImportError:
+            InvalidProxyURL = _UnavailableRequestsException
+
+        try:
+            from requests.exceptions import InvalidHeader
+        except ImportError:
+            InvalidHeader = _UnavailableRequestsException
 
         request_url, request_method = mapper._extract_request_info(exc)
 
