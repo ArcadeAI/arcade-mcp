@@ -8,7 +8,7 @@ the broken piece.
 from __future__ import annotations
 
 from typing import Any
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from arcade_evals.errors import WeightError
@@ -324,6 +324,77 @@ class TestResponseParsing:
         score_high, _, _ = critic._parse_response('{"score": 1.5}')
         assert score_low == 0.0
         assert score_high == 1.0
+
+
+# ---------------------------------------------------------------------------
+# CLI → tool_eval → suite.run → _run_case_with_stats → configure_runtime
+# ---------------------------------------------------------------------------
+
+
+class TestApiKeyPropagation:
+    """Regression guard for ACR review finding #1.
+
+    The `api_key` param crosses a naming boundary at the tool_eval
+    decorator (CLI layer uses `provider_api_key=...` as a keyword
+    argument; internal layers use `api_key`). Reviewers have flagged
+    this as "not propagated" twice now because the rename isn't obvious
+    from individual call sites. This test pins the full chain so the
+    next time it breaks, a unit test catches it before a live run does.
+    """
+
+    @pytest.mark.asyncio
+    async def test_api_key_reaches_configure_runtime_via_suite_run(self) -> None:
+        """End-to-end assertion: when `suite.run()` is called with
+        `api_key="sk-..."`, every critic's `configure_runtime` receives
+        that exact value. Guards the CLI → suite.run chain."""
+        from arcade_evals._evalsuite._types import EvalRubric, NamedExpectedToolCall
+        from arcade_evals.eval import EvalCase, EvalSuite
+
+        suite = EvalSuite(name="t", system_message="s", rubric=EvalRubric())
+
+        critic = SmartCritic(critic_field="x", weight=1.0, mode=SmartCriticMode.SIMILARITY)
+        captured: dict[str, Any] = {}
+        original = critic.configure_runtime
+
+        def spy(*args: Any, **kwargs: Any) -> None:
+            captured["args"] = args
+            captured["kwargs"] = kwargs
+            original(*args, **kwargs)
+
+        case = EvalCase(
+            name="c",
+            system_message="s",
+            user_message="u",
+            expected_tool_calls=[NamedExpectedToolCall(name="T", args={})],
+            critics=[critic],
+            rubric=EvalRubric(),
+            additional_messages=[],
+        )
+
+        # Stub out the actual LLM call path so we don't need a real client.
+        async def fake_run_openai(*_: Any, **__: Any) -> list[Any]:
+            return []
+
+        with (
+            patch.object(critic, "configure_runtime", side_effect=spy),
+            patch.object(suite, "_run_openai", side_effect=fake_run_openai),
+        ):
+            await suite._run_case_with_stats(
+                case,
+                client=MagicMock(),  # unused by fake_run_openai
+                model="test-model",
+                provider="openai",
+                num_runs=1,
+                seed="constant",
+                pass_rule="last",  # noqa: S106 - "last" is a pass-rule literal, not a password
+                api_key="sk-from-cli",
+            )
+
+        # The CLI-supplied api_key must have reached configure_runtime as
+        # the third positional argument (eval_provider, eval_model,
+        # eval_api_key).
+        assert captured, "configure_runtime was never called"
+        assert captured["args"][2] == "sk-from-cli", captured
 
 
 # ---------------------------------------------------------------------------

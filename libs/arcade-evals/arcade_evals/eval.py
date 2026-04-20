@@ -391,7 +391,12 @@ class EvalCase:
         # Use the Linear Sum Assignment algorithm to find the optimal assignment
         row_ind, col_ind = linear_sum_assignment(cost_matrix, maximize=True)
 
-        total_score = 0.0
+        # NOTE: we intentionally track only total_weight here. Per-critic
+        # scores already land inside ``evaluation_result.results`` via
+        # ``.add()``, and :meth:`EvaluationResult.compute_final_score`
+        # re-sums them internally for normalization. An accumulator
+        # ``total_score`` would be dead — the sync and async paths both
+        # rely on the re-sum to stay consistent.
         total_weight = 0.0
 
         for i, j in zip(row_ind, col_ind):
@@ -399,11 +404,10 @@ class EvalCase:
                 expected = self.expected_tool_calls[i]
                 actual_name, actual_args = actual_tool_calls[j]
 
-                # Tool selection
-                tool_selection_score = evaluation_result.score_tool_selection(
+                # Tool selection — recorded on the result via score_tool_selection.
+                evaluation_result.score_tool_selection(
                     expected.name, actual_name, self.rubric.tool_selection_weight
                 )
-                total_score += tool_selection_score
                 total_weight += self.rubric.tool_selection_weight
 
                 # Evaluate arguments using critics
@@ -413,7 +417,6 @@ class EvalCase:
 
                     try:
                         result = critic.evaluate(expected_value, actual_value)
-                        total_score += result["score"]
                         total_weight += critic.resolved_weight
                         evaluation_result.add(
                             critic.critic_field,
@@ -471,7 +474,8 @@ class EvalCase:
         cost_matrix = self._create_cost_matrix(actual_tool_calls, self.expected_tool_calls)
         row_ind, col_ind = linear_sum_assignment(cost_matrix, maximize=True)
 
-        total_score = 0.0
+        # See the sync evaluate() comment — we only need total_weight;
+        # compute_final_score re-sums per-critic scores from results.
         total_weight = 0.0
 
         for i, j in zip(row_ind, col_ind):
@@ -479,10 +483,9 @@ class EvalCase:
                 expected = self.expected_tool_calls[i]
                 actual_name, actual_args = actual_tool_calls[j]
 
-                tool_selection_score = evaluation_result.score_tool_selection(
+                evaluation_result.score_tool_selection(
                     expected.name, actual_name, self.rubric.tool_selection_weight
                 )
-                total_score += tool_selection_score
                 total_weight += self.rubric.tool_selection_weight
 
                 for critic in critics:
@@ -491,7 +494,6 @@ class EvalCase:
 
                     try:
                         result = await critic.async_evaluate(expected_value, actual_value)
-                        total_score += result["score"]
                         total_weight += critic.resolved_weight
                         evaluation_result.add(
                             critic.critic_field,
