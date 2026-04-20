@@ -398,6 +398,74 @@ class TestApiKeyPropagation:
 
 
 # ---------------------------------------------------------------------------
+# EvalCase short-circuit branches we want to pin explicitly
+# ---------------------------------------------------------------------------
+
+
+class TestEvalCasePrecheckBranches:
+    """These branches are used in production but weren't previously covered
+    by tests — they're short-circuits that skip the critic loop entirely.
+    """
+
+    def test_evaluate_with_expected_calls_but_no_critics_passes_with_full_score(
+        self,
+    ) -> None:
+        """If the rubric specifies expected tool calls but the eval author
+        registered no critics, the case is trivially successful — there's
+        no per-argument scoring to do."""
+        from arcade_evals._evalsuite._types import EvalRubric, NamedExpectedToolCall
+        from arcade_evals.eval import EvalCase
+
+        case = EvalCase(
+            name="c",
+            system_message="s",
+            user_message="u",
+            expected_tool_calls=[NamedExpectedToolCall(name="Tool.X", args={"a": 1})],
+            critics=[],  # no critics
+            rubric=EvalRubric(),
+            additional_messages=[],
+        )
+        # Actual call matches expected tool name, so tool_selection passes.
+        result = case.evaluate([("Tool.X", {"a": 1})])
+        assert result.score == 1.0
+        assert result.passed is True
+        assert result.results == []  # nothing to record when no critics run
+
+    @pytest.mark.asyncio
+    async def test_evaluate_async_critic_exception_is_recorded_as_zero(self) -> None:
+        """If a critic raises during evaluate_async, the case must still
+        return a valid EvaluationResult with that field scored 0.0 (and
+        logged), not propagate the exception."""
+        from arcade_evals._evalsuite._types import EvalRubric, NamedExpectedToolCall
+        from arcade_evals.critic import BinaryCritic
+        from arcade_evals.eval import EvalCase
+
+        class ExplodingCritic(BinaryCritic):
+            async def async_evaluate(
+                self, expected: Any, actual: Any
+            ) -> dict[str, Any]:
+                raise RuntimeError("judge outage")
+
+        critic = ExplodingCritic(critic_field="b", weight=1.0)
+        case = EvalCase(
+            name="c",
+            system_message="s",
+            user_message="u",
+            expected_tool_calls=[
+                NamedExpectedToolCall(name="T", args={"b": "expected"})
+            ],
+            critics=[critic],
+            rubric=EvalRubric(),
+            additional_messages=[],
+        )
+        result = await case.evaluate_async([("T", {"b": "actual"})])
+        # The exception was swallowed — the field shows up with score 0.0.
+        field_entry = next(r for r in result.results if r["field"] == "b")
+        assert field_entry["score"] == 0.0
+        assert field_entry["match"] is False
+
+
+# ---------------------------------------------------------------------------
 # Runtime configuration
 # ---------------------------------------------------------------------------
 
