@@ -222,7 +222,8 @@ class GoogleErrorAdapter:
                 exc_info=True,
             )
             return UpstreamError(
-                message=f"Upstream Google API error: {exc}",
+                message=f"Upstream Google API error: unhandled {exc.__class__.__name__}.",
+                developer_message=str(exc),
                 status_code=500,
                 extra={
                     "service": self.slug,
