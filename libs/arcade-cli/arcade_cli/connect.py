@@ -569,7 +569,7 @@ def run_connect(
             if not available:
                 console.print(
                     "No toolkits found in your account. You can specify toolkits manually:\n"
-                    "  [bold]arcade connect claude --toolkit github[/bold]",
+                    "  [bold]arcade connect claude-code --toolkit github[/bold]",
                     style="yellow",
                 )
                 raise SystemExit(1)

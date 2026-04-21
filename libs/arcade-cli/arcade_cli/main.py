@@ -861,10 +861,10 @@ def connect(
     To configure a local server on your filesystem instead, use 'arcade configure'.
 
     Examples:\n
-        arcade connect claude --server github\n
+        arcade connect claude-code --server github\n
         arcade connect cursor --preset productivity\n
-        arcade connect claude --tool Github.CreateIssue --tool Linear.UpdateIssue\n
-        arcade connect claude --gateway my-existing-gw\n
+        arcade connect claude-code --tool Github.CreateIssue --tool Linear.UpdateIssue\n
+        arcade connect claude-code --gateway my-existing-gw\n
     """
     from arcade_cli.connect import PRESET_BUNDLES, run_connect
 

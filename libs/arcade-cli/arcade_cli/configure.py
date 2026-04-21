@@ -1142,7 +1142,7 @@ def configure_client(
     if host == "arcade":
         console.print(
             "Use [bold]arcade connect[/bold] to connect to Arcade Cloud gateways.\n"
-            "Example: [bold]arcade connect claude --gateway my-gateway[/bold]",
+            "Example: [bold]arcade connect claude-code --gateway my-gateway[/bold]",
             style="yellow",
         )
         return
