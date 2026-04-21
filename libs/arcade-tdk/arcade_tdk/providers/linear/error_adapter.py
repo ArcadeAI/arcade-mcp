@@ -74,10 +74,11 @@ class LinearGraphQLAdapter(GraphQLErrorAdapter):
     def _handle_query_error(self, exc: Any) -> UpstreamError:
         """Map a Linear ``TransportQueryError`` into an ``UpstreamError``.
 
-        Precedence: wire-format ``extensions.type`` (lowercase phrase) first;
-        ``extensions.code`` (SCREAMING_SNAKE_CASE) as a secondary fallback.
-        Picks the highest HTTP status across all errors, matching the base
-        adapter's rule.
+        Status-code precedence per error, highest wins across all errors:
+          1. ``extensions.statusCode`` (numeric, Linear's own authoritative hint)
+          2. ``extensions.http.status`` (numeric, same signal in a nested shape)
+          3. ``extensions.type`` lookup (lowercase phrase)
+          4. ``extensions.code`` lookup (SCREAMING_SNAKE_CASE) as last resort.
         """
         errors_list = exc.errors or []
         logger.debug("Linear GraphQL query errors: %s", errors_list)
@@ -85,6 +86,7 @@ class LinearGraphQLAdapter(GraphQLErrorAdapter):
         types: list[str] = []
         codes: list[str] = []
         paths: list[list[Any]] = []
+        vendor_statuses: list[int] = []
         user_presentable_messages: list[str] = []
 
         # Track the highest *mapped* Linear status. Fall back to the base
@@ -98,38 +100,44 @@ class LinearGraphQLAdapter(GraphQLErrorAdapter):
                 continue
 
             ext = e.get("extensions") if isinstance(e.get("extensions"), dict) else {}
+            if not isinstance(ext, dict):
+                ext = {}
 
-            # Wire-format type — Linear's authoritative dispatcher.
-            linear_type = ext.get("type") if isinstance(ext, dict) else None
-            type_mapped: int | None = None
+            # Trust Linear's own numeric hint when present. Linear populates
+            # either ``extensions.statusCode`` or ``extensions.http.status``
+            # (occasionally both). Either is authoritative over our type map.
+            vendor_status = _extract_vendor_status(ext)
+            error_status: int | None = vendor_status
+            if vendor_status is not None:
+                vendor_statuses.append(vendor_status)
+
+            # Wire-format type — Linear's taxonomy dispatcher, used as a
+            # fallback when no numeric hint is present.
+            linear_type = ext.get("type")
             if isinstance(linear_type, str):
                 types.append(linear_type)
-                type_mapped = _LINEAR_TYPE_TO_STATUS.get(linear_type.lower())
-                if type_mapped is not None and (
-                    mapped_status is None or type_mapped > mapped_status
-                ):
-                    mapped_status = type_mapped
+                if error_status is None:
+                    error_status = _LINEAR_TYPE_TO_STATUS.get(linear_type.lower())
                 if linear_type.lower() in _RATE_LIMIT_TYPES:
                     is_rate_limited = True
 
-            # Fallback to Apollo-style code only if type didn't map.
-            code = ext.get("code") if isinstance(ext, dict) else None
+            # Apollo-style SCREAMING_SNAKE_CASE code as last resort.
+            code = ext.get("code")
             if isinstance(code, str):
                 codes.append(code)
-                if type_mapped is None:
-                    code_mapped = _LINEAR_CODE_TO_STATUS.get(code)
-                    if code_mapped is not None and (
-                        mapped_status is None or code_mapped > mapped_status
-                    ):
-                        mapped_status = code_mapped
+                if error_status is None:
+                    error_status = _LINEAR_CODE_TO_STATUS.get(code)
                 if code in _RATE_LIMIT_CODES:
                     is_rate_limited = True
+
+            if error_status is not None and (mapped_status is None or error_status > mapped_status):
+                mapped_status = error_status
 
             path = e.get("path")
             if isinstance(path, list):
                 paths.append(path)
 
-            user_presentable = ext.get("userPresentableMessage") if isinstance(ext, dict) else None
+            user_presentable = ext.get("userPresentableMessage")
             if isinstance(user_presentable, str) and user_presentable:
                 user_presentable_messages.append(user_presentable)
 
@@ -139,6 +147,7 @@ class LinearGraphQLAdapter(GraphQLErrorAdapter):
 
         unique_types = sorted({t.lower() for t in types if isinstance(t, str)})
         unique_codes = sorted(set(codes))
+        unique_vendor_statuses = sorted(set(vendor_statuses))
 
         # Agent-facing message: prefer curated user-safe text from Linear if
         # present, otherwise a safe template. NEVER interpolate raw
@@ -159,6 +168,8 @@ class LinearGraphQLAdapter(GraphQLErrorAdapter):
             "gql_error_paths": paths,
             "gql_error_codes": unique_codes,
         }
+        if unique_vendor_statuses:
+            extra["linear_vendor_statuses"] = unique_vendor_statuses
 
         if is_rate_limited:
             headers = self._get_headers(exc) or self._get_headers(exc.__cause__) or {}
@@ -182,6 +193,31 @@ def _safe_status_phrase(status: int) -> str:
         return HTTPStatus(status).phrase
     except ValueError:
         return "Unknown Status"
+
+
+def _extract_vendor_status(ext: dict[str, Any]) -> int | None:
+    """Return Linear's own numeric HTTP-status hint if present.
+
+    Linear embeds either ``extensions.statusCode`` or ``extensions.http.status``
+    (or both) in its error payloads. Either is an authoritative signal over our
+    local type / code maps.
+    """
+    status = ext.get("statusCode")
+    if isinstance(status, bool):
+        # bool is a subclass of int in Python; explicitly exclude it.
+        status = None
+    if isinstance(status, int):
+        return status
+
+    http = ext.get("http")
+    if isinstance(http, dict):
+        http_status = http.get("status")
+        if isinstance(http_status, bool):
+            http_status = None
+        if isinstance(http_status, int):
+            return http_status
+
+    return None
 
 
 def _build_developer_message(errors_list: list[Any]) -> str:

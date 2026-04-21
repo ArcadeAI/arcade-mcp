@@ -235,6 +235,84 @@ class TestLinearGraphQLAdapter:
         assert isinstance(result, UpstreamError)
         assert result.status_code == 503
 
+    # --- Vendor-provided status hints (statusCode / http.status) ---
+
+    def test_extensions_status_code_wins_over_type_map(self) -> None:
+        """If Linear tells us the status directly, trust it over our type map.
+
+        Real wire payload observed from api.linear.app: an authentication error
+        carries both ``extensions.statusCode: 401`` and ``extensions.type:
+        "authentication error"`` — both agree. But if they disagree (vendor
+        taxonomy shift, unmapped type), the numeric hint is authoritative.
+        """
+        result = _invoke([
+            {
+                "message": "Some new taxonomy Linear added",
+                "extensions": {
+                    "type": "brand new category we don't know",
+                    "statusCode": 418,
+                },
+            },
+        ])
+        assert isinstance(result, UpstreamError)
+        assert result.status_code == 418
+        assert result.extra is not None
+        assert result.extra["linear_vendor_statuses"] == [418]
+
+    def test_extensions_http_status_wins_when_status_code_absent(self) -> None:
+        """Real payload shape: graphql validation errors use http.status, no statusCode."""
+        result = _invoke([
+            {
+                "message": 'Cannot query field "foo"',
+                "extensions": {
+                    "http": {"status": 400, "headers": {}},
+                    "code": "GRAPHQL_VALIDATION_FAILED",
+                    "type": "graphql error",
+                },
+            },
+        ])
+        assert isinstance(result, UpstreamError)
+        assert result.status_code == 400
+        assert result.extra is not None
+        assert result.extra["linear_vendor_statuses"] == [400]
+
+    def test_extensions_status_code_boolean_is_ignored(self) -> None:
+        """Python's ``bool`` subclasses ``int``; don't treat ``True`` as status 1."""
+        result = _invoke([
+            {
+                "message": "x",
+                "extensions": {"statusCode": True, "type": "invalid input"},
+            },
+        ])
+        assert isinstance(result, UpstreamError)
+        # Falls through to the type map (400), not 1.
+        assert result.status_code == 400
+
+    def test_real_authentication_error_payload(self) -> None:
+        """Exact payload captured from live Linear probe (bogus API key)."""
+        result = _invoke([
+            {
+                "message": "Authentication required, not authenticated",
+                "extensions": {
+                    "type": "authentication error",
+                    "code": "AUTHENTICATION_ERROR",
+                    "statusCode": 401,
+                    "userError": True,
+                    "userPresentableMessage": (
+                        "You need to authenticate to access this operation."
+                    ),
+                    "meta": {},
+                    "http": {"status": 401},
+                },
+            },
+        ])
+        assert isinstance(result, UpstreamError)
+        assert result.status_code == 401
+        assert result.message == "You need to authenticate to access this operation."
+        assert result.extra is not None
+        assert result.extra["linear_error_types"] == ["authentication error"]
+        assert result.extra["linear_vendor_statuses"] == [401]
+
 
 class TestAuthRouting:
     def test_linear_auth_maps_to_linear_graphql_adapter(self) -> None:
