@@ -110,7 +110,7 @@ class TestGraphQLErrorAdapter:
     # --- TransportQueryError tests ---
 
     def test_query_error_extracts_messages_and_codes(self) -> None:
-        """Should extract messages and map error codes to status."""
+        """Maps codes to status; raw upstream messages live in developer_message."""
         errors = [
             {"message": "Not authorized", "extensions": {"code": "FORBIDDEN"}},
             {"message": "Server error", "extensions": {"code": "INTERNAL_SERVER_ERROR"}},
@@ -122,12 +122,18 @@ class TestGraphQLErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == HTTPStatus.INTERNAL_SERVER_ERROR  # Highest mapped status
-        assert "Not authorized" in result.message
-        assert "Server error" in result.message
+        # Agent-facing message is a safe template — no raw upstream text.
+        assert result.message == "Upstream GraphQL request failed (Internal Server Error)."
+        assert "Not authorized" not in result.message
+        # Raw content is in developer_message for server-side logs.
+        assert "Not authorized" in result.developer_message
+        assert "Server error" in result.developer_message
+        assert "FORBIDDEN" in result.developer_message
+        assert "INTERNAL_SERVER_ERROR" in result.developer_message
         assert result.extra["gql_error_codes"] == ["FORBIDDEN", "INTERNAL_SERVER_ERROR"]
 
     def test_query_error_defaults_when_empty(self) -> None:
-        """Should handle empty/missing errors gracefully."""
+        """Should handle empty/missing errors gracefully with a safe template."""
         exc = DummyTransportQueryError(errors=None)
 
         with _patch_loader():
@@ -135,7 +141,13 @@ class TestGraphQLErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-        assert "Unknown GraphQL error" in result.message
+        # Safe template for agent; no leaked upstream text.
+        # (The exact phrase for 422 varies by Python version — "Unprocessable
+        # Entity" pre-3.13, "Unprocessable Content" from 3.13+.)
+        assert result.message.startswith("Upstream GraphQL request failed (Unprocessable ")
+        assert result.message.endswith(").")
+        # Developer message still records the absence of details.
+        assert "(no details)" in result.developer_message
 
     def test_query_error_deduplicates_codes(self) -> None:
         """Duplicate error codes should be deduplicated."""
@@ -190,7 +202,7 @@ class TestGraphQLErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 400
-        assert result.extra["gql_vendor_statuses"] == [400]
+        assert result.message == "Upstream GraphQL request failed (Bad Request)."
 
     def test_query_error_prefers_extensions_status_code(self) -> None:
         """Linear-convention ``extensions.statusCode`` is authoritative."""
@@ -210,7 +222,7 @@ class TestGraphQLErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 401
-        assert result.extra["gql_vendor_statuses"] == [401]
+        assert result.message == "Upstream GraphQL request failed (Unauthorized)."
 
     def test_numeric_hint_wins_over_code_lookup(self) -> None:
         """If numeric hint disagrees with the code map, numeric wins."""
@@ -289,6 +301,35 @@ class TestGraphQLErrorAdapter:
         assert isinstance(result, UpstreamRateLimitError)
         assert result.retry_after_ms == 7_000
 
+    def test_rate_limit_agent_message_includes_retry_hint(self) -> None:
+        """Mirror the HTTP adapter's pattern: retry-after info in agent message."""
+        errors = [{"message": "slow down", "extensions": {"code": "RATE_LIMITED"}}]
+        exc = DummyTransportQueryError(errors=errors)
+        cause = Exception("inner")
+        cause.response = DummyResponse({"retry-after": "12"})  # type: ignore[attr-defined]
+        exc.__cause__ = cause
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert isinstance(result, UpstreamRateLimitError)
+        assert result.message == (
+            "Upstream GraphQL request failed (Too Many Requests). Retry after 12 second(s)."
+        )
+
+    def test_rate_limit_agent_message_without_retry_after(self) -> None:
+        """Without a retry header, fall back to a generic rate-limit phrase."""
+        errors = [{"message": "x", "extensions": {"code": "RATE_LIMITED"}}]
+        exc = DummyTransportQueryError(errors=errors)
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert isinstance(result, UpstreamRateLimitError)
+        # _parse_retry_ms defaults to 1000ms when no rate-limit header is present,
+        # which is 1 second — shown in the message.
+        assert "Retry after 1 second(s)." in result.message
+
     # --- Curated agent-facing message ---
 
     def test_user_presentable_message_preferred(self) -> None:
@@ -310,16 +351,20 @@ class TestGraphQLErrorAdapter:
 
         assert result.message == "Could not find referenced Issue."
 
-    def test_user_presentable_message_absent_keeps_default_format(self) -> None:
-        """Without userPresentableMessage, agent-facing message is unchanged (Apollo compat)."""
+    def test_user_presentable_message_absent_uses_safe_template(self) -> None:
+        """Without userPresentableMessage, agent sees a fixed template — no raw text."""
         errors = [{"message": "unauthorized", "extensions": {"code": "UNAUTHENTICATED"}}]
         exc = DummyTransportQueryError(errors=errors)
 
         with _patch_loader():
             result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
 
-        assert result.message.startswith("Upstream GraphQL error: ")
-        assert "unauthorized" in result.message
+        # Agent sees fixed template, not raw upstream text.
+        assert result.message == "Upstream GraphQL request failed (Unauthorized)."
+        assert "unauthorized" not in result.message
+        # Raw text lives in developer_message.
+        assert "unauthorized" in result.developer_message
+        assert "UNAUTHENTICATED" in result.developer_message
 
     # --- Real Linear payloads end-to-end (captured from live probe) ---
 
@@ -349,8 +394,11 @@ class TestGraphQLErrorAdapter:
         assert isinstance(result, UpstreamError)
         assert not isinstance(result, UpstreamRateLimitError)
         assert result.status_code == 401
+        # Curated user-safe text surfaces as agent message.
         assert result.message == "You need to authenticate to access this operation."
-        assert result.extra["gql_vendor_statuses"] == [401]
+        # Raw upstream text + code in developer_message.
+        assert "Authentication required" in result.developer_message
+        assert "AUTHENTICATION_ERROR" in result.developer_message
 
     def test_real_linear_not_found_payload(self) -> None:
         """Verbatim payload from live probe (fake issue UUID)."""
@@ -397,7 +445,11 @@ class TestGraphQLErrorAdapter:
             result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
 
         assert result.status_code == 400
-        assert result.extra["gql_vendor_statuses"] == [400]
+        # No userPresentableMessage in this payload → safe template for agent.
+        assert result.message == "Upstream GraphQL request failed (Bad Request)."
+        # Raw upstream text preserved for developers.
+        assert 'nonexistentFieldFoo' in result.developer_message
+        assert "GRAPHQL_VALIDATION_FAILED" in result.developer_message
 
     # --- TransportServerError tests ---
 
