@@ -99,9 +99,8 @@ class LinearGraphQLAdapter(GraphQLErrorAdapter):
             if not isinstance(e, dict):
                 continue
 
-            ext = e.get("extensions") if isinstance(e.get("extensions"), dict) else {}
-            if not isinstance(ext, dict):
-                ext = {}
+            raw_ext = e.get("extensions")
+            ext: dict[str, Any] = raw_ext if isinstance(raw_ext, dict) else {}
 
             # Trust Linear's own numeric hint when present. Linear populates
             # either ``extensions.statusCode`` or ``extensions.http.status``
@@ -110,6 +109,11 @@ class LinearGraphQLAdapter(GraphQLErrorAdapter):
             error_status: int | None = vendor_status
             if vendor_status is not None:
                 vendor_statuses.append(vendor_status)
+                if vendor_status == HTTPStatus.TOO_MANY_REQUESTS.value:
+                    # Linear's numeric hint alone is enough to classify as
+                    # rate-limited, even if the type/code string is missing
+                    # or shifts in a future taxonomy update.
+                    is_rate_limited = True
 
             # Wire-format type — Linear's taxonomy dispatcher, used as a
             # fallback when no numeric hint is present.
@@ -141,9 +145,18 @@ class LinearGraphQLAdapter(GraphQLErrorAdapter):
             if isinstance(user_presentable, str) and user_presentable:
                 user_presentable_messages.append(user_presentable)
 
-        status = (
-            mapped_status if mapped_status is not None else HTTPStatus.UNPROCESSABLE_ENTITY.value
-        )
+        # When rate-limited, the returned error class is
+        # ``UpstreamRateLimitError`` (implicit 429). Force the template
+        # status to 429 so the agent-facing message doesn't claim a higher
+        # status (e.g. "503") that disagrees with the class.
+        if is_rate_limited:
+            status = HTTPStatus.TOO_MANY_REQUESTS.value
+        else:
+            status = (
+                mapped_status
+                if mapped_status is not None
+                else HTTPStatus.UNPROCESSABLE_ENTITY.value
+            )
 
         unique_types = sorted({t.lower() for t in types if isinstance(t, str)})
         unique_codes = sorted(set(codes))

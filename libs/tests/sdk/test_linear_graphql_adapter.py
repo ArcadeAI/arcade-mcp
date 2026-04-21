@@ -288,6 +288,48 @@ class TestLinearGraphQLAdapter:
         # Falls through to the type map (400), not 1.
         assert result.status_code == 400
 
+    def test_vendor_status_429_triggers_rate_limit_error(self) -> None:
+        """Numeric 429 hint alone must classify as rate-limited, even if the
+        type/code strings don't match our known rate-limit vocabulary.
+
+        Guards against the case where Linear's taxonomy shifts — trusting
+        ``extensions.statusCode`` for status but not for rate-limit detection
+        would silently downgrade ``UpstreamRateLimitError`` to plain
+        ``UpstreamError(429)``, losing retry-after semantics.
+        """
+        exc = DummyTransportQueryError(errors=[
+            {
+                "message": "throttled",
+                "extensions": {
+                    # No known type/code string — only the numeric hint.
+                    "statusCode": 429,
+                },
+            },
+        ])
+        cause = Exception("inner")
+        cause.response = DummyResponse({"retry-after": "7"})  # type: ignore[attr-defined]
+        exc.__cause__ = cause
+
+        with _patch_loader():
+            result = LinearGraphQLAdapter().from_exception(exc)
+
+        assert isinstance(result, UpstreamRateLimitError)
+        assert result.retry_after_ms == 7000
+
+    def test_rate_limited_message_uses_429_even_with_higher_other_error(self) -> None:
+        """Mixed payload: rate-limit error + a 503 error. The returned class is
+        ``UpstreamRateLimitError`` (implicit 429); the fallback template must
+        say "429 Too Many Requests", not "503 Service Unavailable".
+        """
+        result = _invoke([
+            {"message": "a", "extensions": {"type": "ratelimited"}},
+            {"message": "b", "extensions": {"type": "lock timeout"}},  # 503
+        ])
+        assert isinstance(result, UpstreamRateLimitError)
+        assert result.message is not None
+        assert "429" in result.message
+        assert "503" not in result.message
+
     def test_real_authentication_error_payload(self) -> None:
         """Exact payload captured from live Linear probe (bogus API key)."""
         result = _invoke([
