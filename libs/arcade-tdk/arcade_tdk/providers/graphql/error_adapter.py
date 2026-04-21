@@ -111,18 +111,25 @@ class GraphQLErrorAdapter(BaseHTTPErrorMapper):
         messages = [_extract_error_message(e.get("message")) for e in errors_list]
         joined = "; ".join(messages) if messages else "Unknown GraphQL error"
 
-        # Extract error codes and map to HTTP status
+        # Extract error codes and map to HTTP status; also collect spec-standard
+        # ``path`` arrays so vendor-agnostic debugging context is preserved.
         codes: list[str] = []
+        paths: list[list[Any]] = []
         status = HTTPStatus.UNPROCESSABLE_ENTITY.value
 
         for e in errors_list:
-            ext = e.get("extensions") if isinstance(e, dict) else None
+            if not isinstance(e, dict):
+                continue
+            ext = e.get("extensions")
             code = ext.get("code") if isinstance(ext, dict) else None
             if isinstance(code, str):
                 codes.append(code)
                 mapped = _GQL_CODE_TO_STATUS.get(code)
                 if mapped and mapped > status:
                     status = mapped
+            path = e.get("path")
+            if isinstance(path, list):
+                paths.append(path)
 
         unique_codes = sorted(set(codes))
 
@@ -136,6 +143,7 @@ class GraphQLErrorAdapter(BaseHTTPErrorMapper):
                 "service": self.slug,
                 "error_type": "TransportQueryError",
                 "gql_error_codes": unique_codes,
+                "gql_error_paths": paths,
             },
         )
 

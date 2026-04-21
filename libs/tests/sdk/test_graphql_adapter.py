@@ -150,6 +150,26 @@ class TestGraphQLErrorAdapter:
 
         assert result.extra["gql_error_codes"] == ["FORBIDDEN"]
 
+    def test_query_error_preserves_paths(self) -> None:
+        """GraphQL-spec ``path`` arrays should land in ``extra['gql_error_paths']``."""
+        errors = [
+            {
+                "message": "bad",
+                "path": ["issue", "creator", "email"],
+                "extensions": {"code": "FORBIDDEN"},
+            },
+            {"message": "also bad", "path": ["viewer", "id"]},
+        ]
+        exc = DummyTransportQueryError(errors=errors)
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert result.extra["gql_error_paths"] == [
+            ["issue", "creator", "email"],
+            ["viewer", "id"],
+        ]
+
     # --- TransportServerError tests ---
 
     def test_server_error_detects_rate_limit(self) -> None:
