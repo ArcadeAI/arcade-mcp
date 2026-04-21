@@ -170,6 +170,235 @@ class TestGraphQLErrorAdapter:
             ["viewer", "id"],
         ]
 
+    # --- Vendor-provided numeric status hints ---
+
+    def test_query_error_prefers_extensions_http_status(self) -> None:
+        """Apollo-convention ``extensions.http.status`` is authoritative."""
+        errors = [
+            {
+                "message": 'Cannot query field "foo"',
+                "extensions": {
+                    "http": {"status": 400, "headers": {}},
+                    "code": "GRAPHQL_VALIDATION_FAILED",
+                },
+            },
+        ]
+        exc = DummyTransportQueryError(errors=errors)
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert result.status_code == 400
+        assert result.extra["gql_vendor_statuses"] == [400]
+
+    def test_query_error_prefers_extensions_status_code(self) -> None:
+        """Linear-convention ``extensions.statusCode`` is authoritative."""
+        errors = [
+            {
+                "message": "Authentication required",
+                "extensions": {
+                    "statusCode": 401,
+                    "code": "AUTHENTICATION_ERROR",
+                },
+            },
+        ]
+        exc = DummyTransportQueryError(errors=errors)
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert result.status_code == 401
+        assert result.extra["gql_vendor_statuses"] == [401]
+
+    def test_numeric_hint_wins_over_code_lookup(self) -> None:
+        """If numeric hint disagrees with the code map, numeric wins."""
+        errors = [
+            {
+                "message": "teapot",
+                "extensions": {
+                    "statusCode": 418,
+                    # code would normally resolve to 401
+                    "code": "UNAUTHENTICATED",
+                },
+            },
+        ]
+        exc = DummyTransportQueryError(errors=errors)
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert result.status_code == 418
+
+    def test_status_code_boolean_is_ignored(self) -> None:
+        """``bool`` subclasses ``int``; don't treat ``True`` as status 1."""
+        errors = [
+            {
+                "message": "x",
+                "extensions": {
+                    "statusCode": True,
+                    "code": "FORBIDDEN",  # falls back to 403
+                },
+            },
+        ]
+        exc = DummyTransportQueryError(errors=errors)
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert result.status_code == 403
+
+    # --- Rate-limit routing on 429 (numeric hint or code) ---
+
+    def test_rate_limited_code_produces_rate_limit_error(self) -> None:
+        """``code: RATE_LIMITED`` routes to ``UpstreamRateLimitError``."""
+        errors = [{"message": "slow down", "extensions": {"code": "RATE_LIMITED"}}]
+        exc = DummyTransportQueryError(errors=errors)
+        cause = Exception("inner")
+        cause.response = DummyResponse({"retry-after": "15"})  # type: ignore[attr-defined]
+        exc.__cause__ = cause
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert isinstance(result, UpstreamRateLimitError)
+        assert result.retry_after_ms == 15_000
+
+    def test_shopify_throttled_code_produces_rate_limit_error(self) -> None:
+        """Shopify's ``THROTTLED`` spelling is also routed."""
+        errors = [{"message": "throttled", "extensions": {"code": "THROTTLED"}}]
+        exc = DummyTransportQueryError(errors=errors)
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert isinstance(result, UpstreamRateLimitError)
+
+    def test_numeric_429_hint_produces_rate_limit_error(self) -> None:
+        """A 429 numeric hint alone is enough — no matching code string needed."""
+        errors = [{"message": "slow down", "extensions": {"statusCode": 429}}]
+        exc = DummyTransportQueryError(errors=errors)
+        cause = Exception("inner")
+        cause.response = DummyResponse({"retry-after": "7"})  # type: ignore[attr-defined]
+        exc.__cause__ = cause
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert isinstance(result, UpstreamRateLimitError)
+        assert result.retry_after_ms == 7_000
+
+    # --- Curated agent-facing message ---
+
+    def test_user_presentable_message_preferred(self) -> None:
+        """``extensions.userPresentableMessage`` (Linear) wins over raw joined messages."""
+        errors = [
+            {
+                "message": "Entity not found: Issue - Could not find referenced Issue.",
+                "extensions": {
+                    "statusCode": 400,
+                    "code": "INPUT_ERROR",
+                    "userPresentableMessage": "Could not find referenced Issue.",
+                },
+            },
+        ]
+        exc = DummyTransportQueryError(errors=errors)
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert result.message == "Could not find referenced Issue."
+
+    def test_user_presentable_message_absent_keeps_default_format(self) -> None:
+        """Without userPresentableMessage, agent-facing message is unchanged (Apollo compat)."""
+        errors = [{"message": "unauthorized", "extensions": {"code": "UNAUTHENTICATED"}}]
+        exc = DummyTransportQueryError(errors=errors)
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert result.message.startswith("Upstream GraphQL error: ")
+        assert "unauthorized" in result.message
+
+    # --- Real Linear payloads end-to-end (captured from live probe) ---
+
+    def test_real_linear_authentication_error_payload(self) -> None:
+        """Verbatim payload from live api.linear.app probe (bogus API key)."""
+        errors = [
+            {
+                "message": "Authentication required, not authenticated",
+                "extensions": {
+                    "type": "authentication error",
+                    "code": "AUTHENTICATION_ERROR",
+                    "statusCode": 401,
+                    "userError": True,
+                    "userPresentableMessage": (
+                        "You need to authenticate to access this operation."
+                    ),
+                    "meta": {},
+                    "http": {"status": 401},
+                },
+            },
+        ]
+        exc = DummyTransportQueryError(errors=errors)
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert not isinstance(result, UpstreamRateLimitError)
+        assert result.status_code == 401
+        assert result.message == "You need to authenticate to access this operation."
+        assert result.extra["gql_vendor_statuses"] == [401]
+
+    def test_real_linear_not_found_payload(self) -> None:
+        """Verbatim payload from live probe (fake issue UUID)."""
+        errors = [
+            {
+                "message": "Entity not found: Issue",
+                "path": ["issue"],
+                "locations": [{"line": 2, "column": 3}],
+                "extensions": {
+                    "type": "invalid input",
+                    "code": "INPUT_ERROR",
+                    "statusCode": 400,
+                    "userError": True,
+                    "userPresentableMessage": "Could not find referenced Issue.",
+                },
+            },
+        ]
+        exc = DummyTransportQueryError(errors=errors)
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert result.status_code == 400
+        assert result.message == "Could not find referenced Issue."
+        assert result.extra["gql_error_paths"] == [["issue"]]
+
+    def test_real_linear_validation_error_payload(self) -> None:
+        """Verbatim payload from live probe (unknown field). Uses ``http.status`` only."""
+        errors = [
+            {
+                "message": 'Cannot query field "nonexistentFieldFoo" on type "User".',
+                "locations": [{"line": 3, "column": 5}],
+                "extensions": {
+                    "http": {"status": 400, "headers": {}},
+                    "code": "GRAPHQL_VALIDATION_FAILED",
+                    "type": "graphql error",
+                    "userError": True,
+                },
+            },
+        ]
+        exc = DummyTransportQueryError(errors=errors)
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert result.status_code == 400
+        assert result.extra["gql_vendor_statuses"] == [400]
+
     # --- TransportServerError tests ---
 
     def test_server_error_detects_rate_limit(self) -> None:

@@ -1,8 +1,7 @@
-from arcade_tdk.auth import Google, Linear, Microsoft, Slack, ToolAuthorization
+from arcade_tdk.auth import Google, Microsoft, Slack, ToolAuthorization
 from arcade_tdk.error_adapters import (
     ErrorAdapter,
     GoogleErrorAdapter,
-    LinearGraphQLAdapter,
     MicrosoftGraphErrorAdapter,
     SlackErrorAdapter,
 )
@@ -21,7 +20,5 @@ def get_adapter_for_auth_provider(auth_provider: ToolAuthorization | None) -> Er
         return MicrosoftGraphErrorAdapter()
     if isinstance(auth_provider, Slack):
         return SlackErrorAdapter()
-    if isinstance(auth_provider, Linear):
-        return LinearGraphQLAdapter()
 
     return None

@@ -9,13 +9,19 @@ from arcade_core.errors import (
     NetworkTransportError,
     ToolRuntimeError,
     UpstreamError,
+    UpstreamRateLimitError,
 )
 
 from arcade_tdk.providers.http.error_adapter import BaseHTTPErrorMapper
 
 logger = logging.getLogger(__name__)
 
-# Standard Apollo/GraphQL error codes mapped to HTTP status codes
+# Broadly-observed GraphQL error codes mapped to HTTP status codes. The Apollo
+# defaults plus two widely-used rate-limit spellings (GitHub uses
+# ``RATE_LIMITED``, Shopify uses ``THROTTLED``). Vendor-specific taxonomies
+# (e.g. Linear's lowercase ``extensions.type`` phrases) are not added here —
+# vendors that populate a numeric ``extensions.http.status`` / ``statusCode``
+# are handled authoritatively by that path below, without needing a map entry.
 _GQL_CODE_TO_STATUS = {
     "UNAUTHENTICATED": 401,
     "NOT_AUTHENTICATED": 401,
@@ -26,6 +32,8 @@ _GQL_CODE_TO_STATUS = {
     "GRAPHQL_VALIDATION_FAILED": 400,
     "GRAPHQL_PARSE_FAILED": 400,
     "INTERNAL_SERVER_ERROR": 500,
+    "RATE_LIMITED": 429,
+    "THROTTLED": 429,
 }
 
 
@@ -57,6 +65,36 @@ def _extract_error_message(message: Any) -> str:
         return str(message) or "Unknown GraphQL error"
     except Exception:
         return "Unknown GraphQL error"
+
+
+def _extract_vendor_status(ext: dict[str, Any]) -> int | None:
+    """Return the server's own numeric HTTP-status hint if present.
+
+    Many GraphQL servers embed a per-error HTTP status directly in
+    ``extensions`` — Apollo's ``apollo-server-plugin-http`` uses
+    ``extensions.http.status``; Linear uses ``extensions.statusCode`` (and
+    sometimes also ``extensions.http.status``). When either is present it is
+    authoritative: no lookup table can keep up with every vendor's evolving
+    taxonomy, but the numeric signal is always meaningful.
+
+    ``bool`` is a subclass of ``int`` in Python; exclude it explicitly so a
+    payload accidentally carrying ``statusCode: True`` isn't read as ``1``.
+    """
+    status = ext.get("statusCode")
+    if isinstance(status, bool):
+        status = None
+    if isinstance(status, int):
+        return status
+
+    http = ext.get("http")
+    if isinstance(http, dict):
+        http_status = http.get("status")
+        if isinstance(http_status, bool):
+            http_status = None
+        if isinstance(http_status, int):
+            return http_status
+
+    return None
 
 
 class GraphQLErrorAdapter(BaseHTTPErrorMapper):
@@ -104,47 +142,117 @@ class GraphQLErrorAdapter(BaseHTTPErrorMapper):
         return None
 
     def _handle_query_error(self, exc: Any) -> UpstreamError:
-        """Handle TransportQueryError (GraphQL errors in response body)."""
+        """Handle TransportQueryError (GraphQL errors in response body).
+
+        Status-code resolution per error (highest across all errors wins):
+
+          1. Numeric ``extensions.http.status`` or ``extensions.statusCode``.
+             Many servers (Apollo via ``apollo-server-plugin-http``, Linear,
+             etc.) embed an authoritative HTTP status hint directly in the
+             error payload. Trust it over any lookup table.
+          2. ``extensions.code`` lookup in :data:`_GQL_CODE_TO_STATUS`.
+          3. Fall through to ``422 Unprocessable Entity`` if neither resolved.
+
+        Rate-limit classification: any error that resolves to status 429 (by
+        numeric hint or code map) routes to ``UpstreamRateLimitError`` with
+        ``retry_after_ms`` parsed from the upstream response's rate-limit
+        headers (if the underlying transport exposed them on ``__cause__``).
+
+        Agent-facing message: if any error carries a curated
+        ``extensions.userPresentableMessage`` (Linear convention, harmless for
+        other vendors), that string wins. Otherwise the message keeps the
+        long-standing ``"Upstream GraphQL error: <joined raw messages>"``
+        format for Apollo compatibility.
+        """
         errors_list = exc.errors or []
         logger.debug("GraphQL query errors: %s", errors_list)
 
         messages = [_extract_error_message(e.get("message")) for e in errors_list]
         joined = "; ".join(messages) if messages else "Unknown GraphQL error"
 
-        # Extract error codes and map to HTTP status; also collect spec-standard
-        # ``path`` arrays so vendor-agnostic debugging context is preserved.
         codes: list[str] = []
         paths: list[list[Any]] = []
-        status = HTTPStatus.UNPROCESSABLE_ENTITY.value
+        vendor_statuses: list[int] = []
+        user_presentable_messages: list[str] = []
+
+        mapped_status: int | None = None
 
         for e in errors_list:
             if not isinstance(e, dict):
                 continue
-            ext = e.get("extensions")
-            code = ext.get("code") if isinstance(ext, dict) else None
+            raw_ext = e.get("extensions")
+            ext: dict[str, Any] = raw_ext if isinstance(raw_ext, dict) else {}
+
+            # 1. Numeric status hint — authoritative when present.
+            vendor_status = _extract_vendor_status(ext)
+            error_status: int | None = vendor_status
+            if vendor_status is not None:
+                vendor_statuses.append(vendor_status)
+
+            # 2. Code lookup — fallback for servers that don't populate a
+            #    numeric hint.
+            code = ext.get("code")
             if isinstance(code, str):
                 codes.append(code)
-                mapped = _GQL_CODE_TO_STATUS.get(code)
-                if mapped and mapped > status:
-                    status = mapped
+                if error_status is None:
+                    error_status = _GQL_CODE_TO_STATUS.get(code)
+
+            if error_status is not None and (mapped_status is None or error_status > mapped_status):
+                mapped_status = error_status
+
             path = e.get("path")
             if isinstance(path, list):
                 paths.append(path)
 
+            user_presentable = ext.get("userPresentableMessage")
+            if isinstance(user_presentable, str) and user_presentable:
+                user_presentable_messages.append(user_presentable)
+
+        is_rate_limited = mapped_status == HTTPStatus.TOO_MANY_REQUESTS.value
+        status = (
+            HTTPStatus.TOO_MANY_REQUESTS.value
+            if is_rate_limited
+            else (
+                mapped_status
+                if mapped_status is not None
+                else HTTPStatus.UNPROCESSABLE_ENTITY.value
+            )
+        )
+
         unique_codes = sorted(set(codes))
+        unique_vendor_statuses = sorted(set(vendor_statuses))
+
+        message = (
+            user_presentable_messages[0]
+            if user_presentable_messages
+            else f"Upstream GraphQL error: {joined}"
+        )
+        developer_message = (
+            f"GraphQL error codes: {', '.join(unique_codes)}" if unique_codes else "GraphQL error"
+        )
+        extra: dict[str, Any] = {
+            "service": self.slug,
+            "error_type": "TransportQueryError",
+            "gql_error_codes": unique_codes,
+            "gql_error_paths": paths,
+        }
+        if unique_vendor_statuses:
+            extra["gql_vendor_statuses"] = unique_vendor_statuses
+
+        if is_rate_limited:
+            headers = self._get_headers(exc) or self._get_headers(exc.__cause__) or {}
+            return UpstreamRateLimitError(
+                message=message,
+                retry_after_ms=self._parse_retry_ms(headers),
+                developer_message=developer_message,
+                extra=extra,
+            )
 
         return UpstreamError(
-            message=f"Upstream GraphQL error: {joined}",
+            message=message,
             status_code=status,
-            developer_message=f"GraphQL error codes: {', '.join(unique_codes)}"
-            if unique_codes
-            else "GraphQL error",
-            extra={
-                "service": self.slug,
-                "error_type": "TransportQueryError",
-                "gql_error_codes": unique_codes,
-                "gql_error_paths": paths,
-            },
+            developer_message=developer_message,
+            extra=extra,
         )
 
     def _handle_transport_error(self, exc: Any) -> UpstreamError:
