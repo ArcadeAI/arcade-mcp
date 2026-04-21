@@ -108,6 +108,36 @@ def test_fail(output_factory, message, developer_message):
     assert output.error.can_retry is False
 
 
+def test_fail_empty_message_gets_default(output_factory):
+    output = output_factory.fail(message="")
+    assert output.error is not None
+    assert output.error.message == "Unspecified error during tool execution"
+
+
+def test_fail_whitespace_message_gets_default(output_factory):
+    output = output_factory.fail(message="  ")
+    assert output.error is not None
+    assert output.error.message == "Unspecified error during tool execution"
+
+
+def test_fail_nonempty_message_unchanged(output_factory):
+    output = output_factory.fail(message="real error")
+    assert output.error is not None
+    assert output.error.message == "real error"
+
+
+def test_fail_retry_empty_message_gets_default(output_factory):
+    output = output_factory.fail_retry(message="")
+    assert output.error is not None
+    assert output.error.message == "Unspecified error during tool execution"
+
+
+def test_fail_retry_whitespace_message_gets_default(output_factory):
+    output = output_factory.fail_retry(message="   ")
+    assert output.error is not None
+    assert output.error.message == "Unspecified error during tool execution"
+
+
 @pytest.mark.parametrize(
     "message, developer_message, additional_prompt_content, retry_after_ms",
     [

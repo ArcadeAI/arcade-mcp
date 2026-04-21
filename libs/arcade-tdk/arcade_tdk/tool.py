@@ -89,6 +89,22 @@ def _raise_as_arcade_error(
 
     Raises:
         ToolRuntimeError or some subclass thereof
+
+    Data-leak policy (strict):
+        The fallback path below NEVER places ``str(exception)`` content into
+        the agent-facing ``message`` field. Tool authors commonly embed user
+        input in raised exception messages
+        (e.g. ``raise ValueError(f"Bad password: {password}")``) and the
+        framework cannot reliably distinguish secrets/PII from safe context.
+
+        Resolution:
+        * ``message`` (agent-facing) — exception **type only**, no
+          ``str(exception)`` content.
+        * ``developer_message`` (server-side logs only — ``error_developer_message``
+          Datadog facet, never returned to the client) — carries the
+          full ``f"{ExceptionType}: {str(exception)}"`` so on-call engineers
+          retain debugging context. Authorized log access is the security
+          boundary, not the agent transport.
     """
     for adapter in adapter_chain:
         try:
@@ -101,9 +117,17 @@ def _raise_as_arcade_error(
         if isinstance(mapped, ToolRuntimeError):
             raise mapped from exception
 
+    exc_type = type(exception).__name__
+    exc_str = str(exception).strip()
+    # Agent-facing: type only — never str(exception). See "Data-leak policy".
+    message = f"An unhandled {exc_type} was raised by the tool."
+    # Server-side debugging: full content goes to logs only.
+    developer_message = (
+        f"{exc_type}: {exc_str}" if exc_str else f"{exc_type} (no exception message)"
+    )
     raise FatalToolError(
-        message=f"{exception!s}",
-        developer_message=f"{exception!s}",
+        message=message,
+        developer_message=developer_message,
     ) from exception
 
 
