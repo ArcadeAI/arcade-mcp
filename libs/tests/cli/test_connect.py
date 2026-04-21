@@ -359,7 +359,7 @@ class TestRunConnectToolOnly:
             patch("arcade_cli.configure.console"),
         ):
             run_connect(
-                client="claude",
+                client="claude-code",
                 tools=["Github.CreateIssue", "Slack.SendMessage"],
                 config_path=config_path,
             )
@@ -397,7 +397,7 @@ class TestRunConnectGateway:
             patch("arcade_cli.configure.console"),
         ):
             run_connect(
-                client="claude",
+                client="claude-code",
                 gateway="my-production-gw",
                 config_path=config_path,
             )
@@ -472,7 +472,7 @@ class TestRunConnectToolkit:
             patch("arcade_cli.configure.console"),
         ):
             run_connect(
-                client="claude",
+                client="claude-code",
                 toolkits=["github"],
                 config_path=config_path,
             )
@@ -547,7 +547,7 @@ class TestRunConnectInteractive:
             patch("arcade_cli.configure.console"),
         ):
             run_connect(
-                client="claude",
+                client="claude-code",
                 all_tools=True,
                 config_path=config_path,
             )
@@ -565,7 +565,7 @@ class TestRunConnectInteractive:
             patch("arcade_cli.connect.console"),
             pytest.raises(SystemExit),
         ):
-            run_connect(client="claude", all_tools=True)
+            run_connect(client="claude-code", all_tools=True)
 
     def test_toolkit_not_found_exits(self) -> None:
         with (
@@ -575,7 +575,7 @@ class TestRunConnectInteractive:
             patch("arcade_cli.connect.console"),
             pytest.raises(SystemExit),
         ):
-            run_connect(client="claude", toolkits=["nonexistent"])
+            run_connect(client="claude-code", toolkits=["nonexistent"])
 
 
 # ---------------------------------------------------------------------------
@@ -648,7 +648,7 @@ class TestRunConnectAdvanced:
             patch("arcade_cli.configure.console"),
         ):
             run_connect(
-                client="claude",
+                client="claude-code",
                 toolkits=["github"],
                 config_path=config_path,
             )
@@ -675,7 +675,7 @@ class TestRunConnectAdvanced:
             patch("arcade_cli.configure.console"),
         ):
             run_connect(
-                client="claude",
+                client="claude-code",
                 toolkits=["github"],
                 gateway_slug="my-custom",
                 config_path=config_path,
@@ -704,7 +704,7 @@ class TestRunConnectAdvanced:
             patch("arcade_cli.configure.console"),
         ):
             run_connect(
-                client="claude",
+                client="claude-code",
                 toolkits=["github"],
                 tools=["Slack.SendMessage"],
                 config_path=config_path,

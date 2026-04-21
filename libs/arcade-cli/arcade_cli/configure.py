@@ -408,7 +408,7 @@ def _configure_mcpservers_arcade(
     console.print(f"   Restart {display_name} for changes to take effect.", style="yellow")
 
 
-def configure_claude_arcade(
+def configure_claude_code_arcade(
     server_name: str,
     gateway_url: str,
     auth_token: str | None = None,
@@ -941,7 +941,7 @@ def configure_client_gateway(
     """
     client_lower = client.lower()
     dispatch = {
-        "claude": configure_claude_arcade,
+        "claude-code": configure_claude_code_arcade,
         "cursor": configure_cursor_arcade,
         "vscode": configure_vscode_arcade,
         "windsurf": configure_windsurf_arcade,

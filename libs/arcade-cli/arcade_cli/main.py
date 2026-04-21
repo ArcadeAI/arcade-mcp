@@ -793,7 +793,16 @@ def connect(
         ...,
         help="MCP client to connect to the remote gateway",
         click_type=click.Choice(
-            ["claude", "cursor", "vscode", "windsurf", "amazonq", "codex", "opencode", "gemini"],
+            [
+                "claude-code",
+                "cursor",
+                "vscode",
+                "windsurf",
+                "amazonq",
+                "codex",
+                "opencode",
+                "gemini",
+            ],
             case_sensitive=False,
         ),
         show_choices=True,

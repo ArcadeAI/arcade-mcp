@@ -13,7 +13,7 @@ from arcade_cli.configure import (
     _upsert_codex_mcp_server,
     _warn_overwrite,
     configure_amazonq_arcade,
-    configure_claude_arcade,
+    configure_claude_code_arcade,
     configure_client,
     configure_client_gateway,
     configure_client_toolkit,
@@ -528,10 +528,10 @@ def test_claude_config_stdio_only(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
 # ---------------------------------------------------------------------------
 
 
-class TestConfigureClaudeArcade:
+class TestConfigureClaudeCodeArcade:
     def test_writes_http_config(self, tmp_path: Path) -> None:
         config_path = tmp_path / "claude.json"
-        configure_claude_arcade(
+        configure_claude_code_arcade(
             server_name="my-gw",
             gateway_url="https://api.arcade.dev/mcp/my-gw",
             auth_token="tok_abc",
@@ -552,7 +552,7 @@ class TestConfigureClaudeArcade:
             }),
             encoding="utf-8",
         )
-        configure_claude_arcade(
+        configure_claude_code_arcade(
             server_name="new-gw",
             gateway_url="https://api.arcade.dev/mcp/new-gw",
             auth_token="tok",
@@ -605,7 +605,7 @@ class TestConfigureClientGateway:
     @pytest.mark.parametrize(
         "client,section",
         [
-            ("claude", "mcpServers"),
+            ("claude-code", "mcpServers"),
             ("cursor", "mcpServers"),
             ("vscode", "servers"),
             ("windsurf", "mcpServers"),
@@ -1193,13 +1193,13 @@ def _assert_only_added(original: dict, updated: dict, parent_key: str, server_na
         assert updated[parent_key][name] == entry, f"existing server '{name}' was mutated"
 
 
-class TestClaudePreservesEverything:
+class TestClaudeCodePreservesEverything:
     def test_preserves_full_original_config(self, tmp_path: Path) -> None:
         config_path = tmp_path / "claude.json"
         original = _rich_claude_config()
         config_path.write_text(json.dumps(original), encoding="utf-8")
 
-        configure_claude_arcade(
+        configure_claude_code_arcade(
             server_name="new-gw",
             gateway_url="https://new.example/mcp",
             auth_token="new_tok",
@@ -1218,10 +1218,10 @@ class TestClaudePreservesEverything:
     def test_repeated_writes_accumulate(self, tmp_path: Path) -> None:
         """Running connect twice with different names keeps both entries."""
         config_path = tmp_path / "claude.json"
-        configure_claude_arcade(
+        configure_claude_code_arcade(
             server_name="first", gateway_url="https://first/mcp", config_path=config_path
         )
-        configure_claude_arcade(
+        configure_claude_code_arcade(
             server_name="second", gateway_url="https://second/mcp", config_path=config_path
         )
         servers = _load_json(config_path)["mcpServers"]
@@ -1235,7 +1235,7 @@ class TestClaudePreservesEverything:
         config_path.write_text(json.dumps(original), encoding="utf-8")
 
         # Write the same server name twice — should only replace that one entry.
-        configure_claude_arcade(
+        configure_claude_code_arcade(
             server_name="keep-me", gateway_url="https://replacement/mcp", config_path=config_path
         )
         updated = _load_json(config_path)
