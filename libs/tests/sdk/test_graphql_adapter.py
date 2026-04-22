@@ -340,17 +340,20 @@ class TestGraphQLErrorAdapter:
         )
 
     def test_rate_limit_agent_message_without_retry_after(self) -> None:
-        """Without a retry header, fall back to a generic rate-limit phrase."""
+        """Without any rate-limit header, emit a generic phrase — never a fabricated timer."""
         errors = [{"message": "x", "extensions": {"code": "RATE_LIMITED"}}]
         exc = DummyTransportQueryError(errors=errors)
+        # No ``__cause__`` / headers → no retry-after info available.
 
         with _patch_loader():
             result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
 
         assert isinstance(result, UpstreamRateLimitError)
-        # _parse_retry_ms defaults to 1000ms when no rate-limit header is present,
-        # which is 1 second — shown in the message.
-        assert "Retry after 1 second(s)." in result.message
+        assert result.message == (
+            "Upstream GraphQL request failed (Too Many Requests). Rate limit encountered."
+        )
+        # Must NOT fabricate a retry timer when no header was present.
+        assert "Retry after" not in result.message
 
     # --- Curated agent-facing message ---
 

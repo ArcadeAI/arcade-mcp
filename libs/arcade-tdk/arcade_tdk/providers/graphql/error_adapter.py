@@ -12,7 +12,7 @@ from arcade_core.errors import (
     UpstreamRateLimitError,
 )
 
-from arcade_tdk.providers.http.error_adapter import BaseHTTPErrorMapper
+from arcade_tdk.providers.http.error_adapter import RATE_HEADERS, BaseHTTPErrorMapper
 
 logger = logging.getLogger(__name__)
 
@@ -82,9 +82,15 @@ def _build_safe_graphql_message(
 
     base = f"Upstream GraphQL request failed ({phrase})."
     if status == HTTPStatus.TOO_MANY_REQUESTS.value:
-        retry_seconds = mapper._parse_retry_ms(headers) // 1000
-        if retry_seconds > 0:
-            return f"{base} Retry after {retry_seconds} second(s)."
+        # ``_parse_retry_ms`` returns a 1000 ms *default* when no retry header
+        # is present, so we can't gate on ``retry_seconds > 0`` alone — that
+        # would fabricate a "Retry after 1 second(s)." for every 429 without a
+        # header. Check whether any recognized rate-limit header is actually
+        # present first.
+        if any(h in headers for h in RATE_HEADERS):
+            retry_seconds = mapper._parse_retry_ms(headers) // 1000
+            if retry_seconds > 0:
+                return f"{base} Retry after {retry_seconds} second(s)."
         return f"{base} Rate limit encountered."
     return base
 
