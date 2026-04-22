@@ -2388,11 +2388,14 @@ class TestTaskHandlers:
             "params": {"taskId": task.taskId},
         }
 
-        async with asyncio.TaskGroup() as tg:
-            tg.create_task(complete_later())
+        # NOTE: asyncio.TaskGroup is 3.11+; use plain create_task for 3.10 compat.
+        completer = asyncio.create_task(complete_later())
+        try:
             response = await asyncio.wait_for(
                 mcp_server.handle_message(message, initialized_server_session), timeout=5.0
             )
+        finally:
+            await completer
         assert not isinstance(response, JSONRPCError)
 
     @pytest.mark.asyncio

@@ -218,11 +218,14 @@ class TestTaskManagerResultBlocking:
             await task_manager.set_result(task.taskId, {"done": True})
             await task_manager.update_status(task.taskId, TaskStatus.COMPLETED)
 
-        async with asyncio.TaskGroup() as tg:
-            tg.create_task(complete_later())
+        # NOTE: asyncio.TaskGroup is 3.11+; use plain create_task for 3.10 compat.
+        completer = asyncio.create_task(complete_later())
+        try:
             result = await asyncio.wait_for(
                 task_manager.get_result(task.taskId, context_key=CONTEXT_A), timeout=5.0
             )
+        finally:
+            await completer
         assert result == {"done": True}
 
     @pytest.mark.asyncio
