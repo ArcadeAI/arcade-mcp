@@ -271,9 +271,14 @@ class GraphQLErrorAdapter(BaseHTTPErrorMapper):
         retry_after_ms = _resolve_retry_after_ms(headers, self)
 
         # Agent-facing: curated vendor text or a fixed HTTP-status template.
-        # Never embed raw ``errors[].message`` content here.
+        # Never embed raw ``errors[].message`` content here. On 429 with a
+        # real retry hint, append it to the vendor text too so the retry
+        # guidance isn't dropped when ``userPresentableMessage`` wins.
         if user_presentable:
             message = user_presentable
+            if status == HTTPStatus.TOO_MANY_REQUESTS.value and retry_after_ms > 0:
+                retry_seconds = max(1, (retry_after_ms + 999) // 1000)
+                message = f"{message} Retry after {retry_seconds} second(s)."
         else:
             message = _build_safe_graphql_message(status, retry_after_ms)
 
@@ -307,15 +312,17 @@ class GraphQLErrorAdapter(BaseHTTPErrorMapper):
         if not isinstance(status, int):
             status = HTTPStatus.INTERNAL_SERVER_ERROR.value
 
-        # Extract headers for rate limit detection (check exc and __cause__)
-        headers = self._get_headers(exc) or self._get_headers(exc.__cause__)
+        # Extract headers for rate limit detection. Use the same helper as
+        # ``_handle_query_error`` so empty-dict headers on ``exc`` itself
+        # aren't silently overridden by ``__cause__`` headers.
+        headers = _collect_upstream_headers(exc, self)
 
         # Extract URL from __cause__ (aiohttp/httpx/requests store it there)
         url, method = self._get_request_info(exc.__cause__)
 
         return self._map_status_to_error(
             status=status,
-            headers=headers or {},
+            headers=headers,
             msg=f"Upstream GraphQL request failed with status code {status}.",
             developer_message=str(exc),
             request_url=url,

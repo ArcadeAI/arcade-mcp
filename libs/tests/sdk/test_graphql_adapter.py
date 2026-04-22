@@ -393,6 +393,50 @@ class TestGraphQLErrorAdapter:
         assert result.retry_after_ms == 500
         assert "Retry after 1 second(s)." in result.message
 
+    def test_rate_limit_appends_retry_hint_to_user_presentable_message(self) -> None:
+        """When 429 and userPresentableMessage both apply, retry hint is appended."""
+        errors = [
+            {
+                "message": "rate limited",
+                "extensions": {
+                    "code": "RATELIMITED",
+                    "statusCode": 429,
+                    "userPresentableMessage": "You're sending requests too quickly.",
+                },
+            },
+        ]
+        exc = DummyTransportQueryError(errors=errors)
+        cause = Exception("inner")
+        cause.response = DummyResponse({"retry-after": "42"})  # type: ignore[attr-defined]
+        exc.__cause__ = cause
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert isinstance(result, UpstreamRateLimitError)
+        assert result.message == (
+            "You're sending requests too quickly. Retry after 42 second(s)."
+        )
+        assert result.retry_after_ms == 42_000
+
+    def test_transport_error_uses_empty_headers_dict_from_exc_over_cause(self) -> None:
+        """The ``{}``/``None`` fix applies to transport errors too, not only queries."""
+        # ``exc`` has a response with empty headers → authoritative.
+        exc = DummyTransportServerError("err", code=500, headers={})
+        # ``__cause__`` has a populated response that must NOT be consulted.
+        cause = Exception("inner")
+        cause.response = DummyResponse({"retry-after": "60"})  # type: ignore[attr-defined]
+        exc.__cause__ = cause
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert result.status_code == 500
+        # If we'd fallen through to cause, this would be a rate-limit error
+        # pretending retry-after=60 applies. It must not.
+        assert not isinstance(result, UpstreamRateLimitError)
+
     def test_headers_from_exc_preferred_over_cause_even_if_empty(self) -> None:
         """``{}`` on ``exc`` itself (response present, no headers) must not fall
         through to ``__cause__``. ``None`` (no response) is the only trigger
