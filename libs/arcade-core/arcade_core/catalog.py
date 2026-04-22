@@ -470,7 +470,6 @@ class ToolCatalog(BaseModel):
         fully_qualified_name = FullyQualifiedName.from_toolkit(tool_name, toolkit_definition)
         deprecation_message = getattr(tool, "__tool_deprecation_message__", None)
         tool_metadata = getattr(tool, "__tool_metadata__", None)
-        tool_execution = getattr(tool, "__tool_execution__", None)
 
         if tool_metadata is not None:
             if not isinstance(tool_metadata, ToolMetadata):
@@ -494,7 +493,6 @@ class ToolCatalog(BaseModel):
             ),
             deprecation_message=deprecation_message,
             metadata=tool_metadata,
-            execution=tool_execution,
         )
 
 

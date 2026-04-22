@@ -6,8 +6,13 @@ from typing import Any
 from arcade_core.catalog import MaterializedTool
 from arcade_core.schema import ToolDefinition
 
-from arcade_mcp_server.types import MCPContent, MCPTool, TextContent, ToolAnnotations
-from arcade_mcp_server.types import ToolExecution as MCPToolExecution
+from arcade_mcp_server.types import (
+    MCPContent,
+    MCPTool,
+    TextContent,
+    ToolAnnotations,
+    ToolExecution,
+)
 
 logger = logging.getLogger("arcade.mcp")
 
@@ -79,12 +84,13 @@ def create_mcp_tool(materialized_tool: MaterializedTool) -> MCPTool:
     else:
         annotations = ToolAnnotations(title=title)
 
-    # Map arcade-core's protocol-neutral ToolExecutionPolicy to MCP's wire-format ToolExecution.
-    mcp_execution: MCPToolExecution | None = None
-    if definition.execution is not None:
-        mcp_execution = MCPToolExecution(
-            taskSupport=definition.execution.background_execution,
-        )
+    # MCP-specific tool metadata travels on the function as ``__tool_execution__``
+    # (set by ``@tool(execution=...)``). ``arcade-core`` has no knowledge of it;
+    # this reads it off the materialized tool at convert time.
+    raw_execution = getattr(materialized_tool.tool, "__tool_execution__", None)
+    mcp_execution: ToolExecution | None = (
+        raw_execution if isinstance(raw_execution, ToolExecution) else None
+    )
 
     # Build _meta.arcade structure
     arcade_meta = _build_arcade_meta(definition)

@@ -221,20 +221,22 @@ class TestToolDecoratorExecution:
         assert getattr(my_tool, "__tool_execution__", None) is None
 
     def test_tool_with_execution_parameter(self):
-        from arcade_core.schema import ToolExecutionPolicy
+        # ``execution`` is an opaque payload the decorator stores as
+        # ``__tool_execution__`` verbatim -- arcade-tdk intentionally does not
+        # know the shape. Protocol adapters (e.g. MCP convert) read and
+        # interpret it at serialisation time.
+        payload = object()
 
-        @tool(execution=ToolExecutionPolicy(background_execution="optional"))
+        @tool(execution=payload)
         def my_tool() -> str:
             return "hello"
 
-        assert my_tool.__tool_execution__.background_execution == "optional"
+        assert my_tool.__tool_execution__ is payload
 
-    @pytest.mark.parametrize("support", ["forbidden", "optional", "required"])
-    def test_tool_with_execution_parametrized(self, support):
-        from arcade_core.schema import ToolExecutionPolicy
-
-        @tool(execution=ToolExecutionPolicy(background_execution=support))
+    @pytest.mark.parametrize("payload", [{"taskSupport": "optional"}, "required", 42])
+    def test_tool_with_execution_parametrized(self, payload):
+        @tool(execution=payload)
         def my_tool() -> str:
             return "hello"
 
-        assert my_tool.__tool_execution__.background_execution == support
+        assert my_tool.__tool_execution__ == payload

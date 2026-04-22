@@ -252,18 +252,6 @@ class ToolRequirements(BaseModel):
     """The metadata requirements for the tool, if any."""
 
 
-class ToolExecutionPolicy(BaseModel):
-    """Policy describing how a tool may be executed (e.g., synchronous vs background)."""
-
-    background_execution: Literal["forbidden", "optional", "required"] | None = Field(
-        default=None,
-        description="Whether the tool may be invoked as a background task. "
-        "'forbidden' (or None) = tool must be executed synchronously; "
-        "'optional' = may be executed synchronously or as a background task; "
-        "'required' = must be executed as a background task.",
-    )
-
-
 class ToolkitDefinition(BaseModel):
     """The specification of a toolkit."""
 
@@ -351,9 +339,6 @@ class ToolDefinition(BaseModel):
 
     metadata: ToolMetadata | None = None
     """Metadata about the tool"""
-
-    execution: ToolExecutionPolicy | None = None
-    """Policy describing how the tool may be executed (e.g. synchronous vs background)."""
 
     def get_fully_qualified_name(self) -> FullyQualifiedName:
         return FullyQualifiedName(self.name, self.toolkit.name, self.toolkit.version)

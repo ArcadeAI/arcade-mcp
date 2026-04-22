@@ -1061,8 +1061,12 @@ class MCPServer:
                 has_task_metadata = False
             else:
                 # Enforce the tool's execution policy against the request.
-                tool_execution = getattr(tool.definition, "execution", None)
-                tool_task_support = tool_execution.background_execution if tool_execution else None
+                # MCP-specific: the policy lives on the function as the
+                # ``__tool_execution__`` dunder (an MCP ``ToolExecution`` instance).
+                tool_execution = getattr(tool.tool, "__tool_execution__", None)
+                tool_task_support = (
+                    getattr(tool_execution, "taskSupport", None) if tool_execution else None
+                )
                 # No policy configured means synchronous-only by default.
                 if tool_task_support is None:
                     tool_task_support = "forbidden"

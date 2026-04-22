@@ -4,7 +4,6 @@ import logging
 from typing import Any, Callable, TypeVar
 
 from arcade_core.metadata import ToolMetadata
-from arcade_core.schema import ToolExecutionPolicy
 
 from arcade_tdk.auth import ToolAuthorization
 from arcade_tdk.error_adapters import ErrorAdapter
@@ -140,8 +139,18 @@ def tool(
     requires_metadata: list[str] | None = None,
     adapters: list[ErrorAdapter] | None = None,
     metadata: ToolMetadata | None = None,
-    execution: ToolExecutionPolicy | None = None,
+    execution: Any | None = None,
 ) -> Callable:
+    """Decorate a function as an Arcade tool.
+
+    The ``execution`` parameter is an opaque, protocol-specific payload stored on
+    the function as ``__tool_execution__`` and read by protocol adapters at
+    serialisation time. For MCP, pass ``arcade_mcp_server.ToolExecution(...)`` to
+    declare ``taskSupport``; other protocols can read the same dunder as needed.
+    ``arcade-tdk`` does not introspect the value, so unsupported payloads simply
+    go unused.
+    """
+
     def decorator(func: Callable) -> Callable:
         func_name = str(getattr(func, "__name__", None))
         tool_name = name or snake_to_pascal_case(func_name)

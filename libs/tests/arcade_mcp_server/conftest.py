@@ -13,7 +13,6 @@ from arcade_core.schema import (
     OAuth2Requirement,
     ToolAuthRequirement,
     ToolDefinition,
-    ToolExecutionPolicy,
     ToolInput,
     ToolkitDefinition,
     ToolOutput,
@@ -25,6 +24,7 @@ from arcade_mcp_server.context import Context
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.session import ServerSession
 from arcade_mcp_server.settings import MCPSettings
+from arcade_mcp_server.types import ToolExecution
 from arcade_tdk.auth import OAuth2
 
 
@@ -56,7 +56,6 @@ def sample_tool_def() -> ToolDefinition:
         ),
         output=ToolOutput(description="Tool output", value_schema=ValueSchema(val_type="string")),
         requirements=ToolRequirements(),
-        execution=ToolExecutionPolicy(background_execution="optional"),
     )
 
 
@@ -96,7 +95,7 @@ def sample_tool_def_with_auth() -> ToolDefinition:
 def sample_tool_func():
     """Create a sample tool function."""
 
-    @tool
+    @tool(execution=ToolExecution(taskSupport="optional"))
     def sample_tool(
         text: Annotated[str, "Input text to echo"],
     ) -> Annotated[str, "Echoed text result"]:
@@ -162,9 +161,8 @@ def _make_tool_def(
     fqn: str,
     *,
     params: list[InputParameter] | None = None,
-    execution: ToolExecutionPolicy | None = None,
 ) -> ToolDefinition:
-    """Helper to create a ToolDefinition with optional execution config."""
+    """Helper to create a ToolDefinition."""
     return ToolDefinition(
         name=name,
         fully_qualified_name=fqn,
@@ -173,7 +171,6 @@ def _make_tool_def(
         input=ToolInput(parameters=params or []),
         output=ToolOutput(description="Tool output", value_schema=ValueSchema(val_type="string")),
         requirements=ToolRequirements(),
-        execution=execution,
     )
 
 
@@ -194,7 +191,7 @@ def _materialize(func: Any, defn: ToolDefinition) -> MaterializedTool:
 def failing_tool_func():
     """A tool that always raises an exception."""
 
-    @tool
+    @tool(execution=ToolExecution(taskSupport="optional"))
     def failing_tool() -> Annotated[str, "Never returned"]:
         """A tool that always fails."""
         raise RuntimeError("Tool execution failed")
@@ -204,11 +201,7 @@ def failing_tool_func():
 
 @pytest.fixture
 def failing_tool_def() -> ToolDefinition:
-    return _make_tool_def(
-        "failing_tool",
-        "TestToolkit.failing_tool",
-        execution=ToolExecutionPolicy(background_execution="optional"),
-    )
+    return _make_tool_def("failing_tool", "TestToolkit.failing_tool")
 
 
 @pytest.fixture
@@ -220,7 +213,7 @@ def materialized_failing_tool(failing_tool_func, failing_tool_def) -> Materializ
 def slow_tool_func():
     """A tool that sleeps for a long time (for cancellation tests)."""
 
-    @tool
+    @tool(execution=ToolExecution(taskSupport="optional"))
     async def slow_tool() -> Annotated[str, "Result"]:
         """A tool that sleeps."""
         await asyncio.sleep(60)
@@ -231,11 +224,7 @@ def slow_tool_func():
 
 @pytest.fixture
 def slow_tool_def() -> ToolDefinition:
-    return _make_tool_def(
-        "slow_tool",
-        "TestToolkit.slow_tool",
-        execution=ToolExecutionPolicy(background_execution="optional"),
-    )
+    return _make_tool_def("slow_tool", "TestToolkit.slow_tool")
 
 
 @pytest.fixture
@@ -247,7 +236,7 @@ def materialized_slow_tool(slow_tool_func, slow_tool_def) -> MaterializedTool:
 def error_result_tool_func():
     """A tool that returns isError=True (not an exception)."""
 
-    @tool
+    @tool(execution=ToolExecution(taskSupport="optional"))
     def error_result_tool() -> Annotated[str, "Error result"]:
         """A tool that indicates error via return value."""
         return None  # type: ignore[return-value]
@@ -257,11 +246,7 @@ def error_result_tool_func():
 
 @pytest.fixture
 def error_result_tool_def() -> ToolDefinition:
-    return _make_tool_def(
-        "error_result_tool",
-        "TestToolkit.error_result_tool",
-        execution=ToolExecutionPolicy(background_execution="optional"),
-    )
+    return _make_tool_def("error_result_tool", "TestToolkit.error_result_tool")
 
 
 @pytest.fixture
@@ -271,9 +256,9 @@ def materialized_error_result_tool(error_result_tool_func, error_result_tool_def
 
 @pytest.fixture
 def forbidden_task_tool_func():
-    """A tool with background_execution=forbidden."""
+    """A tool with taskSupport=forbidden."""
 
-    @tool
+    @tool(execution=ToolExecution(taskSupport="forbidden"))
     def forbidden_task_tool() -> Annotated[str, "Result"]:
         """A tool that forbids task augmentation."""
         return "ok"
@@ -283,11 +268,7 @@ def forbidden_task_tool_func():
 
 @pytest.fixture
 def forbidden_task_tool_def() -> ToolDefinition:
-    return _make_tool_def(
-        "forbidden_task_tool",
-        "TestToolkit.forbidden_task_tool",
-        execution=ToolExecutionPolicy(background_execution="forbidden"),
-    )
+    return _make_tool_def("forbidden_task_tool", "TestToolkit.forbidden_task_tool")
 
 
 @pytest.fixture
@@ -299,9 +280,9 @@ def materialized_forbidden_task_tool(
 
 @pytest.fixture
 def required_task_tool_func():
-    """A tool with background_execution=required."""
+    """A tool with taskSupport=required."""
 
-    @tool
+    @tool(execution=ToolExecution(taskSupport="required"))
     def required_task_tool() -> Annotated[str, "Result"]:
         """A tool that requires task augmentation."""
         return "ok"
@@ -311,11 +292,7 @@ def required_task_tool_func():
 
 @pytest.fixture
 def required_task_tool_def() -> ToolDefinition:
-    return _make_tool_def(
-        "required_task_tool",
-        "TestToolkit.required_task_tool",
-        execution=ToolExecutionPolicy(background_execution="required"),
-    )
+    return _make_tool_def("required_task_tool", "TestToolkit.required_task_tool")
 
 
 @pytest.fixture

@@ -2657,7 +2657,7 @@ class TestRelatedTaskMetadata:
 
 
 class TestToolTaskNegotiationEnforcement:
-    """Tests for ToolExecutionPolicy.background_execution enforcement rules."""
+    """Tests for ToolExecution.taskSupport enforcement rules."""
 
     @pytest.mark.asyncio
     async def test_forbidden_tool_rejects_task_metadata(
