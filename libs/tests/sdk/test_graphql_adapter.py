@@ -393,6 +393,22 @@ class TestGraphQLErrorAdapter:
         assert result.retry_after_ms == 500
         assert "Retry after 1 second(s)." in result.message
 
+    def test_rate_limit_empty_retry_after_header_does_not_fabricate(self) -> None:
+        """An empty-string ``retry-after`` header must not fabricate a 1-second hint."""
+        errors = [{"message": "x", "extensions": {"code": "RATE_LIMITED"}}]
+        exc = DummyTransportQueryError(errors=errors)
+        cause = Exception("inner")
+        cause.response = DummyResponse({"retry-after": ""})  # type: ignore[attr-defined]
+        exc.__cause__ = cause
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert isinstance(result, UpstreamRateLimitError)
+        assert result.retry_after_ms == 0
+        assert "Retry after" not in result.message
+        assert "Rate limit encountered." in result.message
+
     def test_rate_limit_appends_retry_hint_to_user_presentable_message(self) -> None:
         """When 429 and userPresentableMessage both apply, retry hint is appended."""
         errors = [

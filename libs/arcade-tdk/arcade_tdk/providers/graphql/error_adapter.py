@@ -68,15 +68,19 @@ def _extract_error_message(message: Any) -> str:
 
 
 def _resolve_retry_after_ms(headers: dict[str, str], mapper: BaseHTTPErrorMapper) -> int:
-    """Return parsed ``retry_after_ms`` only when a rate-limit header is present.
+    """Return parsed ``retry_after_ms`` only when a rate-limit header has a value.
 
     :meth:`BaseHTTPErrorMapper._parse_retry_ms` returns a hard-coded 1000 ms
     default when no recognized header exists — passing that through would
     fabricate a 1-second wait hint for every 429 with no real header. Zero
     here means "no hint from upstream"; callers back off per their own
     policy.
+
+    Matches ``_parse_retry_ms``'s own truthiness check on header *values*
+    (not mere presence), so an empty-string header like ``retry-after: ""``
+    correctly falls through to zero rather than fabricating 1000 ms.
     """
-    if any(h in headers for h in RATE_HEADERS):
+    if any(headers.get(h) for h in RATE_HEADERS):
         return mapper._parse_retry_ms(headers)
     return 0
 
