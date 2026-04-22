@@ -338,7 +338,7 @@ class TestServerSession:
         sent_data = json.loads(server_session.write_stream.send.call_args[0][0].strip())
         assert "error" in sent_data
         assert sent_data["error"]["code"] == -32700  # Parse error
-        assert sent_data["id"] is None  # JSON null, not string "null" (AD 18)
+        assert sent_data["id"] is None  # JSON null, not string "null"
 
     def test_client_info_extraction(self, server_session):
         """Test extracting client information."""
@@ -747,8 +747,10 @@ class TestEnumSchemaValidation:
 
 
 class TestElicitationCapabilityGating:
-    """Tests for elicitation capability gating (elicitation.mdx:72:
-    'Servers MUST NOT send elicitation requests with modes that are not supported by the client')."""
+    """Tests for elicitation capability gating.
+
+    Servers MUST NOT send elicitation requests with modes that are not supported
+    by the client."""
 
     @pytest.fixture(autouse=True)
     def _init_session(self, server_session: Any) -> None:
@@ -855,8 +857,9 @@ class TestElicitationCapabilityGating:
 
 
 class TestURLElicitationSecurity:
-    """Tests for URL elicitation security MUST requirements (elicitation.mdx:573-710).
-    **DEFERRED to follow-up PR** -- see resolved decision 50."""
+    """Tests for URL elicitation security MUST requirements.
+
+    **Deferred to a follow-up PR.**"""
     pass
 
 
@@ -866,8 +869,8 @@ class TestElicitationCompletionNotification:
     @pytest.mark.asyncio
     async def test_completion_notification_routed_to_initiating_client_only(self, server_session):
         """notifications/elicitation/complete MUST only be sent to the client that
-        initiated the elicitation request (elicitation.mdx:398).
-        Not broadcast to all sessions -- targeted to the originating session."""
+        initiated the elicitation request. Not broadcast to all sessions -- targeted
+        to the originating session."""
         server_session.negotiated_version = "2025-11-25"
         sent_messages = []
         server_session.write_stream = AsyncMock()

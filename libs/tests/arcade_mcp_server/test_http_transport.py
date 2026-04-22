@@ -1,9 +1,9 @@
-"""Phase 7 transport-level tests.
+"""Transport-level tests for the Streamable HTTP transport.
 
-Tests for Origin validation, Accept header, MCP-Protocol-Version header,
-CORS headers, transport error helper, and session termination.
-These test at the function/unit level rather than full ASGI integration
-for pragmatic reasons (the ASGI plumbing is complex to set up).
+Covers Origin validation, Accept header negotiation, the
+MCP-Protocol-Version header, CORS headers, the transport error helper,
+and session termination. These exercise the helpers at the function
+level rather than via full ASGI integration.
 """
 
 import json
@@ -37,7 +37,7 @@ def _make_request(headers: dict[str, str] | None = None, method: str = "POST") -
 
 
 class TestTransportErrorHelper:
-    """Transport-level error response (AD 12)."""
+    """Transport-level JSON-RPC error response helper."""
 
     def test_transport_error_omits_id(self):
         """Transport-level errors omit id field entirely."""
@@ -54,7 +54,7 @@ class TestTransportErrorHelper:
 
 
 class TestOriginValidation:
-    """Origin validation per spec transports.mdx:80-81."""
+    """Origin header validation (MCP Streamable HTTP transport)."""
 
     def test_no_origin_header_allowed(self):
         """Non-browser clients don't send Origin -> allow."""
@@ -92,7 +92,7 @@ class TestOriginValidation:
 
 
 class TestAcceptHeaderValidation:
-    """Accept header validation per spec transports.mdx:94-95."""
+    """Accept header validation (MCP Streamable HTTP transport)."""
 
     def test_both_json_and_sse_succeeds(self):
         req = _make_request({"accept": "application/json, text/event-stream"})
@@ -120,7 +120,7 @@ class TestAcceptHeaderValidation:
 
 
 class TestMCPProtocolVersionHeader:
-    """MCP-Protocol-Version header validation per spec transports.mdx:265-282."""
+    """MCP-Protocol-Version header validation."""
 
     def test_unsupported_version_returns_400(self):
         req = _make_request({"mcp-protocol-version": "9999-01-01"})
@@ -167,7 +167,7 @@ class TestMCPProtocolVersionHeader:
 
 
 class TestCORSHeaders:
-    """CORS headers must include MCP-Protocol-Version for browser clients (AD 17)."""
+    """CORS headers must include MCP-Protocol-Version for browser clients."""
 
     def test_error_response_includes_mcp_protocol_version_in_cors(self):
         """The error response helper includes MCP-Protocol-Version in CORS headers."""

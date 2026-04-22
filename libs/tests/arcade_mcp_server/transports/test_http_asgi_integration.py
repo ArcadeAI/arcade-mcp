@@ -160,7 +160,7 @@ class TestOriginValidation:
             )
         assert resp.status_code == 403
         body = json.loads(resp.content)
-        # Transport errors omit id (AD 12)
+        # Transport errors omit id
         assert "id" not in body
         assert body["error"]["code"] == -32600
 

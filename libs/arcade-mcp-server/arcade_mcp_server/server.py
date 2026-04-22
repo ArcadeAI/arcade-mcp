@@ -18,8 +18,8 @@ import asyncio
 import contextlib
 import logging
 import os
-import re
 from typing import Any, Callable, cast
+from urllib.parse import quote, urlparse, urlunparse
 
 from arcade_core.auth_tokens import get_valid_access_token
 from arcade_core.catalog import MaterializedTool, ToolCatalog
@@ -39,7 +39,6 @@ from arcade_mcp_server.exceptions import (
     IncompleteAuthContextError,
     NotFoundError,
     ToolRuntimeError,
-    UnsupportedSchemaDialectError,
 )
 from arcade_mcp_server.lifespan import LifespanManager
 from arcade_mcp_server.managers import PromptManager, ResourceManager, TaskManager, ToolManager
@@ -56,6 +55,11 @@ from arcade_mcp_server.middleware import (
     LoggingMiddleware,
     Middleware,
     MiddlewareContext,
+)
+from arcade_mcp_server.request_context import (
+    get_request_meta,
+    reset_request_meta,
+    set_request_meta,
 )
 from arcade_mcp_server.resource_server.base import ResourceOwner
 from arcade_mcp_server.session import InitializationState, NotificationManager, ServerSession
@@ -107,7 +111,7 @@ from arcade_mcp_server.usage import ServerTracker
 
 logger = logging.getLogger("arcade.mcp")
 
-# Reserved JSON-RPC error code for insufficient OAuth scope (AD 11).
+# Reserved JSON-RPC error code for insufficient OAuth scope.
 # The HTTP transport inspects this code to convert the response to HTTP 403.
 INSUFFICIENT_SCOPE_ERROR_CODE = -32043
 
@@ -131,49 +135,8 @@ def _extract_scopes(claims: dict[str, Any]) -> set[str]:
     return set()
 
 
-# Tool name validation pattern: 1-128 chars, only [A-Za-z0-9_.-]
-_TOOL_NAME_RE = re.compile(r"^[A-Za-z0-9_.\-]{1,128}$")
-
-# Accepted JSON Schema 2020-12 dialect URIs
-_ACCEPTED_SCHEMA_DIALECTS: set[str] = {
-    "https://json-schema.org/draft/2020-12/schema",
-    "https://json-schema.org/draft/2020-12/schema#",
-    "http://json-schema.org/draft/2020-12/schema",
-    "http://json-schema.org/draft/2020-12/schema#",
-    "https://json-schema.org/2025-11-25/2020-12/schema",
-}
-
-
-def is_valid_tool_name(name: str) -> bool:
-    """Check if a tool name conforms to spec rules (tools.mdx:213-224).
-
-    Rules: 1-128 chars, only [A-Za-z0-9_.-]. This is a SHOULD rule
-    so we return bool rather than raising.
-    """
-    if not name:
-        return False
-    return _TOOL_NAME_RE.fullmatch(name) is not None
-
-
-def _validate_schema_dialect(schema: dict[str, Any]) -> None:
-    """Validate that a JSON Schema uses a supported dialect (2020-12).
-
-    If $schema is absent, the schema is treated as 2020-12 (valid).
-    If $schema is present and matches a recognized 2020-12 URI, it is valid.
-    Otherwise, raises UnsupportedSchemaDialectError.
-    """
-    dollar_schema = schema.get("$schema")
-    if dollar_schema is None:
-        return  # No $schema -> default to 2020-12 (valid)
-    if dollar_schema in _ACCEPTED_SCHEMA_DIALECTS:
-        return
-    raise UnsupportedSchemaDialectError(
-        f"Unsupported JSON Schema dialect: {dollar_schema}. Only JSON Schema 2020-12 is supported."
-    )
-
-
-# Methods that require a specific negotiated sub-capability. Dot notation matches
-# the nested capability structure (see AD 4 in plan).
+# Methods that require a specific negotiated sub-capability. The dotted
+# notation matches the nested capability structure.
 CAPABILITY_GATED_METHODS: dict[str, str] = {
     "tasks/get": "tasks",
     "tasks/result": "tasks",
@@ -454,7 +417,7 @@ class MCPServer:
             "prompts/list": self._handle_list_prompts,
             "prompts/get": self._handle_get_prompt,
             "logging/setLevel": self._handle_set_log_level,
-            # Task methods (placeholder handlers — Phase 4 replaces these)
+            # Task methods (MCP 2025-11-25 Tasks primitive).
             "tasks/get": self._handle_get_task,
             "tasks/list": self._handle_list_tasks,
             "tasks/cancel": self._handle_cancel_task,
@@ -690,18 +653,11 @@ class MCPServer:
         # Create context and apply middleware
         try:
             # Store the request's meta via ContextVar for per-request isolation
-            from arcade_mcp_server.request_context import (
-                reset_request_meta,
-            )
-            from arcade_mcp_server.request_context import (
-                set_request_meta as set_req_meta,
-            )
-
             meta_token = None
             if session:
                 params = message.get("params", {})
                 meta = params.get("_meta")
-                meta_token = set_req_meta(meta)
+                meta_token = set_request_meta(meta)
 
             # Create request context
             context = (
@@ -788,7 +744,7 @@ class MCPServer:
             "completion/complete": CompleteRequest,
             "roots/list": ListRootsRequest,
             "elicitation/create": ElicitRequest,
-            # Task methods parse as raw dicts (no typed request model yet — Phase 4)
+            # Task methods parse as raw dicts (no typed request model yet).
         }
 
         message_type = message_types.get(method)
@@ -874,7 +830,7 @@ class MCPServer:
         """Build server capabilities dict for the given protocol version.
 
         Returns a dict suitable for both ServerCapabilities construction and
-        storage on session._negotiated_capabilities for Phase 3 dispatch.
+        storage on ``session._negotiated_capabilities`` for per-request dispatch.
         """
         caps: dict[str, Any] = {
             "tools": {"listChanged": True},
@@ -887,7 +843,8 @@ class MCPServer:
         if self._extra_capabilities:
             caps.update(self._extra_capabilities)
 
-        # 2025-11-25+ adds tasks capability (excluded for stateless sessions per AD 13)
+        # 2025-11-25+ advertises the tasks capability.
+        # Stateless sessions cannot track task lifetimes, so we suppress it there.
         if version_has_feature(version, "tasks") and not stateless:
             caps["tasks"] = {
                 "list": {},
@@ -1085,7 +1042,7 @@ class MCPServer:
             # Get tool
             tool = await self._tool_manager.get_tool(tool_name)
 
-            # ---- Task augmentation logic (Phase 4) ----
+            # ---- Task augmentation logic ----
             # Access raw params dict for task metadata (CallToolParams has extra="allow")
             raw_params = (
                 message.params.model_dump(by_alias=True)
@@ -1103,10 +1060,10 @@ class MCPServer:
                 # Capability fallback: ignore task metadata, process normally
                 has_task_metadata = False
             else:
-                # Tool-level taskSupport enforcement (AD 9)
+                # Enforce the tool's execution policy against the request.
                 tool_execution = getattr(tool.definition, "execution", None)
-                tool_task_support = tool_execution.taskSupport if tool_execution else None
-                # No execution field means forbidden by default
+                tool_task_support = tool_execution.background_execution if tool_execution else None
+                # No policy configured means synchronous-only by default.
                 if tool_task_support is None:
                     tool_task_support = "forbidden"
 
@@ -1151,9 +1108,8 @@ class MCPServer:
                 context_key = self._get_task_context_key(session, resource_owner)
                 task = await self._task_manager.create_task(context_key=context_key, ttl=ttl_input)
 
-                # Progress token continuity (AD 6)
-                from arcade_mcp_server.request_context import get_request_meta
-
+                # Preserve the client-provided progressToken so background
+                # task notifications remain correlated with the initiating call.
                 request_meta = get_request_meta()
                 progress_token = (
                     getattr(request_meta, "progressToken", None) if request_meta else None
@@ -1187,7 +1143,7 @@ class MCPServer:
 
             # ---- Normal (non-task) flow ----
 
-            # ---- Scope sufficiency check (AD 11, Phase 8.4) ----
+            # ---- OAuth scope sufficiency check ----
             resource_owner = self._get_resource_owner_from_context()
             if (
                 resource_owner is not None
@@ -1333,7 +1289,8 @@ class MCPServer:
                     ),
                 )
         except NotFoundError:
-            # Unknown tool is a protocol error per MCP 2025-11-25 spec (tools.mdx:453-454)
+            # MCP 2025-11-25 requires unknown-tool errors to be surfaced as
+            # JSON-RPC protocol errors (-32602), not CallToolResult.
             self._tracker.track_tool_call(False, "unknown tool")
             return JSONRPCError(
                 id=message.id,
@@ -1851,20 +1808,18 @@ class MCPServer:
 
         return JSONRPCResponse(id=message.id, result={})
 
-    # ---- Task handlers (Phase 4) ----
+    # ---- Task handlers ----
 
     def _get_task_context_key(
         self,
         session: ServerSession,
         resource_owner: ResourceOwner | None,
     ) -> str:
-        """Derive the authorization-context key for task scoping (AD 7).
+        """Derive the authorization-context key used to scope task visibility.
 
-        Auth context: auth:{issuer}:{client_id}:{user_id}
-        Fallback (stdio): session:{session_id}
+        Auth context: ``auth:{issuer}:{client_id}:{user_id}``.
+        Fallback (stdio): ``session:{session_id}``.
         """
-        from urllib.parse import quote
-
         if resource_owner is not None:
             issuer = resource_owner.claims.get("iss")
             if not issuer:
@@ -1952,7 +1907,7 @@ class MCPServer:
                 limit=params.get("limit"),
             )
         except InvalidCursorError as e:
-            # Resolved decision 38: invalid/expired cursors return -32602.
+            # Invalid/expired cursors return -32602 (invalid params).
             return JSONRPCError(
                 id=msg_id,
                 error={"code": -32602, "message": f"Invalid cursor: {e}"},
@@ -2083,8 +2038,6 @@ class MCPServer:
         then falls back to server settings.  Returns ``None`` when the URL
         cannot be determined (e.g. stdio transport).
         """
-        from urllib.parse import urlparse, urlunparse
-
         canonical: str | None = None
         if session and session.init_options:
             canonical = session.init_options.get("canonical_url")
@@ -2106,8 +2059,6 @@ class MCPServer:
         resource_owner: ResourceOwner | None,
     ) -> None:
         """Execute a tool in the background for task-augmented tools/call."""
-        from arcade_mcp_server.request_context import reset_request_meta, set_request_meta
-
         bg_context = Context(
             server=self,
             session=session,
@@ -2196,11 +2147,10 @@ class MCPServer:
             return
         _ctx_key, task = entry
         with contextlib.suppress(Exception):
-            # Plan line 3479 + resolved decision 38: params are
-            # `NotificationParams & Task` (allOf) -- the FULL Task object,
-            # not just {taskId, status}. Dump with by_alias=True so any
-            # aliased fields (e.g. _meta) serialize correctly, and drop
-            # None-valued optional fields.
+            # notifications/task/status params are `NotificationParams & Task`
+            # (allOf) -- the FULL Task object, not just {taskId, status}.
+            # Dump with by_alias=True so any aliased fields (e.g. _meta)
+            # serialize correctly, and drop None-valued optional fields.
             task_fields = task.model_dump(by_alias=True, exclude_none=True)
             notification = TaskStatusNotification(params=task_fields)
             await session.send_notification(notification)

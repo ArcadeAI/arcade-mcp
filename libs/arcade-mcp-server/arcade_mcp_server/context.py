@@ -37,6 +37,7 @@ from arcade_core.schema import (
     ToolContext,
 )
 
+from arcade_mcp_server.request_context import get_request_meta
 from arcade_mcp_server.resource_server.base import ResourceOwner
 from arcade_mcp_server.types import (
     AudioContent,
@@ -56,6 +57,7 @@ from arcade_mcp_server.types import (
     SamplingMessage,
     TextContent,
 )
+from arcade_mcp_server.validation import _validate_schema_dialect
 
 # Context variable for current model context
 _current_model_context: ContextVar[Context | None] = ContextVar("model_context", default=None)
@@ -140,7 +142,7 @@ class Context(ToolContext):
         # Resource owner from front-door auth (if the server is protected)
         self._resource_owner: ResourceOwner | None = resource_owner
 
-        # Task context for background task execution (Phase 4)
+        # Task context for background task execution (MCP 2025-11-25 tasks primitive).
         self._task_id: str | None = task_id
         self._task_manager: Any | None = task_manager
 
@@ -457,14 +459,11 @@ class Progress(_ContextComponent):
         if session is None:
             return
 
-        # Check if task is terminal -- progress MUST stop after terminal status
-        # (spec progress.mdx:73)
+        # Progress notifications MUST stop once a task reaches a terminal status.
         task_id = self._ctx._task_id
         task_manager = self._ctx._task_manager
         if task_id is not None and task_manager is not None and task_manager.is_terminal(task_id):
             return  # silently drop
-
-        from arcade_mcp_server.request_context import get_request_meta
 
         request_meta = get_request_meta()
         progress_token = getattr(request_meta, "progressToken", None) if request_meta else None
@@ -600,9 +599,9 @@ class Sampling(_ContextComponent):
         if not self._ctx._check_client_capability(ClientCapabilities(sampling={})):
             raise ValueError("Client does not support sampling")
 
-        # Auto-inject io.modelcontextprotocol/related-task _meta when running in a
-        # task context (spec tasks.mdx:472 — all task-related outbound requests MUST
-        # include related-task metadata).
+        # Auto-inject the io.modelcontextprotocol/related-task _meta when running
+        # in a task context so the client can correlate the outbound request
+        # with the originating task.
         outbound_meta: dict[str, Any] | None = None
         if self._ctx._task_id is not None:
             outbound_meta = {"io.modelcontextprotocol/related-task": {"taskId": self._ctx._task_id}}
@@ -631,9 +630,7 @@ class UI(_ContextComponent):
         if not isinstance(schema, dict):
             raise TypeError("Schema must be a dictionary")
 
-        # Enforce JSON Schema 2020-12 dialect (MCP spec index.mdx:182-184)
-        from arcade_mcp_server.server import _validate_schema_dialect
-
+        # Enforce the MCP-required JSON Schema 2020-12 dialect.
         _validate_schema_dialect(schema)
 
         if schema.get("type") != "object":
@@ -704,9 +701,9 @@ class UI(_ContextComponent):
             # Validate schema conforms to MCP restrictions
             self._validate_elicitation_schema(schema)
 
-        # Auto-inject io.modelcontextprotocol/related-task _meta when running in a
-        # task context (spec tasks.mdx:472 — all task-related outbound requests MUST
-        # include related-task metadata).
+        # Auto-inject the io.modelcontextprotocol/related-task _meta when running
+        # in a task context so the client can correlate the outbound request
+        # with the originating task.
         outbound_meta: dict[str, Any] | None = None
         if self._ctx._task_id is not None:
             outbound_meta = {"io.modelcontextprotocol/related-task": {"taskId": self._ctx._task_id}}

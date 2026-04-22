@@ -37,8 +37,8 @@ def _create_transport_error_response(
 ) -> Response:
     """Create a transport-level error response.
 
-    The body MUST OMIT the id field entirely (AD 12) — transport errors
-    have no associated request id. Uses raw dict, not JSONRPCError model.
+    The body MUST OMIT the id field entirely — transport errors have no
+    associated request id. Uses a raw dict, not the JSONRPCError model.
     """
     body = {"jsonrpc": "2.0", "error": {"code": code, "message": message}}
     return Response(
@@ -83,7 +83,7 @@ def _replay_receive(body: bytes) -> Receive:
 
 
 def _validate_origin(request: Request, allowed_origins: list[str] | None) -> Response | None:
-    """Validate Origin header per spec transports.mdx:80-81.
+    """Validate the Origin header against ``allowed_origins``.
 
     Returns a 403 Response if invalid, None if OK.
     """
@@ -109,7 +109,7 @@ def _validate_origin(request: Request, allowed_origins: list[str] | None) -> Res
 
 
 def _validate_accept_header(request: Request) -> Response | None:
-    """Validate Accept header per spec transports.mdx:94-95.
+    """Validate Accept header.
 
     Client MUST include Accept header listing both application/json
     AND text/event-stream. Wildcards satisfy.
@@ -137,7 +137,7 @@ def _validate_protocol_version_header(
     is_stateless: bool = False,
     is_initialize: bool = False,
 ) -> tuple[Response | None, str | None]:
-    """Validate MCP-Protocol-Version header per AD 8.
+    """Validate MCP-Protocol-Version header.
 
     Returns (error_response, version_from_header).
     """
@@ -398,7 +398,7 @@ class HTTPSessionManager:
                         stateless=True,
                     )
 
-                    # --- Stateless auto-initialize (AD 13) ---
+                    # --- Stateless auto-initialize ---
                     if header_version:
                         session.negotiated_version = header_version
                         session._negotiated_capabilities = self.server._build_capabilities(

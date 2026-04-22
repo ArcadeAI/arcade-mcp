@@ -365,7 +365,7 @@ class TestMCPServer:
 
     @pytest.mark.asyncio
     async def test_handle_call_tool_not_found(self, mcp_server):
-        """Test calling a non-existent tool returns JSON-RPC error (AD 15)."""
+        """Test calling a non-existent tool returns JSON-RPC error."""
         message = CallToolRequest(
             jsonrpc="2.0",
             id=3,
@@ -1939,8 +1939,9 @@ class TestToolMetaExtensionEdgeCases:
 
 class TestSubCapabilityGatedDispatch:
     """Tests that sub-capability-gated methods are rejected when specific sub-capability not negotiated.
-    Per spec (lifecycle.mdx:221): parties MUST only use capabilities that were successfully negotiated.
-    Tasks sub-capabilities (tasks.mdx:45-107): tasks.list, tasks.cancel, tasks.requests.tools.call."""
+
+    Parties MUST only use capabilities that were successfully negotiated.
+    Tasks sub-capabilities: tasks.list, tasks.cancel, tasks.requests.tools.call."""
 
     # Full tasks capability structure for tests
     FULL_TASKS_CAP = {"tasks": {"list": {}, "cancel": {}, "requests": {"tools": {"call": {}}}}}
@@ -2286,7 +2287,7 @@ class TestTaskHandlers:
     async def test_handle_list_tasks_invalid_cursor_returns_minus_32602(
         self, mcp_server, initialized_server_session
     ):
-        """Invalid / unresolvable cursor -> JSON-RPC -32602 per resolved decision 38."""
+        """Invalid / unresolvable cursor -> JSON-RPC -32602."""
         _enable_tasks(initialized_server_session)
         message = {
             "jsonrpc": "2.0",
@@ -2656,7 +2657,7 @@ class TestRelatedTaskMetadata:
 
 
 class TestToolTaskNegotiationEnforcement:
-    """Tests for Tool.execution.taskSupport enforcement rules."""
+    """Tests for ToolExecutionPolicy.background_execution enforcement rules."""
 
     @pytest.mark.asyncio
     async def test_forbidden_tool_rejects_task_metadata(
@@ -2775,8 +2776,7 @@ class TestCapabilityFallback:
 class TestURLElicitationRequiredErrorType:
     """Tests that the URLElicitationRequiredError type and error code -32042 are
     correctly modeled. Full end-to-end workflow tests (third-party auth detection,
-    retry-after-completion, auth-context-bound state) are DEFERRED to follow-up PR
-    -- see resolved decision 50."""
+    retry-after-completion, auth-context-bound state) are deferred to a follow-up PR."""
 
     def test_error_code_is_minus_32042(self):
         """URLElicitationRequiredError must use code -32042."""
@@ -2825,15 +2825,16 @@ class TestURLElicitationRequiredErrorType:
 
 
 # ============================================================================
-# Phase 7 tests
+# Tool name & schema validation tests
 # ============================================================================
 
 from arcade_mcp_server.exceptions import UnsupportedSchemaDialectError
-from arcade_mcp_server.server import _validate_schema_dialect, is_valid_tool_name
+from arcade_mcp_server.validation import _validate_schema_dialect, is_valid_tool_name
 
 
 class TestToolNameValidation:
-    """Tests for tool name validation guidance (spec tools.mdx:213-224).
+    """Tests for tool name validation guidance.
+
     Rules are SHOULD (not MUST), so we warn at registration time, not reject."""
 
     def test_valid_tool_name_accepted(self):
@@ -2857,7 +2858,7 @@ class TestToolNameValidation:
 
 
 class TestSchemaDialectValidation:
-    """Tests for JSON Schema 2020-12 dialect support (spec index.mdx:182-184)."""
+    """Tests for JSON Schema 2020-12 dialect support."""
 
     def test_schema_without_dollar_schema_is_valid(self):
         schema = {"type": "object", "properties": {"x": {"type": "integer"}}}
@@ -2974,7 +2975,7 @@ class TestUnknownToolProtocolError:
 
 
 class TestJSONRPCErrorIdHandling:
-    """Tests that JSON-RPC error responses use proper id values (AD 18)."""
+    """Tests that JSON-RPC error responses use proper id values."""
 
     @pytest.mark.asyncio
     async def test_error_with_none_id_serializes_as_json_null(self):

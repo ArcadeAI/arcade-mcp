@@ -1,4 +1,4 @@
-"""End-to-end multi-version integration tests (Phase 9).
+"""End-to-end multi-version integration tests.
 
 Tests the full MCP protocol flow for both 2025-06-18 and 2025-11-25 sessions,
 including version negotiation, capability gating, task lifecycle, sampling,
@@ -782,7 +782,7 @@ class TestE2ECapabilityNegotiation:
     async def test_stateless_2025_11_25_session_has_no_tasks_capability(
         self, mcp_server: MCPServer
     ) -> None:
-        """Stateless HTTP mode excludes tasks from capabilities (AD 13)."""
+        """Stateless HTTP mode excludes tasks from capabilities."""
         # Test via _build_capabilities directly
         caps = mcp_server._build_capabilities("2025-11-25", stateless=True)
         assert "tasks" not in caps

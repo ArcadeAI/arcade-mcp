@@ -1,4 +1,4 @@
-"""Tests for TaskManager (Phase 4 of MCP 2025-11-25 support)."""
+"""Tests for TaskManager (MCP 2025-11-25 tasks primitive)."""
 
 import asyncio
 import base64
@@ -415,8 +415,8 @@ class TestTaskProgressTokenContinuity:
 
 
 class TestTaskProgressTerminalStop:
-    """Tests for progress.mdx:73: Progress notifications for tasks MUST stop
-    after the task reaches a terminal status."""
+    """Progress notifications for tasks MUST stop after the task reaches a
+    terminal status."""
 
     @pytest_asyncio.fixture
     async def task_manager(self):
@@ -527,7 +527,7 @@ class TestLazyAndPeriodicExpiration:
 
 
 class TestListTasksPaginationContract:
-    """Resolved decision 38: tasks/list pagination contract.
+    """tasks/list pagination contract.
 
     - Ordering: ``createdAt`` descending (newest first); ``taskId`` ascending
       tiebreaker for identical timestamps.

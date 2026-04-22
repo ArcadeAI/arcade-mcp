@@ -221,20 +221,20 @@ class TestToolDecoratorExecution:
         assert getattr(my_tool, "__tool_execution__", None) is None
 
     def test_tool_with_execution_parameter(self):
-        from arcade_core.schema import ToolExecution
+        from arcade_core.schema import ToolExecutionPolicy
 
-        @tool(execution=ToolExecution(taskSupport="optional"))
+        @tool(execution=ToolExecutionPolicy(background_execution="optional"))
         def my_tool() -> str:
             return "hello"
 
-        assert my_tool.__tool_execution__.taskSupport == "optional"
+        assert my_tool.__tool_execution__.background_execution == "optional"
 
     @pytest.mark.parametrize("support", ["forbidden", "optional", "required"])
     def test_tool_with_execution_parametrized(self, support):
-        from arcade_core.schema import ToolExecution
+        from arcade_core.schema import ToolExecutionPolicy
 
-        @tool(execution=ToolExecution(taskSupport=support))
+        @tool(execution=ToolExecutionPolicy(background_execution=support))
         def my_tool() -> str:
             return "hello"
 
-        assert my_tool.__tool_execution__.taskSupport == support
+        assert my_tool.__tool_execution__.background_execution == support

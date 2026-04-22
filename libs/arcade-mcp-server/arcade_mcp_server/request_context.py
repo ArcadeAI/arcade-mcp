@@ -1,12 +1,13 @@
-"""Per-request metadata isolation via contextvars.ContextVar.
+"""Per-request metadata isolation via ``contextvars.ContextVar``.
 
-This module is intentionally neutral -- no imports from session.py, server.py,
-or context.py. The ContextVar lives here so both producers (server.py) and
-consumers (context.py) can read it without creating import cycles.
+This module is intentionally neutral -- no imports from ``session.py``,
+``server.py``, or ``context.py``. The ``ContextVar`` lives here so both
+producers (server.py) and consumers (context.py) can read it without
+creating import cycles.
 
-Spec (lifecycle.mdx / tasks.mdx): request metadata like progressToken must be
-isolated per request. asyncio.create_task() copies the current ContextVar state,
-so each concurrent request and each background task gets its own copy.
+Request metadata (such as ``progressToken``) must be isolated per request.
+``asyncio.create_task()`` copies the current ContextVar state, so each
+concurrent request and each spawned background task gets its own copy.
 """
 
 from __future__ import annotations

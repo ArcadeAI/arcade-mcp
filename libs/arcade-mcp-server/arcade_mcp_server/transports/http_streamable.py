@@ -252,7 +252,7 @@ class HTTPStreamableTransport:
     ) -> Response:
         """Create a JSON response.
 
-        Inspects JSONRPCError responses for ``_transport`` metadata (AD 11).
+        Inspects JSONRPCError responses for ``_transport`` metadata.
         When the error code is ``INSUFFICIENT_SCOPE_ERROR_CODE`` and
         ``error.data._transport`` is present the helper:
         - Overrides the HTTP status code from ``_transport.http_status``
@@ -269,7 +269,7 @@ class HTTPStreamableTransport:
         if response_message is None:
             body = None
         elif isinstance(response_message, JSONRPCError):
-            # Check for _transport metadata (AD 11)
+            # Check for _transport metadata
             transport_meta = self._extract_and_strip_transport_metadata(response_message)
             if transport_meta is not None:
                 http_status_raw = transport_meta.get("http_status")
@@ -294,7 +294,7 @@ class HTTPStreamableTransport:
     def _extract_and_strip_transport_metadata(
         error: JSONRPCError,
     ) -> dict[str, object] | None:
-        """Extract and remove ``_transport`` from ``error.data`` (AD 11).
+        """Extract and remove ``_transport`` from ``error.data``.
 
         Mutates ``error.error["data"]`` in place (removes ``_transport`` key).
         If ``data`` becomes empty after stripping, removes ``data`` entirely.
@@ -323,14 +323,14 @@ class HTTPStreamableTransport:
     def _create_event_data(self, event_message: EventMessage) -> dict[str, str]:
         """Create event data dictionary from EventMessage.
 
-        For JSONRPCError messages with ``_transport`` metadata (AD 11),
+        For JSONRPCError messages with ``_transport`` metadata,
         the ``_transport`` key is stripped before serialisation.  SSE
         streams cannot override HTTP status/headers for individual
         events, so we only strip the metadata to keep the body clean.
         """
         msg = event_message.message
         if isinstance(msg, JSONRPCError):
-            # Strip _transport metadata (AD 11) -- SSE can't set per-event
+            # Strip _transport metadata -- SSE can't set per-event
             # HTTP headers, but the body should still be clean.
             self._extract_and_strip_transport_metadata(msg)
             # §5.1: error responses MUST include "id" even when null

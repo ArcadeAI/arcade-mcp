@@ -3,7 +3,7 @@ from arcade_core.schema import (
     ToolAuthorizationContext,
     ToolContext,
     ToolDefinition,
-    ToolExecution,
+    ToolExecutionPolicy,
     ToolInput,
     ToolkitDefinition,
     ToolMetadataItem,
@@ -124,15 +124,15 @@ def test_get_metadata_with_empty_key():
         tool_context.get_metadata("")
 
 
-class TestToolExecution:
-    def test_tool_execution_defaults_none(self):
-        te = ToolExecution()
-        assert te.taskSupport is None
+class TestToolExecutionPolicy:
+    def test_policy_defaults_none(self):
+        te = ToolExecutionPolicy()
+        assert te.background_execution is None
 
     @pytest.mark.parametrize("support", ["forbidden", "optional", "required"])
-    def test_tool_execution_valid_task_support(self, support):
-        te = ToolExecution(taskSupport=support)
-        assert te.taskSupport == support
+    def test_policy_valid_background_execution(self, support):
+        te = ToolExecutionPolicy(background_execution=support)
+        assert te.background_execution == support
 
     def test_tool_definition_execution_defaults_none(self):
         td = ToolDefinition(
@@ -155,7 +155,7 @@ class TestToolExecution:
             input=ToolInput(parameters=[]),
             output=ToolOutput(available_modes=["value"]),
             requirements=ToolRequirements(),
-            execution=ToolExecution(taskSupport="optional"),
+            execution=ToolExecutionPolicy(background_execution="optional"),
         )
         assert td.execution is not None
-        assert td.execution.taskSupport == "optional"
+        assert td.execution.background_execution == "optional"

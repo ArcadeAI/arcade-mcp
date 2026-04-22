@@ -25,6 +25,7 @@ from arcade_mcp_server.exceptions import (
 )
 from arcade_mcp_server.resource_server.base import ResourceOwner
 from arcade_mcp_server.types import (
+    VERSION_FEATURES,
     CancelledNotification,
     CancelledParams,
     ClientCapabilities,
@@ -45,6 +46,7 @@ from arcade_mcp_server.types import (
     ResourceListChangedNotification,
     SessionMessage,
     ToolListChangedNotification,
+    version_has_feature,
 )
 
 logger = logging.getLogger(__name__)
@@ -300,8 +302,6 @@ class ServerSession:
     def supports_version(self, version: str) -> bool:
         """Whether negotiated version includes all features of the given version.
         Uses feature-set subset check -- NOT lexical string comparison."""
-        from arcade_mcp_server.types import VERSION_FEATURES
-
         if self.negotiated_version is None:
             return False
         negotiated_features = VERSION_FEATURES.get(self.negotiated_version, set())
@@ -310,8 +310,6 @@ class ServerSession:
 
     def has_feature(self, feature: str) -> bool:
         """Whether negotiated version supports a specific feature."""
-        from arcade_mcp_server.types import version_has_feature
-
         if self.negotiated_version is None:
             return False
         return version_has_feature(self.negotiated_version, feature)
@@ -796,8 +794,8 @@ class ServerSession:
     def _check_elicitation_capability(self, mode: str) -> None:
         """Check that the client supports the requested elicitation mode.
 
-        Spec elicitation.mdx:72: "Servers MUST NOT send elicitation requests
-        with modes that are not supported by the client."
+        Servers MUST NOT send elicitation requests with modes that are not
+        supported by the client.
 
         Rules:
         - client_capabilities is None (e.g. tests, 2025-06-18 without caps): allow form
@@ -928,8 +926,8 @@ class ServerSession:
     async def send_elicitation_complete(self, elicitation_id: str) -> None:
         """Send a notifications/elicitation/complete notification to this session's client.
 
-        This MUST be sent only to the client that initiated the elicitation
-        (elicitation.mdx:398), NOT broadcast to all sessions.
+        This MUST be sent only to the client that initiated the elicitation,
+        NOT broadcast to all sessions.
         """
         if not self.write_stream:
             return

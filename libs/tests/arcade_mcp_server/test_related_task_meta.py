@@ -5,8 +5,8 @@ Covers the deviations previously noted:
 - ProgressNotificationParams._meta wire injection (progress notifications)
 - Context.task_id auto-forwarding into outbound sampling/elicitation _meta
 
-Spec: tasks.mdx:472 — all task-related outbound requests/notifications MUST
-include io.modelcontextprotocol/related-task in their _meta field.
+All task-related outbound requests/notifications MUST include
+io.modelcontextprotocol/related-task in their _meta field.
 """
 
 from __future__ import annotations

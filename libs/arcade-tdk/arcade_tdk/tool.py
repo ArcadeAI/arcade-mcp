@@ -4,7 +4,7 @@ import logging
 from typing import Any, Callable, TypeVar
 
 from arcade_core.metadata import ToolMetadata
-from arcade_core.schema import ToolExecution
+from arcade_core.schema import ToolExecutionPolicy
 
 from arcade_tdk.auth import ToolAuthorization
 from arcade_tdk.error_adapters import ErrorAdapter
@@ -140,7 +140,7 @@ def tool(
     requires_metadata: list[str] | None = None,
     adapters: list[ErrorAdapter] | None = None,
     metadata: ToolMetadata | None = None,
-    execution: ToolExecution | None = None,
+    execution: ToolExecutionPolicy | None = None,
 ) -> Callable:
     def decorator(func: Callable) -> Callable:
         func_name = str(getattr(func, "__name__", None))

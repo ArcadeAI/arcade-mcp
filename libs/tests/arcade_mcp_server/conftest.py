@@ -13,7 +13,7 @@ from arcade_core.schema import (
     OAuth2Requirement,
     ToolAuthRequirement,
     ToolDefinition,
-    ToolExecution,
+    ToolExecutionPolicy,
     ToolInput,
     ToolkitDefinition,
     ToolOutput,
@@ -56,7 +56,7 @@ def sample_tool_def() -> ToolDefinition:
         ),
         output=ToolOutput(description="Tool output", value_schema=ValueSchema(val_type="string")),
         requirements=ToolRequirements(),
-        execution=ToolExecution(taskSupport="optional"),
+        execution=ToolExecutionPolicy(background_execution="optional"),
     )
 
 
@@ -162,7 +162,7 @@ def _make_tool_def(
     fqn: str,
     *,
     params: list[InputParameter] | None = None,
-    execution: ToolExecution | None = None,
+    execution: ToolExecutionPolicy | None = None,
 ) -> ToolDefinition:
     """Helper to create a ToolDefinition with optional execution config."""
     return ToolDefinition(
@@ -207,7 +207,7 @@ def failing_tool_def() -> ToolDefinition:
     return _make_tool_def(
         "failing_tool",
         "TestToolkit.failing_tool",
-        execution=ToolExecution(taskSupport="optional"),
+        execution=ToolExecutionPolicy(background_execution="optional"),
     )
 
 
@@ -234,7 +234,7 @@ def slow_tool_def() -> ToolDefinition:
     return _make_tool_def(
         "slow_tool",
         "TestToolkit.slow_tool",
-        execution=ToolExecution(taskSupport="optional"),
+        execution=ToolExecutionPolicy(background_execution="optional"),
     )
 
 
@@ -260,7 +260,7 @@ def error_result_tool_def() -> ToolDefinition:
     return _make_tool_def(
         "error_result_tool",
         "TestToolkit.error_result_tool",
-        execution=ToolExecution(taskSupport="optional"),
+        execution=ToolExecutionPolicy(background_execution="optional"),
     )
 
 
@@ -271,7 +271,7 @@ def materialized_error_result_tool(error_result_tool_func, error_result_tool_def
 
 @pytest.fixture
 def forbidden_task_tool_func():
-    """A tool with taskSupport=forbidden."""
+    """A tool with background_execution=forbidden."""
 
     @tool
     def forbidden_task_tool() -> Annotated[str, "Result"]:
@@ -286,7 +286,7 @@ def forbidden_task_tool_def() -> ToolDefinition:
     return _make_tool_def(
         "forbidden_task_tool",
         "TestToolkit.forbidden_task_tool",
-        execution=ToolExecution(taskSupport="forbidden"),
+        execution=ToolExecutionPolicy(background_execution="forbidden"),
     )
 
 
@@ -299,7 +299,7 @@ def materialized_forbidden_task_tool(
 
 @pytest.fixture
 def required_task_tool_func():
-    """A tool with taskSupport=required."""
+    """A tool with background_execution=required."""
 
     @tool
     def required_task_tool() -> Annotated[str, "Result"]:
@@ -314,7 +314,7 @@ def required_task_tool_def() -> ToolDefinition:
     return _make_tool_def(
         "required_task_tool",
         "TestToolkit.required_task_tool",
-        execution=ToolExecution(taskSupport="required"),
+        execution=ToolExecutionPolicy(background_execution="required"),
     )
 
 

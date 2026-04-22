@@ -1,4 +1,4 @@
-"""Tests for MCP 2025-11-25 types added in Phase 2."""
+"""Tests for MCP 2025-11-25 types."""
 
 import pytest
 from arcade_mcp_server.types import (
@@ -382,7 +382,7 @@ class TestPromptIconsField:
 
 
 class TestToolExecutionOnMCPTool:
-    """ToolExecution is on Tool (MCPTool), NOT on ToolAnnotations per spec."""
+    """ToolExecution is on Tool (MCPTool), NOT on ToolAnnotations."""
 
     def test_tool_with_execution(self):
         tool = MCPTool(
@@ -503,7 +503,7 @@ class TestElicitResultExpandedContent:
 
 class TestServerCapabilitiesTasks:
     def test_server_capabilities_with_nested_tasks_structure(self):
-        """Tasks capability must have nested requests structure per spec."""
+        """Tasks capability must have nested requests structure."""
         caps = ServerCapabilities(
             tasks={
                 "list": {},
@@ -557,7 +557,7 @@ class TestClientCapabilitiesExpanded:
 
 class TestElicitRequestURLParams:
     def test_construction_with_elicitation_id(self):
-        """URL mode requires elicitationId per spec."""
+        """URL mode requires elicitationId."""
         params = ElicitRequestURLParams(
             mode="url",
             url="https://example.com/auth",
@@ -612,8 +612,8 @@ class TestURLElicitationRequiredError:
 class TestCancelledNotificationRequestIdOptional:
     """In 2025-11-25, CancelledNotification.requestId schema type became optional
     (was required in 2025-06-18). However, spec constrains usage:
-    - MUST be provided for non-task requests (schema.ts:218)
-    - MUST NOT use CancelledNotification for task cancellation -- use tasks/cancel (cancellation.mdx:38)
+    - MUST be provided for non-task requests
+    - MUST NOT use CancelledNotification for task cancellation -- use tasks/cancel instead.
     So in practice, the server ALWAYS includes requestId when sending this notification.
     These tests verify schema-level type tolerance (deserialization), not sending behavior."""
 
@@ -629,7 +629,7 @@ class TestCancelledNotificationRequestIdOptional:
         """Schema-level: the type accepts missing requestId (2025-11-25 schema change).
         This tests deserialization tolerance only -- the server should NOT send
         CancelledNotification without requestId. It should use tasks/cancel for task
-        cancellation instead (cancellation.mdx:38, schema.ts:219)."""
+        cancellation instead."""
         notif = CancelledNotification(
             method="notifications/cancelled",
             params={"reason": "Some reason"},

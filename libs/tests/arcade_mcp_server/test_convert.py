@@ -9,7 +9,7 @@ from arcade_core.catalog import MaterializedTool, ToolCatalog, ToolMeta, create_
 from arcade_core.schema import (
     InputParameter,
     ToolDefinition,
-    ToolExecution,
+    ToolExecutionPolicy,
     ToolInput,
     ToolkitDefinition,
     ToolOutput,
@@ -664,7 +664,7 @@ class TestConvertContentToStructuredContent:
 
 
 class TestConvertToolExecution:
-    """Phase 0: MCP conversion populates execution field (cached DTO, no version param)."""
+    """MCP conversion populates the execution field from the core ToolExecutionPolicy."""
 
     def test_convert_no_execution_on_definition(self):
         """Tool without execution field -> no execution on MCPTool."""
@@ -706,7 +706,7 @@ class TestConvertToolExecution:
             input=ToolInput(parameters=[]),
             output=ToolOutput(available_modes=["value"]),
             requirements=ToolRequirements(),
-            execution=ToolExecution(taskSupport="optional"),
+            execution=ToolExecutionPolicy(background_execution="optional"),
         )
 
         @tool

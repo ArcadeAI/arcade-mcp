@@ -421,7 +421,7 @@ class TestContext:
 
 class TestElicitSchemaDialectEnforcement:
     """UI.elicit() must reject schemas that declare an unsupported JSON Schema
-    dialect. Spec index.mdx:182-184 requires 2020-12."""
+    dialect. MCP requires JSON Schema 2020-12."""
 
     @pytest.mark.asyncio
     async def test_elicit_rejects_unsupported_dialect(self, mcp_server):

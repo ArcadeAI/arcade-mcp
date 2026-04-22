@@ -22,7 +22,7 @@ logger = logging.getLogger("arcade.mcp.tasks")
 
 TERMINAL_STATUSES = {TaskStatus.COMPLETED, TaskStatus.FAILED, TaskStatus.CANCELLED}
 
-# Default page size for tasks/list pagination (resolved decision 38).
+# Default page size for tasks/list pagination.
 DEFAULT_LIST_PAGE_SIZE = 20
 
 
@@ -37,16 +37,15 @@ class InvalidTaskStateError(Exception):
 class InvalidCursorError(Exception):
     """Cursor is malformed, unrecognized, or points at a task that no longer exists.
 
-    Per plan resolved decision 38, invalid/expired cursors result in JSON-RPC
-    -32602 (invalid params) at the handler boundary.
+    Invalid or expired cursors result in JSON-RPC -32602 (invalid params) at the
+    handler boundary.
     """
 
 
 def _encode_cursor(task: Task) -> str:
     """Opaque base64url-encoded cursor with {taskId, createdAt}.
 
-    Resolved decision 38: cursor format is an internal detail -- clients treat
-    it as an opaque string.
+    The cursor format is an internal detail -- clients treat it as an opaque string.
     """
     payload = json.dumps(
         {"taskId": task.taskId, "createdAt": task.createdAt},
@@ -106,7 +105,7 @@ class TaskManager:
         self._results: dict[str, Any] = {}
         self._errors: dict[str, dict[str, Any]] = {}
 
-        # Progress tokens for continuity (AD 6)
+        # Progress tokens for continuity
         self._progress_tokens: dict[str, Any] = {}
 
         # Tracked background asyncio.Tasks
@@ -238,7 +237,7 @@ class TaskManager:
     ) -> tuple[list[Task], str | None]:
         """List tasks owned by a context key with deterministic pagination.
 
-        Contract (resolved decision 38):
+        Contract:
         - Ordering: ``createdAt`` descending (newest first), with ``taskId``
           ascending as tiebreaker for identical timestamps.
         - Default page size: :data:`DEFAULT_LIST_PAGE_SIZE` (20).

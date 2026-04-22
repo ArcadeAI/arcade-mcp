@@ -42,9 +42,9 @@ VERSION_FEATURES: dict[str, set[str]] = {
 def negotiate_version(client_version: str) -> str:
     """Negotiate the protocol version for this session.
 
-    Spec rule (lifecycle.mdx:167-177): if the server supports the client's requested
-    version, return it. Otherwise, return the server's latest supported version (the
-    client will decide whether to disconnect). This is NOT a 'latest <= client' rule.
+    If the server supports the client's requested version, return it. Otherwise,
+    return the server's latest supported version (the client will decide whether to
+    disconnect). This is NOT a 'latest <= client' rule.
     """
     if client_version in SUPPORTED_PROTOCOL_VERSIONS:
         return client_version

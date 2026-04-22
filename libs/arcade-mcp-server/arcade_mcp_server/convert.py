@@ -79,10 +79,12 @@ def create_mcp_tool(materialized_tool: MaterializedTool) -> MCPTool:
     else:
         annotations = ToolAnnotations(title=title)
 
-    # Map execution field from core ToolExecution to MCP ToolExecution
+    # Map arcade-core's protocol-neutral ToolExecutionPolicy to MCP's wire-format ToolExecution.
     mcp_execution: MCPToolExecution | None = None
     if definition.execution is not None:
-        mcp_execution = MCPToolExecution(taskSupport=definition.execution.taskSupport)
+        mcp_execution = MCPToolExecution(
+            taskSupport=definition.execution.background_execution,
+        )
 
     # Build _meta.arcade structure
     arcade_meta = _build_arcade_meta(definition)

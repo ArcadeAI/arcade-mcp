@@ -236,7 +236,7 @@ class TestServerErrorPathsStructuredContent:
 
     @pytest.mark.asyncio
     async def test_unknown_tool_error_returns_jsonrpc_error(self, mcp_server):
-        """Unknown tool → JSON-RPC protocol error -32602 per MCP 2025-11-25 spec (tools.mdx:453-454)."""
+        """Unknown tool -> JSON-RPC protocol error -32602 per MCP 2025-11-25 spec."""
         from arcade_mcp_server.types import CallToolRequest, JSONRPCError
 
         message = CallToolRequest(
@@ -254,7 +254,7 @@ class TestServerErrorPathsStructuredContent:
 
     @pytest.mark.asyncio
     async def test_unknown_tool_error_includes_tool_name(self, mcp_server):
-        """Unknown tool protocol error includes the tool name in the message per spec example."""
+        """Unknown tool protocol error includes the tool name in the message."""
         from arcade_mcp_server.types import CallToolRequest, JSONRPCError
 
         message = CallToolRequest(

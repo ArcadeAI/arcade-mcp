@@ -1,4 +1,4 @@
-"""Tests for OAuth/PRM conformance — Phase 8.
+"""Tests for OAuth/PRM conformance.
 
 Covers:
 - _extract_scopes helper (pure unit tests)
@@ -36,7 +36,7 @@ from arcade_mcp_server.types import JSONRPCError
 class TestExtractScopes:
     """Tests for _extract_scopes helper -- normalizes scope extraction across
     OAuth provider formats (RFC 6749 space-delimited string, Azure AD 'scp' claim,
-    array-of-strings format). See AD 11 scope-check architecture."""
+    array-of-strings format)."""
 
     def test_scope_claim_space_delimited_string(self) -> None:
         """Standard RFC 6749 section 3.3 format: space-delimited string in 'scope' claim."""
@@ -250,7 +250,8 @@ class TestInsufficientScopeServerHandler:
 
 
 class TestTransportMetadataStripping:
-    """Tests for _transport metadata handling per AD 11's contract.
+    """Tests for _transport metadata handling.
+
     HTTP transport MUST strip _transport from response body; stdio sends as-is."""
 
     def test_http_transport_strips_transport_metadata(self) -> None:
