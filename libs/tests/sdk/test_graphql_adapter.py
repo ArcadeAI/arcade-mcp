@@ -354,6 +354,67 @@ class TestGraphQLErrorAdapter:
         )
         # Must NOT fabricate a retry timer when no header was present.
         assert "Retry after" not in result.message
+        # ``retry_after_ms`` field must also be 0, not the fabricated 1000ms
+        # that ``_parse_retry_ms`` returns by default — callers scheduling
+        # retries from this field would otherwise wait on false pretenses.
+        assert result.retry_after_ms == 0
+
+    def test_rate_limit_retry_after_ms_honored_when_header_present(self) -> None:
+        """With a real retry-after header, retry_after_ms reflects the parsed value."""
+        errors = [{"message": "x", "extensions": {"code": "RATE_LIMITED"}}]
+        exc = DummyTransportQueryError(errors=errors)
+        cause = Exception("inner")
+        cause.response = DummyResponse({"retry-after": "8"})  # type: ignore[attr-defined]
+        exc.__cause__ = cause
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert isinstance(result, UpstreamRateLimitError)
+        assert result.retry_after_ms == 8_000
+        assert "Retry after 8 second(s)." in result.message
+
+    def test_rate_limit_sub_second_retry_after_renders_one_second(self) -> None:
+        """Sub-1000 ms retry-after must not truncate to zero seconds in the message.
+
+        ``x-ratelimit-reset-ms: 500`` → 500 ms; integer-dividing by 1000 yields
+        0. Round up to 1 second so the retry hint renders.
+        """
+        errors = [{"message": "x", "extensions": {"code": "RATE_LIMITED"}}]
+        exc = DummyTransportQueryError(errors=errors)
+        cause = Exception("inner")
+        cause.response = DummyResponse({"x-ratelimit-reset-ms": "500"})  # type: ignore[attr-defined]
+        exc.__cause__ = cause
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert isinstance(result, UpstreamRateLimitError)
+        assert result.retry_after_ms == 500
+        assert "Retry after 1 second(s)." in result.message
+
+    def test_headers_from_exc_preferred_over_cause_even_if_empty(self) -> None:
+        """``{}`` on ``exc`` itself (response present, no headers) must not fall
+        through to ``__cause__``. ``None`` (no response) is the only trigger
+        for falling back to the cause.
+        """
+        errors = [{"message": "x", "extensions": {"code": "RATE_LIMITED"}}]
+        exc = DummyTransportQueryError(errors=errors)
+        # ``exc`` itself has a response with no headers (empty dict).
+        exc.response = DummyResponse({})  # type: ignore[attr-defined]
+        # ``__cause__`` has a retry-after header — we should NOT use it because
+        # ``exc`` already supplied its own (empty) headers.
+        cause = Exception("inner")
+        cause.response = DummyResponse({"retry-after": "99"})  # type: ignore[attr-defined]
+        exc.__cause__ = cause
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert isinstance(result, UpstreamRateLimitError)
+        # No retry-after on ``exc``'s own response → no timer fabrication.
+        assert result.retry_after_ms == 0
+        assert "Retry after" not in result.message
 
     # --- Curated agent-facing message ---
 

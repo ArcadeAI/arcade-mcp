@@ -67,9 +67,21 @@ def _extract_error_message(message: Any) -> str:
         return "Unknown GraphQL error"
 
 
-def _build_safe_graphql_message(
-    status: int, headers: dict[str, str], mapper: BaseHTTPErrorMapper
-) -> str:
+def _resolve_retry_after_ms(headers: dict[str, str], mapper: BaseHTTPErrorMapper) -> int:
+    """Return parsed ``retry_after_ms`` only when a rate-limit header is present.
+
+    :meth:`BaseHTTPErrorMapper._parse_retry_ms` returns a hard-coded 1000 ms
+    default when no recognized header exists — passing that through would
+    fabricate a 1-second wait hint for every 429 with no real header. Zero
+    here means "no hint from upstream"; callers back off per their own
+    policy.
+    """
+    if any(h in headers for h in RATE_HEADERS):
+        return mapper._parse_retry_ms(headers)
+    return 0
+
+
+def _build_safe_graphql_message(status: int, retry_after_ms: int) -> str:
     """Build a fixed agent-facing message for a GraphQL error.
 
     Mirrors :meth:`BaseHTTPErrorMapper._build_safe_status_message` but uses
@@ -82,17 +94,28 @@ def _build_safe_graphql_message(
 
     base = f"Upstream GraphQL request failed ({phrase})."
     if status == HTTPStatus.TOO_MANY_REQUESTS.value:
-        # ``_parse_retry_ms`` returns a 1000 ms *default* when no retry header
-        # is present, so we can't gate on ``retry_seconds > 0`` alone — that
-        # would fabricate a "Retry after 1 second(s)." for every 429 without a
-        # header. Check whether any recognized rate-limit header is actually
-        # present first.
-        if any(h in headers for h in RATE_HEADERS):
-            retry_seconds = mapper._parse_retry_ms(headers) // 1000
-            if retry_seconds > 0:
-                return f"{base} Retry after {retry_seconds} second(s)."
+        if retry_after_ms > 0:
+            # Ceiling-round so sub-1000 ms hints (e.g. from
+            # ``x-ratelimit-reset-ms``) still render a ``Retry after 1
+            # second(s).`` message rather than being truncated to 0.
+            retry_seconds = max(1, (retry_after_ms + 999) // 1000)
+            return f"{base} Retry after {retry_seconds} second(s)."
         return f"{base} Rate limit encountered."
     return base
+
+
+def _collect_upstream_headers(exc: Any, mapper: "GraphQLErrorAdapter") -> dict[str, str]:
+    """Extract headers from ``exc`` (preferred) or its ``__cause__`` (fallback).
+
+    Treats ``None`` (no response) and ``{}`` (response but no headers) as
+    distinct: ``{}`` on ``exc`` itself means the response is authoritative
+    and we must not fall through to ``__cause__``.
+    """
+    headers = mapper._get_headers(exc)
+    if headers is not None:
+        return headers
+    cause_headers = mapper._get_headers(exc.__cause__)
+    return cause_headers if cause_headers is not None else {}
 
 
 def _build_developer_message(
@@ -244,14 +267,15 @@ class GraphQLErrorAdapter(BaseHTTPErrorMapper):
             mapped_status if mapped_status is not None else HTTPStatus.UNPROCESSABLE_ENTITY.value
         )
         unique_codes = sorted(set(codes))
-        headers = self._get_headers(exc) or self._get_headers(exc.__cause__) or {}
+        headers = _collect_upstream_headers(exc, self)
+        retry_after_ms = _resolve_retry_after_ms(headers, self)
 
         # Agent-facing: curated vendor text or a fixed HTTP-status template.
         # Never embed raw ``errors[].message`` content here.
         if user_presentable:
             message = user_presentable
         else:
-            message = _build_safe_graphql_message(status, headers, self)
+            message = _build_safe_graphql_message(status, retry_after_ms)
 
         # Developer-facing: raw upstream detail (server-side logs only).
         developer_message = _build_developer_message(errors_list, unique_codes, paths)
@@ -266,7 +290,7 @@ class GraphQLErrorAdapter(BaseHTTPErrorMapper):
         if status == HTTPStatus.TOO_MANY_REQUESTS.value:
             return UpstreamRateLimitError(
                 message=message,
-                retry_after_ms=self._parse_retry_ms(headers),
+                retry_after_ms=retry_after_ms,
                 developer_message=developer_message,
                 extra=extra,
             )
