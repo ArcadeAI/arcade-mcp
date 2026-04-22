@@ -261,6 +261,28 @@ class TestGraphQLErrorAdapter:
 
         assert result.status_code == 403
 
+    def test_query_error_tolerates_malformed_items(self) -> None:
+        """Non-dict error entries and non-dict extensions must not crash the adapter."""
+        errors: list[Any] = [
+            "not a dict",  # skipped silently
+            {"message": "no ext at all"},  # no extensions key
+            {"message": "bad ext type", "extensions": "a string, not a dict"},
+            {"message": "legit", "extensions": {"code": "FORBIDDEN"}},
+        ]
+        exc = DummyTransportQueryError(errors=errors)
+
+        with _patch_loader():
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert result.status_code == 403  # only the legit one contributed
+        assert result.extra["gql_error_codes"] == ["FORBIDDEN"]
+        # Developer message still summarizes every raw message, including the
+        # malformed ones (for logs).
+        assert "no ext at all" in result.developer_message
+        assert "bad ext type" in result.developer_message
+        assert "legit" in result.developer_message
+
     # --- Rate-limit routing on 429 (numeric hint or code) ---
 
     def test_rate_limited_code_produces_rate_limit_error(self) -> None:
