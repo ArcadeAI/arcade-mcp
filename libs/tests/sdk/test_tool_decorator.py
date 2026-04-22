@@ -222,8 +222,8 @@ class TestToolDecoratorExecution:
 
     def test_tool_with_execution_parameter(self):
         # ``execution`` is an opaque payload the decorator stores as
-        # ``__tool_execution__`` verbatim -- arcade-tdk intentionally does not
-        # know the shape. Protocol adapters (e.g. MCP convert) read and
+        # ``__tool_execution__`` verbatim -- the decorator intentionally does
+        # not know the shape. Protocol adapters (e.g. MCP convert) read and
         # interpret it at serialisation time.
         payload = object()
 

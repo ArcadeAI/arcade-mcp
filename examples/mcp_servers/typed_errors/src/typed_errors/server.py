@@ -1,20 +1,17 @@
 #!/usr/bin/env python3
 """typed_errors MCP server.
 
-Shows the family of typed tool execution errors, plus the behaviour change
-introduced by SEP-1303 (MCP 2025-11-25): **input validation errors surface as
-tool execution errors (``isError: true``) instead of JSON-RPC ``-32602``
-errors**. The `@tool` decorator's fallback adapter maps unhandled exceptions
-to ``FatalToolError``.
+Shows the family of typed tool execution errors that tool authors raise to
+give the orchestrator structured retry / human-input / upstream-failure
+signals. Unhandled exceptions are automatically wrapped into a fatal tool
+error by the server — tool bodies should never need to raise that directly.
 
-Typed errors live in ``arcade_tdk.errors`` (re-exported from
-``arcade_core.errors``):
+Typed errors available to tool authors:
 
 - ``RetryableToolError`` — transient failure; orchestrator may retry. Can
   carry ``additional_prompt_content`` and ``retry_after_ms``.
 - ``ContextRequiredToolError`` — needs human input before the orchestrator
   retries. ``additional_prompt_content`` is required.
-- ``FatalToolError`` — unrecoverable.
 - ``UpstreamError`` — upstream API failure. Auto-maps HTTP status to an
   ``ErrorKind`` and ``can_retry``.
 - ``UpstreamRateLimitError`` — 429 with ``retry_after_ms``.
@@ -29,9 +26,8 @@ import sys
 from typing import Annotated
 
 from arcade_mcp_server import Context, MCPApp
-from arcade_tdk.errors import (
+from arcade_mcp_server.exceptions import (
     ContextRequiredToolError,
-    FatalToolError,
     RetryableToolError,
     UpstreamError,
     UpstreamRateLimitError,
@@ -177,38 +173,18 @@ def call_flaky_upstream() -> Annotated[str, "Unreachable — always raises"]:
 
 
 # -----------------------------------------------------------------------------
-# 6. FatalToolError — unrecoverable, no retry
-# -----------------------------------------------------------------------------
-
-
-@app.tool
-def divide(
-    a: Annotated[float, "Numerator"],
-    b: Annotated[float, "Denominator"],
-) -> Annotated[float, "a / b"]:
-    """Divide two numbers. Raises ``FatalToolError`` on division by zero —
-    the orchestrator treats this as terminal.
-    """
-    if b == 0:
-        raise FatalToolError(
-            message="Division by zero is not allowed.",
-            developer_message=f"got a={a}, b={b}",
-        )
-    return a / b
-
-
-# -----------------------------------------------------------------------------
-# 7. Unhandled exception — the fallback adapter wraps this as FatalToolError
+# 6. Unhandled exception — the server wraps this into a fatal tool error
 # -----------------------------------------------------------------------------
 
 
 @app.tool
 def mystery_bug(context: Context) -> str:
-    """Raise a bare ``RuntimeError`` deliberately. The ``@tool`` decorator's
-    adapter chain wraps it as ``FatalToolError`` (with the exception TYPE
-    only in ``message`` and the full ``str(exception)`` in
-    ``developer_message``, per the data-leak policy in
-    ``arcade_tdk/tool.py``).
+    """Raise a bare ``RuntimeError`` deliberately. The server's adapter chain
+    wraps unhandled exceptions into a fatal tool error — the exception TYPE
+    only lands in the agent-facing ``message`` while the full
+    ``str(exception)`` is kept in ``developer_message`` (server logs only) to
+    avoid leaking user input that tool authors may have interpolated into the
+    exception text.
     """
     raise RuntimeError("surprise! this message won't reach the agent, only the logs")
 

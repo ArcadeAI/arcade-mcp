@@ -40,7 +40,7 @@ class TestNegotiateVersion:
     def test_supported_versions_match_declared_precedence(self) -> None:
         """Versions are listed in explicit precedence order (oldest first, latest last).
         Do NOT use sorted() -- lexical ordering breaks for non-date identifiers
-        like DRAFT-2025-v3 that already appear in spec artifacts (schema.ts:14)."""
+        like DRAFT-2025-v3 that appear in upstream spec artifacts."""
         assert SUPPORTED_PROTOCOL_VERSIONS == ["2025-06-18", "2025-11-25"]
 
     def test_latest_is_last_supported(self) -> None:

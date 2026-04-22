@@ -147,8 +147,7 @@ def tool(
     the function as ``__tool_execution__`` and read by protocol adapters at
     serialisation time. For MCP, pass ``arcade_mcp_server.ToolExecution(...)`` to
     declare ``taskSupport``; other protocols can read the same dunder as needed.
-    ``arcade-tdk`` does not introspect the value, so unsupported payloads simply
-    go unused.
+    The value is not introspected here, so unsupported payloads simply go unused.
     """
 
     def decorator(func: Callable) -> Callable:

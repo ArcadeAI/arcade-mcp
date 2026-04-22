@@ -186,10 +186,10 @@ class ResourceServerMiddleware:
         if error_description:
             www_auth_parts.append(f'error_description="{error_description}"')
 
-        # SHOULD include scope parameter (SEP-985, authorization.mdx lines 105-109)
-        # At middleware level we don't know which tool is being called, so we
-        # advertise an empty scope list as a placeholder.  The handler-level
-        # scope check (8.4) adds the precise scopes in the 403 response.
+        # SHOULD include scope parameter (SEP-985). At middleware level we
+        # don't know which tool is being called, so we advertise an empty
+        # scope list as a placeholder. The handler-level scope check adds
+        # the precise scopes in the 403 response.
         www_auth_parts.append('scope=""')
 
         www_auth_value = "Bearer " + ", ".join(www_auth_parts)

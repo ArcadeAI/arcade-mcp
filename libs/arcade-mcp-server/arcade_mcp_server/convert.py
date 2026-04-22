@@ -85,8 +85,8 @@ def create_mcp_tool(materialized_tool: MaterializedTool) -> MCPTool:
         annotations = ToolAnnotations(title=title)
 
     # MCP-specific tool metadata travels on the function as ``__tool_execution__``
-    # (set by ``@tool(execution=...)``). ``arcade-core`` has no knowledge of it;
-    # this reads it off the materialized tool at convert time.
+    # (set by ``@tool(execution=...)``). This reads it off the materialized
+    # tool at convert time.
     raw_execution = getattr(materialized_tool.tool, "__tool_execution__", None)
     mcp_execution: ToolExecution | None = (
         raw_execution if isinstance(raw_execution, ToolExecution) else None

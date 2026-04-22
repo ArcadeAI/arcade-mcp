@@ -449,7 +449,7 @@ class ServerSession:
             if response and self.write_stream:
                 if hasattr(response, "model_dump_json"):
                     if isinstance(response, JSONRPCError):
-                        # §5.1: error responses MUST include "id" even when null
+                        # JSON-RPC error responses MUST include "id" even when null.
                         response_data = response.model_dump_json(by_alias=True)
                     else:
                         response_data = response.model_dump_json(exclude_none=True, by_alias=True)
@@ -497,7 +497,7 @@ class ServerSession:
             error={"code": code, "message": message},
         )
 
-        # §5.1: error responses MUST include "id" even when null
+        # JSON-RPC error responses MUST include "id" even when null.
         response_data = error_response.model_dump_json(by_alias=True) + "\n"
         await self.write_stream.send(response_data)
 

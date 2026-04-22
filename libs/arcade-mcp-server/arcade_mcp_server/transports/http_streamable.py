@@ -279,7 +279,7 @@ class HTTPStreamableTransport:
                 if isinstance(www_auth, str):
                     response_headers["WWW-Authenticate"] = www_auth
 
-            # §5.1: error responses MUST include "id" even when null
+            # JSON-RPC error responses MUST include "id" even when null.
             body = response_message.model_dump_json(by_alias=True)
         else:
             body = response_message.model_dump_json(by_alias=True, exclude_none=True)
@@ -333,7 +333,7 @@ class HTTPStreamableTransport:
             # Strip _transport metadata -- SSE can't set per-event
             # HTTP headers, but the body should still be clean.
             self._extract_and_strip_transport_metadata(msg)
-            # §5.1: error responses MUST include "id" even when null
+            # JSON-RPC error responses MUST include "id" even when null.
             data = msg.model_dump_json(by_alias=True)
         else:
             data = msg.model_dump_json(by_alias=True, exclude_none=True)

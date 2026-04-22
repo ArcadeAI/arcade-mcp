@@ -167,7 +167,7 @@ class TestTask:
         assert task.pollInterval is None
 
     def test_ttl_nullable(self):
-        """Task.ttl type model accepts None per schema (schema.ts:1375).
+        """Task.ttl type model accepts None per schema.
         Note: our server only reports None when _max_retention is explicitly None
         (operator opt-in). With default config, ttl is always an integer."""
         task = Task(

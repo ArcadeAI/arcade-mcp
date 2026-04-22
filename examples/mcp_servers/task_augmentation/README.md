@@ -162,11 +162,10 @@ curl -s -X POST http://127.0.0.1:8000/mcp \
 
 ## The execution= kwarg on @tool
 
-The `execution` parameter on `arcade_tdk.tool` is protocol-specific and opaque
-to `arcade-tdk` — it's stashed on the function as `__tool_execution__` and read
-by MCP-specific code at serialization time. Pass
-`arcade_mcp_server.ToolExecution(...)` for MCP; other protocols can read the
-same dunder for their own purposes.
+The `execution` parameter on `@tool` is protocol-specific and opaque — it's
+stashed on the function as `__tool_execution__` and read by MCP-specific code
+at serialization time. Pass `arcade_mcp_server.ToolExecution(...)` for MCP;
+other protocols can read the same dunder for their own purposes.
 
 ## Related SEPs
 

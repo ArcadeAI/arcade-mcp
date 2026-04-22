@@ -34,7 +34,7 @@ RELATED_TASK_META_KEY = "io.modelcontextprotocol/related-task"
 
 
 class TestProgressNotificationMetaField:
-    """ProgressNotificationParams gains _meta (2025-11-25 schema.ts:586).
+    """ProgressNotificationParams gains _meta in 2025-11-25.
 
     Backward-compatible: unused in 2025-06-18 (omitted via exclude_none).
     """
