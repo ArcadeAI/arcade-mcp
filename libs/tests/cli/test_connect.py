@@ -424,7 +424,7 @@ class TestRunConnectGateway:
 
         config = json.loads(config_path.read_text(encoding="utf-8"))
         entry = config["mcpServers"]["test-gw"]
-        assert entry["type"] == "sse"
+        assert "type" not in entry  # cursor docs show no "type" field
         assert "api.arcade.dev/mcp/test-gw" in entry["url"]
 
     def test_gateway_mode_configures_vscode(self, tmp_path: Path) -> None:
@@ -516,7 +516,7 @@ class TestRunConnectToolkit:
 
         config = json.loads(config_path.read_text(encoding="utf-8"))
         entry = config["mcpServers"]["github-slack"]
-        assert entry["type"] == "sse"
+        assert "type" not in entry  # cursor docs show no "type" field
         assert "api.arcade.dev/mcp/github-slack" in entry["url"]
 
 
