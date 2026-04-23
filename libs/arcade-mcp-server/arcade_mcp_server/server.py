@@ -1872,13 +1872,19 @@ class MCPServer:
                 error={"code": -32602, "message": "Missing taskId parameter"},
             )
 
+        if session is None:
+            # Task handlers require a session to derive the context key; the
+            # previous "session:unknown" fallback silently returned
+            # "Task not found" for every call, which was indistinguishable from
+            # a real miss. Surface the real cause instead.
+            return JSONRPCError(
+                id=msg_id,
+                error={"code": -32603, "message": "Task handlers require an active session"},
+            )
+
         resource_owner = self._get_resource_owner_from_context()
         try:
-            context_key = (
-                self._get_task_context_key(session, resource_owner)
-                if session
-                else "session:unknown"
-            )
+            context_key = self._get_task_context_key(session, resource_owner)
             task = await self._task_manager.get_task(task_id, context_key)
         except TaskNotFoundError:
             return JSONRPCError(
@@ -1911,13 +1917,15 @@ class MCPServer:
         msg_id = message.get("id") if isinstance(message, dict) else getattr(message, "id", None)
         params = message.get("params", {}) if isinstance(message, dict) else {}
 
+        if session is None:
+            return JSONRPCError(
+                id=msg_id,
+                error={"code": -32603, "message": "Task handlers require an active session"},
+            )
+
         resource_owner = self._get_resource_owner_from_context()
         try:
-            context_key = (
-                self._get_task_context_key(session, resource_owner)
-                if session
-                else "session:unknown"
-            )
+            context_key = self._get_task_context_key(session, resource_owner)
             tasks, next_cursor = await self._task_manager.list_tasks(
                 context_key=context_key,
                 cursor=params.get("cursor"),
@@ -1953,13 +1961,15 @@ class MCPServer:
                 error={"code": -32602, "message": "Missing taskId parameter"},
             )
 
+        if session is None:
+            return JSONRPCError(
+                id=msg_id,
+                error={"code": -32603, "message": "Task handlers require an active session"},
+            )
+
         resource_owner = self._get_resource_owner_from_context()
         try:
-            context_key = (
-                self._get_task_context_key(session, resource_owner)
-                if session
-                else "session:unknown"
-            )
+            context_key = self._get_task_context_key(session, resource_owner)
             task = await self._task_manager.cancel_task(task_id, context_key)
         except TaskNotFoundError:
             return JSONRPCError(
@@ -2003,13 +2013,15 @@ class MCPServer:
                 error={"code": -32602, "message": "Missing taskId parameter"},
             )
 
+        if session is None:
+            return JSONRPCError(
+                id=msg_id,
+                error={"code": -32603, "message": "Task handlers require an active session"},
+            )
+
         resource_owner = self._get_resource_owner_from_context()
         try:
-            context_key = (
-                self._get_task_context_key(session, resource_owner)
-                if session
-                else "session:unknown"
-            )
+            context_key = self._get_task_context_key(session, resource_owner)
             result = await self._task_manager.get_result(task_id, context_key)
         except TaskNotFoundError:
             return JSONRPCError(
@@ -2163,10 +2175,14 @@ class MCPServer:
         else:
             error = result.error or "Error calling tool"
             content = convert_to_mcp_content(str(error))
-            structured_content = convert_content_to_structured_content({"error": str(error)})
+            # structuredContent MUST be None on error responses. Per the MCP
+            # spec, structuredContent MUST validate against the tool's declared
+            # outputSchema -- an error payload will not. The error message is
+            # conveyed via ``content`` instead. The synchronous path in
+            # _handle_call_tool enforces the same rule; keep both paths in sync.
             return CallToolResult(
                 content=content,
-                structuredContent=structured_content,
+                structuredContent=None,
                 isError=True,
             )
 

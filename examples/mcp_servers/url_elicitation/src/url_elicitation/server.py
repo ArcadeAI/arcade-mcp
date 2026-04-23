@@ -182,43 +182,48 @@ async def verify_identity(
     url = f"http://{COMPANION_HOST}:{COMPANION_PORT}/verify/{elicit_id}"
 
     # 2. Prepare a completion future. The companion webapp will resolve it
-    #    when the user clicks a button.
+    #    when the user clicks a button. Register it INSIDE a try/finally so
+    #    the _completions slot is always released -- otherwise a failure in
+    #    ``context.ui.elicit`` (step 3) would leak the future entry.
     global _loop_ref
     _loop_ref = asyncio.get_running_loop()
     _completions[elicit_id] = _loop_ref.create_future()
 
-    await context.log.info(f"Sending URL elicitation {elicit_id} -> {url}")
-
-    # 3. Issue the URL-mode elicitation to the client. The client opens
-    #    the URL and blocks on the user's answer. While that's happening,
-    #    we also wait for the companion webapp to report the button click.
-    result = await context.ui.elicit(
-        message=f"Please verify you are {user}.",
-        mode="url",
-        url=url,
-        elicitation_id=elicit_id,
-    )
-
-    # 4. (Optional) Wait up to 60s for the companion webapp to tell us
-    #    which button the user clicked — purely a server-side convenience
-    #    so we can log it. The authoritative result is still ``result``
-    #    from the client.
     try:
-        companion_answer = await asyncio.wait_for(_completions[elicit_id], timeout=1.0)
-        await context.log.info(f"Companion webapp saw answer={companion_answer!r}")
-    except asyncio.TimeoutError:
-        await context.log.warning(
-            "Companion webapp did not report a button click — the client may have "
-            "rendered its own verification UI without hitting our URL."
-        )
-    finally:
-        _completions.pop(elicit_id, None)
+        await context.log.info(f"Sending URL elicitation {elicit_id} -> {url}")
 
-    return {
-        "accept": f"Verified identity for {user}.",
-        "decline": f"User declined to verify identity for {user}.",
-        "cancel": f"User cancelled the verification for {user}.",
-    }.get(result.action, f"Unknown elicit action: {result.action}")
+        # 3. Issue the URL-mode elicitation to the client. The client opens
+        #    the URL and blocks on the user's answer. While that's happening,
+        #    we also wait for the companion webapp to report the button click.
+        result = await context.ui.elicit(
+            message=f"Please verify you are {user}.",
+            mode="url",
+            url=url,
+            elicitation_id=elicit_id,
+        )
+
+        # 4. (Optional) Wait up to 60s for the companion webapp to tell us
+        #    which button the user clicked — purely a server-side convenience
+        #    so we can log it. The authoritative result is still ``result``
+        #    from the client.
+        try:
+            companion_answer = await asyncio.wait_for(_completions[elicit_id], timeout=1.0)
+            await context.log.info(f"Companion webapp saw answer={companion_answer!r}")
+        except asyncio.TimeoutError:
+            await context.log.warning(
+                "Companion webapp did not report a button click — the client may have "
+                "rendered its own verification UI without hitting our URL."
+            )
+
+        return {
+            "accept": f"Verified identity for {user}.",
+            "decline": f"User declined to verify identity for {user}.",
+            "cancel": f"User cancelled the verification for {user}.",
+        }.get(result.action, f"Unknown elicit action: {result.action}")
+    finally:
+        # Always drop the _completions entry so a tool error above cannot
+        # accumulate stale futures across repeated invocations.
+        _completions.pop(elicit_id, None)
 
 
 # -----------------------------------------------------------------------------

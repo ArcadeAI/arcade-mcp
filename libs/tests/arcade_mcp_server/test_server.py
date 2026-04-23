@@ -2580,6 +2580,99 @@ class TestTaskAugmentedToolCall:
         # No task entry should have been created.
         assert len(mcp_server._task_manager._tasks) == 0
 
+    @pytest.mark.asyncio
+    async def test_background_task_error_result_has_no_structured_content(
+        self, mcp_server, initialized_server_session
+    ):
+        """Regression: CallToolResult persisted by the background-execution
+        path must have ``structuredContent=None`` on error, matching the
+        synchronous path. The MCP spec requires structuredContent to validate
+        against outputSchema; an error payload will not, so serving a non-None
+        structuredContent on error is a spec violation.
+        """
+        _enable_tasks(initialized_server_session)
+        sid = initialized_server_session.session_id
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {
+                "name": "TestToolkit.failing_tool",
+                "arguments": {},
+                "task": {"ttl": 60000},
+            },
+        }
+        create_response = await mcp_server.handle_message(message, initialized_server_session)
+        task_id = create_response.result.task.taskId
+
+        # Block until background execution completes and stores a result.
+        stored = await asyncio.wait_for(
+            mcp_server._task_manager.get_result(task_id, context_key=f"session:{sid}"),
+            timeout=5.0,
+        )
+
+        assert getattr(stored, "isError", None) is True, "failing_tool should produce isError=True"
+        assert getattr(stored, "structuredContent", "sentinel") is None, (
+            "structuredContent MUST be None on error CallToolResult (spec requirement)"
+        )
+
+
+class TestTaskHandlersSessionRequired:
+    """Regression tests for task handlers requiring a non-None session.
+
+    Previously these handlers fell back to a ``"session:unknown"`` context
+    key when called with ``session=None``, which silently returned
+    ``"Task not found"`` for every call -- indistinguishable from a real
+    miss. They now return an explicit error.
+    """
+
+    @pytest.mark.asyncio
+    async def test_get_task_without_session_returns_error(self, mcp_server):
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tasks/get",
+            "params": {"taskId": "task_abc"},
+        }
+        response = await mcp_server._handle_get_task(message, session=None)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32603
+        assert "session" in response.error["message"].lower()
+
+    @pytest.mark.asyncio
+    async def test_list_tasks_without_session_returns_error(self, mcp_server):
+        message = {"jsonrpc": "2.0", "id": 1, "method": "tasks/list", "params": {}}
+        response = await mcp_server._handle_list_tasks(message, session=None)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32603
+        assert "session" in response.error["message"].lower()
+
+    @pytest.mark.asyncio
+    async def test_cancel_task_without_session_returns_error(self, mcp_server):
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tasks/cancel",
+            "params": {"taskId": "task_abc"},
+        }
+        response = await mcp_server._handle_cancel_task(message, session=None)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32603
+        assert "session" in response.error["message"].lower()
+
+    @pytest.mark.asyncio
+    async def test_get_task_result_without_session_returns_error(self, mcp_server):
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tasks/result",
+            "params": {"taskId": "task_abc"},
+        }
+        response = await mcp_server._handle_get_task_result(message, session=None)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32603
+        assert "session" in response.error["message"].lower()
+
 
 class TestRelatedTaskMetadata:
     """Tests for _meta.io.modelcontextprotocol/related-task propagation."""
