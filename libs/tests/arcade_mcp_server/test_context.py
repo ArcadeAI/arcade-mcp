@@ -570,3 +570,36 @@ class TestElicitSchemaDialectEnforcement:
         }
         await context.ui.elicit("Enter", schema=schema)
         session.elicit.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_elicit_accepts_titled_multi_select_anyof_array(self, mcp_server):
+        """Regression: ``TitledMultiSelectEnumSchema`` uses ``items.anyOf``
+        (titled const variants) rather than ``enum`` or ``oneOf``. The
+        ``items_ok`` check must accept all three variants or valid schemas
+        emitted by the documented helper types (``pick_permissions``,
+        ``configure_deployment`` in the enum_elicitation example) will
+        raise at call time.
+        """
+        from arcade_mcp_server.context import Context
+
+        session = Mock()
+        session.elicit = AsyncMock(return_value={"action": "accept", "content": {}})
+        context = Context(server=mcp_server)
+        context.set_session(session)
+
+        schema = {
+            "type": "object",
+            "properties": {
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            {"const": "read", "title": "Read"},
+                            {"const": "write", "title": "Write"},
+                        ],
+                    },
+                },
+            },
+        }
+        await context.ui.elicit("Enter", schema=schema)
+        session.elicit.assert_called_once()
