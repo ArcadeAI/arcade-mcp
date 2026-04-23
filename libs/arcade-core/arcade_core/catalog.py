@@ -22,7 +22,7 @@ from typing import (
     get_type_hints,
 )
 
-from pydantic import BaseModel, Field, create_model
+from pydantic import BaseModel, ConfigDict, Field, create_model
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
@@ -1072,16 +1072,28 @@ def create_func_models(func: Callable) -> tuple[type[BaseModel], type[BaseModel]
 
         # TODO make this cleaner
         tool_field_info = extract_field_info(param)
-        param_fields = {
-            "default": tool_field_info.default,
-            "description": tool_field_info.description
+        description = (
+            tool_field_info.description
             if tool_field_info.description
-            else "No description provided.",
-            # TODO more here?
-        }
-        input_fields[name] = (tool_field_info.field_type, Field(**param_fields))
+            else "No description provided."
+        )
+        # Required params must omit `default=` so Pydantic enforces them;
+        # extract_*_param_info() returns default=None when no default was given.
+        has_default_value = tool_field_info.default is not None
+        is_required = not tool_field_info.is_optional and not has_default_value
+        if is_required:
+            input_fields[name] = (tool_field_info.field_type, Field(description=description))
+        else:
+            input_fields[name] = (
+                tool_field_info.field_type,
+                Field(default=tool_field_info.default, description=description),
+            )
 
-    input_model = create_model(f"{snake_to_pascal_case(func.__name__)}Input", **input_fields)  # type: ignore[call-overload]
+    input_model = create_model(
+        f"{snake_to_pascal_case(func.__name__)}Input",
+        __config__=ConfigDict(extra="forbid"),
+        **input_fields,  # type: ignore[call-overload]
+    )
 
     output_model = determine_output_model(func)
     return input_model, output_model
@@ -1204,6 +1216,8 @@ class _TypedDictBaseModel(BaseModel):
     Defaults model_dump() to exclude_unset=True so that absent optional
     fields (total=False) don't appear as None in serialized output.
     """
+
+    model_config = ConfigDict(extra="forbid")
 
     def model_dump(self, **kwargs: Any) -> dict[str, Any]:
         kwargs.setdefault("exclude_unset", True)

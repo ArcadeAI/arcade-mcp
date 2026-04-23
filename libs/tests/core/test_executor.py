@@ -435,3 +435,110 @@ async def test_input_validation_error_does_not_leak_input_values():
     # The integer wrong-type value also must not appear.
     assert "12345" not in output.error.message
     assert "12345" not in output.error.developer_message
+
+
+class EditRequest(TypedDict):
+    """A nested edit request used to exercise TypedDict input validation."""
+
+    text: str
+
+
+@tool
+def typeddict_input_tool(
+    doc_id: Annotated[str, "document id"],
+    requests: Annotated[list[EditRequest], "edits to apply"],
+) -> Annotated[str, "joined text"]:
+    """Tool that accepts a required arg plus a list of TypedDicts."""
+    return f"{doc_id}:" + "|".join(r["text"] for r in requests)
+
+
+catalog.add_tool(typeddict_input_tool, "simple_toolkit")
+
+
+@pytest.mark.asyncio
+async def test_unknown_top_level_arg_raises_tool_input_error():
+    """Unknown top-level kwargs must raise ToolInputError, not be silently dropped."""
+    tool_definition = catalog.find_tool_by_func(simple_tool)
+    full_tool = catalog.get_tool(tool_definition.get_fully_qualified_name())
+    dummy_context = ToolContext()
+
+    output = await ToolExecutor.run(
+        func=simple_tool,
+        definition=tool_definition,
+        input_model=full_tool.input_model,
+        output_model=full_tool.output_model,
+        context=dummy_context,
+        inp="hello",
+        banana=42,  # unknown key — must be rejected, not silently dropped
+    )
+
+    assert output.value is None
+    assert output.error is not None
+    assert "Invalid input:" in output.error.message
+    assert "banana" in output.error.message
+
+
+@pytest.mark.asyncio
+async def test_missing_required_arg_raises_tool_input_error():
+    """Missing required args must raise ToolInputError, not silently validate as None."""
+    tool_definition = catalog.find_tool_by_func(simple_tool)
+    full_tool = catalog.get_tool(tool_definition.get_fully_qualified_name())
+    dummy_context = ToolContext()
+
+    output = await ToolExecutor.run(
+        func=simple_tool,
+        definition=tool_definition,
+        input_model=full_tool.input_model,
+        output_model=full_tool.output_model,
+        context=dummy_context,
+        # no kwargs — required `inp` omitted
+    )
+
+    assert output.value is None
+    assert output.error is not None
+    assert "Invalid input:" in output.error.message
+    assert "inp" in output.error.message
+
+
+@pytest.mark.asyncio
+async def test_unknown_key_in_nested_typeddict_raises_tool_input_error():
+    """Typos inside nested TypedDict values must also be rejected."""
+    tool_definition = catalog.find_tool_by_func(typeddict_input_tool)
+    full_tool = catalog.get_tool(tool_definition.get_fully_qualified_name())
+    dummy_context = ToolContext()
+
+    output = await ToolExecutor.run(
+        func=typeddict_input_tool,
+        definition=tool_definition,
+        input_model=full_tool.input_model,
+        output_model=full_tool.output_model,
+        context=dummy_context,
+        doc_id="doc1",
+        requests=[{"txt": "typo inside nested dict"}],  # 'txt' is not declared; 'text' is
+    )
+
+    assert output.value is None
+    assert output.error is not None
+    assert "Invalid input:" in output.error.message
+    assert "txt" in output.error.message
+
+
+@pytest.mark.asyncio
+async def test_valid_typeddict_input_still_executes():
+    """Regression guard: correctly-shaped TypedDict input still runs."""
+    tool_definition = catalog.find_tool_by_func(typeddict_input_tool)
+    full_tool = catalog.get_tool(tool_definition.get_fully_qualified_name())
+    dummy_context = ToolContext()
+
+    output = await ToolExecutor.run(
+        func=typeddict_input_tool,
+        definition=tool_definition,
+        input_model=full_tool.input_model,
+        output_model=full_tool.output_model,
+        context=dummy_context,
+        doc_id="doc1",
+        requests=[{"text": "a"}, {"text": "b"}],
+    )
+
+    assert output.error is None
+    assert output.value == "doc1:a|b"
