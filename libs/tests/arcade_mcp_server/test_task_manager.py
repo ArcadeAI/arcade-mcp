@@ -290,32 +290,38 @@ class TestTaskManagerResultBlocking:
 
     @pytest.mark.asyncio
     async def test_cleanup_expired_releases_get_result_waiters(self):
-        """Regression: when ``cleanup_expired`` evicts a task, any coroutine
-        blocked in ``get_result`` (on ``event.wait()``) must be released. The
-        old code popped ``_events`` without calling ``event.set()`` first, so
-        waiters hung forever when their task's TTL expired mid-wait.
+        """Regression: when ``cleanup_expired`` evicts a task whose TTL
+        expired WHILE a ``get_result`` caller was already blocked on its
+        event, the cleanup must ``event.set()`` before popping the event
+        slot. The old code popped ``_events`` without signaling first, so
+        those waiters hung forever.
+
+        The TTL needs to be long enough that the waiter registers on the
+        event before expiry (otherwise ``get_result``'s own O(1) TTL check
+        short-circuits with NotFoundError and there is nothing waiting to
+        be released).
         """
         manager = TaskManager()
-        # Use a short-enough TTL that cleanup_expired() will evict during the wait.
-        task = await manager.create_task(context_key=CONTEXT_A, ttl=1)  # 1ms
+        # 500ms: long enough to register the waiter before expiry,
+        # short enough to keep the test fast.
+        task = await manager.create_task(context_key=CONTEXT_A, ttl=500)
 
-        # Start a get_result waiter BEFORE the task is expired/evicted.
         async def _wait():
             return await manager.get_result(task.taskId, context_key=CONTEXT_A)
 
         waiter = asyncio.create_task(_wait())
-        # Give the waiter a chance to register on the event.
-        await asyncio.sleep(0.02)
+        # Give the waiter a chance to pass the TTL check and enter event.wait().
+        await asyncio.sleep(0.05)
         assert not waiter.done(), (
             "Sanity: waiter should be blocked on the non-terminal task's event"
         )
 
-        # Trigger eviction. With the bug, the waiter stays blocked forever.
-        await asyncio.sleep(0.05)  # ensure ttl passed
+        # Let the TTL elapse, then fire cleanup. With the bug, the waiter
+        # would stay blocked forever because the event was popped, not set.
+        await asyncio.sleep(0.6)
         await manager.cleanup_expired()
 
-        # The waiter must now unblock (returns the cancelled-fallback dict
-        # because no set_result/set_error was ever stored for this task).
+        # The waiter must unblock within a bounded wait.
         result = await asyncio.wait_for(waiter, timeout=1.0)
         # After eviction, the stored result slot was cleared -- get_result
         # hits its "no result, no error" fallback path.

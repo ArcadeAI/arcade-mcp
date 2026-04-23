@@ -648,16 +648,26 @@ class UI(_ContextComponent):
             prop_type = prop_schema.get("type")
 
             # Allow "array" type for multi-select enum schemas (MCP 2025-11-25)
-            # Also allow properties with oneOf (titled single-select) or enum
-            # without an explicit type
+            # Allow properties WITHOUT an explicit type but WITH enum / oneOf
+            # (SEP-1330 enum variants: legacy ``enum``+``enumNames`` and
+            # ``oneOf``-titled selects). Any other type value must be a
+            # supported primitive -- the enum/oneOf bypass previously
+            # whitelisted invalid types like ``"object"`` as long as one of
+            # those keys was present.
             has_enum = "enum" in prop_schema
             has_one_of = "oneOf" in prop_schema
             if prop_type == "array":
                 # Multi-select enum — valid for 2025-11-25 enum schemas
                 pass
-            elif prop_type not in ["string", "number", "integer", "boolean"] and not (
-                has_enum or has_one_of
-            ):
+            elif prop_type is None:
+                # Untyped properties are OK only when enum/oneOf provides
+                # the value set.
+                if not (has_enum or has_one_of):
+                    raise ValueError(
+                        f"Property '{prop_name}' has no type and no enum/oneOf. "
+                        f"Provide a type or an enum/oneOf variant."
+                    )
+            elif prop_type not in ["string", "number", "integer", "boolean"]:
                 raise ValueError(
                     f"Property '{prop_name}' has unsupported type '{prop_type}'. "
                     f"Only primitive types and array (for multi-select enum) are allowed."

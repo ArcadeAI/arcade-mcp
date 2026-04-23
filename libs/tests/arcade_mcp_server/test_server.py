@@ -1953,6 +1953,69 @@ class TestVersionNegotiationInInitialize:
         assert "tasks" in VERSION_FEATURES["2025-11-25"]
         assert "implementation_metadata" not in VERSION_FEATURES["2025-06-18"]
 
+    def test_project_for_version_per_field_feature_gate(
+        self, tool_catalog, mcp_settings, monkeypatch
+    ):
+        """Regression: ``_project_for_version`` must gate each strippable
+        field on its own feature, not a single blanket feature for all of
+        them. ``icons`` belongs to ``implementation_metadata`` and
+        ``execution`` belongs to ``tool_execution``; these features could
+        diverge in a future protocol version.
+        """
+        from arcade_mcp_server import types as mcp_types
+
+        server = MCPServer(catalog=tool_catalog, settings=mcp_settings)
+
+        class _FakeSession:
+            def __init__(self, features: set[str]) -> None:
+                self._features = features
+
+            def has_feature(self, feature: str) -> bool:
+                return feature in self._features
+
+        item = {
+            "name": "t",
+            "icons": [{"src": "x"}],
+            "execution": {"taskSupport": "optional"},
+        }
+
+        # Client with both features -> nothing stripped.
+        both = _FakeSession({"implementation_metadata", "tool_execution"})
+        result = server._project_for_version([item], both, strip_fields=["icons", "execution"])
+        assert result[0]["icons"] == [{"src": "x"}]
+        assert result[0]["execution"] == {"taskSupport": "optional"}
+
+        # Client with ONLY implementation_metadata -> execution stripped,
+        # icons retained. Previously the old single-feature gate stripped
+        # both, losing icons too.
+        only_impl = _FakeSession({"implementation_metadata"})
+        result = server._project_for_version(
+            [dict(item)], only_impl, strip_fields=["icons", "execution"]
+        )
+        assert "icons" in result[0]
+        assert "execution" not in result[0]
+
+        # Client with ONLY tool_execution -> icons stripped, execution kept.
+        only_exec = _FakeSession({"tool_execution"})
+        result = server._project_for_version(
+            [dict(item)], only_exec, strip_fields=["icons", "execution"]
+        )
+        assert "icons" not in result[0]
+        assert result[0]["execution"] == {"taskSupport": "optional"}
+
+        # Legacy client (neither feature) -> both stripped.
+        legacy = _FakeSession(set())
+        result = server._project_for_version(
+            [dict(item)], legacy, strip_fields=["icons", "execution"]
+        )
+        assert "icons" not in result[0]
+        assert "execution" not in result[0]
+
+        # Silence the unused-imports warning that pytest emits for future
+        # additions -- this assertion just anchors the fact that the
+        # production code depends on this feature name existing.
+        assert "tool_execution" in mcp_types.VERSION_FEATURES["2025-11-25"]
+
 
 class TestToolMetaExtensionEdgeCases:
     """Test apply_meta_extensions edge cases on ToolManager directly."""

@@ -18,7 +18,7 @@ import asyncio
 import contextlib
 import logging
 import os
-from typing import Any, Callable, cast
+from typing import Any, Callable, ClassVar, cast
 from urllib.parse import quote, urlparse, urlunparse
 
 from arcade_core.auth_tokens import get_valid_access_token
@@ -881,32 +881,48 @@ class MCPServer:
 
         return info
 
+    # Default per-field feature gates for list projection. Each field is
+    # stripped when the session does NOT have its mapped feature. Using a
+    # per-field gate (rather than one blanket version/feature check) keeps
+    # this correct when protocol versions ship the features independently.
+    _DEFAULT_STRIP_FIELD_GATES: ClassVar[dict[str, str]] = {
+        # ``icons`` on tools/resources/prompts is part of the 2025-11-25
+        # implementation-metadata bump.
+        "icons": "implementation_metadata",
+        # ``execution`` (task-augmentation support) belongs to the
+        # ``tool_execution`` feature, not ``implementation_metadata``.
+        "execution": "tool_execution",
+    }
+
     def _project_for_version(
         self,
         items: list[Any],
         session: ServerSession | None,
-        strip_fields: list[str] | None = None,
+        strip_fields: list[str] | dict[str, str] | None = None,
     ) -> list[dict[str, Any]]:
         """Project list items for the negotiated version.
 
-        For 2025-06-18 sessions, strip fields like icons/execution.
-        NEVER MUTATE cached DTOs — always dump first.
+        ``strip_fields`` maps each field name to the feature that gates it.
+        Passing a plain list uses the class-level defaults in
+        ``_DEFAULT_STRIP_FIELD_GATES`` per name (and is an error for unknown
+        names -- we prefer loud over silent). NEVER MUTATE cached DTOs —
+        always dump first.
         """
         if strip_fields is None:
-            strip_fields = ["icons"]
+            gates = {"icons": self._DEFAULT_STRIP_FIELD_GATES["icons"]}
+        elif isinstance(strip_fields, dict):
+            gates = strip_fields
+        else:
+            gates = {name: self._DEFAULT_STRIP_FIELD_GATES[name] for name in strip_fields}
 
-        # ``icons`` on tools/resources/prompts is part of the 2025-11-25
-        # implementation-metadata bump; gate the strip on that feature rather
-        # than on an unrelated sibling feature like ``tasks``.
-        is_legacy = session is None or not session.has_feature("implementation_metadata")
         result = []
         for item in items:
             if hasattr(item, "model_dump"):
                 d = item.model_dump(exclude_none=True, by_alias=True)
             else:
                 d = dict(item)
-            if is_legacy:
-                for field in strip_fields:
+            for field, feature in gates.items():
+                if session is None or not session.has_feature(feature):
                     d.pop(field, None)
             result.append(d)
         return result

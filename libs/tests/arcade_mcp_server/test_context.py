@@ -162,7 +162,10 @@ class TestContext:
             await context.progress.report(50, 100, "Processing...")
 
             session.send_progress_notification.assert_called_once_with(
-                progress_token="task-123", progress=50, total=100, message="Processing...",
+                progress_token="task-123",
+                progress=50,
+                total=100,
+                message="Processing...",
                 _meta=None,
             )
 
@@ -473,5 +476,51 @@ class TestElicitSchemaDialectEnforcement:
         context.set_session(session)
 
         schema = {"type": "object", "properties": {"name": {"type": "string"}}}
+        await context.ui.elicit("Enter", schema=schema)
+        session.elicit.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_elicit_rejects_object_type_with_enum_bypass(self, mcp_server):
+        """Regression: the SEP-1330 bypass that allows untyped properties
+        with ``enum`` or ``oneOf`` must NOT whitelist invalid ``type``
+        values. A property with ``type: "object"`` is not a supported
+        elicitation primitive even if it also carries an ``enum`` -- the
+        old check let this through because it only required the bypass
+        condition (``has_enum or has_one_of``) to be True.
+        """
+        from arcade_mcp_server.context import Context
+
+        session = Mock()
+        session.elicit = AsyncMock(return_value={"action": "accept", "content": {}})
+        context = Context(server=mcp_server)
+        context.set_session(session)
+
+        bad_schema = {
+            "type": "object",
+            "properties": {
+                "blob": {"type": "object", "enum": ["a"]},
+            },
+        }
+        with pytest.raises(ValueError, match="unsupported type 'object'"):
+            await context.ui.elicit("Enter", schema=bad_schema)
+        session.elicit.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_elicit_accepts_untyped_property_with_enum(self, mcp_server):
+        """The SEP-1330 bypass still works for legitimately-untyped enum
+        properties (the original motivation for the bypass)."""
+        from arcade_mcp_server.context import Context
+
+        session = Mock()
+        session.elicit = AsyncMock(return_value={"action": "accept", "content": {}})
+        context = Context(server=mcp_server)
+        context.set_session(session)
+
+        schema = {
+            "type": "object",
+            "properties": {
+                "color": {"enum": ["red", "green", "blue"]},  # no explicit type
+            },
+        }
         await context.ui.elicit("Enter", schema=schema)
         session.elicit.assert_called_once()
