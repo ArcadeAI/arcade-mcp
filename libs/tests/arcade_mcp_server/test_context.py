@@ -447,6 +447,24 @@ class TestElicitSchemaDialectEnforcement:
         # Session elicit must NOT have been called since validation failed first
         session.elicit.assert_not_called()
 
+    def test_unsupported_schema_dialect_error_is_value_error(self):
+        """Regression: ``UnsupportedSchemaDialectError`` must also inherit
+        from ``ValueError`` so tool authors catching ``ValueError`` around
+        ``context.ui.elicit(...)`` pick up bad-dialect errors alongside the
+        rest of the ``_validate_elicitation_schema`` family -- otherwise a
+        caller matching the documented ``except ValueError`` pattern
+        silently misses this case. The README advertises the error with a
+        ``ValueError:`` prefix; without this mixin that was a lie.
+        """
+        from arcade_mcp_server.exceptions import (
+            MCPError,
+            UnsupportedSchemaDialectError,
+        )
+
+        err = UnsupportedSchemaDialectError("bad dialect")
+        assert isinstance(err, ValueError)
+        assert isinstance(err, MCPError)
+
     @pytest.mark.asyncio
     async def test_elicit_accepts_2020_12_dialect(self, mcp_server):
         from arcade_mcp_server.context import Context

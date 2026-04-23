@@ -124,8 +124,14 @@ class IncompleteAuthContextError(MCPError):
     """Auth context is missing required claims (e.g., iss) for task scoping."""
 
 
-class UnsupportedSchemaDialectError(MCPError):
-    """Raised when a JSON Schema $schema URI declares an unsupported dialect."""
+class UnsupportedSchemaDialectError(MCPError, ValueError):
+    """Raised when a JSON Schema $schema URI declares an unsupported dialect.
+
+    Inherits from both ``MCPError`` (so framework-level catchers keep
+    working) and ``ValueError`` (so tool authors doing ``except ValueError``
+    around ``context.ui.elicit(...)`` catch bad-dialect errors alongside
+    the rest of ``_validate_elicitation_schema``'s ``ValueError`` family).
+    """
 
 
 class SessionNotInitializedError(SessionError):
