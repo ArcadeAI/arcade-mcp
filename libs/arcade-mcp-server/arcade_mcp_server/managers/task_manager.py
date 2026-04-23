@@ -232,7 +232,14 @@ class TaskManager:
         return now >= created + timedelta(milliseconds=task.ttl)
 
     def _evict(self, task_id: str) -> None:
-        """Remove a single task and its bookkeeping slots."""
+        """Remove a single task and its bookkeeping slots.
+
+        Cancels any tracked background ``asyncio.Task`` for ``task_id`` before
+        dropping the reference so on-access TTL evictions (``get_task``,
+        ``list_tasks``, ``cancel_task``, ``get_result``) don't leak running
+        coroutines. ``cleanup_expired`` also routes through here, so every
+        eviction path is consistent.
+        """
         entry = self._tasks.pop(task_id, None)
         if entry is not None:
             ctx_key, _task = entry
@@ -248,7 +255,9 @@ class TaskManager:
         self._results.pop(task_id, None)
         self._errors.pop(task_id, None)
         self._progress_tokens.pop(task_id, None)
-        self._bg_tasks.pop(task_id, None)
+        bg = self._bg_tasks.pop(task_id, None)
+        if bg is not None and not bg.done():
+            bg.cancel()
 
     async def get_task(self, task_id: str, context_key: str) -> Task:
         """Get a task by ID, scoped to context.
@@ -514,12 +523,11 @@ class TaskManager:
         ]
 
         for task_id in to_remove:
-            bg = self._bg_tasks.get(task_id)
-            # Route eviction through _evict so waiters blocked on
-            # ``get_result``'s event are released. Previously this loop
-            # popped ``_events`` without signaling first, leaving
-            # ``await event.wait()`` callers hung forever when their
-            # task's TTL expired mid-wait.
+            # ``_evict`` releases waiters on the task's event AND cancels any
+            # tracked background ``asyncio.Task``. Previously this loop
+            # captured/cancelled the bg task separately, but the on-access
+            # eviction paths (``get_task``, ``list_tasks`` etc.) did not,
+            # leaving a window where on-access TTL evictions leaked running
+            # coroutines. Centralising the cancel in ``_evict`` keeps every
+            # eviction path consistent.
             self._evict(task_id)
-            if bg is not None and not bg.done():
-                bg.cancel()

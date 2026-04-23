@@ -386,6 +386,52 @@ class TestTaskManagerBackgroundTracking:
         assert bg1.cancelled() or bg1.done()
         assert bg2.cancelled() or bg2.done()
 
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("accessor", ["get_task", "list_tasks", "cancel_task", "get_result"])
+    async def test_on_access_ttl_eviction_cancels_background_task(
+        self, task_manager, accessor
+    ):
+        """Regression: on-access TTL eviction must cancel the tracked
+        ``asyncio.Task`` for the evicted task. Previously ``_evict`` popped
+        ``_bg_tasks[task_id]`` without cancelling, so every on-access eviction
+        path (``get_task``, ``list_tasks``, ``cancel_task``, ``get_result``)
+        leaked a running coroutine. Only ``cleanup_expired`` handled it.
+        """
+        task = await task_manager.create_task(context_key=CONTEXT_A, ttl=1)  # 1ms TTL
+        cancelled_flag = asyncio.Event()
+
+        async def long_running():
+            try:
+                await asyncio.sleep(60)
+            except asyncio.CancelledError:
+                cancelled_flag.set()
+                raise
+
+        bg = asyncio.create_task(long_running())
+        task_manager.track_background_task(task.taskId, bg)
+        await asyncio.sleep(0.05)  # let TTL elapse and bg task start
+
+        # Accessing the expired task via any of the on-access paths should
+        # both raise NotFoundError AND cancel the leaked background task.
+        if accessor == "get_task":
+            with pytest.raises(NotFoundError):
+                await task_manager.get_task(task.taskId, context_key=CONTEXT_A)
+        elif accessor == "list_tasks":
+            tasks, _ = await task_manager.list_tasks(context_key=CONTEXT_A)
+            assert task.taskId not in {t.taskId for t in tasks}
+        elif accessor == "cancel_task":
+            with pytest.raises(NotFoundError):
+                await task_manager.cancel_task(task.taskId, context_key=CONTEXT_A)
+        elif accessor == "get_result":
+            with pytest.raises(NotFoundError):
+                await task_manager.get_result(task.taskId, context_key=CONTEXT_A)
+
+        await asyncio.wait_for(cancelled_flag.wait(), timeout=2.0)
+        assert cancelled_flag.is_set()
+        assert not task_manager.has_background_task(task.taskId)
+        with contextlib.suppress(asyncio.CancelledError):
+            await bg
+
 
 class TestTaskCancellationRace:
     """Tests for atomic state transitions and cancellation race handling."""
