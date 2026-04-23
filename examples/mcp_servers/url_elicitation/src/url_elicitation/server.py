@@ -32,8 +32,8 @@ from typing import Annotated
 from arcade_mcp_server import (
     Context,
     MCPApp,
-    URLElicitationRequiredError,
 )
+from arcade_mcp_server.exceptions import ElicitationModeNotSupportedError
 from arcade_mcp_server.types import ClientCapabilities
 
 # -----------------------------------------------------------------------------
@@ -167,16 +167,18 @@ async def verify_identity(
     caps: ClientCapabilities | None = getattr(context._session, "_client_capabilities", None)
     elicit_caps = caps.elicitation if caps and caps.elicitation else {}
     if not isinstance(elicit_caps, dict) or not elicit_caps.get("url"):
-        # This is the wire error code -32042 (URLElicitationRequiredError).
-        # Re-raising it means the orchestrator's LLM sees the error explicitly.
-        err = URLElicitationRequiredError(
-            message=(
-                "This tool requires URL-mode elicitation, but the connected client "
-                "did not declare `capabilities.elicitation.url` at initialize. "
-                "Upgrade to an MCP 2025-11-25 client."
-            ),
+        # Raise a typed session error. The adapter chain converts this to a
+        # tool error whose message lands in the orchestrator's LLM prompt --
+        # which is what we actually want here. (The original draft constructed
+        # ``URLElicitationRequiredError`` and discarded it, but that type is a
+        # pydantic ``BaseModel`` representing the -32042 wire error, not an
+        # exception -- you can't raise it. Typed exceptions are the right
+        # handle for tool bodies to signal capability gaps.)
+        raise ElicitationModeNotSupportedError(
+            "This tool requires URL-mode elicitation, but the connected client "
+            "did not declare `capabilities.elicitation.url` at initialize. "
+            "Upgrade to an MCP 2025-11-25 client."
         )
-        raise ValueError(err.message)
 
     elicit_id = f"elicit_{uuid.uuid4().hex}"
     url = f"http://{COMPANION_HOST}:{COMPANION_PORT}/verify/{elicit_id}"

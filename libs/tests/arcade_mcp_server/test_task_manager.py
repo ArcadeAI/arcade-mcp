@@ -558,6 +558,41 @@ class TestLazyAndPeriodicExpiration:
             await manager.stop()
 
     @pytest.mark.asyncio
+    async def test_cancel_task_rejects_expired_task(self):
+        """Regression: ``cancel_task`` must honor the same O(1) TTL check as
+        ``get_task`` -- otherwise there is a race window where
+        ``tasks/get`` returns "not found" but ``tasks/cancel`` succeeds on
+        the same expired task id.
+        """
+        manager = TaskManager()
+        await manager.start()
+        try:
+            task = await manager.create_task(context_key=CONTEXT_A, ttl=1)  # 1ms
+            await asyncio.sleep(0.05)
+            with pytest.raises(NotFoundError):
+                await manager.cancel_task(task.taskId, context_key=CONTEXT_A)
+            assert task.taskId not in manager._tasks
+        finally:
+            await manager.stop()
+
+    @pytest.mark.asyncio
+    async def test_get_result_rejects_expired_task(self):
+        """Regression: ``get_result`` must honor the same TTL check so
+        ``tasks/result`` cannot return data for a task the other handlers
+        already consider expired and evicted.
+        """
+        manager = TaskManager()
+        await manager.start()
+        try:
+            task = await manager.create_task(context_key=CONTEXT_A, ttl=1)  # 1ms
+            await asyncio.sleep(0.05)
+            with pytest.raises(NotFoundError):
+                await manager.get_result(task.taskId, context_key=CONTEXT_A)
+            assert task.taskId not in manager._tasks
+        finally:
+            await manager.stop()
+
+    @pytest.mark.asyncio
     async def test_periodic_cleanup_task_runs(self):
         """Periodic cleanup task removes expired tasks without explicit access."""
         manager = TaskManager()

@@ -330,10 +330,19 @@ class TaskManager:
         return page, next_cursor
 
     async def cancel_task(self, task_id: str, context_key: str) -> Task:
-        """Cancel a task. Raises NotFoundError or InvalidTaskStateError."""
-        # Context check
+        """Cancel a task. Raises NotFoundError or InvalidTaskStateError.
+
+        Performs the same O(1) TTL check as ``get_task`` so an expired task
+        cannot be cancelled/revived after ``tasks/get`` has already reported
+        "not found" for it. Without this check there was a small race window
+        where the two handlers disagreed about the task's existence.
+        """
         entry = self._tasks.get(task_id)
         if entry is None or entry[0] != context_key:
+            raise NotFoundError(f"Task not found: {task_id}")
+        _ctx_key, task = entry
+        if self._is_expired(task):
+            self._evict(task_id)
             raise NotFoundError(f"Task not found: {task_id}")
 
         task = await self.update_status(task_id, TaskStatus.CANCELLED)
@@ -412,6 +421,10 @@ class TaskManager:
         """Get task result, blocking until terminal if still working.
 
         Raises NotFoundError for missing task or context mismatch.
+
+        Performs the same O(1) TTL check as ``get_task``/``cancel_task``.
+        Without this, ``tasks/result`` could return a result for a task
+        that ``tasks/get`` had already reported as not found.
         """
         # Context check
         entry = self._tasks.get(task_id)
@@ -419,6 +432,10 @@ class TaskManager:
             raise NotFoundError(f"Task not found: {task_id}")
 
         _ctx_key, task = entry
+
+        if self._is_expired(task):
+            self._evict(task_id)
+            raise NotFoundError(f"Task not found: {task_id}")
 
         # If not terminal, wait
         if task.status not in TERMINAL_STATUSES:
