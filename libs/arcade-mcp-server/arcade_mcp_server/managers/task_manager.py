@@ -358,6 +358,14 @@ class TaskManager:
         """Store an error result for a task."""
         self._errors[task_id] = error
 
+    def has_stored_error(self, task_id: str) -> bool:
+        """Return True if an error was stored for this task via ``set_error``.
+
+        Callers should use this to disambiguate error results from successful
+        results without resorting to duck-typing on the returned value's shape.
+        """
+        return task_id in self._errors
+
     async def get_result(self, task_id: str, context_key: str) -> Any:
         """Get task result, blocking until terminal if still working.
 

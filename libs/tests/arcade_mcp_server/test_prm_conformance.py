@@ -243,6 +243,47 @@ class TestInsufficientScopeServerHandler:
         if isinstance(response, JSONRPCError):
             assert response.error["code"] != INSUFFICIENT_SCOPE_ERROR_CODE
 
+    @pytest.mark.asyncio
+    async def test_task_augmented_call_does_not_bypass_scope_check(
+        self,
+        mcp_server: MCPServer,
+        initialized_session_2025_11_25: ServerSession,
+    ) -> None:
+        """Regression: task-augmented tools/call MUST run the scope sufficiency
+        check before creating a task. Otherwise a low-privilege bearer token
+        could invoke a higher-scoped tool by attaching ``params.task``, which
+        would bypass the gate and return a CreateTaskResult instead of the
+        INSUFFICIENT_SCOPE error.
+        """
+        resource_owner = ResourceOwner(
+            user_id="alice",
+            claims={"scope": "files:read", "iss": "https://auth.example.com", "sub": "alice"},
+        )
+
+        message: dict[str, Any] = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {
+                "name": "TestToolkit.scoped_task_tool",
+                "arguments": {"text": "hello"},
+                "task": {"ttl": 60000},
+            },
+        }
+
+        response = await mcp_server.handle_message(
+            message,
+            session=initialized_session_2025_11_25,
+            resource_owner=resource_owner,
+        )
+
+        assert isinstance(response, JSONRPCError), (
+            "Task-augmented call must NOT return a CreateTaskResult when scopes are insufficient"
+        )
+        assert response.error["code"] == INSUFFICIENT_SCOPE_ERROR_CODE
+        # No background task should have been registered for the bypass attempt.
+        assert len(mcp_server._task_manager._tasks) == 0
+
 
 # ---------------------------------------------------------------------------
 # TestTransportMetadataStripping — HTTP transport strips _transport

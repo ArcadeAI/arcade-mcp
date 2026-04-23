@@ -250,7 +250,9 @@ def error_result_tool_def() -> ToolDefinition:
 
 
 @pytest.fixture
-def materialized_error_result_tool(error_result_tool_func, error_result_tool_def) -> MaterializedTool:
+def materialized_error_result_tool(
+    error_result_tool_func, error_result_tool_def
+) -> MaterializedTool:
     return _materialize(error_result_tool_func, error_result_tool_def)
 
 
@@ -388,6 +390,68 @@ def materialized_scoped_tool(scoped_tool_func, scoped_tool_def) -> MaterializedT
 
 
 @pytest.fixture
+def scoped_task_tool_func():
+    """A tool with OAuth2 scope requirements AND task augmentation support.
+
+    Used to verify task-augmented calls cannot bypass the scope sufficiency
+    check (i.e. a task must be rejected at the scope gate, not created).
+    """
+
+    @tool(
+        requires_auth=OAuth2(
+            id="scope-provider",
+            scopes=["files:read", "files:write"],
+        ),
+        execution=ToolExecution(taskSupport="optional"),
+    )
+    def scoped_task_tool(
+        text: Annotated[str, "Input text"],
+    ) -> Annotated[str, "Result"]:
+        """A scoped tool that also allows task augmentation."""
+        return f"scoped-task: {text}"
+
+    return scoped_task_tool
+
+
+@pytest.fixture
+def scoped_task_tool_def() -> ToolDefinition:
+    """Definition for the scoped + task-augmentable tool."""
+    return ToolDefinition(
+        name="scoped_task_tool",
+        fully_qualified_name="TestToolkit.scoped_task_tool",
+        description="A tool with scopes and task augmentation",
+        toolkit=ToolkitDefinition(name="TestToolkit", description="Test toolkit", version="1.0.0"),
+        input=ToolInput(
+            parameters=[
+                InputParameter(
+                    name="text",
+                    required=True,
+                    description="Input text",
+                    value_schema=ValueSchema(val_type="string"),
+                )
+            ]
+        ),
+        output=ToolOutput(description="Tool output", value_schema=ValueSchema(val_type="string")),
+        requirements=ToolRequirements(
+            authorization=ToolAuthRequirement(
+                provider_type="oauth2",
+                provider_id="scope-provider",
+                id="scope-provider",
+                oauth2=OAuth2Requirement(
+                    scopes=["files:read", "files:write"],
+                ),
+            ),
+        ),
+    )
+
+
+@pytest.fixture
+def materialized_scoped_task_tool(scoped_task_tool_func, scoped_task_tool_def) -> MaterializedTool:
+    """Materialized scoped + task-augmentable tool."""
+    return _materialize(scoped_task_tool_func, scoped_task_tool_def)
+
+
+@pytest.fixture
 def tool_catalog(
     materialized_tool: MaterializedTool,
     materialized_tool_with_auth: MaterializedTool,
@@ -398,6 +462,7 @@ def tool_catalog(
     materialized_required_task_tool: MaterializedTool,
     materialized_no_execution_tool: MaterializedTool,
     materialized_scoped_tool: MaterializedTool,
+    materialized_scoped_task_tool: MaterializedTool,
 ) -> ToolCatalog:
     """Create a tool catalog with sample tools."""
     catalog = ToolCatalog()
@@ -411,6 +476,7 @@ def tool_catalog(
         materialized_required_task_tool,
         materialized_no_execution_tool,
         materialized_scoped_tool,
+        materialized_scoped_task_tool,
     ]:
         catalog._tools[mt.definition.get_fully_qualified_name()] = mt
     return catalog

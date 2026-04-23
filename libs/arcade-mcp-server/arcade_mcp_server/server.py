@@ -1088,66 +1088,13 @@ class MCPServer:
                         },
                     )
 
-            if has_task_metadata and session is not None:
-                task_metadata = raw_params["task"]
+            # ---- Pre-flight checks (apply to BOTH synchronous and task-augmented calls) ----
+            # These must run before a task is created so that task-augmented calls cannot
+            # bypass OAuth scope enforcement, transport restrictions, or auth-token/secret
+            # requirements. They also populate ``tool_context.authorization`` for the tool
+            # body, which the background-execution path relies on downstream.
 
-                # Reject explicit ttl=null in request
-                if (
-                    isinstance(task_metadata, dict)
-                    and "ttl" in task_metadata
-                    and task_metadata["ttl"] is None
-                ):
-                    return JSONRPCError(
-                        id=message.id,
-                        error={"code": -32602, "message": "task.ttl cannot be null in request"},
-                    )
-
-                ttl_input = (
-                    task_metadata.get("ttl")
-                    if isinstance(task_metadata, dict)
-                    else getattr(task_metadata, "ttl", None)
-                )
-
-                resource_owner = self._get_resource_owner_from_context()
-                context_key = self._get_task_context_key(session, resource_owner)
-                task = await self._task_manager.create_task(context_key=context_key, ttl=ttl_input)
-
-                # Preserve the client-provided progressToken so background
-                # task notifications remain correlated with the initiating call.
-                request_meta = get_request_meta()
-                progress_token = (
-                    getattr(request_meta, "progressToken", None) if request_meta else None
-                )
-                self._task_manager.set_progress_token(task.taskId, progress_token)
-
-                # Launch background execution
-                bg = asyncio.create_task(
-                    self._execute_tool_in_background(
-                        task.taskId, tool, dict(input_params), session, resource_owner
-                    )
-                )
-                self._task_manager.track_background_task(task.taskId, bg)
-
-                # Build result with _meta.io.modelcontextprotocol/related-task
-                result_meta: dict[str, Any] = {
-                    "io.modelcontextprotocol/related-task": {"taskId": task.taskId}
-                }
-                # Propagate model-immediate-response hint if present
-                if isinstance(task_metadata, dict):
-                    immediate_hint = task_metadata.get(
-                        "io.modelcontextprotocol/model-immediate-response"
-                    )
-                    if immediate_hint is not None:
-                        result_meta["io.modelcontextprotocol/model-immediate-response"] = (
-                            immediate_hint
-                        )
-
-                create_result = CreateTaskResult(task=task, **{"_meta": result_meta})
-                return JSONRPCResponse(id=message.id, result=create_result)
-
-            # ---- Normal (non-task) flow ----
-
-            # ---- OAuth scope sufficiency check ----
+            # OAuth scope sufficiency check
             resource_owner = self._get_resource_owner_from_context()
             if (
                 resource_owner is not None
@@ -1203,12 +1150,78 @@ class MCPServer:
                 self._tracker.track_tool_call(False, "transport restriction")
                 return transport_restriction_response
 
-            # Handle authorization and secrets requirements if required
+            # Handle authorization and secrets requirements if required.
+            # This call fetches OAuth tokens from the Arcade API (populating
+            # tool_context.authorization) and validates that required secrets exist.
             if missing_requirements_response := await self._check_tool_requirements(
                 tool, tool_context, message, tool_name, session
             ):
                 self._tracker.track_tool_call(False, "missing requirements")
                 return missing_requirements_response
+
+            if has_task_metadata and session is not None:
+                task_metadata = raw_params["task"]
+
+                # Reject explicit ttl=null in request
+                if (
+                    isinstance(task_metadata, dict)
+                    and "ttl" in task_metadata
+                    and task_metadata["ttl"] is None
+                ):
+                    return JSONRPCError(
+                        id=message.id,
+                        error={"code": -32602, "message": "task.ttl cannot be null in request"},
+                    )
+
+                ttl_input = (
+                    task_metadata.get("ttl")
+                    if isinstance(task_metadata, dict)
+                    else getattr(task_metadata, "ttl", None)
+                )
+
+                context_key = self._get_task_context_key(session, resource_owner)
+                task = await self._task_manager.create_task(context_key=context_key, ttl=ttl_input)
+
+                # Preserve the client-provided progressToken so background
+                # task notifications remain correlated with the initiating call.
+                request_meta = get_request_meta()
+                progress_token = (
+                    getattr(request_meta, "progressToken", None) if request_meta else None
+                )
+                self._task_manager.set_progress_token(task.taskId, progress_token)
+
+                # Launch background execution with the pre-populated tool_context
+                # so the background path inherits the same auth/secrets as the sync path.
+                bg = asyncio.create_task(
+                    self._execute_tool_in_background(
+                        task.taskId,
+                        tool,
+                        dict(input_params),
+                        session,
+                        resource_owner,
+                        tool_context,
+                    )
+                )
+                self._task_manager.track_background_task(task.taskId, bg)
+
+                # Build result with _meta.io.modelcontextprotocol/related-task
+                result_meta: dict[str, Any] = {
+                    "io.modelcontextprotocol/related-task": {"taskId": task.taskId}
+                }
+                # Propagate model-immediate-response hint if present
+                if isinstance(task_metadata, dict):
+                    immediate_hint = task_metadata.get(
+                        "io.modelcontextprotocol/model-immediate-response"
+                    )
+                    if immediate_hint is not None:
+                        result_meta["io.modelcontextprotocol/model-immediate-response"] = (
+                            immediate_hint
+                        )
+
+                create_result = CreateTaskResult(task=task, **{"_meta": result_meta})
+                return JSONRPCResponse(id=message.id, result=create_result)
+
+            # ---- Normal (non-task) flow ----
 
             # Attach tool_context to current model context for this request
             mctx = get_current_model_context()
@@ -2009,8 +2022,13 @@ class MCPServer:
                 error={"code": -32603, "message": str(e)},
             )
 
-        # Check if it's an error result (tasks/result error path -- return unchanged)
-        if isinstance(result, dict) and "code" in result and "message" in result:
+        # Explicit error-vs-result disambiguation via the task manager rather
+        # than duck-typing the stored payload's shape: a stored error is a
+        # JSON-RPC error dict ({"code", "message"}) but other stored values
+        # (e.g. the cancellation fallback {"status": "cancelled", ...}) can
+        # share keys by coincidence. The manager is the source of truth for
+        # which task slots hold errors.
+        if self._task_manager.has_stored_error(task_id):
             return JSONRPCError(
                 id=msg_id,
                 error=result,
@@ -2061,8 +2079,16 @@ class MCPServer:
         arguments: dict[str, Any],
         session: ServerSession,
         resource_owner: ResourceOwner | None,
+        tool_context: ToolContext,
     ) -> None:
-        """Execute a tool in the background for task-augmented tools/call."""
+        """Execute a tool in the background for task-augmented tools/call.
+
+        ``tool_context`` is pre-populated by ``_handle_call_tool`` via
+        ``_check_tool_requirements`` so that OAuth tokens/secrets are resolved
+        against the *caller's* credentials before the task record is created.
+        The background path MUST use this context directly — creating a fresh
+        one here would silently skip scope/requirement validation.
+        """
         bg_context = Context(
             server=self,
             session=session,
@@ -2076,7 +2102,7 @@ class MCPServer:
         token_meta = set_request_meta({"progressToken": progress_token} if progress_token else None)
 
         try:
-            result = await self._execute_tool(tool, arguments, session, resource_owner)
+            result = await self._execute_tool(tool, arguments, session, tool_context)
             await self._task_manager.set_result(task_id, result)
             is_error = getattr(result, "isError", False) or (
                 isinstance(result, dict) and result.get("isError")
@@ -2104,11 +2130,15 @@ class MCPServer:
         tool: MaterializedTool,
         arguments: dict[str, Any],
         session: ServerSession,
-        resource_owner: ResourceOwner | None,
+        tool_context: ToolContext,
     ) -> CallToolResult:
-        """Execute a tool and return a CallToolResult."""
-        tool_context = self._create_tool_context(tool, session)
+        """Execute a tool and return a CallToolResult.
 
+        The caller is responsible for passing a ``tool_context`` that has
+        already cleared scope/transport/requirement checks (see
+        ``_handle_call_tool``). Do NOT recreate the context here — doing so
+        would drop the resolved OAuth token and secrets.
+        """
         mctx = get_current_model_context()
         if mctx is not None:
             mctx.set_tool_context(tool_context)

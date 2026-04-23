@@ -255,6 +255,39 @@ class TestTaskManagerResultBlocking:
         with pytest.raises(NotFoundError):
             await task_manager.get_result(task.taskId, context_key=CONTEXT_B)
 
+    @pytest.mark.asyncio
+    async def test_has_stored_error_true_after_set_error(self, task_manager):
+        """has_stored_error is the authoritative check for error vs. success -
+        preferred over duck-typing the stored payload shape."""
+        task = await task_manager.create_task(context_key=CONTEXT_A)
+        await task_manager.set_error(task.taskId, {"code": -32603, "message": "boom"})
+        assert task_manager.has_stored_error(task.taskId) is True
+
+    @pytest.mark.asyncio
+    async def test_has_stored_error_false_for_success_result(self, task_manager):
+        task = await task_manager.create_task(context_key=CONTEXT_A)
+        await task_manager.set_result(task.taskId, {"done": True})
+        assert task_manager.has_stored_error(task.taskId) is False
+
+    @pytest.mark.asyncio
+    async def test_has_stored_error_false_for_dict_result_with_message_key(self, task_manager):
+        """Regression: a stored success result that happens to have a "message"
+        key (like the cancelled-task fallback dict) must NOT be misidentified
+        as a JSON-RPC error. has_stored_error defends against that duck-typing
+        trap by consulting the _errors slot directly.
+        """
+        task = await task_manager.create_task(context_key=CONTEXT_A)
+        # A dict that would fool a shape-based check if it also had "code".
+        await task_manager.set_result(
+            task.taskId, {"status": "cancelled", "message": "looks error-ish"}
+        )
+        assert task_manager.has_stored_error(task.taskId) is False
+
+    @pytest.mark.asyncio
+    async def test_has_stored_error_false_for_unknown_task(self, task_manager):
+        """Non-existent task id returns False (does not raise)."""
+        assert task_manager.has_stored_error("task_nonexistent") is False
+
 
 class TestTaskManagerBackgroundTracking:
     """Tests for asyncio.Task tracking and lifecycle."""

@@ -2531,6 +2531,55 @@ class TestTaskAugmentedToolCall:
         task = await mcp_server._task_manager.get_task(task_id, context_key=f"session:{sid}")
         assert task.status == TaskStatus.CANCELLED
 
+    @pytest.mark.asyncio
+    async def test_task_augmented_call_runs_check_tool_requirements(
+        self, mcp_server, initialized_server_session
+    ):
+        """Regression: task-augmented calls must invoke _check_tool_requirements
+        BEFORE creating a task so OAuth tokens are fetched against the caller
+        and missing requirements surface as immediate errors (not as tasks
+        that silently fail at execution time with an unpopulated auth context).
+        """
+        _enable_tasks(initialized_server_session)
+
+        check_tool_requirements_calls: list[str] = []
+        original = mcp_server._check_tool_requirements
+
+        async def _tracking_check(tool, tool_context, message, tool_name, session=None):
+            check_tool_requirements_calls.append(tool_name)
+            return await original(tool, tool_context, message, tool_name, session)
+
+        mcp_server._check_tool_requirements = _tracking_check  # type: ignore[method-assign]
+
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {
+                "name": "TestToolkit.scoped_task_tool",
+                "arguments": {"text": "hello"},
+                "task": {"ttl": 60000},
+            },
+        }
+        response = await mcp_server.handle_message(message, initialized_server_session)
+
+        # With no Arcade API key configured, _check_tool_requirements should
+        # return a synchronous error response -- NOT create a background task.
+        assert not isinstance(response, JSONRPCError), (
+            "Handler returned a protocol-level error; expected an early tool-error response"
+        )
+        # Must be a CallToolResult with isError=True, not a CreateTaskResult.
+        assert hasattr(response.result, "isError")
+        assert getattr(response.result, "isError", False) is True
+        assert not hasattr(response.result, "task"), (
+            "Task must not be created when _check_tool_requirements fails"
+        )
+        assert check_tool_requirements_calls == ["TestToolkit.scoped_task_tool"], (
+            "Expected _check_tool_requirements to be invoked once for the task-augmented call"
+        )
+        # No task entry should have been created.
+        assert len(mcp_server._task_manager._tasks) == 0
+
 
 class TestRelatedTaskMetadata:
     """Tests for _meta.io.modelcontextprotocol/related-task propagation."""
