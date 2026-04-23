@@ -443,6 +443,16 @@ class TaskManager:
             if event is not None:
                 await event.wait()
 
+        # ``event.wait()`` can unblock because the task reached a terminal
+        # state (normal completion/cancellation/failure) OR because
+        # ``_evict`` set the event during TTL cleanup and removed the entry.
+        # Distinguish the two: if the task record is gone, the cause was
+        # eviction -- surface it as NotFoundError rather than falling
+        # through to the cancelled-fallback, which would misleadingly
+        # report "cancelled" for TTL expiry.
+        if task_id not in self._tasks:
+            raise NotFoundError(f"Task not found: {task_id}")
+
         # Return error if present, otherwise result
         if task_id in self._errors:
             return self._errors[task_id]

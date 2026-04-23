@@ -292,9 +292,12 @@ class TestTaskManagerResultBlocking:
     async def test_cleanup_expired_releases_get_result_waiters(self):
         """Regression: when ``cleanup_expired`` evicts a task whose TTL
         expired WHILE a ``get_result`` caller was already blocked on its
-        event, the cleanup must ``event.set()`` before popping the event
-        slot. The old code popped ``_events`` without signaling first, so
-        those waiters hung forever.
+        event, two things must happen: (1) the cleanup must ``event.set()``
+        before popping the event slot so the waiter unblocks; (2) the
+        unblocked waiter must then see the task is gone and raise
+        ``NotFoundError`` rather than fall through to the
+        ``{"status": "cancelled", ...}`` fallback (which would misleadingly
+        report cancellation for what was really a TTL expiry).
 
         The TTL needs to be long enough that the waiter registers on the
         event before expiry (otherwise ``get_result``'s own O(1) TTL check
@@ -316,17 +319,15 @@ class TestTaskManagerResultBlocking:
             "Sanity: waiter should be blocked on the non-terminal task's event"
         )
 
-        # Let the TTL elapse, then fire cleanup. With the bug, the waiter
-        # would stay blocked forever because the event was popped, not set.
+        # Let the TTL elapse, then fire cleanup. With the event-not-set bug
+        # the waiter would stay blocked forever; with the fall-through bug
+        # it would return a fake cancelled-dict.
         await asyncio.sleep(0.6)
         await manager.cleanup_expired()
 
-        # The waiter must unblock within a bounded wait.
-        result = await asyncio.wait_for(waiter, timeout=1.0)
-        # After eviction, the stored result slot was cleared -- get_result
-        # hits its "no result, no error" fallback path.
-        assert isinstance(result, dict)
-        assert result.get("status") == "cancelled"
+        # Must unblock AND surface NotFoundError (the task was evicted).
+        with pytest.raises(NotFoundError):
+            await asyncio.wait_for(waiter, timeout=1.0)
 
 
 class TestTaskManagerBackgroundTracking:
