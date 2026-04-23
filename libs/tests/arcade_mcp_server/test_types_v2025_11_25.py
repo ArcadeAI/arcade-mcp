@@ -302,6 +302,49 @@ class TestEnumSchemas:
         schema = LegacyTitledEnumSchema(enum=["a", "b"], enumNames=["Option A", "Option B"])
         assert schema.enumNames == ["Option A", "Option B"]
 
+    # --- Wire-conformance: SEP-1330 requires ``type`` to be present ---
+    #
+    # Per MCP 2025-11-25 ``schema.json``:
+    #   TitledSingleSelectEnumSchema:   required = ["oneOf", "type"]
+    #   UntitledSingleSelectEnumSchema: required = ["enum",  "type"]
+    #   LegacyTitledEnumSchema:         required = ["enum",  "type"]
+    # All three declare ``type: {const: "string"}``. Strict clients reject
+    # payloads missing ``type``. Regression guard: make sure every
+    # single-select variant serializes with the type discriminator.
+
+    def test_untitled_single_select_serializes_with_type_string(self):
+        schema = UntitledSingleSelectEnumSchema(enum=["a", "b"])
+        dumped = schema.model_dump()
+        assert dumped.get("type") == "string"
+        # JSON round-trip too, since that's what goes over the wire
+        assert schema.model_dump_json().find('"type":"string"') != -1
+
+    def test_titled_single_select_serializes_with_type_string(self):
+        schema = TitledSingleSelectEnumSchema(
+            oneOf=[{"const": "a", "title": "A"}, {"const": "b", "title": "B"}]
+        )
+        dumped = schema.model_dump()
+        assert dumped.get("type") == "string"
+        assert schema.model_dump_json().find('"type":"string"') != -1
+
+    def test_legacy_titled_enum_serializes_with_type_string(self):
+        schema = LegacyTitledEnumSchema(enum=["a", "b"], enumNames=["A", "B"])
+        dumped = schema.model_dump()
+        assert dumped.get("type") == "string"
+        assert schema.model_dump_json().find('"type":"string"') != -1
+
+    def test_single_select_type_literal_is_immutable(self):
+        """``type`` is a ``Literal["string"]`` — the validator rejects any
+        other value so clients can rely on the const."""
+        with pytest.raises(ValidationError):
+            UntitledSingleSelectEnumSchema(type="integer", enum=["a"])
+        with pytest.raises(ValidationError):
+            TitledSingleSelectEnumSchema(
+                type="integer", oneOf=[{"const": "a", "title": "A"}]
+            )
+        with pytest.raises(ValidationError):
+            LegacyTitledEnumSchema(type="array", enum=["a"], enumNames=["A"])
+
 
 class TestImplementationIconsField:
     def test_implementation_with_icons(self):

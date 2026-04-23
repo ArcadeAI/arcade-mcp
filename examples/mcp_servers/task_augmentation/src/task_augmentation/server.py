@@ -113,18 +113,18 @@ async def deep_research(
     # Elicit a clarification from the human mid-run. The outgoing
     # elicit/create request is auto-tagged with io.modelcontextprotocol/related-task
     # so the client knows which running task the elicitation belongs to.
-    # SEP-1330 TitledSingleSelectEnumSchema: the property is UNTYPED — its
-    # entire value set is expressed via ``oneOf`` of ``{const, title}`` pairs.
-    # Adding ``"type": "string"`` alongside ``oneOf`` would be interpreted as a
-    # plain string input by SEP-1330-aware clients (free-text field instead of
-    # the intended titled dropdown). See ``enum_elicitation``'s ``pick_region``
-    # for the canonical shape.
+    # SEP-1330 TitledSingleSelectEnumSchema per MCP 2025-11-25 ``schema.json``
+    # requires BOTH ``type: "string"`` AND ``oneOf: [{const, title}, ...]``.
+    # ``required: ["oneOf", "type"]`` — strict clients reject payloads missing
+    # ``type``. See ``enum_elicitation``'s ``pick_region`` for the canonical
+    # shape.
     elicitation = await context.ui.elicit(
         "Should I favour recent sources or all-time classics?",
         schema={
             "type": "object",
             "properties": {
                 "preference": {
+                    "type": "string",
                     "oneOf": [
                         {"const": "recent", "title": "Recent (last 2 years)"},
                         {"const": "all_time", "title": "All-time classics"},

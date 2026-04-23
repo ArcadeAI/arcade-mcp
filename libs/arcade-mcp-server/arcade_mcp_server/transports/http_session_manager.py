@@ -342,8 +342,13 @@ class HTTPSessionManager:
         # buffer receive() (e.g. httpx.ASGITransport) can still read the body.
         inner_receive: Receive = _replay_receive(body_bytes) if body_bytes is not None else receive
 
-        # --- Accept header validation (POST only, skip initialize) ---
-        if request.method == "POST" and not is_initialize:
+        # --- Accept header validation (POST only) ---
+        # Per MCP 2025-11-25 transports.mdx §2: "The client MUST include an
+        # Accept header, listing both application/json and text/event-stream
+        # as supported content types." No carve-out for initialize — the
+        # server MAY respond to an initialize POST with an SSE stream, so the
+        # client must advertise support for both content types on every POST.
+        if request.method == "POST":
             accept_error = _validate_accept_header(request)
             if accept_error is not None:
                 await accept_error(scope, receive, send)
@@ -453,8 +458,13 @@ class HTTPSessionManager:
         # still read it on ASGI hosts that don't buffer receive().
         inner_receive: Receive = _replay_receive(body_bytes) if body_bytes is not None else receive
 
-        # --- Accept header validation (POST only, skip initialize) ---
-        if request.method == "POST" and not is_initialize:
+        # --- Accept header validation (POST only) ---
+        # Per MCP 2025-11-25 transports.mdx §2: "The client MUST include an
+        # Accept header, listing both application/json and text/event-stream
+        # as supported content types." The rule applies to every POST
+        # (including initialize) — the server MAY respond to initialize with
+        # an SSE stream, so the client must advertise support for both types.
+        if request.method == "POST":
             accept_error = _validate_accept_header(request)
             if accept_error is not None:
                 await accept_error(scope, receive, send)

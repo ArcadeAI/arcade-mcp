@@ -823,6 +823,18 @@ class TestElicitationCompleteNotification:
         assert data["method"] == "notifications/elicitation/complete"
         assert data["params"]["elicitationId"] == "elic_123"
 
+    @pytest.mark.asyncio
+    async def test_send_elicitation_complete_noop_on_2025_06_18(self, server_session):
+        """notifications/elicitation/complete is a 2025-11-25-only method (URL
+        elicitation path). On a 2025-06-18-negotiated session the notification
+        MUST NOT be emitted -- the server would otherwise send an unknown
+        method to a client that does not understand it, violating the spec."""
+        server_session.negotiated_version = "2025-06-18"
+        server_session.write_stream = AsyncMock()
+        server_session.write_stream.send = AsyncMock()
+        await server_session.send_elicitation_complete("elic_123")
+        server_session.write_stream.send.assert_not_called()
+
 
 class TestEnumSchemaValidation:
     """Tests for enhanced enum schema types in elicitation."""

@@ -959,8 +959,22 @@ class ServerSession:
 
         This MUST be sent only to the client that initiated the elicitation,
         NOT broadcast to all sessions.
+
+        Version-gated on the ``elicitation_url`` feature: the
+        ``notifications/elicitation/complete`` method was introduced with URL
+        elicitation in MCP 2025-11-25 and is undefined on 2025-06-18. Emitting
+        an unknown notification on an older session would be a protocol
+        violation, so this is a no-op there.
         """
         if not self.write_stream:
+            return
+
+        # Per MCP 2025-11-25 — notifications/elicitation/complete is part of
+        # the URL-elicitation path and does not exist on 2025-06-18. If the
+        # negotiated version does not support the ``elicitation_url`` feature
+        # (e.g. a 2025-11-25 tool running inside a 2025-06-18 session) the
+        # notification MUST NOT be sent.
+        if not self.has_feature("elicitation_url"):
             return
 
         notification = {

@@ -578,9 +578,12 @@ def get_server_info(base_url: str) -> tuple[str, str]:
         ),
     )
 
+    # Per MCP 2025-11-25 transports.mdx §2, every POST to the MCP endpoint
+    # MUST advertise BOTH ``application/json`` and ``text/event-stream`` in
+    # the Accept header -- the server MAY respond with an SSE stream.
     headers = {
         "Content-Type": "application/json",
-        "Accept": "application/json",
+        "Accept": "application/json, text/event-stream",
     }
 
     try:

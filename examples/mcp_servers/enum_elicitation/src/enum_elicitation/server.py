@@ -81,12 +81,13 @@ async def pick_region(context: Context) -> str:
             "type": "object",
             "properties": {
                 "region": {
+                    "type": "string",
                     "oneOf": [
                         {"const": "us-east-1", "title": "US East (N. Virginia)"},
                         {"const": "us-west-2", "title": "US West (Oregon)"},
                         {"const": "eu-west-1", "title": "EU West (Ireland)"},
                         {"const": "ap-southeast-2", "title": "Asia Pacific (Sydney)"},
-                    ]
+                    ],
                 }
             },
             "required": ["region"],
@@ -186,6 +187,7 @@ async def pick_legacy(context: Context) -> str:
             "type": "object",
             "properties": {
                 "speed": {
+                    "type": "string",
                     "enum": ["std", "exp", "ovn"],
                     "enumNames": ["Standard (5-7 days)", "Express (2-3 days)", "Overnight"],
                     "default": "std",
@@ -216,11 +218,12 @@ async def configure_deployment(context: Context) -> dict:
             "properties": {
                 "environment": {
                     # Titled single-select.
+                    "type": "string",
                     "oneOf": [
                         {"const": "dev", "title": "Development"},
                         {"const": "staging", "title": "Staging"},
                         {"const": "prod", "title": "Production"},
-                    ]
+                    ],
                 },
                 "replicas": {
                     # Plain primitive with default (SEP-1034).

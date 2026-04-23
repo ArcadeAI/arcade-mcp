@@ -607,6 +607,34 @@ class TestE2EVersion2025_11_25:
                 break
         assert notification_found, "Expected notifications/elicitation/complete"
 
+    @pytest.mark.asyncio
+    async def test_elicitation_complete_not_sent_on_2025_06_18(
+        self, mcp_server: MCPServer
+    ) -> None:
+        """notifications/elicitation/complete is 2025-11-25-only. A tool
+        written for 11-25 that calls send_elicitation_complete inside a
+        session negotiated at 06-18 MUST NOT emit the notification -- the
+        06-18 client has no schema for it. Regression guard for the
+        version-gating in session.send_elicitation_complete."""
+        session = _make_session(mcp_server)
+        await _init_session(mcp_server, session, "2025-06-18")
+
+        await session.send_elicitation_complete("elicit-789")
+
+        calls = session.write_stream.send.call_args_list
+        for call in calls:
+            raw = call[0][0] if call[0] else None
+            if raw is None:
+                continue
+            try:
+                msg = json.loads(raw)
+            except (json.JSONDecodeError, TypeError):
+                continue
+            assert msg.get("method") != "notifications/elicitation/complete", (
+                "send_elicitation_complete leaked notifications/elicitation/complete "
+                "onto a 2025-06-18-negotiated session"
+            )
+
 
 # ---------------------------------------------------------------------------
 # TestE2EVersionNegotiation

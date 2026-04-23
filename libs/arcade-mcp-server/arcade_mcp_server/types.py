@@ -942,16 +942,28 @@ class CancelTaskRequest(JSONRPCRequest):
 
 
 class UntitledSingleSelectEnumSchema(BaseModel):
-    """Single-select enum without titles."""
+    """Single-select enum without titles.
 
+    Per MCP 2025-11-25 ``schema.json`` ``UntitledSingleSelectEnumSchema``:
+    ``required: ["enum", "type"]`` with ``type: {const: "string"}``. Strict
+    clients will reject a payload missing ``type``.
+    """
+
+    type: Literal["string"] = "string"
     enum: list[Any]
 
     model_config = ConfigDict(extra="allow")
 
 
 class TitledSingleSelectEnumSchema(BaseModel):
-    """Single-select enum with titles using oneOf."""
+    """Single-select enum with titles using oneOf.
 
+    Per MCP 2025-11-25 ``schema.json`` ``TitledSingleSelectEnumSchema``:
+    ``required: ["oneOf", "type"]`` with ``type: {const: "string"}``. Strict
+    clients will reject a payload missing ``type``.
+    """
+
+    type: Literal["string"] = "string"
     oneOf: list[dict[str, Any]]
 
     model_config = ConfigDict(extra="allow")
@@ -976,8 +988,14 @@ class TitledMultiSelectEnumSchema(BaseModel):
 
 
 class LegacyTitledEnumSchema(BaseModel):
-    """Legacy titled enum using enumNames."""
+    """Legacy titled enum using enumNames.
 
+    Per MCP 2025-11-25 ``schema.json`` ``LegacyTitledEnumSchema``:
+    ``required: ["enum", "type"]`` with ``type: {const: "string"}``. Strict
+    clients will reject a payload missing ``type``.
+    """
+
+    type: Literal["string"] = "string"
     enum: list[Any]
     enumNames: list[str]
 

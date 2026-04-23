@@ -2247,6 +2247,15 @@ class MCPServer:
             # Dump with by_alias=True so any aliased fields (e.g. _meta)
             # serialize correctly, and drop None-valued optional fields.
             task_fields = task.model_dump(by_alias=True, exclude_none=True)
+            # Per MCP 2025-11-25 tasks.mdx §TTL and Resource Management:
+            # "Receivers MUST include the actual ttl duration (or null for
+            # unlimited) in tasks/get responses." ``Task.ttl`` is in the
+            # spec ``required`` array, so it MUST be present on the wire —
+            # even when the operator-configured retention is unlimited
+            # (emitted as null). ``exclude_none=True`` drops it; put it
+            # back explicitly so the wire shape is spec-compliant.
+            if "ttl" not in task_fields:
+                task_fields["ttl"] = task.ttl
             notification = TaskStatusNotification(params=task_fields)
             await session.send_notification(notification)
 

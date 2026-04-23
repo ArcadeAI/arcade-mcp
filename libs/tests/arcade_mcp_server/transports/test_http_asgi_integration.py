@@ -245,20 +245,21 @@ class TestAcceptHeaderValidation:
         assert body["error"]["code"] == -32600
 
     @pytest.mark.asyncio
-    async def test_initialize_with_only_json_accept_passes_session_manager_check(
+    async def test_initialize_must_also_advertise_both_content_types(
         self, mcp_server: MCPServer
     ) -> None:
-        """Session manager exempts initialize from the
-        both-application/json-AND-text/event-stream requirement -- a client
-        that only negotiates JSON can still initialize. (The inner transport
-        still enforces mode-specific accept requirements.)"""
+        """Per MCP 2025-11-25 transports.mdx §2, every client POST MUST
+        include both ``application/json`` and ``text/event-stream`` in the
+        Accept header -- there is no carve-out for initialize. The server
+        MAY respond to initialize with an SSE stream, so the client must
+        advertise support for both content types up front. An initialize
+        POST missing ``text/event-stream`` gets 406 just like any other POST.
+        """
         async with _http_client(mcp_server) as client:
             resp = await client.post(
                 "/mcp/",
                 headers={
-                    # Only application/json (no text/event-stream) -- would be
-                    # rejected by the session-manager-level check for a
-                    # non-initialize POST, but initialize is exempt.
+                    # Only application/json, missing text/event-stream.
                     "Accept": "application/json",
                     "Content-Type": "application/json",
                 },
@@ -273,7 +274,10 @@ class TestAcceptHeaderValidation:
                     },
                 },
             )
-        assert resp.status_code == 200
+        assert resp.status_code == 406
+        body = json.loads(resp.content)
+        assert "id" not in body  # transport-level error omits id
+        assert body["error"]["code"] == -32600
 
 
 # -----------------------------------------------------------------------------

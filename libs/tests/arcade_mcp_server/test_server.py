@@ -2452,6 +2452,52 @@ class TestTaskHandlers:
         assert params["ttl"] == 60_000
 
     @pytest.mark.asyncio
+    async def test_notify_task_status_change_preserves_null_ttl_key(
+        self, mcp_server, initialized_server_session
+    ):
+        """Task.ttl is in the MCP 2025-11-25 Task ``required`` array, so the
+        key MUST be present on the wire -- even when the operator has
+        configured unlimited retention (``_max_retention=None``), where the
+        spec (tasks.mdx §TTL and Resource Management: 'null for unlimited')
+        allows the value to be null.
+
+        The notification path uses ``model_dump(exclude_none=True)`` to drop
+        optional None fields like ``statusMessage``; this test guards against
+        that optimization silently dropping ``ttl`` as well (which would
+        violate the spec ``required`` array).
+        """
+        _enable_tasks(initialized_server_session)
+        sid = initialized_server_session.session_id
+
+        sent_messages: list[str] = []
+
+        async def fake_send(msg: str) -> None:
+            sent_messages.append(msg)
+
+        initialized_server_session.write_stream = type(
+            "W", (), {"send": staticmethod(fake_send)}
+        )()
+
+        # Unlimited retention -- ttl=None on the Task object.
+        task = await mcp_server._task_manager.create_task(context_key=f"session:{sid}")
+        # Explicitly wipe ttl so we're testing the null-ttl path regardless
+        # of TaskManager defaults.
+        task.ttl = None
+        await mcp_server._task_manager.update_status(task.taskId, TaskStatus.COMPLETED)
+        await mcp_server._notify_task_status_change(task.taskId, initialized_server_session)
+
+        assert len(sent_messages) == 1
+        payload = json.loads(sent_messages[0])
+        params = payload["params"]
+        # Key MUST be present per Task.required.
+        assert "ttl" in params, (
+            "notifications/tasks/status dropped the ttl key -- violates "
+            "MCP 2025-11-25 Task.required = [..., 'ttl']"
+        )
+        # Value may be null (spec tasks.mdx: 'null for unlimited').
+        assert params["ttl"] is None
+
+    @pytest.mark.asyncio
     async def test_handle_cancel_task_returns_flat_result(
         self, mcp_server, initialized_server_session
     ):
