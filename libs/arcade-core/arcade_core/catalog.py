@@ -22,7 +22,7 @@ from typing import (
     get_type_hints,
 )
 
-from pydantic import BaseModel, Field, create_model
+from pydantic import BaseModel, ConfigDict, Field, create_model, model_serializer
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
@@ -517,10 +517,11 @@ def create_input_definition(func: Callable) -> ToolInput:
 
         tool_field_info = extract_field_info(param)
 
-        # If the field has a default value, it is not required
-        # If the field is optional, it is not required
-        has_default_value = tool_field_info.default is not None
-        is_required = not tool_field_info.is_optional and not has_default_value
+        # If the field has an explicit default in the signature, it is not required.
+        # If the annotation is Optional[...], it is not required.
+        # (A bare `param: str = None` has has_explicit_default=True but
+        # is_optional=False, and must still be treated as not-required.)
+        is_required = not tool_field_info.is_optional and not tool_field_info.has_explicit_default
 
         input_parameters.append(
             InputParameter(
@@ -663,6 +664,10 @@ class ParamInfo:
     field_type: type
     description: str | None = None
     is_optional: bool = True
+    # True iff the Python signature (or pydantic Field) supplies a default.
+    # Distinct from `default is not None` — `def f(x: str = None)` has an
+    # explicit default (None) and must not be treated as required.
+    has_explicit_default: bool = False
 
 
 @dataclass
@@ -679,6 +684,7 @@ class ToolParamInfo:
     description: str | None = None
     is_optional: bool = True
     is_inferrable: bool = True
+    has_explicit_default: bool = False
 
     @classmethod
     def from_param_info(
@@ -696,6 +702,7 @@ class ToolParamInfo:
             is_optional=param_info.is_optional,
             wire_type_info=wire_type_info,
             is_inferrable=is_inferrable,
+            has_explicit_default=param_info.has_explicit_default,
         )
 
 
@@ -974,16 +981,21 @@ def extract_python_param_info(param: inspect.Parameter) -> ParamInfo:
             f"Parameter {param.name} is a union type. Only optional types are supported."
         )
 
+    has_explicit_default = param.default is not inspect.Parameter.empty
     return ParamInfo(
         name=param.name,
-        default=param.default if param.default is not inspect.Parameter.empty else None,
+        default=param.default if has_explicit_default else None,
         is_optional=is_optional,
         original_type=original_type,
         field_type=field_type,
+        has_explicit_default=has_explicit_default,
     )
 
 
 def extract_pydantic_param_info(param: inspect.Parameter) -> ParamInfo:
+    has_explicit_default = (
+        param.default.default is not PydanticUndefined or param.default.default_factory is not None
+    )
     default_value = None if param.default.default is PydanticUndefined else param.default.default
 
     if param.default.default_factory is not None:
@@ -1014,6 +1026,7 @@ def extract_pydantic_param_info(param: inspect.Parameter) -> ParamInfo:
         is_optional=is_optional,
         original_type=original_type,
         field_type=field_type,
+        has_explicit_default=has_explicit_default,
     )
 
 
@@ -1056,32 +1069,104 @@ def get_wire_type(
     raise ToolDefinitionError(f"Unsupported parameter type: {_type}")
 
 
+def _wrap_typeddicts_as_models(field_type: Any, model_name_prefix: str) -> Any:
+    """Route TypedDict input-field types through a strict Pydantic model.
+
+    The raw TypedDict → Pydantic validator path does NOT honor extra='forbid',
+    so typos inside nested request dicts are silently dropped. Wrapping the
+    TypedDict in a strict Pydantic model closes that hole. Handles:
+      - TypedDict (direct)
+      - list[TypedDict]
+      - list[Optional[TypedDict]]
+    Top-level Optional[TypedDict] is already unwrapped by
+    extract_*_param_info before this helper runs; the caller in
+    create_func_models re-wraps with Optional[...] when is_optional is true.
+    """
+    if is_typeddict(field_type):
+        return create_model_from_typeddict(
+            field_type, f"{model_name_prefix}_{field_type.__name__}", strict=True
+        )
+    # Unwrap Optional[TypedDict] inside a list so the TypedDict can be wrapped
+    # and then re-Optionalized.
+    if is_strict_optional(field_type):
+        inner = next(arg for arg in get_args(field_type) if arg is not type(None))
+        wrapped = _wrap_typeddicts_as_models(inner, model_name_prefix)
+        if wrapped is not inner:
+            return Optional[wrapped]
+        return field_type
+    if get_origin(field_type) is list:
+        args = get_args(field_type)
+        if not args:
+            # Bare `list` (no type parameter) — nothing to wrap.
+            return field_type
+        inner = args[0]
+        wrapped = _wrap_typeddicts_as_models(inner, model_name_prefix)
+        if wrapped is not inner:
+            return list[wrapped]  # type: ignore[valid-type]
+    return field_type
+
+
 def create_func_models(func: Callable) -> tuple[type[BaseModel], type[BaseModel]]:
     """
     Analyze a function to create corresponding Pydantic models for its input and output.
     """
-    input_fields = {}
+    input_fields: dict[str, Any] = {}
     # TODO figure this out (Sam)
     if asyncio.iscoroutinefunction(func) and hasattr(func, "__wrapped__"):
         func = func.__wrapped__
+    model_prefix = snake_to_pascal_case(func.__name__)
     for name, param in inspect.signature(func, follow_wrapped=True).parameters.items():
         # Skip ToolContext parameters (including subclasses like arcade_mcp_server.Context)
         ann = param.annotation
         if isinstance(ann, type) and issubclass(ann, ToolContext):
             continue
 
-        # TODO make this cleaner
         tool_field_info = extract_field_info(param)
-        param_fields = {
-            "default": tool_field_info.default,
-            "description": tool_field_info.description
-            if tool_field_info.description
-            else "No description provided.",
-            # TODO more here?
-        }
-        input_fields[name] = (tool_field_info.field_type, Field(**param_fields))
 
-    input_model = create_model(f"{snake_to_pascal_case(func.__name__)}Input", **input_fields)  # type: ignore[call-overload]
+        # A param is required iff the annotation is not Optional[...] AND
+        # there is no explicit default in the signature. Uses the
+        # has_explicit_default flag (not `default is not None`) so that
+        # `def f(x: str = None)` is correctly treated as optional.
+        is_required = not tool_field_info.is_optional and not tool_field_info.has_explicit_default
+
+        description = tool_field_info.description or "No description provided."
+
+        # Route TypedDict fields (and list[TypedDict]) through Pydantic models
+        # so the extra='forbid' rule applies inside nested request dicts too.
+        # Include the parameter name in the model-name prefix so two params
+        # of the same TypedDict type don't collide in Pydantic's $defs.
+        field_type = _wrap_typeddicts_as_models(
+            tool_field_info.field_type, f"{model_prefix}_{name}"
+        )
+
+        # extract_*_param_info unwraps Optional[T] to T before this point, so
+        # re-wrap when the original annotation permitted None — otherwise the
+        # field would be annotated as a non-nullable Pydantic model and callers
+        # omitting the field (which falls back to default=None) would fail
+        # validation at access time. Also re-wrap when the signature has an
+        # explicit `= None` default on a non-Optional annotation
+        # (`def f(x: str = None)`), which is legal Python and should behave as
+        # `Optional[str]`.
+        if tool_field_info.is_optional or (
+            tool_field_info.has_explicit_default and tool_field_info.default is None
+        ):
+            field_type = Optional[field_type]
+
+        if is_required:
+            # Omit `default=` entirely — Pydantic treats this as a required field
+            # and raises ValidationError when the caller omits it.
+            input_fields[name] = (field_type, Field(description=description))
+        else:
+            input_fields[name] = (
+                field_type,
+                Field(default=tool_field_info.default, description=description),
+            )
+
+    input_model = create_model(
+        f"{model_prefix}Input",
+        __config__=ConfigDict(extra="forbid"),
+        **input_fields,
+    )
 
     output_model = determine_output_model(func)
     return input_model, output_model
@@ -1199,21 +1284,54 @@ def determine_output_model(func: Callable) -> type[BaseModel]:
 
 
 class _TypedDictBaseModel(BaseModel):
-    """Base for Pydantic models derived from TypedDict.
+    """Base for Pydantic models derived from TypedDict (output side).
 
-    Defaults model_dump() to exclude_unset=True so that absent optional
-    fields (total=False) don't appear as None in serialized output.
+    Drops unset fields at serialization time so absent optional fields
+    (total=False) don't appear as None. Uses @model_serializer instead
+    of overriding model_dump() because Pydantic v2's outer serializer
+    does not call Python-level model_dump() on nested models — the
+    override is only respected when the Python method is invoked
+    directly.
+
+    NOTE: this base does NOT set extra='forbid' — it is used for output
+    models, and tools that return TypedDicts may include extra keys from
+    upstream APIs that shouldn't fail serialization. Input-side strictness
+    is applied via the `strict` parameter in create_model_from_typeddict.
     """
+
+    @model_serializer(mode="wrap")
+    def _drop_unset_fields(self, handler: Any) -> dict[str, Any]:
+        result: dict[str, Any] = handler(self)
+        for name in type(self).model_fields.keys() - self.model_fields_set:
+            result.pop(name, None)
+        return result
 
     def model_dump(self, **kwargs: Any) -> dict[str, Any]:
         kwargs.setdefault("exclude_unset", True)
         return super().model_dump(**kwargs)
 
 
-def create_model_from_typeddict(typeddict_class: type, model_name: str) -> type[BaseModel]:
+class _StrictTypedDictBaseModel(_TypedDictBaseModel):
+    """Strict input-side base: rejects unknown keys.
+
+    Typos inside nested request dicts (e.g. {"txt": "x"} instead of
+    {"text": "x"}) raise ValidationError instead of being silently dropped.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+
+def create_model_from_typeddict(
+    typeddict_class: type, model_name: str, strict: bool = False
+) -> type[BaseModel]:
     """
     Create a Pydantic model from a TypedDict class.
-    This enables runtime validation of TypedDict structures.
+
+    When strict=True, the generated model (and all nested TypedDict models)
+    forbid unknown keys. Used for input-side TypedDicts so typos surface as
+    ValidationError. Output-side callers leave strict=False (default) to
+    preserve the pass-through behavior for tools whose return dicts contain
+    extra keys from upstream APIs.
     """
     # Get type hints for the TypedDict
     type_hints = get_type_hints(typeddict_class, include_extras=True)
@@ -1232,7 +1350,9 @@ def create_model_from_typeddict(typeddict_class: type, model_name: str) -> type[
 
         # Handle nested TypedDict (works for both T and Optional[T] after unwrapping)
         if is_typeddict(inner_type):
-            nested_model = create_model_from_typeddict(inner_type, f"{model_name}_{field_name}")
+            nested_model = create_model_from_typeddict(
+                inner_type, f"{model_name}_{field_name}", strict=strict
+            )
             if is_required:
                 if is_optional_type:
                     field_definitions[field_name] = (Optional[nested_model], Field())
@@ -1241,13 +1361,20 @@ def create_model_from_typeddict(typeddict_class: type, model_name: str) -> type[
             else:
                 field_definitions[field_name] = (Optional[nested_model], Field(default=None))
         else:
+            # In strict mode, propagate wrapping into list[TypedDict] fields
+            # so typos inside list elements also raise.
+            effective_type = field_type
+            if strict:
+                effective_type = _wrap_typeddicts_as_models(
+                    field_type, f"{model_name}_{field_name}"
+                )
             if is_required:
-                field_definitions[field_name] = (field_type, Field())
+                field_definitions[field_name] = (effective_type, Field())
             else:
-                field_definitions[field_name] = (field_type, Field(default=None))
+                field_definitions[field_name] = (effective_type, Field(default=None))
 
-    # Create and return the Pydantic model
-    return create_model(model_name, __base__=_TypedDictBaseModel, **field_definitions)
+    base = _StrictTypedDictBaseModel if strict else _TypedDictBaseModel
+    return create_model(model_name, __base__=base, **field_definitions)
 
 
 def to_tool_secret_requirements(
