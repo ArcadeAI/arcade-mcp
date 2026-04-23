@@ -127,8 +127,14 @@ def fetch_weather(
         - ``status_code == 429``
         - ``retry_after_ms`` — how long to wait.
     """
-    # deterministic-ish randomness based on input length so you can reproduce.
-    if (random.random() + len(city) % 3) > 2.0:
+    # Fire roughly a third of the time. The previous formulation
+    # ``random.random() + len(city) % 3 > 2.0`` was fully deterministic
+    # because ``%`` binds tighter than ``+`` -- the ``len(city) % 3`` term
+    # shifted the RNG range but the ``> 2.0`` check only fired when
+    # ``len(city) % 3 == 2`` (and then essentially every call). Use an
+    # explicit probability instead so the example actually demonstrates
+    # the probabilistic retry-loop behavior its docstring advertises.
+    if random.random() < 1 / 3:
         raise UpstreamRateLimitError(
             message="The weather provider rate-limited this request.",
             retry_after_ms=2000,
