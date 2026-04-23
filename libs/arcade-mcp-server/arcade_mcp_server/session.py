@@ -681,14 +681,34 @@ class ServerSession:
         return CreateMessageResult(**result)
 
     @staticmethod
-    def _validate_sampling_messages(messages: list[dict[str, Any]]) -> None:
+    def _as_message_dict(msg: Any) -> dict[str, Any]:
+        """Normalize a sampling message to a plain dict.
+
+        ``Sampling.create_message`` hands this layer ``SamplingMessage`` pydantic
+        objects (and/or dicts). Pydantic v2 models don't expose ``.get()``, so
+        the validator below would raise ``AttributeError`` and break the whole
+        sampling-with-tools path for 2025-11-25 clients. Use ``model_dump`` when
+        available; fall back to dict-coercion for plain mappings.
+        """
+        if hasattr(msg, "model_dump"):
+            return msg.model_dump(by_alias=True, exclude_none=True)
+        if isinstance(msg, dict):
+            return msg
+        return dict(msg)
+
+    @staticmethod
+    def _validate_sampling_messages(messages: list[Any]) -> None:
         """Validate message content for tool_use/tool_result constraints.
 
         - User messages with tool_result content must contain ONLY tool results.
         - Every assistant message with tool_use must be followed by a user message
           with only tool_result content blocks.
         """
-        for i, msg in enumerate(messages):
+        # Accept ``SamplingMessage`` pydantic models as well as raw dicts -- the
+        # sampling entrypoint builds pydantic models, so we normalize at the edge
+        # rather than force every caller to pre-dump.
+        normalized = [ServerSession._as_message_dict(m) for m in messages]
+        for i, msg in enumerate(normalized):
             content = msg.get("content")
             if content is None:
                 continue
@@ -719,12 +739,12 @@ class ServerSession:
                     isinstance(b, dict) and b.get("type") == "tool_use" for b in blocks
                 )
                 if has_tool_use:
-                    if i + 1 >= len(messages):
+                    if i + 1 >= len(normalized):
                         raise ValueError(
                             "assistant message with tool_use must be followed by a "
                             "user message containing tool result blocks"
                         )
-                    next_msg = messages[i + 1]
+                    next_msg = normalized[i + 1]
                     next_role = next_msg.get("role")
                     next_content = next_msg.get("content")
                     next_blocks = (

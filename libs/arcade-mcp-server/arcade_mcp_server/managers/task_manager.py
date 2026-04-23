@@ -463,24 +463,19 @@ class TaskManager:
         Expiry = createdAt + ttl. Tasks with ttl=None never expire.
         """
         now = datetime.now(timezone.utc)
-        to_remove = []
-
-        for task_id, (_ctx_key, task) in self._tasks.items():
-            if task.ttl is None:
-                continue
-            created = datetime.fromisoformat(task.createdAt)
-            # ttl is in milliseconds
-            expiry = created + timedelta(milliseconds=task.ttl)
-            if now >= expiry:
-                to_remove.append(task_id)
+        to_remove = [
+            task_id
+            for task_id, (_ctx_key, task) in self._tasks.items()
+            if self._is_expired(task, now=now)
+        ]
 
         for task_id in to_remove:
-            self._tasks.pop(task_id, None)
-            self._state_locks.pop(task_id, None)
-            self._events.pop(task_id, None)
-            self._results.pop(task_id, None)
-            self._errors.pop(task_id, None)
-            self._progress_tokens.pop(task_id, None)
-            bg = self._bg_tasks.pop(task_id, None)
+            bg = self._bg_tasks.get(task_id)
+            # Route eviction through _evict so waiters blocked on
+            # ``get_result``'s event are released. Previously this loop
+            # popped ``_events`` without signaling first, leaving
+            # ``await event.wait()`` callers hung forever when their
+            # task's TTL expired mid-wait.
+            self._evict(task_id)
             if bg is not None and not bg.done():
                 bg.cancel()

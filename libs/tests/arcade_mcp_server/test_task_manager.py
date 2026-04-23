@@ -288,6 +288,40 @@ class TestTaskManagerResultBlocking:
         """Non-existent task id returns False (does not raise)."""
         assert task_manager.has_stored_error("task_nonexistent") is False
 
+    @pytest.mark.asyncio
+    async def test_cleanup_expired_releases_get_result_waiters(self):
+        """Regression: when ``cleanup_expired`` evicts a task, any coroutine
+        blocked in ``get_result`` (on ``event.wait()``) must be released. The
+        old code popped ``_events`` without calling ``event.set()`` first, so
+        waiters hung forever when their task's TTL expired mid-wait.
+        """
+        manager = TaskManager()
+        # Use a short-enough TTL that cleanup_expired() will evict during the wait.
+        task = await manager.create_task(context_key=CONTEXT_A, ttl=1)  # 1ms
+
+        # Start a get_result waiter BEFORE the task is expired/evicted.
+        async def _wait():
+            return await manager.get_result(task.taskId, context_key=CONTEXT_A)
+
+        waiter = asyncio.create_task(_wait())
+        # Give the waiter a chance to register on the event.
+        await asyncio.sleep(0.02)
+        assert not waiter.done(), (
+            "Sanity: waiter should be blocked on the non-terminal task's event"
+        )
+
+        # Trigger eviction. With the bug, the waiter stays blocked forever.
+        await asyncio.sleep(0.05)  # ensure ttl passed
+        await manager.cleanup_expired()
+
+        # The waiter must now unblock (returns the cancelled-fallback dict
+        # because no set_result/set_error was ever stored for this task).
+        result = await asyncio.wait_for(waiter, timeout=1.0)
+        # After eviction, the stored result slot was cleared -- get_result
+        # hits its "no result, no error" fallback path.
+        assert isinstance(result, dict)
+        assert result.get("status") == "cancelled"
+
 
 class TestTaskManagerBackgroundTracking:
     """Tests for asyncio.Task tracking and lifecycle."""

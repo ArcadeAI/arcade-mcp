@@ -376,7 +376,9 @@ class TestSessionVersion:
         """supports_version uses feature set subset check, not lexical string comparison.
         This is critical because spec uses non-date identifiers like DRAFT-2025-v3."""
         server_session.negotiated_version = "2025-11-25"
-        assert server_session.supports_version("2025-06-18") is True  # 06-18 features subset of 11-25
+        assert (
+            server_session.supports_version("2025-06-18") is True
+        )  # 06-18 features subset of 11-25
 
     def test_has_feature_tasks(self, server_session):
         server_session.negotiated_version = "2025-11-25"
@@ -412,9 +414,7 @@ class TestHasCapability:
         assert server_session.has_capability("tasks.list") is False
 
     def test_has_capability_dot_notation_depth(self, server_session):
-        server_session._negotiated_capabilities = {
-            "tasks": {"requests": {"tools": {"call": {}}}}
-        }
+        server_session._negotiated_capabilities = {"tasks": {"requests": {"tools": {"call": {}}}}}
         assert server_session.has_capability("tasks.requests.tools.call") is True
         assert server_session.has_capability("tasks.requests.tools") is True
         assert server_session.has_capability("tasks.requests") is True
@@ -434,11 +434,14 @@ class TestSamplingWithTools:
         server_session.negotiated_version = "2025-11-25"
         server_session._client_capabilities = ClientCapabilities(sampling={"tools": {}})
         server_session._request_manager = AsyncMock()
-        server_session._request_manager.send_request = AsyncMock(return_value={
-            "role": "assistant",
-            "content": {"type": "text", "text": "result"},
-            "model": "test-model", "stopReason": "endTurn"
-        })
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={
+                "role": "assistant",
+                "content": {"type": "text", "text": "result"},
+                "model": "test-model",
+                "stopReason": "endTurn",
+            }
+        )
         tools = [{"name": "my_tool", "inputSchema": {"type": "object"}}]
         await server_session.create_message(
             messages=[{"role": "user", "content": {"type": "text", "text": "hi"}}],
@@ -456,11 +459,14 @@ class TestSamplingWithTools:
         """When no tools passed, params look identical to before."""
         server_session.negotiated_version = "2025-06-18"
         server_session._request_manager = AsyncMock()
-        server_session._request_manager.send_request = AsyncMock(return_value={
-            "role": "assistant",
-            "content": {"type": "text", "text": "result"},
-            "model": "test-model", "stopReason": "endTurn"
-        })
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={
+                "role": "assistant",
+                "content": {"type": "text", "text": "result"},
+                "model": "test-model",
+                "stopReason": "endTurn",
+            }
+        )
         await server_session.create_message(
             messages=[{"role": "user", "content": {"type": "text", "text": "hi"}}],
             max_tokens=100,
@@ -475,11 +481,14 @@ class TestSamplingWithTools:
         """Passing tools to create_message on a 2025-06-18 session silently strips them."""
         server_session.negotiated_version = "2025-06-18"
         server_session._request_manager = AsyncMock()
-        server_session._request_manager.send_request = AsyncMock(return_value={
-            "role": "assistant",
-            "content": {"type": "text", "text": "result"},
-            "model": "test-model", "stopReason": "endTurn"
-        })
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={
+                "role": "assistant",
+                "content": {"type": "text", "text": "result"},
+                "model": "test-model",
+                "stopReason": "endTurn",
+            }
+        )
         await server_session.create_message(
             messages=[], max_tokens=100, tools=[{"name": "t", "inputSchema": {}}]
         )
@@ -496,11 +505,14 @@ class TestSamplingWithTools:
         server_session.negotiated_version = "2025-11-25"
         server_session._client_capabilities = ClientCapabilities(sampling={})  # no "tools" key
         server_session._request_manager = AsyncMock()
-        server_session._request_manager.send_request = AsyncMock(return_value={
-            "role": "assistant",
-            "content": {"type": "text", "text": "result"},
-            "model": "test-model", "stopReason": "endTurn"
-        })
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={
+                "role": "assistant",
+                "content": {"type": "text", "text": "result"},
+                "model": "test-model",
+                "stopReason": "endTurn",
+            }
+        )
         await server_session.create_message(
             messages=[], max_tokens=100, tools=[{"name": "t", "inputSchema": {}}]
         )
@@ -516,13 +528,17 @@ class TestSamplingWithTools:
         server_session.negotiated_version = "2025-11-25"
         server_session._client_capabilities = ClientCapabilities(sampling={"tools": {}})
         server_session._request_manager = AsyncMock()
-        server_session._request_manager.send_request = AsyncMock(return_value={
-            "role": "assistant",
-            "content": {"type": "text", "text": "result"},
-            "model": "test-model", "stopReason": "endTurn"
-        })
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={
+                "role": "assistant",
+                "content": {"type": "text", "text": "result"},
+                "model": "test-model",
+                "stopReason": "endTurn",
+            }
+        )
         await server_session.create_message(
-            messages=[], max_tokens=100,
+            messages=[],
+            max_tokens=100,
             tools=[{"name": "t", "inputSchema": {"type": "object"}}],
             tool_choice={"mode": "auto"},
         )
@@ -537,10 +553,17 @@ class TestSamplingWithTools:
         server_session.negotiated_version = "2025-11-25"
         server_session._client_capabilities = ClientCapabilities(sampling={"tools": {}})
         messages = [
-            {"role": "user", "content": [
-                {"type": "tool_result", "toolUseId": "c1", "content": [{"type": "text", "text": "ok"}]},
-                {"type": "text", "text": "also some text"}  # INVALID -- mixed content
-            ]}
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "tool_result",
+                        "toolUseId": "c1",
+                        "content": [{"type": "text", "text": "ok"}],
+                    },
+                    {"type": "text", "text": "also some text"},  # INVALID -- mixed content
+                ],
+            }
         ]
         server_session._request_manager = AsyncMock()
         with pytest.raises(ValueError, match="tool results"):
@@ -553,10 +576,11 @@ class TestSamplingWithTools:
         server_session.negotiated_version = "2025-11-25"
         server_session._client_capabilities = ClientCapabilities(sampling={"tools": {}})
         messages = [
-            {"role": "assistant", "content": [
-                {"type": "tool_use", "id": "c1", "name": "t", "input": {}}
-            ]},
-            {"role": "user", "content": {"type": "text", "text": "not a tool result"}}
+            {
+                "role": "assistant",
+                "content": [{"type": "tool_use", "id": "c1", "name": "t", "input": {}}],
+            },
+            {"role": "user", "content": {"type": "text", "text": "not a tool result"}},
         ]
         server_session._request_manager = AsyncMock()
         with pytest.raises(ValueError, match="tool result"):
@@ -571,11 +595,14 @@ class TestSamplingWithTools:
         server_session.negotiated_version = "2025-11-25"
         server_session._client_capabilities = ClientCapabilities(sampling={})  # no "context"
         server_session._request_manager = AsyncMock()
-        server_session._request_manager.send_request = AsyncMock(return_value={
-            "role": "assistant",
-            "content": {"type": "text", "text": "result"},
-            "model": "test-model", "stopReason": "endTurn"
-        })
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={
+                "role": "assistant",
+                "content": {"type": "text", "text": "result"},
+                "model": "test-model",
+                "stopReason": "endTurn",
+            }
+        )
         await server_session.create_message(
             messages=[], max_tokens=100, include_context="thisServer"
         )
@@ -584,18 +611,19 @@ class TestSamplingWithTools:
         assert params.get("includeContext", "none") == "none"
 
     @pytest.mark.asyncio
-    async def test_include_context_preserved_with_sampling_context_capability(
-        self, server_session
-    ):
+    async def test_include_context_preserved_with_sampling_context_capability(self, server_session):
         """includeContext preserved when client declares sampling.context."""
         server_session.negotiated_version = "2025-11-25"
         server_session._client_capabilities = ClientCapabilities(sampling={"context": {}})
         server_session._request_manager = AsyncMock()
-        server_session._request_manager.send_request = AsyncMock(return_value={
-            "role": "assistant",
-            "content": {"type": "text", "text": "result"},
-            "model": "test-model", "stopReason": "endTurn"
-        })
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={
+                "role": "assistant",
+                "content": {"type": "text", "text": "result"},
+                "model": "test-model",
+                "stopReason": "endTurn",
+            }
+        )
         await server_session.create_message(
             messages=[], max_tokens=100, include_context="thisServer"
         )
@@ -608,19 +636,64 @@ class TestSamplingWithTools:
         """CreateMessageResult with array content and stopReason=toolUse is handled correctly."""
         server_session.negotiated_version = "2025-11-25"
         server_session._request_manager = AsyncMock()
-        server_session._request_manager.send_request = AsyncMock(return_value={
-            "role": "assistant",
-            "content": [
-                {"type": "text", "text": "I'll call the tool"},
-                {"type": "tool_use", "id": "call_1", "name": "my_tool", "input": {"x": 1}}
-            ],
-            "model": "test-model", "stopReason": "toolUse"
-        })
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={
+                "role": "assistant",
+                "content": [
+                    {"type": "text", "text": "I'll call the tool"},
+                    {"type": "tool_use", "id": "call_1", "name": "my_tool", "input": {"x": 1}},
+                ],
+                "model": "test-model",
+                "stopReason": "toolUse",
+            }
+        )
         result = await server_session.create_message(messages=[], max_tokens=100)
         assert result.stopReason == "toolUse"
         assert isinstance(result.content, list)
         assert len(result.content) == 2
         assert result.content[1].type == "tool_use"
+
+    @pytest.mark.asyncio
+    async def test_validate_sampling_messages_accepts_pydantic_sampling_messages(
+        self, server_session
+    ):
+        """Regression: _validate_sampling_messages must handle pydantic
+        ``SamplingMessage`` objects in addition to raw dicts. The sampling
+        entrypoint in ``context.Sampling.create_message`` hands this layer
+        pydantic models; pydantic v2 models don't expose ``.get()``, so the
+        prior implementation raised AttributeError and broke sampling-with-tools
+        end-to-end for 2025-11-25 clients.
+        """
+        from arcade_mcp_server.types import SamplingMessage, TextContent
+
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(sampling={"tools": {}})
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={
+                "role": "assistant",
+                "content": {"type": "text", "text": "ok"},
+                "model": "test-model",
+                "stopReason": "endTurn",
+            }
+        )
+
+        pydantic_messages = [
+            SamplingMessage(role="user", content=TextContent(type="text", text="hi")),
+        ]
+        # Must NOT raise AttributeError trying to .get() on the pydantic model.
+        await server_session.create_message(messages=pydantic_messages, max_tokens=100)
+
+    def test_validate_sampling_messages_static_normalizes_pydantic_models(self):
+        """Direct unit test: _validate_sampling_messages normalizes pydantic
+        inputs before duck-typing them as dicts."""
+        from arcade_mcp_server.session import ServerSession as _ServerSession
+        from arcade_mcp_server.types import SamplingMessage, TextContent
+
+        # Pass a pydantic model directly -- previously this raised AttributeError.
+        _ServerSession._validate_sampling_messages([
+            SamplingMessage(role="user", content=TextContent(type="text", text="hello"))
+        ])
 
 
 class TestURLModeElicitation:
@@ -634,9 +707,9 @@ class TestURLModeElicitation:
         server_session.negotiated_version = "2025-11-25"
         server_session._client_capabilities = ClientCapabilities(elicitation={"url": {}})
         server_session._request_manager = AsyncMock()
-        server_session._request_manager.send_request = AsyncMock(return_value={
-            "action": "accept", "content": {"token": "abc"}
-        })
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={"action": "accept", "content": {"token": "abc"}}
+        )
         result = await server_session.elicit(
             message="Please authenticate",
             mode="url",
@@ -682,9 +755,9 @@ class TestURLModeElicitation:
         """Form mode (default) works for both versions."""
         server_session.negotiated_version = "2025-06-18"
         server_session._request_manager = AsyncMock()
-        server_session._request_manager.send_request = AsyncMock(return_value={
-            "action": "accept", "content": {"name": "test"}
-        })
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={"action": "accept", "content": {"name": "test"}}
+        )
         result = await server_session.elicit(
             message="Enter name", requested_schema={"type": "object"}
         )
@@ -714,29 +787,43 @@ class TestEnumSchemaValidation:
 
     def test_form_mode_with_untitled_single_select(self):
         """Untitled single-select enum works in elicitation schemas."""
-        schema = {"type": "object", "properties": {
-            "color": {"type": "string", "enum": ["red", "green", "blue"]}
-        }}
+        schema = {
+            "type": "object",
+            "properties": {"color": {"type": "string", "enum": ["red", "green", "blue"]}},
+        }
         params = ElicitRequestFormParams(message="Pick color", requestedSchema=schema)
         assert params.requestedSchema is not None
 
     def test_form_mode_with_titled_single_select(self):
         """Titled single-select (oneOf with const+title) works."""
-        schema = {"type": "object", "properties": {
-            "color": {"type": "string", "oneOf": [
-                {"const": "#FF0000", "title": "Red"},
-                {"const": "#00FF00", "title": "Green"},
-            ]}
-        }}
+        schema = {
+            "type": "object",
+            "properties": {
+                "color": {
+                    "type": "string",
+                    "oneOf": [
+                        {"const": "#FF0000", "title": "Red"},
+                        {"const": "#00FF00", "title": "Green"},
+                    ],
+                }
+            },
+        }
         params = ElicitRequestFormParams(message="Pick color", requestedSchema=schema)
         assert params.requestedSchema is not None
 
     def test_form_mode_with_multi_select(self):
         """Multi-select enum (array type with items.enum) works."""
-        schema = {"type": "object", "properties": {
-            "colors": {"type": "array", "items": {"type": "string", "enum": ["red", "green"]},
-                       "minItems": 1, "maxItems": 3}
-        }}
+        schema = {
+            "type": "object",
+            "properties": {
+                "colors": {
+                    "type": "array",
+                    "items": {"type": "string", "enum": ["red", "green"]},
+                    "minItems": 1,
+                    "maxItems": 3,
+                }
+            },
+        }
         params = ElicitRequestFormParams(message="Pick colors", requestedSchema=schema)
         assert params.requestedSchema is not None
 
@@ -788,9 +875,9 @@ class TestElicitationCapabilityGating:
         server_session.negotiated_version = "2025-11-25"
         server_session._client_capabilities = ClientCapabilities(elicitation={})
         server_session._request_manager = AsyncMock()
-        server_session._request_manager.send_request = AsyncMock(return_value={
-            "action": "accept", "content": {"name": "test"}
-        })
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={"action": "accept", "content": {"name": "test"}}
+        )
         result = await server_session.elicit(
             message="Enter name",
             requested_schema={"type": "object", "properties": {"name": {"type": "string"}}},
@@ -803,9 +890,9 @@ class TestElicitationCapabilityGating:
         server_session.negotiated_version = "2025-11-25"
         server_session._client_capabilities = {"elicitation": {}}
         server_session._request_manager = AsyncMock()
-        server_session._request_manager.send_request = AsyncMock(return_value={
-            "action": "accept", "content": {"name": "test"}
-        })
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={"action": "accept", "content": {"name": "test"}}
+        )
         result = await server_session.elicit(
             message="Enter name",
             requested_schema={"type": "object", "properties": {"name": {"type": "string"}}},
@@ -832,9 +919,9 @@ class TestElicitationCapabilityGating:
         server_session.negotiated_version = "2025-11-25"
         server_session._client_capabilities = ClientCapabilities(elicitation={"url": {}})
         server_session._request_manager = AsyncMock()
-        server_session._request_manager.send_request = AsyncMock(return_value={
-            "action": "accept", "content": {"token": "abc"}
-        })
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={"action": "accept", "content": {"token": "abc"}}
+        )
         result = await server_session.elicit(
             message="Please authenticate",
             mode="url",
@@ -860,6 +947,7 @@ class TestURLElicitationSecurity:
     """Tests for URL elicitation security MUST requirements.
 
     **Deferred to a follow-up PR.**"""
+
     pass
 
 
@@ -912,11 +1000,14 @@ class TestLifecycleOutboundGuard:
     async def test_create_message_allowed_after_initialized(self, server_session):
         server_session.mark_initialized()
         server_session._request_manager = AsyncMock()
-        server_session._request_manager.send_request = AsyncMock(return_value={
-            "role": "assistant",
-            "content": {"type": "text", "text": "hi"},
-            "model": "test-model", "stopReason": "endTurn",
-        })
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={
+                "role": "assistant",
+                "content": {"type": "text", "text": "hi"},
+                "model": "test-model",
+                "stopReason": "endTurn",
+            }
+        )
         result = await server_session.create_message(
             messages=[{"role": "user", "content": {"type": "text", "text": "hello"}}],
             max_tokens=100,
