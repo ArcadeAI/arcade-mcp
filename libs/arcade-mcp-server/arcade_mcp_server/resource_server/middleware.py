@@ -186,11 +186,17 @@ class ResourceServerMiddleware:
         if error_description:
             www_auth_parts.append(f'error_description="{error_description}"')
 
-        # SHOULD include scope parameter (SEP-985). At middleware level we
-        # don't know which tool is being called, so we advertise an empty
-        # scope list as a placeholder. The handler-level scope check adds
-        # the precise scopes in the 403 response.
-        www_auth_parts.append('scope=""')
+        # SEP-985 / MCP 2025-11-25 §Authorization: servers SHOULD advertise the
+        # required `scope` when it is known. At the middleware layer we have
+        # not yet dispatched to a tool, so we cannot know which scopes the
+        # request requires — in that case the spec explicitly says to OMIT the
+        # `scope` parameter and let clients apply their fallback scope
+        # selection strategy. Emitting `scope=""` instead would violate
+        # RFC 6750 §3 (empty scope tells compliant OAuth clients to acquire a
+        # token with no scopes, which is semantically wrong and can cause
+        # clients to loop on empty-scope token acquisition). The precise
+        # scopes are attached to the 403 `insufficient_scope` response by the
+        # handler-level scope check.
 
         www_auth_value = "Bearer " + ", ".join(www_auth_parts)
 

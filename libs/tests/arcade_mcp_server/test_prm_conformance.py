@@ -407,16 +407,25 @@ class TestTransportMetadataStripping:
 
 
 # ---------------------------------------------------------------------------
-# TestMiddlewareScopeParam — 401 WWW-Authenticate includes scope=""
+# TestMiddlewareScopeParam — 401 WWW-Authenticate omits `scope` at the
+# middleware layer where required scopes are not yet known
 # ---------------------------------------------------------------------------
 
 
 class TestMiddlewareScopeParam:
-    """Verify that the 401 response from ResourceServerMiddleware includes
-    the scope= parameter (SEP-985 SHOULD)."""
+    """The middleware layer has not yet dispatched to a tool when it emits a
+    401, so it cannot know which scopes the request requires. MCP 2025-11-25
+    §Authorization instructs servers to OMIT ``scope`` in that case (clients
+    then apply their fallback scope selection strategy). Emitting ``scope=""``
+    instead would violate RFC 6750 §3 — empty scope tells compliant OAuth
+    clients to acquire a token with zero scopes, which can drive them into an
+    empty-scope token-acquisition loop. The precise required scopes are
+    surfaced on the handler-level 403 ``insufficient_scope`` response.
+    """
 
-    def test_401_www_authenticate_includes_scope(self) -> None:
-        """The _create_401_response should include scope="" in WWW-Authenticate."""
+    def test_401_www_authenticate_omits_empty_scope(self) -> None:
+        """The _create_401_response must not emit ``scope=""`` (nor any
+        ``scope=`` attribute at all) at the middleware layer."""
         from unittest.mock import Mock
 
         from arcade_mcp_server.resource_server.middleware import ResourceServerMiddleware
@@ -432,10 +441,24 @@ class TestMiddlewareScopeParam:
 
         response = middleware._create_401_response()
         www_auth = response.headers.get("WWW-Authenticate", "")
-        assert 'scope=""' in www_auth
+        assert 'scope=""' not in www_auth, (
+            f"401 WWW-Authenticate must not advertise empty scope (got: {www_auth!r}) — "
+            "empty scope violates RFC 6750 §3 and can cause empty-scope token loops"
+        )
+        # Middleware cannot know the required scope here, so no scope attribute
+        # at all (per MCP 2025-11-25 §Authorization: absent scope triggers the
+        # client's fallback scope selection strategy).
+        assert "scope=" not in www_auth, (
+            f"401 WWW-Authenticate must omit `scope` when the required scopes "
+            f"are not known at the middleware layer (got: {www_auth!r})"
+        )
+        # The header must still be a well-formed Bearer challenge.
+        assert www_auth.startswith("Bearer")
 
-    def test_401_with_discovery_includes_scope(self) -> None:
-        """With OAuth discovery enabled, scope="" should still appear."""
+    def test_401_with_discovery_omits_empty_scope(self) -> None:
+        """With OAuth discovery enabled and an invalid_token error, the 401
+        response must still omit ``scope=""``. The ``resource_metadata`` and
+        ``error`` attributes must remain intact."""
         from unittest.mock import Mock
 
         from arcade_mcp_server.resource_server.middleware import ResourceServerMiddleware
@@ -454,6 +477,9 @@ class TestMiddlewareScopeParam:
             error_description="Token expired",
         )
         www_auth = response.headers.get("WWW-Authenticate", "")
-        assert 'scope=""' in www_auth
+        assert 'scope=""' not in www_auth
+        assert "scope=" not in www_auth
+        # resource_metadata (SEP-985) and error details must still be present.
         assert "resource_metadata=" in www_auth
         assert 'error="invalid_token"' in www_auth
+        assert 'error_description="Token expired"' in www_auth

@@ -113,13 +113,18 @@ async def deep_research(
     # Elicit a clarification from the human mid-run. The outgoing
     # elicit/create request is auto-tagged with io.modelcontextprotocol/related-task
     # so the client knows which running task the elicitation belongs to.
+    # SEP-1330 TitledSingleSelectEnumSchema: the property is UNTYPED — its
+    # entire value set is expressed via ``oneOf`` of ``{const, title}`` pairs.
+    # Adding ``"type": "string"`` alongside ``oneOf`` would be interpreted as a
+    # plain string input by SEP-1330-aware clients (free-text field instead of
+    # the intended titled dropdown). See ``enum_elicitation``'s ``pick_region``
+    # for the canonical shape.
     elicitation = await context.ui.elicit(
         "Should I favour recent sources or all-time classics?",
         schema={
             "type": "object",
             "properties": {
                 "preference": {
-                    "type": "string",
                     "oneOf": [
                         {"const": "recent", "title": "Recent (last 2 years)"},
                         {"const": "all_time", "title": "All-time classics"},
@@ -140,11 +145,11 @@ async def deep_research(
 
     preference = elicitation.content.get("preference", "mix")
     await context.progress.report(2, total=4, message=f"searching ({preference})")
-    await asyncio.sleep(0.6)
+    await asyncio.sleep(2)
     await context.progress.report(3, total=4, message="synthesising")
-    await asyncio.sleep(0.6)
+    await asyncio.sleep(2)
     await context.progress.report(4, total=4, message="writing up")
-    await asyncio.sleep(0.3)
+    await asyncio.sleep(1)
 
     return {
         "question": question,
