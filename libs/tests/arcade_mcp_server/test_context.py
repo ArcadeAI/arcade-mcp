@@ -524,3 +524,49 @@ class TestElicitSchemaDialectEnforcement:
         }
         await context.ui.elicit("Enter", schema=schema)
         session.elicit.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_elicit_rejects_plain_array_property(self, mcp_server):
+        """Regression: a ``type: "array"`` property is only valid when its
+        ``items`` carry ``enum``/``oneOf`` (multi-select enum). The array
+        branch used to pass unconditionally; a plain ``{"type": "array",
+        "items": {"type": "string"}}`` is not a valid elicitation property.
+        """
+        from arcade_mcp_server.context import Context
+
+        session = Mock()
+        session.elicit = AsyncMock(return_value={"action": "accept", "content": {}})
+        context = Context(server=mcp_server)
+        context.set_session(session)
+
+        bad_schema = {
+            "type": "object",
+            "properties": {
+                "tags": {"type": "array", "items": {"type": "string"}},
+            },
+        }
+        with pytest.raises(ValueError, match="multi-select enum"):
+            await context.ui.elicit("Enter", schema=bad_schema)
+        session.elicit.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_elicit_accepts_multi_select_enum_array(self, mcp_server):
+        """The array branch remains open for legitimate multi-select enums."""
+        from arcade_mcp_server.context import Context
+
+        session = Mock()
+        session.elicit = AsyncMock(return_value={"action": "accept", "content": {}})
+        context = Context(server=mcp_server)
+        context.set_session(session)
+
+        schema = {
+            "type": "object",
+            "properties": {
+                "colors": {
+                    "type": "array",
+                    "items": {"type": "string", "enum": ["red", "green", "blue"]},
+                },
+            },
+        }
+        await context.ui.elicit("Enter", schema=schema)
+        session.elicit.assert_called_once()

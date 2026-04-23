@@ -113,24 +113,6 @@ class InvalidTokenError(AuthenticationError):
     pass
 
 
-class InsufficientScopeError(Exception):
-    """Token is valid but lacks the scopes required by the requested tool.
-
-    Raised at the handler level (not middleware) because scope requirements
-    are per-tool and only known after tool lookup.
-    """
-
-    def __init__(
-        self,
-        required_scopes: list[str],
-        granted_scopes: list[str],
-        message: str = "Insufficient scope",
-    ):
-        super().__init__(message)
-        self.required_scopes = required_scopes
-        self.granted_scopes = granted_scopes
-
-
 class ResourceServerValidator(ABC):
     """Base class for MCP Resource Server token validation.
 

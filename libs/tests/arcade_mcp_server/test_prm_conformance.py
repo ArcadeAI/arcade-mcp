@@ -16,7 +16,6 @@ from unittest.mock import AsyncMock
 import pytest
 import pytest_asyncio
 from arcade_mcp_server.resource_server.base import (
-    InsufficientScopeError,
     ResourceOwner,
 )
 from arcade_mcp_server.server import (
@@ -78,29 +77,6 @@ class TestExtractScopes:
         """Non-string elements in array format are filtered out."""
         claims = {"scope": ["valid", 123, None, "also_valid"]}
         assert _extract_scopes(claims) == {"valid", "also_valid"}
-
-
-# ---------------------------------------------------------------------------
-# TestInsufficientScopeError — exception dataclass sanity
-# ---------------------------------------------------------------------------
-
-
-class TestInsufficientScopeErrorException:
-    """Verify InsufficientScopeError carries the expected attributes."""
-
-    def test_attributes(self) -> None:
-        err = InsufficientScopeError(
-            required_scopes=["a", "b"],
-            granted_scopes=["a"],
-            message="nope",
-        )
-        assert err.required_scopes == ["a", "b"]
-        assert err.granted_scopes == ["a"]
-        assert str(err) == "nope"
-
-    def test_default_message(self) -> None:
-        err = InsufficientScopeError(required_scopes=[], granted_scopes=[])
-        assert str(err) == "Insufficient scope"
 
 
 # ---------------------------------------------------------------------------

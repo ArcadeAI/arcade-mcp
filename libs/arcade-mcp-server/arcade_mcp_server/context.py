@@ -657,8 +657,17 @@ class UI(_ContextComponent):
             has_enum = "enum" in prop_schema
             has_one_of = "oneOf" in prop_schema
             if prop_type == "array":
-                # Multi-select enum — valid for 2025-11-25 enum schemas
-                pass
+                # Array properties are allowed ONLY as a multi-select enum
+                # shape (items with enum or oneOf). A plain string/number
+                # array is not a valid elicitation input per the MCP spec.
+                items = prop_schema.get("items")
+                items_ok = isinstance(items, dict) and ("enum" in items or "oneOf" in items)
+                if not items_ok:
+                    raise ValueError(
+                        f"Property '{prop_name}' is an array but its items do "
+                        f"not declare enum/oneOf. Arrays are only allowed as "
+                        f"multi-select enums in elicitation schemas."
+                    )
             elif prop_type is None:
                 # Untyped properties are OK only when enum/oneOf provides
                 # the value set.
