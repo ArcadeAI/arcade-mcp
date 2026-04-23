@@ -583,6 +583,56 @@ class TestLazyAndPeriodicExpiration:
             await manager.stop()
 
     @pytest.mark.asyncio
+    async def test_list_tasks_uses_per_context_index_only(self):
+        """Regression: ``list_tasks`` must iterate only the caller's own task
+        ids (via the ``_by_context`` secondary index), NOT the whole
+        multi-tenant ``_tasks`` map. Verify by creating tasks in two
+        contexts and patching the iteration surface: if the implementation
+        still scans ``_tasks`` it'll touch the other tenant's entries, which
+        is the exact bottleneck the index was added to prevent.
+        """
+        manager = TaskManager()
+        await manager.create_task(context_key=CONTEXT_A)
+        await manager.create_task(context_key=CONTEXT_A)
+        other = await manager.create_task(context_key=CONTEXT_B)
+
+        # Replace _tasks.items with a trap that records whether it was called.
+        real_tasks = manager._tasks
+        called = {"items": False}
+
+        class _TrappedTasks(dict):
+            def items(self):  # type: ignore[override]
+                called["items"] = True
+                return super().items()
+
+        manager._tasks = _TrappedTasks(real_tasks)  # type: ignore[assignment]
+        try:
+            listed, _ = await manager.list_tasks(context_key=CONTEXT_A)
+        finally:
+            manager._tasks = real_tasks  # type: ignore[assignment]
+
+        assert not called["items"], (
+            "list_tasks must NOT iterate the full _tasks map; it should use "
+            "the _by_context index to stay O(owned)."
+        )
+        # Behavioral sanity: only CONTEXT_A's tasks came back.
+        assert len(listed) == 2
+        assert other.taskId not in {t.taskId for t in listed}
+
+    @pytest.mark.asyncio
+    async def test_context_index_drops_empty_buckets_on_evict(self):
+        """``_by_context`` must not grow unboundedly as tasks are evicted;
+        empty per-context buckets should be removed from the index."""
+        manager = TaskManager()
+        task = await manager.create_task(context_key=CONTEXT_A, ttl=1)  # 1ms
+        assert CONTEXT_A in manager._by_context
+        await asyncio.sleep(0.05)
+        with pytest.raises(NotFoundError):
+            await manager.get_task(task.taskId, context_key=CONTEXT_A)
+        # After eviction, the now-empty bucket should be gone entirely.
+        assert CONTEXT_A not in manager._by_context
+
+    @pytest.mark.asyncio
     async def test_get_result_rejects_expired_task(self):
         """Regression: ``get_result`` must honor the same TTL check so
         ``tasks/result`` cannot return data for a task the other handlers

@@ -95,6 +95,11 @@ class TaskManager:
         # task_id -> (context_key, Task)
         self._tasks: dict[str, tuple[str, Task]] = {}
 
+        # Secondary index: context_key -> set of task_ids. Kept in sync with
+        # _tasks in create_task and _evict so list_tasks can iterate the
+        # caller's tasks without scanning the entire multi-tenant map.
+        self._by_context: dict[str, set[str]] = {}
+
         # Per-task locks for atomic state transitions
         self._state_locks: dict[str, asyncio.Lock] = {}
 
@@ -210,6 +215,7 @@ class TaskManager:
         )
 
         self._tasks[task_id] = (context_key, task)
+        self._by_context.setdefault(context_key, set()).add(task_id)
         self._state_locks[task_id] = asyncio.Lock()
         self._events[task_id] = asyncio.Event()
 
@@ -227,7 +233,14 @@ class TaskManager:
 
     def _evict(self, task_id: str) -> None:
         """Remove a single task and its bookkeeping slots."""
-        self._tasks.pop(task_id, None)
+        entry = self._tasks.pop(task_id, None)
+        if entry is not None:
+            ctx_key, _task = entry
+            owned = self._by_context.get(ctx_key)
+            if owned is not None:
+                owned.discard(task_id)
+                if not owned:
+                    self._by_context.pop(ctx_key, None)
         self._state_locks.pop(task_id, None)
         event = self._events.pop(task_id, None)
         if event is not None:
@@ -278,19 +291,23 @@ class TaskManager:
         when no further pages exist.
 
         Note: this method does NOT run the full O(N) ``cleanup_expired`` sweep
-        on every read -- that turned every poll into O(total_tasks) regardless
-        of whether the caller owned any of them. Instead, we evict
-        context-owned tasks inline as we filter. Cross-context tasks are left
-        for the periodic ``_cleanup_loop``.
+        on every read. It iterates only the caller's own task ids via the
+        ``_by_context`` secondary index, so the cost is O(owned) rather than
+        O(total) -- important for multi-tenant servers where ``tasks/list``
+        is polled frequently. Cross-context tasks are left for the periodic
+        ``_cleanup_loop``.
         """
-        # Scope to context and evict expired as we go -- keeps this method
-        # O(owned) instead of O(total) and avoids an extra full sweep.
+        # Iterate the caller's task ids only (O(owned)), evict expired ones
+        # inline, and collect the survivors.
         now = datetime.now(timezone.utc)
         owned: list[Task] = []
         to_evict: list[str] = []
-        for task_id, (ctx_key, task) in self._tasks.items():
-            if ctx_key != context_key:
-                continue
+        owned_ids = list(self._by_context.get(context_key, set()))
+        for task_id in owned_ids:
+            entry = self._tasks.get(task_id)
+            if entry is None:
+                continue  # index briefly desynced; skip
+            _ctx_key, task = entry
             if self._is_expired(task, now=now):
                 to_evict.append(task_id)
                 continue
