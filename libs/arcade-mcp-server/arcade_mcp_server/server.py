@@ -1057,36 +1057,40 @@ class MCPServer:
             )
 
             if not server_declared_task_tools:
-                # Capability fallback: ignore task metadata, process normally
+                # Capability fallback: ignore any task metadata on the request
+                # (old clients cannot receive task-augmented responses anyway).
                 has_task_metadata = False
-            else:
-                # Enforce the tool's execution policy against the request.
-                # MCP-specific: the policy lives on the function as the
-                # ``__tool_execution__`` dunder (an MCP ``ToolExecution`` instance).
-                tool_execution = getattr(tool.tool, "__tool_execution__", None)
-                tool_task_support = (
-                    getattr(tool_execution, "taskSupport", None) if tool_execution else None
-                )
-                # No policy configured means synchronous-only by default.
-                if tool_task_support is None:
-                    tool_task_support = "forbidden"
 
-                if tool_task_support == "forbidden" and has_task_metadata:
-                    return JSONRPCError(
-                        id=message.id,
-                        error={
-                            "code": -32601,
-                            "message": "Task augmentation forbidden for this tool",
-                        },
-                    )
-                elif tool_task_support == "required" and not has_task_metadata:
-                    return JSONRPCError(
-                        id=message.id,
-                        error={
-                            "code": -32601,
-                            "message": "Task augmentation required for this tool",
-                        },
-                    )
+            # Enforce the tool's execution policy against the request.
+            # MCP-specific: the policy lives on the function as the
+            # ``__tool_execution__`` dunder (an MCP ``ToolExecution`` instance).
+            # The policy check runs regardless of client version -- a tool
+            # marked ``taskSupport="required"`` MUST be rejected when called
+            # synchronously, including by legacy clients that can't use tasks.
+            tool_execution = getattr(tool.tool, "__tool_execution__", None)
+            tool_task_support = (
+                getattr(tool_execution, "taskSupport", None) if tool_execution else None
+            )
+            # No policy configured means synchronous-only by default.
+            if tool_task_support is None:
+                tool_task_support = "forbidden"
+
+            if tool_task_support == "forbidden" and has_task_metadata:
+                return JSONRPCError(
+                    id=message.id,
+                    error={
+                        "code": -32601,
+                        "message": "Task augmentation forbidden for this tool",
+                    },
+                )
+            elif tool_task_support == "required" and not has_task_metadata:
+                return JSONRPCError(
+                    id=message.id,
+                    error={
+                        "code": -32601,
+                        "message": "Task augmentation required for this tool",
+                    },
+                )
 
             # ---- Pre-flight checks (apply to BOTH synchronous and task-augmented calls) ----
             # These must run before a task is created so that task-augmented calls cannot
@@ -2113,6 +2117,12 @@ class MCPServer:
         progress_token = self._task_manager.get_progress_token(task_id)
         token_meta = set_request_meta({"progressToken": progress_token} if progress_token else None)
 
+        # Tasks may be evicted by TTL cleanup at any time, so
+        # ``update_status`` can raise ``TaskNotFoundError`` in addition to
+        # ``InvalidTaskStateError``. Suppress both: the background ``asyncio.Task``
+        # would otherwise surface as an unhandled exception, and in the
+        # ``CancelledError`` branch ``NotFoundError`` would replace the
+        # cancellation and skip the ``raise`` below.
         try:
             result = await self._execute_tool(tool, arguments, session, tool_context)
             await self._task_manager.set_result(task_id, result)
@@ -2120,15 +2130,15 @@ class MCPServer:
                 isinstance(result, dict) and result.get("isError")
             )
             new_status = TaskStatus.FAILED if is_error else TaskStatus.COMPLETED
-            with contextlib.suppress(InvalidTaskStateError):
+            with contextlib.suppress(InvalidTaskStateError, TaskNotFoundError):
                 await self._task_manager.update_status(task_id, new_status)
         except asyncio.CancelledError:
-            with contextlib.suppress(InvalidTaskStateError):
+            with contextlib.suppress(InvalidTaskStateError, TaskNotFoundError):
                 await self._task_manager.update_status(task_id, TaskStatus.CANCELLED)
             raise  # propagate
         except Exception as e:
             await self._task_manager.set_error(task_id, {"code": -32603, "message": str(e)})
-            with contextlib.suppress(InvalidTaskStateError):
+            with contextlib.suppress(InvalidTaskStateError, TaskNotFoundError):
                 await self._task_manager.update_status(task_id, TaskStatus.FAILED)
         finally:
             reset_request_meta(token_meta)

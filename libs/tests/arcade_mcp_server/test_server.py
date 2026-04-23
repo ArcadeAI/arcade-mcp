@@ -2581,6 +2581,53 @@ class TestTaskAugmentedToolCall:
         assert len(mcp_server._task_manager._tasks) == 0
 
     @pytest.mark.asyncio
+    async def test_background_task_survives_ttl_eviction_on_completion(
+        self, mcp_server, initialized_server_session
+    ):
+        """Regression: if the task is evicted (TTL cleanup) between
+        ``set_result`` and ``update_status`` in the background path, the
+        resulting ``NotFoundError`` from ``update_status`` must be suppressed.
+        Previously only ``InvalidTaskStateError`` was suppressed, so the
+        background ``asyncio.Task`` would crash with an unhandled exception.
+        """
+        from arcade_mcp_server.managers.task_manager import NotFoundError
+
+        _enable_tasks(initialized_server_session)
+        original_update_status = mcp_server._task_manager.update_status
+        call_count = {"n": 0}
+
+        async def _update_status_raises_notfound(task_id, status, message=None):
+            call_count["n"] += 1
+            # Simulate TTL eviction before the status transition lands.
+            raise NotFoundError(f"Task not found (evicted): {task_id}")
+
+        mcp_server._task_manager.update_status = _update_status_raises_notfound  # type: ignore[method-assign]
+        try:
+            message = {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "tools/call",
+                "params": {
+                    "name": "TestToolkit.test_tool",
+                    "arguments": {"text": "hello"},
+                    "task": {"ttl": 60000},
+                },
+            }
+            create_response = await mcp_server.handle_message(message, initialized_server_session)
+            task_id = create_response.result.task.taskId
+
+            # The background task should finish cleanly; any leaked
+            # NotFoundError would surface here as a crashed asyncio.Task.
+            bg = mcp_server._task_manager._bg_tasks.get(task_id)
+            assert bg is not None
+            await asyncio.wait_for(bg, timeout=5.0)
+            # No exception from the background task.
+            assert bg.exception() is None
+            assert call_count["n"] >= 1
+        finally:
+            mcp_server._task_manager.update_status = original_update_status  # type: ignore[method-assign]
+
+    @pytest.mark.asyncio
     async def test_background_task_error_result_has_no_structured_content(
         self, mcp_server, initialized_server_session
     ):
@@ -2916,6 +2963,34 @@ class TestCapabilityFallback:
         assert not isinstance(response, JSONRPCError)
         assert hasattr(response.result, "content")  # CallToolResult shape
         assert not hasattr(response.result, "task")  # NOT CreateTaskResult
+
+    @pytest.mark.asyncio
+    async def test_required_policy_enforced_for_legacy_clients(
+        self, mcp_server, initialized_server_session
+    ):
+        """Regression: a tool with taskSupport="required" must reject synchronous
+        calls from ALL clients, including legacy 2025-06-18 sessions that cannot
+        negotiate task support. Previously the policy check was gated behind
+        ``server_declared_task_tools``, so legacy clients could invoke a
+        "required" tool synchronously and silently bypass the contract.
+        """
+        initialized_server_session.negotiated_version = "2025-06-18"
+        initialized_server_session._negotiated_capabilities = {
+            "tools": {"listChanged": True},
+            "logging": {},
+            "prompts": {"listChanged": True},
+            "resources": {"subscribe": True, "listChanged": True},
+        }
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {"name": "TestToolkit.required_task_tool", "arguments": {}},
+        }
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32601
+        assert "required" in response.error["message"].lower()
 
 
 class TestURLElicitationRequiredErrorType:

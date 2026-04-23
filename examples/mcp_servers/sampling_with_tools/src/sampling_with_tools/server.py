@@ -19,7 +19,6 @@ a single server tool.
 """
 
 import sys
-import uuid
 from typing import Annotated, Any
 
 from arcade_mcp_server import Context, MCPApp
@@ -255,9 +254,6 @@ async def summarize_with_none(
 
     The expected wire behaviour is that the model returns plain text.
     """
-    # Construct a unique id just to show the shape — here it's not actually used.
-    _ = uuid.uuid4().hex
-
     content = await context.sampling.create_message(
         messages=[
             SamplingMessage(
