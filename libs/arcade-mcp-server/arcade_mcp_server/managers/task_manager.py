@@ -215,19 +215,46 @@ class TaskManager:
 
         return task
 
+    def _is_expired(self, task: Task, now: datetime | None = None) -> bool:
+        """Check if a single task has passed its TTL. O(1), no sweep."""
+        if task.ttl is None:
+            return False
+        if now is None:
+            now = datetime.now(timezone.utc)
+        created = datetime.fromisoformat(task.createdAt)
+        # ttl is in milliseconds
+        return now >= created + timedelta(milliseconds=task.ttl)
+
+    def _evict(self, task_id: str) -> None:
+        """Remove a single task and its bookkeeping slots."""
+        self._tasks.pop(task_id, None)
+        self._state_locks.pop(task_id, None)
+        event = self._events.pop(task_id, None)
+        if event is not None:
+            event.set()
+        self._results.pop(task_id, None)
+        self._errors.pop(task_id, None)
+        self._progress_tokens.pop(task_id, None)
+        self._bg_tasks.pop(task_id, None)
+
     async def get_task(self, task_id: str, context_key: str) -> Task:
         """Get a task by ID, scoped to context.
 
         Raises NotFoundError for missing task OR context mismatch (no info leak).
-        """
-        # Lazy TTL enforcement on access -- ensures expired tasks are not
-        # returned even if the periodic cleanup loop is behind.
-        await self.cleanup_expired()
 
+        Performs an O(1) TTL check on the requested task (rather than a full
+        O(N) sweep of all stored tasks) so that a single slow/stopped periodic
+        cleanup can't leave this one call serving a stale task. Bulk eviction
+        remains the responsibility of the periodic ``_cleanup_loop``.
+        """
         entry = self._tasks.get(task_id)
         if entry is None or entry[0] != context_key:
             raise NotFoundError(f"Task not found: {task_id}")
-        return entry[1]
+        _ctx_key, task = entry
+        if self._is_expired(task):
+            self._evict(task_id)
+            raise NotFoundError(f"Task not found: {task_id}")
+        return task
 
     async def list_tasks(
         self,
@@ -249,12 +276,27 @@ class TaskManager:
 
         Returns a tuple ``(tasks, next_cursor)``. ``next_cursor`` is ``None``
         when no further pages exist.
-        """
-        # Lazy TTL enforcement on access.
-        await self.cleanup_expired()
 
-        # Scope to context.
-        owned = [task for ctx_key, task in self._tasks.values() if ctx_key == context_key]
+        Note: this method does NOT run the full O(N) ``cleanup_expired`` sweep
+        on every read -- that turned every poll into O(total_tasks) regardless
+        of whether the caller owned any of them. Instead, we evict
+        context-owned tasks inline as we filter. Cross-context tasks are left
+        for the periodic ``_cleanup_loop``.
+        """
+        # Scope to context and evict expired as we go -- keeps this method
+        # O(owned) instead of O(total) and avoids an extra full sweep.
+        now = datetime.now(timezone.utc)
+        owned: list[Task] = []
+        to_evict: list[str] = []
+        for task_id, (ctx_key, task) in self._tasks.items():
+            if ctx_key != context_key:
+                continue
+            if self._is_expired(task, now=now):
+                to_evict.append(task_id)
+                continue
+            owned.append(task)
+        for task_id in to_evict:
+            self._evict(task_id)
 
         # Deterministic ordering: createdAt desc, taskId asc tiebreaker.
         # Build a sort key that inverts the primary dimension (createdAt) while

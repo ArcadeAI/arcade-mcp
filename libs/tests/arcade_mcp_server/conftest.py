@@ -21,6 +21,7 @@ from arcade_core.schema import (
 )
 from arcade_mcp_server import tool
 from arcade_mcp_server.context import Context
+from arcade_mcp_server.exceptions import RetryableToolError
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.session import ServerSession
 from arcade_mcp_server.settings import MCPSettings
@@ -207,6 +208,37 @@ def failing_tool_def() -> ToolDefinition:
 @pytest.fixture
 def materialized_failing_tool(failing_tool_func, failing_tool_def) -> MaterializedTool:
     return _materialize(failing_tool_func, failing_tool_def)
+
+
+@pytest.fixture
+def retryable_failing_tool_func():
+    """A tool that raises RetryableToolError with additional_prompt_content set.
+
+    Used to verify both the synchronous and background-task error paths
+    preserve ``additional_prompt_content`` (retry guidance for the orchestrator).
+    """
+
+    @tool(execution=ToolExecution(taskSupport="optional"))
+    def retryable_failing_tool() -> Annotated[str, "Never returned"]:
+        """A tool that always fails with retry guidance."""
+        raise RetryableToolError(
+            message="Upstream was rate limited",
+            additional_prompt_content="Wait 60s and try again with a narrower query.",
+        )
+
+    return retryable_failing_tool
+
+
+@pytest.fixture
+def retryable_failing_tool_def() -> ToolDefinition:
+    return _make_tool_def("retryable_failing_tool", "TestToolkit.retryable_failing_tool")
+
+
+@pytest.fixture
+def materialized_retryable_failing_tool(
+    retryable_failing_tool_func, retryable_failing_tool_def
+) -> MaterializedTool:
+    return _materialize(retryable_failing_tool_func, retryable_failing_tool_def)
 
 
 @pytest.fixture
@@ -456,6 +488,7 @@ def tool_catalog(
     materialized_tool: MaterializedTool,
     materialized_tool_with_auth: MaterializedTool,
     materialized_failing_tool: MaterializedTool,
+    materialized_retryable_failing_tool: MaterializedTool,
     materialized_slow_tool: MaterializedTool,
     materialized_error_result_tool: MaterializedTool,
     materialized_forbidden_task_tool: MaterializedTool,
@@ -470,6 +503,7 @@ def tool_catalog(
         materialized_tool,
         materialized_tool_with_auth,
         materialized_failing_tool,
+        materialized_retryable_failing_tool,
         materialized_slow_tool,
         materialized_error_result_tool,
         materialized_forbidden_task_tool,

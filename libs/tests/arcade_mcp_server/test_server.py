@@ -2666,6 +2666,43 @@ class TestTaskAugmentedToolCall:
             mcp_server._task_manager.update_status = original_update_status  # type: ignore[method-assign]
 
     @pytest.mark.asyncio
+    async def test_background_task_error_preserves_additional_prompt_content(
+        self, mcp_server, initialized_server_session
+    ):
+        """Regression: the background-task error path must preserve
+        ``error.additional_prompt_content`` (retry guidance emitted by typed
+        errors like ``RetryableToolError``). Previously the path used
+        ``str(error)`` and dropped the field, degrading error context for
+        long-running tools served under tasks.
+        """
+        _enable_tasks(initialized_server_session)
+        sid = initialized_server_session.session_id
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {
+                "name": "TestToolkit.retryable_failing_tool",
+                "arguments": {},
+                "task": {"ttl": 60000},
+            },
+        }
+        create_response = await mcp_server.handle_message(message, initialized_server_session)
+        task_id = create_response.result.task.taskId
+
+        stored = await asyncio.wait_for(
+            mcp_server._task_manager.get_result(task_id, context_key=f"session:{sid}"),
+            timeout=5.0,
+        )
+        assert getattr(stored, "isError", None) is True
+        content_texts = [getattr(c, "text", "") for c in getattr(stored, "content", []) or []]
+        joined = "\n".join(content_texts)
+        assert "Upstream was rate limited" in joined, "message should be in the error content"
+        assert "Wait 60s and try again with a narrower query." in joined, (
+            "additional_prompt_content must be preserved in the task-augmented error"
+        )
+
+    @pytest.mark.asyncio
     async def test_background_task_error_result_has_no_structured_content(
         self, mcp_server, initialized_server_session
     ):

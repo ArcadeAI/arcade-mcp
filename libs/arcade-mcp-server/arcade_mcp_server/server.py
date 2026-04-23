@@ -2190,8 +2190,20 @@ class MCPServer:
                 isError=False,
             )
         else:
-            error = result.error or "Error calling tool"
-            content = convert_to_mcp_content(str(error))
+            # Mirror the synchronous _handle_call_tool error formatting so the
+            # background-task path doesn't lose typed-error details. The key
+            # field to preserve is ``additional_prompt_content`` -- RetryableToolError
+            # uses it to carry retry guidance the orchestrator feeds back to
+            # the model.
+            error = result.error
+            if error is not None:
+                error_text = error.message
+                if error.additional_prompt_content:
+                    error_text += f"\n\n{error.additional_prompt_content}"
+                self._log_tool_call_error(getattr(tool.definition, "name", "<unknown>"), error)
+            else:
+                error_text = "Error calling tool"
+            content = convert_to_mcp_content(error_text)
             # structuredContent MUST be None on error responses. Per the MCP
             # spec, structuredContent MUST validate against the tool's declared
             # outputSchema -- an error payload will not. The error message is
