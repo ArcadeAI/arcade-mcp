@@ -866,8 +866,12 @@ class MCPServer:
             "title": self.title,
         }
 
-        # 2025-11-25+ fields
-        if version_has_feature(version, "tasks"):
+        # 2025-11-25+ fields. Gate on the dedicated implementation-metadata
+        # feature rather than on ``tasks`` -- the branding fields (icons,
+        # description, websiteUrl) are independent of the Tasks primitive, so
+        # coupling them would become wrong the moment a future version shipped
+        # one without the other.
+        if version_has_feature(version, "implementation_metadata"):
             if self.icons is not None:
                 info["icons"] = self.icons
             if self.description is not None:
@@ -891,7 +895,10 @@ class MCPServer:
         if strip_fields is None:
             strip_fields = ["icons"]
 
-        is_legacy = session is None or not session.has_feature("tasks")
+        # ``icons`` on tools/resources/prompts is part of the 2025-11-25
+        # implementation-metadata bump; gate the strip on that feature rather
+        # than on an unrelated sibling feature like ``tasks``.
+        is_legacy = session is None or not session.has_feature("implementation_metadata")
         result = []
         for item in items:
             if hasattr(item, "model_dump"):

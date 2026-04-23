@@ -13,7 +13,7 @@ import contextlib
 import json
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from arcade_mcp_server.types import Task, TaskStatus
@@ -428,8 +428,6 @@ class TaskManager:
                 continue
             created = datetime.fromisoformat(task.createdAt)
             # ttl is in milliseconds
-            from datetime import timedelta
-
             expiry = created + timedelta(milliseconds=task.ttl)
             if now >= expiry:
                 to_remove.append(task_id)

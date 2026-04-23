@@ -1915,6 +1915,44 @@ class TestVersionNegotiationInInitialize:
         assert "description" not in server_info
         assert "websiteUrl" not in server_info
 
+    def test_build_server_info_gates_branding_on_implementation_metadata_not_tasks(
+        self, tool_catalog, mcp_settings
+    ):
+        """Regression: branding fields (icons, description, websiteUrl) must be
+        gated on the dedicated ``implementation_metadata`` feature, not on the
+        unrelated ``tasks`` feature. If a future protocol version ships the
+        Tasks primitive without implementation_metadata (or vice versa), the
+        old ``tasks``-gated code would silently produce the wrong output.
+        """
+        from arcade_mcp_server.types import VERSION_FEATURES
+
+        server = MCPServer(
+            catalog=tool_catalog,
+            settings=mcp_settings,
+            name="test-server",
+            version="1.0.0",
+            icons=[{"src": "https://example.com/icon.png", "mimeType": "image/png"}],
+            description="Server description",
+            website_url="https://example.com",
+        )
+
+        info = server._build_server_info("2025-11-25")
+        assert info["icons"] == [{"src": "https://example.com/icon.png", "mimeType": "image/png"}]
+        assert info["description"] == "Server description"
+        assert info["websiteUrl"] == "https://example.com"
+
+        # Legacy version -- implementation_metadata absent -> branding stripped.
+        info_legacy = server._build_server_info("2025-06-18")
+        assert "icons" not in info_legacy
+        assert "description" not in info_legacy
+        assert "websiteUrl" not in info_legacy
+
+        # Confirm the registry shape the production code relies on: these
+        # two features happen to co-occur today, but are independent features.
+        assert "implementation_metadata" in VERSION_FEATURES["2025-11-25"]
+        assert "tasks" in VERSION_FEATURES["2025-11-25"]
+        assert "implementation_metadata" not in VERSION_FEATURES["2025-06-18"]
+
 
 class TestToolMetaExtensionEdgeCases:
     """Test apply_meta_extensions edge cases on ToolManager directly."""
