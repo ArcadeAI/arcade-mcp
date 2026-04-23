@@ -9,7 +9,7 @@ the JSON Schema 2020-12 dialect enforcement (SEP-1613).
 | Tool | Variant | Wire shape |
 |---|---|---|
 | `pick_priority` | `UntitledSingleSelectEnumSchema` | `{"type": "string", "enum": [...], "default": "..."}` |
-| `pick_region` | `TitledSingleSelectEnumSchema` | `{"oneOf": [{"const": id, "title": label}, ...]}` |
+| `pick_region` | `TitledSingleSelectEnumSchema` | `{"type": "string", "oneOf": [{"const": id, "title": label}, ...]}` |
 | `pick_tags` | `UntitledMultiSelectEnumSchema` | `{"type": "array", "items": {"enum": [...]}}` |
 | `pick_permissions` | `TitledMultiSelectEnumSchema` | `{"type": "array", "items": {"anyOf": [{"const": id, "title": label}, ...]}}` |
 | `pick_legacy` | `LegacyTitledEnumSchema` | `{"enum": [...], "enumNames": [...]}` |
@@ -40,6 +40,7 @@ Calling `pick_region` produces an `elicitation/create` request with:
       "type": "object",
       "properties": {
         "region": {
+          "type": "string",
           "oneOf": [
             {"const": "us-east-1", "title": "US East (N. Virginia)"},
             {"const": "us-west-2", "title": "US West (Oregon)"},
