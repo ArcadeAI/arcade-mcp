@@ -40,14 +40,12 @@ from arcade_core.schema import (
 from arcade_mcp_server.request_context import get_request_meta
 from arcade_mcp_server.resource_server.base import ResourceOwner
 from arcade_mcp_server.types import (
-    AudioContent,
     CallToolParams,
     CallToolRequest,
     CallToolResult,
     ClientCapabilities,
     CreateMessageResult,
     ElicitResult,
-    ImageContent,
     JSONRPCError,
     LoggingLevel,
     ModelHint,
@@ -55,6 +53,7 @@ from arcade_mcp_server.types import (
     ResourceContents,
     Root,
     SamplingMessage,
+    SamplingMessageContentBlock,
     TextContent,
 )
 from arcade_mcp_server.validation import _validate_schema_dialect
@@ -571,7 +570,7 @@ class Sampling(_ContextComponent):
         model_preferences: ModelPreferences | str | list[str] | None = None,
         tools: list[dict[str, Any]] | None = None,
         tool_choice: dict[str, Any] | None = None,
-    ) -> TextContent | ImageContent | AudioContent | CreateMessageResult:
+    ) -> SamplingMessageContentBlock | list[SamplingMessageContentBlock] | CreateMessageResult:
         if self._ctx._session is None:
             raise ValueError("Session not available")
 

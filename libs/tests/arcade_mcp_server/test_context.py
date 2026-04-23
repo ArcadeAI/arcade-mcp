@@ -250,6 +250,57 @@ class TestContext:
 
         assert session.create_message.call_count == 2
 
+    def test_create_message_return_type_covers_tool_use_content(self):
+        """``Sampling.create_message`` advertises tools/tool_choice kwargs, so its
+        return annotation must include the tool-calling content shapes the client
+        can send back — ``ToolUseContent``, ``ToolResultContent``, and the
+        ``list[SamplingMessageContentBlock]`` aggregate shape documented by the
+        spec. Without this, tool authors relying on the annotation get incorrect
+        guidance and the ``sampling_with_tools`` example's ``_normalise_content``
+        helper looks redundant at the type-check level.
+        """
+        import typing
+
+        from arcade_mcp_server.context import Sampling
+        from arcade_mcp_server.types import (
+            AudioContent,
+            CreateMessageResult,
+            ImageContent,
+            SamplingMessageContentBlock,
+            TextContent,
+            ToolResultContent,
+            ToolUseContent,
+        )
+
+        hints = typing.get_type_hints(Sampling.create_message)
+        ret = hints["return"]
+        # typing.get_type_hints resolves the UnionType — get flat args.
+        args = set(typing.get_args(ret))
+
+        # The union must include every shape the client can send back.
+        expected_block_types = {
+            TextContent,
+            ImageContent,
+            AudioContent,
+            ToolUseContent,
+            ToolResultContent,
+        }
+        assert expected_block_types.issubset(args), (
+            f"create_message return annotation missing block types: "
+            f"{expected_block_types - args}"
+        )
+        # list[SamplingMessageContentBlock] shape must be represented.
+        assert any(
+            typing.get_origin(a) is list for a in args
+        ), "create_message return annotation missing list[...] variant"
+        # CreateMessageResult fallback (for responses without .content) remains.
+        assert CreateMessageResult in args
+        # SamplingMessageContentBlock is publicly re-exported so authors can
+        # annotate local variables with the same alias.
+        import arcade_mcp_server
+
+        assert arcade_mcp_server.SamplingMessageContentBlock is SamplingMessageContentBlock
+
     @pytest.mark.asyncio
     async def test_sampling_without_capability(self, mcp_server):
         """Test sampling when client doesn't support it."""
