@@ -609,9 +609,12 @@ class ServerSession:
                 "Cannot send sampling request before session is initialized"
             )
 
-        # Determine if the client supports tools in sampling
+        # Determine if the client supports tools in sampling. Gate on the
+        # feature registry (``tool_calling_in_sampling``) rather than a
+        # hardcoded version string, so that future protocol versions
+        # inheriting the feature keep the gate working without source edits.
         client_has_sampling_tools = False
-        if self.negotiated_version == "2025-11-25":
+        if self.has_feature("tool_calling_in_sampling"):
             client_caps = self._client_capabilities
             if (
                 client_caps is not None
@@ -628,11 +631,14 @@ class ServerSession:
         if client_has_sampling_tools:
             self._validate_sampling_messages(messages)
 
-        # Gate includeContext on client capability
+        # Gate includeContext on client capability. Keyed off the sampling
+        # feature set rather than the literal version so future versions
+        # that inherit ``tool_calling_in_sampling`` (which governs the
+        # ``context`` sub-capability here) pick this up automatically.
         if (
             include_context is not None
             and include_context != "none"
-            and self.negotiated_version == "2025-11-25"
+            and self.has_feature("tool_calling_in_sampling")
         ):
             client_caps = self._client_capabilities
             context_allowed = (
@@ -906,9 +912,14 @@ class ServerSession:
         # Default to form mode
         effective_mode = mode or "form"
 
-        # Version gate: URL mode requires 2025-11-25
-        if effective_mode == "url" and self.negotiated_version != "2025-11-25":
-            raise SessionError("URL elicitation mode requires protocol version 2025-11-25")
+        # Version gate: URL mode requires the ``elicitation_url`` feature.
+        # Use the feature registry, not a hardcoded version string, so future
+        # protocol versions that ship URL-mode elicitation Just Work.
+        if effective_mode == "url" and not self.has_feature("elicitation_url"):
+            raise SessionError(
+                "URL elicitation mode requires a protocol version that supports "
+                "elicitation_url (2025-11-25 or later)"
+            )
 
         # URL mode validation
         if effective_mode == "url" and (not url or not elicitation_id):

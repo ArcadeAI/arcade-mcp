@@ -695,6 +695,52 @@ class TestSamplingWithTools:
             SamplingMessage(role="user", content=TextContent(type="text", text="hello"))
         ])
 
+    @pytest.mark.asyncio
+    async def test_sampling_tools_gate_uses_feature_registry_not_hardcoded_version(
+        self, server_session, monkeypatch
+    ):
+        """Regression: the sampling-with-tools gate must consult
+        ``version_has_feature(version, "tool_calling_in_sampling")`` rather
+        than comparing ``negotiated_version`` to the literal ``"2025-11-25"``.
+        A future protocol version that inherits the feature must not have
+        tools silently stripped from its sampling requests.
+        """
+        from arcade_mcp_server import types as mcp_types
+
+        # Simulate a hypothetical future version that supports sampling+tools.
+        future_version = "2099-01-01"
+        patched = dict(mcp_types.VERSION_FEATURES)
+        patched[future_version] = patched["2025-11-25"]
+        monkeypatch.setattr(mcp_types, "VERSION_FEATURES", patched)
+        # session.py imports version_has_feature at module load; it reads
+        # VERSION_FEATURES fresh on each call, so patching the dict is enough.
+
+        server_session.negotiated_version = future_version
+        server_session._client_capabilities = ClientCapabilities(sampling={"tools": {}})
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={
+                "role": "assistant",
+                "content": {"type": "text", "text": "ok"},
+                "model": "test-model",
+                "stopReason": "endTurn",
+            }
+        )
+
+        await server_session.create_message(
+            messages=[{"role": "user", "content": {"type": "text", "text": "hi"}}],
+            max_tokens=100,
+            tools=[{"name": "t", "inputSchema": {"type": "object"}}],
+            tool_choice={"mode": "auto"},
+        )
+        call_args = server_session._request_manager.send_request.call_args
+        params = call_args[0][1]
+        assert "tools" in params, (
+            "tools must survive to the wire when the client's version has the "
+            "tool_calling_in_sampling feature, regardless of whether it equals "
+            "the literal 2025-11-25"
+        )
+
 
 class TestURLModeElicitation:
     @pytest.fixture(autouse=True)
