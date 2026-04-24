@@ -1,25 +1,3 @@
-#
-# ⚠️  DO NOT ADD NEW "LEAK-TO-AGENT" TOGGLES IN THIS FILE.
-# ----------------------------------------------------------------------------
-# The two env vars declared below (ARCADE_UNSAFE_DEBUG_LEAK_DEVELOPER_MESSAGE_
-# TO_AGENT and ARCADE_UNSAFE_DEBUG_LEAK_STACKTRACE_TO_AGENT) intentionally
-# bypass the safety boundary between `developer_message` / `stacktrace` (server
-# -side, possibly containing paths, tokens, PII, internal state) and `message`
-# (sent verbatim to the model and often to end users).
-#
-# They exist ONLY for local debugging of tool authors working on their own
-# toolkits. They:
-#   * have deliberately ugly, long names so nobody types them by accident,
-#   * require a specific magic acknowledgement string — not `true`, not `1` —
-#     to avoid being flipped on by generic "enable all debug flags" scripts,
-#   * log a loud WARNING the first time they are read as enabled,
-#   * are documented ONLY in CLAUDE.md, not in public READMEs.
-#
-# If you find yourself wanting to add a third such flag: don't. Put the debug
-# info in logs (`logger.debug`) or in a dedicated diagnostic endpoint instead.
-# Anything appended to `ToolCallError.message` WILL be shipped to the model
-# and, for most tools, also shown to an end user in some UI.
-#
 from __future__ import annotations
 
 import logging
@@ -36,13 +14,15 @@ T = TypeVar("T")
 
 _logger = logging.getLogger(__name__)
 
-# Acknowledgement string a developer must set as the env value. Picked to be
-# impossible to set by mistake — no sane config management or CI will ever
-# emit this string.
+# DEBUG-ONLY flags below bypass the boundary between server-side error
+# internals (developer_message, stacktrace) and ToolCallError.message, which
+# ships verbatim in tool error responses. Activating them can leak paths,
+# tokens, or PII into downstream responses. Don't add more flags of this
+# shape — put debug info in logs instead.
 _DEBUG_LEAK_MAGIC = "yes-i-accept-leaking-internals-to-the-agent"
 
-_ENV_LEAK_DEVELOPER_MESSAGE = "ARCADE_UNSAFE_DEBUG_LEAK_DEVELOPER_MESSAGE_TO_AGENT"
-_ENV_LEAK_STACKTRACE = "ARCADE_UNSAFE_DEBUG_LEAK_STACKTRACE_TO_AGENT"
+_ENV_EXPOSE_DEVELOPER_MESSAGE = "ARCADE_DEBUG_EXPOSE_DEVELOPER_MESSAGE_IN_TOOL_ERROR_RESPONSES"
+_ENV_EXPOSE_STACKTRACE = "ARCADE_DEBUG_EXPOSE_STACKTRACE_IN_TOOL_ERROR_RESPONSES"
 
 # Track one-shot warning state per flag. The rejection warning (truthy but
 # not the magic string) and the activation warning (magic string set) are
@@ -71,9 +51,9 @@ def _leak_enabled(env_var: str) -> bool:
     if env_var not in _warned_activated:
         _warned_activated.add(env_var)
         _logger.warning(
-            "%s is ENABLED. Tool error internals will be appended to agent-facing "
-            "messages. This can leak paths, tokens, or PII to the model and any "
-            "downstream UI. DO NOT USE IN PRODUCTION.",
+            "%s is ENABLED. Tool error internals will be appended to the "
+            "`message` field of tool error responses. This can leak paths, "
+            "tokens, or PII to callers. DO NOT USE IN PRODUCTION.",
             env_var,
         )
     return True
@@ -85,9 +65,9 @@ def _augment_message_for_debug(
     stacktrace: str | None,
 ) -> str:
     extras: list[str] = []
-    if developer_message and _leak_enabled(_ENV_LEAK_DEVELOPER_MESSAGE):
+    if developer_message and _leak_enabled(_ENV_EXPOSE_DEVELOPER_MESSAGE):
         extras.append(f"developer_message: {developer_message}")
-    if stacktrace and _leak_enabled(_ENV_LEAK_STACKTRACE):
+    if stacktrace and _leak_enabled(_ENV_EXPOSE_STACKTRACE):
         extras.append(f"stacktrace:\n{stacktrace}")
     if not extras:
         return message

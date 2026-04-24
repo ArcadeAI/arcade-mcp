@@ -10,8 +10,8 @@ Guard: the unsafe debug-leak flags in ``arcade_core/output.py`` must never
 ship in the "on" state through committed files.
 
 The two env vars
-    ARCADE_UNSAFE_DEBUG_LEAK_DEVELOPER_MESSAGE_TO_AGENT
-    ARCADE_UNSAFE_DEBUG_LEAK_STACKTRACE_TO_AGENT
+    ARCADE_DEBUG_EXPOSE_DEVELOPER_MESSAGE_IN_TOOL_ERROR_RESPONSES
+    ARCADE_DEBUG_EXPOSE_STACKTRACE_IN_TOOL_ERROR_RESPONSES
 only activate when set to one specific acknowledgement string. Therefore we
 only need to guarantee that string never appears in the tree outside a tiny
 allowlist of files (the source that defines it, the tests that exercise it,

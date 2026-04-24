@@ -253,16 +253,16 @@ The `arcade` CLI (`libs/arcade-cli/arcade_cli/main.py`) is typer-based. Key comm
 | `ARCADE_DISABLE_AUTOUPDATE=1` | Disable CLI auto-update checks |
 | Any non-`MCP_`/`_` prefixed var | Automatically available as a tool secret via `context.get_secret()` |
 
-### Unsafe debug-only leak flags (toolkit authors)
+### Debug-only flags: expose error internals in tool error responses (toolkit authors)
 
-These intentionally bypass the `developer_message`/`stacktrace` safety boundary and append that content to the agent-facing `ToolCallError.message`. Use ONLY for local toolkit debugging. Both require the exact value `yes-i-accept-leaking-internals-to-the-agent` (nothing else is accepted — `true`, `1`, etc. are rejected and log a warning). Each logs a loud WARNING on first activation. Implemented in `libs/arcade-core/arcade_core/output.py`.
+These intentionally bypass the `developer_message`/`stacktrace` safety boundary and append that content to the `message` field of `ToolCallError` (which ships verbatim in tool error responses). Use ONLY for local toolkit debugging. Both require the exact value `yes-i-accept-leaking-internals-to-the-agent` (nothing else is accepted — `true`, `1`, etc. are rejected and log a warning). Each logs a loud WARNING on first activation. Implemented in `libs/arcade-core/arcade_core/output.py`.
 
 | Env var | Effect when set to the magic ack value |
 |---------|-----------------------------------------|
-| `ARCADE_UNSAFE_DEBUG_LEAK_DEVELOPER_MESSAGE_TO_AGENT` | Appends `developer_message` to agent-facing error `message` |
-| `ARCADE_UNSAFE_DEBUG_LEAK_STACKTRACE_TO_AGENT` | Appends the tool stacktrace to agent-facing error `message` |
+| `ARCADE_DEBUG_EXPOSE_DEVELOPER_MESSAGE_IN_TOOL_ERROR_RESPONSES` | Appends `developer_message` to the error response `message` field |
+| `ARCADE_DEBUG_EXPOSE_STACKTRACE_IN_TOOL_ERROR_RESPONSES` | Appends the tool stacktrace to the error response `message` field |
 
-**Never enable in production.** Messages can reach the model, be persisted in transcripts, and surface in end-user UIs.
+**Never enable in production.** The `message` field is returned verbatim to whoever called the tool — LLMs, transcripts, end-user UIs, and anything else downstream.
 
 ## Project Layout
 
