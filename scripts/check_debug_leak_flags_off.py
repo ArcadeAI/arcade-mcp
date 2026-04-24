@@ -6,8 +6,8 @@
 # hard-coding an absolute path would break portability. The subprocess
 # invocations here pass only constant argv lists, so S603/S607 don't apply.
 """
-Guard: the unsafe debug-leak flags in ``arcade_core/output.py`` must never
-ship in the "on" state through committed files.
+Guard: the debug-exposure flags in ``arcade_mcp_server/_debug_exposure.py``
+must never ship in the "on" state through committed files.
 
 The two env vars
     ARCADE_DEBUG_EXPOSE_DEVELOPER_MESSAGE_IN_TOOL_ERROR_RESPONSES
@@ -32,16 +32,16 @@ import sys
 from pathlib import Path
 
 # The activation ack string. Kept as the sole constant so updating it in one
-# place (arcade_core/output.py) also updates the guard.
+# place (arcade_mcp_server/_debug_exposure.py) also updates the guard.
 MAGIC = "yes-i-accept-leaking-internals-to-the-agent"
 
 # Files that are *allowed* to mention the magic string. Everything else is a
 # hard fail. Paths are relative to the repository root and use forward slashes.
 ALLOWLIST: frozenset[str] = frozenset({
     # The source of truth for the flags.
-    "libs/arcade-core/arcade_core/output.py",
+    "libs/arcade-mcp-server/arcade_mcp_server/_debug_exposure.py",
     # Tests for the flags.
-    "libs/tests/core/test_output.py",
+    "libs/tests/arcade_mcp_server/test_debug_exposure.py",
     # Developer documentation for the flags.
     "CLAUDE.md",
     # This guard itself.
@@ -110,7 +110,8 @@ def main() -> int:
             file=sys.stderr,
         )
         print(
-            "See libs/arcade-core/arcade_core/output.py for the full rationale.",
+            "See libs/arcade-mcp-server/arcade_mcp_server/_debug_exposure.py "
+            "for the full rationale.",
             file=sys.stderr,
         )
         return 1

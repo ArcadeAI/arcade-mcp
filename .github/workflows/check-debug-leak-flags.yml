@@ -1,6 +1,6 @@
 name: Debug Leak Flag Guard
 
-# Ensures the unsafe debug-leak flags in arcade_core/output.py cannot be
+# Ensures the debug-exposure flags in arcade_mcp_server/_debug_exposure.py cannot be
 # activated by anything shipped in committed files. The flags only activate
 # when the env var is set to one specific acknowledgement string, so we just
 # need to guarantee that string never appears outside its allowlist. See
