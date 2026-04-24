@@ -1129,7 +1129,9 @@ def create_func_models(func: Callable) -> tuple[type[BaseModel], type[BaseModel]
         # `def f(x: str = None)` is correctly treated as optional.
         is_required = not tool_field_info.is_optional and not tool_field_info.has_explicit_default
 
-        description = tool_field_info.description or "No description provided."
+        # extract_field_info raises ToolInputSchemaError when the Annotated
+        # description is missing, so by this point it is guaranteed non-None.
+        description = tool_field_info.description
 
         # Route TypedDict fields (and list[TypedDict]) through Pydantic models
         # so the extra='forbid' rule applies inside nested request dicts too.
