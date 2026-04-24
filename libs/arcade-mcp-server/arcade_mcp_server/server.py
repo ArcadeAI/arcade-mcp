@@ -934,10 +934,6 @@ class MCPServer:
                     error_text = error.message
                     if error.additional_prompt_content:
                         error_text += f"\n\n{error.additional_prompt_content}"
-                    # Debug-only escape hatch: opt-in env flags can append
-                    # developer_message / stacktrace to the agent-facing text.
-                    # See arcade_mcp_server/_debug_exposure.py for the rationale
-                    # and why this lives at the MCP boundary, not in arcade-core.
                     error_text = augment_error_message_for_debug(
                         error_text,
                         error.developer_message,

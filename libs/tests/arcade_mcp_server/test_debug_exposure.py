@@ -1,9 +1,4 @@
-"""Tests for the MCP-only debug-exposure escape hatch.
-
-The augmentation lives at the MCP boundary (``arcade_mcp_server/_debug_exposure.py``)
-rather than in ``arcade-core`` because only MCP clients suffer from the
-"message-only error rendering" problem that motivates these flags.
-"""
+"""Tests for the debug-exposure escape hatch in ``arcade_mcp_server/_debug_exposure.py``."""
 
 import logging
 

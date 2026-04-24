@@ -255,7 +255,7 @@ The `arcade` CLI (`libs/arcade-cli/arcade_cli/main.py`) is typer-based. Key comm
 
 ### Debug-only flags: expose error internals in tool error responses (toolkit authors)
 
-These intentionally bypass the `developer_message`/`stacktrace` safety boundary at the **MCP boundary only** and append that content to the `message` field of the MCP tool error response (which most MCP clients surface to the agent; `developer_message` is typically dropped). They are scoped to `arcade-mcp-server` on purpose — the Arcade Worker path already returns the full `ToolCallOutput` to the Engine, which surfaces `developer_message` and `stacktrace` natively, so these flags do not affect the worker path. Use ONLY for local toolkit debugging. Both require the exact value `yes-i-accept-leaking-internals-to-the-agent` (nothing else is accepted — `true`, `1`, etc. are rejected and log a warning). Each logs a loud WARNING on first activation. Implemented in `libs/arcade-mcp-server/arcade_mcp_server/_debug_exposure.py`.
+When set, these flags append `developer_message` and/or the tool stacktrace to the `message` field of the MCP tool error response — useful while debugging a toolkit, because most MCP clients render only `message` and drop `developer_message`. Use ONLY for local debugging. Both require the exact value `yes-i-accept-leaking-internals-to-the-agent` (nothing else is accepted — `true`, `1`, etc. are rejected and log a warning). Each logs a loud WARNING on first activation. Implemented in `libs/arcade-mcp-server/arcade_mcp_server/_debug_exposure.py`.
 
 | Env var | Effect when set to the magic ack value |
 |---------|-----------------------------------------|

@@ -1,18 +1,15 @@
 """
-MCP-only debug flags for tool error responses.
+Debug-only escape hatch for MCP tool error responses.
 
-Lives here — not in ``arcade-core`` — because it only makes sense at the MCP
-boundary. The Arcade Worker path already returns the full ``ToolCallOutput`` to
-the Engine, which surfaces ``developer_message`` and ``stacktrace`` natively,
-so augmenting the agent-facing ``message`` for that path would be redundant
-and would pollute a shared layer. MCP clients, by contrast, typically only
-render the ``message`` field of an error response, which makes server-side
-iteration painful without a targeted escape hatch.
+MCP clients typically render only the ``message`` field of a tool error
+response, dropping ``developer_message`` and ``stacktrace``. That makes
+server-side iteration painful when a tool is failing. The flags in this
+module let a toolkit author opt in to appending those internals to the
+``message`` field while debugging.
 
-DEBUG-ONLY flags below bypass the boundary between server-side error
-internals (developer_message, stacktrace) and the ``message`` field of
-MCP error responses. Activating them can leak paths, tokens, or PII to
-callers. Don't add more flags of this shape — put debug info in logs instead.
+DEBUG-ONLY. Activating these flags can leak paths, tokens, or PII to
+callers. Don't add more flags of this shape — put debug info in logs
+instead.
 """
 
 from __future__ import annotations
