@@ -32,6 +32,7 @@ from arcade_core.errors import ErrorKind
 from arcade_core.executor import ToolExecutor
 from arcade_core.schema import ToolContext
 from arcade_tdk import tool
+from pydantic import Field as PydanticField
 from pydantic import ValidationError
 from typing_extensions import TypedDict
 
@@ -274,6 +275,119 @@ class TestRequiredParamsEnforced:
         assert output.error.kind == ErrorKind.TOOL_RUNTIME_BAD_INPUT_VALUE
         # Error must mention which field was missing.
         assert "text" in (output.error.message or "")
+
+
+# ---------------------------------------------------------------------------
+# has_explicit_default via pydantic.Field(...) — the extract_pydantic_param_info
+# branch. The python-signature branch is covered above; these guard the
+# pydantic-Field branch of the flag so both paths agree.
+# ---------------------------------------------------------------------------
+
+
+class TestPydanticFieldHasExplicitDefault:
+    """Tools that declare params via `pydantic.Field(...)` must route
+    through extract_pydantic_param_info and populate has_explicit_default
+    consistently with the Python-signature path."""
+
+    def test_bare_pydantic_field_is_required(self):
+        """`Field()` with no default and no default_factory — Pydantic's
+        `default` attribute is PydanticUndefined. has_explicit_default must
+        be False; the field must be required in the generated model."""
+
+        @tool
+        def pyd_bare(
+            product_name: Annotated[str, "name"] = PydanticField(),
+        ) -> Annotated[str, "r"]:
+            """test"""
+            return product_name
+
+        local_cat = ToolCatalog()
+        local_cat.add_tool(pyd_bare, "PydBareTk")
+        td = local_cat.find_tool_by_func(pyd_bare)
+        mt = local_cat.get_tool(td.get_fully_qualified_name())
+
+        # Model side: field is required.
+        assert mt.input_model.model_fields["product_name"].is_required()
+        # Schema side: required=True.
+        param = next(p for p in td.input.parameters if p.name == "product_name")
+        assert param.required is True
+        # Validation raises on omission.
+        with pytest.raises(ValidationError):
+            mt.input_model()
+
+    def test_pydantic_field_with_default_none_is_optional(self):
+        """`Field(default=None)` on a non-Optional annotation — explicit
+        None default. has_explicit_default must be True; the field must be
+        optional and accept omission."""
+
+        @tool
+        def pyd_default_none(
+            product_name: Annotated[str, "name"] = PydanticField(default=None),
+        ) -> Annotated[str, "r"]:
+            """test"""
+            return product_name if product_name is not None else ""
+
+        local_cat = ToolCatalog()
+        local_cat.add_tool(pyd_default_none, "PydDefNoneTk")
+        td = local_cat.find_tool_by_func(pyd_default_none)
+        mt = local_cat.get_tool(td.get_fully_qualified_name())
+
+        assert not mt.input_model.model_fields["product_name"].is_required()
+        # Schema side: required=False.
+        param = next(p for p in td.input.parameters if p.name == "product_name")
+        assert param.required is False
+        # Omission is accepted (the has_explicit_default path must
+        # also trigger the Optional re-wrap in create_func_models).
+        obj = mt.input_model()
+        assert obj.product_name is None
+        # Explicit None validates.
+        assert mt.input_model(product_name=None).product_name is None
+
+    def test_pydantic_field_with_real_default_is_optional(self):
+        """`Field(default="fixed")` — non-None explicit default. Must be
+        optional; omission yields the default, and the field_type stays
+        non-nullable (no Optional[str] re-wrap, since default isn't None)."""
+
+        @tool
+        def pyd_default_real(
+            product_name: Annotated[str, "name"] = PydanticField(default="fallback"),
+        ) -> Annotated[str, "r"]:
+            """test"""
+            return product_name
+
+        local_cat = ToolCatalog()
+        local_cat.add_tool(pyd_default_real, "PydDefRealTk")
+        td = local_cat.find_tool_by_func(pyd_default_real)
+        mt = local_cat.get_tool(td.get_fully_qualified_name())
+
+        field = mt.input_model.model_fields["product_name"]
+        assert not field.is_required()
+        # Omission uses the default.
+        assert mt.input_model().product_name == "fallback"
+
+    def test_pydantic_field_with_default_factory_is_optional(self):
+        """`Field(default_factory=list)` — no `default` but a factory.
+        has_explicit_default must be True; the field is optional."""
+
+        @tool
+        def pyd_factory(
+            items: Annotated[list[str], "items"] = PydanticField(default_factory=list),
+        ) -> Annotated[str, "r"]:
+            """test"""
+            return ",".join(items)
+
+        local_cat = ToolCatalog()
+        local_cat.add_tool(pyd_factory, "PydFactoryTk")
+        td = local_cat.find_tool_by_func(pyd_factory)
+        mt = local_cat.get_tool(td.get_fully_qualified_name())
+
+        assert not mt.input_model.model_fields["items"].is_required()
+        # Schema side: required=False.
+        param = next(p for p in td.input.parameters if p.name == "items")
+        assert param.required is False
+        # Omission yields the factory's value (evaluated at extraction
+        # time and stored as the default).
+        assert mt.input_model().items == []
 
 
 # ---------------------------------------------------------------------------
