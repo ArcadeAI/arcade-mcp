@@ -40,8 +40,10 @@ MAGIC = "yes-i-accept-leaking-internals-to-the-agent"
 ALLOWLIST: frozenset[str] = frozenset({
     # The source of truth for the flags.
     "libs/arcade-mcp-server/arcade_mcp_server/_debug_exposure.py",
-    # Tests for the flags.
+    # Unit tests for the pure augmentation function.
     "libs/tests/arcade_mcp_server/test_debug_exposure.py",
+    # Integration tests for the MCP-boundary wire-up.
+    "libs/tests/arcade_mcp_server/test_debug_exposure_integration.py",
     # Developer documentation for the flags.
     "CLAUDE.md",
     # This guard itself.
