@@ -29,6 +29,7 @@ from arcade_core.schema import ToolAuthRequirement as CoreToolAuthRequirement
 from arcadepy import ArcadeError, AsyncArcade
 from arcadepy.types.auth_authorize_params import AuthRequirement, AuthRequirementOauth2
 
+from arcade_mcp_server._debug_exposure import augment_error_message_for_debug
 from arcade_mcp_server.context import Context, get_current_model_context, set_current_model_context
 from arcade_mcp_server.convert import convert_content_to_structured_content, convert_to_mcp_content
 from arcade_mcp_server.exceptions import NotFoundError, ToolRuntimeError
@@ -933,6 +934,11 @@ class MCPServer:
                     error_text = error.message
                     if error.additional_prompt_content:
                         error_text += f"\n\n{error.additional_prompt_content}"
+                    error_text = augment_error_message_for_debug(
+                        error_text,
+                        error.developer_message,
+                        error.stacktrace,
+                    )
                     content = convert_to_mcp_content(error_text)
                     self._log_tool_call_error(tool_name, error)
                 else:
