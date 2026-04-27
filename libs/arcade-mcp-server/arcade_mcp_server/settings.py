@@ -213,6 +213,38 @@ class ResourceServerSettings(BaseSettings):
         description="JSON array of authorization server entries."
         'Example: \'[{"authorization_server_url":"https://auth.example.com","issuer":"https://auth.example.com","jwks_uri":"https://auth.example.com/oauth2/jwks","algorithm":"RS256"}]\'',
     )
+    default_advertised_scopes: list[str] | None = Field(
+        default=None,
+        description=(
+            "Space-separated OAuth scopes to advertise on the entry-401 "
+            "WWW-Authenticate challenge and as scopes_supported in the RFC "
+            "9728 Protected Resource Metadata document. Example: "
+            "'mcp offline_access'. Empty/unset = no advertisement (clients "
+            "fall back to the MCP spec selection strategy). Per MCP "
+            "2025-11-25 §Authorization (SHOULD-rule) and RFC 6749 §3.3 "
+            "scope encoding."
+        ),
+    )
+
+    @field_validator("default_advertised_scopes", mode="before")
+    @classmethod
+    def parse_default_advertised_scopes(cls, v: Any) -> list[str] | None:
+        """Parse space-separated scopes from environment variable.
+
+        ``str.split()`` (no args) splits on any whitespace, collapses
+        runs, and yields no empty strings — exactly the right semantics
+        for OAuth scope lists. Empty / whitespace-only input becomes
+        ``None`` (NOT ``[]``) to match the "no advertisement" convention
+        used throughout the resource_server module.
+        """
+        if v is None:
+            return None
+        if isinstance(v, str):
+            tokens = v.split()
+            return tokens or None
+        if isinstance(v, list):
+            return v or None
+        return None
 
     @field_validator("authorization_servers", mode="before")
     @classmethod

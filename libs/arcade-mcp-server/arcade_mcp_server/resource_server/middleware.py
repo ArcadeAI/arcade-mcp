@@ -40,7 +40,11 @@ class ResourceServerMiddleware:
 
         Args:
             app: ASGI application to wrap
-            validator: Token validator for access token validation
+            validator: Token validator for access token validation. The
+                validator's ``default_advertised_scopes`` attribute drives
+                advertisement on the entry-401 ``WWW-Authenticate`` challenge
+                (MCP 2025-11-25 §Authorization SHOULD-rule). One source of
+                truth — no separate parameter on the middleware.
             canonical_url: Canonical URL of this MCP server (for OAuth metadata).
                           Required only for validators that support OAuth discovery.
         """
@@ -187,16 +191,31 @@ class ResourceServerMiddleware:
             www_auth_parts.append(f'error_description="{error_description}"')
 
         # SEP-985 / MCP 2025-11-25 §Authorization: servers SHOULD advertise the
-        # required `scope` when it is known. At the middleware layer we have
-        # not yet dispatched to a tool, so we cannot know which scopes the
-        # request requires — in that case the spec explicitly says to OMIT the
-        # `scope` parameter and let clients apply their fallback scope
-        # selection strategy. Emitting `scope=""` instead would violate
-        # RFC 6750 §3 (empty scope tells compliant OAuth clients to acquire a
-        # token with no scopes, which is semantically wrong and can cause
-        # clients to loop on empty-scope token acquisition). The precise
-        # scopes are attached to the 403 `insufficient_scope` response by the
-        # handler-level scope check.
+        # required `scope` on the WWW-Authenticate challenge so clients can
+        # apply the principle-of-least-privilege scope-selection strategy.
+        #
+        # Per-request precision is impossible at the middleware layer (we
+        # haven't dispatched to a specific tool yet), but the *server-wide
+        # superset* of scopes IS known to the operator and is exactly what
+        # the spec wants advertised here. When the operator configures
+        # ``default_advertised_scopes`` on the validator we surface it as
+        # RFC 6750 §3 ``scope="<space-separated>"``. When unset, we still
+        # omit the parameter rather than emit ``scope=""`` — the empty form
+        # would tell compliant OAuth clients to acquire a zero-scope token
+        # (semantically wrong and a known cause of empty-scope token loops).
+        # Tool-specific scopes are attached to the 403 ``insufficient_scope``
+        # response by the handler-level scope check.
+        #
+        # The validator is the single source of truth: ``ResourceServerValidator``
+        # declares ``default_advertised_scopes`` on the ABC so this attribute
+        # access is always safe (no defensive ``getattr``). A future
+        # ``required_scopes`` field could plug in here as a fallback when
+        # ``default_advertised_scopes`` is unset (FastMCP-shaped chain;
+        # see ``validators/auth.py`` for the seam doc).
+        advertised = self.validator.default_advertised_scopes
+        if advertised:
+            scope_value = " ".join(advertised)
+            www_auth_parts.append(f'scope="{scope_value}"')
 
         www_auth_value = "Bearer " + ", ".join(www_auth_parts)
 

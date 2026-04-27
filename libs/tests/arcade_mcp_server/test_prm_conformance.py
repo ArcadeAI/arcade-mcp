@@ -432,6 +432,10 @@ class TestMiddlewareScopeParam:
 
         validator = Mock()
         validator.supports_oauth_discovery.return_value = False
+        # Middleware reads validator.default_advertised_scopes (declared on
+        # ResourceServerValidator ABC). Mock auto-creates attributes as Mock
+        # objects, so we must explicitly set None to reflect "no advertisement".
+        validator.default_advertised_scopes = None
 
         middleware = ResourceServerMiddleware(
             app=Mock(),
@@ -465,6 +469,7 @@ class TestMiddlewareScopeParam:
 
         validator = Mock()
         validator.supports_oauth_discovery.return_value = True
+        validator.default_advertised_scopes = None
 
         middleware = ResourceServerMiddleware(
             app=Mock(),
