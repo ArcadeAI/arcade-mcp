@@ -75,7 +75,7 @@ def _get_default_oauth_timeout_seconds() -> int:
 DEFAULT_OAUTH_TIMEOUT_SECONDS = _get_default_oauth_timeout_seconds()
 
 
-def create_oauth_client(cli_config: CLIConfig) -> OAuth2Client:  # type: ignore[no-any-unimported]
+def create_oauth_client(cli_config: CLIConfig) -> OAuth2Client:
     """
     Create an authlib OAuth2Client configured for the CLI.
 
@@ -92,7 +92,7 @@ def create_oauth_client(cli_config: CLIConfig) -> OAuth2Client:  # type: ignore[
     )
 
 
-def generate_authorization_url(  # type: ignore[no-any-unimported]
+def generate_authorization_url(
     client: OAuth2Client,
     cli_config: CLIConfig,
     redirect_uri: str,
@@ -123,7 +123,7 @@ def generate_authorization_url(  # type: ignore[no-any-unimported]
     return url, code_verifier
 
 
-def exchange_code_for_tokens(  # type: ignore[no-any-unimported]
+def exchange_code_for_tokens(
     client: OAuth2Client,
     code: str,
     redirect_uri: str,
@@ -321,7 +321,7 @@ class _LoopbackHTTPServer(HTTPServer):
     def server_bind(self) -> None:
         socketserver.TCPServer.server_bind(self)
         host, port = self.server_address[:2]
-        self.server_name = host
+        self.server_name = host if isinstance(host, str) else host.decode()
         self.server_port = port
 
 
