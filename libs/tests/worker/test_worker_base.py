@@ -153,10 +153,14 @@ async def test_call_tool_success_and_error_logs_use_same_tool_identifiers(
         await base_worker_no_auth.call_tool(error_req)
 
     success_line = next(
-        r for r in caplog.records if "exec_consistency_ok" in r.getMessage() and "success" in r.getMessage()
+        r
+        for r in caplog.records
+        if "exec_consistency_ok" in r.getMessage() and "success" in r.getMessage()
     )
     error_line = next(
-        r for r in caplog.records if "exec_consistency_err" in r.getMessage() and "failed:" in r.getMessage()
+        r
+        for r in caplog.records
+        if "exec_consistency_err" in r.getMessage() and "failed:" in r.getMessage()
     )
     # Both must use the bare tool name (".name"), NOT the full ``Toolkit.Tool`` fqname.
     assert "Tool SampleTool " in success_line.getMessage()
@@ -212,7 +216,9 @@ async def test_call_tool_error_log_text_matches_structured_extras(base_worker_no
         await base_worker_no_auth.call_tool(tool_request)
 
     primary = next(
-        r for r in caplog.records if "exec_log_check" in r.getMessage() and "failed:" in r.getMessage()
+        r
+        for r in caplog.records
+        if "exec_log_check" in r.getMessage() and "failed:" in r.getMessage()
     )
     # Text and structured extra must agree on name + version.
     assert "Tool ErrorTool " in primary.getMessage()
@@ -243,7 +249,8 @@ async def test_call_tool_error_secondary_log_carries_full_exception_content(
         await base_worker_no_auth.call_tool(tool_request)
 
     secondary = [
-        r for r in caplog.records
+        r
+        for r in caplog.records
         if "exec_dev_msg" in r.getMessage() and "Developer message:" in r.getMessage()
     ]
     assert len(secondary) == 1, "secondary 'Developer message:' log should fire once"
@@ -322,6 +329,32 @@ async def test_call_tool_component_call(base_worker_no_auth):
     assert response.success is True
     assert response.output.value == 15
     assert response.execution_id == "comp_test_exec"
+
+
+@pytest.mark.asyncio
+async def test_call_tool_component_allows_missing_output():
+    class OutputlessWorker:
+        async def call_tool(self, call_tool_request):
+            return ToolCallResponse(
+                execution_id="comp_outputless_exec",
+                duration=1,
+                finished_at="2026-01-01T00:00:00",
+                success=False,
+                output=None,
+            )
+
+    component = CallToolComponent(OutputlessWorker())
+    mock_request = MagicMock(spec=RequestData)
+    mock_request.body_json = {
+        "execution_id": "comp_outputless_exec",
+        "tool": ToolReference(toolkit="TestKit", name="SampleTool").model_dump(),
+        "inputs": {},
+    }
+
+    response = await component(mock_request)
+
+    assert response.success is False
+    assert response.output is None
 
 
 @pytest.mark.asyncio
