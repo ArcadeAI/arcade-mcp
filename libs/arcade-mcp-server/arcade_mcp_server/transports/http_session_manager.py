@@ -343,7 +343,7 @@ class HTTPSessionManager:
         inner_receive: Receive = _replay_receive(body_bytes) if body_bytes is not None else receive
 
         # --- Accept header validation (POST only) ---
-        # Per MCP 2025-11-25 transports.mdx §2: "The client MUST include an
+        # Per MCP 2025-11-25 transports.mdx section 2: "The client MUST include an
         # Accept header, listing both application/json and text/event-stream
         # as supported content types." No carve-out for initialize — the
         # server MAY respond to an initialize POST with an SSE stream, so the
@@ -459,7 +459,7 @@ class HTTPSessionManager:
         inner_receive: Receive = _replay_receive(body_bytes) if body_bytes is not None else receive
 
         # --- Accept header validation (POST only) ---
-        # Per MCP 2025-11-25 transports.mdx §2: "The client MUST include an
+        # Per MCP 2025-11-25 transports.mdx section 2: "The client MUST include an
         # Accept header, listing both application/json and text/event-stream
         # as supported content types." The rule applies to every POST
         # (including initialize) — the server MAY respond to initialize with

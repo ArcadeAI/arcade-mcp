@@ -491,10 +491,10 @@ def start_server_process(entrypoint: str, debug: bool = False) -> tuple[subproce
     if process.poll() is not None:
         if debug:
             raise ValueError(
-                "Server process exited immediately. " "Check the server output above for details."
+                "Server process exited immediately. Check the server output above for details."
             )
         raise ValueError(
-            "Server process exited immediately. " "Re-run with --debug to see server startup logs."
+            "Server process exited immediately. Re-run with --debug to see server startup logs."
         )
 
     return process, port
@@ -578,7 +578,7 @@ def get_server_info(base_url: str) -> tuple[str, str]:
         ),
     )
 
-    # Per MCP 2025-11-25 transports.mdx §2, every POST to the MCP endpoint
+    # Per MCP 2025-11-25 transports.mdx section 2, every POST to the MCP endpoint
     # MUST advertise BOTH ``application/json`` and ``text/event-stream`` in
     # the Accept header -- the server MAY respond with an SSE stream.
     headers = {

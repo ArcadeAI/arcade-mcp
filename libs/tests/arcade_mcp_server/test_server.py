@@ -2458,7 +2458,7 @@ class TestTaskHandlers:
         """Task.ttl is in the MCP 2025-11-25 Task ``required`` array, so the
         key MUST be present on the wire -- even when the operator has
         configured unlimited retention (``_max_retention=None``), where the
-        spec (tasks.mdx §TTL and Resource Management: 'null for unlimited')
+        spec (tasks.mdx section TTL and Resource Management: 'null for unlimited')
         allows the value to be null.
 
         The notification path uses ``model_dump(exclude_none=True)`` to drop
@@ -2474,9 +2474,7 @@ class TestTaskHandlers:
         async def fake_send(msg: str) -> None:
             sent_messages.append(msg)
 
-        initialized_server_session.write_stream = type(
-            "W", (), {"send": staticmethod(fake_send)}
-        )()
+        initialized_server_session.write_stream = type("W", (), {"send": staticmethod(fake_send)})()
 
         # Unlimited retention -- ttl=None on the Task object.
         task = await mcp_server._task_manager.create_task(context_key=f"session:{sid}")

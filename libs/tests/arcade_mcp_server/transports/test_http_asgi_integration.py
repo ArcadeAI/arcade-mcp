@@ -65,9 +65,7 @@ async def _http_client(
 
     async with manager.run():
         transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(
-            transport=transport, base_url="http://testserver"
-        ) as client:
+        async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
             yield client
 
 
@@ -134,12 +132,8 @@ class TestCORSPreflight:
 
 class TestOriginValidation:
     @pytest.mark.asyncio
-    async def test_origin_not_in_allowlist_returns_403(
-        self, mcp_server: MCPServer
-    ) -> None:
-        async with _http_client(
-            mcp_server, allowed_origins=["https://good.example.com"]
-        ) as client:
+    async def test_origin_not_in_allowlist_returns_403(self, mcp_server: MCPServer) -> None:
+        async with _http_client(mcp_server, allowed_origins=["https://good.example.com"]) as client:
             resp = await client.post(
                 "/mcp/",
                 headers={
@@ -166,9 +160,7 @@ class TestOriginValidation:
 
     @pytest.mark.asyncio
     async def test_origin_in_allowlist_accepted(self, mcp_server: MCPServer) -> None:
-        async with _http_client(
-            mcp_server, allowed_origins=["https://good.example.com"]
-        ) as client:
+        async with _http_client(mcp_server, allowed_origins=["https://good.example.com"]) as client:
             resp = await client.post(
                 "/mcp/",
                 headers={
@@ -191,12 +183,8 @@ class TestOriginValidation:
         assert resp.status_code < 500
 
     @pytest.mark.asyncio
-    async def test_no_origin_header_accepted_as_non_browser(
-        self, mcp_server: MCPServer
-    ) -> None:
-        async with _http_client(
-            mcp_server, allowed_origins=["https://good.example.com"]
-        ) as client:
+    async def test_no_origin_header_accepted_as_non_browser(self, mcp_server: MCPServer) -> None:
+        async with _http_client(mcp_server, allowed_origins=["https://good.example.com"]) as client:
             resp = await client.post(
                 "/mcp/",
                 headers={
@@ -225,9 +213,7 @@ class TestOriginValidation:
 
 class TestAcceptHeaderValidation:
     @pytest.mark.asyncio
-    async def test_post_without_proper_accept_returns_406(
-        self, mcp_server: MCPServer
-    ) -> None:
+    async def test_post_without_proper_accept_returns_406(self, mcp_server: MCPServer) -> None:
         async with _http_client(mcp_server) as client:
             _, session_id = await _initialize(client, protocol_version="2025-06-18")
             resp = await client.post(
@@ -248,7 +234,7 @@ class TestAcceptHeaderValidation:
     async def test_initialize_must_also_advertise_both_content_types(
         self, mcp_server: MCPServer
     ) -> None:
-        """Per MCP 2025-11-25 transports.mdx §2, every client POST MUST
+        """Per MCP 2025-11-25 transports.mdx section 2, every client POST MUST
         include both ``application/json`` and ``text/event-stream`` in the
         Accept header -- there is no carve-out for initialize. The server
         MAY respond to initialize with an SSE stream, so the client must
@@ -287,9 +273,7 @@ class TestAcceptHeaderValidation:
 
 class TestProtocolVersionHeader:
     @pytest.mark.asyncio
-    async def test_unsupported_version_header_returns_400(
-        self, mcp_server: MCPServer
-    ) -> None:
+    async def test_unsupported_version_header_returns_400(self, mcp_server: MCPServer) -> None:
         async with _http_client(mcp_server) as client:
             _, session_id = await _initialize(client, protocol_version="2025-06-18")
             resp = await client.post(
@@ -307,9 +291,7 @@ class TestProtocolVersionHeader:
         assert "id" not in body  # transport error omits id
 
     @pytest.mark.asyncio
-    async def test_stateless_requires_version_header(
-        self, mcp_server: MCPServer
-    ) -> None:
+    async def test_stateless_requires_version_header(self, mcp_server: MCPServer) -> None:
         async with _http_client(mcp_server, stateless=True) as client:
             resp = await client.post(
                 "/mcp/",
@@ -351,9 +333,7 @@ class TestProtocolVersionHeader:
 
 class TestSessionIdFlow:
     @pytest.mark.asyncio
-    async def test_missing_session_on_non_init_returns_400(
-        self, mcp_server: MCPServer
-    ) -> None:
+    async def test_missing_session_on_non_init_returns_400(self, mcp_server: MCPServer) -> None:
         async with _http_client(mcp_server) as client:
             resp = await client.post(
                 "/mcp/",
@@ -427,9 +407,7 @@ class TestFullRoundTrip:
         assert "tools" in body["result"]
 
     @pytest.mark.asyncio
-    async def test_negotiates_down_to_client_version(
-        self, mcp_server: MCPServer
-    ) -> None:
+    async def test_negotiates_down_to_client_version(self, mcp_server: MCPServer) -> None:
         """If client sends 2025-06-18, server must reply 2025-06-18 (not latest)."""
         async with _http_client(mcp_server) as client:
             init, _ = await _initialize(client, protocol_version="2025-06-18")
