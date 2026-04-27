@@ -8,9 +8,7 @@ both are present — setting structuredContent to None avoids the validation
 requirement entirely. The error message is still available in content (TextContent).
 """
 
-import json
 from typing import Annotated
-from unittest.mock import AsyncMock, Mock
 
 import pytest
 from arcade_core.catalog import MaterializedTool, ToolCatalog, ToolMeta, create_func_models

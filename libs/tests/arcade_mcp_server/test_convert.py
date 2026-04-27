@@ -771,7 +771,6 @@ class TestOutputSchemaOptionalTypedDictFields:
 
     def _make_tool_and_mcp_tool(self, return_type, annotation_desc="result"):
         """Helper: register a tool returning `return_type` and get the MCP tool."""
-        from typing_extensions import TypedDict
 
         @tool
         def f() -> Annotated[return_type, annotation_desc]:
