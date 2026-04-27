@@ -414,11 +414,11 @@ class TestTransportMetadataStripping:
 
 class TestMiddlewareScopeParam:
     """The middleware layer has not yet dispatched to a tool when it emits a
-    401, so it cannot know which scopes the request requires. MCP 2025-11-25
-    §Authorization instructs servers to OMIT ``scope`` in that case (clients
-    then apply their fallback scope selection strategy). Emitting ``scope=""``
-    instead would violate RFC 6750 §3 — empty scope tells compliant OAuth
-    clients to acquire a token with zero scopes, which can drive them into an
+    401, so it cannot know which scopes the request requires. The MCP spec
+    instructs servers to OMIT ``scope`` in that case (clients then apply
+    their fallback scope selection strategy). Emitting ``scope=""`` instead
+    would violate RFC 6750 — empty scope tells compliant OAuth clients to
+    acquire a token with zero scopes, which can drive them into an
     empty-scope token-acquisition loop. The precise required scopes are
     surfaced on the handler-level 403 ``insufficient_scope`` response.
     """
@@ -447,11 +447,11 @@ class TestMiddlewareScopeParam:
         www_auth = response.headers.get("WWW-Authenticate", "")
         assert 'scope=""' not in www_auth, (
             f"401 WWW-Authenticate must not advertise empty scope (got: {www_auth!r}) — "
-            "empty scope violates RFC 6750 §3 and can cause empty-scope token loops"
+            "empty scope violates RFC 6750 and can cause empty-scope token loops"
         )
         # Middleware cannot know the required scope here, so no scope attribute
-        # at all (per MCP 2025-11-25 §Authorization: absent scope triggers the
-        # client's fallback scope selection strategy).
+        # at all (per the MCP spec: absent scope triggers the client's
+        # fallback scope selection strategy).
         assert "scope=" not in www_auth, (
             f"401 WWW-Authenticate must omit `scope` when the required scopes "
             f"are not known at the middleware layer (got: {www_auth!r})"

@@ -220,9 +220,7 @@ class ResourceServerSettings(BaseSettings):
             "WWW-Authenticate challenge and as scopes_supported in the RFC "
             "9728 Protected Resource Metadata document. Example: "
             "'mcp offline_access'. Empty/unset = no advertisement (clients "
-            "fall back to the MCP spec selection strategy). Per MCP "
-            "2025-11-25 §Authorization (SHOULD-rule) and RFC 6749 §3.3 "
-            "scope encoding."
+            "fall back to the MCP spec selection strategy)."
         ),
     )
 

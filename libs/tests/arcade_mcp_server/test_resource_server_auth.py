@@ -1186,7 +1186,7 @@ class TestResourceServerMiddleware:
     async def test_www_authenticate_advertises_default_scopes(self, jwks_data):
         """When ``default_advertised_scopes`` is configured, the entry-401
         WWW-Authenticate header MUST include a space-separated ``scope=...``
-        parameter per MCP 2025-11-25 §Authorization (SHOULD-rule).
+        parameter per the MCP spec (SHOULD-rule).
         """
         with patch("httpx.AsyncClient.get") as mock_get:
             mock_response = Mock()
@@ -1237,7 +1237,7 @@ class TestResourceServerMiddleware:
         """When ``default_advertised_scopes`` is configured, the RFC 9728
         Protected Resource Metadata document MUST include ``scopes_supported``
         so clients without a WWW-Authenticate ``scope`` parameter can fall
-        back per MCP 2025-11-25 §Authorization scope-selection strategy.
+        back per the MCP spec scope-selection strategy.
         """
         resource_server = ResourceServerAuth(
             canonical_url="https://mcp.example.com/mcp",
@@ -1257,7 +1257,7 @@ class TestResourceServerMiddleware:
     def test_resource_metadata_omits_scopes_supported_when_unset(self):
         """When ``default_advertised_scopes`` is not configured, the RFC 9728
         metadata document MUST NOT include ``scopes_supported`` (the field is
-        OPTIONAL per RFC 9728 §3 and an empty array would be misleading).
+        OPTIONAL per RFC 9728 and an empty array would be misleading).
         """
         resource_server = ResourceServerAuth(
             canonical_url="https://mcp.example.com/mcp",
@@ -1400,9 +1400,9 @@ class TestResourceServerValidatorContract:
 
 
 class TestAdvertisedScopesValidation:
-    """Tests for RFC 6750 §3 scope-token validation.
+    """Tests for RFC 6750 scope-token validation.
 
-    RFC 6750 §3 ABNF: ``scope-token = 1*( %x21 / %x23-5B / %x5D-7E )``
+    RFC 6750 ABNF: ``scope-token = 1*( %x21 / %x23-5B / %x5D-7E )``
     — at least one printable ASCII character, excluding ``"`` (0x22),
     ``\\`` (0x5C), space, control characters, and non-ASCII.
 
@@ -1438,7 +1438,7 @@ class TestAdvertisedScopesValidation:
             # Non-ASCII
             (["unicode-é"], "non-ASCII|ASCII"),
             (["日本語"], "non-ASCII|ASCII"),
-            # Specifically excluded by RFC 6750 §3 grammar
+            # Specifically excluded by RFC 6750 grammar
             (['quote"here'], "RFC 6750"),
             (["back\\slash"], "RFC 6750"),
             # Control characters (< 0x20)
@@ -1471,7 +1471,7 @@ class TestAdvertisedScopesValidation:
         ],
     )
     def test_valid_scope_tokens_accepted(self, valid_input):
-        """Tokens conforming to RFC 6750 §3 grammar are accepted unchanged."""
+        """Tokens conforming to RFC 6750 grammar are accepted unchanged."""
         rs = ResourceServerAuth(
             **self._minimal_kwargs(),
             default_advertised_scopes=valid_input,
@@ -1557,7 +1557,7 @@ class TestAdvertisedScopesEnvVar:
     """Tests for ``MCP_RESOURCE_SERVER_DEFAULT_ADVERTISED_SCOPES`` env var.
 
     The env var uses **space-separated** format (``"mcp offline_access"``)
-    matching OAuth wire convention (RFC 6749 §3.3 ``scope`` parameter is
+    matching OAuth wire convention (RFC 6749 ``scope`` parameter is
     space-separated). This is more idiomatic than JSON arrays for OAuth
     scope lists, easier to read in ``.env`` files, and naturally collapses
     whitespace runs via ``str.split()``.
@@ -1613,7 +1613,7 @@ class TestAdvertisedScopesEnvVar:
         """Empty env var means "no advertisement" (None), NOT empty list.
 
         An empty list would translate to ``scope=""`` on the wire, which
-        per RFC 6750 §3 tells compliant clients to acquire a zero-scope
+        per RFC 6750 tells compliant clients to acquire a zero-scope
         token — semantically wrong and a known cause of empty-scope token
         loops (see middleware comment in ``_create_401_response``).
         """
@@ -1640,7 +1640,7 @@ class TestAdvertisedScopesEnvVar:
         assert rs.default_advertised_scopes == ["mcp", "offline_access"]
 
     def test_invalid_scope_in_env_raises(self, monkeypatch):
-        """RFC 6750 §3 grammar applies to env-var-sourced values too. The
+        """RFC 6750 grammar applies to env-var-sourced values too. The
         validator gate runs against any scope source, no matter how it
         arrived.
         """
@@ -1664,9 +1664,9 @@ class TestAdvertisedScopesEnvVar:
 
 
 class TestWWWAuthenticateRFC6750Format:
-    """Tests for RFC 6750 §3 ``WWW-Authenticate`` header conformance.
+    """Tests for RFC 6750 ``WWW-Authenticate`` header conformance.
 
-    RFC 6750 §3 specifies the header format as
+    RFC 6750 specifies the header format as
     ``WWW-Authenticate: Bearer realm="...", scope="..."`` — auth-scheme
     ``Bearer``, then comma-separated ``key="value"`` parameters with
     quoted-string values.
@@ -1719,7 +1719,7 @@ class TestWWWAuthenticateRFC6750Format:
 
     @pytest.mark.asyncio
     async def test_header_uses_bearer_auth_scheme_prefix(self, jwks_data):
-        """RFC 6750 §3: header MUST begin with the ``Bearer`` auth-scheme."""
+        """RFC 6750: header MUST begin with the ``Bearer`` auth-scheme."""
         with patch("httpx.AsyncClient.get") as mock_get:
             mock_response = Mock()
             mock_response.json.return_value = jwks_data
@@ -1736,7 +1736,7 @@ class TestWWWAuthenticateRFC6750Format:
 
     @pytest.mark.asyncio
     async def test_scope_param_uses_quoted_string_format(self, jwks_data):
-        """RFC 6750 §3: parameters use ``key="value"`` quoted-string form.
+        """RFC 6750: parameters use ``key="value"`` quoted-string form.
 
         Specifically the scope parameter must be ``scope="..."`` (with
         double quotes), not ``scope=...`` (bare) or ``scope='...'``
@@ -1780,7 +1780,7 @@ class TestWWWAuthenticateRFC6750Format:
 
     @pytest.mark.asyncio
     async def test_no_semicolons_in_header(self, jwks_data):
-        """RFC 6750 §3: parameters are comma-separated, NOT
+        """RFC 6750: parameters are comma-separated, NOT
         semicolon-separated. Semicolons are HTTP-cookie-style; using them
         in WWW-Authenticate is a non-conformance bug some servers ship.
         """
