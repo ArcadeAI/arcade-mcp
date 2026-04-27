@@ -202,7 +202,7 @@ class HTTPStreamableTransport:
         except Exception:
             # Fallback: treat as error
             return JSONRPCError(
-                id=parsed.get("id"),
+                id=cast("str | int | None", parsed.get("id")),
                 error={"code": -32600, "message": "Invalid message"},
             )
 

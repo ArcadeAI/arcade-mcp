@@ -159,7 +159,9 @@ class TransportSettings(BaseSettings):
             return None
         if isinstance(v, str):
             return [s.strip() for s in v.split(",") if s.strip()]
-        return v
+        if isinstance(v, list):
+            return v
+        return None
 
     model_config = {"env_prefix": "MCP_TRANSPORT_"}
 

@@ -11,7 +11,7 @@ import json
 import logging
 import uuid
 from enum import Enum
-from typing import Any
+from typing import Any, cast
 
 import anyio
 
@@ -333,7 +333,7 @@ class ServerSession:
         self.client_params = params
         # Extract client capabilities (params may be a dict in tests)
         if isinstance(params, dict):
-            caps = params.get("capabilities")  # type: ignore[union-attr]
+            caps = params.get("capabilities")
             if isinstance(caps, ClientCapabilities):
                 self._client_capabilities = caps
             elif isinstance(caps, dict):
@@ -697,7 +697,9 @@ class ServerSession:
         available; fall back to dict-coercion for plain mappings.
         """
         if hasattr(msg, "model_dump"):
-            return msg.model_dump(by_alias=True, exclude_none=True)
+            # ``msg: Any`` so ``model_dump`` returns ``Any`` to mypy even
+            # though Pydantic always produces ``dict[str, Any]`` here.
+            return cast("dict[str, Any]", msg.model_dump(by_alias=True, exclude_none=True))
         if isinstance(msg, dict):
             return msg
         return dict(msg)

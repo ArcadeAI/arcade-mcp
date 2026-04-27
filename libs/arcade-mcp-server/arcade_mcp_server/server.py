@@ -92,9 +92,12 @@ from arcade_mcp_server.types import (
     ListToolsRequest,
     ListToolsResult,
     MCPMessage,
+    MCPTool,
     PingRequest,
+    Prompt,
     ReadResourceRequest,
     ReadResourceResult,
+    Resource,
     ResourceTemplate,
     ServerCapabilities,
     SetLevelRequest,
@@ -120,7 +123,7 @@ def _extract_scopes(claims: dict[str, Any]) -> set[str]:
     """Normalise scope extraction across OAuth provider formats.
 
     Handles:
-    - ``scope`` claim (RFC 6749 §3.3, space-delimited string)
+    - ``scope`` claim (RFC 6749 section 3.3, space-delimited string)
     - ``scp`` claim (Azure AD / Microsoft Entra, space-delimited string)
     - Both may also be JSON arrays of strings
     """
@@ -938,7 +941,11 @@ class MCPServer:
             projected = self._project_for_version(
                 tools, session, strip_fields=["icons", "execution"]
             )
-            return JSONRPCResponse(id=message.id, result=ListToolsResult(tools=projected))
+            # ``_project_for_version`` returns ``list[dict[str, Any]]``;
+            # Pydantic accepts dicts and validates them at construction.
+            return JSONRPCResponse(
+                id=message.id, result=ListToolsResult(tools=cast("list[MCPTool]", projected))
+            )
         except Exception:
             logger.exception("Error listing tools")
             return JSONRPCError(
@@ -1658,7 +1665,10 @@ class MCPServer:
         try:
             resources = await self._resource_manager.list_resources()
             projected = self._project_for_version(resources, session)
-            return JSONRPCResponse(id=message.id, result=ListResourcesResult(resources=projected))
+            return JSONRPCResponse(
+                id=message.id,
+                result=ListResourcesResult(resources=cast("list[Resource]", projected)),
+            )
         except Exception:
             logger.exception("Error listing resources")
             return JSONRPCError(
@@ -1688,7 +1698,9 @@ class MCPServer:
             projected = self._project_for_version(templates, session)
             return JSONRPCResponse(
                 id=message.id,
-                result=ListResourceTemplatesResult(resourceTemplates=projected),
+                result=ListResourceTemplatesResult(
+                    resourceTemplates=cast("list[ResourceTemplate]", projected)
+                ),
             )
         except Exception:
             logger.exception("Error listing resource templates")
@@ -1768,7 +1780,10 @@ class MCPServer:
         try:
             prompts = await self._prompt_manager.list_prompts()
             projected = self._project_for_version(prompts, session)
-            return JSONRPCResponse(id=message.id, result=ListPromptsResult(prompts=projected))
+            return JSONRPCResponse(
+                id=message.id,
+                result=ListPromptsResult(prompts=cast("list[Prompt]", projected)),
+            )
         except Exception:
             logger.exception("Error listing prompts")
             return JSONRPCError(
@@ -1933,7 +1948,7 @@ class MCPServer:
             statusMessage=task.statusMessage,
             pollInterval=task.pollInterval,
         )
-        return JSONRPCResponse(id=msg_id, result=result)
+        return JSONRPCResponse(id=cast("str | int", msg_id), result=result)
 
     async def _handle_list_tasks(
         self,
@@ -1971,7 +1986,7 @@ class MCPServer:
             )
 
         result = ListTasksResult(tasks=tasks, nextCursor=next_cursor)
-        return JSONRPCResponse(id=msg_id, result=result)
+        return JSONRPCResponse(id=cast("str | int", msg_id), result=result)
 
     async def _handle_cancel_task(
         self,
@@ -2023,7 +2038,7 @@ class MCPServer:
             statusMessage=task.statusMessage,
             pollInterval=task.pollInterval,
         )
-        return JSONRPCResponse(id=msg_id, result=result)
+        return JSONRPCResponse(id=cast("str | int", msg_id), result=result)
 
     async def _handle_get_task_result(
         self,
@@ -2083,7 +2098,7 @@ class MCPServer:
                 result.meta = {}
             result.meta["io.modelcontextprotocol/related-task"] = {"taskId": task_id}
 
-        return JSONRPCResponse(id=msg_id, result=result)
+        return JSONRPCResponse(id=cast("str | int", msg_id), result=result)
 
     def _get_resource_owner_from_context(self) -> ResourceOwner | None:
         """Get the resource owner from the current model context."""
@@ -2247,7 +2262,7 @@ class MCPServer:
             # Dump with by_alias=True so any aliased fields (e.g. _meta)
             # serialize correctly, and drop None-valued optional fields.
             task_fields = task.model_dump(by_alias=True, exclude_none=True)
-            # Per MCP 2025-11-25 tasks.mdx §TTL and Resource Management:
+            # Per MCP 2025-11-25 tasks.mdx section TTL and Resource Management:
             # "Receivers MUST include the actual ttl duration (or null for
             # unlimited) in tasks/get responses." ``Task.ttl`` is in the
             # spec ``required`` array, so it MUST be present on the wire —
