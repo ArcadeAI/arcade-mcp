@@ -10,11 +10,15 @@ install: ## Install the uv environment and all packages with dependencies
 check: ## Run code quality tools.
 	@echo "🚀 Linting code: Running pre-commit"
 	@uv run pre-commit run -a
-		@echo "🚀 Static type checking: Running mypy on libs"
-	@for lib in libs/arcade*/ ; do \
-			echo "🔍 Type checking $$lib"; \
-			(cd $$lib && uv run mypy . --exclude tests || true); \
-		done
+	@echo "🚀 Static type checking: Running mypy on libs"
+	@failed_libs=""; for lib in libs/arcade*/ ; do \
+		echo "🔍 Type checking $$lib"; \
+		(cd $$lib && uv run mypy . --exclude tests) || failed_libs="$$failed_libs $$lib"; \
+	done; \
+	if [ -n "$$failed_libs" ]; then \
+		echo "❌ mypy failed in:$$failed_libs"; \
+		exit 1; \
+	fi
 
 .PHONY: check-libs
 check-libs: ## Run code quality tools for each lib package

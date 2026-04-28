@@ -6,6 +6,7 @@ import json as _json
 import logging
 import time
 from pathlib import Path
+from typing import Any, cast
 
 import httpx
 from arcade_core.constants import PROD_COORDINATOR_HOST, PROD_ENGINE_HOST
@@ -55,7 +56,7 @@ def _read_cache(debug: bool = False) -> dict[str, list[str]] | None:
             return None
         if debug:
             console.print(f"  [dim]Using cached tool catalog ({age:.0f}s old)[/dim]")
-        return data.get("toolkits", {})
+        return cast("dict[str, list[str]]", data.get("toolkits", {}))
     except Exception:
         return None
 
@@ -318,7 +319,7 @@ def list_gateways(
         return []
 
     data = resp.json()
-    return data.get("items", [])
+    return cast("list[dict[Any, Any]]", data.get("items", []))
 
 
 def find_matching_gateway(
@@ -401,13 +402,13 @@ def create_gateway(
     if resp.status_code not in (200, 201):
         raise RuntimeError(f"Failed to create gateway ({resp.status_code}): {resp.text}")
 
-    data = resp.json()
+    data: dict[Any, Any] = resp.json()
 
     # The API may return the gateway directly or wrapped in a list/items envelope
     if "slug" in data:
         return data
     if data.get("items"):
-        return data["items"][0]
+        return cast("dict[Any, Any]", data["items"][0])
     if "id" in data:
         return data
 
@@ -695,13 +696,13 @@ def _resolve_gateway_slug(
         if gw.get("slug", "").lower() == input_lower:
             if debug:
                 console.print(f"  [dim]Matched by slug: {gw['slug']}[/dim]")
-            return gw["slug"]
+            return cast("str", gw["slug"])
     for gw in gateways:
         if gw.get("name", "").lower() == input_lower:
             slug = gw["slug"]
             if debug:
                 console.print(f"  [dim]Matched by name '{gw['name']}' -> slug: {slug}[/dim]")
-            return slug
+            return cast("str", slug)
     if debug:
         available = [f"{g.get('name')} ({g.get('slug')})" for g in gateways]
         console.print(f"  [dim]No match for '{user_input}', available: {available}[/dim]")

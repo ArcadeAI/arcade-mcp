@@ -4,7 +4,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import click
 import typer
@@ -334,7 +334,7 @@ def mcp(
         # window from appearing (e.g. when an MCP client spawns this
         # command without an attached console).  The child process still
         # inherits stdin/stdout/stderr for stdio transport communication.
-        run_kwargs: dict[str, object] = {"check": False}
+        run_kwargs: dict[str, Any] = {"check": False}
         creation_flags = get_windows_no_window_creationflags()
         if creation_flags:
             run_kwargs["creationflags"] = creation_flags
