@@ -5,7 +5,7 @@ import json
 from typing import Annotated
 
 import pytest
-from arcade_core.catalog import MaterializedTool, ToolMeta, create_func_models
+from arcade_core.catalog import MaterializedTool, ToolCatalog, ToolMeta, create_func_models
 from arcade_core.schema import (
     InputParameter,
     ToolDefinition,
@@ -660,3 +660,252 @@ class TestConvertContentToStructuredContent:
 
         result = convert_content_to_structured_content(Custom())
         assert result == {"result": "custom-str"}
+
+
+class TestOutputSchemaOptionalTypedDictFields:
+    """Test that outputSchema correctly represents optional TypedDict fields.
+
+    Reproduces: When a TypedDict uses total=False, extract_properties() treats
+    every field identically — the outputSchema has no 'required' array, and field
+    types never include 'null'. Combined with model_dump() emitting None for absent
+    fields, the MCP client rejects the response because null doesn't match "string".
+    """
+
+    def _make_tool_and_mcp_tool(self, return_type, annotation_desc="result"):
+        """Helper: register a tool returning `return_type` and get the MCP tool."""
+        from typing_extensions import TypedDict
+
+        @tool
+        def f() -> Annotated[return_type, annotation_desc]:
+            """Test tool."""
+            return {}
+
+        tool_def = ToolCatalog().create_tool_definition(f, toolkit_name="test", toolkit_version="1.0")
+        input_model, output_model = create_func_models(f)
+        meta = ToolMeta(module=f.__module__, toolkit="test")
+        mat_tool = MaterializedTool(
+            tool=f,
+            definition=tool_def,
+            meta=meta,
+            input_model=input_model,
+            output_model=output_model,
+        )
+        return create_mcp_tool(mat_tool)
+
+    def test_total_false_typeddict_schema_allows_absent_fields(self):
+        """The outputSchema for a total=False TypedDict must not require any field.
+
+        JSON Schema: if "required" is absent, all properties are optional — that's fine.
+        But the schema must also allow absent fields to validate. Currently the schema
+        does not emit a "required" array, which accidentally makes all fields optional
+        in JSON Schema terms. However, model_dump() reintroduces None values for the
+        absent fields, and "null" is not valid for "type": "string". The schema must
+        either: (a) include "null" in the type, or (b) the serializer must omit Nones.
+        This test validates the schema side: if a field CAN be null in structuredContent,
+        the schema must accept null.
+        """
+        from typing_extensions import TypedDict
+
+        class AllOptional(TypedDict, total=False):
+            name: str
+            count: int
+
+        mcp_tool = self._make_tool_and_mcp_tool(AllOptional)
+        schema = mcp_tool.outputSchema
+
+        assert schema is not None
+        assert schema["type"] == "object"
+        # The schema must not list any field as required since all are total=False
+        required = schema.get("required", [])
+        assert "name" not in required
+        assert "count" not in required
+
+    def test_mixed_required_optional_schema_marks_required_fields(self):
+        """A TypedDict with both required and optional fields must have a 'required' array.
+
+        Required fields (from the base total=True class) must appear in the
+        schema's 'required' array. Optional fields (from total=False) must not.
+        """
+        from typing_extensions import TypedDict
+
+        class _Base(TypedDict):
+            id: int
+
+        class MixedDict(_Base, total=False):
+            label: str
+
+        mcp_tool = self._make_tool_and_mcp_tool(MixedDict)
+        schema = mcp_tool.outputSchema
+
+        assert schema is not None
+        assert schema["type"] == "object"
+        # "id" is required, "label" is optional
+        required = schema.get("required", [])
+        assert "id" in required, (
+            "Required field 'id' must appear in outputSchema.required "
+            f"but got required={required}"
+        )
+        assert "label" not in required
+
+    def test_structuredcontent_validates_against_output_schema(self):
+        """End-to-end: structuredContent for absent optional fields must match outputSchema.
+
+        Simulates the full pipeline: Pydantic model_dump() round-trip then
+        structuredContent conversion. When a tool omits an optional field,
+        model_dump() reintroduces it as None. The outputSchema says "type": "string",
+        so the MCP client rejects the null value.
+        """
+        from arcade_core.catalog import create_model_from_typeddict
+        from typing_extensions import TypedDict
+
+        class ResponseDict(TypedDict, total=False):
+            name: str
+            optional_detail: str
+
+        # 1. Build outputSchema
+        mcp_tool = self._make_tool_and_mcp_tool(ResponseDict)
+        schema = mcp_tool.outputSchema
+
+        # 2. Simulate the Pydantic round-trip that output.py performs:
+        #    create_model_from_typeddict -> instantiate -> model_dump()
+        pydantic_model = create_model_from_typeddict(ResponseDict, "ResponseDict")
+        instance = pydantic_model(**{"name": "hello"})  # optional_detail absent
+        dumped = instance.model_dump()
+
+        # 3. Convert to structuredContent (what server.py does)
+        structured = convert_content_to_structured_content(dumped)
+
+        # The structured content must validate against the schema.
+        # No field in structuredContent should have a value (like null)
+        # that the schema's type declaration doesn't allow.
+        assert structured is not None
+        for field_name, field_schema in schema.get("properties", {}).items():
+            if field_name in structured:
+                value = structured[field_name]
+                allowed_type = field_schema.get("type")
+                if value is None:
+                    # null must be allowed by the schema
+                    if isinstance(allowed_type, list):
+                        assert "null" in allowed_type, (
+                            f"Field '{field_name}' is null in structuredContent but schema "
+                            f"type {allowed_type} does not include 'null'"
+                        )
+                    else:
+                        assert allowed_type == "null" or allowed_type is None, (
+                            f"Field '{field_name}' is null in structuredContent but schema "
+                            f"type is '{allowed_type}', not 'null'"
+                        )
+
+    def test_list_of_typeddict_items_have_required(self):
+        """list[TypedDict] with total=True produces items.required in MCP outputSchema."""
+        from typing_extensions import TypedDict
+
+        class ItemDict(TypedDict):
+            name: str
+            value: int
+
+        mcp_tool = self._make_tool_and_mcp_tool(list[ItemDict])
+        schema = mcp_tool.outputSchema
+
+        assert schema is not None
+        # list output gets wrapped: {type: object, properties: {result: {type: array, ...}}}
+        result_prop = schema["properties"]["result"]
+        assert result_prop["type"] == "array"
+        items_schema = result_prop["items"]
+        assert items_schema["type"] == "object"
+        assert sorted(items_schema["required"]) == ["name", "value"]
+
+    def test_nullable_field_allows_null_in_schema(self):
+        """str | None field produces 'type': ['string', 'null'] in outputSchema."""
+        from typing_extensions import TypedDict
+
+        class NullableDict(TypedDict):
+            label: str
+            note: str | None
+
+        mcp_tool = self._make_tool_and_mcp_tool(NullableDict)
+        schema = mcp_tool.outputSchema
+
+        assert schema is not None
+        props = schema["properties"]
+        assert props["label"]["type"] == "string"
+        assert props["note"]["type"] == ["string", "null"]
+
+    def test_nullable_enum_field_allows_null(self):
+        """Literal['a', 'b'] | None field produces type=['string', 'null'], enum=['a', 'b', None]."""
+        from typing import Literal
+
+        from typing_extensions import TypedDict
+
+        class EnumNullableDict(TypedDict):
+            status: Literal["a", "b"] | None
+
+        mcp_tool = self._make_tool_and_mcp_tool(EnumNullableDict)
+        schema = mcp_tool.outputSchema
+
+        assert schema is not None
+        status_schema = schema["properties"]["status"]
+        assert status_schema["type"] == ["string", "null"]
+        assert status_schema["enum"] == ["a", "b", None]
+
+    def test_input_schema_typeddict_required_keys(self):
+        """TypedDict used as input parameter gets required array in inputSchema."""
+        from typing_extensions import TypedDict
+
+        class ConfigDict(TypedDict):
+            host: str
+            port: int
+
+        @tool
+        def f(config: Annotated[ConfigDict, "The config"]) -> str:
+            """Test tool."""
+            return ""
+
+        tool_def = ToolCatalog().create_tool_definition(
+            f, toolkit_name="test", toolkit_version="1.0"
+        )
+        input_model, output_model = create_func_models(f)
+        meta = ToolMeta(module=f.__module__, toolkit="test")
+        mat_tool = MaterializedTool(
+            tool=f,
+            definition=tool_def,
+            meta=meta,
+            input_model=input_model,
+            output_model=output_model,
+        )
+        mcp_tool = create_mcp_tool(mat_tool)
+        config_schema = mcp_tool.inputSchema["properties"]["config"]
+
+        assert config_schema["type"] == "object"
+        assert sorted(config_schema["required"]) == ["host", "port"]
+
+    def test_input_schema_typeddict_nullable_field(self):
+        """TypedDict input parameter with str | None field gets type=['string', 'null']."""
+        from typing_extensions import TypedDict
+
+        class InputDict(TypedDict):
+            name: str
+            tag: str | None
+
+        @tool
+        def f(data: Annotated[InputDict, "The data"]) -> str:
+            """Test tool."""
+            return ""
+
+        tool_def = ToolCatalog().create_tool_definition(
+            f, toolkit_name="test", toolkit_version="1.0"
+        )
+        input_model, output_model = create_func_models(f)
+        meta = ToolMeta(module=f.__module__, toolkit="test")
+        mat_tool = MaterializedTool(
+            tool=f,
+            definition=tool_def,
+            meta=meta,
+            input_model=input_model,
+            output_model=output_model,
+        )
+        mcp_tool = create_mcp_tool(mat_tool)
+        data_schema = mcp_tool.inputSchema["properties"]["data"]
+
+        assert data_schema["properties"]["name"]["type"] == "string"
+        assert data_schema["properties"]["tag"]["type"] == ["string", "null"]

@@ -286,7 +286,8 @@ async def _stream_deployment_logs_to_deque(
                     if state["status"] not in ["pending", "unknown", "updating"]:
                         break
         except httpx.HTTPStatusError as e:
-            if debug:
+            # 500s are expected during the deployment warm-up period
+            if debug and e.response.status_code != 500:
                 console.print(f"Failed to stream logs: {e.response.status_code}", style="dim red")
             await asyncio.sleep(3)
         except Exception as e:

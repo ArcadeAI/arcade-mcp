@@ -516,9 +516,8 @@ class TestMicrosoftGraphErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 500
-        assert (
-            result.message == "Upstream Microsoft Graph error: Some unhandled Microsoft Graph error"
-        )
+        assert result.message == "Upstream Microsoft Graph error: unhandled MockUnhandledError."
+        assert result.developer_message == "Some unhandled Microsoft Graph error"
         assert result.extra["service"] == "_microsoft_graph"
         assert result.extra["error_type"] == "MockUnhandledError"
 
@@ -555,7 +554,8 @@ class TestMicrosoftGraphErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 500
-        assert result.message == "Upstream Microsoft Graph error: Core error"
+        assert result.message == "Upstream Microsoft Graph error: unhandled MockCoreError."
+        assert result.developer_message == "Core error"
 
     def test_from_exception_non_msgraph_error(self):
         """Test handling non-Microsoft Graph errors returns None."""

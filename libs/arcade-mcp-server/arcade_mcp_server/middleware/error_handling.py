@@ -3,7 +3,7 @@
 import logging
 from typing import Any
 
-from arcade_mcp_server.convert import convert_content_to_structured_content, convert_to_mcp_content
+from arcade_mcp_server.convert import convert_to_mcp_content
 from arcade_mcp_server.middleware.base import CallNext, Middleware, MiddlewareContext
 from arcade_mcp_server.types import CallToolResult, JSONRPCError
 
@@ -46,11 +46,10 @@ class ErrorHandlingMiddleware(Middleware):
             logger.exception(f"Error calling tool: {error_message}")
 
             content = convert_to_mcp_content(error_message)
-            structured_content = convert_content_to_structured_content({"error": error_message})
 
             return CallToolResult(
                 content=content,
-                structuredContent=structured_content,
+                structuredContent=None,
                 isError=True,
             )
 

@@ -184,7 +184,9 @@ def build_input_schema_from_definition(definition: ToolDefinition) -> dict[str, 
     if getattr(definition, "input", None) and getattr(definition.input, "parameters", None):
         for param in definition.input.parameters:
             val_schema = getattr(param, "value_schema", None)
-            schema = _value_schema_to_json_schema(val_schema) if val_schema else {"type": "string"}
+            schema: dict[str, Any] = (
+                _value_schema_to_json_schema(val_schema) if val_schema else {"type": "string"}
+            )
 
             if getattr(param, "description", None):
                 schema["description"] = param.description
@@ -219,7 +221,9 @@ def _build_value_schema_json(value_schema: Any) -> dict[str, Any]:
     inner_schema = _value_schema_to_json_schema(value_schema)
 
     # Object return types are already top-level objects, emit directly.
-    if inner_schema.get("type") == "object":
+    # Check for both "object" and ["object", "null"] (nullable top-level TypedDict).
+    schema_type = inner_schema.get("type")
+    if schema_type == "object" or (isinstance(schema_type, list) and "object" in schema_type):
         return inner_schema
 
     # Primitives/arrays must be wrapped so outputSchema.type is "object" per MCP spec.
@@ -229,6 +233,20 @@ def _build_value_schema_json(value_schema: Any) -> dict[str, Any]:
             "result": inner_schema,
         },
     }
+
+
+def _apply_nullable(schema: dict[str, Any], value_schema: Any) -> dict[str, Any]:
+    """If value_schema.nullable, add null to type and enum."""
+    if not getattr(value_schema, "nullable", False):
+        return schema
+    base_type = schema.get("type")
+    if isinstance(base_type, str):
+        schema["type"] = [base_type, "null"]
+    elif isinstance(base_type, list) and "null" not in base_type:
+        schema["type"] = [*base_type, "null"]
+    if "enum" in schema and None not in schema["enum"]:
+        schema["enum"] = [*schema["enum"], None]
+    return schema
 
 
 def _value_schema_to_json_schema(value_schema: Any) -> dict[str, Any]:
@@ -248,7 +266,9 @@ def _value_schema_to_json_schema(value_schema: Any) -> dict[str, Any]:
                 schema["properties"][prop_name] = _value_schema_to_json_schema(prop_schema)
                 if getattr(prop_schema, "description", None):
                     schema["properties"][prop_name]["description"] = prop_schema.description
-        return schema
+        if getattr(value_schema, "required_keys", None):
+            schema["required"] = list(value_schema.required_keys)
+        return _apply_nullable(schema, value_schema)
 
     schema = {"type": _map_type_to_json_schema_type(val_type)}
     if getattr(value_schema, "enum", None):
@@ -262,5 +282,7 @@ def _value_schema_to_json_schema(value_schema: Any) -> dict[str, Any]:
                 items_schema["properties"][prop_name] = _value_schema_to_json_schema(prop_schema)
                 if getattr(prop_schema, "description", None):
                     items_schema["properties"][prop_name]["description"] = prop_schema.description
+            if getattr(value_schema, "inner_required_keys", None):
+                items_schema["required"] = list(value_schema.inner_required_keys)
         schema["items"] = items_schema
-    return schema
+    return _apply_nullable(schema, value_schema)

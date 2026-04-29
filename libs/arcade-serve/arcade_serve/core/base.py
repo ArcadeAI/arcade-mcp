@@ -6,6 +6,7 @@ from typing import Any, Callable, ClassVar
 
 from arcade_core.catalog import ToolCatalog, Toolkit
 from arcade_core.executor import ToolExecutor
+from arcade_core.log_extras import build_tool_error_log_extra
 from arcade_core.schema import (
     ToolCallRequest,
     ToolCallResponse,
@@ -109,8 +110,9 @@ class BaseWorker(Worker):
         try:
             materialized_tool = self.catalog.get_tool(tool_fqname)
         except KeyError:
+            # Use resolved fqname components to match OTel span / metric labels.
             raise ValueError(
-                f"Tool {tool_fqname} not found in catalog with toolkit version {tool_request.tool.version}."
+                f"Tool {tool_fqname.name} not found in catalog with toolkit version {tool_fqname.toolkit_version}."
             )
 
         start_time = time.time()
@@ -127,7 +129,8 @@ class BaseWorker(Worker):
             )
         execution_id = tool_request.execution_id or ""
         logger.info(
-            f"{execution_id} | Calling tool: {tool_fqname} version: {tool_request.tool.version}"
+            f"{execution_id} | Calling tool: {tool_fqname.name} "
+            f"version: {tool_fqname.toolkit_version}"
         )
         logger.debug(f"{execution_id} | Tool inputs: {tool_request.inputs}")
 
@@ -151,21 +154,31 @@ class BaseWorker(Worker):
         duration_ms = (end_time - start_time) * 1000  # Convert to milliseconds
 
         if output.error:
-            logger.warning(
-                f"{execution_id} | Tool {tool_fqname} version {tool_request.tool.version} failed"
+            log_extra = build_tool_error_log_extra(
+                output.error,
+                tool_name=str(tool_fqname.name),
+                toolkit_name=str(tool_fqname.toolkit_name),
+                toolkit_version=str(tool_fqname.toolkit_version),
+                execution_id=execution_id,
             )
-            logger.warning(f"{execution_id} | Tool error: {output.error.message}")
             logger.warning(
-                f"{execution_id} | Tool developer message: {output.error.developer_message}"
+                f"{execution_id} | Tool {tool_fqname.name} version {tool_fqname.toolkit_version} failed: {output.error.message}",
+                extra=log_extra,
             )
+            if output.error.developer_message:
+                logger.warning(
+                    f"{execution_id} | Developer message: {output.error.developer_message}",
+                )
             logger.debug(
                 f"{execution_id} | duration: {duration_ms}ms | Tool output: {output.value}"
             )
             if output.error.stacktrace:
                 logger.debug(f"{execution_id} | Tool traceback: {output.error.stacktrace}")
         else:
+            # Match the failure-path identifiers for log correlation.
             logger.info(
-                f"{execution_id} | Tool {tool_fqname} version {tool_request.tool.version} success"
+                f"{execution_id} | Tool {tool_fqname.name} "
+                f"version {tool_fqname.toolkit_version} success"
             )
             logger.debug(
                 f"{execution_id} | duration: {duration_ms}ms | Tool output: {output.value}"

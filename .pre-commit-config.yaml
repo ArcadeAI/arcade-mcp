@@ -20,3 +20,16 @@ repos:
         exclude: "(.*/templates/.*|libs/tests/.*)"
       - id: ruff-format
         exclude: "(.*/templates/.*|libs/tests/.*)"
+
+  - repo: local
+    hooks:
+      - id: check-debug-leak-flags
+        name: "Guard: unsafe debug-leak flags must stay off"
+        description: >-
+          Fails if the activation acknowledgement string for the unsafe
+          debug-leak flags in arcade_core/output.py appears in any tracked
+          file outside its small allowlist.
+        entry: python scripts/check_debug_leak_flags_off.py
+        language: python
+        pass_filenames: false
+        always_run: true

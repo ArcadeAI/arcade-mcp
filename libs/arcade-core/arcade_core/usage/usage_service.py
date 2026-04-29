@@ -19,7 +19,7 @@ from arcade_core.usage.utils import is_tracking_enabled
 
 class UsageService:
     def __init__(self) -> None:
-        self.api_key = "phc_hIqUQyJpf2TP4COePO5jEpkGeUXipa7KqTEyDeRsTmB"
+        self.api_key = "phc_zNHKkPFsrKVSpd7y85jnxW8jNVW6AQD6AwqE4nWjwpXg"
         self.host = "https://us.i.posthog.com"
 
     def alias(self, previous_id: str, distinct_id: str) -> None:

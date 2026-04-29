@@ -26,6 +26,9 @@ class ErrorKind(str, Enum):
     UPSTREAM_RUNTIME_RATE_LIMIT = "UPSTREAM_RUNTIME_RATE_LIMIT"
     UPSTREAM_RUNTIME_SERVER_ERROR = "UPSTREAM_RUNTIME_SERVER_ERROR"
     UPSTREAM_RUNTIME_UNMAPPED = "UPSTREAM_RUNTIME_UNMAPPED"
+    NETWORK_TRANSPORT_RUNTIME_TIMEOUT = "NETWORK_TRANSPORT_RUNTIME_TIMEOUT"
+    NETWORK_TRANSPORT_RUNTIME_UNREACHABLE = "NETWORK_TRANSPORT_RUNTIME_UNREACHABLE"
+    NETWORK_TRANSPORT_RUNTIME_UNMAPPED = "NETWORK_TRANSPORT_RUNTIME_UNMAPPED"
     UNKNOWN = "UNKNOWN"
 
 
@@ -69,7 +72,10 @@ class ToolkitError(Exception, ABC):
             The error with the context added to the message.
         """
         prefix = self.create_message_prefix(name)
-        self.message = f"{prefix}{self.message}"  # type: ignore[has-type]
+        # Substitute placeholder when message is empty so the prefixed result
+        # always has a non-empty diagnostic body.
+        body = self.message if self.message and self.message.strip() else "(no details provided)"  # type: ignore[has-type]
+        self.message = f"{prefix}{body}"
         if hasattr(self, "developer_message") and self.developer_message:  # type: ignore[has-type]
             self.developer_message = f"{prefix}{self.developer_message}"  # type: ignore[has-type]
 
@@ -89,6 +95,12 @@ class ToolkitError(Exception, ABC):
     def is_upstream_error(self) -> bool:
         """Check if this error originated from an upstream service."""
         return hasattr(self, "kind") and self.kind.name.startswith("UPSTREAM_")
+
+    @property
+    def is_network_transport_error(self) -> bool:
+        """Check if this error originated from a network-transport-level failure
+        (no complete response from the upstream was received)."""
+        return hasattr(self, "kind") and self.kind.name.startswith("NETWORK_TRANSPORT_")
 
     def __str__(self) -> str:
         return self.message
@@ -153,6 +165,13 @@ class ToolRuntimeError(ToolError, RuntimeError):
     Any failure starting from when the tool call begins until the tool call returns.
 
     Note: This class should typically not be instantiated directly, but rather subclassed.
+
+    Runtime error payload contract:
+    - ``message`` is agent/client-facing. It is returned to tool consumers and can be shown to
+      agents or end users, so it should contain only intentional, safe context.
+    - ``developer_message`` is for server-side diagnostics. It is preserved in structured
+      error payloads and logs for debugging, and may contain more implementation detail than
+      ``message``.
     """
 
     kind: ErrorKind = ErrorKind.TOOL_RUNTIME_FATAL
@@ -167,6 +186,16 @@ class ToolRuntimeError(ToolError, RuntimeError):
         *,
         extra: dict[str, Any] | None = None,
     ):
+        """
+        Args:
+            message: Safe summary intended for the agent/client. This value may be surfaced
+                directly in tool-call error responses, so do not include secrets, tokens, raw API
+                responses, or other sensitive details unless you explicitly want them exposed.
+            developer_message: Additional server-side debugging context. Use this for verbose
+                diagnostics such as raw upstream errors, stack-oriented clues, or internal
+                identifiers that should not be the primary message shown to the agent/client.
+            extra: Structured metadata to preserve alongside the error.
+        """
         super().__init__(message)
         self.message = message
         self.developer_message = developer_message  # type: ignore[assignment]
@@ -340,6 +369,43 @@ class UpstreamError(ToolExecutionError):
             self.kind = ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST
         else:
             self.kind = ErrorKind.UPSTREAM_RUNTIME_UNMAPPED
+
+
+# 4. ------  network-transport errors in tool body ------
+class NetworkTransportError(ToolExecutionError):
+    """
+    Error from a network-transport-level failure during tool execution.
+
+    Raised when a tool's outbound request could not complete an exchange with the
+    upstream service: the request either never reached the upstream, or a complete
+    response never came back. Covers timeouts, connection failures, DNS errors,
+    pool exhaustion, response decoding failures, and redirect-loop exhaustion.
+
+    Distinct from ``UpstreamError``: here the upstream never produced a complete
+    HTTP response, so no status code is available. Distinct from
+    ``FatalToolError``: the failure is a runtime transport issue (typically
+    transient) rather than a tool-authoring bug.
+    """
+
+    _ALLOWED_KIND_PREFIX = "NETWORK_TRANSPORT_"
+
+    def __init__(
+        self,
+        message: str,
+        developer_message: str | None = None,
+        *,
+        kind: ErrorKind = ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED,
+        can_retry: bool = True,
+        extra: dict[str, Any] | None = None,
+    ):
+        super().__init__(message, developer_message=developer_message, extra=extra)
+        if not kind.name.startswith(self._ALLOWED_KIND_PREFIX):
+            raise ValueError(
+                f"NetworkTransportError kind must start with "
+                f"{self._ALLOWED_KIND_PREFIX!r}, got {kind.name!r}"
+            )
+        self.kind = kind
+        self.can_retry = can_retry
 
 
 class UpstreamRateLimitError(UpstreamError):

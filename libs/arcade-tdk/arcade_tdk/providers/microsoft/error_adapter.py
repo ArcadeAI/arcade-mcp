@@ -49,8 +49,9 @@ class MicrosoftGraphErrorAdapter:
                 exc_info=True,
             )
             return UpstreamError(
-                message=f"Upstream Microsoft Graph error: {exc}",
+                message=f"Upstream Microsoft Graph error: unhandled {exc.__class__.__name__}.",
                 status_code=500,
+                developer_message=str(exc),
                 extra={
                     "service": self.slug,
                     "error_type": exc.__class__.__name__,

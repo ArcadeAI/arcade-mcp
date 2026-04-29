@@ -8,6 +8,7 @@ from arcade_core.errors import (
     ContextRequiredToolError,
     ErrorKind,
     FatalToolError,
+    NetworkTransportError,
     RetryableToolError,
     ToolExecutionError,
     ToolRuntimeError,
@@ -19,6 +20,7 @@ __all__ = [
     # Re-exports
     "ErrorKind",
     "FatalToolError",
+    "NetworkTransportError",
     "RetryableToolError",
     "ToolExecutionError",
     "ToolRuntimeError",

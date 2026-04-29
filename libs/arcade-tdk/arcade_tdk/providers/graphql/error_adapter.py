@@ -4,7 +4,12 @@ from functools import lru_cache
 from http import HTTPStatus
 from typing import Any
 
-from arcade_core.errors import ToolRuntimeError, UpstreamError
+from arcade_core.errors import (
+    ErrorKind,
+    NetworkTransportError,
+    ToolRuntimeError,
+    UpstreamError,
+)
 
 from arcade_tdk.providers.http.error_adapter import BaseHTTPErrorMapper
 
@@ -81,12 +86,14 @@ class GraphQLErrorAdapter(BaseHTTPErrorMapper):
         if isinstance(exc, TransportServerError):
             return self._handle_transport_error(exc)
 
-        # Network/protocol errors - simple 502
+        # Network/protocol errors — the upstream was never reached or never
+        # produced a complete response. No HTTP status is available.
         if isinstance(exc, (TransportConnectionFailed, TransportProtocolError)):
-            return UpstreamError(
-                message=f"Upstream GraphQL error: {type(exc).__name__}",
-                status_code=HTTPStatus.BAD_GATEWAY.value,
-                developer_message=str(exc),
+            return NetworkTransportError(
+                message=("GraphQL request failed before a complete response was received."),
+                developer_message=f"{type(exc).__name__}: {exc}",
+                kind=ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNREACHABLE,
+                can_retry=True,
                 extra={"service": self.slug, "error_type": type(exc).__name__},
             )
 
@@ -147,7 +154,8 @@ class GraphQLErrorAdapter(BaseHTTPErrorMapper):
         return self._map_status_to_error(
             status=status,
             headers=headers or {},
-            msg=f"Upstream GraphQL error: {_extract_error_message(str(exc))}",
+            msg=f"Upstream GraphQL request failed with status code {status}.",
+            developer_message=str(exc),
             request_url=url,
             request_method=method,
         )

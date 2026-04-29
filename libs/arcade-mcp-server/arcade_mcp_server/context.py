@@ -517,7 +517,7 @@ class Tools(_ContextComponent):
             error_message = response.error.get("message", "Unknown error")
             return CallToolResult(
                 content=[TextContent(type="text", text=error_message)],
-                structuredContent={"error": error_message},
+                structuredContent=None,
                 isError=True,
             )
 
