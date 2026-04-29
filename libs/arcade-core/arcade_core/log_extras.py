@@ -58,3 +58,15 @@ def build_tool_error_log_extra(
             continue
         extra[k] = v
     return extra
+
+
+def build_tool_error_span_attributes(error: ToolCallError) -> dict[str, str]:
+    """Build stable span attributes for failed tool-call diagnostics."""
+    kind_value = error.kind.value if hasattr(error.kind, "value") else str(error.kind)
+    attrs = {
+        "tool_error_kind": kind_value,
+        "tool_error_message": error.message,
+    }
+    if error.developer_message:
+        attrs["tool_error_developer_message"] = error.developer_message
+    return attrs

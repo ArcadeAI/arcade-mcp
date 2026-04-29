@@ -6,7 +6,7 @@ Field names are load-bearing for dashboards.
 
 import pytest
 from arcade_core.errors import ErrorKind
-from arcade_core.log_extras import build_tool_error_log_extra
+from arcade_core.log_extras import build_tool_error_log_extra, build_tool_error_span_attributes
 from arcade_core.schema import ToolCallError
 
 
@@ -112,6 +112,23 @@ def test_developer_message_none_propagates():
     extra = build_tool_error_log_extra(_err(developer_message=None), tool_name="t")
     assert "error_developer_message" in extra
     assert extra["error_developer_message"] is None
+
+
+def test_span_attributes_include_developer_message_when_present():
+    attrs = build_tool_error_span_attributes(_err(developer_message="dev: x"))
+    assert attrs == {
+        "tool_error_kind": "TOOL_RUNTIME_FATAL",
+        "tool_error_message": "Spreadsheet not found",
+        "tool_error_developer_message": "dev: x",
+    }
+
+
+def test_span_attributes_omit_empty_developer_message():
+    attrs = build_tool_error_span_attributes(_err(developer_message=""))
+    assert attrs == {
+        "tool_error_kind": "TOOL_RUNTIME_FATAL",
+        "tool_error_message": "Spreadsheet not found",
+    }
 
 
 def test_status_code_none_propagates():
