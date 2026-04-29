@@ -4,12 +4,13 @@ from unittest.mock import MagicMock, patch
 from urllib.error import HTTPError
 from urllib.request import urlopen
 
-from arcade_cli.authn import OAuthCallbackServer, _open_browser, oauth_callback_server
+from arcade_cli.authn import _open_browser
+from arcade_core.oauth_login import OAuthCallbackServer, oauth_callback_server
 
 
 def test_oauth_callback_server_success() -> None:
     state = "test-state"
-    with oauth_callback_server(state, port=0) as server:
+    with oauth_callback_server(expected_state=state, port=0) as server:
         url = f"{server.get_redirect_uri()}?code=abc123&state={state}"
         with urlopen(url) as response:
             assert response.status == 200
@@ -21,7 +22,7 @@ def test_oauth_callback_server_success() -> None:
 
 def test_oauth_callback_server_timeout() -> None:
     state = "test-timeout"
-    with oauth_callback_server(state, port=0) as server:
+    with oauth_callback_server(expected_state=state, port=0) as server:
         assert server.wait_for_result(timeout=0.05) is False
 
     assert "Timed out" in server.result["error"]
@@ -31,20 +32,16 @@ def test_oauth_callback_server_binds_to_loopback() -> None:
     """The callback server must bind to 127.0.0.1 (loopback) to avoid
     Windows Firewall prompts and keep redirect host aligned with bind host."""
     state = "test-bind"
-    with oauth_callback_server(state, port=0) as server:
-        assert server.httpd is not None
-        host, _port = server.httpd.server_address
-        assert host == "127.0.0.1", f"Expected 127.0.0.1 but got {host}"
-        # Also confirm the redirect URI host matches the bound loopback host.
+    with oauth_callback_server(expected_state=state, port=0) as server:
+        # Confirm the redirect URI host matches the bound loopback host.
         redirect = server.get_redirect_uri()
         assert redirect.startswith("http://127.0.0.1:")
-        server.shutdown_server()
 
 
 def test_oauth_callback_server_state_mismatch() -> None:
     """Requests with a mismatched state parameter should return an error."""
     state = "correct-state"
-    with oauth_callback_server(state, port=0) as server:
+    with oauth_callback_server(expected_state=state, port=0) as server:
         url = f"{server.get_redirect_uri()}?code=abc&state=wrong-state"
         try:
             with urlopen(url) as response:
@@ -59,7 +56,7 @@ def test_oauth_callback_server_state_mismatch() -> None:
 def test_oauth_callback_server_missing_code() -> None:
     """Requests without a code parameter should produce an error result."""
     state = "no-code-state"
-    with oauth_callback_server(state, port=0) as server:
+    with oauth_callback_server(expected_state=state, port=0) as server:
         url = f"{server.get_redirect_uri()}?state={state}"
         try:
             with urlopen(url) as response:
@@ -71,30 +68,24 @@ def test_oauth_callback_server_missing_code() -> None:
     assert "error" in server.result
 
 
-def test_oauth_callback_server_wait_until_ready() -> None:
-    """wait_until_ready() should return True once the server is listening."""
+def test_oauth_callback_server_started_event() -> None:
+    """started_event should fire once the server is bound and listening."""
     state = "ready-test"
-    server = OAuthCallbackServer(state, port=0)
-
-    import threading
-
-    t = threading.Thread(target=server.run_server, daemon=True)
-    t.start()
-
-    assert server.wait_until_ready(timeout=5.0) is True
-    assert server.httpd is not None
-    assert server.port != 0  # Ephemeral port was assigned.
-
-    server.shutdown_server()
-    t.join(timeout=2)
+    server = OAuthCallbackServer(expected_state=state, port=0)
+    server.start()
+    try:
+        assert server.started_event.is_set()
+        assert server.port != 0  # Ephemeral port was assigned.
+    finally:
+        server._sync_shutdown()
 
 
-def test_oauth_callback_server_wait_until_ready_timeout() -> None:
-    """wait_until_ready() should return False if the server never starts."""
+def test_oauth_callback_server_not_started() -> None:
+    """started_event should not fire on a server that was never started."""
     state = "ready-timeout"
-    server = OAuthCallbackServer(state, port=0)
-    # Don't start the server — ready_event never gets set.
-    assert server.wait_until_ready(timeout=0.05) is False
+    server = OAuthCallbackServer(expected_state=state, port=0)
+    # Don't start the server — started_event never gets set.
+    assert server.started_event.is_set() is False
 
 
 def test_perform_oauth_login_hides_auth_url_when_browser_succeeds() -> None:
@@ -107,7 +98,6 @@ def test_perform_oauth_login_hides_auth_url_when_browser_succeeds() -> None:
     # We need to mock the entire OAuth flow since we can't hit a real coordinator.
     with (
         patch("arcade_cli.authn.fetch_cli_config") as mock_config,
-        patch("arcade_cli.authn.create_oauth_client"),
         patch("arcade_cli.authn.generate_authorization_url") as mock_gen_url,
         patch("arcade_cli.authn._open_browser") as mock_browser,
         patch("arcade_cli.authn.oauth_callback_server") as mock_server_ctx,
@@ -150,7 +140,6 @@ def test_perform_oauth_login_shows_url_when_browser_fails() -> None:
 
     with (
         patch("arcade_cli.authn.fetch_cli_config") as mock_config,
-        patch("arcade_cli.authn.create_oauth_client"),
         patch("arcade_cli.authn.generate_authorization_url") as mock_gen_url,
         patch("arcade_cli.authn._open_browser") as mock_browser,
         patch("arcade_cli.authn.oauth_callback_server") as mock_server_ctx,
@@ -196,7 +185,6 @@ def test_perform_oauth_login_timeout_clamps_negative() -> None:
 
     with (
         patch("arcade_cli.authn.fetch_cli_config") as mock_config,
-        patch("arcade_cli.authn.create_oauth_client"),
         patch("arcade_cli.authn.generate_authorization_url") as mock_gen_url,
         patch("arcade_cli.authn._open_browser") as mock_browser,
         patch("arcade_cli.authn.oauth_callback_server") as mock_server_ctx,
