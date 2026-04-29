@@ -296,6 +296,10 @@ class ArcadeSettings(BaseSettings):
         default="https://api.arcade.dev",
         description="Arcade API URL",
     )
+    coordinator_url: str = Field(
+        default="https://cloud.arcade.dev",
+        description="Arcade Coordinator URL (used for OAuth login and /whoami)",
+    )
     auth_disabled: bool = Field(
         default=False,
         description="Disable authentication",
