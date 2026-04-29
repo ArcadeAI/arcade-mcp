@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from arcade_mcp_server.settings import MCPSettings, ServerSettings
+from arcade_mcp_server.settings import ArcadeSettings, MCPSettings, ServerSettings
 
 
 class TestServerSettings:
@@ -145,3 +145,20 @@ class TestServerSettingsVersionValidation:
         monkeypatch.setenv("MCP_SERVER_VERSION", "not-valid")
         with pytest.raises(ValidationError, match="semver"):
             MCPSettings.from_env()
+
+
+class TestArcadeSettingsCoordinatorUrl:
+    """Tests for the new ArcadeSettings.coordinator_url field."""
+
+    def test_arcade_settings_coordinator_url_default(self) -> None:
+        """Default coordinator URL is the public Arcade Cloud URL."""
+        settings = ArcadeSettings()
+        assert settings.coordinator_url == "https://cloud.arcade.dev"
+
+    def test_arcade_settings_reads_coordinator_url_from_env(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """ARCADE_COORDINATOR_URL env var overrides the default."""
+        monkeypatch.setenv("ARCADE_COORDINATOR_URL", "https://staging.arcade.dev")
+        settings = ArcadeSettings()
+        assert settings.coordinator_url == "https://staging.arcade.dev"

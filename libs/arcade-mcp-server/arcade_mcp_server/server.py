@@ -24,12 +24,18 @@ from arcade_core.catalog import MaterializedTool, ToolCatalog
 from arcade_core.executor import ToolExecutor
 from arcade_core.log_extras import build_tool_error_log_extra
 from arcade_core.network.org_transport import build_org_scoped_async_http_client
+from arcade_core.oauth_login import DEFAULT_OAUTH_TIMEOUT_SECONDS
 from arcade_core.schema import ToolAuthorizationContext, ToolCallError, ToolContext
 from arcade_core.schema import ToolAuthRequirement as CoreToolAuthRequirement
 from arcadepy import ArcadeError, AsyncArcade
 from arcadepy.types.auth_authorize_params import AuthRequirement, AuthRequirementOauth2
 
 from arcade_mcp_server._debug_exposure import augment_error_message_for_debug
+from arcade_mcp_server.auth_bootstrap import (
+    AttemptSlot,
+    BootstrapStatus,
+    bootstrap_login,
+)
 from arcade_mcp_server.context import Context, get_current_model_context, set_current_model_context
 from arcade_mcp_server.convert import convert_content_to_structured_content, convert_to_mcp_content
 from arcade_mcp_server.exceptions import NotFoundError, ToolRuntimeError
@@ -50,6 +56,7 @@ from arcade_mcp_server.types import (
     BlobResourceContents,
     CallToolRequest,
     CallToolResult,
+    ClientCapabilities,
     CompleteRequest,
     CreateMessageRequest,
     ElicitRequest,
@@ -83,6 +90,26 @@ from arcade_mcp_server.types import (
 from arcade_mcp_server.usage import ServerTracker
 
 logger = logging.getLogger("arcade.mcp")
+
+
+_BOOTSTRAP_REASON_MESSAGES: dict[str, str] = {
+    "user_cancelled": "Sign-in was cancelled.",
+    "timed_out": "Sign-in timed out.",
+    "port_in_use": "Local sign-in port is unavailable.",
+    "no_orgs": "No organizations found for your account.",
+    "no_projects": "No projects found in your organization.",
+    "token_exchange_failed": "Could not exchange the authorization code.",
+    "whoami_failed": "Could not fetch your account info.",
+    "save_failed": "Could not save credentials to disk.",
+    "cli_config_failed": "Could not connect to Arcade Cloud.",
+}
+
+
+def _humanize_reason(reason: str | None) -> str:
+    """Translate a machine-readable bootstrap failure reason into a one-liner."""
+    if reason is None:
+        return "Unexpected error."
+    return _BOOTSTRAP_REASON_MESSAGES.get(reason, "Unexpected error.")
 
 
 class MCPServer:
@@ -170,12 +197,22 @@ class MCPServer:
 
         self.auth_disabled = auth_disabled or self.settings.arcade.auth_disabled
 
-        # Initialize Arcade client
-        # Fallback to API key in ~/.arcade/credentials.yaml if not provided
-        self._init_arcade_client(
-            arcade_api_key or self.settings.arcade.api_key,
-            arcade_api_url or self.settings.arcade.api_url,
-        )
+        # Initialize Arcade client lazily.
+        #
+        # Construction must NEVER do disk/network I/O. We only build a client
+        # immediately if an explicit api_key was provided (via constructor arg
+        # or env). Otherwise we leave ``self.arcade is None`` and let the auth
+        # path do retry-first (load credentials) or bootstrap as needed.
+        self._arcade_api_url = arcade_api_url or self.settings.arcade.api_url
+        self._has_service_key = False
+        self.arcade: AsyncArcade | None = None
+        # Slot owning the in-flight OAuth bootstrap attempt (stdio only).
+        self._login_slot = AttemptSlot()
+
+        explicit_api_key = arcade_api_key or self.settings.arcade.api_key
+        if explicit_api_key:
+            self._has_service_key = bool(explicit_api_key.startswith("arc_"))
+            self._build_arcade_client(explicit_api_key, self._arcade_api_url)
 
         # Component managers (passive)
         self._tool_manager = ToolManager()
@@ -222,98 +259,95 @@ class MCPServer:
         self._sessions: dict[str, ServerSession] = {}
         self._sessions_lock = asyncio.Lock()
 
+        # Serialize token refresh attempts to avoid concurrent refreshes
+        # racing on the same refresh token (see _check_authorization).
+        self._refresh_lock = asyncio.Lock()
+
         # Usage tracking
         self._tracker = ServerTracker()
 
         # Handler registration
         self._handlers = self._register_handlers()
 
-    def _load_config_values(self) -> tuple[str | None, str | None]:
-        """Load access token and user_id from credentials file.
+    def _load_access_token(self) -> str | None:
+        """Load a valid access token from credentials file.
 
         Returns:
-            Tuple of (access_token, user_id) from credentials file, or (None, None) if not available
+            Access token string, or None if unavailable or expired.
         """
         try:
-            from arcade_core.config import config
-
-            access_token = get_valid_access_token()
-            user_id = config.user.email if config.user else None
-
-            if access_token or user_id:
-                config_path = config.get_config_file_path()
-                if access_token:
-                    logger.info(f"Loaded Arcade access token from {config_path}")
-                if user_id:
-                    logger.debug(f"Loaded user_id '{user_id}' from {config_path}")
-                return access_token, user_id
-            else:
-                logger.debug(
-                    "No access token or user_id found in credentials file. If this is unexpected, run 'arcade login' to authenticate."
-                )
-                return None, None
+            return get_valid_access_token()
         except Exception as e:
-            logger.debug(f"Could not load values from credentials file: {e}")
-            return None, None
+            logger.debug("Could not load access token: %s", e)
+            return None
+
+    def _load_config_user_id(self) -> str | None:
+        """Load user_id (email) from the credentials file.
+
+        Reads ``Config`` directly from disk on every call so post-bootstrap
+        writes are visible immediately without depending on the
+        ``arcade_core.config.get_config`` LRU cache being cleared at exactly
+        the right moment.
+
+        Returns:
+            User email from credentials, or ``None`` if unavailable.
+        """
+        try:
+            from arcade_core.config_model import Config
+
+            cfg = Config.load_from_file()
+            user_id = cfg.user.email if cfg.user else None
+        except Exception as e:
+            logger.debug("Could not load user_id from credentials file: %s", e)
+            return None
+        else:
+            if user_id:
+                logger.debug("Loaded user_id '%s'", user_id)
+            return user_id
 
     def _load_org_project_context(self) -> tuple[str, str] | None:
-        """
-        Load org/project context from the shared Arcade config (same source as the CLI).
-        Returns (org_id, project_id) when both are available; otherwise None.
+        """Load org/project context from the credentials file.
+
+        Reads ``Config`` directly from disk (no cached singleton).
+
+        Returns ``(org_id, project_id)`` when both are available; ``None`` otherwise.
         """
         try:
-            from arcade_core.config import config
+            from arcade_core.config_model import Config
 
-            context = getattr(config, "context", None)
-            if context and context.org_id and context.project_id:
-                return context.org_id, context.project_id
-            logger.debug("Org/project context not found in arcade_core.config")
+            cfg = Config.load_from_file()
+            if cfg.context and cfg.context.org_id and cfg.context.project_id:
+                return cfg.context.org_id, cfg.context.project_id
+            logger.debug("Org/project context not found in credentials file")
         except Exception as e:
-            logger.debug(f"Could not load org/project context from config: {e}")
+            logger.debug("Could not load org/project context: %s", e)
         return None
 
-    def _init_arcade_client(self, api_key: str | None, api_url: str | None) -> None:
-        """Initialize Arcade client for runtime authorization."""
-        self.arcade: AsyncArcade | None = None
+    def _build_arcade_client(self, api_key: str, api_url: str) -> None:
+        """Build (or rebuild) the AsyncArcade client with the given key."""
+        logger.info(f"Using Arcade client with API URL: {api_url}")
+        client_kwargs: dict[str, Any] = {"api_key": api_key, "base_url": api_url}
 
-        if not api_url:
-            api_url = os.environ.get("ARCADE_API_URL", "https://api.arcade.dev")
+        # Non-service keys need org/project URL rewriting
+        if not api_key.startswith("arc_"):
+            context = self._load_org_project_context()
+            if context:
+                org_id, project_id = context
+                client_kwargs["http_client"] = build_org_scoped_async_http_client(
+                    org_id, project_id
+                )
+                logger.info(
+                    "Configured org-scoped Arcade client for org '%s' project '%s'",
+                    org_id,
+                    project_id,
+                )
+            else:
+                logger.warning(
+                    "Expected to find org/project context in arcade_core.config but no org/project context "
+                    "was found; using non-scoped Arcade client."
+                )
 
-        final_api_key = api_key
-
-        # If no API key provided, try to load from credentials file
-        if not final_api_key:
-            config_api_key, _ = self._load_config_values()
-            final_api_key = config_api_key
-
-        if final_api_key:
-            logger.info(f"Using Arcade client with API URL: {api_url}")
-            client_kwargs: dict[str, Any] = {"api_key": final_api_key, "base_url": api_url}
-
-            # Non-service keys need org/project URL rewriting
-            if not final_api_key.startswith("arc_"):
-                context = self._load_org_project_context()
-                if context:
-                    org_id, project_id = context
-                    client_kwargs["http_client"] = build_org_scoped_async_http_client(
-                        org_id, project_id
-                    )
-                    logger.info(
-                        "Configured org-scoped Arcade client for org '%s' project '%s'",
-                        org_id,
-                        project_id,
-                    )
-                else:
-                    logger.warning(
-                        "Expected to find org/project context in arcade_core.config but no org/project context "
-                        "was found; using non-scoped Arcade client."
-                    )
-
-            self.arcade = AsyncArcade(**client_kwargs)
-        else:
-            logger.warning(
-                "Arcade access token not configured. Tools requiring auth will return a login instruction."
-            )
+        self.arcade = AsyncArcade(**client_kwargs)
 
     def _init_middleware(self, custom_middleware: list[Middleware] | None) -> None:
         """Initialize middleware chain."""
@@ -386,6 +420,13 @@ class MCPServer:
 
     async def _stop(self) -> None:
         """Stop server components (called by MCPComponent.stop)."""
+        # Shut down any in-flight login attempt first so its listener thread
+        # and background task are released before we tear down managers.
+        try:
+            await self._login_slot.shutdown()
+        except Exception:
+            logger.debug("Login slot shutdown raised", exc_info=True)
+
         # Stop all sessions
         async with self._sessions_lock:
             sessions = list(self._sessions.values())
@@ -805,7 +846,7 @@ class MCPServer:
             return settings_user_id
 
         # Third priority: configured user_id from credentials file
-        _, config_user_id = self._load_config_values()
+        config_user_id = self._load_config_user_id()
         if config_user_id:
             logger.debug(f"Context user_id set from credentials file: {config_user_id}")
             return config_user_id
@@ -1106,30 +1147,50 @@ class MCPServer:
         """Check tool requirements before executing the tool"""
         # Check authorization
         if tool.definition.requirements and tool.definition.requirements.authorization:
-            # First check if Arcade API key is configured
+            # No client AND auth required → either retry-from-disk + bootstrap (stdio)
+            # or return the existing missing-key error (HTTP).
             if not self.arcade:
-                user_message = "✗ Missing Arcade API key\n\n"
-                user_message += (
-                    f"  Tool '{tool_name}' requires authorization but no API key is configured.\n\n"
+                transport_type = (
+                    session.init_options.get("transport_type")
+                    if session and session.init_options
+                    else None
                 )
-                user_message += "  To fix, either:\n"
-                user_message += "  1. Run arcade login:     arcade login\n"
-                user_message += "  2. Set environment var:  export ARCADE_API_KEY=your_key_here\n"
-                user_message += "  3. Add to .env file:     ARCADE_API_KEY=your_key_here\n\n"
-                user_message += "  Then restart the server."
+                is_stdio = transport_type == "stdio"
 
-                tool_response = {
-                    "message": user_message,
-                    "llm_instructions": (
-                        f"The MCP server cannot execute the '{tool_name}' tool because it requires authorization "
-                        "but the Arcade API key is not configured. The developer needs to: "
-                        "1) Run 'arcade login' to authenticate, or "
-                        "2) Set the ARCADE_API_KEY environment variable with a valid API key, or "
-                        "3) Add ARCADE_API_KEY to the .env file. "
-                        "Once the API key is configured, restart the MCP server for the changes to take effect."
-                    ),
-                }
-                return self._create_error_response(message, tool_response)
+                if is_stdio:
+                    # Retry-first: maybe credentials appeared since startup or
+                    # a previous fallback bootstrap.
+                    bootstrap_response = await self._maybe_bootstrap_for_tool_call(
+                        tool_context, message, tool_name, session
+                    )
+                    if bootstrap_response is not None:
+                        return bootstrap_response
+                    # If still no client, the helper returned None only when it
+                    # successfully built one; otherwise it always returns a response.
+                else:
+                    # HTTP transport keeps the existing missing-key error.
+                    user_message = "✗ Missing Arcade API key\n\n"
+                    user_message += f"  Tool '{tool_name}' requires authorization but no API key is configured.\n\n"
+                    user_message += "  To fix, either:\n"
+                    user_message += "  1. Run arcade login:     arcade login\n"
+                    user_message += (
+                        "  2. Set environment var:  export ARCADE_API_KEY=your_key_here\n"
+                    )
+                    user_message += "  3. Add to .env file:     ARCADE_API_KEY=your_key_here\n\n"
+                    user_message += "  Then restart the server."
+
+                    tool_response = {
+                        "message": user_message,
+                        "llm_instructions": (
+                            f"The MCP server cannot execute the '{tool_name}' tool because it requires authorization "
+                            "but the Arcade API key is not configured. The developer needs to: "
+                            "1) Run 'arcade login' to authenticate, or "
+                            "2) Set the ARCADE_API_KEY environment variable with a valid API key, or "
+                            "3) Add ARCADE_API_KEY to the .env file. "
+                            "Once the API key is configured, restart the MCP server for the changes to take effect."
+                        ),
+                    }
+                    return self._create_error_response(message, tool_response)
 
             # Check authorization status
             try:
@@ -1214,6 +1275,107 @@ class MCPServer:
 
         return None
 
+    async def _maybe_bootstrap_for_tool_call(
+        self,
+        tool_context: ToolContext,
+        message: CallToolRequest,
+        tool_name: str,
+        session: ServerSession | None,
+    ) -> JSONRPCResponse[CallToolResult] | None:
+        """Bootstrap Arcade login when stdio + auth-required + ``self.arcade is None``.
+
+        Returns:
+            ``None`` once a client has been built (caller continues to ``_check_authorization``).
+            A :class:`JSONRPCResponse` carrying an error response otherwise.
+        """
+        # Retry-first: maybe credentials appeared since startup.
+        retry_token = await asyncio.to_thread(self._load_access_token)
+        if retry_token:
+            self._has_service_key = bool(retry_token.startswith("arc_"))
+            self._build_arcade_client(retry_token, self._arcade_api_url)
+            new_user_id = await asyncio.to_thread(self._load_config_user_id)
+            if new_user_id:
+                tool_context.user_id = new_user_id
+            return None
+
+        # Determine if elicit is available on the client.
+        elicit_callable: Any = None
+        if session is not None and session.check_client_capability(
+            ClientCapabilities(elicitation={})
+        ):
+            elicit_callable = session.elicit
+
+        result = await bootstrap_login(
+            coordinator_url=self.settings.arcade.coordinator_url,
+            elicit=elicit_callable,
+            slot=self._login_slot,
+            timeout_seconds=DEFAULT_OAUTH_TIMEOUT_SECONDS,
+        )
+
+        if result.status == BootstrapStatus.COMPLETED:
+            token = await asyncio.to_thread(self._load_access_token)
+            if not token:
+                return self._create_error_response(
+                    message,
+                    {
+                        "message": (
+                            "✗ Sign-in completed but credentials could not be loaded.\n\n"
+                            "  Restart the MCP server and try again."
+                        ),
+                        "llm_instructions": (
+                            f"The '{tool_name}' tool's sign-in flow completed but the resulting "
+                            "credentials could not be loaded from disk. Tell the user to restart "
+                            "the MCP server and try again."
+                        ),
+                    },
+                )
+            self._has_service_key = bool(token.startswith("arc_"))
+            self._build_arcade_client(token, self._arcade_api_url)
+            new_user_id = await asyncio.to_thread(self._load_config_user_id)
+            if new_user_id:
+                tool_context.user_id = new_user_id
+            return None
+
+        if result.status == BootstrapStatus.URL_FOR_FALLBACK:
+            auth_url = result.auth_url or ""
+            user_message = (
+                "⚠ Sign in to Arcade to use this tool\n\n"
+                "  Open this URL in your browser:\n"
+                f"  {auth_url}\n\n"
+                "  After completing sign-in, ask me again."
+            )
+            tool_response: dict[str, Any] = {
+                "message": user_message,
+                "llm_instructions": (
+                    f"Show this URL to the user as a clickable link, formatted as markdown: "
+                    f"[Sign in to Arcade]({auth_url}). "
+                    f"Tell them that after they complete sign-in, they should ask you to "
+                    f"call the tool again."
+                ),
+                "authorization_url": auth_url,
+            }
+            return self._create_error_response(message, tool_response)
+
+        # Failed
+        logger.warning(
+            "Bootstrap login failed: reason=%s detail=%s",
+            result.reason,
+            result.detail,
+        )
+        user_message = (
+            "✗ Sign in to Arcade failed\n\n"
+            f"  Reason: {_humanize_reason(result.reason)}\n\n"
+            "  Try again, or ask the developer to check the server logs."
+        )
+        failed_response: dict[str, Any] = {
+            "message": user_message,
+            "llm_instructions": (
+                f"The sign-in flow failed (reason: {result.reason}). "
+                "Ask the user to try again, or to contact the server developer."
+            ),
+        }
+        return self._create_error_response(message, failed_response)
+
     async def _check_authorization(
         self,
         tool: MaterializedTool,
@@ -1229,6 +1391,23 @@ class MCPServer:
                 "Authorization check called without Arcade API key configured. "
                 "This should be checked by the caller."
             )
+
+        # Refresh the access token for long-running sessions.
+        # Service keys (arc_*) never expire, so skip the refresh path entirely.
+        # When refreshing an OAuth token the key type stays the same, so the
+        # org-scoped HTTP transport created at init time remains valid and only
+        # the api_key needs to be swapped.
+        #
+        # The lock serializes concurrent refresh attempts so that only one
+        # coroutine performs the (potentially token-rotating) refresh at a time.
+        # After acquiring the lock we re-load the token: if another coroutine
+        # already refreshed it, we just pick up the new value without hitting
+        # the OAuth server again.
+        if not self._has_service_key:
+            async with self._refresh_lock:
+                refreshed = await asyncio.to_thread(self._load_access_token)
+                if refreshed:
+                    self.arcade.api_key = refreshed
 
         req = tool.definition.requirements.authorization
         provider_id = str(getattr(req, "provider_id", ""))

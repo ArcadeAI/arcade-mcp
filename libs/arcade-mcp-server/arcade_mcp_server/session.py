@@ -236,6 +236,55 @@ class NotificationManager:
         await self._broadcast(PromptListChangedNotification(), session_ids)
 
 
+def _capability_names(caps: ClientCapabilities) -> set[str]:
+    """Return the set of capability names declared on ``caps`` (declared fields + extras).
+
+    Combines explicitly-set declared model fields with any extras. Only names with
+    a non-None value are included.
+    """
+    names: set[str] = set()
+    fields_set: set[str] = getattr(caps, "model_fields_set", set()) or set()
+    for name in fields_set:
+        if getattr(caps, name, None) is not None:
+            names.add(name)
+    extras: dict[str, Any] = getattr(caps, "__pydantic_extra__", None) or {}
+    for name, value in extras.items():
+        if value is not None:
+            names.add(name)
+    return names
+
+
+def _all_capability_names(caps: ClientCapabilities) -> set[str]:
+    """Return all capability names that need checking on ``caps``."""
+    return _capability_names(caps)
+
+
+def _is_capability_requested(caps: ClientCapabilities, name: str) -> bool:
+    """A capability is requested when it's set on ``caps`` and not None."""
+    fields_set: set[str] = getattr(caps, "model_fields_set", set()) or set()
+    if name in fields_set and getattr(caps, name, None) is not None:
+        return True
+    extras: dict[str, Any] = getattr(caps, "__pydantic_extra__", None) or {}
+    return name in extras and extras[name] is not None
+
+
+def _is_capability_supported(caps: ClientCapabilities, name: str) -> bool:
+    """A capability is supported when it's set on ``caps`` and not None.
+
+    Empty dicts ``{}`` count as supported (that's the on-the-wire form).
+    """
+    fields_set: set[str] = getattr(caps, "model_fields_set", set()) or set()
+    if name in fields_set and getattr(caps, name, None) is not None:
+        return True
+    extras: dict[str, Any] = getattr(caps, "__pydantic_extra__", None) or {}
+    return name in extras and extras[name] is not None
+
+
+def _is_empty_capability(caps: ClientCapabilities) -> bool:
+    """Return True when ``caps`` requests no capability at all."""
+    return not _capability_names(caps)
+
+
 class ServerSession:
     """
     MCP server session handling a single client connection.
@@ -297,44 +346,38 @@ class ServerSession:
 
     def check_client_capability(self, capability: ClientCapabilities) -> bool:
         """
-        Check if client has a specific capability.
+        Check if the client supports every capability requested by ``capability``.
+
+        Presence-based semantics: a capability is *requested* when its corresponding
+        attribute on the requested object is set AND not None. The client *supports*
+        the capability when the corresponding attribute on
+        ``client_params.capabilities`` is set AND not None.
+
+        For declared fields (``sampling``/``elicitation``/``experimental``/``roots``)
+        we use ``model_fields_set`` plus ``is not None``. For extras (``tools``/
+        ``resources``/``prompts``/``logging``) we use ``__pydantic_extra__`` plus
+        ``is not None``. An empty dict ``{}`` counts as supported (it is the wire
+        form clients send).
 
         Args:
-            capability: Capability to check
+            capability: Capability set to check.
 
         Returns:
-            True if client has capability
+            True if all requested capabilities are supported by the client (or if
+            no capabilities are requested).
         """
+        # If no client params, only an "empty" requested capability set is supported.
         if not self.client_params or not self.client_params.capabilities:
-            return False
+            return _is_empty_capability(capability)
 
         client_caps = self.client_params.capabilities
 
-        # Check specific capabilities
-        # Use hasattr to check for attributes that might be in extra fields
-        if (
-            hasattr(capability, "tools")
-            and capability.tools
-            and not (hasattr(client_caps, "tools") and client_caps.tools)
-        ):
-            return False
-        if (
-            hasattr(capability, "resources")
-            and capability.resources
-            and not (hasattr(client_caps, "resources") and client_caps.resources)
-        ):
-            return False
-        if (
-            hasattr(capability, "prompts")
-            and capability.prompts
-            and not (hasattr(client_caps, "prompts") and client_caps.prompts)
-        ):
-            return False
-        return not (
-            hasattr(capability, "logging")
-            and capability.logging
-            and not (hasattr(client_caps, "logging") and client_caps.logging)
-        )
+        for cap_name in _all_capability_names(capability):
+            if _is_capability_requested(capability, cap_name) and not _is_capability_supported(
+                client_caps, cap_name
+            ):
+                return False
+        return True
 
     async def run(self) -> None:
         """

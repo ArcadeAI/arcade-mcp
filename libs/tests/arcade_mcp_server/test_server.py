@@ -1738,9 +1738,7 @@ class TestServerInitialResources:
         """MCPServer with initial ResourceTemplate registers it as a template."""
         from arcade_mcp_server.types import ResourceTemplate
 
-        tmpl = ResourceTemplate(
-            uriTemplate="data://{item_id}", name="Data", mimeType="text/plain"
-        )
+        tmpl = ResourceTemplate(uriTemplate="data://{item_id}", name="Data", mimeType="text/plain")
 
         def handler(uri: str, item_id: str) -> str:
             return f"item-{item_id}"
@@ -1765,9 +1763,7 @@ class TestServerInitialResources:
         """MCPServer with ResourceTemplate and no handler registers template only."""
         from arcade_mcp_server.types import ResourceTemplate
 
-        tmpl = ResourceTemplate(
-            uriTemplate="schema://{type}", name="Schema"
-        )
+        tmpl = ResourceTemplate(uriTemplate="schema://{type}", name="Schema")
 
         server = MCPServer(
             catalog=tool_catalog,
@@ -1801,6 +1797,253 @@ class TestToolMetaExtensionEdgeCases:
             assert "skipped: tool not found" in caplog.text
         finally:
             await server.stop()
+
+
+class TestLoadAccessToken:
+    """Tests for MCPServer._load_access_token()."""
+
+    def test_returns_valid_token(self, tool_catalog):
+        with patch("arcade_mcp_server.server.get_valid_access_token", return_value="token-123"):
+            server = MCPServer(catalog=tool_catalog)
+            assert server._load_access_token() == "token-123"
+
+    def test_expired_refresh_fails(self, tool_catalog):
+        with patch(
+            "arcade_mcp_server.server.get_valid_access_token",
+            side_effect=ValueError("Token expired and refresh failed"),
+        ):
+            server = MCPServer(catalog=tool_catalog)
+            assert server._load_access_token() is None
+
+    def test_not_logged_in(self, tool_catalog):
+        with patch(
+            "arcade_mcp_server.server.get_valid_access_token",
+            side_effect=ValueError("Not logged in"),
+        ):
+            server = MCPServer(catalog=tool_catalog)
+            assert server._load_access_token() is None
+
+    def test_unexpected_exception(self, tool_catalog):
+        with patch(
+            "arcade_mcp_server.server.get_valid_access_token",
+            side_effect=RuntimeError("unexpected"),
+        ):
+            server = MCPServer(catalog=tool_catalog)
+            assert server._load_access_token() is None
+
+
+class TestLoadConfigUserId:
+    """Tests for MCPServer._load_config_user_id().
+
+    After the move from the cached singleton to ``Config.load_from_file()``, tests
+    patch ``arcade_core.config_model.Config.load_from_file`` directly.
+    """
+
+    def test_returns_email(self, tool_catalog):
+        server = MCPServer(catalog=tool_catalog)
+        mock_config = Mock()
+        mock_config.user = Mock(email="a@example.com")
+        with patch(
+            "arcade_core.config_model.Config.load_from_file",
+            return_value=mock_config,
+        ):
+            assert server._load_config_user_id() == "a@example.com"
+
+    def test_no_user_section(self, tool_catalog):
+        server = MCPServer(catalog=tool_catalog)
+        mock_config = Mock()
+        mock_config.user = None
+        with patch(
+            "arcade_core.config_model.Config.load_from_file",
+            return_value=mock_config,
+        ):
+            assert server._load_config_user_id() is None
+
+    def test_email_is_none(self, tool_catalog):
+        server = MCPServer(catalog=tool_catalog)
+        mock_config = Mock()
+        mock_config.user = Mock(email=None)
+        with patch(
+            "arcade_core.config_model.Config.load_from_file",
+            return_value=mock_config,
+        ):
+            assert server._load_config_user_id() is None
+
+    def test_config_load_raises(self, tool_catalog):
+        server = MCPServer(catalog=tool_catalog)
+        with patch(
+            "arcade_core.config_model.Config.load_from_file",
+            side_effect=FileNotFoundError("missing"),
+        ):
+            assert server._load_config_user_id() is None
+
+
+class TestInitArcadeClient:
+    """Tests for MCPServer Arcade client initialization.
+
+    After the lazy-init change, ``MCPServer.__init__`` builds a client only when
+    an explicit api_key is provided (constructor arg or ``ARCADE_API_KEY``).
+    When neither is set, ``self.arcade`` stays ``None`` until the auth-required
+    branch's retry-first path loads credentials from disk.
+    """
+
+    def test_explicit_api_key(self, tool_catalog):
+        server = MCPServer(catalog=tool_catalog, arcade_api_key="arc_key")
+        assert server.arcade is not None
+        assert server.arcade.api_key == "arc_key"
+
+    def test_no_explicit_key_leaves_client_none(self, tool_catalog):
+        """No explicit key → constructor leaves self.arcade = None (lazy)."""
+        # Patch get_valid_access_token to raise if anyone calls it during init.
+        sentinel = Mock(side_effect=AssertionError("get_valid_access_token must not be called"))
+        with patch("arcade_mcp_server.server.get_valid_access_token", sentinel):
+            server = MCPServer(catalog=tool_catalog)
+            assert server.arcade is None
+            sentinel.assert_not_called()
+
+    def test_no_key_no_token(self, tool_catalog):
+        with patch(
+            "arcade_mcp_server.server.get_valid_access_token",
+            side_effect=ValueError("Not logged in"),
+        ):
+            server = MCPServer(catalog=tool_catalog)
+            assert server.arcade is None
+
+
+class TestSelectUserId:
+    """Tests for MCPServer._select_user_id() using _load_config_user_id."""
+
+    def test_from_settings(self, tool_catalog):
+        from arcade_mcp_server.settings import ArcadeSettings, MCPSettings
+
+        settings = MCPSettings(arcade=ArcadeSettings(user_id="set-user"))
+        server = MCPServer(catalog=tool_catalog, settings=settings)
+        result = server._select_user_id(session=None)
+        assert result == "set-user"
+
+    def test_from_config_email(self, tool_catalog):
+        server = MCPServer(catalog=tool_catalog)
+        server._load_config_user_id = Mock(return_value="cfg@ex.com")
+        session = Mock()
+        session.session_id = "sess-123"
+        result = server._select_user_id(session=session)
+        assert result == "cfg@ex.com"
+
+    def test_fallback_to_session(self, tool_catalog):
+        server = MCPServer(catalog=tool_catalog)
+        server._load_config_user_id = Mock(return_value=None)
+        session = Mock()
+        session.session_id = "sess-456"
+        result = server._select_user_id(session=session)
+        assert result == "sess-456"
+
+    def test_email_survives_token_failure(self, tool_catalog):
+        """Email is returned even when access token retrieval fails."""
+        with patch(
+            "arcade_mcp_server.server.get_valid_access_token",
+            side_effect=ValueError("expired"),
+        ):
+            server = MCPServer(catalog=tool_catalog)
+
+        mock_config = Mock()
+        mock_config.user = Mock(email="user@arcade.dev")
+        with patch(
+            "arcade_core.config_model.Config.load_from_file",
+            return_value=mock_config,
+        ):
+            session = Mock()
+            session.session_id = "sess-789"
+            result = server._select_user_id(session=session)
+            assert result == "user@arcade.dev"
+
+    def test_no_session_returns_none(self, tool_catalog):
+        server = MCPServer(catalog=tool_catalog)
+        server._load_config_user_id = Mock(return_value=None)
+        result = server._select_user_id(session=None)
+        assert result is None
+
+
+class TestLazyTokenRefresh:
+    """Tests for lazy token refresh in _check_authorization."""
+
+    @pytest.mark.asyncio
+    async def test_refreshes_token(self, tool_catalog):
+        server = MCPServer(catalog=tool_catalog, arcade_api_key="old")
+        assert server.arcade is not None
+        server._load_access_token = Mock(return_value="new")
+
+        mock_auth_response = Mock()
+        mock_auth_response.status = "completed"
+        mock_auth_response.context = Mock()
+        mock_auth_response.context.token = "tok"
+        mock_auth_response.context.user_info = {}
+
+        tool_mock = Mock()
+        tool_mock.definition.requirements.authorization = ToolAuthRequirement(
+            provider_type="oauth2", provider_id="test"
+        )
+
+        with patch.object(server.arcade.auth, "authorize", new_callable=AsyncMock) as mock_auth:
+            mock_auth.return_value = mock_auth_response
+            await server._check_authorization(tool_mock, user_id="u")
+
+        assert server.arcade.api_key == "new"
+
+    @pytest.mark.asyncio
+    async def test_refresh_fails_keeps_existing(self, tool_catalog):
+        server = MCPServer(catalog=tool_catalog, arcade_api_key="old")
+        assert server.arcade is not None
+        server._load_access_token = Mock(return_value=None)
+
+        mock_auth_response = Mock()
+        mock_auth_response.status = "completed"
+
+        tool_mock = Mock()
+        tool_mock.definition.requirements.authorization = ToolAuthRequirement(
+            provider_type="oauth2", provider_id="test"
+        )
+
+        with patch.object(server.arcade.auth, "authorize", new_callable=AsyncMock) as mock_auth:
+            mock_auth.return_value = mock_auth_response
+            await server._check_authorization(tool_mock, user_id="u")
+
+        assert server.arcade.api_key == "old"
+
+    @pytest.mark.asyncio
+    async def test_no_arcade_client_raises(self, tool_catalog):
+        server = MCPServer(catalog=tool_catalog)
+        server.arcade = None
+
+        tool_mock = Mock()
+        tool_mock.definition.requirements.authorization = ToolAuthRequirement(
+            provider_type="oauth2", provider_id="test"
+        )
+
+        with pytest.raises(ToolRuntimeError, match="without Arcade API key"):
+            await server._check_authorization(tool_mock)
+
+
+class TestTokenEmailDecoupling:
+    """End-to-end regression: email is preserved when token is expired."""
+
+    def test_tool_call_uses_email_when_token_expired(self, tool_catalog):
+        with patch(
+            "arcade_mcp_server.server.get_valid_access_token",
+            side_effect=ValueError("expired"),
+        ):
+            server = MCPServer(catalog=tool_catalog, arcade_api_key="valid")
+
+        mock_config = Mock()
+        mock_config.user = Mock(email="user@arcade.dev")
+        with patch(
+            "arcade_core.config_model.Config.load_from_file",
+            return_value=mock_config,
+        ):
+            session = Mock()
+            session.session_id = "session-uuid"
+            result = server._select_user_id(session=session)
+            assert result == "user@arcade.dev"
+            assert result != "session-uuid"
 
 
 class TestToolErrorResponse:
@@ -1986,3 +2229,889 @@ class TestLogToolCallError:
         record = next(r for r in caplog.records if "t error" in r.getMessage())
         assert record.error_developer_message is None
         assert record.error_status_code is None
+
+
+class TestNoTokenBootstrap:
+    """Tests for the bootstrap-login wiring in MCPServer.
+
+    These tests cover:
+    - Lazy startup (no network I/O when no explicit api_key).
+    - Direct ``Config.load_from_file()`` use in user/org loaders.
+    - Bootstrap path in ``_check_tool_requirements`` (stdio + auth-required + no client).
+    - No ``developer_message`` / ``reason`` / ``detail`` leak in error responses.
+    """
+
+    def _write_credentials(
+        self,
+        config_dir,
+        *,
+        email: str = "user@example.com",
+        org_id: str = "org-1",
+        project_id: str = "proj-1",
+        access_token: str = "tok-abc",
+        coordinator_url: str = "https://cloud.arcade.dev",
+    ) -> None:
+        """Write a minimal Arcade credentials.yaml file at ``config_dir``."""
+        import time
+        import yaml
+
+        config_dir.mkdir(parents=True, exist_ok=True)
+        contents = {
+            "cloud": {
+                "coordinator_url": coordinator_url,
+                "auth": {
+                    "access_token": access_token,
+                    "refresh_token": "ref-abc",
+                    "expires_at": int(time.time()) + 3600,
+                },
+                "user": {"email": email},
+                "context": {
+                    "org_id": org_id,
+                    "org_name": "Acme",
+                    "project_id": project_id,
+                    "project_name": "Main",
+                },
+            }
+        }
+        (config_dir / "credentials.yaml").write_text(yaml.safe_dump(contents))
+
+    def test_load_config_user_id_sees_freshly_written_credentials_without_cache_clear(
+        self, tool_catalog, tmp_path, monkeypatch
+    ):
+        """``_load_config_user_id`` must use ``Config.load_from_file()`` (no cached singleton),
+        so an updated email is reflected immediately on the next call."""
+        monkeypatch.setenv("ARCADE_WORK_DIR", str(tmp_path))
+
+        server = MCPServer(catalog=tool_catalog)
+
+        self._write_credentials(tmp_path, email="first@example.com")
+        assert server._load_config_user_id() == "first@example.com"
+
+        # Overwrite without clearing any cache
+        self._write_credentials(tmp_path, email="second@example.com")
+        assert server._load_config_user_id() == "second@example.com"
+
+    def test_load_org_project_context_sees_freshly_written_credentials_without_cache_clear(
+        self, tool_catalog, tmp_path, monkeypatch
+    ):
+        """Same property for org/project context loader."""
+        monkeypatch.setenv("ARCADE_WORK_DIR", str(tmp_path))
+
+        server = MCPServer(catalog=tool_catalog)
+
+        self._write_credentials(tmp_path, org_id="org-A", project_id="proj-A")
+        assert server._load_org_project_context() == ("org-A", "proj-A")
+
+        self._write_credentials(tmp_path, org_id="org-B", project_id="proj-B")
+        assert server._load_org_project_context() == ("org-B", "proj-B")
+
+    def test_server_init_does_no_network_io_on_stdio_when_no_explicit_key(
+        self, tool_catalog, tmp_path, monkeypatch
+    ):
+        """``MCPServer.__init__`` must not call ``get_valid_access_token`` when no explicit
+        api key is given (stdio cold-start must be I/O-free)."""
+        monkeypatch.setenv("ARCADE_WORK_DIR", str(tmp_path))
+        monkeypatch.delenv("ARCADE_API_KEY", raising=False)
+
+        sentinel = Mock(side_effect=AssertionError("get_valid_access_token must not be called"))
+        with patch("arcade_mcp_server.server.get_valid_access_token", sentinel):
+            server = MCPServer(catalog=tool_catalog)
+
+        assert server.arcade is None
+        sentinel.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_server_stop_shuts_down_inflight_login_slot(self, tool_catalog):
+        """``MCPServer._stop`` must close the login slot."""
+        server = MCPServer(catalog=tool_catalog)
+
+        # Force the slot to look as if it has an in-flight attempt.
+        with patch.object(
+            server._login_slot, "shutdown", new_callable=AsyncMock
+        ) as shutdown_mock:
+            await server.start()
+            await server.stop()
+            shutdown_mock.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_service_key_short_circuits_before_bootstrap(self, tool_catalog):
+        """When an explicit service key is configured, bootstrap must NOT be invoked."""
+        server = MCPServer(catalog=tool_catalog, arcade_api_key="arc_abc123")
+        assert server.arcade is not None
+        assert server._has_service_key is True
+
+        tool_obj = Mock()
+        tool_obj.definition.requirements = ToolRequirements(
+            authorization=ToolAuthRequirement(
+                provider_type="oauth2", provider_id="test-provider"
+            )
+        )
+
+        # Mock _check_authorization to short-circuit completion path
+        completed = Mock()
+        completed.status = "completed"
+        completed.context = Mock(token="t", user_info={})
+        server._check_authorization = AsyncMock(return_value=completed)
+
+        bootstrap_mock = AsyncMock(side_effect=AssertionError("bootstrap_login should not be called"))
+        with patch("arcade_mcp_server.server.bootstrap_login", bootstrap_mock):
+            session = Mock()
+            session.init_options = {"transport_type": "stdio"}
+            session.session_id = "sess"
+            tool_context = ToolContext()
+
+            result = await server._check_tool_requirements(
+                tool_obj,
+                tool_context,
+                CallToolRequest(
+                    jsonrpc="2.0",
+                    id=1,
+                    method="tools/call",
+                    params={"name": "T.t", "arguments": {}},
+                ),
+                "T.t",
+                session=session,
+            )
+
+        assert result is None  # auth completed
+        bootstrap_mock.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_secrets_only_tool_does_not_bootstrap(self, tool_catalog):
+        """Secrets-only tool must not trigger bootstrap; existing missing-secret path applies."""
+        server = MCPServer(catalog=tool_catalog)
+        server.arcade = None
+
+        tool_obj = Mock()
+        tool_obj.definition.requirements = ToolRequirements(
+            secrets=[ToolSecretRequirement(key="MY_SECRET")]
+        )
+
+        tool_context = Mock(spec=ToolContext)
+        tool_context.get_secret = Mock(side_effect=ValueError("not set"))
+
+        bootstrap_mock = AsyncMock(side_effect=AssertionError("bootstrap_login should not be called"))
+        with patch("arcade_mcp_server.server.bootstrap_login", bootstrap_mock):
+            session = Mock()
+            session.init_options = {"transport_type": "stdio"}
+            session.session_id = "sess"
+
+            result = await server._check_tool_requirements(
+                tool_obj,
+                tool_context,
+                CallToolRequest(
+                    jsonrpc="2.0",
+                    id=1,
+                    method="tools/call",
+                    params={"name": "T.s", "arguments": {}},
+                ),
+                "T.s",
+                session=session,
+            )
+
+        bootstrap_mock.assert_not_called()
+        assert isinstance(result, JSONRPCResponse)
+        assert result.result.isError is True
+        assert "MY_SECRET" in result.result.content[0].text
+
+    @pytest.mark.asyncio
+    async def test_http_transport_does_not_bootstrap_when_arcade_is_none(self, tool_catalog):
+        """HTTP transport with no client must NOT bootstrap; existing error response is returned."""
+        server = MCPServer(catalog=tool_catalog)
+        server.arcade = None
+
+        tool_obj = Mock()
+        tool_obj.definition.requirements = ToolRequirements(
+            authorization=ToolAuthRequirement(
+                provider_type="oauth2", provider_id="test-provider"
+            )
+        )
+
+        bootstrap_mock = AsyncMock(side_effect=AssertionError("bootstrap_login should not be called"))
+        with patch("arcade_mcp_server.server.bootstrap_login", bootstrap_mock):
+            session = Mock()
+            session.init_options = {"transport_type": "streamable-http"}
+            session.session_id = "sess"
+
+            tool_context = ToolContext()
+            result = await server._check_tool_requirements(
+                tool_obj,
+                tool_context,
+                CallToolRequest(
+                    jsonrpc="2.0",
+                    id=1,
+                    method="tools/call",
+                    params={"name": "T.a", "arguments": {}},
+                ),
+                "T.a",
+                session=session,
+            )
+
+        bootstrap_mock.assert_not_called()
+        assert isinstance(result, JSONRPCResponse)
+        assert result.result.isError is True
+        assert "Missing Arcade API key" in result.result.content[0].text
+
+    @pytest.mark.asyncio
+    async def test_missing_client_retries_load_before_bootstrap(self, tool_catalog):
+        """Stdio + no client + auth required: retry-first must succeed if creds appeared,
+        and bootstrap must NOT be called."""
+        server = MCPServer(catalog=tool_catalog)
+        server.arcade = None
+
+        tool_obj = Mock()
+        tool_obj.definition.requirements = ToolRequirements(
+            authorization=ToolAuthRequirement(
+                provider_type="oauth2", provider_id="test-provider"
+            )
+        )
+
+        # Patch _load_access_token to return a token (creds appeared since startup).
+        server._load_access_token = Mock(return_value="oauth-tok")
+        server._load_config_user_id = Mock(return_value="user@example.com")
+
+        # _check_authorization succeeds.
+        completed = Mock()
+        completed.status = "completed"
+        completed.context = Mock(token="t", user_info={})
+        server._check_authorization = AsyncMock(return_value=completed)
+
+        bootstrap_mock = AsyncMock(side_effect=AssertionError("bootstrap_login should not be called"))
+        with patch("arcade_mcp_server.server.bootstrap_login", bootstrap_mock):
+            session = Mock()
+            session.init_options = {"transport_type": "stdio"}
+            session.session_id = "sess"
+
+            tool_context = ToolContext()
+            tool_context.user_id = "stale-id"
+            result = await server._check_tool_requirements(
+                tool_obj,
+                tool_context,
+                CallToolRequest(
+                    jsonrpc="2.0",
+                    id=1,
+                    method="tools/call",
+                    params={"name": "T.a", "arguments": {}},
+                ),
+                "T.a",
+                session=session,
+            )
+
+        # No error returned (proceeded).
+        assert result is None
+        bootstrap_mock.assert_not_called()
+        # Retry-first picked up the token, built the client, and refreshed user_id.
+        assert server.arcade is not None
+        assert tool_context.user_id == "user@example.com"
+        server._load_access_token.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_tool_call_with_no_token_and_elicitation_capable_client_completes_login_and_retries(
+        self, tool_catalog
+    ):
+        """Stdio + no client + elicitation-capable client + bootstrap completes →
+        tool proceeds to _check_authorization."""
+        from arcade_mcp_server.auth_bootstrap import BootstrapResult
+        from arcade_mcp_server.types import ClientCapabilities, InitializeParams
+
+        server = MCPServer(catalog=tool_catalog)
+        server.arcade = None
+
+        tool_obj = Mock()
+        tool_obj.definition.requirements = ToolRequirements(
+            authorization=ToolAuthRequirement(
+                provider_type="oauth2", provider_id="test-provider"
+            )
+        )
+
+        # _load_access_token returns None initially, then returns a token after bootstrap.
+        load_calls = {"n": 0}
+
+        def fake_load() -> str | None:
+            load_calls["n"] += 1
+            return "oauth-tok" if load_calls["n"] >= 2 else None
+
+        server._load_access_token = Mock(side_effect=fake_load)
+        server._load_config_user_id = Mock(return_value="user@example.com")
+
+        # _check_authorization succeeds.
+        completed = Mock()
+        completed.status = "completed"
+        completed.context = Mock(token="t", user_info={})
+        server._check_authorization = AsyncMock(return_value=completed)
+
+        # Real session with elicitation capability.
+        session = Mock()
+        session.init_options = {"transport_type": "stdio"}
+        session.session_id = "sess"
+        session.elicit = AsyncMock()
+        session.client_params = InitializeParams(
+            protocolVersion="2024-11-05",
+            capabilities=ClientCapabilities(elicitation={}),
+            clientInfo={"name": "c", "version": "1"},
+        )
+
+        # Add a real check_client_capability semantics to the mock (use real method via patch).
+        from arcade_mcp_server.session import ServerSession
+
+        session.check_client_capability = ServerSession.check_client_capability.__get__(
+            session, type(session)
+        )
+
+        bootstrap_mock = AsyncMock(return_value=BootstrapResult.completed())
+        with patch("arcade_mcp_server.server.bootstrap_login", bootstrap_mock):
+            tool_context = ToolContext()
+            tool_context.user_id = "stale-id"
+
+            result = await server._check_tool_requirements(
+                tool_obj,
+                tool_context,
+                CallToolRequest(
+                    jsonrpc="2.0",
+                    id=1,
+                    method="tools/call",
+                    params={"name": "T.a", "arguments": {}},
+                ),
+                "T.a",
+                session=session,
+            )
+
+        assert result is None  # proceeded to authorization
+        bootstrap_mock.assert_called_once()
+        # elicit kwarg should be session.elicit (not None)
+        bootstrap_kwargs = bootstrap_mock.call_args.kwargs
+        assert bootstrap_kwargs["elicit"] is session.elicit
+        # tool_context.user_id refreshed from config
+        assert tool_context.user_id == "user@example.com"
+
+    @pytest.mark.asyncio
+    async def test_tool_call_with_no_token_and_no_elicitation_returns_error_with_login_url(
+        self, tool_catalog
+    ):
+        """Stdio + no client + no elicitation → returns error with the login URL."""
+        from arcade_mcp_server.auth_bootstrap import BootstrapResult
+        from arcade_mcp_server.types import ClientCapabilities, InitializeParams
+
+        server = MCPServer(catalog=tool_catalog)
+        server.arcade = None
+
+        tool_obj = Mock()
+        tool_obj.definition.requirements = ToolRequirements(
+            authorization=ToolAuthRequirement(
+                provider_type="oauth2", provider_id="test-provider"
+            )
+        )
+
+        server._load_access_token = Mock(return_value=None)
+
+        # Session with NO elicitation capability declared.
+        session = Mock()
+        session.init_options = {"transport_type": "stdio"}
+        session.session_id = "sess"
+        session.elicit = AsyncMock()
+        session.client_params = InitializeParams(
+            protocolVersion="2024-11-05",
+            capabilities=ClientCapabilities(),
+            clientInfo={"name": "c", "version": "1"},
+        )
+        from arcade_mcp_server.session import ServerSession
+
+        session.check_client_capability = ServerSession.check_client_capability.__get__(
+            session, type(session)
+        )
+
+        login_url = "https://cloud.arcade.dev/oauth/authorize?xxx"
+        bootstrap_mock = AsyncMock(return_value=BootstrapResult.url_for_fallback(login_url))
+        with patch("arcade_mcp_server.server.bootstrap_login", bootstrap_mock):
+            tool_context = ToolContext()
+            result = await server._check_tool_requirements(
+                tool_obj,
+                tool_context,
+                CallToolRequest(
+                    jsonrpc="2.0",
+                    id=1,
+                    method="tools/call",
+                    params={"name": "T.a", "arguments": {}},
+                ),
+                "T.a",
+                session=session,
+            )
+
+        # Error response with URL in content[0].text
+        assert isinstance(result, JSONRPCResponse)
+        assert result.result.isError is True
+        first_text = result.result.content[0].text
+        assert login_url in first_text
+
+        # Second content item carries machine-readable extras
+        assert len(result.result.content) >= 2
+        extras = json.loads(result.result.content[1].text)
+        assert extras.get("authorization_url") == login_url
+        assert "llm_instructions" in extras
+        # No internals leaked
+        assert "developer_message" not in extras
+        assert "reason" not in extras
+        assert "detail" not in extras
+
+        # bootstrap_login was called with elicit=None
+        bootstrap_kwargs = bootstrap_mock.call_args.kwargs
+        assert bootstrap_kwargs["elicit"] is None
+
+    @pytest.mark.asyncio
+    async def test_no_elicit_call_when_client_lacks_elicitation_capability(self, tool_catalog):
+        """session.elicit must NOT be called when client lacks elicitation capability."""
+        from arcade_mcp_server.auth_bootstrap import BootstrapResult
+        from arcade_mcp_server.types import ClientCapabilities, InitializeParams
+
+        server = MCPServer(catalog=tool_catalog)
+        server.arcade = None
+
+        tool_obj = Mock()
+        tool_obj.definition.requirements = ToolRequirements(
+            authorization=ToolAuthRequirement(
+                provider_type="oauth2", provider_id="test-provider"
+            )
+        )
+
+        server._load_access_token = Mock(return_value=None)
+
+        session = Mock()
+        session.init_options = {"transport_type": "stdio"}
+        session.session_id = "sess"
+        session.elicit = AsyncMock()
+        session.client_params = InitializeParams(
+            protocolVersion="2024-11-05",
+            capabilities=ClientCapabilities(),
+            clientInfo={"name": "c", "version": "1"},
+        )
+        from arcade_mcp_server.session import ServerSession
+
+        session.check_client_capability = ServerSession.check_client_capability.__get__(
+            session, type(session)
+        )
+
+        bootstrap_mock = AsyncMock(
+            return_value=BootstrapResult.url_for_fallback("https://cloud.arcade.dev/x")
+        )
+        with patch("arcade_mcp_server.server.bootstrap_login", bootstrap_mock):
+            tool_context = ToolContext()
+            await server._check_tool_requirements(
+                tool_obj,
+                tool_context,
+                CallToolRequest(
+                    jsonrpc="2.0",
+                    id=1,
+                    method="tools/call",
+                    params={"name": "T.a", "arguments": {}},
+                ),
+                "T.a",
+                session=session,
+            )
+
+        session.elicit.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_tool_call_with_no_token_bootstrap_failure_surfaces_clean_error_no_developer_message_leak(
+        self, tool_catalog
+    ):
+        """Bootstrap failure → clean error response with no internal fields leaked."""
+        from arcade_mcp_server.auth_bootstrap import BootstrapResult
+        from arcade_mcp_server.types import ClientCapabilities, InitializeParams
+
+        server = MCPServer(catalog=tool_catalog)
+        server.arcade = None
+
+        tool_obj = Mock()
+        tool_obj.definition.requirements = ToolRequirements(
+            authorization=ToolAuthRequirement(
+                provider_type="oauth2", provider_id="test-provider"
+            )
+        )
+
+        server._load_access_token = Mock(return_value=None)
+
+        session = Mock()
+        session.init_options = {"transport_type": "stdio"}
+        session.session_id = "sess"
+        session.elicit = AsyncMock()
+        session.client_params = InitializeParams(
+            protocolVersion="2024-11-05",
+            capabilities=ClientCapabilities(),
+            clientInfo={"name": "c", "version": "1"},
+        )
+        from arcade_mcp_server.session import ServerSession
+
+        session.check_client_capability = ServerSession.check_client_capability.__get__(
+            session, type(session)
+        )
+
+        bootstrap_mock = AsyncMock(
+            return_value=BootstrapResult.failed(
+                reason="port_in_use", detail="9905 is already bound"
+            )
+        )
+        with patch("arcade_mcp_server.server.bootstrap_login", bootstrap_mock):
+            tool_context = ToolContext()
+            result = await server._check_tool_requirements(
+                tool_obj,
+                tool_context,
+                CallToolRequest(
+                    jsonrpc="2.0",
+                    id=1,
+                    method="tools/call",
+                    params={"name": "T.a", "arguments": {}},
+                ),
+                "T.a",
+                session=session,
+            )
+
+        assert isinstance(result, JSONRPCResponse)
+        assert result.result.isError is True
+
+        # Reason allowed in llm_instructions (machine-readable hint), but NOT detail/developer.
+        all_text = "\n".join(c.text for c in result.result.content)
+        assert "9905 is already bound" not in all_text
+        # Verify no machine-readable extras leak detail/developer keys
+        if len(result.result.content) >= 2:
+            extras = json.loads(result.result.content[1].text)
+            assert "developer_message" not in extras
+            assert "detail" not in extras
+
+    @pytest.mark.asyncio
+    async def test_in_call_bootstrap_propagates_email_derived_user_id(self, tool_catalog):
+        """After bootstrap succeeds, tool_context.user_id is updated from config email
+        BEFORE _check_authorization is called."""
+        from arcade_mcp_server.auth_bootstrap import BootstrapResult
+        from arcade_mcp_server.types import ClientCapabilities, InitializeParams
+
+        server = MCPServer(catalog=tool_catalog)
+        server.arcade = None
+
+        tool_obj = Mock()
+        tool_obj.definition.requirements = ToolRequirements(
+            authorization=ToolAuthRequirement(
+                provider_type="oauth2", provider_id="test-provider"
+            )
+        )
+
+        # First call returns None (pre-bootstrap), second call returns token.
+        load_calls = {"n": 0}
+
+        def fake_load() -> str | None:
+            load_calls["n"] += 1
+            return "oauth-tok" if load_calls["n"] >= 2 else None
+
+        server._load_access_token = Mock(side_effect=fake_load)
+        server._load_config_user_id = Mock(return_value="user@example.com")
+
+        observed_user_ids: list[str | None] = []
+
+        async def record_user_id(tool, user_id=None):
+            observed_user_ids.append(user_id)
+            completed = Mock()
+            completed.status = "completed"
+            completed.context = Mock(token="t", user_info={})
+            return completed
+
+        server._check_authorization = AsyncMock(side_effect=record_user_id)
+
+        # Elicit-capable session.
+        session = Mock()
+        session.init_options = {"transport_type": "stdio"}
+        session.session_id = "sess"
+        session.elicit = AsyncMock()
+        session.client_params = InitializeParams(
+            protocolVersion="2024-11-05",
+            capabilities=ClientCapabilities(elicitation={}),
+            clientInfo={"name": "c", "version": "1"},
+        )
+        from arcade_mcp_server.session import ServerSession
+
+        session.check_client_capability = ServerSession.check_client_capability.__get__(
+            session, type(session)
+        )
+
+        bootstrap_mock = AsyncMock(return_value=BootstrapResult.completed())
+        with patch("arcade_mcp_server.server.bootstrap_login", bootstrap_mock):
+            tool_context = ToolContext()
+            tool_context.user_id = "session_fallback_id"
+            await server._check_tool_requirements(
+                tool_obj,
+                tool_context,
+                CallToolRequest(
+                    jsonrpc="2.0",
+                    id=1,
+                    method="tools/call",
+                    params={"name": "T.a", "arguments": {}},
+                ),
+                "T.a",
+                session=session,
+            )
+
+        # By the time _check_authorization was called, user_id had been refreshed.
+        # tool_context.user_id was updated AND propagated.
+        assert tool_context.user_id == "user@example.com"
+
+    @pytest.mark.asyncio
+    async def test_concurrent_tool_calls_during_bootstrap_share_one_listener(self, tool_catalog):
+        """Two concurrent ``_check_tool_requirements`` calls must pass the SAME slot
+        instance to ``bootstrap_login`` (i.e. share one slot/attempt)."""
+        from arcade_mcp_server.auth_bootstrap import AttemptSlot, BootstrapResult
+        from arcade_mcp_server.types import ClientCapabilities, InitializeParams
+
+        server = MCPServer(catalog=tool_catalog)
+        server.arcade = None
+
+        tool_obj = Mock()
+        tool_obj.definition.requirements = ToolRequirements(
+            authorization=ToolAuthRequirement(
+                provider_type="oauth2", provider_id="test-provider"
+            )
+        )
+
+        server._load_access_token = Mock(return_value=None)
+
+        session = Mock()
+        session.init_options = {"transport_type": "stdio"}
+        session.session_id = "sess"
+        session.elicit = AsyncMock()
+        session.client_params = InitializeParams(
+            protocolVersion="2024-11-05",
+            capabilities=ClientCapabilities(),
+            clientInfo={"name": "c", "version": "1"},
+        )
+        from arcade_mcp_server.session import ServerSession
+
+        session.check_client_capability = ServerSession.check_client_capability.__get__(
+            session, type(session)
+        )
+
+        seen_slots: list[AttemptSlot] = []
+
+        async def fake_bootstrap(*, slot: AttemptSlot, **kwargs):  # noqa: ARG001
+            seen_slots.append(slot)
+            return BootstrapResult.url_for_fallback("https://cloud.arcade.dev/x")
+
+        with patch("arcade_mcp_server.server.bootstrap_login", side_effect=fake_bootstrap):
+            tc1 = ToolContext()
+            tc2 = ToolContext()
+            await asyncio.gather(
+                server._check_tool_requirements(
+                    tool_obj,
+                    tc1,
+                    CallToolRequest(
+                        jsonrpc="2.0",
+                        id=1,
+                        method="tools/call",
+                        params={"name": "T.a", "arguments": {}},
+                    ),
+                    "T.a",
+                    session=session,
+                ),
+                server._check_tool_requirements(
+                    tool_obj,
+                    tc2,
+                    CallToolRequest(
+                        jsonrpc="2.0",
+                        id=2,
+                        method="tools/call",
+                        params={"name": "T.a", "arguments": {}},
+                    ),
+                    "T.a",
+                    session=session,
+                ),
+            )
+
+        assert len(seen_slots) == 2
+        assert seen_slots[0] is server._login_slot
+        assert seen_slots[1] is server._login_slot
+
+    @pytest.mark.asyncio
+    async def test_server_level_fallback_end_to_end_simulation(self, tool_catalog, tmp_path, monkeypatch):
+        """First call returns URL fallback; after credentials appear, second call
+        hits retry-first and proceeds without invoking bootstrap again."""
+        from arcade_mcp_server.auth_bootstrap import BootstrapResult
+        from arcade_mcp_server.types import ClientCapabilities, InitializeParams
+
+        monkeypatch.setenv("ARCADE_WORK_DIR", str(tmp_path))
+
+        server = MCPServer(catalog=tool_catalog)
+        server.arcade = None
+
+        tool_obj = Mock()
+        tool_obj.definition.requirements = ToolRequirements(
+            authorization=ToolAuthRequirement(
+                provider_type="oauth2", provider_id="test-provider"
+            )
+        )
+
+        # _check_authorization succeeds whenever called.
+        completed = Mock()
+        completed.status = "completed"
+        completed.context = Mock(token="t", user_info={})
+        server._check_authorization = AsyncMock(return_value=completed)
+
+        # No elicitation capability.
+        session = Mock()
+        session.init_options = {"transport_type": "stdio"}
+        session.session_id = "sess"
+        session.elicit = AsyncMock()
+        session.client_params = InitializeParams(
+            protocolVersion="2024-11-05",
+            capabilities=ClientCapabilities(),
+            clientInfo={"name": "c", "version": "1"},
+        )
+        from arcade_mcp_server.session import ServerSession
+
+        session.check_client_capability = ServerSession.check_client_capability.__get__(
+            session, type(session)
+        )
+
+        # Call 1 — no creds, bootstrap returns URL.
+        url = "https://cloud.arcade.dev/oauth/authorize?xxx"
+        bootstrap_mock = AsyncMock(return_value=BootstrapResult.url_for_fallback(url))
+        with patch("arcade_mcp_server.server.bootstrap_login", bootstrap_mock):
+            tc1 = ToolContext()
+            result1 = await server._check_tool_requirements(
+                tool_obj,
+                tc1,
+                CallToolRequest(
+                    jsonrpc="2.0",
+                    id=1,
+                    method="tools/call",
+                    params={"name": "T.a", "arguments": {}},
+                ),
+                "T.a",
+                session=session,
+            )
+        assert isinstance(result1, JSONRPCResponse)
+        assert url in result1.result.content[0].text
+        bootstrap_mock.assert_called_once()
+
+        # Now write credentials to the working dir.
+        self._write_credentials(tmp_path, email="user@example.com", access_token="real-tok")
+
+        # Call 2 — should hit retry-first and NOT call bootstrap.
+        bootstrap_mock_2 = AsyncMock(side_effect=AssertionError("bootstrap should not be called"))
+        with (
+            patch("arcade_mcp_server.server.bootstrap_login", bootstrap_mock_2),
+            patch("arcade_mcp_server.server.get_valid_access_token", return_value="real-tok"),
+        ):
+            tc2 = ToolContext()
+            result2 = await server._check_tool_requirements(
+                tool_obj,
+                tc2,
+                CallToolRequest(
+                    jsonrpc="2.0",
+                    id=2,
+                    method="tools/call",
+                    params={"name": "T.a", "arguments": {}},
+                ),
+                "T.a",
+                session=session,
+            )
+
+        assert result2 is None  # proceeded to authorization
+        bootstrap_mock_2.assert_not_called()
+        assert server.arcade is not None
+
+    @pytest.mark.asyncio
+    async def test_no_stdout_or_stderr_during_bootstrap_path_in_stdio_transport(
+        self, tool_catalog, capfd
+    ):
+        """capfd silence over a successful bootstrap path AND a failure path."""
+        from arcade_mcp_server.auth_bootstrap import BootstrapResult
+        from arcade_mcp_server.types import ClientCapabilities, InitializeParams
+
+        server = MCPServer(catalog=tool_catalog)
+        server.arcade = None
+
+        tool_obj = Mock()
+        tool_obj.definition.requirements = ToolRequirements(
+            authorization=ToolAuthRequirement(
+                provider_type="oauth2", provider_id="test-provider"
+            )
+        )
+
+        # Successful path
+        load_calls = {"n": 0}
+
+        def fake_load() -> str | None:
+            load_calls["n"] += 1
+            return "oauth-tok" if load_calls["n"] >= 2 else None
+
+        server._load_access_token = Mock(side_effect=fake_load)
+        server._load_config_user_id = Mock(return_value="user@example.com")
+        completed = Mock()
+        completed.status = "completed"
+        completed.context = Mock(token="t", user_info={})
+        server._check_authorization = AsyncMock(return_value=completed)
+
+        session = Mock()
+        session.init_options = {"transport_type": "stdio"}
+        session.session_id = "sess"
+        session.elicit = AsyncMock()
+        session.client_params = InitializeParams(
+            protocolVersion="2024-11-05",
+            capabilities=ClientCapabilities(elicitation={}),
+            clientInfo={"name": "c", "version": "1"},
+        )
+        from arcade_mcp_server.session import ServerSession
+
+        session.check_client_capability = ServerSession.check_client_capability.__get__(
+            session, type(session)
+        )
+
+        with patch(
+            "arcade_mcp_server.server.bootstrap_login",
+            AsyncMock(return_value=BootstrapResult.completed()),
+        ):
+            tool_context = ToolContext()
+            await server._check_tool_requirements(
+                tool_obj,
+                tool_context,
+                CallToolRequest(
+                    jsonrpc="2.0",
+                    id=1,
+                    method="tools/call",
+                    params={"name": "T.a", "arguments": {}},
+                ),
+                "T.a",
+                session=session,
+            )
+
+        # Failure path
+        server._load_access_token = Mock(return_value=None)
+        no_elicit_session = Mock()
+        no_elicit_session.init_options = {"transport_type": "stdio"}
+        no_elicit_session.session_id = "sess2"
+        no_elicit_session.elicit = AsyncMock()
+        no_elicit_session.client_params = InitializeParams(
+            protocolVersion="2024-11-05",
+            capabilities=ClientCapabilities(),
+            clientInfo={"name": "c", "version": "1"},
+        )
+        no_elicit_session.check_client_capability = ServerSession.check_client_capability.__get__(
+            no_elicit_session, type(no_elicit_session)
+        )
+        with patch(
+            "arcade_mcp_server.server.bootstrap_login",
+            AsyncMock(return_value=BootstrapResult.failed(reason="port_in_use", detail="x")),
+        ):
+            tool_context = ToolContext()
+            await server._check_tool_requirements(
+                tool_obj,
+                tool_context,
+                CallToolRequest(
+                    jsonrpc="2.0",
+                    id=2,
+                    method="tools/call",
+                    params={"name": "T.a", "arguments": {}},
+                ),
+                "T.a",
+                session=no_elicit_session,
+            )
+
+        captured = capfd.readouterr()
+        assert captured.out == ""
+        assert captured.err == ""

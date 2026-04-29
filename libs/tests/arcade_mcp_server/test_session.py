@@ -305,15 +305,105 @@ class TestServerSession:
 
         server_session.set_client_params(no_cap_params)
 
-        # Empty capability check should still pass
+        # Empty capability check should still pass (trivially true)
         assert server_session.check_client_capability(ClientCapabilities())
 
-        # Checking for capabilities when client has none
-        # Since the capability requirements have empty dicts {}, they are considered
-        # as "having the capability" but with no specific requirements
-        # So these should actually pass
-        assert server_session.check_client_capability(ClientCapabilities(tools={}))
+    @pytest.mark.asyncio
+    async def test_check_client_capability_returns_false_when_client_lacks_requested_capability(
+        self, server_session
+    ):
+        """Presence-based semantics: client without declared capabilities does not satisfy
+        a request that explicitly mentions tools/sampling/etc."""
+        # Client declares NO capabilities at all.
+        no_cap_params = InitializeParams(
+            protocolVersion="2024-11-05",
+            capabilities=ClientCapabilities(),
+            clientInfo={"name": "test-client", "version": "1.0"},
+        )
+        server_session.set_client_params(no_cap_params)
+
+        # Requesting tools={} explicitly asks for the tools capability — client lacks it.
+        assert not server_session.check_client_capability(ClientCapabilities(tools={}))
+        # Same for sampling.
+        assert not server_session.check_client_capability(ClientCapabilities(sampling={}))
+
+    @pytest.mark.asyncio
+    async def test_check_client_capability_returns_false_when_client_lacks_elicitation(
+        self, server_session
+    ):
+        """Client without elicitation does not satisfy an elicitation request."""
+        no_cap_params = InitializeParams(
+            protocolVersion="2024-11-05",
+            capabilities=ClientCapabilities(),
+            clientInfo={"name": "test-client", "version": "1.0"},
+        )
+        server_session.set_client_params(no_cap_params)
+
+        assert not server_session.check_client_capability(ClientCapabilities(elicitation={}))
+
+    @pytest.mark.asyncio
+    async def test_check_client_capability_returns_true_when_client_declares_elicitation_empty_dict(
+        self, server_session
+    ):
+        """Empty dict {} on the client side counts as 'capability supported' (it's the wire form)."""
+        params = InitializeParams(
+            protocolVersion="2024-11-05",
+            capabilities=ClientCapabilities(elicitation={}),
+            clientInfo={"name": "test-client", "version": "1.0"},
+        )
+        server_session.set_client_params(params)
+
+        assert server_session.check_client_capability(ClientCapabilities(elicitation={}))
+
+    @pytest.mark.asyncio
+    async def test_check_client_capability_returns_false_when_client_lacks_sampling(
+        self, server_session
+    ):
+        """Client lacking sampling cannot satisfy a sampling request."""
+        no_cap_params = InitializeParams(
+            protocolVersion="2024-11-05",
+            capabilities=ClientCapabilities(),
+            clientInfo={"name": "test-client", "version": "1.0"},
+        )
+        server_session.set_client_params(no_cap_params)
+
+        assert not server_session.check_client_capability(ClientCapabilities(sampling={}))
+
+    @pytest.mark.asyncio
+    async def test_check_client_capability_returns_true_when_client_declares_sampling_empty_dict(
+        self, server_session
+    ):
+        """Empty dict {} for sampling on the client side counts as supported."""
+        params = InitializeParams(
+            protocolVersion="2024-11-05",
+            capabilities=ClientCapabilities(sampling={}),
+            clientInfo={"name": "test-client", "version": "1.0"},
+        )
+        server_session.set_client_params(params)
+
         assert server_session.check_client_capability(ClientCapabilities(sampling={}))
+
+    @pytest.mark.asyncio
+    async def test_check_client_capability_handles_extras_for_tools_resources_prompts_logging(
+        self, server_session
+    ):
+        """Extras-path capabilities (tools/resources/prompts/logging) follow the same rules."""
+        # Client declares tools and resources via extras, but NOT prompts/logging.
+        params = InitializeParams(
+            protocolVersion="2024-11-05",
+            capabilities=ClientCapabilities(tools={}, resources={}),
+            clientInfo={"name": "test-client", "version": "1.0"},
+        )
+        server_session.set_client_params(params)
+
+        # Requesting tools (declared) → True
+        assert server_session.check_client_capability(ClientCapabilities(tools={}))
+        # Requesting resources (declared) → True
+        assert server_session.check_client_capability(ClientCapabilities(resources={}))
+        # Requesting prompts (NOT declared) → False
+        assert not server_session.check_client_capability(ClientCapabilities(prompts={}))
+        # Requesting logging (NOT declared) → False
+        assert not server_session.check_client_capability(ClientCapabilities(logging={}))
 
     @pytest.mark.asyncio
     async def test_parse_error_handling(self, server_session):
