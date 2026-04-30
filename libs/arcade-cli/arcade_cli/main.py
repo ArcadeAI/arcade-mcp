@@ -4,7 +4,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import click
 import typer
@@ -334,7 +334,7 @@ def mcp(
         # window from appearing (e.g. when an MCP client spawns this
         # command without an attached console).  The child process still
         # inherits stdin/stdout/stderr for stdio transport communication.
-        run_kwargs: dict[str, object] = {"check": False}
+        run_kwargs: dict[str, Any] = {"check": False}
         creation_flags = get_windows_no_window_creationflags()
         if creation_flags:
             run_kwargs["creationflags"] = creation_flags
@@ -793,7 +793,16 @@ def connect(
         ...,
         help="MCP client to connect to the remote gateway",
         click_type=click.Choice(
-            ["claude", "cursor", "vscode", "windsurf", "amazonq"],
+            [
+                "claude-code",
+                "cursor",
+                "vscode",
+                "windsurf",
+                "amazonq",
+                "codex",
+                "opencode",
+                "gemini",
+            ],
             case_sensitive=False,
         ),
         show_choices=True,
@@ -831,11 +840,6 @@ def connect(
         "-s",
         help="Custom slug for the created gateway (only with --server/--tool/--preset).",
     ),
-    api_key: bool = typer.Option(
-        False,
-        "--api-key",
-        help="Use API-key auth instead of OAuth. Creates a project API key and includes it in the client config.",
-    ),
     config_path: Optional[Path] = typer.Option(
         None,
         "--config",
@@ -852,17 +856,15 @@ def connect(
     creates an Arcade Cloud gateway for the selected toolkits, and writes your
     MCP client config, all in one step.
 
-    By default gateways use OAuth (the MCP client handles the auth flow).
-    Pass --api-key to use API-key auth instead (creates a key automatically).
+    Gateways use OAuth; the MCP client handles the auth flow.
 
     To configure a local server on your filesystem instead, use 'arcade configure'.
 
     Examples:\n
-        arcade connect claude --server github\n
+        arcade connect claude-code --server github\n
         arcade connect cursor --preset productivity\n
-        arcade connect claude --tool Github.CreateIssue --tool Linear.UpdateIssue\n
-        arcade connect claude --gateway my-existing-gw\n
-        arcade connect vscode --all --api-key\n
+        arcade connect claude-code --tool Github.CreateIssue --tool Linear.UpdateIssue\n
+        arcade connect claude-code --gateway my-existing-gw\n
     """
     from arcade_cli.connect import PRESET_BUNDLES, run_connect
 
@@ -884,7 +886,6 @@ def connect(
             tools=list(tool) if tool else None,
             gateway=gateway,
             all_tools=all_tools,
-            use_api_key=api_key,
             gateway_slug=slug,
             config_path=config_path,
             debug=debug,

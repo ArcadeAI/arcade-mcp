@@ -184,7 +184,9 @@ def build_input_schema_from_definition(definition: ToolDefinition) -> dict[str, 
     if getattr(definition, "input", None) and getattr(definition.input, "parameters", None):
         for param in definition.input.parameters:
             val_schema = getattr(param, "value_schema", None)
-            schema = _value_schema_to_json_schema(val_schema) if val_schema else {"type": "string"}
+            schema: dict[str, Any] = (
+                _value_schema_to_json_schema(val_schema) if val_schema else {"type": "string"}
+            )
 
             if getattr(param, "description", None):
                 schema["description"] = param.description

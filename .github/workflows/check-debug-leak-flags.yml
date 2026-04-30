@@ -1,0 +1,30 @@
+name: Debug Leak Flag Guard
+
+# Ensures the debug-exposure flags in arcade_mcp_server/_debug_exposure.py cannot be
+# activated by anything shipped in committed files. The flags only activate
+# when the env var is set to one specific acknowledgement string, so we just
+# need to guarantee that string never appears outside its allowlist. See
+# scripts/check_debug_leak_flags_off.py for details.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  guard:
+    name: Debug leak flag guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Verify debug-leak flags stay off
+        run: python scripts/check_debug_leak_flags_off.py

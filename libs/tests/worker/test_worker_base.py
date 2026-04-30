@@ -2,13 +2,17 @@ from typing import Annotated
 from unittest.mock import MagicMock
 
 import pytest
-from arcade_core.errors import ToolDefinitionError
+from arcade_core.errors import ErrorKind, ToolDefinitionError
 from arcade_core.schema import (
+    ToolCallError,
+    ToolCallOutput,
     ToolCallRequest,
     ToolCallResponse,
     ToolContext,
     ToolReference,
 )
+from arcade_serve.core import base as base_module
+from arcade_serve.core import components as components_module
 from arcade_serve.core.base import BaseWorker
 from arcade_serve.core.common import RequestData, Router
 from arcade_serve.core.components import (
@@ -34,6 +38,31 @@ def error_tool(context: ToolContext) -> int:
     raise ValueError("Something went wrong")
 
 
+class FakeSpan:
+    def __init__(self, name: str):
+        self.name = name
+        self.attributes: dict[str, object] = {}
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        return False
+
+    def set_attribute(self, key: str, value: object) -> None:
+        self.attributes[key] = value
+
+
+class FakeTracer:
+    def __init__(self):
+        self.spans: list[FakeSpan] = []
+
+    def start_as_current_span(self, name: str) -> FakeSpan:
+        span = FakeSpan(name)
+        self.spans.append(span)
+        return span
+
+
 @pytest.fixture
 def mock_router():
     router = MagicMock(spec=Router)
@@ -53,6 +82,11 @@ def base_worker(mock_router, monkeypatch):
 @pytest.fixture
 def base_worker_no_auth():
     return BaseWorker(disable_auth=True)
+
+
+@pytest.fixture
+def fake_tracer():
+    return FakeTracer()
 
 
 # --- BaseWorker Tests ---
@@ -153,10 +187,14 @@ async def test_call_tool_success_and_error_logs_use_same_tool_identifiers(
         await base_worker_no_auth.call_tool(error_req)
 
     success_line = next(
-        r for r in caplog.records if "exec_consistency_ok" in r.getMessage() and "success" in r.getMessage()
+        r
+        for r in caplog.records
+        if "exec_consistency_ok" in r.getMessage() and "success" in r.getMessage()
     )
     error_line = next(
-        r for r in caplog.records if "exec_consistency_err" in r.getMessage() and "failed:" in r.getMessage()
+        r
+        for r in caplog.records
+        if "exec_consistency_err" in r.getMessage() and "failed:" in r.getMessage()
     )
     # Both must use the bare tool name (".name"), NOT the full ``Toolkit.Tool`` fqname.
     assert "Tool SampleTool " in success_line.getMessage()
@@ -194,6 +232,30 @@ async def test_call_tool_execution_error(base_worker_no_auth):
 
 
 @pytest.mark.asyncio
+async def test_call_tool_error_records_run_tool_span_attributes(
+    base_worker_no_auth, fake_tracer, monkeypatch
+):
+    monkeypatch.setattr(base_module.trace, "get_tracer", lambda name: fake_tracer)
+    base_worker_no_auth.register_tool(error_tool, toolkit_name="error_kit")
+    tool_request = ToolCallRequest(
+        execution_id="exec_span_attrs",
+        tool=ToolReference(toolkit="ErrorKit", name="ErrorTool"),
+        inputs={},
+    )
+
+    response = await base_worker_no_auth.call_tool(tool_request)
+
+    assert response.success is False
+    run_tool_span = next(span for span in fake_tracer.spans if span.name == "RunTool")
+    assert run_tool_span.attributes["tool_error_kind"] == "TOOL_RUNTIME_FATAL"
+    assert run_tool_span.attributes["tool_error_message"].startswith(
+        "[TOOL_RUNTIME_FATAL] FatalToolError"
+    )
+    assert "ValueError" in run_tool_span.attributes["tool_error_developer_message"]
+    assert "Something went wrong" in run_tool_span.attributes["tool_error_developer_message"]
+
+
+@pytest.mark.asyncio
 async def test_call_tool_error_log_text_matches_structured_extras(base_worker_no_auth, caplog):
     """The primary failure warning's f-string must use the same resolved
     ``tool_fqname.name`` / ``tool_fqname.toolkit_version`` values that
@@ -212,7 +274,9 @@ async def test_call_tool_error_log_text_matches_structured_extras(base_worker_no
         await base_worker_no_auth.call_tool(tool_request)
 
     primary = next(
-        r for r in caplog.records if "exec_log_check" in r.getMessage() and "failed:" in r.getMessage()
+        r
+        for r in caplog.records
+        if "exec_log_check" in r.getMessage() and "failed:" in r.getMessage()
     )
     # Text and structured extra must agree on name + version.
     assert "Tool ErrorTool " in primary.getMessage()
@@ -243,7 +307,8 @@ async def test_call_tool_error_secondary_log_carries_full_exception_content(
         await base_worker_no_auth.call_tool(tool_request)
 
     secondary = [
-        r for r in caplog.records
+        r
+        for r in caplog.records
         if "exec_dev_msg" in r.getMessage() and "Developer message:" in r.getMessage()
     ]
     assert len(secondary) == 1, "secondary 'Developer message:' log should fire once"
@@ -322,6 +387,75 @@ async def test_call_tool_component_call(base_worker_no_auth):
     assert response.success is True
     assert response.output.value == 15
     assert response.execution_id == "comp_test_exec"
+
+
+@pytest.mark.asyncio
+async def test_call_tool_component_allows_missing_output():
+    class OutputlessWorker:
+        async def call_tool(self, call_tool_request):
+            return ToolCallResponse(
+                execution_id="comp_outputless_exec",
+                duration=1,
+                finished_at="2026-01-01T00:00:00",
+                success=False,
+                output=None,
+            )
+
+    component = CallToolComponent(OutputlessWorker())
+    mock_request = MagicMock(spec=RequestData)
+    mock_request.body_json = {
+        "execution_id": "comp_outputless_exec",
+        "tool": ToolReference(toolkit="TestKit", name="SampleTool").model_dump(),
+        "inputs": {},
+    }
+
+    response = await component(mock_request)
+
+    assert response.success is False
+    assert response.output is None
+
+
+@pytest.mark.asyncio
+async def test_call_tool_component_error_records_call_tool_span_attributes(
+    fake_tracer, monkeypatch
+):
+    monkeypatch.setattr(components_module.trace, "get_tracer", lambda name: fake_tracer)
+
+    class ErrorWorker:
+        environment = "test"
+
+        async def call_tool(self, call_tool_request):
+            return ToolCallResponse(
+                execution_id="comp_error_exec",
+                duration=1,
+                finished_at="2026-01-01T00:00:00",
+                success=False,
+                output=ToolCallOutput(
+                    error=ToolCallError(
+                        kind=ErrorKind.TOOL_RUNTIME_FATAL,
+                        message="public component failure",
+                        developer_message="component developer details",
+                    ),
+                ),
+            )
+
+    component = CallToolComponent(ErrorWorker())
+    mock_request = MagicMock(spec=RequestData)
+    mock_request.body_json = {
+        "execution_id": "comp_error_exec",
+        "tool": ToolReference(toolkit="TestKit", name="SampleTool").model_dump(),
+        "inputs": {},
+    }
+
+    response = await component(mock_request)
+
+    assert response.success is False
+    call_tool_span = next(span for span in fake_tracer.spans if span.name == "CallTool")
+    assert call_tool_span.attributes["tool_error_kind"] == "TOOL_RUNTIME_FATAL"
+    assert call_tool_span.attributes["tool_error_message"] == "public component failure"
+    assert (
+        call_tool_span.attributes["tool_error_developer_message"] == "component developer details"
+    )
 
 
 @pytest.mark.asyncio

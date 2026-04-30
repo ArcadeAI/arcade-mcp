@@ -19,7 +19,7 @@ requires-python = ">=3.10"
 
 dependencies = [
     # CLI dependencies
-    "arcade-mcp-server>=1.21.0,<2.0.0",
+    "arcade-mcp-server>=1.21.2,<2.0.0",
     "arcade-core>=4.8.0,<5.0.0",
     "typer==0.10.0",
     "rich>=14.0.0,<15.0.0",

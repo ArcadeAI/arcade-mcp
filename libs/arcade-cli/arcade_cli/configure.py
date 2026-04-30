@@ -1,12 +1,15 @@
 """Connect command for configuring MCP clients."""
 
+import contextlib
 import json
 import logging
 import os
 import platform
 import re
 import shutil
+import stat
 import subprocess
+import tempfile
 from pathlib import Path
 
 import typer
@@ -117,6 +120,79 @@ def _warn_overwrite(config: dict, section: str, server_name: str, config_path: P
         )
 
 
+def _backup_path(path: Path) -> Path:
+    """Return the ``.bak`` sibling used to back up ``path``.
+
+    We append ``.bak`` to the full filename rather than replacing the
+    extension so ``.claude.json`` → ``.claude.json.bak`` (not ``.claude.bak``).
+    """
+    return path.parent / f"{path.name}.bak"
+
+
+def _write_backup_if_exists(path: Path) -> Path | None:
+    """If ``path`` exists, copy its current contents to ``<path>.bak``.
+
+    Returns the backup path (or ``None`` if no backup was made). Overwrites any
+    previous ``.bak`` — we keep exactly one backup, the one from immediately
+    before this write. The backup is created at mode 0600 regardless of the
+    source's permissions, because these files may contain bearer tokens.
+    """
+    if not path.exists():
+        return None
+    bak = _backup_path(path)
+    shutil.copyfile(path, bak)
+    if os.name != "nt":
+        os.chmod(bak, stat.S_IRUSR | stat.S_IWUSR)  # 0600
+    return bak
+
+
+def _atomic_write_text(path: Path, content: str) -> None:
+    """Write ``content`` to ``path`` atomically, preserving a ``.bak`` backup.
+
+    A crash mid-write to a user config file (e.g. ``~/.claude.json``, which
+    also holds project state and OAuth data) would corrupt unrelated content.
+    ``tempfile + os.replace`` guarantees that either the old file remains or
+    the new file is fully present — never a half-written file. On top of that,
+    we write the previous file contents to ``<path>.bak`` *before* the rename
+    so the user always has a local copy of the last-known-good config.
+
+    Permissions: ``tempfile.mkstemp`` creates the temp file at mode 0600, so
+    the final file ends up at 0600. That is strictly better for files that
+    hold bearer tokens; if the target already existed with more permissive
+    bits, we intentionally tighten them (and the ``.bak`` too).
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    _write_backup_if_exists(path)
+    fd, tmp_str = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=str(path.parent))
+    tmp_path = Path(tmp_str)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(content)
+            f.flush()
+            # Some filesystems (network mounts, certain tmpfs variants) don't
+            # support fsync; the subsequent os.replace is still atomic.
+            with contextlib.suppress(OSError):
+                os.fsync(f.fileno())
+        os.replace(tmp_path, path)
+    except BaseException:
+        tmp_path.unlink(missing_ok=True)
+        raise
+
+
+def _atomic_write_json(path: Path, data: dict) -> None:
+    """Serialize ``data`` as JSON (indent=2) and atomically write to ``path``."""
+    _atomic_write_text(path, json.dumps(data, indent=2))
+
+
+def get_claude_code_config_path() -> Path:
+    """Get the Claude Code configuration file path.
+
+    Claude Code (the CLI / IDE extension) stores its config at ``~/.claude.json``
+    with a top-level ``mcpServers`` map for user-scope MCP servers.
+    """
+    return Path.home() / ".claude.json"
+
+
 def get_claude_config_path() -> Path:
     """Get the Claude Desktop configuration file path."""
     system = platform.system()
@@ -207,6 +283,26 @@ def get_windsurf_config_path() -> Path:
 def get_amazonq_config_path() -> Path:
     """Get the Amazon Q Developer configuration file path."""
     return Path.home() / ".aws" / "amazonq" / "mcp.json"
+
+
+def get_codex_config_path() -> Path:
+    """Get the Codex CLI (OpenAI) configuration file path."""
+    return Path.home() / ".codex" / "config.toml"
+
+
+def get_opencode_config_path() -> Path:
+    """Get the OpenCode configuration file path (user-scope).
+
+    Honors ``XDG_CONFIG_HOME`` when set; otherwise defaults to ``~/.config``.
+    """
+    xdg = os.environ.get("XDG_CONFIG_HOME")
+    base = Path(xdg) if xdg else Path.home() / ".config"
+    return base / "opencode" / "opencode.json"
+
+
+def get_gemini_config_path() -> Path:
+    """Get the Gemini CLI (Google) configuration file path (user-scope)."""
+    return Path.home() / ".gemini" / "settings.json"
 
 
 def is_uv_installed() -> bool:
@@ -318,8 +414,7 @@ def configure_claude_local(
     config["mcpServers"][server_name] = get_stdio_config(entrypoint_file, server_name)
 
     # Write updated config
-    with open(config_path, "w", encoding="utf-8") as f:
-        json.dump(config, f, indent=2)
+    _atomic_write_json(config_path, config)
 
     console.print(
         f"✅ Configured Claude Desktop by adding local MCP server '{server_name}' to the configuration",
@@ -370,8 +465,7 @@ def _configure_mcpservers_arcade(
         entry["headers"] = {"Authorization": f"Bearer {auth_token}"}
     config["mcpServers"][server_name] = entry
 
-    with open(config_path, "w", encoding="utf-8") as f:
-        json.dump(config, f, indent=2)
+    _atomic_write_json(config_path, config)
 
     console.print(f"[green]Configured {display_name} with Arcade gateway '{server_name}'[/green]")
     console.print(f"   Gateway URL: {gateway_url}", style="dim")
@@ -379,20 +473,44 @@ def _configure_mcpservers_arcade(
     console.print(f"   Restart {display_name} for changes to take effect.", style="yellow")
 
 
-def configure_claude_arcade(
+def configure_claude_code_arcade(
     server_name: str,
     gateway_url: str,
     auth_token: str | None = None,
     config_path: Path | None = None,
 ) -> None:
-    """Configure Claude Desktop to connect to an Arcade Cloud MCP gateway."""
-    _configure_mcpservers_arcade(
-        server_name,
-        gateway_url,
-        auth_token,
-        config_path or get_claude_config_path(),
-        "Claude Desktop",
-    )
+    """Configure Claude Code to connect to an Arcade Cloud MCP gateway.
+
+    Writes to ``~/.claude.json`` (user-scope). The file contains many other
+    Claude Code settings — everything outside ``mcpServers`` is preserved.
+    """
+    resolved_path = config_path or get_claude_code_config_path()
+    if not resolved_path.is_absolute():
+        resolved_path = Path.cwd() / resolved_path
+
+    resolved_path.parent.mkdir(parents=True, exist_ok=True)
+
+    config: dict = {}
+    if resolved_path.exists():
+        with open(resolved_path, encoding="utf-8") as f:
+            config = json.load(f)
+
+    if "mcpServers" not in config:
+        config["mcpServers"] = {}
+
+    _warn_overwrite(config, "mcpServers", server_name, resolved_path)
+
+    entry: dict = {"type": "http", "url": gateway_url}
+    if auth_token:
+        entry["headers"] = {"Authorization": f"Bearer {auth_token}"}
+    config["mcpServers"][server_name] = entry
+
+    _atomic_write_json(resolved_path, config)
+
+    console.print(f"[green]Configured Claude Code with Arcade gateway '{server_name}'[/green]")
+    console.print(f"   Gateway URL: {gateway_url}", style="dim")
+    console.print(f"   Config file: {_format_path_for_display(resolved_path)}", style="dim")
+    console.print("   Restart Claude Code for changes to take effect.", style="yellow")
 
 
 def configure_cursor_local(
@@ -449,8 +567,7 @@ def configure_cursor_local(
         config["mcpServers"][server_name] = server_config
 
         # Write updated config
-        with open(config_path, "w", encoding="utf-8") as f:
-            json.dump(config, f, indent=2)
+        _atomic_write_json(config_path, config)
 
     primary_config_path = resolved_target_paths[0]
 
@@ -498,7 +615,10 @@ def configure_cursor_arcade(
     for path in target_paths:
         resolved_target_paths.append(path if path.is_absolute() else Path.cwd() / path)
 
-    server_config: dict = {"type": "sse", "url": gateway_url}
+    # Cursor's docs don't show a "type" field for remote entries — a bare
+    # ``url`` (plus optional ``headers``) is the documented shape. Writing
+    # "type": "sse" on an HTTP gateway would mislabel the transport.
+    server_config: dict = {"url": gateway_url}
     if auth_token:
         server_config["headers"] = {"Authorization": f"Bearer {auth_token}"}
 
@@ -518,8 +638,7 @@ def configure_cursor_arcade(
 
         config["mcpServers"][server_name] = server_config
 
-        with open(target, "w", encoding="utf-8") as f:
-            json.dump(config, f, indent=2)
+        _atomic_write_json(target, config)
 
     primary_config_path = resolved_target_paths[0]
     console.print(f"[green]Configured Cursor with Arcade gateway '{server_name}'[/green]")
@@ -579,8 +698,7 @@ def configure_vscode_local(
     )
 
     # Write updated config
-    with open(config_path, "w", encoding="utf-8") as f:
-        json.dump(config, f, indent=2)
+    _atomic_write_json(config_path, config)
 
     console.print(
         f"✅ Configured VS Code by adding local MCP server '{server_name}' to the configuration",
@@ -633,8 +751,7 @@ def configure_vscode_arcade(
         entry["headers"] = {"Authorization": f"Bearer {auth_token}"}
     config["servers"][server_name] = entry
 
-    with open(config_path, "w", encoding="utf-8") as f:
-        json.dump(config, f, indent=2)
+    _atomic_write_json(config_path, config)
 
     console.print(f"[green]Configured VS Code with Arcade gateway '{server_name}'[/green]")
     console.print(f"   Gateway URL: {gateway_url}", style="dim")
@@ -648,7 +765,11 @@ def configure_windsurf_arcade(
     auth_token: str | None = None,
     config_path: Path | None = None,
 ) -> None:
-    """Configure Windsurf to connect to an Arcade Cloud MCP gateway."""
+    """Configure Windsurf to connect to an Arcade Cloud MCP gateway.
+
+    Windsurf's docs show remote HTTP servers as ``{"serverUrl": ..., "headers": ...}``
+    (``url`` is also accepted as an alias). No ``type`` field is required.
+    """
     _configure_mcpservers_arcade(
         server_name, gateway_url, auth_token, config_path or get_windsurf_config_path(), "Windsurf"
     )
@@ -660,10 +781,191 @@ def configure_amazonq_arcade(
     auth_token: str | None = None,
     config_path: Path | None = None,
 ) -> None:
-    """Configure Amazon Q Developer to connect to an Arcade Cloud MCP gateway."""
-    _configure_mcpservers_arcade(
-        server_name, gateway_url, auth_token, config_path or get_amazonq_config_path(), "Amazon Q"
+    """Configure Amazon Q Developer to connect to an Arcade Cloud MCP gateway.
+
+    Amazon Q requires an explicit ``"type": "http"`` on remote entries — without
+    it the CLI treats the entry as a malformed stdio server. See
+    https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/command-line-mcp-config-CLI.html
+    """
+    resolved_path = config_path or get_amazonq_config_path()
+    if not resolved_path.is_absolute():
+        resolved_path = Path.cwd() / resolved_path
+
+    resolved_path.parent.mkdir(parents=True, exist_ok=True)
+
+    config: dict = {}
+    if resolved_path.exists():
+        with open(resolved_path, encoding="utf-8") as f:
+            config = json.load(f)
+
+    if "mcpServers" not in config:
+        config["mcpServers"] = {}
+
+    _warn_overwrite(config, "mcpServers", server_name, resolved_path)
+
+    entry: dict = {"type": "http", "url": gateway_url}
+    if auth_token:
+        entry["headers"] = {"Authorization": f"Bearer {auth_token}"}
+    config["mcpServers"][server_name] = entry
+
+    _atomic_write_json(resolved_path, config)
+
+    console.print(f"[green]Configured Amazon Q with Arcade gateway '{server_name}'[/green]")
+    console.print(f"   Gateway URL: {gateway_url}", style="dim")
+    console.print(f"   Config file: {_format_path_for_display(resolved_path)}", style="dim")
+    console.print("   Restart Amazon Q for changes to take effect.", style="yellow")
+
+
+def _toml_str(value: str) -> str:
+    """Escape a string for a TOML basic string literal."""
+    escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+    return f'"{escaped}"'
+
+
+def _upsert_codex_mcp_server(text: str, server_name: str, entries: dict[str, str]) -> str:
+    """Insert or replace a ``[mcp_servers.<name>]`` section in Codex's ``config.toml``.
+
+    Preserves all other content (including comments, formatting, and other
+    table sections). If the section already exists it is replaced in place;
+    otherwise it is appended at the end of the file.
+
+    ``entries`` maps TOML keys to string values. Only string-typed values are
+    supported — Codex's ``mcp_servers`` schema accepts ``url`` and
+    ``bearer_token`` / ``bearer_token_env_var`` as strings, which is all we
+    need here.
+    """
+    body_lines = [f"{key} = {_toml_str(value)}" for key, value in entries.items()]
+    new_section = f"[mcp_servers.{server_name}]\n" + "\n".join(body_lines) + "\n"
+
+    # Match the header line and any following body lines up until the next
+    # table header (``[...]``). Safe assumption: nothing inside the body
+    # starts a new table, since TOML table headers always begin at column 0.
+    pattern = re.compile(
+        rf"^\[mcp_servers\.{re.escape(server_name)}\][^\n]*\n(?:(?!^\[)[^\n]*\n)*",
+        re.MULTILINE,
     )
+    match = pattern.search(text)
+    if match:
+        return text[: match.start()] + new_section + text[match.end() :]
+
+    if text and not text.endswith("\n"):
+        text += "\n"
+    if text and not text.endswith("\n\n"):
+        text += "\n"
+    return text + new_section
+
+
+def configure_codex_arcade(
+    server_name: str,
+    gateway_url: str,
+    auth_token: str | None = None,
+    config_path: Path | None = None,
+) -> None:
+    """Configure Codex CLI to connect to an Arcade Cloud MCP gateway.
+
+    Writes a ``[mcp_servers.<name>]`` section to ``~/.codex/config.toml``.
+    Codex supports streamable HTTP natively via the ``url`` key and an inline
+    ``bearer_token`` for auth.
+    """
+    resolved_path = config_path or get_codex_config_path()
+    if not resolved_path.is_absolute():
+        resolved_path = Path.cwd() / resolved_path
+
+    resolved_path.parent.mkdir(parents=True, exist_ok=True)
+
+    existing = resolved_path.read_text(encoding="utf-8") if resolved_path.exists() else ""
+
+    entries: dict[str, str] = {"url": gateway_url}
+    if auth_token:
+        entries["bearer_token"] = auth_token
+
+    updated = _upsert_codex_mcp_server(existing, server_name, entries)
+    _atomic_write_text(resolved_path, updated)
+
+    console.print(f"[green]Configured Codex CLI with Arcade gateway '{server_name}'[/green]")
+    console.print(f"   Gateway URL: {gateway_url}", style="dim")
+    console.print(f"   Config file: {_format_path_for_display(resolved_path)}", style="dim")
+    console.print("   Restart Codex for changes to take effect.", style="yellow")
+
+
+def configure_opencode_arcade(
+    server_name: str,
+    gateway_url: str,
+    auth_token: str | None = None,
+    config_path: Path | None = None,
+) -> None:
+    """Configure OpenCode to connect to an Arcade Cloud MCP gateway.
+
+    Writes to the ``mcp`` map in ``~/.config/opencode/opencode.json`` using the
+    ``{"type": "remote", "url": ...}`` shape.
+    """
+    resolved_path = config_path or get_opencode_config_path()
+    if not resolved_path.is_absolute():
+        resolved_path = Path.cwd() / resolved_path
+
+    resolved_path.parent.mkdir(parents=True, exist_ok=True)
+
+    config: dict = {}
+    if resolved_path.exists():
+        with open(resolved_path, encoding="utf-8") as f:
+            config = json.load(f)
+
+    if "mcp" not in config:
+        config["mcp"] = {}
+
+    _warn_overwrite(config, "mcp", server_name, resolved_path)
+
+    entry: dict = {"type": "remote", "url": gateway_url, "enabled": True}
+    if auth_token:
+        entry["headers"] = {"Authorization": f"Bearer {auth_token}"}
+    config["mcp"][server_name] = entry
+
+    _atomic_write_json(resolved_path, config)
+
+    console.print(f"[green]Configured OpenCode with Arcade gateway '{server_name}'[/green]")
+    console.print(f"   Gateway URL: {gateway_url}", style="dim")
+    console.print(f"   Config file: {_format_path_for_display(resolved_path)}", style="dim")
+    console.print("   Restart OpenCode for changes to take effect.", style="yellow")
+
+
+def configure_gemini_arcade(
+    server_name: str,
+    gateway_url: str,
+    auth_token: str | None = None,
+    config_path: Path | None = None,
+) -> None:
+    """Configure Gemini CLI to connect to an Arcade Cloud MCP gateway.
+
+    Writes to ``~/.gemini/settings.json`` using the ``mcpServers`` map with
+    the ``httpUrl`` key (Gemini CLI's field name for streamable HTTP servers).
+    """
+    resolved_path = config_path or get_gemini_config_path()
+    if not resolved_path.is_absolute():
+        resolved_path = Path.cwd() / resolved_path
+
+    resolved_path.parent.mkdir(parents=True, exist_ok=True)
+
+    config: dict = {}
+    if resolved_path.exists():
+        with open(resolved_path, encoding="utf-8") as f:
+            config = json.load(f)
+
+    if "mcpServers" not in config:
+        config["mcpServers"] = {}
+
+    _warn_overwrite(config, "mcpServers", server_name, resolved_path)
+
+    entry: dict = {"httpUrl": gateway_url}
+    if auth_token:
+        entry["headers"] = {"Authorization": f"Bearer {auth_token}"}
+    config["mcpServers"][server_name] = entry
+
+    _atomic_write_json(resolved_path, config)
+
+    console.print(f"[green]Configured Gemini CLI with Arcade gateway '{server_name}'[/green]")
+    console.print(f"   Gateway URL: {gateway_url}", style="dim")
+    console.print(f"   Config file: {_format_path_for_display(resolved_path)}", style="dim")
+    console.print("   Restart Gemini CLI for changes to take effect.", style="yellow")
 
 
 def get_toolkit_stdio_config(tool_packages: list[str], server_name: str) -> dict:
@@ -733,11 +1035,14 @@ def configure_client_gateway(
     """
     client_lower = client.lower()
     dispatch = {
-        "claude": configure_claude_arcade,
+        "claude-code": configure_claude_code_arcade,
         "cursor": configure_cursor_arcade,
         "vscode": configure_vscode_arcade,
         "windsurf": configure_windsurf_arcade,
         "amazonq": configure_amazonq_arcade,
+        "codex": configure_codex_arcade,
+        "opencode": configure_opencode_arcade,
+        "gemini": configure_gemini_arcade,
     }
     func = dispatch.get(client_lower)
     if not func:
@@ -784,8 +1089,7 @@ def configure_client_toolkit(
             config["mcpServers"] = {}
         _warn_overwrite(config, "mcpServers", server_name, _config_path)
         config["mcpServers"][server_name] = server_config
-        with open(_config_path, "w", encoding="utf-8") as f:
-            json.dump(config, f, indent=2)
+        _atomic_write_json(_config_path, config)
 
         console.print(
             f"[green]Configured Claude Desktop with Arcade toolkits: {', '.join(tool_packages)}[/green]"
@@ -817,8 +1121,7 @@ def configure_client_toolkit(
             if idx == 0:
                 _warn_overwrite(config, "mcpServers", server_name, target)
             config["mcpServers"][server_name] = server_config
-            with open(target, "w", encoding="utf-8") as f:
-                json.dump(config, f, indent=2)
+            _atomic_write_json(target, config)
 
         console.print(
             f"[green]Configured Cursor with Arcade toolkits: {', '.join(tool_packages)}[/green]"
@@ -847,8 +1150,7 @@ def configure_client_toolkit(
             config["servers"] = {}
         _warn_overwrite(config, "servers", server_name, _config_path)
         config["servers"][server_name] = server_config
-        with open(_config_path, "w", encoding="utf-8") as f:
-            json.dump(config, f, indent=2)
+        _atomic_write_json(_config_path, config)
 
         console.print(
             f"[green]Configured VS Code with Arcade toolkits: {', '.join(tool_packages)}[/green]"
@@ -874,8 +1176,7 @@ def configure_client_toolkit(
             config["mcpServers"] = {}
         _warn_overwrite(config, "mcpServers", server_name, _config_path)
         config["mcpServers"][server_name] = server_config
-        with open(_config_path, "w", encoding="utf-8") as f:
-            json.dump(config, f, indent=2)
+        _atomic_write_json(_config_path, config)
 
         console.print(
             f"[green]Configured {display} with Arcade toolkits: {', '.join(tool_packages)}[/green]"
@@ -931,7 +1232,7 @@ def configure_client(
     if host == "arcade":
         console.print(
             "Use [bold]arcade connect[/bold] to connect to Arcade Cloud gateways.\n"
-            "Example: [bold]arcade connect claude --gateway my-gateway[/bold]",
+            "Example: [bold]arcade connect claude-code --gateway my-gateway[/bold]",
             style="yellow",
         )
         return
