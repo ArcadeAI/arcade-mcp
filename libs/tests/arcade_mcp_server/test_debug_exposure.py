@@ -93,6 +93,20 @@ def test_stacktrace_flag_enabled(monkeypatch):
     assert "secret internals" not in out
 
 
+def test_stacktrace_flag_enabled_but_stacktrace_missing(monkeypatch):
+    monkeypatch.setenv(_ENV_STACKTRACE, _LEAK_MAGIC)
+    out = augment_error_message_for_debug(
+        "public error",
+        developer_message="secret internals",
+        stacktrace=None,
+    )
+    assert "public error" in out
+    assert "[DEBUG] stacktrace: unavailable" in out
+    assert "tool error payload did not include one" in out
+    # Developer-message flag off → dev message must NOT leak.
+    assert "secret internals" not in out
+
+
 def test_both_flags_enabled(monkeypatch):
     monkeypatch.setenv(_ENV_DEV_MSG, _LEAK_MAGIC)
     monkeypatch.setenv(_ENV_STACKTRACE, _LEAK_MAGIC)
@@ -104,11 +118,12 @@ def test_both_flags_enabled(monkeypatch):
 
 
 def test_flag_enabled_but_no_content_to_leak(monkeypatch):
-    """Flag on but developer_message/stacktrace are None → message unchanged."""
+    """Developer flag on but developer_message None → only stacktrace absence is reported."""
     monkeypatch.setenv(_ENV_DEV_MSG, _LEAK_MAGIC)
     monkeypatch.setenv(_ENV_STACKTRACE, _LEAK_MAGIC)
     out = augment_error_message_for_debug("public error", None, None)
-    assert out == "public error"
+    assert "[DEBUG] developer_message:" not in out
+    assert "[DEBUG] stacktrace: unavailable" in out
 
 
 def test_activation_warning_emitted_once_per_process(monkeypatch, caplog):
