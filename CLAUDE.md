@@ -262,6 +262,11 @@ When set, these flags append `developer_message` and/or the tool stacktrace to t
 | `ARCADE_DEBUG_EXPOSE_DEVELOPER_MESSAGE_IN_TOOL_ERROR_RESPONSES` | Appends `developer_message` to the error response `message` field |
 | `ARCADE_DEBUG_EXPOSE_STACKTRACE_IN_TOOL_ERROR_RESPONSES` | Appends the tool stacktrace to the error response `message` field |
 
+The stacktrace flag does not create a traceback if the tool error payload has no stacktrace. It
+appends only an existing `stacktrace` value — for example, unhandled exceptions and
+`ToolRuntimeError`/`FatalToolError` raised with a chained cause (`raise ... from exc`) have one,
+while directly raised `FatalToolError(...)` values usually do not.
+
 **Never enable in production.** The `message` field is returned verbatim to whoever called the tool — LLMs, transcripts, end-user UIs, and anything else downstream.
 
 ## Project Layout
