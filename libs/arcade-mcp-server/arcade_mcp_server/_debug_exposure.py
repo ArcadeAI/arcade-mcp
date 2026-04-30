@@ -77,8 +77,11 @@ def augment_error_message_for_debug(
     extras: list[str] = []
     if developer_message and _leak_enabled(_ENV_EXPOSE_DEVELOPER_MESSAGE):
         extras.append(f"developer_message: {developer_message}")
-    if stacktrace and _leak_enabled(_ENV_EXPOSE_STACKTRACE):
-        extras.append(f"stacktrace:\n{stacktrace}")
+    if _leak_enabled(_ENV_EXPOSE_STACKTRACE):
+        if stacktrace:
+            extras.append(f"stacktrace:\n{stacktrace}")
+        else:
+            extras.append("stacktrace: unavailable (tool error payload did not include one)")
     if not extras:
         return message
     return f"{message}\n\n[DEBUG] " + "\n\n[DEBUG] ".join(extras)

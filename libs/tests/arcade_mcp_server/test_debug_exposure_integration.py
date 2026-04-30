@@ -272,6 +272,22 @@ async def test_integration_stacktrace_flag_leaks_traceback_through_mcp(
 
 
 @pytest.mark.asyncio
+async def test_integration_stacktrace_flag_reports_missing_traceback(erroring_server, monkeypatch):
+    """Directly raised ToolRuntimeError values may not carry a stacktrace.
+
+    When the stacktrace flag is enabled, the MCP response should say that
+    explicitly instead of silently omitting the stacktrace debug section.
+    """
+    monkeypatch.setenv(_ENV_STACKTRACE, _LEAK_MAGIC)
+    result = await _call(erroring_server, "raises_fatal_tool_error")
+    text = result.content[0].text
+    assert "Failed to fetch results" in text
+    assert "[DEBUG] stacktrace: unavailable" in text
+    assert "tool error payload did not include one" in text
+    assert "HTTP 503" not in text
+
+
+@pytest.mark.asyncio
 async def test_integration_both_flags_leak_through_mcp(erroring_server, monkeypatch):
     """Both flags together on an unhandled exception: developer_message (from
     `str(e)` in the executor) AND the stacktrace both reach the MCP content."""
