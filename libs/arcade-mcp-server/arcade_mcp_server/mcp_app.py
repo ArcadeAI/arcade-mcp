@@ -495,9 +495,10 @@ class MCPApp:
             resource_server_auth_enabled = isinstance(
                 self.resource_server_validator, ResourceServerValidator
             )
+            worker_secret_set = bool(self._mcp_settings.arcade.server_secret)
             if resource_server_auth_enabled:
                 logger.info("Resource Server authentication is enabled. MCP routes are protected.")
-            else:
+            elif not worker_secret_set:
                 logger.warning(
                     "Resource Server authentication is disabled. MCP routes are not protected, so tools requiring auth or secrets will fail."
                 )
