@@ -129,6 +129,10 @@ git push origin name-of-your-bugfix-or-feature
 
 # Pull Request Guidelines
 
+When you open a pull request, the [PR template](.github/PULL_REQUEST_TEMPLATE.md) will populate the description with prompts for a summary, ticket link, test plan, and a self-review checklist. Fill it in — it's the bar for moving from Draft to Ready for Review.
+
+In short: PRs should be small and focused, tested through the end-user path (not just unit tests), and self-reviewed before you mark them Ready. The reviewer is your customer — craft the PR so they can read, understand, and approve it on the first pass.
+
 Before you submit a pull request, check that it meets these guidelines:
 
 1. The pull request should include tests.
