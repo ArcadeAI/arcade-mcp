@@ -10,6 +10,7 @@ from arcade_core.catalog import MaterializedTool, ToolDefinitionError
 from arcade_mcp_server import tool
 from arcade_mcp_server.mcp_app import MCPApp
 from arcade_mcp_server.server import MCPServer
+from loguru import logger as loguru_logger
 
 
 class TestMCPAppVersionValidation:
@@ -616,6 +617,36 @@ class TestMCPApp:
 
             mock_direct.assert_called_once_with("127.0.0.1", 8000)
             mock_reload.assert_not_called()
+
+    def test_run_http_silent_about_resource_server_auth_when_worker_secret_set(
+        self, mcp_app: MCPApp
+    ):
+        """HTTP transport with worker secret set must not log about MCP-route auth.
+
+        ``MCPApp.run()`` calls ``_setup_logging`` which itself calls
+        ``logger.remove()`` — patch it to a no-op so our capture sink survives.
+        """
+        mcp_app._mcp_settings.arcade.server_secret = "some-worker-secret"
+        mcp_app.resource_server_validator = None
+
+        captured: list[dict] = []
+        with patch.object(mcp_app, "_setup_logging"):
+            sink_id = loguru_logger.add(
+                lambda message: captured.append(dict(message.record)),
+                level="INFO",
+                format="{message}",
+            )
+            try:
+                with patch.object(mcp_app, "_create_and_run_server"):
+                    mcp_app.run(reload=False, transport="http", host="127.0.0.1", port=8000)
+            finally:
+                loguru_logger.remove(sink_id)
+
+        assert not any(
+            "Resource Server authentication" in r["message"]
+            or "MCP routes" in r["message"]
+            for r in captured
+        )
 
     def test_run_child_process_disables_reload(self, mcp_app: MCPApp, monkeypatch):
         """Test run() disables reload when ARCADE_MCP_CHILD_PROCESS is set."""
