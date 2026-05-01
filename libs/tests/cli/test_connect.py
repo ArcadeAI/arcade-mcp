@@ -359,7 +359,7 @@ class TestRunConnectToolOnly:
             patch("arcade_cli.configure.console"),
         ):
             run_connect(
-                client="claude",
+                client="claude-code",
                 tools=["Github.CreateIssue", "Slack.SendMessage"],
                 config_path=config_path,
             )
@@ -397,7 +397,7 @@ class TestRunConnectGateway:
             patch("arcade_cli.configure.console"),
         ):
             run_connect(
-                client="claude",
+                client="claude-code",
                 gateway="my-production-gw",
                 config_path=config_path,
             )
@@ -424,7 +424,7 @@ class TestRunConnectGateway:
 
         config = json.loads(config_path.read_text(encoding="utf-8"))
         entry = config["mcpServers"]["test-gw"]
-        assert entry["type"] == "sse"
+        assert "type" not in entry  # cursor docs show no "type" field
         assert "api.arcade.dev/mcp/test-gw" in entry["url"]
 
     def test_gateway_mode_configures_vscode(self, tmp_path: Path) -> None:
@@ -472,7 +472,7 @@ class TestRunConnectToolkit:
             patch("arcade_cli.configure.console"),
         ):
             run_connect(
-                client="claude",
+                client="claude-code",
                 toolkits=["github"],
                 config_path=config_path,
             )
@@ -516,7 +516,7 @@ class TestRunConnectToolkit:
 
         config = json.loads(config_path.read_text(encoding="utf-8"))
         entry = config["mcpServers"]["github-slack"]
-        assert entry["type"] == "sse"
+        assert "type" not in entry  # cursor docs show no "type" field
         assert "api.arcade.dev/mcp/github-slack" in entry["url"]
 
 
@@ -547,7 +547,7 @@ class TestRunConnectInteractive:
             patch("arcade_cli.configure.console"),
         ):
             run_connect(
-                client="claude",
+                client="claude-code",
                 all_tools=True,
                 config_path=config_path,
             )
@@ -565,7 +565,7 @@ class TestRunConnectInteractive:
             patch("arcade_cli.connect.console"),
             pytest.raises(SystemExit),
         ):
-            run_connect(client="claude", all_tools=True)
+            run_connect(client="claude-code", all_tools=True)
 
     def test_toolkit_not_found_exits(self) -> None:
         with (
@@ -575,40 +575,7 @@ class TestRunConnectInteractive:
             patch("arcade_cli.connect.console"),
             pytest.raises(SystemExit),
         ):
-            run_connect(client="claude", toolkits=["nonexistent"])
-
-
-# ---------------------------------------------------------------------------
-# create_project_api_key
-# ---------------------------------------------------------------------------
-
-
-class TestCreateProjectApiKey:
-    @patch("arcade_cli.connect.httpx.post")
-    @patch("arcade_cli.utils.get_org_project_context", return_value=("org1", "proj1"))
-    def test_returns_api_key(self, _ctx: MagicMock, mock_post: MagicMock) -> None:
-        from arcade_cli.connect import create_project_api_key
-
-        mock_resp = MagicMock()
-        mock_resp.status_code = 201
-        mock_resp.json.return_value = {"api_key": "arc_test123"}
-        mock_post.return_value = mock_resp
-
-        result = create_project_api_key("tok", label="test")
-        assert result == "arc_test123"
-
-    @patch("arcade_cli.connect.httpx.post")
-    @patch("arcade_cli.utils.get_org_project_context", return_value=("org1", "proj1"))
-    def test_raises_on_error(self, _ctx: MagicMock, mock_post: MagicMock) -> None:
-        from arcade_cli.connect import create_project_api_key
-
-        mock_resp = MagicMock()
-        mock_resp.status_code = 403
-        mock_resp.text = "forbidden"
-        mock_post.return_value = mock_resp
-
-        with pytest.raises(RuntimeError, match="403"):
-            create_project_api_key("tok")
+            run_connect(client="claude-code", toolkits=["nonexistent"])
 
 
 # ---------------------------------------------------------------------------
@@ -681,7 +648,7 @@ class TestRunConnectAdvanced:
             patch("arcade_cli.configure.console"),
         ):
             run_connect(
-                client="claude",
+                client="claude-code",
                 toolkits=["github"],
                 config_path=config_path,
             )
@@ -689,27 +656,6 @@ class TestRunConnectAdvanced:
         config = json.loads(config_path.read_text(encoding="utf-8"))
         entry = config["mcpServers"]["github"]
         assert "existing-gw" in entry["url"]
-
-    def test_gateway_with_api_key(self, tmp_path: Path) -> None:
-        config_path = tmp_path / "claude.json"
-
-        with (
-            patch("arcade_cli.connect.ensure_login", return_value="tok_abc"),
-            _mock_resolve_slug(),
-            patch("arcade_cli.connect.create_project_api_key", return_value="arc_key123"),
-            patch("arcade_cli.connect.console"),
-            patch("arcade_cli.configure.console"),
-        ):
-            run_connect(
-                client="claude",
-                gateway="my-gw",
-                use_api_key=True,
-                config_path=config_path,
-            )
-
-        config = json.loads(config_path.read_text(encoding="utf-8"))
-        entry = config["mcpServers"]["my-gw"]
-        assert entry["headers"]["Authorization"] == "Bearer arc_key123"
 
     def test_toolkit_with_custom_slug(self, tmp_path: Path) -> None:
         config_path = tmp_path / "claude.json"
@@ -729,7 +675,7 @@ class TestRunConnectAdvanced:
             patch("arcade_cli.configure.console"),
         ):
             run_connect(
-                client="claude",
+                client="claude-code",
                 toolkits=["github"],
                 gateway_slug="my-custom",
                 config_path=config_path,
@@ -758,7 +704,7 @@ class TestRunConnectAdvanced:
             patch("arcade_cli.configure.console"),
         ):
             run_connect(
-                client="claude",
+                client="claude-code",
                 toolkits=["github"],
                 tools=["Slack.SendMessage"],
                 config_path=config_path,

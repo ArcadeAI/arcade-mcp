@@ -183,3 +183,7 @@ libs/arcade-mcp-server/site/*
 # exclude OAuth tokens
 .oauth_tokens.json
 .oauth_client.json
+
+# Ignore any directory named `monorepo` at any depth
+monorepo/
+**/monorepo/

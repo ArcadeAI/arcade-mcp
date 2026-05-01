@@ -6,7 +6,7 @@ from typing import Any, Callable, ClassVar
 
 from arcade_core.catalog import ToolCatalog, Toolkit
 from arcade_core.executor import ToolExecutor
-from arcade_core.log_extras import build_tool_error_log_extra
+from arcade_core.log_extras import build_tool_error_log_extra, build_tool_error_span_attributes
 from arcade_core.schema import (
     ToolCallRequest,
     ToolCallResponse,
@@ -149,6 +149,9 @@ class BaseWorker(Worker):
                 context=tool_request.context,
                 **tool_request.inputs or {},
             )
+            if output.error:
+                for key, value in build_tool_error_span_attributes(output.error).items():
+                    current_span.set_attribute(key, value)
 
         end_time = time.time()  # End time in seconds
         duration_ms = (end_time - start_time) * 1000  # Convert to milliseconds

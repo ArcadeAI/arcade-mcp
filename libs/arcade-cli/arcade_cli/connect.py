@@ -6,6 +6,7 @@ import json as _json
 import logging
 import time
 from pathlib import Path
+from typing import Any, cast
 
 import httpx
 from arcade_core.constants import PROD_COORDINATOR_HOST, PROD_ENGINE_HOST
@@ -55,7 +56,7 @@ def _read_cache(debug: bool = False) -> dict[str, list[str]] | None:
             return None
         if debug:
             console.print(f"  [dim]Using cached tool catalog ({age:.0f}s old)[/dim]")
-        return data.get("toolkits", {})
+        return cast("dict[str, list[str]]", data.get("toolkits", {}))
     except Exception:
         return None
 
@@ -318,7 +319,7 @@ def list_gateways(
         return []
 
     data = resp.json()
-    return data.get("items", [])
+    return cast("list[dict[Any, Any]]", data.get("items", []))
 
 
 def find_matching_gateway(
@@ -401,59 +402,19 @@ def create_gateway(
     if resp.status_code not in (200, 201):
         raise RuntimeError(f"Failed to create gateway ({resp.status_code}): {resp.text}")
 
-    data = resp.json()
+    data: dict[Any, Any] = resp.json()
 
     # The API may return the gateway directly or wrapped in a list/items envelope
     if "slug" in data:
         return data
     if data.get("items"):
-        return data["items"][0]
+        return cast("dict[Any, Any]", data["items"][0])
     if "id" in data:
         return data
 
     if debug:
         console.print(f"  [dim]Unexpected response shape: {list(data.keys())}[/dim]")
     return data
-
-
-def create_project_api_key(
-    access_token: str,
-    label: str = "quickstart",
-    debug: bool = False,
-) -> str:
-    """Create a project API key via the Coordinator.
-
-    Calls ``POST /v1/projects/{project_id}/api_keys``.
-
-    Returns the raw API key string (``arc_...``).
-    """
-    from arcade_cli.utils import get_org_project_context
-
-    _, project_id = get_org_project_context()
-    coordinator_url = f"https://{PROD_COORDINATOR_HOST}"
-    endpoint = f"{coordinator_url}/v1/projects/{project_id}/api_keys"
-
-    if debug:
-        console.print(f"  [dim]POST {endpoint}[/dim]")
-
-    resp = httpx.post(
-        endpoint,
-        json={"label": label},
-        headers={
-            "Authorization": f"Bearer {access_token}",
-            "Content-Type": "application/json",
-        },
-        timeout=30,
-    )
-
-    if debug:
-        console.print(f"  [dim]Response: {resp.status_code}[/dim]")
-        console.print(f"  [dim]{resp.text[:300]}[/dim]")
-
-    if resp.status_code not in (200, 201):
-        raise RuntimeError(f"Failed to create API key ({resp.status_code}): {resp.text}")
-
-    return resp.json()["api_key"]
 
 
 # ---------------------------------------------------------------------------
@@ -552,7 +513,6 @@ def run_connect(
     tools: list[str] | None = None,
     gateway: str | None = None,
     all_tools: bool = False,
-    use_api_key: bool = False,
     gateway_slug: str | None = None,
     config_path: Path | None = None,
     debug: bool = False,
@@ -575,12 +535,7 @@ def run_connect(
         # --- Direct gateway mode (existing gateway) ---
         # Resolve the input: user may pass a name ("opencode") or slug ("pascal_opencode")
         slug = _resolve_gateway_slug(gateway, access_token, debug=debug)
-        api_key: str | None = None
-        if use_api_key:
-            console.print("Creating project API key...", style="dim")
-            api_key = create_project_api_key(access_token, label=f"connect-{slug}", debug=debug)
-            console.print("  API key created.", style="green")
-        _configure_gateway(client, slug, config_path, api_key=api_key, name=gateway)
+        _configure_gateway(client, slug, config_path, name=gateway)
         return
 
     # --- Toolkit / tool → gateway mode ---
@@ -615,7 +570,7 @@ def run_connect(
             if not available:
                 console.print(
                     "No toolkits found in your account. You can specify toolkits manually:\n"
-                    "  [bold]arcade connect claude --toolkit github[/bold]",
+                    "  [bold]arcade connect claude-code --toolkit github[/bold]",
                     style="yellow",
                 )
                 raise SystemExit(1)
@@ -669,7 +624,7 @@ def run_connect(
         raise SystemExit(1)
 
     # Check if an existing gateway already covers these tools
-    auth_type = "arcade_header" if use_api_key else "arcade"
+    auth_type = "arcade"
     console.print("Checking existing gateways...", style="dim")
     existing_gateways = list_gateways(access_token, debug=debug)
     existing = find_matching_gateway(
@@ -708,13 +663,6 @@ def run_connect(
             console.print(f"  [dim]Gateway response: id={gw.get('id')}, slug={slug}[/dim]")
         console.print(f"  Gateway created: [bold]{slug}[/bold]\n", style="green")
 
-    # For API-key auth, create a project key and include it in the config
-    api_key: str | None = None
-    if use_api_key:
-        console.print("Creating project API key...", style="dim")
-        api_key = create_project_api_key(access_token, label=f"connect-{slug}", debug=debug)
-        console.print("  API key created.", style="green")
-
     # Config key: prefer --slug if given, otherwise derive from toolkit names
     if gateway_slug:
         display_name = gateway_slug
@@ -722,7 +670,7 @@ def run_connect(
         display_name = selected_toolkits[0].lower()
     else:
         display_name = "-".join(sorted({tk.lower() for tk in selected_toolkits}))
-    _configure_gateway(client, slug, config_path, api_key=api_key, name=display_name)
+    _configure_gateway(client, slug, config_path, name=display_name)
 
     # Print examples
     examples = get_toolkit_examples(selected_toolkits)
@@ -748,13 +696,13 @@ def _resolve_gateway_slug(
         if gw.get("slug", "").lower() == input_lower:
             if debug:
                 console.print(f"  [dim]Matched by slug: {gw['slug']}[/dim]")
-            return gw["slug"]
+            return cast("str", gw["slug"])
     for gw in gateways:
         if gw.get("name", "").lower() == input_lower:
             slug = gw["slug"]
             if debug:
                 console.print(f"  [dim]Matched by name '{gw['name']}' -> slug: {slug}[/dim]")
-            return slug
+            return cast("str", slug)
     if debug:
         available = [f"{g.get('name')} ({g.get('slug')})" for g in gateways]
         console.print(f"  [dim]No match for '{user_input}', available: {available}[/dim]")
@@ -765,7 +713,6 @@ def _configure_gateway(
     client: str,
     slug: str,
     config_path: Path | None,
-    api_key: str | None = None,
     name: str | None = None,
 ) -> None:
     """Configure the MCP client to connect to a gateway by slug.
@@ -786,13 +733,10 @@ def _configure_gateway(
         client=client,
         server_name=server_name,
         gateway_url=gateway_url,
-        auth_token=api_key,
+        auth_token=None,
         config_path=config_path,
     )
 
     console.print("\n[bold green]Setup complete![/bold green]")
     console.print(f"   Gateway URL: {gateway_url}", style="dim")
-    if api_key:
-        console.print("   Auth: API key (included in config)", style="dim")
-    else:
-        console.print("   Auth: OAuth (handled by your MCP client)", style="dim")
+    console.print("   Auth: OAuth (handled by your MCP client)", style="dim")

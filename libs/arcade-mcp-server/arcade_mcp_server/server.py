@@ -25,14 +25,16 @@ from arcade_core.auth_tokens import get_valid_access_token
 from arcade_core.catalog import MaterializedTool, ToolCatalog
 from arcade_core.errors import ErrorKind, ToolInputError
 from arcade_core.executor import ToolExecutor
-from arcade_core.log_extras import build_tool_error_log_extra
+from arcade_core.log_extras import build_tool_error_log_extra, build_tool_error_span_attributes
 from arcade_core.network.org_transport import build_org_scoped_async_http_client
 from arcade_core.schema import ToolAuthorizationContext, ToolCallError, ToolContext
 from arcade_core.schema import ToolAuthRequirement as CoreToolAuthRequirement
 from arcadepy import ArcadeError, AsyncArcade
 from arcadepy.types.auth_authorize_params import AuthRequirement, AuthRequirementOauth2
+from opentelemetry import trace
 from pydantic import ValidationError
 
+from arcade_mcp_server._debug_exposure import augment_error_message_for_debug
 from arcade_mcp_server.context import Context, get_current_model_context, set_current_model_context
 from arcade_mcp_server.convert import convert_content_to_structured_content, convert_to_mcp_content
 from arcade_mcp_server.exceptions import (
@@ -1321,6 +1323,12 @@ class MCPServer:
                     error_text = error.message
                     if error.additional_prompt_content:
                         error_text += f"\n\n{error.additional_prompt_content}"
+                    self._record_tool_error_span_attributes(error)
+                    error_text = augment_error_message_for_debug(
+                        error_text,
+                        error.developer_message,
+                        error.stacktrace,
+                    )
                     content = convert_to_mcp_content(error_text)
                     self._log_tool_call_error(tool_name, error)
                 else:
@@ -1394,6 +1402,15 @@ class MCPServer:
             f"Tool {tool_name} error: {error.message}",
             extra=build_tool_error_log_extra(error, tool_name=tool_name),
         )
+
+    def _record_tool_error_span_attributes(self, error: ToolCallError) -> None:
+        """Attach tool error details to the active telemetry span when present."""
+        span = trace.get_current_span()
+        if not span or not span.is_recording():
+            return
+
+        for key, value in build_tool_error_span_attributes(error).items():
+            span.set_attribute(key, value)
 
     def _create_error_response(
         self, message: CallToolRequest, tool_response: dict[str, Any]

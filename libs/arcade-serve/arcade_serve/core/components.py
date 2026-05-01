@@ -1,3 +1,4 @@
+from arcade_core.log_extras import build_tool_error_span_attributes
 from arcade_core.schema import (
     ToolCallRequest,
     ToolCallResponse,
@@ -76,7 +77,11 @@ class CallToolComponent(WorkerComponent):
             if hasattr(self.worker, "environment"):
                 current_span.set_attribute("environment", self.worker.environment)
 
-            return await self.worker.call_tool(call_tool_request)
+            response = await self.worker.call_tool(call_tool_request)
+            if response.output and response.output.error:
+                for key, value in build_tool_error_span_attributes(response.output.error).items():
+                    current_span.set_attribute(key, value)
+            return response
 
 
 class HealthCheckComponent(WorkerComponent):

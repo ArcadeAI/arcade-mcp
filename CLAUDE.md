@@ -253,6 +253,23 @@ The `arcade` CLI (`libs/arcade-cli/arcade_cli/main.py`) is typer-based. Key comm
 | `ARCADE_DISABLE_AUTOUPDATE=1` | Disable CLI auto-update checks |
 | Any non-`MCP_`/`_` prefixed var | Automatically available as a tool secret via `context.get_secret()` |
 
+### Debug-only flags: expose error internals in tool error responses (toolkit authors)
+
+When set, these flags append `developer_message` and/or the tool stacktrace to the `message` field of the MCP tool error response — useful while debugging a toolkit, because most MCP clients render only `message` and drop `developer_message`. Use ONLY for local debugging. Both require the exact value `yes-i-accept-leaking-internals-to-the-agent` (nothing else is accepted — `true`, `1`, etc. are rejected and log a warning). Each logs a loud WARNING on first activation. Implemented in `libs/arcade-mcp-server/arcade_mcp_server/_debug_exposure.py`.
+
+| Env var | Effect when set to the magic ack value |
+|---------|-----------------------------------------|
+| `ARCADE_DEBUG_EXPOSE_DEVELOPER_MESSAGE_IN_TOOL_ERROR_RESPONSES` | Appends `developer_message` to the error response `message` field |
+| `ARCADE_DEBUG_EXPOSE_STACKTRACE_IN_TOOL_ERROR_RESPONSES` | Appends the tool stacktrace to the error response `message` field |
+
+The stacktrace flag does not create a traceback if the tool error payload has no stacktrace. It
+appends an existing `stacktrace` value when present; otherwise it appends a debug note saying the
+stacktrace is unavailable. For example, unhandled exceptions and `ToolRuntimeError`/`FatalToolError`
+raised with a chained cause (`raise ... from exc`) have one, while directly raised
+`FatalToolError(...)` values usually do not.
+
+**Never enable in production.** The `message` field is returned verbatim to whoever called the tool — LLMs, transcripts, end-user UIs, and anything else downstream.
+
 ## Project Layout
 
 - `libs/arcade-*/` — Core libraries, each with own `pyproject.toml` (except cli/evals → root)
