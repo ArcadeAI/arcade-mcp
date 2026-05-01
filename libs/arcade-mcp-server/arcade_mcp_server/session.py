@@ -533,7 +533,7 @@ class ServerSession:
                 progress=progress,
                 total=total,
                 message=message,
-                meta=_meta,
+                _meta=_meta,
             )
         )
         await self.send_notification(notification)
