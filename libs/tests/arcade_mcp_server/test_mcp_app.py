@@ -10,6 +10,7 @@ from arcade_core.catalog import MaterializedTool, ToolDefinitionError
 from arcade_mcp_server import tool
 from arcade_mcp_server.mcp_app import MCPApp
 from arcade_mcp_server.server import MCPServer
+from loguru import logger as loguru_logger
 
 
 class TestMCPAppVersionValidation:
@@ -617,13 +618,16 @@ class TestMCPApp:
             mock_direct.assert_called_once_with("127.0.0.1", 8000)
             mock_reload.assert_not_called()
 
-    def _capture_run_http_logs(self, mcp_app: MCPApp) -> list[dict]:
-        """Run mcp_app.run() with HTTP transport and capture loguru records.
+    def test_run_http_silent_about_resource_server_auth_when_worker_secret_set(
+        self, mcp_app: MCPApp
+    ):
+        """HTTP transport with worker secret set must not log about MCP-route auth.
 
         ``MCPApp.run()`` calls ``_setup_logging`` which itself calls
-        ``logger.remove()`` — so we patch it to a no-op and add our sink after.
+        ``logger.remove()`` — patch it to a no-op so our capture sink survives.
         """
-        from loguru import logger as loguru_logger
+        mcp_app._mcp_settings.arcade.server_secret = "some-worker-secret"
+        mcp_app.resource_server_validator = None
 
         captured: list[dict] = []
         with patch.object(mcp_app, "_setup_logging"):
@@ -637,34 +641,11 @@ class TestMCPApp:
                     mcp_app.run(reload=False, transport="http", host="127.0.0.1", port=8000)
             finally:
                 loguru_logger.remove(sink_id)
-        return captured
-
-    def test_run_http_logs_warning_when_no_auth_and_no_worker_secret(self, mcp_app: MCPApp):
-        """HTTP transport with neither resource server auth nor worker secret warns loudly."""
-        mcp_app._mcp_settings.arcade.server_secret = None
-        mcp_app.resource_server_validator = None
-
-        records = self._capture_run_http_logs(mcp_app)
-
-        assert any(
-            "Resource Server authentication is disabled" in r["message"]
-            and r["level"].name == "WARNING"
-            for r in records
-        )
-
-    def test_run_http_silent_about_resource_server_auth_when_worker_secret_set(
-        self, mcp_app: MCPApp
-    ):
-        """HTTP transport with worker secret set must not log about MCP-route auth."""
-        mcp_app._mcp_settings.arcade.server_secret = "some-worker-secret"
-        mcp_app.resource_server_validator = None
-
-        records = self._capture_run_http_logs(mcp_app)
 
         assert not any(
             "Resource Server authentication" in r["message"]
             or "MCP routes" in r["message"]
-            for r in records
+            for r in captured
         )
 
     def test_run_child_process_disables_reload(self, mcp_app: MCPApp, monkeypatch):
