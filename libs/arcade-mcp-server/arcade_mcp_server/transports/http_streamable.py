@@ -49,6 +49,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.types import Receive, Scope, Send
 
+from arcade_mcp_server.server import INSUFFICIENT_SCOPE_ERROR_CODE
 from arcade_mcp_server.session import ServerSession
 from arcade_mcp_server.types import (
     INTERNAL_ERROR,
@@ -201,7 +202,7 @@ class HTTPStreamableTransport:
         except Exception:
             # Fallback: treat as error
             return JSONRPCError(
-                id=str(parsed.get("id", "null")),
+                id=cast("str | int | None", parsed.get("id")),
                 error={"code": -32600, "message": "Invalid message"},
             )
 
@@ -222,8 +223,8 @@ class HTTPStreamableTransport:
             "Content-Type": CONTENT_TYPE_JSON,
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "GET, POST, DELETE",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept, Mcp-Session-Id",
-            "Access-Control-Expose-Headers": "Mcp-Session-Id",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept, Mcp-Session-Id, MCP-Protocol-Version",
+            "Access-Control-Expose-Headers": "Mcp-Session-Id, MCP-Protocol-Version",
         }
         if headers:
             response_headers.update(headers)
@@ -249,7 +250,15 @@ class HTTPStreamableTransport:
         status_code: HTTPStatus = HTTPStatus.OK,
         headers: dict[str, str] | None = None,
     ) -> Response:
-        """Create a JSON response."""
+        """Create a JSON response.
+
+        Inspects JSONRPCError responses for ``_transport`` metadata.
+        When the error code is ``INSUFFICIENT_SCOPE_ERROR_CODE`` and
+        ``error.data._transport`` is present the helper:
+        - Overrides the HTTP status code from ``_transport.http_status``
+        - Adds ``WWW-Authenticate`` from ``_transport.www_authenticate``
+        - Strips ``_transport`` from the client-facing body
+        """
         response_headers = {"Content-Type": CONTENT_TYPE_JSON}
         if headers:
             response_headers.update(headers)
@@ -257,23 +266,80 @@ class HTTPStreamableTransport:
         if self.mcp_session_id:
             response_headers[MCP_SESSION_ID_HEADER] = self.mcp_session_id
 
+        if response_message is None:
+            body = None
+        elif isinstance(response_message, JSONRPCError):
+            # Check for _transport metadata
+            transport_meta = self._extract_and_strip_transport_metadata(response_message)
+            if transport_meta is not None:
+                http_status_raw = transport_meta.get("http_status")
+                if isinstance(http_status_raw, int):
+                    status_code = HTTPStatus(http_status_raw)
+                www_auth = transport_meta.get("www_authenticate")
+                if isinstance(www_auth, str):
+                    response_headers["WWW-Authenticate"] = www_auth
+
+            # JSON-RPC error responses MUST include "id" even when null.
+            body = response_message.model_dump_json(by_alias=True)
+        else:
+            body = response_message.model_dump_json(by_alias=True, exclude_none=True)
+
         return Response(
-            response_message.model_dump_json(by_alias=True, exclude_none=True)
-            if response_message
-            else None,
+            body,
             status_code=status_code,
             headers=response_headers,
         )
+
+    @staticmethod
+    def _extract_and_strip_transport_metadata(
+        error: JSONRPCError,
+    ) -> dict[str, object] | None:
+        """Extract and remove ``_transport`` from ``error.data``.
+
+        Mutates ``error.error["data"]`` in place (removes ``_transport`` key).
+        If ``data`` becomes empty after stripping, removes ``data`` entirely.
+
+        Returns the ``_transport`` dict when present and the error code matches
+        ``INSUFFICIENT_SCOPE_ERROR_CODE``; otherwise returns ``None``.
+        """
+        error_dict = error.error
+        if error_dict.get("code") != INSUFFICIENT_SCOPE_ERROR_CODE:
+            return None
+        data = error_dict.get("data")
+        if not isinstance(data, dict):
+            return None
+        transport = data.pop("_transport", None)
+        if not isinstance(transport, dict):
+            return None
+        # Drop data entirely if nothing meaningful remains
+        if not data:
+            error_dict.pop("data", None)
+        return transport
 
     def _get_session_id(self, request: Request) -> str | None:
         """Extract session ID from request headers."""
         return request.headers.get(MCP_SESSION_ID_HEADER)
 
     def _create_event_data(self, event_message: EventMessage) -> dict[str, str]:
-        """Create event data dictionary from EventMessage."""
+        """Create event data dictionary from EventMessage.
+
+        For JSONRPCError messages with ``_transport`` metadata,
+        the ``_transport`` key is stripped before serialisation.  SSE
+        streams cannot override HTTP status/headers for individual
+        events, so we only strip the metadata to keep the body clean.
+        """
+        msg = event_message.message
+        if isinstance(msg, JSONRPCError):
+            # Strip _transport metadata -- SSE can't set per-event
+            # HTTP headers, but the body should still be clean.
+            self._extract_and_strip_transport_metadata(msg)
+            # JSON-RPC error responses MUST include "id" even when null.
+            data = msg.model_dump_json(by_alias=True)
+        else:
+            data = msg.model_dump_json(by_alias=True, exclude_none=True)
         event_data = {
             "event": "message",
-            "data": event_message.message.model_dump_json(by_alias=True, exclude_none=True),
+            "data": data,
         }
 
         if event_message.event_id:

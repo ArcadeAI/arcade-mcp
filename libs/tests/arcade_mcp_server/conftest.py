@@ -21,9 +21,11 @@ from arcade_core.schema import (
 )
 from arcade_mcp_server import tool
 from arcade_mcp_server.context import Context
+from arcade_mcp_server.exceptions import RetryableToolError
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.session import ServerSession
 from arcade_mcp_server.settings import MCPSettings
+from arcade_mcp_server.types import ToolExecution
 from arcade_tdk.auth import OAuth2
 
 
@@ -94,7 +96,7 @@ def sample_tool_def_with_auth() -> ToolDefinition:
 def sample_tool_func():
     """Create a sample tool function."""
 
-    @tool
+    @tool(execution=ToolExecution(taskSupport="optional"))
     def sample_tool(
         text: Annotated[str, "Input text to echo"],
     ) -> Annotated[str, "Echoed text result"]:
@@ -155,16 +157,362 @@ def materialized_tool_with_auth(
     )
 
 
+def _make_tool_def(
+    name: str,
+    fqn: str,
+    *,
+    params: list[InputParameter] | None = None,
+) -> ToolDefinition:
+    """Helper to create a ToolDefinition."""
+    return ToolDefinition(
+        name=name,
+        fully_qualified_name=fqn,
+        description=f"A test tool: {name}",
+        toolkit=ToolkitDefinition(name="TestToolkit", description="Test toolkit", version="1.0.0"),
+        input=ToolInput(parameters=params or []),
+        output=ToolOutput(description="Tool output", value_schema=ValueSchema(val_type="string")),
+        requirements=ToolRequirements(),
+    )
+
+
+def _materialize(func: Any, defn: ToolDefinition) -> MaterializedTool:
+    """Helper to materialize a tool from function + definition."""
+    input_model, output_model = create_func_models(func)
+    meta = ToolMeta(module=func.__module__, toolkit=defn.toolkit.name)
+    return MaterializedTool(
+        tool=func,
+        definition=defn,
+        meta=meta,
+        input_model=input_model,
+        output_model=output_model,
+    )
+
+
+@pytest.fixture
+def failing_tool_func():
+    """A tool that always raises an exception."""
+
+    @tool(execution=ToolExecution(taskSupport="optional"))
+    def failing_tool() -> Annotated[str, "Never returned"]:
+        """A tool that always fails."""
+        raise RuntimeError("Tool execution failed")
+
+    return failing_tool
+
+
+@pytest.fixture
+def failing_tool_def() -> ToolDefinition:
+    return _make_tool_def("failing_tool", "TestToolkit.failing_tool")
+
+
+@pytest.fixture
+def materialized_failing_tool(failing_tool_func, failing_tool_def) -> MaterializedTool:
+    return _materialize(failing_tool_func, failing_tool_def)
+
+
+@pytest.fixture
+def retryable_failing_tool_func():
+    """A tool that raises RetryableToolError with additional_prompt_content set.
+
+    Used to verify both the synchronous and background-task error paths
+    preserve ``additional_prompt_content`` (retry guidance for the orchestrator).
+    """
+
+    @tool(execution=ToolExecution(taskSupport="optional"))
+    def retryable_failing_tool() -> Annotated[str, "Never returned"]:
+        """A tool that always fails with retry guidance."""
+        raise RetryableToolError(
+            message="Upstream was rate limited",
+            additional_prompt_content="Wait 60s and try again with a narrower query.",
+        )
+
+    return retryable_failing_tool
+
+
+@pytest.fixture
+def retryable_failing_tool_def() -> ToolDefinition:
+    return _make_tool_def("retryable_failing_tool", "TestToolkit.retryable_failing_tool")
+
+
+@pytest.fixture
+def materialized_retryable_failing_tool(
+    retryable_failing_tool_func, retryable_failing_tool_def
+) -> MaterializedTool:
+    return _materialize(retryable_failing_tool_func, retryable_failing_tool_def)
+
+
+@pytest.fixture
+def slow_tool_func():
+    """A tool that sleeps for a long time (for cancellation tests)."""
+
+    @tool(execution=ToolExecution(taskSupport="optional"))
+    async def slow_tool() -> Annotated[str, "Result"]:
+        """A tool that sleeps."""
+        await asyncio.sleep(60)
+        return "done"
+
+    return slow_tool
+
+
+@pytest.fixture
+def slow_tool_def() -> ToolDefinition:
+    return _make_tool_def("slow_tool", "TestToolkit.slow_tool")
+
+
+@pytest.fixture
+def materialized_slow_tool(slow_tool_func, slow_tool_def) -> MaterializedTool:
+    return _materialize(slow_tool_func, slow_tool_def)
+
+
+@pytest.fixture
+def error_result_tool_func():
+    """A tool that returns isError=True (not an exception)."""
+
+    @tool(execution=ToolExecution(taskSupport="optional"))
+    def error_result_tool() -> Annotated[str, "Error result"]:
+        """A tool that indicates error via return value."""
+        return None  # type: ignore[return-value]
+
+    return error_result_tool
+
+
+@pytest.fixture
+def error_result_tool_def() -> ToolDefinition:
+    return _make_tool_def("error_result_tool", "TestToolkit.error_result_tool")
+
+
+@pytest.fixture
+def materialized_error_result_tool(
+    error_result_tool_func, error_result_tool_def
+) -> MaterializedTool:
+    return _materialize(error_result_tool_func, error_result_tool_def)
+
+
+@pytest.fixture
+def forbidden_task_tool_func():
+    """A tool with taskSupport=forbidden."""
+
+    @tool(execution=ToolExecution(taskSupport="forbidden"))
+    def forbidden_task_tool() -> Annotated[str, "Result"]:
+        """A tool that forbids task augmentation."""
+        return "ok"
+
+    return forbidden_task_tool
+
+
+@pytest.fixture
+def forbidden_task_tool_def() -> ToolDefinition:
+    return _make_tool_def("forbidden_task_tool", "TestToolkit.forbidden_task_tool")
+
+
+@pytest.fixture
+def materialized_forbidden_task_tool(
+    forbidden_task_tool_func, forbidden_task_tool_def
+) -> MaterializedTool:
+    return _materialize(forbidden_task_tool_func, forbidden_task_tool_def)
+
+
+@pytest.fixture
+def required_task_tool_func():
+    """A tool with taskSupport=required."""
+
+    @tool(execution=ToolExecution(taskSupport="required"))
+    def required_task_tool() -> Annotated[str, "Result"]:
+        """A tool that requires task augmentation."""
+        return "ok"
+
+    return required_task_tool
+
+
+@pytest.fixture
+def required_task_tool_def() -> ToolDefinition:
+    return _make_tool_def("required_task_tool", "TestToolkit.required_task_tool")
+
+
+@pytest.fixture
+def materialized_required_task_tool(
+    required_task_tool_func, required_task_tool_def
+) -> MaterializedTool:
+    return _materialize(required_task_tool_func, required_task_tool_def)
+
+
+@pytest.fixture
+def no_execution_tool_func():
+    """A tool with no execution field (default = forbidden)."""
+
+    @tool
+    def no_execution_tool() -> Annotated[str, "Result"]:
+        """A tool with no execution config."""
+        return "ok"
+
+    return no_execution_tool
+
+
+@pytest.fixture
+def no_execution_tool_def() -> ToolDefinition:
+    return _make_tool_def(
+        "no_execution_tool",
+        "TestToolkit.no_execution_tool",
+        # No execution field -- defaults to None which means forbidden
+    )
+
+
+@pytest.fixture
+def materialized_no_execution_tool(
+    no_execution_tool_func, no_execution_tool_def
+) -> MaterializedTool:
+    return _materialize(no_execution_tool_func, no_execution_tool_def)
+
+
+@pytest.fixture
+def scoped_tool_func():
+    """A tool with OAuth2 scope requirements for scope-check tests."""
+
+    @tool(
+        requires_auth=OAuth2(
+            id="scope-provider",
+            scopes=["files:read", "files:write"],
+        ),
+    )
+    def scoped_tool(
+        text: Annotated[str, "Input text"],
+    ) -> Annotated[str, "Result"]:
+        """A tool that requires specific OAuth2 scopes."""
+        return f"scoped: {text}"
+
+    return scoped_tool
+
+
+@pytest.fixture
+def scoped_tool_def() -> ToolDefinition:
+    """Tool definition with OAuth2 scopes for scope-check tests."""
+    return ToolDefinition(
+        name="scoped_tool",
+        fully_qualified_name="TestToolkit.scoped_tool",
+        description="A tool with scopes",
+        toolkit=ToolkitDefinition(name="TestToolkit", description="Test toolkit", version="1.0.0"),
+        input=ToolInput(
+            parameters=[
+                InputParameter(
+                    name="text",
+                    required=True,
+                    description="Input text",
+                    value_schema=ValueSchema(val_type="string"),
+                )
+            ]
+        ),
+        output=ToolOutput(description="Tool output", value_schema=ValueSchema(val_type="string")),
+        requirements=ToolRequirements(
+            authorization=ToolAuthRequirement(
+                provider_type="oauth2",
+                provider_id="scope-provider",
+                id="scope-provider",
+                oauth2=OAuth2Requirement(
+                    scopes=["files:read", "files:write"],
+                ),
+            ),
+        ),
+    )
+
+
+@pytest.fixture
+def materialized_scoped_tool(scoped_tool_func, scoped_tool_def) -> MaterializedTool:
+    """Materialized tool with OAuth2 scopes."""
+    return _materialize(scoped_tool_func, scoped_tool_def)
+
+
+@pytest.fixture
+def scoped_task_tool_func():
+    """A tool with OAuth2 scope requirements AND task augmentation support.
+
+    Used to verify task-augmented calls cannot bypass the scope sufficiency
+    check (i.e. a task must be rejected at the scope gate, not created).
+    """
+
+    @tool(
+        requires_auth=OAuth2(
+            id="scope-provider",
+            scopes=["files:read", "files:write"],
+        ),
+        execution=ToolExecution(taskSupport="optional"),
+    )
+    def scoped_task_tool(
+        text: Annotated[str, "Input text"],
+    ) -> Annotated[str, "Result"]:
+        """A scoped tool that also allows task augmentation."""
+        return f"scoped-task: {text}"
+
+    return scoped_task_tool
+
+
+@pytest.fixture
+def scoped_task_tool_def() -> ToolDefinition:
+    """Definition for the scoped + task-augmentable tool."""
+    return ToolDefinition(
+        name="scoped_task_tool",
+        fully_qualified_name="TestToolkit.scoped_task_tool",
+        description="A tool with scopes and task augmentation",
+        toolkit=ToolkitDefinition(name="TestToolkit", description="Test toolkit", version="1.0.0"),
+        input=ToolInput(
+            parameters=[
+                InputParameter(
+                    name="text",
+                    required=True,
+                    description="Input text",
+                    value_schema=ValueSchema(val_type="string"),
+                )
+            ]
+        ),
+        output=ToolOutput(description="Tool output", value_schema=ValueSchema(val_type="string")),
+        requirements=ToolRequirements(
+            authorization=ToolAuthRequirement(
+                provider_type="oauth2",
+                provider_id="scope-provider",
+                id="scope-provider",
+                oauth2=OAuth2Requirement(
+                    scopes=["files:read", "files:write"],
+                ),
+            ),
+        ),
+    )
+
+
+@pytest.fixture
+def materialized_scoped_task_tool(scoped_task_tool_func, scoped_task_tool_def) -> MaterializedTool:
+    """Materialized scoped + task-augmentable tool."""
+    return _materialize(scoped_task_tool_func, scoped_task_tool_def)
+
+
 @pytest.fixture
 def tool_catalog(
-    materialized_tool: MaterializedTool, materialized_tool_with_auth: MaterializedTool
+    materialized_tool: MaterializedTool,
+    materialized_tool_with_auth: MaterializedTool,
+    materialized_failing_tool: MaterializedTool,
+    materialized_retryable_failing_tool: MaterializedTool,
+    materialized_slow_tool: MaterializedTool,
+    materialized_error_result_tool: MaterializedTool,
+    materialized_forbidden_task_tool: MaterializedTool,
+    materialized_required_task_tool: MaterializedTool,
+    materialized_no_execution_tool: MaterializedTool,
+    materialized_scoped_tool: MaterializedTool,
+    materialized_scoped_task_tool: MaterializedTool,
 ) -> ToolCatalog:
     """Create a tool catalog with sample tools."""
     catalog = ToolCatalog()
-    catalog._tools[materialized_tool.definition.get_fully_qualified_name()] = materialized_tool
-    catalog._tools[materialized_tool_with_auth.definition.get_fully_qualified_name()] = (
-        materialized_tool_with_auth
-    )
+    for mt in [
+        materialized_tool,
+        materialized_tool_with_auth,
+        materialized_failing_tool,
+        materialized_retryable_failing_tool,
+        materialized_slow_tool,
+        materialized_error_result_tool,
+        materialized_forbidden_task_tool,
+        materialized_required_task_tool,
+        materialized_no_execution_tool,
+        materialized_scoped_tool,
+        materialized_scoped_task_tool,
+    ]:
+        catalog._tools[mt.definition.get_fully_qualified_name()] = mt
     return catalog
 
 

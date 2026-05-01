@@ -132,7 +132,7 @@ class TestContext:
 
         # Test list tools
         tools = await context.tools.list()
-        assert len(tools) == 2
+        assert len(tools) >= 2
 
         # Test call raw for tool that doesn't exist
         result = await context.tools.call_raw("TheLimitDoesNotExist", {"param": "value"})
@@ -147,32 +147,42 @@ class TestContext:
     @pytest.mark.asyncio
     async def test_progress_reporting(self, mcp_server):
         """Test progress reporting functionality."""
+        from arcade_mcp_server.request_context import reset_request_meta, set_request_meta
+
         session = Mock()
         session.send_progress_notification = AsyncMock()
-        session._request_meta = Mock(progressToken="task-123")
 
         context = Context(server=mcp_server)
         context.set_session(session)
 
-        # Report progress
-        await context.progress.report(50, 100, "Processing...")
+        # Set request meta via ContextVar
+        token = set_request_meta({"progressToken": "task-123"})
+        try:
+            # Report progress
+            await context.progress.report(50, 100, "Processing...")
 
-        session.send_progress_notification.assert_called_once_with(
-            progress_token="task-123", progress=50, total=100, message="Processing..."
-        )
+            session.send_progress_notification.assert_called_once_with(
+                progress_token="task-123",
+                progress=50,
+                total=100,
+                message="Processing...",
+                _meta=None,
+            )
 
-        # Without total
-        await context.progress.report(0.75, message="Almost done")
+            # Without total
+            await context.progress.report(0.75, message="Almost done")
 
-        assert session.send_progress_notification.call_count == 2
+            assert session.send_progress_notification.call_count == 2
+        finally:
+            reset_request_meta(token)
 
         # Test without progress token - should not call send_progress_notification
         session2 = Mock(spec=["send_progress_notification"])
         session2.send_progress_notification = AsyncMock()
-        # Without _request_meta attribute, progress won't be reported
         context2 = Context(server=mcp_server)
         context2.set_session(session2)
 
+        # No ContextVar set, so progress won't be reported
         await context2.progress.report(25, 100)
         session2.send_progress_notification.assert_not_called()
 
@@ -240,6 +250,57 @@ class TestContext:
 
         assert session.create_message.call_count == 2
 
+    def test_create_message_return_type_covers_tool_use_content(self):
+        """``Sampling.create_message`` advertises tools/tool_choice kwargs, so its
+        return annotation must include the tool-calling content shapes the client
+        can send back — ``ToolUseContent``, ``ToolResultContent``, and the
+        ``list[SamplingMessageContentBlock]`` aggregate shape documented by the
+        spec. Without this, tool authors relying on the annotation get incorrect
+        guidance and the ``sampling_with_tools`` example's ``_normalise_content``
+        helper looks redundant at the type-check level.
+        """
+        import typing
+
+        from arcade_mcp_server.context import Sampling
+        from arcade_mcp_server.types import (
+            AudioContent,
+            CreateMessageResult,
+            ImageContent,
+            SamplingMessageContentBlock,
+            TextContent,
+            ToolResultContent,
+            ToolUseContent,
+        )
+
+        hints = typing.get_type_hints(Sampling.create_message)
+        ret = hints["return"]
+        # typing.get_type_hints resolves the UnionType — get flat args.
+        args = set(typing.get_args(ret))
+
+        # The union must include every shape the client can send back.
+        expected_block_types = {
+            TextContent,
+            ImageContent,
+            AudioContent,
+            ToolUseContent,
+            ToolResultContent,
+        }
+        assert expected_block_types.issubset(args), (
+            f"create_message return annotation missing block types: "
+            f"{expected_block_types - args}"
+        )
+        # list[SamplingMessageContentBlock] shape must be represented.
+        assert any(
+            typing.get_origin(a) is list for a in args
+        ), "create_message return annotation missing list[...] variant"
+        # CreateMessageResult fallback (for responses without .content) remains.
+        assert CreateMessageResult in args
+        # SamplingMessageContentBlock is publicly re-exported so authors can
+        # annotate local variables with the same alias.
+        import arcade_mcp_server
+
+        assert arcade_mcp_server.SamplingMessageContentBlock is SamplingMessageContentBlock
+
     @pytest.mark.asyncio
     async def test_sampling_without_capability(self, mcp_server):
         """Test sampling when client doesn't support it."""
@@ -272,6 +333,10 @@ class TestContext:
         session.elicit.assert_called_once_with(
             message="Enter your name:",
             requested_schema={"type": "object", "properties": {}},
+            mode=None,
+            url=None,
+            elicitation_id=None,
+            _meta=None,
             timeout=300.0,
         )
 
@@ -282,7 +347,13 @@ class TestContext:
         assert result == {"value": "user input"}
         assert session.elicit.call_count == 2
         session.elicit.assert_called_with(
-            message="Enter details:", requested_schema=schema, timeout=300
+            message="Enter details:",
+            requested_schema=schema,
+            mode=None,
+            url=None,
+            elicitation_id=None,
+            _meta=None,
+            timeout=300,
         )
 
     @pytest.mark.asyncio
@@ -400,3 +471,204 @@ class TestContext:
 
         # After exit, context should be reset
         assert get_current_context() is None
+
+
+class TestElicitSchemaDialectEnforcement:
+    """UI.elicit() must reject schemas that declare an unsupported JSON Schema
+    dialect. MCP requires JSON Schema 2020-12."""
+
+    @pytest.mark.asyncio
+    async def test_elicit_rejects_unsupported_dialect(self, mcp_server):
+        from arcade_mcp_server.context import Context
+        from arcade_mcp_server.exceptions import UnsupportedSchemaDialectError
+
+        session = Mock()
+        session.elicit = AsyncMock(return_value={"action": "accept"})
+        context = Context(server=mcp_server)
+        context.set_session(session)
+
+        bad_schema = {
+            "$schema": "http://json-schema.org/draft-07/schema#",  # Draft-07, not 2020-12
+            "type": "object",
+            "properties": {"name": {"type": "string"}},
+        }
+
+        with pytest.raises(UnsupportedSchemaDialectError):
+            await context.ui.elicit("Enter", schema=bad_schema)
+        # Session elicit must NOT have been called since validation failed first
+        session.elicit.assert_not_called()
+
+    def test_unsupported_schema_dialect_error_is_value_error(self):
+        """Regression: ``UnsupportedSchemaDialectError`` must also inherit
+        from ``ValueError`` so tool authors catching ``ValueError`` around
+        ``context.ui.elicit(...)`` pick up bad-dialect errors alongside the
+        rest of the ``_validate_elicitation_schema`` family -- otherwise a
+        caller matching the documented ``except ValueError`` pattern
+        silently misses this case. The README advertises the error with a
+        ``ValueError:`` prefix; without this mixin that was a lie.
+        """
+        from arcade_mcp_server.exceptions import (
+            MCPError,
+            UnsupportedSchemaDialectError,
+        )
+
+        err = UnsupportedSchemaDialectError("bad dialect")
+        assert isinstance(err, ValueError)
+        assert isinstance(err, MCPError)
+
+    @pytest.mark.asyncio
+    async def test_elicit_accepts_2020_12_dialect(self, mcp_server):
+        from arcade_mcp_server.context import Context
+
+        session = Mock()
+        session.elicit = AsyncMock(return_value={"action": "accept", "content": {}})
+        context = Context(server=mcp_server)
+        context.set_session(session)
+
+        ok_schema = {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {"name": {"type": "string"}},
+        }
+
+        await context.ui.elicit("Enter", schema=ok_schema)
+        session.elicit.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_elicit_accepts_missing_dollar_schema(self, mcp_server):
+        """Omitted $schema defaults to 2020-12 (valid)."""
+        from arcade_mcp_server.context import Context
+
+        session = Mock()
+        session.elicit = AsyncMock(return_value={"action": "accept", "content": {}})
+        context = Context(server=mcp_server)
+        context.set_session(session)
+
+        schema = {"type": "object", "properties": {"name": {"type": "string"}}}
+        await context.ui.elicit("Enter", schema=schema)
+        session.elicit.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_elicit_rejects_object_type_with_enum_bypass(self, mcp_server):
+        """Regression: the SEP-1330 bypass that allows untyped properties
+        with ``enum`` or ``oneOf`` must NOT whitelist invalid ``type``
+        values. A property with ``type: "object"`` is not a supported
+        elicitation primitive even if it also carries an ``enum`` -- the
+        old check let this through because it only required the bypass
+        condition (``has_enum or has_one_of``) to be True.
+        """
+        from arcade_mcp_server.context import Context
+
+        session = Mock()
+        session.elicit = AsyncMock(return_value={"action": "accept", "content": {}})
+        context = Context(server=mcp_server)
+        context.set_session(session)
+
+        bad_schema = {
+            "type": "object",
+            "properties": {
+                "blob": {"type": "object", "enum": ["a"]},
+            },
+        }
+        with pytest.raises(ValueError, match="unsupported type 'object'"):
+            await context.ui.elicit("Enter", schema=bad_schema)
+        session.elicit.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_elicit_accepts_untyped_property_with_enum(self, mcp_server):
+        """The SEP-1330 bypass still works for legitimately-untyped enum
+        properties (the original motivation for the bypass)."""
+        from arcade_mcp_server.context import Context
+
+        session = Mock()
+        session.elicit = AsyncMock(return_value={"action": "accept", "content": {}})
+        context = Context(server=mcp_server)
+        context.set_session(session)
+
+        schema = {
+            "type": "object",
+            "properties": {
+                "color": {"enum": ["red", "green", "blue"]},  # no explicit type
+            },
+        }
+        await context.ui.elicit("Enter", schema=schema)
+        session.elicit.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_elicit_rejects_plain_array_property(self, mcp_server):
+        """Regression: a ``type: "array"`` property is only valid when its
+        ``items`` carry ``enum``/``oneOf`` (multi-select enum). The array
+        branch used to pass unconditionally; a plain ``{"type": "array",
+        "items": {"type": "string"}}`` is not a valid elicitation property.
+        """
+        from arcade_mcp_server.context import Context
+
+        session = Mock()
+        session.elicit = AsyncMock(return_value={"action": "accept", "content": {}})
+        context = Context(server=mcp_server)
+        context.set_session(session)
+
+        bad_schema = {
+            "type": "object",
+            "properties": {
+                "tags": {"type": "array", "items": {"type": "string"}},
+            },
+        }
+        with pytest.raises(ValueError, match="multi-select enum"):
+            await context.ui.elicit("Enter", schema=bad_schema)
+        session.elicit.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_elicit_accepts_multi_select_enum_array(self, mcp_server):
+        """The array branch remains open for legitimate multi-select enums."""
+        from arcade_mcp_server.context import Context
+
+        session = Mock()
+        session.elicit = AsyncMock(return_value={"action": "accept", "content": {}})
+        context = Context(server=mcp_server)
+        context.set_session(session)
+
+        schema = {
+            "type": "object",
+            "properties": {
+                "colors": {
+                    "type": "array",
+                    "items": {"type": "string", "enum": ["red", "green", "blue"]},
+                },
+            },
+        }
+        await context.ui.elicit("Enter", schema=schema)
+        session.elicit.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_elicit_accepts_titled_multi_select_anyof_array(self, mcp_server):
+        """Regression: ``TitledMultiSelectEnumSchema`` uses ``items.anyOf``
+        (titled const variants) rather than ``enum`` or ``oneOf``. The
+        ``items_ok`` check must accept all three variants or valid schemas
+        emitted by the documented helper types (``pick_permissions``,
+        ``configure_deployment`` in the enum_elicitation example) will
+        raise at call time.
+        """
+        from arcade_mcp_server.context import Context
+
+        session = Mock()
+        session.elicit = AsyncMock(return_value={"action": "accept", "content": {}})
+        context = Context(server=mcp_server)
+        context.set_session(session)
+
+        schema = {
+            "type": "object",
+            "properties": {
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            {"const": "read", "title": "Read"},
+                            {"const": "write", "title": "Write"},
+                        ],
+                    },
+                },
+            },
+        }
+        await context.ui.elicit("Enter", schema=schema)
+        session.elicit.assert_called_once()

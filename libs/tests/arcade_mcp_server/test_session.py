@@ -1,13 +1,21 @@
 """Tests for MCP ServerSession implementation."""
 
 import json
+from typing import Any
 from unittest.mock import AsyncMock, Mock
 
 import pytest
 from arcade_mcp_server.context import Context
+from arcade_mcp_server.exceptions import (
+    ElicitationModeNotSupportedError,
+    ElicitationNotSupportedError,
+    SessionError,
+)
 from arcade_mcp_server.session import InitializationState, ServerSession
 from arcade_mcp_server.types import (
     ClientCapabilities,
+    ElicitRequestFormParams,
+    ElicitResult,
     InitializeParams,
     JSONRPCResponse,
     LoggingLevel,
@@ -166,6 +174,9 @@ class TestServerSession:
     @pytest.mark.asyncio
     async def test_server_initiated_request(self, server_session):
         """Test server-initiated requests to client."""
+        # Must be initialized for outbound requests
+        server_session.mark_initialized()
+
         # Test create_message request
         messages = [{"role": "user", "content": {"type": "text", "text": "Hello"}}]
 
@@ -327,7 +338,7 @@ class TestServerSession:
         sent_data = json.loads(server_session.write_stream.send.call_args[0][0].strip())
         assert "error" in sent_data
         assert sent_data["error"]["code"] == -32700  # Parse error
-        assert sent_data["id"] == "null"
+        assert sent_data["id"] is None  # JSON null, not string "null"
 
     def test_client_info_extraction(self, server_session):
         """Test extracting client information."""
@@ -342,3 +353,721 @@ class TestServerSession:
         assert server_session.client_params == client_params
         assert server_session.client_params["clientInfo"]["name"] == "test-client"
         assert server_session.initialization_state == InitializationState.INITIALIZING
+
+
+class TestSessionVersion:
+    """Test version negotiation state on ServerSession."""
+
+    def test_negotiated_version_defaults_to_none(self, server_session):
+        assert server_session.negotiated_version is None
+
+    def test_supports_version_false_when_none(self, server_session):
+        assert server_session.supports_version("2025-11-25") is False
+
+    def test_supports_version_false_for_old_version(self, server_session):
+        server_session.negotiated_version = "2025-06-18"
+        assert server_session.supports_version("2025-11-25") is False
+
+    def test_supports_version_true_for_exact(self, server_session):
+        server_session.negotiated_version = "2025-11-25"
+        assert server_session.supports_version("2025-11-25") is True
+
+    def test_supports_version_uses_feature_subset_not_lexical(self, server_session):
+        """supports_version uses feature set subset check, not lexical string comparison.
+        This is critical because spec uses non-date identifiers like DRAFT-2025-v3."""
+        server_session.negotiated_version = "2025-11-25"
+        assert (
+            server_session.supports_version("2025-06-18") is True
+        )  # 06-18 features subset of 11-25
+
+    def test_has_feature_tasks(self, server_session):
+        server_session.negotiated_version = "2025-11-25"
+        assert server_session.has_feature("tasks") is True
+
+    def test_has_feature_tasks_false_for_old_version(self, server_session):
+        server_session.negotiated_version = "2025-06-18"
+        assert server_session.has_feature("tasks") is False
+
+    def test_has_feature_false_when_none(self, server_session):
+        assert server_session.has_feature("tasks") is False
+
+    def test_has_feature_base_always_present(self, server_session):
+        server_session.negotiated_version = "2025-06-18"
+        assert server_session.has_feature("base") is True
+
+
+class TestHasCapability:
+    """Test has_capability() dot-notation sub-capability lookup."""
+
+    def test_has_capability_base(self, server_session):
+        server_session._negotiated_capabilities = {"tasks": {}}
+        assert server_session.has_capability("tasks") is True
+
+    def test_has_capability_nested(self, server_session):
+        server_session._negotiated_capabilities = {"tasks": {"list": {}}}
+        assert server_session.has_capability("tasks.list") is True
+        assert server_session.has_capability("tasks.cancel") is False
+
+    def test_has_capability_missing(self, server_session):
+        server_session._negotiated_capabilities = {}
+        assert server_session.has_capability("tasks") is False
+        assert server_session.has_capability("tasks.list") is False
+
+    def test_has_capability_dot_notation_depth(self, server_session):
+        server_session._negotiated_capabilities = {"tasks": {"requests": {"tools": {"call": {}}}}}
+        assert server_session.has_capability("tasks.requests.tools.call") is True
+        assert server_session.has_capability("tasks.requests.tools") is True
+        assert server_session.has_capability("tasks.requests") is True
+        assert server_session.has_capability("tasks") is True
+        assert server_session.has_capability("tasks.list") is False
+
+
+class TestSamplingWithTools:
+    @pytest.fixture(autouse=True)
+    def _init_session(self, server_session: Any) -> None:
+        """Mark server_session as initialized for all tests in this class."""
+        server_session.mark_initialized()
+
+    @pytest.mark.asyncio
+    async def test_create_message_with_tools_includes_tools_param(self, server_session):
+        """When tools are passed, they appear in the sent request params."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(sampling={"tools": {}})
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={
+                "role": "assistant",
+                "content": {"type": "text", "text": "result"},
+                "model": "test-model",
+                "stopReason": "endTurn",
+            }
+        )
+        tools = [{"name": "my_tool", "inputSchema": {"type": "object"}}]
+        await server_session.create_message(
+            messages=[{"role": "user", "content": {"type": "text", "text": "hi"}}],
+            max_tokens=100,
+            tools=tools,
+            tool_choice={"mode": "auto"},
+        )
+        call_args = server_session._request_manager.send_request.call_args
+        params = call_args[0][1]  # second positional arg
+        assert "tools" in params
+        assert "toolChoice" in params
+
+    @pytest.mark.asyncio
+    async def test_create_message_without_tools_backward_compat(self, server_session):
+        """When no tools passed, params look identical to before."""
+        server_session.negotiated_version = "2025-06-18"
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={
+                "role": "assistant",
+                "content": {"type": "text", "text": "result"},
+                "model": "test-model",
+                "stopReason": "endTurn",
+            }
+        )
+        await server_session.create_message(
+            messages=[{"role": "user", "content": {"type": "text", "text": "hi"}}],
+            max_tokens=100,
+        )
+        call_args = server_session._request_manager.send_request.call_args
+        params = call_args[0][1]
+        assert "tools" not in params
+        assert "toolChoice" not in params
+
+    @pytest.mark.asyncio
+    async def test_create_message_tools_rejected_for_old_version(self, server_session):
+        """Passing tools to create_message on a 2025-06-18 session silently strips them."""
+        server_session.negotiated_version = "2025-06-18"
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={
+                "role": "assistant",
+                "content": {"type": "text", "text": "result"},
+                "model": "test-model",
+                "stopReason": "endTurn",
+            }
+        )
+        await server_session.create_message(
+            messages=[], max_tokens=100, tools=[{"name": "t", "inputSchema": {}}]
+        )
+        call_args = server_session._request_manager.send_request.call_args
+        params = call_args[0][1]
+        assert "tools" not in params
+
+    @pytest.mark.asyncio
+    async def test_create_message_tools_rejected_when_client_lacks_sampling_tools_capability(
+        self, server_session
+    ):
+        """Servers MUST NOT send tool-enabled sampling requests to clients that haven't
+        declared sampling.tools capability."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(sampling={})  # no "tools" key
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={
+                "role": "assistant",
+                "content": {"type": "text", "text": "result"},
+                "model": "test-model",
+                "stopReason": "endTurn",
+            }
+        )
+        await server_session.create_message(
+            messages=[], max_tokens=100, tools=[{"name": "t", "inputSchema": {}}]
+        )
+        call_args = server_session._request_manager.send_request.call_args
+        params = call_args[0][1]
+        assert "tools" not in params
+
+    @pytest.mark.asyncio
+    async def test_create_message_tools_included_when_client_declares_sampling_tools(
+        self, server_session
+    ):
+        """Tools ARE included when client declared sampling.tools capability."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(sampling={"tools": {}})
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={
+                "role": "assistant",
+                "content": {"type": "text", "text": "result"},
+                "model": "test-model",
+                "stopReason": "endTurn",
+            }
+        )
+        await server_session.create_message(
+            messages=[],
+            max_tokens=100,
+            tools=[{"name": "t", "inputSchema": {"type": "object"}}],
+            tool_choice={"mode": "auto"},
+        )
+        call_args = server_session._request_manager.send_request.call_args
+        params = call_args[0][1]
+        assert "tools" in params
+        assert "toolChoice" in params
+
+    @pytest.mark.asyncio
+    async def test_create_message_tool_result_only_messages(self, server_session):
+        """When a user message contains tool results, it MUST contain ONLY tool results."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(sampling={"tools": {}})
+        messages = [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "tool_result",
+                        "toolUseId": "c1",
+                        "content": [{"type": "text", "text": "ok"}],
+                    },
+                    {"type": "text", "text": "also some text"},  # INVALID -- mixed content
+                ],
+            }
+        ]
+        server_session._request_manager = AsyncMock()
+        with pytest.raises(ValueError, match="tool results"):
+            await server_session.create_message(messages=messages, max_tokens=100)
+
+    @pytest.mark.asyncio
+    async def test_create_message_tool_use_must_be_followed_by_tool_result(self, server_session):
+        """Every assistant message with ToolUseContent MUST be followed by a user message
+        with ToolResultContent."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(sampling={"tools": {}})
+        messages = [
+            {
+                "role": "assistant",
+                "content": [{"type": "tool_use", "id": "c1", "name": "t", "input": {}}],
+            },
+            {"role": "user", "content": {"type": "text", "text": "not a tool result"}},
+        ]
+        server_session._request_manager = AsyncMock()
+        with pytest.raises(ValueError, match="tool result"):
+            await server_session.create_message(messages=messages, max_tokens=100)
+
+    @pytest.mark.asyncio
+    async def test_include_context_stripped_without_sampling_context_capability(
+        self, server_session
+    ):
+        """includeContext values 'thisServer'/'allServers' stripped when client lacks
+        sampling.context capability."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(sampling={})  # no "context"
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={
+                "role": "assistant",
+                "content": {"type": "text", "text": "result"},
+                "model": "test-model",
+                "stopReason": "endTurn",
+            }
+        )
+        await server_session.create_message(
+            messages=[], max_tokens=100, include_context="thisServer"
+        )
+        call_args = server_session._request_manager.send_request.call_args
+        params = call_args[0][1]
+        assert params.get("includeContext", "none") == "none"
+
+    @pytest.mark.asyncio
+    async def test_include_context_preserved_with_sampling_context_capability(self, server_session):
+        """includeContext preserved when client declares sampling.context."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(sampling={"context": {}})
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={
+                "role": "assistant",
+                "content": {"type": "text", "text": "result"},
+                "model": "test-model",
+                "stopReason": "endTurn",
+            }
+        )
+        await server_session.create_message(
+            messages=[], max_tokens=100, include_context="thisServer"
+        )
+        call_args = server_session._request_manager.send_request.call_args
+        params = call_args[0][1]
+        assert params.get("includeContext") == "thisServer"
+
+    @pytest.mark.asyncio
+    async def test_create_message_result_array_content_with_tool_use(self, server_session):
+        """CreateMessageResult with array content and stopReason=toolUse is handled correctly."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={
+                "role": "assistant",
+                "content": [
+                    {"type": "text", "text": "I'll call the tool"},
+                    {"type": "tool_use", "id": "call_1", "name": "my_tool", "input": {"x": 1}},
+                ],
+                "model": "test-model",
+                "stopReason": "toolUse",
+            }
+        )
+        result = await server_session.create_message(messages=[], max_tokens=100)
+        assert result.stopReason == "toolUse"
+        assert isinstance(result.content, list)
+        assert len(result.content) == 2
+        assert result.content[1].type == "tool_use"
+
+    @pytest.mark.asyncio
+    async def test_validate_sampling_messages_accepts_pydantic_sampling_messages(
+        self, server_session
+    ):
+        """Regression: _validate_sampling_messages must handle pydantic
+        ``SamplingMessage`` objects in addition to raw dicts. The sampling
+        entrypoint in ``context.Sampling.create_message`` hands this layer
+        pydantic models; pydantic v2 models don't expose ``.get()``, so the
+        prior implementation raised AttributeError and broke sampling-with-tools
+        end-to-end for 2025-11-25 clients.
+        """
+        from arcade_mcp_server.types import SamplingMessage, TextContent
+
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(sampling={"tools": {}})
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={
+                "role": "assistant",
+                "content": {"type": "text", "text": "ok"},
+                "model": "test-model",
+                "stopReason": "endTurn",
+            }
+        )
+
+        pydantic_messages = [
+            SamplingMessage(role="user", content=TextContent(type="text", text="hi")),
+        ]
+        # Must NOT raise AttributeError trying to .get() on the pydantic model.
+        await server_session.create_message(messages=pydantic_messages, max_tokens=100)
+
+    def test_validate_sampling_messages_static_normalizes_pydantic_models(self):
+        """Direct unit test: _validate_sampling_messages normalizes pydantic
+        inputs before duck-typing them as dicts."""
+        from arcade_mcp_server.session import ServerSession as _ServerSession
+        from arcade_mcp_server.types import SamplingMessage, TextContent
+
+        # Pass a pydantic model directly -- previously this raised AttributeError.
+        _ServerSession._validate_sampling_messages([
+            SamplingMessage(role="user", content=TextContent(type="text", text="hello"))
+        ])
+
+    @pytest.mark.asyncio
+    async def test_sampling_tools_gate_uses_feature_registry_not_hardcoded_version(
+        self, server_session, monkeypatch
+    ):
+        """Regression: the sampling-with-tools gate must consult
+        ``version_has_feature(version, "tool_calling_in_sampling")`` rather
+        than comparing ``negotiated_version`` to the literal ``"2025-11-25"``.
+        A future protocol version that inherits the feature must not have
+        tools silently stripped from its sampling requests.
+        """
+        from arcade_mcp_server import types as mcp_types
+
+        # Simulate a hypothetical future version that supports sampling+tools.
+        future_version = "2099-01-01"
+        patched = dict(mcp_types.VERSION_FEATURES)
+        patched[future_version] = patched["2025-11-25"]
+        monkeypatch.setattr(mcp_types, "VERSION_FEATURES", patched)
+        # session.py imports version_has_feature at module load; it reads
+        # VERSION_FEATURES fresh on each call, so patching the dict is enough.
+
+        server_session.negotiated_version = future_version
+        server_session._client_capabilities = ClientCapabilities(sampling={"tools": {}})
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={
+                "role": "assistant",
+                "content": {"type": "text", "text": "ok"},
+                "model": "test-model",
+                "stopReason": "endTurn",
+            }
+        )
+
+        await server_session.create_message(
+            messages=[{"role": "user", "content": {"type": "text", "text": "hi"}}],
+            max_tokens=100,
+            tools=[{"name": "t", "inputSchema": {"type": "object"}}],
+            tool_choice={"mode": "auto"},
+        )
+        call_args = server_session._request_manager.send_request.call_args
+        params = call_args[0][1]
+        assert "tools" in params, (
+            "tools must survive to the wire when the client's version has the "
+            "tool_calling_in_sampling feature, regardless of whether it equals "
+            "the literal 2025-11-25"
+        )
+
+
+class TestURLModeElicitation:
+    @pytest.fixture(autouse=True)
+    def _init_session(self, server_session: Any) -> None:
+        server_session.mark_initialized()
+
+    @pytest.mark.asyncio
+    async def test_elicit_url_mode_includes_elicitation_id(self, server_session):
+        """URL mode requires elicitationId in the request."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(elicitation={"url": {}})
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={"action": "accept", "content": {"token": "abc"}}
+        )
+        result = await server_session.elicit(
+            message="Please authenticate",
+            mode="url",
+            url="https://example.com/auth",
+            elicitation_id="elic_123",
+        )
+        assert result.action == "accept"
+        call_args = server_session._request_manager.send_request.call_args
+        params = call_args[0][1]
+        assert params["mode"] == "url"
+        assert params["url"] == "https://example.com/auth"
+        assert params["elicitationId"] == "elic_123"
+
+    @pytest.mark.asyncio
+    async def test_elicit_url_mode_rejected_for_old_version(self, server_session):
+        """URL mode elicitation must not be sent to 2025-06-18 clients."""
+        server_session.negotiated_version = "2025-06-18"
+        server_session._request_manager = AsyncMock()
+        with pytest.raises(SessionError):
+            await server_session.elicit(
+                message="Please authenticate",
+                mode="url",
+                url="https://example.com/auth",
+                elicitation_id="elic_123",
+            )
+
+    @pytest.mark.asyncio
+    async def test_elicit_url_mode_rejected_when_client_lacks_url_capability(self, server_session):
+        """URL mode rejected if client only declared form elicitation support."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(elicitation={"form": {}})
+        server_session._request_manager = AsyncMock()
+        with pytest.raises(SessionError):
+            await server_session.elicit(
+                message="Please authenticate",
+                mode="url",
+                url="https://example.com/auth",
+                elicitation_id="elic_123",
+            )
+
+    @pytest.mark.asyncio
+    async def test_elicit_form_mode_backward_compat(self, server_session):
+        """Form mode (default) works for both versions."""
+        server_session.negotiated_version = "2025-06-18"
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={"action": "accept", "content": {"name": "test"}}
+        )
+        result = await server_session.elicit(
+            message="Enter name", requested_schema={"type": "object"}
+        )
+        assert result.action == "accept"
+
+
+class TestElicitationCompleteNotification:
+    @pytest.mark.asyncio
+    async def test_send_elicitation_complete_notification(self, server_session):
+        """Server can send notifications/elicitation/complete for URL mode flows."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session.write_stream = AsyncMock()
+        server_session.write_stream.send = AsyncMock()
+        await server_session.send_elicitation_complete("elic_123")
+        call_args = server_session.write_stream.send.call_args[0][0]
+        data = json.loads(call_args)
+        assert data["method"] == "notifications/elicitation/complete"
+        assert data["params"]["elicitationId"] == "elic_123"
+
+    @pytest.mark.asyncio
+    async def test_send_elicitation_complete_noop_on_2025_06_18(self, server_session):
+        """notifications/elicitation/complete is a 2025-11-25-only method (URL
+        elicitation path). On a 2025-06-18-negotiated session the notification
+        MUST NOT be emitted -- the server would otherwise send an unknown
+        method to a client that does not understand it, violating the spec."""
+        server_session.negotiated_version = "2025-06-18"
+        server_session.write_stream = AsyncMock()
+        server_session.write_stream.send = AsyncMock()
+        await server_session.send_elicitation_complete("elic_123")
+        server_session.write_stream.send.assert_not_called()
+
+
+class TestEnumSchemaValidation:
+    """Tests for enhanced enum schema types in elicitation."""
+
+    @pytest.fixture(autouse=True)
+    def _init_session(self, server_session: Any) -> None:
+        server_session.mark_initialized()
+
+    def test_form_mode_with_untitled_single_select(self):
+        """Untitled single-select enum works in elicitation schemas."""
+        schema = {
+            "type": "object",
+            "properties": {"color": {"type": "string", "enum": ["red", "green", "blue"]}},
+        }
+        params = ElicitRequestFormParams(message="Pick color", requestedSchema=schema)
+        assert params.requestedSchema is not None
+
+    def test_form_mode_with_titled_single_select(self):
+        """Titled single-select (oneOf with const+title) works."""
+        schema = {
+            "type": "object",
+            "properties": {
+                "color": {
+                    "type": "string",
+                    "oneOf": [
+                        {"const": "#FF0000", "title": "Red"},
+                        {"const": "#00FF00", "title": "Green"},
+                    ],
+                }
+            },
+        }
+        params = ElicitRequestFormParams(message="Pick color", requestedSchema=schema)
+        assert params.requestedSchema is not None
+
+    def test_form_mode_with_multi_select(self):
+        """Multi-select enum (array type with items.enum) works."""
+        schema = {
+            "type": "object",
+            "properties": {
+                "colors": {
+                    "type": "array",
+                    "items": {"type": "string", "enum": ["red", "green"]},
+                    "minItems": 1,
+                    "maxItems": 3,
+                }
+            },
+        }
+        params = ElicitRequestFormParams(message="Pick colors", requestedSchema=schema)
+        assert params.requestedSchema is not None
+
+    def test_elicit_result_with_multi_select_string_array(self):
+        """ElicitResult content can include string[] values from multi-select."""
+        result = ElicitResult(action="accept", content={"colors": ["red", "green"]})
+        assert result.content["colors"] == ["red", "green"]
+
+
+class TestElicitationCapabilityGating:
+    """Tests for elicitation capability gating.
+
+    Servers MUST NOT send elicitation requests with modes that are not supported
+    by the client."""
+
+    @pytest.fixture(autouse=True)
+    def _init_session(self, server_session: Any) -> None:
+        server_session.mark_initialized()
+
+    @pytest.mark.asyncio
+    async def test_elicit_rejected_when_client_has_no_elicitation_capability(self, server_session):
+        """Client did not declare elicitation capability -> server must not send elicitation."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities()  # no elicitation
+        server_session._request_manager = AsyncMock()
+        with pytest.raises(ElicitationNotSupportedError):
+            await server_session.elicit(
+                message="Enter name",
+                requested_schema={"type": "object", "properties": {"name": {"type": "string"}}},
+            )
+
+    @pytest.mark.asyncio
+    async def test_elicit_rejected_when_client_caps_is_dict_without_elicitation(
+        self, server_session
+    ):
+        """Also works when _client_capabilities is a plain dict without 'elicitation' key."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = {"tools": {}}  # dict, no elicitation
+        server_session._request_manager = AsyncMock()
+        with pytest.raises(ElicitationNotSupportedError):
+            await server_session.elicit(
+                message="Enter name",
+                requested_schema={"type": "object", "properties": {"name": {"type": "string"}}},
+            )
+
+    @pytest.mark.asyncio
+    async def test_elicit_form_mode_allowed_with_empty_elicitation_capability(self, server_session):
+        """Client declared elicitation: {} -> defaults to form mode support."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(elicitation={})
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={"action": "accept", "content": {"name": "test"}}
+        )
+        result = await server_session.elicit(
+            message="Enter name",
+            requested_schema={"type": "object", "properties": {"name": {"type": "string"}}},
+        )
+        assert result.action == "accept"
+
+    @pytest.mark.asyncio
+    async def test_elicit_form_mode_allowed_with_dict_elicitation_capability(self, server_session):
+        """Also works when _client_capabilities is a plain dict with elicitation key."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = {"elicitation": {}}
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={"action": "accept", "content": {"name": "test"}}
+        )
+        result = await server_session.elicit(
+            message="Enter name",
+            requested_schema={"type": "object", "properties": {"name": {"type": "string"}}},
+        )
+        assert result.action == "accept"
+
+    @pytest.mark.asyncio
+    async def test_elicit_url_mode_rejected_with_form_only_capability(self, server_session):
+        """Client only declared form mode -> URL mode rejected."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(elicitation={"form": {}})
+        server_session._request_manager = AsyncMock()
+        with pytest.raises(ElicitationModeNotSupportedError):
+            await server_session.elicit(
+                message="Please authenticate",
+                mode="url",
+                url="https://example.com/auth",
+                elicitation_id="elic_123",
+            )
+
+    @pytest.mark.asyncio
+    async def test_elicit_url_mode_allowed_with_url_capability(self, server_session):
+        """Client declared url mode -> URL mode succeeds."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(elicitation={"url": {}})
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={"action": "accept", "content": {"token": "abc"}}
+        )
+        result = await server_session.elicit(
+            message="Please authenticate",
+            mode="url",
+            url="https://example.com/auth",
+            elicitation_id="elic_456",
+        )
+        assert result.action == "accept"
+
+    @pytest.mark.asyncio
+    async def test_elicit_form_mode_rejected_with_url_only_capability(self, server_session):
+        """Client only declared url mode -> form mode rejected."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(elicitation={"url": {}})
+        server_session._request_manager = AsyncMock()
+        with pytest.raises(ElicitationModeNotSupportedError):
+            await server_session.elicit(
+                message="Enter name",
+                requested_schema={"type": "object", "properties": {"name": {"type": "string"}}},
+            )
+
+
+class TestURLElicitationSecurity:
+    """Tests for URL elicitation security MUST requirements.
+
+    **Deferred to a follow-up PR.**"""
+
+    pass
+
+
+class TestElicitationCompletionNotification:
+    """Tests for notifications/elicitation/complete routing."""
+
+    @pytest.mark.asyncio
+    async def test_completion_notification_routed_to_initiating_client_only(self, server_session):
+        """notifications/elicitation/complete MUST only be sent to the client that
+        initiated the elicitation request. Not broadcast to all sessions -- targeted
+        to the originating session."""
+        server_session.negotiated_version = "2025-11-25"
+        sent_messages = []
+        server_session.write_stream = AsyncMock()
+        server_session.write_stream.send = AsyncMock(side_effect=lambda m: sent_messages.append(m))
+        await server_session.send_elicitation_complete("elic_123")
+        # Sent to originating session
+        assert len(sent_messages) >= 1
+        data = json.loads(sent_messages[0])
+        assert data["method"] == "notifications/elicitation/complete"
+        assert data["params"]["elicitationId"] == "elic_123"
+
+
+class TestLifecycleOutboundGuard:
+    """Server SHOULD NOT send requests other than ping/logging before initialized."""
+
+    @pytest.mark.asyncio
+    async def test_create_message_rejected_before_initialized(self, server_session):
+        from arcade_mcp_server.exceptions import SessionNotInitializedError
+
+        server_session._request_manager = AsyncMock()
+        with pytest.raises(SessionNotInitializedError):
+            await server_session.create_message(
+                messages=[{"role": "user", "content": {"type": "text", "text": "hello"}}],
+                max_tokens=100,
+            )
+
+    @pytest.mark.asyncio
+    async def test_elicit_rejected_before_initialized(self, server_session):
+        from arcade_mcp_server.exceptions import SessionNotInitializedError
+
+        server_session._request_manager = AsyncMock()
+        with pytest.raises(SessionNotInitializedError):
+            await server_session.elicit(
+                message="Enter name",
+                requested_schema={"type": "object", "properties": {"name": {"type": "string"}}},
+            )
+
+    @pytest.mark.asyncio
+    async def test_create_message_allowed_after_initialized(self, server_session):
+        server_session.mark_initialized()
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={
+                "role": "assistant",
+                "content": {"type": "text", "text": "hi"},
+                "model": "test-model",
+                "stopReason": "endTurn",
+            }
+        )
+        result = await server_session.create_message(
+            messages=[{"role": "user", "content": {"type": "text", "text": "hello"}}],
+            max_tokens=100,
+        )
+        assert result is not None

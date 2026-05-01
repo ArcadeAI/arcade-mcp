@@ -12,7 +12,49 @@ from arcade_mcp_server.resource_server.base import ResourceOwner
 # -----------------------------------------------------------------------------
 
 JSONRPC_VERSION: Literal["2.0"] = "2.0"
-LATEST_PROTOCOL_VERSION: str = "2025-06-18"
+
+SUPPORTED_PROTOCOL_VERSIONS: list[str] = ["2025-06-18", "2025-11-25"]
+LATEST_PROTOCOL_VERSION: str = "2025-11-25"
+
+# Feature registry — explicit per-version feature set to avoid lexical string comparison.
+# Non-date identifiers like "DRAFT-2025-v3" exist in spec artifacts and would break
+# lexical comparison. This is also how we add future versions cleanly — just add an entry.
+VERSION_FEATURES: dict[str, set[str]] = {
+    "2025-06-18": {"base", "sampling", "elicitation_form", "resources", "prompts", "tools"},
+    "2025-11-25": {
+        "base",
+        "sampling",
+        "elicitation_form",
+        "elicitation_url",
+        "resources",
+        "prompts",
+        "tools",
+        "tasks",
+        "tool_calling_in_sampling",
+        "icons",
+        "tool_execution",
+        "enum_schemas",
+        "implementation_metadata",
+    },
+}
+
+
+def negotiate_version(client_version: str) -> str:
+    """Negotiate the protocol version for this session.
+
+    If the server supports the client's requested version, return it. Otherwise,
+    return the server's latest supported version (the client will decide whether to
+    disconnect). This is NOT a 'latest <= client' rule.
+    """
+    if client_version in SUPPORTED_PROTOCOL_VERSIONS:
+        return client_version
+    return LATEST_PROTOCOL_VERSION
+
+
+def version_has_feature(version: str, feature: str) -> bool:
+    """Check if a protocol version supports a given feature."""
+    return feature in VERSION_FEATURES.get(version, set())
+
 
 # -----------------------------------------------------------------------------
 # Basic types
@@ -82,7 +124,7 @@ class ErrorData(BaseModel):
 
 
 class JSONRPCError(JSONRPCMessage):
-    id: RequestId
+    id: str | int | None
     error: dict[str, Any]
 
 
@@ -115,8 +157,22 @@ class BaseMetadata(BaseModel):
     model_config = ConfigDict(extra="allow")
 
 
+class Icon(BaseModel):
+    """Icon metadata (MCP 2025-11-25)."""
+
+    src: str
+    mimeType: str | None = None
+    sizes: list[str] | None = None
+    theme: Literal["light", "dark"] | None = None
+
+    model_config = ConfigDict(extra="allow")
+
+
 class Implementation(BaseMetadata):
     version: str
+    description: str | None = None
+    websiteUrl: str | None = None
+    icons: list[Icon] | None = None
 
 
 class ClientCapabilities(BaseModel):
@@ -124,6 +180,7 @@ class ClientCapabilities(BaseModel):
     roots: dict[str, Any] | None = None
     sampling: dict[str, Any] | None = None
     elicitation: dict[str, Any] | None = None
+    tasks: dict[str, Any] | None = None
 
     model_config = ConfigDict(extra="allow")
 
@@ -135,6 +192,7 @@ class ServerCapabilities(BaseModel):
     prompts: dict[str, Any] | None = None
     resources: dict[str, Any] | None = None
     tools: dict[str, Any] | None = None
+    tasks: dict[str, Any] | None = None
 
     model_config = ConfigDict(extra="allow")
 
@@ -182,6 +240,12 @@ class ProgressNotificationParams(BaseModel):
     progress: float
     total: float | None = None
     message: str | None = None
+    # Inherits _meta from NotificationParams. Used in 2025-11-25 to carry
+    # io.modelcontextprotocol/related-task when the progress notification
+    # originates from a background task execution.
+    meta: dict[str, Any] | None = Field(alias="_meta", default=None)
+
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class ProgressNotification(JSONRPCMessage, Notification):
@@ -228,6 +292,7 @@ class Resource(BaseMetadata):
     mimeType: str | None = None
     annotations: Annotations | None = None
     size: int | None = None
+    icons: list[Icon] | None = None
     meta: dict[str, Any] | None = Field(alias="_meta", default=None)
 
 
@@ -250,6 +315,7 @@ class ResourceTemplate(BaseMetadata):
     description: str | None = None
     mimeType: str | None = None
     annotations: Annotations | None = None
+    icons: list[Icon] | None = None
     meta: dict[str, Any] | None = Field(alias="_meta", default=None)
 
 
@@ -332,6 +398,7 @@ class PromptArgument(BaseMetadata):
 class Prompt(BaseMetadata):
     description: str | None = None
     arguments: list[PromptArgument] | None = None
+    icons: list[Icon] | None = None
     meta: dict[str, Any] | None = Field(alias="_meta", default=None)
 
 
@@ -384,12 +451,22 @@ class ToolAnnotations(BaseModel):
     model_config = ConfigDict(extra="allow")
 
 
+class ToolExecution(BaseModel):
+    """How a tool can be executed (MCP 2025-11-25 task augmentation)."""
+
+    taskSupport: Literal["forbidden", "optional", "required"] | None = None
+
+    model_config = ConfigDict(extra="allow")
+
+
 class MCPTool(BaseModel):
     name: str
     description: str | None = None
     inputSchema: dict[str, Any]
     outputSchema: dict[str, Any] | None = None
     annotations: ToolAnnotations | None = None
+    execution: ToolExecution | None = None
+    icons: list[Icon] | None = None
     title: str | None = None
     meta: dict[str, Any] | None = Field(alias="_meta", default=None)
 
@@ -442,6 +519,37 @@ class AudioContent(BaseModel):
     mimeType: str
     annotations: Annotations | None = None
     meta: dict[str, Any] | None = Field(alias="_meta", default=None)
+
+
+class ToolUseContent(BaseModel):
+    """Tool use content block (MCP 2025-11-25)."""
+
+    type: Literal["tool_use"]
+    id: str
+    name: str
+    input: dict[str, Any]
+
+    model_config = ConfigDict(extra="allow")
+
+
+class ToolResultContent(BaseModel):
+    """Tool result content block (MCP 2025-11-25)."""
+
+    type: Literal["tool_result"]
+    toolUseId: str
+    content: list[Any]
+    isError: bool | None = None
+    structuredContent: dict[str, Any] | None = None
+
+    model_config = ConfigDict(extra="allow")
+
+
+class ToolChoice(BaseModel):
+    """Tool choice mode for sampling (MCP 2025-11-25)."""
+
+    mode: Literal["auto", "required", "none"]
+
+    model_config = ConfigDict(extra="allow")
 
 
 class ResourceLink(Resource):
@@ -515,7 +623,7 @@ class LoggingMessageNotification(JSONRPCMessage, Notification):
 
 
 class CancelledParams(BaseModel):
-    requestId: RequestId
+    requestId: RequestId | None = None
     reason: str | None = None
 
 
@@ -523,7 +631,7 @@ class CancelledNotification(JSONRPCMessage, Notification):
     method: Literal["notifications/cancelled"] = Field(
         default="notifications/cancelled", frozen=True
     )
-    params: CancelledParams
+    params: dict[str, Any] | CancelledParams
 
 
 # -----------------------------------------------------------------------------
@@ -531,9 +639,17 @@ class CancelledNotification(JSONRPCMessage, Notification):
 # -----------------------------------------------------------------------------
 
 
+SamplingMessageContentBlock = (
+    TextContent | ImageContent | AudioContent | ToolUseContent | ToolResultContent
+)
+
+
 class SamplingMessage(BaseModel):
     role: Role
-    content: TextContent | ImageContent | AudioContent
+    content: SamplingMessageContentBlock | list[SamplingMessageContentBlock]
+    meta: dict[str, Any] | None = Field(alias="_meta", default=None)
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
 
 class ModelHint(BaseModel):
@@ -556,6 +672,14 @@ class CreateMessageParams(BaseModel):
     maxTokens: int
     stopSequences: list[str] | None = None
     metadata: dict[str, Any] | None = None
+    tools: list[MCPTool] | None = None
+    toolChoice: ToolChoice | None = None
+    # Standard MCP _meta field. In 2025-11-25 this carries
+    # io.modelcontextprotocol/related-task when sampling originates from a
+    # background task execution.
+    meta: dict[str, Any] | None = Field(alias="_meta", default=None)
+
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class CreateMessageRequest(JSONRPCRequest):
@@ -565,7 +689,7 @@ class CreateMessageRequest(JSONRPCRequest):
 
 class CreateMessageResult(Result, SamplingMessage):
     model: str
-    stopReason: Literal["endTurn", "stopSequence", "maxTokens"] | str | None = None
+    stopReason: str | None = None
 
 
 # -----------------------------------------------------------------------------
@@ -647,6 +771,11 @@ ElicitRequestedSchema = dict[str, Any]
 class ElicitParams(BaseModel):
     message: str
     requestedSchema: ElicitRequestedSchema
+    # Standard MCP _meta. Carries io.modelcontextprotocol/related-task when
+    # elicitation originates from a background task execution (2025-11-25).
+    meta: dict[str, Any] | None = Field(alias="_meta", default=None)
+
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class ElicitRequest(JSONRPCRequest):
@@ -656,7 +785,221 @@ class ElicitRequest(JSONRPCRequest):
 
 class ElicitResult(Result):
     action: Literal["accept", "decline", "cancel"]
-    content: dict[str, str | int | float | bool | None] | None = None
+    content: dict[str, Any] | None = None
+
+
+# -----------------------------------------------------------------------------
+# Elicitation extensions (2025-11-25)
+# -----------------------------------------------------------------------------
+
+
+class ElicitRequestFormParams(BaseModel):
+    """Form-mode elicitation request params (2025-06-18+)."""
+
+    mode: Literal["form"] | None = None
+    message: str
+    requestedSchema: dict[str, Any]
+    # Standard MCP _meta. Carries io.modelcontextprotocol/related-task when
+    # elicitation originates from a background task execution (2025-11-25).
+    meta: dict[str, Any] | None = Field(alias="_meta", default=None)
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+
+class ElicitRequestURLParams(BaseModel):
+    """URL-mode elicitation request params (MCP 2025-11-25)."""
+
+    mode: Literal["url"]
+    url: str
+    elicitationId: str
+    message: str
+    meta: dict[str, Any] | None = Field(alias="_meta", default=None)
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+
+ElicitRequestParams = ElicitRequestFormParams | ElicitRequestURLParams
+
+
+class ElicitationCompleteNotification(JSONRPCMessage, Notification):
+    """Notification that an elicitation is complete (MCP 2025-11-25)."""
+
+    method: Literal["notifications/elicitation/complete"] = Field(
+        default="notifications/elicitation/complete", frozen=True
+    )
+    params: dict[str, Any]
+
+
+# JSON-RPC error code for URL elicitation required
+URL_ELICITATION_REQUIRED_ERROR_CODE = -32042
+
+
+class URLElicitationRequiredError(BaseModel):
+    """JSON-RPC error indicating URL elicitation is required (MCP 2025-11-25)."""
+
+    code: int = URL_ELICITATION_REQUIRED_ERROR_CODE
+    message: str
+    data: dict[str, Any] | None = None
+
+    model_config = ConfigDict(extra="allow")
+
+
+# -----------------------------------------------------------------------------
+# Tasks (MCP 2025-11-25)
+# -----------------------------------------------------------------------------
+
+
+class TaskStatus(str, Enum):
+    """Task status values (MCP 2025-11-25)."""
+
+    WORKING = "working"
+    INPUT_REQUIRED = "input_required"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+
+class Task(BaseModel):
+    """A long-running task (MCP 2025-11-25)."""
+
+    taskId: str
+    status: TaskStatus
+    createdAt: str
+    lastUpdatedAt: str
+    ttl: int | None = None
+    statusMessage: str | None = None
+    pollInterval: int | None = None
+
+    model_config = ConfigDict(extra="allow")
+
+
+class CreateTaskResult(Result):
+    """Result of creating a task -- has nested task field."""
+
+    task: Task
+
+
+class GetTaskResult(Result):
+    """Result of getting a task -- flat allOf [Result, Task]."""
+
+    taskId: str
+    status: TaskStatus
+    createdAt: str
+    lastUpdatedAt: str
+    ttl: int | None = None
+    statusMessage: str | None = None
+    pollInterval: int | None = None
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+
+class CancelTaskResult(Result):
+    """Result of cancelling a task -- flat allOf [Result, Task]."""
+
+    taskId: str
+    status: TaskStatus
+    createdAt: str
+    lastUpdatedAt: str
+    ttl: int | None = None
+    statusMessage: str | None = None
+    pollInterval: int | None = None
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+
+class ListTasksResult(Result):
+    """Result of listing tasks."""
+
+    tasks: list[Task]
+    nextCursor: str | None = None
+
+
+class TaskStatusNotification(JSONRPCMessage, Notification):
+    """Notification of task status change (MCP 2025-11-25)."""
+
+    method: Literal["notifications/tasks/status"] = Field(
+        default="notifications/tasks/status", frozen=True
+    )
+    params: dict[str, Any]
+
+
+# Task request types
+class GetTaskRequest(JSONRPCRequest):
+    method: Literal["tasks/get"] = Field(default="tasks/get", frozen=True)
+
+
+class ListTasksRequest(JSONRPCRequest):
+    method: Literal["tasks/list"] = Field(default="tasks/list", frozen=True)
+
+
+class CancelTaskRequest(JSONRPCRequest):
+    method: Literal["tasks/cancel"] = Field(default="tasks/cancel", frozen=True)
+
+
+# -----------------------------------------------------------------------------
+# Enum schema types (SEP-1330, MCP 2025-11-25)
+# -----------------------------------------------------------------------------
+
+
+class UntitledSingleSelectEnumSchema(BaseModel):
+    """Single-select enum without titles.
+
+    Per MCP 2025-11-25 ``schema.json`` ``UntitledSingleSelectEnumSchema``:
+    ``required: ["enum", "type"]`` with ``type: {const: "string"}``. Strict
+    clients will reject a payload missing ``type``.
+    """
+
+    type: Literal["string"] = "string"
+    enum: list[Any]
+
+    model_config = ConfigDict(extra="allow")
+
+
+class TitledSingleSelectEnumSchema(BaseModel):
+    """Single-select enum with titles using oneOf.
+
+    Per MCP 2025-11-25 ``schema.json`` ``TitledSingleSelectEnumSchema``:
+    ``required: ["oneOf", "type"]`` with ``type: {const: "string"}``. Strict
+    clients will reject a payload missing ``type``.
+    """
+
+    type: Literal["string"] = "string"
+    oneOf: list[dict[str, Any]]
+
+    model_config = ConfigDict(extra="allow")
+
+
+class UntitledMultiSelectEnumSchema(BaseModel):
+    """Multi-select enum without titles."""
+
+    type: Literal["array"] = "array"
+    items: dict[str, Any]
+
+    model_config = ConfigDict(extra="allow")
+
+
+class TitledMultiSelectEnumSchema(BaseModel):
+    """Multi-select enum with titles using anyOf in items."""
+
+    type: Literal["array"] = "array"
+    items: dict[str, Any]
+
+    model_config = ConfigDict(extra="allow")
+
+
+class LegacyTitledEnumSchema(BaseModel):
+    """Legacy titled enum using enumNames.
+
+    Per MCP 2025-11-25 ``schema.json`` ``LegacyTitledEnumSchema``:
+    ``required: ["enum", "type"]`` with ``type: {const: "string"}``. Strict
+    clients will reject a payload missing ``type``.
+    """
+
+    type: Literal["string"] = "string"
+    enum: list[Any]
+    enumNames: list[str]
+
+    model_config = ConfigDict(extra="allow")
 
 
 # -----------------------------------------------------------------------------

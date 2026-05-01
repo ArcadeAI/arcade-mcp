@@ -210,3 +210,33 @@ def test_tool_deprecated_ordering_with_auth():
         == "Test description for func_deprecated_before_auth"
     )
     assert func_deprecated_before_auth.__tool_requires_auth__ is not None
+
+
+class TestToolDecoratorExecution:
+    def test_tool_without_execution_defaults_none(self):
+        @tool
+        def my_tool() -> str:
+            return "hello"
+
+        assert getattr(my_tool, "__tool_execution__", None) is None
+
+    def test_tool_with_execution_parameter(self):
+        # ``execution`` is an opaque payload the decorator stores as
+        # ``__tool_execution__`` verbatim -- the decorator intentionally does
+        # not know the shape. Protocol adapters (e.g. MCP convert) read and
+        # interpret it at serialisation time.
+        payload = object()
+
+        @tool(execution=payload)
+        def my_tool() -> str:
+            return "hello"
+
+        assert my_tool.__tool_execution__ is payload
+
+    @pytest.mark.parametrize("payload", [{"taskSupport": "optional"}, "required", 42])
+    def test_tool_with_execution_parametrized(self, payload):
+        @tool(execution=payload)
+        def my_tool() -> str:
+            return "hello"
+
+        assert my_tool.__tool_execution__ == payload

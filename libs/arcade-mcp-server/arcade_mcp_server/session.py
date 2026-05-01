@@ -11,15 +11,21 @@ import json
 import logging
 import uuid
 from enum import Enum
-from types import SimpleNamespace
-from typing import Any
+from typing import Any, cast
 
 import anyio
 
 from arcade_mcp_server.context import Context
-from arcade_mcp_server.exceptions import RequestError, SessionError
+from arcade_mcp_server.exceptions import (
+    ElicitationModeNotSupportedError,
+    ElicitationNotSupportedError,
+    RequestError,
+    SessionError,
+    SessionNotInitializedError,
+)
 from arcade_mcp_server.resource_server.base import ResourceOwner
 from arcade_mcp_server.types import (
+    VERSION_FEATURES,
     CancelledNotification,
     CancelledParams,
     ClientCapabilities,
@@ -40,6 +46,7 @@ from arcade_mcp_server.types import (
     ResourceListChangedNotification,
     SessionMessage,
     ToolListChangedNotification,
+    version_has_feature,
 )
 
 logger = logging.getLogger(__name__)
@@ -183,7 +190,7 @@ class RequestManager:
 
         try:
             for note in notifications:
-                message = note.model_dump_json(exclude_none=True) + "\n"
+                message = note.model_dump_json(exclude_none=True, by_alias=True) + "\n"
                 await self._write_stream.send(message)
         except Exception:
             # Swallow transport errors during shutdown; proceed to cancel futures
@@ -278,7 +285,13 @@ class ServerSession:
         self.initialization_state = InitializationState.NOT_INITIALIZED
         self.client_params: InitializeParams | None = None
         self._session_data: dict[str, Any] = {}
-        self._request_meta: Any = None
+
+        # Version negotiation state (set during initialize)
+        self.negotiated_version: str | None = None
+        self._negotiated_capabilities: dict[str, Any] = {}
+
+        # Client capabilities (set during initialize)
+        self._client_capabilities: ClientCapabilities | None = None
 
         # Request management
         self._request_manager = RequestManager(write_stream) if write_stream else None
@@ -286,9 +299,47 @@ class ServerSession:
         # Context for current request
         self._current_context: Context | None = None
 
+    def supports_version(self, version: str) -> bool:
+        """Whether negotiated version includes all features of the given version.
+        Uses feature-set subset check -- NOT lexical string comparison."""
+        if self.negotiated_version is None:
+            return False
+        negotiated_features = VERSION_FEATURES.get(self.negotiated_version, set())
+        required_features = VERSION_FEATURES.get(version, set())
+        return required_features.issubset(negotiated_features)
+
+    def has_feature(self, feature: str) -> bool:
+        """Whether negotiated version supports a specific feature."""
+        if self.negotiated_version is None:
+            return False
+        return version_has_feature(self.negotiated_version, feature)
+
+    def has_capability(self, dotted_name: str) -> bool:
+        """Check if a nested sub-capability was negotiated (dot notation).
+
+        has_capability("tasks") -> capabilities["tasks"] exists
+        has_capability("tasks.list") -> capabilities["tasks"]["list"] exists
+        """
+        parts = dotted_name.split(".")
+        current: Any = self._negotiated_capabilities
+        for part in parts:
+            if not isinstance(current, dict) or part not in current:
+                return False
+            current = current[part]
+        return True
+
     def set_client_params(self, params: InitializeParams) -> None:
         """Set client initialization parameters."""
         self.client_params = params
+        # Extract client capabilities (params may be a dict in tests)
+        if isinstance(params, dict):
+            caps = params.get("capabilities")
+            if isinstance(caps, ClientCapabilities):
+                self._client_capabilities = caps
+            elif isinstance(caps, dict):
+                self._client_capabilities = ClientCapabilities(**caps)
+        elif hasattr(params, "capabilities"):
+            self._client_capabilities = params.capabilities
         self.initialization_state = InitializationState.INITIALIZING
 
     def mark_initialized(self) -> None:
@@ -397,7 +448,11 @@ class ServerSession:
             # Send response if any
             if response and self.write_stream:
                 if hasattr(response, "model_dump_json"):
-                    response_data = response.model_dump_json(exclude_none=True, by_alias=True)
+                    if isinstance(response, JSONRPCError):
+                        # JSON-RPC error responses MUST include "id" even when null.
+                        response_data = response.model_dump_json(by_alias=True)
+                    else:
+                        response_data = response.model_dump_json(exclude_none=True, by_alias=True)
                 else:
                     response_data = json.dumps(response)
 
@@ -438,11 +493,12 @@ class ServerSession:
             return
 
         error_response = JSONRPCError(
-            id=str(request_id) if request_id else "null",
+            id=request_id,
             error={"code": code, "message": message},
         )
 
-        response_data = error_response.model_dump_json() + "\n"
+        # JSON-RPC error responses MUST include "id" even when null.
+        response_data = error_response.model_dump_json(by_alias=True) + "\n"
         await self.write_stream.send(response_data)
 
     async def _cleanup_pending_requests(self) -> None:
@@ -457,7 +513,9 @@ class ServerSession:
         if not self.write_stream:
             return
 
-        message = notification.model_dump_json(exclude_none=True) + "\n"
+        # by_alias=True ensures Pydantic Field aliases (e.g. meta -> _meta) are
+        # serialized using the wire-format keys required by the MCP spec.
+        message = notification.model_dump_json(exclude_none=True, by_alias=True) + "\n"
         await self.write_stream.send(message)
 
     async def send_progress_notification(
@@ -466,6 +524,7 @@ class ServerSession:
         progress: float,
         total: float | None = None,
         message: str | None = None,
+        _meta: dict[str, Any] | None = None,
     ) -> None:
         """Send a progress notification."""
         notification = ProgressNotification(
@@ -474,6 +533,7 @@ class ServerSession:
                 progress=progress,
                 total=total,
                 message=message,
+                _meta=_meta,
             )
         )
         await self.send_notification(notification)
@@ -517,6 +577,9 @@ class ServerSession:
         model_preferences: dict[str, Any] | None = None,
         stop_sequences: list[str] | None = None,
         metadata: dict[str, Any] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: dict[str, Any] | None = None,
+        _meta: dict[str, Any] | None = None,
         timeout: float = 60.0,
     ) -> CreateMessageResult:
         """
@@ -531,6 +594,8 @@ class ServerSession:
             model_preferences: Model preferences
             stop_sequences: Stop sequences
             metadata: Request metadata
+            tools: Tools available for the model (2025-11-25 only)
+            tool_choice: Tool choice mode (2025-11-25 only)
             timeout: Request timeout
 
         Returns:
@@ -539,7 +604,52 @@ class ServerSession:
         if not self._request_manager:
             raise SessionError("Cannot send requests without request manager")
 
-        params = {
+        if self.initialization_state != InitializationState.INITIALIZED:
+            raise SessionNotInitializedError(
+                "Cannot send sampling request before session is initialized"
+            )
+
+        # Determine if the client supports tools in sampling. Gate on the
+        # feature registry (``tool_calling_in_sampling``) rather than a
+        # hardcoded version string, so that future protocol versions
+        # inheriting the feature keep the gate working without source edits.
+        client_has_sampling_tools = False
+        if self.has_feature("tool_calling_in_sampling"):
+            client_caps = self._client_capabilities
+            if (
+                client_caps is not None
+                and isinstance(client_caps.sampling, dict)
+                and "tools" in client_caps.sampling
+            ):
+                client_has_sampling_tools = True
+
+        # Tools are only included if both caller passed them AND client supports them
+        tools_allowed = tools is not None and client_has_sampling_tools
+
+        # Validate message content for tool_use/tool_result constraints
+        # (only relevant for 2025-11-25 sessions with sampling.tools capability)
+        if client_has_sampling_tools:
+            self._validate_sampling_messages(messages)
+
+        # Gate includeContext on client capability. Keyed off the sampling
+        # feature set rather than the literal version so future versions
+        # that inherit ``tool_calling_in_sampling`` (which governs the
+        # ``context`` sub-capability here) pick this up automatically.
+        if (
+            include_context is not None
+            and include_context != "none"
+            and self.has_feature("tool_calling_in_sampling")
+        ):
+            client_caps = self._client_capabilities
+            context_allowed = (
+                client_caps is not None
+                and isinstance(client_caps.sampling, dict)
+                and "context" in client_caps.sampling
+            )
+            if not context_allowed:
+                include_context = None  # strip it
+
+        params: dict[str, Any] = {
             "messages": messages,
             "maxTokens": max_tokens,
         }
@@ -558,6 +668,16 @@ class ServerSession:
         if metadata is not None:
             params["metadata"] = metadata
 
+        # Include tools/toolChoice only when allowed
+        if tools_allowed and tools is not None:
+            params["tools"] = tools
+            if tool_choice is not None:
+                params["toolChoice"] = tool_choice
+
+        # Attach _meta if provided (e.g. related-task meta from background tasks)
+        if _meta is not None:
+            params["_meta"] = _meta
+
         result = await self._request_manager.send_request(
             "sampling/createMessage",
             params,
@@ -565,6 +685,90 @@ class ServerSession:
         )
 
         return CreateMessageResult(**result)
+
+    @staticmethod
+    def _as_message_dict(msg: Any) -> dict[str, Any]:
+        """Normalize a sampling message to a plain dict.
+
+        ``Sampling.create_message`` hands this layer ``SamplingMessage`` pydantic
+        objects (and/or dicts). Pydantic v2 models don't expose ``.get()``, so
+        the validator below would raise ``AttributeError`` and break the whole
+        sampling-with-tools path for 2025-11-25 clients. Use ``model_dump`` when
+        available; fall back to dict-coercion for plain mappings.
+        """
+        if hasattr(msg, "model_dump"):
+            # ``msg: Any`` so ``model_dump`` returns ``Any`` to mypy even
+            # though Pydantic always produces ``dict[str, Any]`` here.
+            return cast("dict[str, Any]", msg.model_dump(by_alias=True, exclude_none=True))
+        if isinstance(msg, dict):
+            return msg
+        return dict(msg)
+
+    @staticmethod
+    def _validate_sampling_messages(messages: list[Any]) -> None:
+        """Validate message content for tool_use/tool_result constraints.
+
+        - User messages with tool_result content must contain ONLY tool results.
+        - Every assistant message with tool_use must be followed by a user message
+          with only tool_result content blocks.
+        """
+        # Accept ``SamplingMessage`` pydantic models as well as raw dicts -- the
+        # sampling entrypoint builds pydantic models, so we normalize at the edge
+        # rather than force every caller to pre-dump.
+        normalized = [ServerSession._as_message_dict(m) for m in messages]
+        for i, msg in enumerate(normalized):
+            content = msg.get("content")
+            if content is None:
+                continue
+
+            # Normalize to list
+            blocks = content if isinstance(content, list) else [content]
+
+            role = msg.get("role")
+
+            # Check: user messages with any tool_result must be ALL tool_result
+            if role == "user":
+                has_tool_result = any(
+                    isinstance(b, dict) and b.get("type") == "tool_result" for b in blocks
+                )
+                if has_tool_result:
+                    all_tool_result = all(
+                        isinstance(b, dict) and b.get("type") == "tool_result" for b in blocks
+                    )
+                    if not all_tool_result:
+                        raise ValueError(
+                            "user messages with tool results must contain only tool results"
+                        )
+
+            # Check: assistant messages with tool_use must be followed by user
+            # message with all tool_result blocks
+            if role == "assistant":
+                has_tool_use = any(
+                    isinstance(b, dict) and b.get("type") == "tool_use" for b in blocks
+                )
+                if has_tool_use:
+                    if i + 1 >= len(normalized):
+                        raise ValueError(
+                            "assistant message with tool_use must be followed by a "
+                            "user message containing tool result blocks"
+                        )
+                    next_msg = normalized[i + 1]
+                    next_role = next_msg.get("role")
+                    next_content = next_msg.get("content")
+                    next_blocks = (
+                        next_content
+                        if isinstance(next_content, list)
+                        else [next_content]
+                        if next_content is not None
+                        else []
+                    )
+                    if next_role != "user" or not all(
+                        isinstance(b, dict) and b.get("type") == "tool_result" for b in next_blocks
+                    ):
+                        raise ValueError(
+                            "assistant message with tool_use must be followed by a "
+                            "user message containing tool result blocks"
+                        )
 
     async def list_roots(self, timeout: float = 60.0) -> ListRootsResult:
         """
@@ -615,10 +819,74 @@ class ServerSession:
 
         return CompleteResult(**result)
 
+    def _check_elicitation_capability(self, mode: str) -> None:
+        """Check that the client supports the requested elicitation mode.
+
+        Servers MUST NOT send elicitation requests with modes that are not
+        supported by the client.
+
+        Rules:
+        - client_capabilities is None (e.g. tests, 2025-06-18 without caps): allow form
+        - client declared caps but no "elicitation" key: forbid all
+        - elicitation: {} (empty dict): default to form-only
+        - elicitation: {form: {}} : form allowed, url rejected
+        - elicitation: {url: {}} : url allowed, form rejected
+        - elicitation: {form: {}, url: {}}: both allowed
+        """
+        client_caps = self._client_capabilities
+
+        # Get elicitation capability value
+        elicitation_cap: Any = None
+        if client_caps is not None:
+            if isinstance(client_caps, ClientCapabilities):
+                elicitation_cap = client_caps.elicitation
+            elif isinstance(client_caps, dict):
+                elicitation_cap = client_caps.get("elicitation")
+            else:
+                elicitation_cap = getattr(client_caps, "elicitation", None)
+
+        # If client declared capabilities but elicitation is absent -> forbid all
+        if client_caps is not None and elicitation_cap is None:
+            raise ElicitationNotSupportedError("Client did not declare elicitation capability")
+
+        # client_caps is None (tests / legacy) -> allow form only
+        if client_caps is None:
+            if mode == "url":
+                raise ElicitationModeNotSupportedError(
+                    "URL elicitation mode not supported: no client capabilities declared"
+                )
+            return
+
+        # Normalize to dict
+        if hasattr(elicitation_cap, "model_dump"):
+            elicitation_cap = elicitation_cap.model_dump(exclude_none=True)
+
+        # At this point elicitation_cap is a dict (possibly empty)
+        if not isinstance(elicitation_cap, dict):
+            elicitation_cap = {}
+
+        if mode == "url":
+            if "url" not in elicitation_cap:
+                raise ElicitationModeNotSupportedError(
+                    "Client does not support URL elicitation mode"
+                )
+        else:
+            # form mode (default)
+            # Empty dict -> default to form support (spec)
+            # URL-only (only "url" key, no "form") -> form rejected
+            if elicitation_cap and "form" not in elicitation_cap and "url" in elicitation_cap:
+                raise ElicitationModeNotSupportedError(
+                    "Client only supports URL elicitation mode, not form"
+                )
+
     async def elicit(
         self,
         message: str,
         requested_schema: dict[str, Any] | None = None,
+        mode: str | None = None,
+        url: str | None = None,
+        elicitation_id: str | None = None,
+        _meta: dict[str, Any] | None = None,
         timeout: float = 300.0,
     ) -> ElicitResult:
         """
@@ -626,7 +894,10 @@ class ServerSession:
 
         Args:
             message: Elicitation message to display
-            requested_schema: JSON schema for the requested response
+            requested_schema: JSON schema for the requested response (form mode)
+            mode: Elicitation mode - "form" (default) or "url" (2025-11-25 only)
+            url: URL for URL-mode elicitation
+            elicitation_id: Elicitation ID for URL-mode elicitation
             timeout: Request timeout
 
         Returns:
@@ -635,13 +906,47 @@ class ServerSession:
         if not self._request_manager:
             raise SessionError("Cannot send requests without request manager")
 
-        params: dict[str, Any] = {
-            "message": message,
-        }
+        if self.initialization_state != InitializationState.INITIALIZED:
+            raise SessionNotInitializedError(
+                "Cannot send elicitation request before session is initialized"
+            )
 
-        # Add schema if provided
-        if requested_schema is not None:
-            params["requestedSchema"] = requested_schema
+        # Default to form mode
+        effective_mode = mode or "form"
+
+        # Version gate: URL mode requires the ``elicitation_url`` feature.
+        # Use the feature registry, not a hardcoded version string, so future
+        # protocol versions that ship URL-mode elicitation Just Work.
+        if effective_mode == "url" and not self.has_feature("elicitation_url"):
+            raise SessionError(
+                "URL elicitation mode requires a protocol version that supports "
+                "elicitation_url (2025-11-25 or later)"
+            )
+
+        # URL mode validation
+        if effective_mode == "url" and (not url or not elicitation_id):
+            raise ValueError("URL mode elicitation requires both 'url' and 'elicitation_id'")
+
+        # Capability gate
+        self._check_elicitation_capability(effective_mode)
+
+        if effective_mode == "url":
+            params: dict[str, Any] = {
+                "mode": "url",
+                "url": url,
+                "elicitationId": elicitation_id,
+                "message": message,
+            }
+        else:
+            params = {
+                "message": message,
+            }
+            if requested_schema is not None:
+                params["requestedSchema"] = requested_schema
+
+        # Attach _meta if provided (e.g. related-task meta from background tasks)
+        if _meta is not None:
+            params["_meta"] = _meta
 
         result = await self._request_manager.send_request(
             "elicitation/create",
@@ -651,14 +956,40 @@ class ServerSession:
 
         return ElicitResult(**result)
 
-    # Request metadata management
-    def set_request_meta(self, meta: dict[str, Any] | None) -> None:
-        """Store meta for the current request"""
-        self._request_meta = SimpleNamespace(**meta) if meta else None
+    async def send_elicitation_complete(self, elicitation_id: str) -> None:
+        """Send a notifications/elicitation/complete notification to this session's client.
 
-    def clear_request_meta(self) -> None:
-        """Clear the request's meta after the request is complete"""
-        self._request_meta = None
+        This MUST be sent only to the client that initiated the elicitation,
+        NOT broadcast to all sessions.
+
+        Version-gated on the ``elicitation_url`` feature: the
+        ``notifications/elicitation/complete`` method was introduced with URL
+        elicitation in MCP 2025-11-25 and is undefined on 2025-06-18. Emitting
+        an unknown notification on an older session would be a protocol
+        violation, so this is a no-op there.
+        """
+        if not self.write_stream:
+            return
+
+        # Per MCP 2025-11-25 — notifications/elicitation/complete is part of
+        # the URL-elicitation path and does not exist on 2025-06-18. If the
+        # negotiated version does not support the ``elicitation_url`` feature
+        # (e.g. a 2025-11-25 tool running inside a 2025-06-18 session) the
+        # notification MUST NOT be sent.
+        if not self.has_feature("elicitation_url"):
+            return
+
+        notification = {
+            "jsonrpc": "2.0",
+            "method": "notifications/elicitation/complete",
+            "params": {"elicitationId": elicitation_id},
+        }
+        try:
+            message = json.dumps(notification) + "\n"
+            await self.write_stream.send(message)
+        except Exception:
+            # Swallow errors if stream is disconnected
+            logger.debug("Failed to send elicitation complete notification", exc_info=True)
 
     # Context management
     async def create_request_context(self, resource_owner: ResourceOwner | None = None) -> Context:

@@ -17,6 +17,7 @@ from arcade_mcp_server.resource_server.base import (
     ResourceOwner,
     ResourceServerValidator,
     TokenExpiredError,
+    _validate_advertised_scopes,
 )
 from arcade_mcp_server.resource_server.validators.jwks import JWKSTokenValidator
 from arcade_mcp_server.settings import MCPSettings
@@ -36,6 +37,7 @@ class ResourceServerAuth(ResourceServerValidator):
         authorization_servers: list[AuthorizationServerEntry] | None = None,
         canonical_url: str | None = None,
         cache_ttl: int = 3600,
+        default_advertised_scopes: list[str] | None = None,
     ):
         """Initialize Resource Server.
 
@@ -46,9 +48,25 @@ class ResourceServerAuth(ResourceServerValidator):
             authorization_servers: List of authorization server entries
             canonical_url: MCP server canonical URL (or MCP_RESOURCE_SERVER_CANONICAL_URL)
             cache_ttl: JWKS cache TTL in seconds
+            default_advertised_scopes: Optional list of OAuth scopes to advertise on the
+                entry-level 401 ``WWW-Authenticate`` challenge and as
+                ``scopes_supported`` in the Protected Resource Metadata document
+                (RFC 9728). The MCP spec recommends servers include a
+                ``scope`` parameter so clients can apply the
+                principle-of-least-privilege scope-selection strategy. This
+                represents the minimum scope set for basic functionality —
+                additional scopes get requested incrementally via per-tool
+                403 ``insufficient_scope`` step-up at runtime. Each token
+                must conform to the RFC 6750 grammar (validated at
+                construction); duplicates are removed preserving first-seen
+                order. When omitted, no ``scope`` is advertised; clients
+                fall back to the spec selection strategy. Also configurable
+                via the ``MCP_RESOURCE_SERVER_DEFAULT_ADVERTISED_SCOPES``
+                env var (space-separated; explicit kwarg wins).
 
         Raises:
-            ValueError: If required fields not provided via params or env vars
+            ValueError: If required fields not provided via params or env vars,
+                or if any advertised scope token violates the RFC 6750 grammar.
 
         Example:
             ```python
@@ -112,6 +130,19 @@ class ResourceServerAuth(ResourceServerValidator):
                 "'authorization_servers' required (parameter or MCP_RESOURCE_SERVER_AUTHORIZATION_SERVERS environment variable)"
             )
 
+        # Resolve advertised scopes: explicit kwarg wins, else env var via
+        # MCPSettings (see settings.py field_validator that parses the
+        # space-separated string). Either path runs through the same
+        # RFC 6750 grammar validator — malformed tokens raise ValueError at
+        # construction rather than corrupting the WWW-Authenticate header
+        # at runtime.
+        raw_scopes: list[str] | None = (
+            default_advertised_scopes
+            if default_advertised_scopes is not None
+            else settings.resource_server.default_advertised_scopes
+        )
+        self.default_advertised_scopes = _validate_advertised_scopes(raw_scopes)
+
         self._validators = self._create_validators(configs)
 
         self._resource_metadata = self._build_resource_metadata()
@@ -122,11 +153,18 @@ class ResourceServerAuth(ResourceServerValidator):
         Returns:
             Dictionary containing resource metadata per RFC 9728
         """
-        return {
+        metadata: dict[str, Any] = {
             "resource": self.canonical_url,
             "authorization_servers": list(self._validators.keys()),
             "bearer_methods_supported": ["header"],
         }
+        # ``scopes_supported`` is OPTIONAL per RFC 9728 but provides clients
+        # with the fallback scope set when the WWW-Authenticate ``scope``
+        # parameter is absent. The MCP spec explicitly references this
+        # fallback in its scope-selection strategy.
+        if self.default_advertised_scopes:
+            metadata["scopes_supported"] = list(self.default_advertised_scopes)
+        return metadata
 
     def _create_validators(
         self, entries: list[AuthorizationServerEntry]

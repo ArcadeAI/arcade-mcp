@@ -15,12 +15,15 @@ Key notes:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import os
-from typing import Any, Callable, cast
+from typing import Any, Callable, ClassVar, cast
+from urllib.parse import quote, urlparse, urlunparse
 
 from arcade_core.auth_tokens import get_valid_access_token
 from arcade_core.catalog import MaterializedTool, ToolCatalog
+from arcade_core.errors import ErrorKind, ToolInputError
 from arcade_core.executor import ToolExecutor
 from arcade_core.log_extras import build_tool_error_log_extra, build_tool_error_span_attributes
 from arcade_core.network.org_transport import build_org_scoped_async_http_client
@@ -29,13 +32,25 @@ from arcade_core.schema import ToolAuthRequirement as CoreToolAuthRequirement
 from arcadepy import ArcadeError, AsyncArcade
 from arcadepy.types.auth_authorize_params import AuthRequirement, AuthRequirementOauth2
 from opentelemetry import trace
+from pydantic import ValidationError
 
 from arcade_mcp_server._debug_exposure import augment_error_message_for_debug
 from arcade_mcp_server.context import Context, get_current_model_context, set_current_model_context
 from arcade_mcp_server.convert import convert_content_to_structured_content, convert_to_mcp_content
-from arcade_mcp_server.exceptions import NotFoundError, ToolRuntimeError
+from arcade_mcp_server.exceptions import (
+    IncompleteAuthContextError,
+    NotFoundError,
+    ToolRuntimeError,
+)
 from arcade_mcp_server.lifespan import LifespanManager
-from arcade_mcp_server.managers import PromptManager, ResourceManager, ToolManager
+from arcade_mcp_server.managers import PromptManager, ResourceManager, TaskManager, ToolManager
+from arcade_mcp_server.managers.task_manager import (
+    InvalidCursorError,
+    InvalidTaskStateError,
+)
+from arcade_mcp_server.managers.task_manager import (
+    NotFoundError as TaskNotFoundError,
+)
 from arcade_mcp_server.middleware import (
     CallNext,
     ErrorHandlingMiddleware,
@@ -43,19 +58,26 @@ from arcade_mcp_server.middleware import (
     Middleware,
     MiddlewareContext,
 )
+from arcade_mcp_server.request_context import (
+    get_request_meta,
+    reset_request_meta,
+    set_request_meta,
+)
 from arcade_mcp_server.resource_server.base import ResourceOwner
 from arcade_mcp_server.session import InitializationState, NotificationManager, ServerSession
 from arcade_mcp_server.settings import MCPSettings, ServerSettings
 from arcade_mcp_server.types import (
-    LATEST_PROTOCOL_VERSION,
     BlobResourceContents,
     CallToolRequest,
     CallToolResult,
+    CancelTaskResult,
     CompleteRequest,
     CreateMessageRequest,
+    CreateTaskResult,
     ElicitRequest,
     GetPromptRequest,
     GetPromptResult,
+    GetTaskResult,
     Implementation,
     InitializeRequest,
     InitializeResult,
@@ -68,22 +90,64 @@ from arcade_mcp_server.types import (
     ListResourceTemplatesRequest,
     ListResourceTemplatesResult,
     ListRootsRequest,
+    ListTasksResult,
     ListToolsRequest,
     ListToolsResult,
     MCPMessage,
+    MCPTool,
     PingRequest,
+    Prompt,
     ReadResourceRequest,
     ReadResourceResult,
+    Resource,
     ResourceTemplate,
     ServerCapabilities,
     SetLevelRequest,
     SubscribeRequest,
+    TaskStatus,
+    TaskStatusNotification,
+    TextContent,
     TextResourceContents,
     UnsubscribeRequest,
+    negotiate_version,
+    version_has_feature,
 )
 from arcade_mcp_server.usage import ServerTracker
 
 logger = logging.getLogger("arcade.mcp")
+
+# Reserved JSON-RPC error code for insufficient OAuth scope.
+# The HTTP transport inspects this code to convert the response to HTTP 403.
+INSUFFICIENT_SCOPE_ERROR_CODE = -32043
+
+
+def _extract_scopes(claims: dict[str, Any]) -> set[str]:
+    """Normalise scope extraction across OAuth provider formats.
+
+    Handles:
+    - ``scope`` claim (RFC 6749 section 3.3, space-delimited string)
+    - ``scp`` claim (Azure AD / Microsoft Entra, space-delimited string)
+    - Both may also be JSON arrays of strings
+    """
+    for claim_key in ("scope", "scp"):
+        raw = claims.get(claim_key)
+        if raw is None:
+            continue
+        if isinstance(raw, str):
+            return set(raw.split())
+        if isinstance(raw, list):
+            return {s for s in raw if isinstance(s, str)}
+    return set()
+
+
+# Methods that require a specific negotiated sub-capability. The dotted
+# notation matches the nested capability structure.
+CAPABILITY_GATED_METHODS: dict[str, str] = {
+    "tasks/get": "tasks",
+    "tasks/result": "tasks",
+    "tasks/list": "tasks.list",
+    "tasks/cancel": "tasks.cancel",
+}
 
 
 class MCPServer:
@@ -129,6 +193,10 @@ class MCPServer:
         arcade_api_url: str | None = None,
         initial_resources: list[tuple[Any, Callable[..., Any] | None]] | None = None,
         tool_meta_extensions: dict[str, dict[str, Any]] | None = None,
+        icons: list[Any] | None = None,
+        description: str | None = None,
+        website_url: str | None = None,
+        allowed_origins: list[str] | None = None,
     ):
         """
         Initialize MCP server.
@@ -165,6 +233,11 @@ class MCPServer:
         else:
             self.title = self.name
 
+        self.icons = icons
+        self.description = description
+        self.website_url = website_url
+        self.allowed_origins = allowed_origins
+
         self.instructions = (
             instructions or self.settings.server.instructions or self._default_instructions()
         )
@@ -182,6 +255,7 @@ class MCPServer:
         self._tool_manager = ToolManager()
         self._resource_manager = ResourceManager()
         self._prompt_manager = PromptManager()
+        self._task_manager = TaskManager()
 
         # Build-time resources to load on start
         self._initial_resources = initial_resources or []
@@ -348,6 +422,11 @@ class MCPServer:
             "prompts/list": self._handle_list_prompts,
             "prompts/get": self._handle_get_prompt,
             "logging/setLevel": self._handle_set_log_level,
+            # Task methods (MCP 2025-11-25 Tasks primitive).
+            "tasks/get": self._handle_get_task,
+            "tasks/list": self._handle_list_tasks,
+            "tasks/cancel": self._handle_cancel_task,
+            "tasks/result": self._handle_get_task_result,
         }
 
     def _default_instructions(self) -> str:
@@ -383,6 +462,7 @@ class MCPServer:
             else:
                 await self._resource_manager.add_resource(item, handler)
         await self._prompt_manager.start()
+        await self._task_manager.start()
         await self.lifespan_manager.startup()
 
     async def _stop(self) -> None:
@@ -394,6 +474,7 @@ class MCPServer:
             # Sessions should handle their own cleanup
             pass
 
+        await self._task_manager.stop()
         await self._prompt_manager.stop()
         await self._resource_manager.stop()
         await self._tool_manager.stop()
@@ -492,7 +573,7 @@ class MCPServer:
             or not isinstance(message["method"], str)
         ):
             return JSONRPCError(
-                id="null",
+                id=message.get("id") if isinstance(message, dict) else None,
                 error={
                     "code": -32600,
                     "message": (
@@ -528,7 +609,7 @@ class MCPServer:
             and method not in ["initialize", "ping"]
         ):
             return JSONRPCError(
-                id=str(msg_id or "null"),
+                id=msg_id,
                 error={
                     "code": -32600,
                     "message": (
@@ -547,7 +628,7 @@ class MCPServer:
         handler = self._handlers.get(method)
         if not handler:
             return JSONRPCError(
-                id=str(msg_id or "null"),
+                id=msg_id,
                 error={
                     "code": -32601,
                     "message": (
@@ -564,13 +645,24 @@ class MCPServer:
                 },
             )
 
+        # Capability gate: reject methods that require a sub-capability
+        # that was not negotiated for this session.
+        if method in CAPABILITY_GATED_METHODS and session is not None:
+            required_cap = CAPABILITY_GATED_METHODS[method]
+            if not session.has_capability(required_cap):
+                return JSONRPCError(
+                    id=msg_id,
+                    error={"code": -32601, "message": "Method not found"},
+                )
+
         # Create context and apply middleware
         try:
-            # Store the request's meta in the session
+            # Store the request's meta via ContextVar for per-request isolation
+            meta_token = None
             if session:
                 params = message.get("params", {})
                 meta = params.get("_meta")
-                session.set_request_meta(meta)
+                meta_token = set_request_meta(meta)
 
             # Create request context
             context = (
@@ -616,12 +708,13 @@ class MCPServer:
                 set_current_model_context(None, token)
                 if session:
                     await session.cleanup_request_context(context)
-                    session.clear_request_meta()
+                if meta_token is not None:
+                    reset_request_meta(meta_token)
 
         except Exception:
             logger.exception("Error handling message")
             return JSONRPCError(
-                id=str(msg_id or "null"),
+                id=msg_id,
                 error={
                     "code": -32603,
                     "message": (
@@ -656,6 +749,7 @@ class MCPServer:
             "completion/complete": CompleteRequest,
             "roots/list": ListRootsRequest,
             "elicitation/create": ElicitRequest,
+            # Task methods parse as raw dicts (no typed request model yet).
         }
 
         message_type = message_types.get(method)
@@ -709,27 +803,134 @@ class MCPServer:
         if session:
             session.set_client_params(message.params)
 
-        caps_kwargs: dict[str, Any] = {
+        # Negotiate protocol version
+        client_version = message.params.protocolVersion
+        negotiated = negotiate_version(client_version)
+
+        # Build capabilities and server info for the negotiated version
+        stateless = session.stateless if session else False
+        caps_dict = self._build_capabilities(negotiated, stateless=stateless)
+        server_info_dict = self._build_server_info(negotiated)
+
+        # Store negotiation results on the session
+        if session:
+            session.negotiated_version = negotiated
+            session._negotiated_capabilities = caps_dict
+
+        result = InitializeResult(
+            protocolVersion=negotiated,
+            capabilities=ServerCapabilities(**caps_dict),
+            serverInfo=Implementation(**server_info_dict),
+            instructions=self.instructions,
+        )
+
+        return JSONRPCResponse(id=message.id, result=result)
+
+    def _build_capabilities(
+        self,
+        version: str,
+        *,
+        stateless: bool = False,
+    ) -> dict[str, Any]:
+        """Build server capabilities dict for the given protocol version.
+
+        Returns a dict suitable for both ServerCapabilities construction and
+        storage on ``session._negotiated_capabilities`` for per-request dispatch.
+        """
+        caps: dict[str, Any] = {
             "tools": {"listChanged": True},
             "logging": {},
             "prompts": {"listChanged": True},
             "resources": {"subscribe": True, "listChanged": True},
         }
+
+        # Add middleware-contributed capabilities
         if self._extra_capabilities:
-            caps_kwargs.update(self._extra_capabilities)
+            caps.update(self._extra_capabilities)
 
-        result = InitializeResult(
-            protocolVersion=LATEST_PROTOCOL_VERSION,
-            capabilities=ServerCapabilities(**caps_kwargs),
-            serverInfo=Implementation(
-                name=self.name,
-                version=self.version,
-                title=self.title,
-            ),
-            instructions=self.instructions,
-        )
+        # 2025-11-25+ advertises the tasks capability.
+        # Stateless sessions cannot track task lifetimes, so we suppress it there.
+        if version_has_feature(version, "tasks") and not stateless:
+            caps["tasks"] = {
+                "list": {},
+                "cancel": {},
+                "requests": {"tools": {"call": {}}},
+            }
 
-        return JSONRPCResponse(id=message.id, result=result)
+        return caps
+
+    def _build_server_info(self, version: str) -> dict[str, Any]:
+        """Build server info dict for the given protocol version.
+
+        For 2025-06-18: returns name, version, title.
+        For 2025-11-25+: also includes icons, description, websiteUrl.
+        """
+        info: dict[str, Any] = {
+            "name": self.name,
+            "version": self.version,
+            "title": self.title,
+        }
+
+        # 2025-11-25+ fields. Gate on the dedicated implementation-metadata
+        # feature rather than on ``tasks`` -- the branding fields (icons,
+        # description, websiteUrl) are independent of the Tasks primitive, so
+        # coupling them would become wrong the moment a future version shipped
+        # one without the other.
+        if version_has_feature(version, "implementation_metadata"):
+            if self.icons is not None:
+                info["icons"] = self.icons
+            if self.description is not None:
+                info["description"] = self.description
+            if self.website_url is not None:
+                info["websiteUrl"] = self.website_url
+
+        return info
+
+    # Default per-field feature gates for list projection. Each field is
+    # stripped when the session does NOT have its mapped feature. Using a
+    # per-field gate (rather than one blanket version/feature check) keeps
+    # this correct when protocol versions ship the features independently.
+    _DEFAULT_STRIP_FIELD_GATES: ClassVar[dict[str, str]] = {
+        # ``icons`` on tools/resources/prompts is part of the 2025-11-25
+        # implementation-metadata bump.
+        "icons": "implementation_metadata",
+        # ``execution`` (task-augmentation support) belongs to the
+        # ``tool_execution`` feature, not ``implementation_metadata``.
+        "execution": "tool_execution",
+    }
+
+    def _project_for_version(
+        self,
+        items: list[Any],
+        session: ServerSession | None,
+        strip_fields: list[str] | dict[str, str] | None = None,
+    ) -> list[dict[str, Any]]:
+        """Project list items for the negotiated version.
+
+        ``strip_fields`` maps each field name to the feature that gates it.
+        Passing a plain list uses the class-level defaults in
+        ``_DEFAULT_STRIP_FIELD_GATES`` per name (and is an error for unknown
+        names -- we prefer loud over silent). NEVER MUTATE cached DTOs —
+        always dump first.
+        """
+        if strip_fields is None:
+            gates = {"icons": self._DEFAULT_STRIP_FIELD_GATES["icons"]}
+        elif isinstance(strip_fields, dict):
+            gates = strip_fields
+        else:
+            gates = {name: self._DEFAULT_STRIP_FIELD_GATES[name] for name in strip_fields}
+
+        result = []
+        for item in items:
+            if hasattr(item, "model_dump"):
+                d = item.model_dump(exclude_none=True, by_alias=True)
+            else:
+                d = dict(item)
+            for field, feature in gates.items():
+                if session is None or not session.has_feature(feature):
+                    d.pop(field, None)
+            result.append(d)
+        return result
 
     async def _handle_list_tools(
         self,
@@ -739,7 +940,14 @@ class MCPServer:
         """Handle list tools request."""
         try:
             tools = await self._tool_manager.list_tools()
-            return JSONRPCResponse(id=message.id, result=ListToolsResult(tools=tools))
+            projected = self._project_for_version(
+                tools, session, strip_fields=["icons", "execution"]
+            )
+            # ``_project_for_version`` returns ``list[dict[str, Any]]``;
+            # Pydantic accepts dicts and validates them at construction.
+            return JSONRPCResponse(
+                id=message.id, result=ListToolsResult(tools=cast("list[MCPTool]", projected))
+            )
         except Exception:
             logger.exception("Error listing tools")
             return JSONRPCError(
@@ -857,7 +1065,7 @@ class MCPServer:
         self,
         message: CallToolRequest,
         session: ServerSession | None = None,
-    ) -> JSONRPCResponse[CallToolResult] | JSONRPCError:
+    ) -> JSONRPCResponse[Any] | JSONRPCError:
         """Handle tool call request."""
         tool_name = message.params.name
         input_params = message.params.arguments or {}
@@ -865,6 +1073,108 @@ class MCPServer:
         try:
             # Get tool
             tool = await self._tool_manager.get_tool(tool_name)
+
+            # ---- Task augmentation logic ----
+            # Access raw params dict for task metadata (CallToolParams has extra="allow")
+            raw_params = (
+                message.params.model_dump(by_alias=True)
+                if hasattr(message.params, "model_dump")
+                else {}
+            )
+            has_task_metadata = "task" in raw_params
+
+            # Check if this session declared task support for tools/call
+            server_declared_task_tools = session is not None and session.has_capability(
+                "tasks.requests.tools.call"
+            )
+
+            if not server_declared_task_tools:
+                # Capability fallback: ignore any task metadata on the request
+                # (old clients cannot receive task-augmented responses anyway).
+                has_task_metadata = False
+
+            # Enforce the tool's execution policy against the request.
+            # MCP-specific: the policy lives on the function as the
+            # ``__tool_execution__`` dunder (an MCP ``ToolExecution`` instance).
+            # The policy check runs regardless of client version -- a tool
+            # marked ``taskSupport="required"`` MUST be rejected when called
+            # synchronously, including by legacy clients that can't use tasks.
+            tool_execution = getattr(tool.tool, "__tool_execution__", None)
+            tool_task_support = (
+                getattr(tool_execution, "taskSupport", None) if tool_execution else None
+            )
+            # No policy configured means synchronous-only by default.
+            if tool_task_support is None:
+                tool_task_support = "forbidden"
+
+            if tool_task_support == "forbidden" and has_task_metadata:
+                return JSONRPCError(
+                    id=message.id,
+                    error={
+                        "code": -32601,
+                        "message": "Task augmentation forbidden for this tool",
+                    },
+                )
+            elif tool_task_support == "required" and not has_task_metadata:
+                return JSONRPCError(
+                    id=message.id,
+                    error={
+                        "code": -32601,
+                        "message": "Task augmentation required for this tool",
+                    },
+                )
+
+            # ---- Pre-flight checks (apply to BOTH synchronous and task-augmented calls) ----
+            # These must run before a task is created so that task-augmented calls cannot
+            # bypass OAuth scope enforcement, transport restrictions, or auth-token/secret
+            # requirements. They also populate ``tool_context.authorization`` for the tool
+            # body, which the background-execution path relies on downstream.
+
+            # OAuth scope sufficiency check
+            resource_owner = self._get_resource_owner_from_context()
+            if (
+                resource_owner is not None
+                and tool.definition.requirements
+                and tool.definition.requirements.authorization
+            ):
+                auth_req = tool.definition.requirements.authorization
+                oauth2_req = getattr(auth_req, "oauth2", None)
+                required_scopes = (
+                    list(oauth2_req.scopes)
+                    if oauth2_req and getattr(oauth2_req, "scopes", None)
+                    else []
+                )
+                if required_scopes:
+                    granted_scopes = _extract_scopes(getattr(resource_owner, "claims", None) or {})
+                    missing = set(required_scopes) - granted_scopes
+                    if missing:
+                        # Build WWW-Authenticate header value
+                        resource_metadata_url = self._resolve_resource_metadata_url(session)
+                        rm_part = (
+                            f', resource_metadata="{resource_metadata_url}"'
+                            if resource_metadata_url
+                            else ""
+                        )
+                        www_auth = (
+                            f'Bearer error="insufficient_scope", '
+                            f'scope="{" ".join(required_scopes)}"'
+                            f"{rm_part}"
+                        )
+                        return JSONRPCError(
+                            id=message.id,
+                            error={
+                                "code": INSUFFICIENT_SCOPE_ERROR_CODE,
+                                "message": "Insufficient scope",
+                                "data": {
+                                    "_transport": {
+                                        "http_status": 403,
+                                        "www_authenticate": www_auth,
+                                    },
+                                    "required_scopes": required_scopes,
+                                    "granted_scopes": sorted(granted_scopes),
+                                },
+                            },
+                        )
 
             # Create tool context
             tool_context = self._create_tool_context(tool, session)
@@ -876,12 +1186,78 @@ class MCPServer:
                 self._tracker.track_tool_call(False, "transport restriction")
                 return transport_restriction_response
 
-            # Handle authorization and secrets requirements if required
+            # Handle authorization and secrets requirements if required.
+            # This call fetches OAuth tokens from the Arcade API (populating
+            # tool_context.authorization) and validates that required secrets exist.
             if missing_requirements_response := await self._check_tool_requirements(
                 tool, tool_context, message, tool_name, session
             ):
                 self._tracker.track_tool_call(False, "missing requirements")
                 return missing_requirements_response
+
+            if has_task_metadata and session is not None:
+                task_metadata = raw_params["task"]
+
+                # Reject explicit ttl=null in request
+                if (
+                    isinstance(task_metadata, dict)
+                    and "ttl" in task_metadata
+                    and task_metadata["ttl"] is None
+                ):
+                    return JSONRPCError(
+                        id=message.id,
+                        error={"code": -32602, "message": "task.ttl cannot be null in request"},
+                    )
+
+                ttl_input = (
+                    task_metadata.get("ttl")
+                    if isinstance(task_metadata, dict)
+                    else getattr(task_metadata, "ttl", None)
+                )
+
+                context_key = self._get_task_context_key(session, resource_owner)
+                task = await self._task_manager.create_task(context_key=context_key, ttl=ttl_input)
+
+                # Preserve the client-provided progressToken so background
+                # task notifications remain correlated with the initiating call.
+                request_meta = get_request_meta()
+                progress_token = (
+                    getattr(request_meta, "progressToken", None) if request_meta else None
+                )
+                self._task_manager.set_progress_token(task.taskId, progress_token)
+
+                # Launch background execution with the pre-populated tool_context
+                # so the background path inherits the same auth/secrets as the sync path.
+                bg = asyncio.create_task(
+                    self._execute_tool_in_background(
+                        task.taskId,
+                        tool,
+                        dict(input_params),
+                        session,
+                        resource_owner,
+                        tool_context,
+                    )
+                )
+                self._task_manager.track_background_task(task.taskId, bg)
+
+                # Build result with _meta.io.modelcontextprotocol/related-task
+                result_meta: dict[str, Any] = {
+                    "io.modelcontextprotocol/related-task": {"taskId": task.taskId}
+                }
+                # Propagate model-immediate-response hint if present
+                if isinstance(task_metadata, dict):
+                    immediate_hint = task_metadata.get(
+                        "io.modelcontextprotocol/model-immediate-response"
+                    )
+                    if immediate_hint is not None:
+                        result_meta["io.modelcontextprotocol/model-immediate-response"] = (
+                            immediate_hint
+                        )
+
+                create_result = CreateTaskResult(task=task, **{"_meta": result_meta})
+                return JSONRPCResponse(id=message.id, result=create_result)
+
+            # ---- Normal (non-task) flow ----
 
             # Attach tool_context to current model context for this request
             mctx = get_current_model_context()
@@ -932,6 +1308,18 @@ class MCPServer:
             else:
                 error = result.error
                 if error:
+                    # 2025-06-18: input validation errors are JSONRPCError -32602
+                    # (version-gated — 2025-11-25 sends them as CallToolResult isError=True)
+                    error_kind = getattr(error, "kind", None)
+                    if error_kind == ErrorKind.TOOL_RUNTIME_BAD_INPUT_VALUE and (
+                        session and not session.has_feature("tool_execution")
+                    ):
+                        self._tracker.track_tool_call(False, "invalid tool input")
+                        return JSONRPCError(
+                            id=message.id,
+                            error={"code": -32602, "message": str(error)},
+                        )
+
                     error_text = error.message
                     if error.additional_prompt_content:
                         error_text += f"\n\n{error.additional_prompt_content}"
@@ -960,26 +1348,34 @@ class MCPServer:
                     ),
                 )
         except NotFoundError:
-            # Match test expectation: return a normal response with isError=True
-            error_message = f"✗ Unknown tool: {tool_name}\n\n"
-            error_message += "  The requested tool does not exist or is not loaded.\n\n"
-            error_message += "  To fix:\n"
-            error_message += "  1. Check the tool name is correct\n"
-            error_message += "  2. List available tools with tools/list\n"
-            error_message += "  3. Ensure the server is properly installed\n\n"
-            error_message += "  Available tools can be found by calling the tools/list method."
-
-            content = convert_to_mcp_content(error_message)
-
+            # MCP 2025-11-25 requires unknown-tool errors to be surfaced as
+            # JSON-RPC protocol errors (-32602), not CallToolResult.
             self._tracker.track_tool_call(False, "unknown tool")
-            return JSONRPCResponse(
+            return JSONRPCError(
                 id=message.id,
-                result=CallToolResult(
-                    content=content,
-                    structuredContent=None,
-                    isError=True,
-                ),
+                error={
+                    "code": -32602,
+                    "message": f"Unknown tool: {tool_name}",
+                },
             )
+        except (ValidationError, ToolInputError) as e:
+            # Input validation errors: version-gated response shape
+            self._tracker.track_tool_call(False, "invalid tool input")
+            if session and session.has_feature("tool_execution"):
+                # 2025-11-25: input validation → CallToolResult(isError=True)
+                return JSONRPCResponse(
+                    id=message.id,
+                    result=CallToolResult(
+                        isError=True,
+                        content=[TextContent(type="text", text=str(e))],
+                    ),
+                )
+            else:
+                # 2025-06-18: input validation → JSONRPCError -32602
+                return JSONRPCError(
+                    id=message.id,
+                    error={"code": -32602, "message": str(e)},
+                )
         except Exception:
             logger.exception("Error calling tool")
             self._tracker.track_tool_call(False, "internal error calling tool")
@@ -1285,7 +1681,11 @@ class MCPServer:
         """Handle list resources request."""
         try:
             resources = await self._resource_manager.list_resources()
-            return JSONRPCResponse(id=message.id, result=ListResourcesResult(resources=resources))
+            projected = self._project_for_version(resources, session)
+            return JSONRPCResponse(
+                id=message.id,
+                result=ListResourcesResult(resources=cast("list[Resource]", projected)),
+            )
         except Exception:
             logger.exception("Error listing resources")
             return JSONRPCError(
@@ -1312,9 +1712,12 @@ class MCPServer:
         """Handle list resource templates request."""
         try:
             templates = await self._resource_manager.list_resource_templates()
+            projected = self._project_for_version(templates, session)
             return JSONRPCResponse(
                 id=message.id,
-                result=ListResourceTemplatesResult(resourceTemplates=templates),
+                result=ListResourceTemplatesResult(
+                    resourceTemplates=cast("list[ResourceTemplate]", projected)
+                ),
             )
         except Exception:
             logger.exception("Error listing resource templates")
@@ -1393,7 +1796,11 @@ class MCPServer:
         """Handle list prompts request."""
         try:
             prompts = await self._prompt_manager.list_prompts()
-            return JSONRPCResponse(id=message.id, result=ListPromptsResult(prompts=prompts))
+            projected = self._project_for_version(prompts, session)
+            return JSONRPCResponse(
+                id=message.id,
+                result=ListPromptsResult(prompts=cast("list[Prompt]", projected)),
+            )
         except Exception:
             logger.exception("Error listing prompts")
             return JSONRPCError(
@@ -1476,6 +1883,413 @@ class MCPServer:
             logger.setLevel(logging.INFO)
 
         return JSONRPCResponse(id=message.id, result={})
+
+    # ---- Task handlers ----
+
+    def _get_task_context_key(
+        self,
+        session: ServerSession,
+        resource_owner: ResourceOwner | None,
+    ) -> str:
+        """Derive the authorization-context key used to scope task visibility.
+
+        Auth context: ``auth:{issuer}:{client_id}:{user_id}``.
+        Fallback (stdio): ``session:{session_id}``.
+        """
+        if resource_owner is not None:
+            issuer = resource_owner.claims.get("iss")
+            if not issuer:
+                raise IncompleteAuthContextError(
+                    "Resource owner token lacks 'iss' claim; cannot scope tasks"
+                )
+            client_id = resource_owner.client_id or "unknown"
+            if client_id == "unknown":
+                logger.warning(
+                    "Resource owner lacks azp/client_id claims -- tasks will share "
+                    "scope across all clients for this user+issuer (known limitation)"
+                )
+            user_id = resource_owner.user_id
+            return (
+                f"auth:{quote(str(issuer), safe='')}:"
+                f"{quote(str(client_id), safe='')}:"
+                f"{quote(str(user_id), safe='')}"
+            )
+        return f"session:{session.session_id}"
+
+    async def _handle_get_task(
+        self,
+        message: Any,
+        session: ServerSession | None = None,
+    ) -> JSONRPCResponse[GetTaskResult] | JSONRPCError:
+        """Handle tasks/get -- returns current task state immediately (flat shape)."""
+        msg_id = message.get("id") if isinstance(message, dict) else getattr(message, "id", None)
+        params = message.get("params", {}) if isinstance(message, dict) else {}
+        task_id = params.get("taskId")
+        if not task_id:
+            return JSONRPCError(
+                id=msg_id,
+                error={"code": -32602, "message": "Missing taskId parameter"},
+            )
+
+        if session is None:
+            # Task handlers require a session to derive the context key; the
+            # previous "session:unknown" fallback silently returned
+            # "Task not found" for every call, which was indistinguishable from
+            # a real miss. Surface the real cause instead.
+            return JSONRPCError(
+                id=msg_id,
+                error={"code": -32603, "message": "Task handlers require an active session"},
+            )
+
+        resource_owner = self._get_resource_owner_from_context()
+        try:
+            context_key = self._get_task_context_key(session, resource_owner)
+            task = await self._task_manager.get_task(task_id, context_key)
+        except TaskNotFoundError:
+            return JSONRPCError(
+                id=msg_id,
+                error={"code": -32602, "message": "Task not found"},
+            )
+        except IncompleteAuthContextError as e:
+            return JSONRPCError(
+                id=msg_id,
+                error={"code": -32603, "message": str(e)},
+            )
+
+        result = GetTaskResult(
+            taskId=task.taskId,
+            status=task.status,
+            createdAt=task.createdAt,
+            lastUpdatedAt=task.lastUpdatedAt,
+            ttl=task.ttl,
+            statusMessage=task.statusMessage,
+            pollInterval=task.pollInterval,
+        )
+        return JSONRPCResponse(id=cast("str | int", msg_id), result=result)
+
+    async def _handle_list_tasks(
+        self,
+        message: Any,
+        session: ServerSession | None = None,
+    ) -> JSONRPCResponse[ListTasksResult] | JSONRPCError:
+        """Handle tasks/list -- returns tasks scoped to authorization context."""
+        msg_id = message.get("id") if isinstance(message, dict) else getattr(message, "id", None)
+        params = message.get("params", {}) if isinstance(message, dict) else {}
+
+        if session is None:
+            return JSONRPCError(
+                id=msg_id,
+                error={"code": -32603, "message": "Task handlers require an active session"},
+            )
+
+        resource_owner = self._get_resource_owner_from_context()
+        try:
+            context_key = self._get_task_context_key(session, resource_owner)
+            tasks, next_cursor = await self._task_manager.list_tasks(
+                context_key=context_key,
+                cursor=params.get("cursor"),
+                limit=params.get("limit"),
+            )
+        except InvalidCursorError as e:
+            # Invalid/expired cursors return -32602 (invalid params).
+            return JSONRPCError(
+                id=msg_id,
+                error={"code": -32602, "message": f"Invalid cursor: {e}"},
+            )
+        except IncompleteAuthContextError as e:
+            return JSONRPCError(
+                id=msg_id,
+                error={"code": -32603, "message": str(e)},
+            )
+
+        result = ListTasksResult(tasks=tasks, nextCursor=next_cursor)
+        return JSONRPCResponse(id=cast("str | int", msg_id), result=result)
+
+    async def _handle_cancel_task(
+        self,
+        message: Any,
+        session: ServerSession | None = None,
+    ) -> JSONRPCResponse[CancelTaskResult] | JSONRPCError:
+        """Handle tasks/cancel -- cancel a task (flat shape)."""
+        msg_id = message.get("id") if isinstance(message, dict) else getattr(message, "id", None)
+        params = message.get("params", {}) if isinstance(message, dict) else {}
+        task_id = params.get("taskId")
+        if not task_id:
+            return JSONRPCError(
+                id=msg_id,
+                error={"code": -32602, "message": "Missing taskId parameter"},
+            )
+
+        if session is None:
+            return JSONRPCError(
+                id=msg_id,
+                error={"code": -32603, "message": "Task handlers require an active session"},
+            )
+
+        resource_owner = self._get_resource_owner_from_context()
+        try:
+            context_key = self._get_task_context_key(session, resource_owner)
+            task = await self._task_manager.cancel_task(task_id, context_key)
+        except TaskNotFoundError:
+            return JSONRPCError(
+                id=msg_id,
+                error={"code": -32602, "message": "Task not found"},
+            )
+        except InvalidTaskStateError:
+            return JSONRPCError(
+                id=msg_id,
+                error={"code": -32602, "message": "Task is already in a terminal state"},
+            )
+        except IncompleteAuthContextError as e:
+            return JSONRPCError(
+                id=msg_id,
+                error={"code": -32603, "message": str(e)},
+            )
+
+        result = CancelTaskResult(
+            taskId=task.taskId,
+            status=task.status,
+            createdAt=task.createdAt,
+            lastUpdatedAt=task.lastUpdatedAt,
+            ttl=task.ttl,
+            statusMessage=task.statusMessage,
+            pollInterval=task.pollInterval,
+        )
+        return JSONRPCResponse(id=cast("str | int", msg_id), result=result)
+
+    async def _handle_get_task_result(
+        self,
+        message: Any,
+        session: ServerSession | None = None,
+    ) -> JSONRPCResponse[Any] | JSONRPCError:
+        """Handle tasks/result -- blocks until task terminal, returns underlying result."""
+        msg_id = message.get("id") if isinstance(message, dict) else getattr(message, "id", None)
+        params = message.get("params", {}) if isinstance(message, dict) else {}
+        task_id = params.get("taskId")
+        if not task_id:
+            return JSONRPCError(
+                id=msg_id,
+                error={"code": -32602, "message": "Missing taskId parameter"},
+            )
+
+        if session is None:
+            return JSONRPCError(
+                id=msg_id,
+                error={"code": -32603, "message": "Task handlers require an active session"},
+            )
+
+        resource_owner = self._get_resource_owner_from_context()
+        try:
+            context_key = self._get_task_context_key(session, resource_owner)
+            result = await self._task_manager.get_result(task_id, context_key)
+        except TaskNotFoundError:
+            return JSONRPCError(
+                id=msg_id,
+                error={"code": -32602, "message": "Task not found"},
+            )
+        except IncompleteAuthContextError as e:
+            return JSONRPCError(
+                id=msg_id,
+                error={"code": -32603, "message": str(e)},
+            )
+
+        # Explicit error-vs-result disambiguation via the task manager rather
+        # than duck-typing the stored payload's shape: a stored error is a
+        # JSON-RPC error dict ({"code", "message"}) but other stored values
+        # (e.g. the cancellation fallback {"status": "cancelled", ...}) can
+        # share keys by coincidence. The manager is the source of truth for
+        # which task slots hold errors.
+        if self._task_manager.has_stored_error(task_id):
+            return JSONRPCError(
+                id=msg_id,
+                error=result,
+            )
+
+        # Success path: inject _meta.io.modelcontextprotocol/related-task
+        if isinstance(result, dict):
+            result.setdefault("_meta", {})
+            result["_meta"]["io.modelcontextprotocol/related-task"] = {"taskId": task_id}
+        elif hasattr(result, "meta"):
+            # Pydantic model
+            if result.meta is None:
+                result.meta = {}
+            result.meta["io.modelcontextprotocol/related-task"] = {"taskId": task_id}
+
+        return JSONRPCResponse(id=cast("str | int", msg_id), result=result)
+
+    def _get_resource_owner_from_context(self) -> ResourceOwner | None:
+        """Get the resource owner from the current model context."""
+        mctx = get_current_model_context()
+        if mctx is not None and hasattr(mctx, "_resource_owner"):
+            return mctx._resource_owner
+        return None
+
+    def _resolve_resource_metadata_url(self, session: ServerSession | None) -> str | None:
+        """Best-effort resolution of the PRM (Protected Resource Metadata) URL.
+
+        Inspects session init_options for a canonical_url set by the transport,
+        then falls back to server settings.  Returns ``None`` when the URL
+        cannot be determined (e.g. stdio transport).
+        """
+        canonical: str | None = None
+        if session and session.init_options:
+            canonical = session.init_options.get("canonical_url")
+        if not canonical:
+            canonical = getattr(self.settings.server, "canonical_url", None)
+        if not canonical:
+            return None
+
+        parsed = urlparse(canonical)
+        well_known_path = f"/.well-known/oauth-protected-resource{parsed.path}"
+        return urlunparse((parsed.scheme, parsed.netloc, well_known_path, "", "", ""))
+
+    async def _execute_tool_in_background(
+        self,
+        task_id: str,
+        tool: MaterializedTool,
+        arguments: dict[str, Any],
+        session: ServerSession,
+        resource_owner: ResourceOwner | None,
+        tool_context: ToolContext,
+    ) -> None:
+        """Execute a tool in the background for task-augmented tools/call.
+
+        ``tool_context`` is pre-populated by ``_handle_call_tool`` via
+        ``_check_tool_requirements`` so that OAuth tokens/secrets are resolved
+        against the *caller's* credentials before the task record is created.
+        The background path MUST use this context directly — creating a fresh
+        one here would silently skip scope/requirement validation.
+        """
+        bg_context = Context(
+            server=self,
+            session=session,
+            resource_owner=resource_owner,
+            task_id=task_id,
+            task_manager=self._task_manager,
+        )
+
+        token_ctx = set_current_model_context(bg_context)
+        progress_token = self._task_manager.get_progress_token(task_id)
+        token_meta = set_request_meta({"progressToken": progress_token} if progress_token else None)
+
+        # Tasks may be evicted by TTL cleanup at any time, so
+        # ``update_status`` can raise ``TaskNotFoundError`` in addition to
+        # ``InvalidTaskStateError``. Suppress both: the background ``asyncio.Task``
+        # would otherwise surface as an unhandled exception, and in the
+        # ``CancelledError`` branch ``NotFoundError`` would replace the
+        # cancellation and skip the ``raise`` below.
+        try:
+            result = await self._execute_tool(tool, arguments, session, tool_context)
+            await self._task_manager.set_result(task_id, result)
+            is_error = getattr(result, "isError", False) or (
+                isinstance(result, dict) and result.get("isError")
+            )
+            new_status = TaskStatus.FAILED if is_error else TaskStatus.COMPLETED
+            with contextlib.suppress(InvalidTaskStateError, TaskNotFoundError):
+                await self._task_manager.update_status(task_id, new_status)
+        except asyncio.CancelledError:
+            with contextlib.suppress(InvalidTaskStateError, TaskNotFoundError):
+                await self._task_manager.update_status(task_id, TaskStatus.CANCELLED)
+            raise  # propagate
+        except Exception as e:
+            await self._task_manager.set_error(task_id, {"code": -32603, "message": str(e)})
+            with contextlib.suppress(InvalidTaskStateError, TaskNotFoundError):
+                await self._task_manager.update_status(task_id, TaskStatus.FAILED)
+        finally:
+            reset_request_meta(token_meta)
+            set_current_model_context(None, token_ctx)
+            await session.cleanup_request_context(bg_context)
+            with contextlib.suppress(Exception):
+                await self._notify_task_status_change(task_id, session)
+
+    async def _execute_tool(
+        self,
+        tool: MaterializedTool,
+        arguments: dict[str, Any],
+        session: ServerSession,
+        tool_context: ToolContext,
+    ) -> CallToolResult:
+        """Execute a tool and return a CallToolResult.
+
+        The caller is responsible for passing a ``tool_context`` that has
+        already cleared scope/transport/requirement checks (see
+        ``_handle_call_tool``). Do NOT recreate the context here — doing so
+        would drop the resolved OAuth token and secrets.
+        """
+        mctx = get_current_model_context()
+        if mctx is not None:
+            mctx.set_tool_context(tool_context)
+
+        result = await ToolExecutor.run(
+            func=tool.tool,
+            definition=tool.definition,
+            input_model=tool.input_model,
+            output_model=tool.output_model,
+            context=mctx if mctx is not None else tool_context,
+            **arguments,
+        )
+
+        if result.value is not None:
+            content = convert_to_mcp_content(result.value)
+            structured_content = convert_content_to_structured_content(result.value)
+            return CallToolResult(
+                content=content,
+                structuredContent=structured_content,
+                isError=False,
+            )
+        else:
+            # Mirror the synchronous _handle_call_tool error formatting so the
+            # background-task path doesn't lose typed-error details. The key
+            # field to preserve is ``additional_prompt_content`` -- RetryableToolError
+            # uses it to carry retry guidance the orchestrator feeds back to
+            # the model.
+            error = result.error
+            if error is not None:
+                error_text = error.message
+                if error.additional_prompt_content:
+                    error_text += f"\n\n{error.additional_prompt_content}"
+                self._log_tool_call_error(getattr(tool.definition, "name", "<unknown>"), error)
+            else:
+                error_text = "Error calling tool"
+            content = convert_to_mcp_content(error_text)
+            # structuredContent MUST be None on error responses. Per the MCP
+            # spec, structuredContent MUST validate against the tool's declared
+            # outputSchema -- an error payload will not. The error message is
+            # conveyed via ``content`` instead. The synchronous path in
+            # _handle_call_tool enforces the same rule; keep both paths in sync.
+            return CallToolResult(
+                content=content,
+                structuredContent=None,
+                isError=True,
+            )
+
+    async def _notify_task_status_change(
+        self,
+        task_id: str,
+        session: ServerSession,
+    ) -> None:
+        """Send notifications/tasks/status to the originating session."""
+        entry = self._task_manager._tasks.get(task_id)
+        if entry is None:
+            return
+        _ctx_key, task = entry
+        with contextlib.suppress(Exception):
+            # notifications/task/status params are `NotificationParams & Task`
+            # (allOf) -- the FULL Task object, not just {taskId, status}.
+            # Dump with by_alias=True so any aliased fields (e.g. _meta)
+            # serialize correctly, and drop None-valued optional fields.
+            task_fields = task.model_dump(by_alias=True, exclude_none=True)
+            # Per MCP 2025-11-25 tasks.mdx section TTL and Resource Management:
+            # "Receivers MUST include the actual ttl duration (or null for
+            # unlimited) in tasks/get responses." ``Task.ttl`` is in the
+            # spec ``required`` array, so it MUST be present on the wire —
+            # even when the operator-configured retention is unlimited
+            # (emitted as null). ``exclude_none=True`` drops it; put it
+            # back explicitly so the wire shape is spec-compliant.
+            if "ttl" not in task_fields:
+                task_fields["ttl"] = task.ttl
+            notification = TaskStatusNotification(params=task_fields)
+            await session.send_notification(notification)
 
     # Resource support for Context
     async def _mcp_read_resource(self, uri: str) -> list[Any]:

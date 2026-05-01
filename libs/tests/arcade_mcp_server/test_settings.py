@@ -1,9 +1,8 @@
 """Tests for MCP Settings."""
 
 import pytest
-from pydantic import ValidationError
-
 from arcade_mcp_server.settings import MCPSettings, ServerSettings
+from pydantic import ValidationError
 
 
 class TestServerSettings:

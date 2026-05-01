@@ -31,6 +31,7 @@ def clean_auth_env(monkeypatch):
     env_vars = [
         "MCP_RESOURCE_SERVER_CANONICAL_URL",
         "MCP_RESOURCE_SERVER_AUTHORIZATION_SERVERS",
+        "MCP_RESOURCE_SERVER_DEFAULT_ADVERTISED_SCOPES",
     ]
 
     for var in env_vars:
@@ -1176,6 +1177,744 @@ class TestResourceServerMiddleware:
             assert "Bearer" in www_auth
             assert "resource_metadata=" in www_auth
             assert "/.well-known/oauth-protected-resource" in www_auth
+            # No default_advertised_scopes configured -> no `scope=` advertised.
+            # Spec lets the absence trigger the client's fallback selection
+            # strategy; emitting ``scope=""`` would be wrong (zero-scope token).
+            assert "scope=" not in www_auth
+
+    @pytest.mark.asyncio
+    async def test_www_authenticate_advertises_default_scopes(self, jwks_data):
+        """When ``default_advertised_scopes`` is configured, the entry-401
+        WWW-Authenticate header MUST include a space-separated ``scope=...``
+        parameter per the MCP spec (SHOULD-rule).
+        """
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            resource_server = ResourceServerAuth(
+                canonical_url="https://mcp.example.com/mcp",
+                authorization_servers=[
+                    AuthorizationServerEntry(
+                        authorization_server_url="https://auth.example.com",
+                        issuer="https://auth.example.com",
+                        jwks_uri="https://auth.example.com/.well-known/jwks.json",
+                    )
+                ],
+                default_advertised_scopes=["read", "write"],
+            )
+
+            async def mock_app(scope, receive, send):
+                pytest.fail("App should not be called")
+
+            # Middleware reads default_advertised_scopes from the validator
+            # — no separate kwarg needed.
+            middleware = ResourceServerMiddleware(
+                mock_app,
+                resource_server,
+                "https://mcp.example.com/mcp",
+            )
+
+            scope = {"type": "http", "method": "POST", "headers": []}
+
+            async def receive():
+                return {"type": "http.request", "body": b""}
+
+            response_headers: dict[bytes, bytes] = {}
+
+            async def send(message):
+                if message["type"] == "http.response.start":
+                    response_headers.update(dict(message.get("headers", [])))
+
+            await middleware(scope, receive, send)
+
+            www_auth = response_headers.get(b"www-authenticate", b"").decode()
+            assert 'scope="read write"' in www_auth, www_auth
+
+    def test_resource_metadata_includes_scopes_supported(self):
+        """When ``default_advertised_scopes`` is configured, the RFC 9728
+        Protected Resource Metadata document MUST include ``scopes_supported``
+        so clients without a WWW-Authenticate ``scope`` parameter can fall
+        back per the MCP spec scope-selection strategy.
+        """
+        resource_server = ResourceServerAuth(
+            canonical_url="https://mcp.example.com/mcp",
+            authorization_servers=[
+                AuthorizationServerEntry(
+                    authorization_server_url="https://auth.example.com",
+                    issuer="https://auth.example.com",
+                    jwks_uri="https://auth.example.com/.well-known/jwks.json",
+                )
+            ],
+            default_advertised_scopes=["read", "write"],
+        )
+
+        metadata = resource_server.get_resource_metadata()
+        assert metadata["scopes_supported"] == ["read", "write"]
+
+    def test_resource_metadata_omits_scopes_supported_when_unset(self):
+        """When ``default_advertised_scopes`` is not configured, the RFC 9728
+        metadata document MUST NOT include ``scopes_supported`` (the field is
+        OPTIONAL per RFC 9728 and an empty array would be misleading).
+        """
+        resource_server = ResourceServerAuth(
+            canonical_url="https://mcp.example.com/mcp",
+            authorization_servers=[
+                AuthorizationServerEntry(
+                    authorization_server_url="https://auth.example.com",
+                    issuer="https://auth.example.com",
+                    jwks_uri="https://auth.example.com/.well-known/jwks.json",
+                )
+            ],
+        )
+
+        metadata = resource_server.get_resource_metadata()
+        assert "scopes_supported" not in metadata
+
+    @pytest.mark.asyncio
+    async def test_middleware_reads_scopes_from_validator(self, jwks_data):
+        """Middleware reads ``default_advertised_scopes`` directly from the
+        validator instance, not from a duplicate constructor parameter.
+
+        One source of truth (the validator) keeps the contract typed and
+        avoids the ``getattr`` plumbing that previously lived in
+        ``worker.create_arcade_mcp``.
+        """
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            resource_server = ResourceServerAuth(
+                canonical_url="https://mcp.example.com/mcp",
+                authorization_servers=[
+                    AuthorizationServerEntry(
+                        authorization_server_url="https://auth.example.com",
+                        issuer="https://auth.example.com",
+                        jwks_uri="https://auth.example.com/.well-known/jwks.json",
+                    )
+                ],
+                default_advertised_scopes=["read", "write"],
+            )
+
+            async def mock_app(scope, receive, send):
+                pytest.fail("App should not be called")
+
+            # NO ``default_advertised_scopes=`` kwarg — middleware reads from
+            # ``resource_server.default_advertised_scopes``.
+            middleware = ResourceServerMiddleware(
+                mock_app,
+                resource_server,
+                "https://mcp.example.com/mcp",
+            )
+
+            scope = {"type": "http", "method": "POST", "headers": []}
+
+            async def receive():
+                return {"type": "http.request", "body": b""}
+
+            response_headers: dict[bytes, bytes] = {}
+
+            async def send(message):
+                if message["type"] == "http.response.start":
+                    response_headers.update(dict(message.get("headers", [])))
+
+            await middleware(scope, receive, send)
+
+            www_auth = response_headers.get(b"www-authenticate", b"").decode()
+            assert 'scope="read write"' in www_auth, www_auth
+
+    def test_middleware_construction_rejects_default_scopes_param(self):
+        """``default_advertised_scopes`` is no longer a constructor parameter
+        on ``ResourceServerMiddleware``. Source of truth is the validator.
+
+        Passing the legacy kwarg raises ``TypeError`` (unexpected keyword
+        argument). This pins the API simplification — having two ways to set
+        the same value is a documented anti-pattern (DRY) and makes the
+        relationship between validator and middleware ambiguous.
+        """
+        validator = JWKSTokenValidator(
+            jwks_uri="https://auth.example.com/jwks",
+            issuer="https://auth.example.com",
+            audience="https://mcp.example.com/mcp",
+        )
+
+        async def app(scope, receive, send):
+            pass
+
+        with pytest.raises(TypeError, match="default_advertised_scopes"):
+            ResourceServerMiddleware(
+                app,
+                validator,
+                "https://mcp.example.com/mcp",
+                default_advertised_scopes=["x"],  # type: ignore[call-arg]
+            )
+
+
+class TestResourceServerValidatorContract:
+    """Tests for the ``ResourceServerValidator`` ABC public contract.
+
+    These tests pin the contract that any custom validator (third-party
+    subclass) can rely on. Behaviorally, the most important contract is
+    ``default_advertised_scopes`` — middleware reads it directly from the
+    validator with no defensive ``getattr``, so it MUST exist on every
+    subclass instance.
+    """
+
+    def test_abc_exposes_default_advertised_scopes_class_attribute(self):
+        """The ABC declares ``default_advertised_scopes`` as a class-level
+        attribute defaulting to ``None``.
+
+        Concrete validators inherit this default and can override via instance
+        assignment in ``__init__``. The class-level default of ``None`` (not
+        ``[]``) avoids the mutable-default footgun: assigning a list at the
+        class level would let one subclass instance mutate it for all
+        instances of all subclasses via ``self.default_advertised_scopes.append(...)``.
+        ``None`` is immutable so subclass ``__init__`` always shadows it
+        cleanly.
+        """
+        from arcade_mcp_server.resource_server.base import ResourceServerValidator
+
+        # Class-level default
+        assert ResourceServerValidator.default_advertised_scopes is None
+
+        # Type annotation is part of the public contract
+        annotations = ResourceServerValidator.__annotations__
+        assert "default_advertised_scopes" in annotations
+
+    def test_jwks_validator_inherits_default_advertised_scopes_default(self):
+        """``JWKSTokenValidator`` (no scope-advertisement support) inherits
+        ``default_advertised_scopes = None`` from the ABC. Middleware reading
+        ``validator.default_advertised_scopes`` therefore always finds the
+        attribute (no AttributeError) — that's why we can drop the ``getattr``.
+        """
+        validator = JWKSTokenValidator(
+            jwks_uri="https://auth.example.com/jwks",
+            issuer="https://auth.example.com",
+            audience="https://mcp.example.com/mcp",
+        )
+        assert validator.default_advertised_scopes is None
+
+
+class TestAdvertisedScopesValidation:
+    """Tests for RFC 6750 scope-token validation.
+
+    RFC 6750 ABNF: ``scope-token = 1*( %x21 / %x23-5B / %x5D-7E )``
+    — at least one printable ASCII character, excluding ``"`` (0x22),
+    ``\\`` (0x5C), space, control characters, and non-ASCII.
+
+    Validating at construction time surfaces malformed scope tokens with a
+    clear error rather than emitting a malformed ``WWW-Authenticate`` header
+    or PRM document at runtime (where the bug would be much harder to
+    diagnose).
+    """
+
+    def _minimal_kwargs(self):
+        """Helper: minimal valid ``ResourceServerAuth`` kwargs."""
+        return {
+            "canonical_url": "https://mcp.example.com/mcp",
+            "authorization_servers": [
+                AuthorizationServerEntry(
+                    authorization_server_url="https://auth.example.com",
+                    issuer="https://auth.example.com",
+                    jwks_uri="https://auth.example.com/.well-known/jwks.json",
+                )
+            ],
+        }
+
+    @pytest.mark.parametrize(
+        "bad_input,expected_error",
+        [
+            # Empty / whitespace-only
+            ([""], "empty"),
+            (["   "], "empty"),
+            # Whitespace inside the token
+            (["scope with space"], "whitespace"),
+            (["tab\there"], "whitespace"),
+            (["newline\nhere"], "whitespace"),
+            # Non-ASCII
+            (["unicode-é"], "non-ASCII|ASCII"),
+            (["日本語"], "non-ASCII|ASCII"),
+            # Specifically excluded by RFC 6750 grammar
+            (['quote"here'], "RFC 6750"),
+            (["back\\slash"], "RFC 6750"),
+            # Control characters (< 0x20)
+            (["bell\x07char"], "RFC 6750|whitespace"),
+            (["null\x00byte"], "RFC 6750|whitespace"),
+        ],
+    )
+    def test_invalid_scope_token_rejected(self, bad_input, expected_error):
+        """Each invalid token shape raises ValueError at construction."""
+        with pytest.raises(ValueError, match=expected_error):
+            ResourceServerAuth(
+                **self._minimal_kwargs(),
+                default_advertised_scopes=bad_input,
+            )
+
+    @pytest.mark.parametrize(
+        "valid_input",
+        [
+            # Common OAuth scope shapes
+            ["mcp"],
+            ["mcp", "offline_access"],
+            ["files:read", "files:write"],
+            ["user.profile", "user.email"],
+            # Provider-style URI scopes (Google convention)
+            ["https://www.googleapis.com/auth/gmail.readonly"],
+            # Edge of the allowed grammar
+            ["!"],  # 0x21 — minimum legal scope
+            ["~"],  # 0x7E — maximum legal scope
+            ["a!b#c$d%e&f'g(h)i*j+k,l-m.n/o:p;q<r=s>t?u@v[w]x^y_z`{|}"],  # all allowed punctuation
+        ],
+    )
+    def test_valid_scope_tokens_accepted(self, valid_input):
+        """Tokens conforming to RFC 6750 grammar are accepted unchanged."""
+        rs = ResourceServerAuth(
+            **self._minimal_kwargs(),
+            default_advertised_scopes=valid_input,
+        )
+        assert rs.default_advertised_scopes == valid_input
+
+    def test_invalid_token_error_names_offending_token(self):
+        """Error message includes the offending token for fast debugging."""
+        with pytest.raises(ValueError, match="bad token"):
+            ResourceServerAuth(
+                **self._minimal_kwargs(),
+                default_advertised_scopes=["good_token", "bad token"],
+            )
+
+    def test_duplicate_scopes_are_deduplicated_first_seen_order(self):
+        """Operators may pass duplicates (e.g., from concatenated lists);
+        the validator dedupes with first-seen ordering preserved.
+
+        First-seen ordering is important: it matches what operators
+        intuitively expect when they declare ``["mcp", "offline_access"]``
+        — the order in PRM and the wire is THEIR order, not lexical.
+        """
+        rs = ResourceServerAuth(
+            **self._minimal_kwargs(),
+            default_advertised_scopes=["c", "a", "b", "a", "c", "d"],
+        )
+        assert rs.default_advertised_scopes == ["c", "a", "b", "d"]
+
+    @pytest.mark.asyncio
+    async def test_advertised_scopes_order_preserved_in_401(self, jwks_data):
+        """The 401 ``WWW-Authenticate`` ``scope=...`` value MUST echo the
+        operator's declared order. No alphabetical sort, no rearrangement.
+        """
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            resource_server = ResourceServerAuth(
+                **self._minimal_kwargs(),
+                default_advertised_scopes=["c", "a", "b"],
+            )
+
+            async def mock_app(scope, receive, send):
+                pytest.fail("App should not be called")
+
+            middleware = ResourceServerMiddleware(
+                mock_app,
+                resource_server,
+                "https://mcp.example.com/mcp",
+            )
+
+            scope = {"type": "http", "method": "POST", "headers": []}
+
+            async def receive():
+                return {"type": "http.request", "body": b""}
+
+            response_headers: dict[bytes, bytes] = {}
+
+            async def send(message):
+                if message["type"] == "http.response.start":
+                    response_headers.update(dict(message.get("headers", [])))
+
+            await middleware(scope, receive, send)
+
+            www_auth = response_headers.get(b"www-authenticate", b"").decode()
+            assert 'scope="c a b"' in www_auth, www_auth
+
+    def test_advertised_scopes_order_preserved_in_prm(self):
+        """RFC 9728 ``scopes_supported`` MUST echo the operator's declared
+        order. Same source-of-truth as the 401 — they cannot disagree.
+        """
+        rs = ResourceServerAuth(
+            **self._minimal_kwargs(),
+            default_advertised_scopes=["zebra", "alpha", "mike"],
+        )
+        metadata = rs.get_resource_metadata()
+        assert metadata["scopes_supported"] == ["zebra", "alpha", "mike"]
+
+
+class TestAdvertisedScopesEnvVar:
+    """Tests for ``MCP_RESOURCE_SERVER_DEFAULT_ADVERTISED_SCOPES`` env var.
+
+    The env var uses **space-separated** format (``"mcp offline_access"``)
+    matching OAuth wire convention (RFC 6749 ``scope`` parameter is
+    space-separated). This is more idiomatic than JSON arrays for OAuth
+    scope lists, easier to read in ``.env`` files, and naturally collapses
+    whitespace runs via ``str.split()``.
+
+    Empty / whitespace-only values are treated as "unset" (None) — they
+    must never produce an empty list (an empty advertisement is
+    semantically wrong; see middleware's empty-scope-loop comment).
+    """
+
+    def _minimal_kwargs(self):
+        """Minimal valid ``ResourceServerAuth`` kwargs (no scope arg)."""
+        return {
+            "canonical_url": "https://mcp.example.com/mcp",
+            "authorization_servers": [
+                AuthorizationServerEntry(
+                    authorization_server_url="https://auth.example.com",
+                    issuer="https://auth.example.com",
+                    jwks_uri="https://auth.example.com/.well-known/jwks.json",
+                )
+            ],
+        }
+
+    def test_default_advertised_scopes_from_env(self, monkeypatch):
+        """Setting the env var (no constructor kwarg) configures the field
+        and surfaces it in PRM ``scopes_supported``.
+        """
+        monkeypatch.setenv(
+            "MCP_RESOURCE_SERVER_DEFAULT_ADVERTISED_SCOPES",
+            "mcp offline_access",
+        )
+        rs = ResourceServerAuth(**self._minimal_kwargs())
+        assert rs.default_advertised_scopes == ["mcp", "offline_access"]
+        metadata = rs.get_resource_metadata()
+        assert metadata["scopes_supported"] == ["mcp", "offline_access"]
+
+    def test_explicit_param_overrides_env(self, monkeypatch):
+        """Explicit constructor kwarg takes precedence over env var.
+
+        Mirrors the precedence convention already used for ``canonical_url``
+        and ``authorization_servers``.
+        """
+        monkeypatch.setenv(
+            "MCP_RESOURCE_SERVER_DEFAULT_ADVERTISED_SCOPES",
+            "from-env",
+        )
+        rs = ResourceServerAuth(
+            **self._minimal_kwargs(),
+            default_advertised_scopes=["from-param"],
+        )
+        assert rs.default_advertised_scopes == ["from-param"]
+
+    def test_empty_env_var_treated_as_none(self, monkeypatch):
+        """Empty env var means "no advertisement" (None), NOT empty list.
+
+        An empty list would translate to ``scope=""`` on the wire, which
+        per RFC 6750 tells compliant clients to acquire a zero-scope
+        token — semantically wrong and a known cause of empty-scope token
+        loops (see middleware comment in ``_create_401_response``).
+        """
+        monkeypatch.setenv("MCP_RESOURCE_SERVER_DEFAULT_ADVERTISED_SCOPES", "")
+        rs = ResourceServerAuth(**self._minimal_kwargs())
+        assert rs.default_advertised_scopes is None
+
+    def test_whitespace_only_env_var_treated_as_none(self, monkeypatch):
+        """Whitespace-only env var is treated identically to empty: None."""
+        monkeypatch.setenv("MCP_RESOURCE_SERVER_DEFAULT_ADVERTISED_SCOPES", "   \t  \n")
+        rs = ResourceServerAuth(**self._minimal_kwargs())
+        assert rs.default_advertised_scopes is None
+
+    def test_env_var_collapses_whitespace_runs(self, monkeypatch):
+        """``str.split()`` (no args) collapses any whitespace runs and
+        yields no empty strings — naturally handles operator-typed env
+        files with stray tabs/newlines.
+        """
+        monkeypatch.setenv(
+            "MCP_RESOURCE_SERVER_DEFAULT_ADVERTISED_SCOPES",
+            "  mcp   offline_access\t\n",
+        )
+        rs = ResourceServerAuth(**self._minimal_kwargs())
+        assert rs.default_advertised_scopes == ["mcp", "offline_access"]
+
+    def test_invalid_scope_in_env_raises(self, monkeypatch):
+        """RFC 6750 grammar applies to env-var-sourced values too. The
+        validator gate runs against any scope source, no matter how it
+        arrived.
+        """
+        monkeypatch.setenv(
+            "MCP_RESOURCE_SERVER_DEFAULT_ADVERTISED_SCOPES",
+            "valid badéscope",  # second token has non-ASCII character
+        )
+        with pytest.raises(ValueError, match="non-ASCII|ASCII"):
+            ResourceServerAuth(**self._minimal_kwargs())
+
+    def test_env_var_dedupes_with_first_seen_order(self, monkeypatch):
+        """Dedup + ordering applies to env-var-sourced values too —
+        operators may concatenate scope lists when composing env files.
+        """
+        monkeypatch.setenv(
+            "MCP_RESOURCE_SERVER_DEFAULT_ADVERTISED_SCOPES",
+            "c a b a c d",
+        )
+        rs = ResourceServerAuth(**self._minimal_kwargs())
+        assert rs.default_advertised_scopes == ["c", "a", "b", "d"]
+
+
+class TestWWWAuthenticateRFC6750Format:
+    """Tests for RFC 6750 ``WWW-Authenticate`` header conformance.
+
+    RFC 6750 specifies the header format as
+    ``WWW-Authenticate: Bearer realm="...", scope="..."`` — auth-scheme
+    ``Bearer``, then comma-separated ``key="value"`` parameters with
+    quoted-string values.
+
+    Behavioral tests already cover scope content (Rounds 1-5). These tests
+    pin the *format* invariants — the kind of thing a regex-based MCP
+    compliance tool would check before grading.
+    """
+
+    def _minimal_kwargs(self):
+        return {
+            "canonical_url": "https://mcp.example.com/mcp",
+            "authorization_servers": [
+                AuthorizationServerEntry(
+                    authorization_server_url="https://auth.example.com",
+                    issuer="https://auth.example.com",
+                    jwks_uri="https://auth.example.com/.well-known/jwks.json",
+                )
+            ],
+        }
+
+    @pytest.mark.asyncio
+    async def _drive_401(self, resource_server):
+        """Drive a missing-Authorization 401 and return the decoded
+        WWW-Authenticate header value.
+        """
+
+        async def mock_app(scope, receive, send):
+            pytest.fail("App should not be called")
+
+        middleware = ResourceServerMiddleware(
+            mock_app,
+            resource_server,
+            "https://mcp.example.com/mcp",
+        )
+
+        scope = {"type": "http", "method": "POST", "headers": []}
+
+        async def receive():
+            return {"type": "http.request", "body": b""}
+
+        response_headers: dict[bytes, bytes] = {}
+
+        async def send(message):
+            if message["type"] == "http.response.start":
+                response_headers.update(dict(message.get("headers", [])))
+
+        await middleware(scope, receive, send)
+        return response_headers.get(b"www-authenticate", b"").decode()
+
+    @pytest.mark.asyncio
+    async def test_header_uses_bearer_auth_scheme_prefix(self, jwks_data):
+        """RFC 6750: header MUST begin with the ``Bearer`` auth-scheme."""
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            rs = ResourceServerAuth(
+                **self._minimal_kwargs(),
+                default_advertised_scopes=["read", "write"],
+            )
+
+            www_auth = await self._drive_401(rs)
+            assert www_auth.startswith("Bearer "), www_auth
+
+    @pytest.mark.asyncio
+    async def test_scope_param_uses_quoted_string_format(self, jwks_data):
+        """RFC 6750: parameters use ``key="value"`` quoted-string form.
+
+        Specifically the scope parameter must be ``scope="..."`` (with
+        double quotes), not ``scope=...`` (bare) or ``scope='...'``
+        (single quotes).
+        """
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            rs = ResourceServerAuth(
+                **self._minimal_kwargs(),
+                default_advertised_scopes=["read", "write"],
+            )
+
+            www_auth = await self._drive_401(rs)
+            assert 'scope="read write"' in www_auth, www_auth
+            assert "scope=read" not in www_auth, www_auth  # not bare
+            assert "scope='read" not in www_auth, www_auth  # not single-quoted
+
+    @pytest.mark.asyncio
+    async def test_quotes_are_balanced(self, jwks_data):
+        """Even number of double quotes (every parameter is paired).
+
+        An odd count would mean a malformed quoted-string somewhere.
+        """
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            rs = ResourceServerAuth(
+                **self._minimal_kwargs(),
+                default_advertised_scopes=["read", "write"],
+            )
+
+            www_auth = await self._drive_401(rs)
+            assert www_auth.count('"') % 2 == 0, www_auth
+
+    @pytest.mark.asyncio
+    async def test_no_semicolons_in_header(self, jwks_data):
+        """RFC 6750: parameters are comma-separated, NOT
+        semicolon-separated. Semicolons are HTTP-cookie-style; using them
+        in WWW-Authenticate is a non-conformance bug some servers ship.
+        """
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            rs = ResourceServerAuth(
+                **self._minimal_kwargs(),
+                default_advertised_scopes=["read"],
+            )
+
+            www_auth = await self._drive_401(rs)
+            assert ";" not in www_auth, www_auth
+
+    @pytest.mark.asyncio
+    async def test_no_empty_scope_when_unset(self, jwks_data):
+        """When ``default_advertised_scopes`` is unset, the header MUST
+        omit the ``scope`` parameter entirely — not emit ``scope=""``.
+
+        Per spec, an empty ``scope=""`` would tell compliant OAuth clients
+        to acquire a zero-scope token, which is semantically wrong and a
+        known cause of empty-scope token loops.
+        """
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            rs = ResourceServerAuth(**self._minimal_kwargs())
+
+            www_auth = await self._drive_401(rs)
+            assert "scope=" not in www_auth, www_auth
+            assert 'scope=""' not in www_auth, www_auth
+
+
+class TestAdvertisedScopesMultiAS:
+    """Tests for multi-AS interaction with ``default_advertised_scopes``.
+
+    Advertised scopes are *server-wide*, not per-AS — they describe what
+    THIS resource accepts at the lobby, regardless of which AS the client
+    chose. They MUST surface identically whether the resource is fronted
+    by one AS or many.
+    """
+
+    @pytest.mark.asyncio
+    async def test_advertised_scopes_with_multi_as_in_prm(self, jwks_data):
+        """RFC 9728 ``scopes_supported`` is a property of the resource,
+        not per-AS. Multi-AS configurations advertise the same scope set.
+        """
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            rs = ResourceServerAuth(
+                canonical_url="https://mcp.example.com/mcp",
+                authorization_servers=[
+                    AuthorizationServerEntry(
+                        authorization_server_url="https://auth1.example.com",
+                        issuer="https://auth1.example.com",
+                        jwks_uri="https://auth1.example.com/jwks",
+                    ),
+                    AuthorizationServerEntry(
+                        authorization_server_url="https://auth2.example.com",
+                        issuer="https://auth2.example.com",
+                        jwks_uri="https://auth2.example.com/jwks",
+                    ),
+                ],
+                default_advertised_scopes=["mcp", "offline_access"],
+            )
+            metadata = rs.get_resource_metadata()
+            assert metadata["scopes_supported"] == ["mcp", "offline_access"]
+            # Both ASes still listed
+            assert metadata["authorization_servers"] == [
+                "https://auth1.example.com",
+                "https://auth2.example.com",
+            ]
+
+    @pytest.mark.asyncio
+    async def test_advertised_scopes_with_multi_as_in_401(self, jwks_data):
+        """Same scope set surfaces on the 401 ``WWW-Authenticate`` for
+        multi-AS configurations.
+        """
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            rs = ResourceServerAuth(
+                canonical_url="https://mcp.example.com/mcp",
+                authorization_servers=[
+                    AuthorizationServerEntry(
+                        authorization_server_url="https://auth1.example.com",
+                        issuer="https://auth1.example.com",
+                        jwks_uri="https://auth1.example.com/jwks",
+                    ),
+                    AuthorizationServerEntry(
+                        authorization_server_url="https://auth2.example.com",
+                        issuer="https://auth2.example.com",
+                        jwks_uri="https://auth2.example.com/jwks",
+                    ),
+                ],
+                default_advertised_scopes=["mcp", "offline_access"],
+            )
+
+            async def mock_app(scope, receive, send):
+                pytest.fail("App should not be called")
+
+            middleware = ResourceServerMiddleware(
+                mock_app,
+                rs,
+                "https://mcp.example.com/mcp",
+            )
+
+            scope = {"type": "http", "method": "POST", "headers": []}
+
+            async def receive():
+                return {"type": "http.request", "body": b""}
+
+            response_headers: dict[bytes, bytes] = {}
+
+            async def send(message):
+                if message["type"] == "http.response.start":
+                    response_headers.update(dict(message.get("headers", [])))
+
+            await middleware(scope, receive, send)
+            www_auth = response_headers.get(b"www-authenticate", b"").decode()
+            assert 'scope="mcp offline_access"' in www_auth, www_auth
 
 
 class TestEnvVarConfiguration:

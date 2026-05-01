@@ -274,7 +274,7 @@ raised with a chained cause (`raise ... from exc`) have one, while directly rais
 
 - `libs/arcade-*/` — Core libraries, each with own `pyproject.toml` (except cli/evals → root)
 - `libs/tests/` — All tests, grouped by component: `core/`, `arcade_mcp_server/`, `tool/`, `cli/`, `sdk/`, `worker/`, `arcade_evals/`, `mcp/`
-- `examples/mcp_servers/` — Example servers (simple, resources, tool_chaining, sampling, authorization, user_elicitation, etc.)
+- `examples/mcp_servers/` — Example servers, one feature per directory. See [`examples/mcp_servers/README.md`](examples/mcp_servers/README.md) for the full index (simple, resources, tool_chaining, sampling, authorization, user_elicitation, task_augmentation, enum_elicitation, sampling_with_tools, url_elicitation, typed_errors, server_branding, etc.)
 - `tests/` — Top-level integration/install tests (separate from lib tests)
 
 ## Testing

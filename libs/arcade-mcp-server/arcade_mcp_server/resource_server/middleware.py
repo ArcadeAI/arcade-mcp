@@ -40,7 +40,11 @@ class ResourceServerMiddleware:
 
         Args:
             app: ASGI application to wrap
-            validator: Token validator for access token validation
+            validator: Token validator for access token validation. The
+                validator's ``default_advertised_scopes`` attribute drives
+                advertisement on the entry-401 ``WWW-Authenticate`` challenge
+                (MCP spec SHOULD-rule). One source of truth — no separate
+                parameter on the middleware.
             canonical_url: Canonical URL of this MCP server (for OAuth metadata).
                           Required only for validators that support OAuth discovery.
         """
@@ -149,8 +153,8 @@ class ResourceServerMiddleware:
             headers={
                 "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type, Authorization, Mcp-Session-Id, Accept",
-                "Access-Control-Expose-Headers": "WWW-Authenticate, Mcp-Session-Id",
+                "Access-Control-Allow-Headers": "Content-Type, Authorization, Mcp-Session-Id, Accept, MCP-Protocol-Version",
+                "Access-Control-Expose-Headers": "WWW-Authenticate, Mcp-Session-Id, MCP-Protocol-Version",
                 "Access-Control-Max-Age": "86400",  # 24 hr
             },
         )
@@ -186,6 +190,30 @@ class ResourceServerMiddleware:
         if error_description:
             www_auth_parts.append(f'error_description="{error_description}"')
 
+        # The MCP spec SHOULD-rule: servers advertise the required ``scope``
+        # on the WWW-Authenticate challenge so clients can apply the
+        # principle-of-least-privilege scope-selection strategy.
+        #
+        # Per-request precision is impossible at the middleware layer (we
+        # haven't dispatched to a specific tool yet), but the *server-wide
+        # superset* of scopes IS known to the operator and is exactly what
+        # the spec wants advertised here. When the operator configures
+        # ``default_advertised_scopes`` on the validator we surface it as
+        # ``scope="<space-separated>"``. When unset, we still omit the
+        # parameter rather than emit ``scope=""`` — the empty form would
+        # tell compliant OAuth clients to acquire a zero-scope token
+        # (semantically wrong and a known cause of empty-scope token loops).
+        # Tool-specific scopes are attached to the 403 ``insufficient_scope``
+        # response by the handler-level scope check.
+        #
+        # The validator is the single source of truth: ``ResourceServerValidator``
+        # declares ``default_advertised_scopes`` on the ABC so this attribute
+        # access is always safe (no defensive ``getattr``).
+        advertised = self.validator.default_advertised_scopes
+        if advertised:
+            scope_value = " ".join(advertised)
+            www_auth_parts.append(f'scope="{scope_value}"')
+
         www_auth_value = "Bearer " + ", ".join(www_auth_parts)
 
         return Response(
@@ -195,7 +223,7 @@ class ResourceServerMiddleware:
                 "WWW-Authenticate": www_auth_value,
                 "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type, Authorization, Mcp-Session-Id, Accept",
-                "Access-Control-Expose-Headers": "WWW-Authenticate, Mcp-Session-Id",
+                "Access-Control-Allow-Headers": "Content-Type, Authorization, Mcp-Session-Id, Accept, MCP-Protocol-Version",
+                "Access-Control-Expose-Headers": "WWW-Authenticate, Mcp-Session-Id, MCP-Protocol-Version",
             },
         )

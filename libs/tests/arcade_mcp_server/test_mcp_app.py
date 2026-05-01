@@ -167,6 +167,48 @@ class TestMCPApp:
         assert app._mcp_settings.server.name == "PartialApp"
         assert app._mcp_settings.server.version == "0.1.0"
 
+    def test_mcp_app_branding_fields_forwarded_to_server_kwargs(self):
+        """Regression: branding fields (icons, description, website_url,
+        allowed_origins) must land in ``server_kwargs`` so that they reach
+        ``MCPServer`` when ``_create_and_run_server`` / ``run_stdio_server``
+        call ``create_arcade_mcp(**self.server_kwargs)``. Previously these
+        named parameters were stored only on ``self`` and the ``**kwargs``
+        channel captured by ``server_kwargs`` was empty of them, so the
+        entire server-branding feature was silently dropped at runtime.
+        """
+        icons = [{"src": "https://example.com/icon.png", "mimeType": "image/png"}]
+        app = MCPApp(
+            name="BrandingApp",
+            version="2.0.0",
+            icons=icons,
+            description="Server description",
+            website_url="https://example.com",
+            allowed_origins=["https://foo.example.com"],
+        )
+
+        # Still addressable as attributes on the app (public API).
+        assert app.icons == icons
+        assert app.description == "Server description"
+        assert app.website_url == "https://example.com"
+        assert app.allowed_origins == ["https://foo.example.com"]
+
+        # MUST also propagate through to the MCPServer constructor.
+        assert app.server_kwargs["icons"] == icons
+        assert app.server_kwargs["description"] == "Server description"
+        assert app.server_kwargs["website_url"] == "https://example.com"
+        assert app.server_kwargs["allowed_origins"] == ["https://foo.example.com"]
+
+    def test_mcp_app_branding_fields_omitted_when_none(self):
+        """When branding fields are not supplied, ``server_kwargs`` must not
+        carry None-valued entries (they'd shadow any defaults on the
+        downstream server constructor).
+        """
+        app = MCPApp(name="NoBranding")
+        assert "icons" not in app.server_kwargs
+        assert "description" not in app.server_kwargs
+        assert "website_url" not in app.server_kwargs
+        assert "allowed_origins" not in app.server_kwargs
+
     def test_add_tool(self, mcp_app: MCPApp):
         """Test adding a tool to the MCP app."""
 
@@ -1083,3 +1125,34 @@ class TestMCPAppResourceAnnotationsMetaTemplates:
         _, handler = app._initial_resources[0]
         with pytest.raises(NotFoundError, match="File not found"):
             handler("file:///missing.txt")
+
+
+class TestMCPAppMetadata:
+    """MCPApp metadata (title, icons, description, websiteUrl) wired through."""
+
+    def test_mcp_app_accepts_title(self):
+        app = MCPApp(name="TestApp", version="1.0.0", title="My Test Server")
+        assert app.title == "My Test Server"
+
+    def test_mcp_app_accepts_icons(self):
+        from arcade_mcp_server.types import Icon
+
+        app = MCPApp(
+            name="TestApp",
+            version="1.0.0",
+            icons=[Icon(src="https://example.com/icon.png")],
+        )
+        assert app.icons is not None
+        assert len(app.icons) == 1
+
+    def test_mcp_app_accepts_description(self):
+        app = MCPApp(name="TestApp", version="1.0.0", description="A test server")
+        assert app.description == "A test server"
+
+    def test_mcp_app_accepts_website_url(self):
+        app = MCPApp(name="TestApp", version="1.0.0", website_url="https://example.com")
+        assert app.website_url == "https://example.com"
+
+    def test_mcp_app_accepts_allowed_origins(self):
+        app = MCPApp(name="TestApp", version="1.0.0", allowed_origins=["https://example.com"])
+        assert app.allowed_origins == ["https://example.com"]

@@ -37,16 +37,15 @@ from arcade_core.schema import (
     ToolContext,
 )
 
+from arcade_mcp_server.request_context import get_request_meta
 from arcade_mcp_server.resource_server.base import ResourceOwner
 from arcade_mcp_server.types import (
-    AudioContent,
     CallToolParams,
     CallToolRequest,
     CallToolResult,
     ClientCapabilities,
     CreateMessageResult,
     ElicitResult,
-    ImageContent,
     JSONRPCError,
     LoggingLevel,
     ModelHint,
@@ -54,8 +53,10 @@ from arcade_mcp_server.types import (
     ResourceContents,
     Root,
     SamplingMessage,
+    SamplingMessageContentBlock,
     TextContent,
 )
+from arcade_mcp_server.validation import _validate_schema_dialect
 
 # Context variable for current model context
 _current_model_context: ContextVar[Context | None] = ContextVar("model_context", default=None)
@@ -126,6 +127,8 @@ class Context(ToolContext):
         session: Any | None = None,
         request_id: str | None = None,
         resource_owner: ResourceOwner | None = None,
+        task_id: str | None = None,
+        task_manager: Any | None = None,
     ):
         """Initialize context with server reference."""
         super().__init__()
@@ -137,6 +140,10 @@ class Context(ToolContext):
 
         # Resource owner from front-door auth (if the server is protected)
         self._resource_owner: ResourceOwner | None = resource_owner
+
+        # Task context for background task execution (MCP 2025-11-25 tasks primitive).
+        self._task_id: str | None = task_id
+        self._task_manager: Any | None = task_manager
 
         # Namespaced adapters
         self._log = Logs(self)
@@ -450,16 +457,29 @@ class Progress(_ContextComponent):
         session = self._ctx._session
         if session is None:
             return
-        progress_token = None
-        if hasattr(session, "_request_meta") and session._request_meta is not None:
-            progress_token = getattr(session._request_meta, "progressToken", None)
+
+        # Progress notifications MUST stop once a task reaches a terminal status.
+        task_id = self._ctx._task_id
+        task_manager = self._ctx._task_manager
+        if task_id is not None and task_manager is not None and task_manager.is_terminal(task_id):
+            return  # silently drop
+
+        request_meta = get_request_meta()
+        progress_token = getattr(request_meta, "progressToken", None) if request_meta else None
         if progress_token is None:
             return
+
+        # Build _meta with related-task if in task context
+        _meta: dict[str, Any] | None = None
+        if task_id is not None:
+            _meta = {"io.modelcontextprotocol/related-task": {"taskId": task_id}}
+
         await session.send_progress_notification(
             progress_token=progress_token,
             progress=progress,
             total=total,
             message=message,
+            _meta=_meta,
         )
 
 
@@ -548,7 +568,9 @@ class Sampling(_ContextComponent):
         temperature: float | None = None,
         max_tokens: int | None = None,
         model_preferences: ModelPreferences | str | list[str] | None = None,
-    ) -> TextContent | ImageContent | AudioContent | CreateMessageResult:
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: dict[str, Any] | None = None,
+    ) -> SamplingMessageContentBlock | list[SamplingMessageContentBlock] | CreateMessageResult:
         if self._ctx._session is None:
             raise ValueError("Session not available")
 
@@ -576,6 +598,13 @@ class Sampling(_ContextComponent):
         if not self._ctx._check_client_capability(ClientCapabilities(sampling={})):
             raise ValueError("Client does not support sampling")
 
+        # Auto-inject the io.modelcontextprotocol/related-task _meta when running
+        # in a task context so the client can correlate the outbound request
+        # with the originating task.
+        outbound_meta: dict[str, Any] | None = None
+        if self._ctx._task_id is not None:
+            outbound_meta = {"io.modelcontextprotocol/related-task": {"taskId": self._ctx._task_id}}
+
         result = await self._ctx._session.create_message(
             messages=sampling_messages,
             system_prompt=system_prompt,
@@ -583,6 +612,9 @@ class Sampling(_ContextComponent):
             temperature=temperature,
             max_tokens=max_tokens or 512,
             model_preferences=parsed_prefs,
+            tools=tools,
+            tool_choice=tool_choice,
+            _meta=outbound_meta,
         )
 
         return result.content if hasattr(result, "content") else result  # type: ignore[no-any-return]
@@ -597,6 +629,9 @@ class UI(_ContextComponent):
         if not isinstance(schema, dict):
             raise TypeError("Schema must be a dictionary")
 
+        # Enforce the MCP-required JSON Schema 2020-12 dialect.
+        _validate_schema_dialect(schema)
+
         if schema.get("type") != "object":
             raise ValueError("Schema must have type 'object'")
 
@@ -610,9 +645,46 @@ class UI(_ContextComponent):
                 raise TypeError(f"Property '{prop_name}' schema must be a dictionary")
 
             prop_type = prop_schema.get("type")
-            if prop_type not in ["string", "number", "integer", "boolean"]:
+
+            # Allow "array" type for multi-select enum schemas (MCP 2025-11-25)
+            # Allow properties WITHOUT an explicit type but WITH enum / oneOf
+            # (SEP-1330 enum variants: legacy ``enum``+``enumNames`` and
+            # ``oneOf``-titled selects). Any other type value must be a
+            # supported primitive -- the enum/oneOf bypass previously
+            # whitelisted invalid types like ``"object"`` as long as one of
+            # those keys was present.
+            has_enum = "enum" in prop_schema
+            has_one_of = "oneOf" in prop_schema
+            if prop_type == "array":
+                # Array properties are allowed ONLY as a multi-select enum
+                # shape. The three supported variants, per the MCP 2025-11-25
+                # enum schema family, are:
+                #   - MultiSelectEnumSchema         -> items.enum
+                #   - UntitledMultiSelectEnumSchema -> items.oneOf (untitled)
+                #   - TitledMultiSelectEnumSchema   -> items.anyOf (titled)
+                # A plain string/number array is NOT a valid elicitation input.
+                items = prop_schema.get("items")
+                items_ok = isinstance(items, dict) and (
+                    "enum" in items or "oneOf" in items or "anyOf" in items
+                )
+                if not items_ok:
+                    raise ValueError(
+                        f"Property '{prop_name}' is an array but its items do "
+                        f"not declare enum/oneOf/anyOf. Arrays are only allowed "
+                        f"as multi-select enums in elicitation schemas."
+                    )
+            elif prop_type is None:
+                # Untyped properties are OK only when enum/oneOf provides
+                # the value set.
+                if not (has_enum or has_one_of):
+                    raise ValueError(
+                        f"Property '{prop_name}' has no type and no enum/oneOf. "
+                        f"Provide a type or an enum/oneOf variant."
+                    )
+            elif prop_type not in ["string", "number", "integer", "boolean"]:
                 raise ValueError(
-                    f"Property '{prop_name}' has unsupported type '{prop_type}'. Only primitive types are allowed."
+                    f"Property '{prop_name}' has unsupported type '{prop_type}'. "
+                    f"Only primitive types and array (for multi-select enum) are allowed."
                 )
 
             # Validate string formats
@@ -624,19 +696,49 @@ class UI(_ContextComponent):
                     )
 
     async def elicit(
-        self, message: str, schema: dict[str, Any] | None = None, timeout: float = 300.0
+        self,
+        message: str,
+        schema: dict[str, Any] | None = None,
+        mode: str | None = None,
+        url: str | None = None,
+        elicitation_id: str | None = None,
+        timeout: float = 300.0,
     ) -> ElicitResult:
+        """Elicit input from the user.
+
+        Args:
+            message: Message to display to the user
+            schema: JSON schema for form-mode elicitation (ignored in URL mode)
+            mode: Elicitation mode - "form" (default) or "url" (2025-11-25 only)
+            url: URL for URL-mode elicitation
+            elicitation_id: Elicitation ID for URL-mode elicitation
+            timeout: Request timeout
+        """
         if self._ctx._session is None:
             raise ValueError("Session not available")
-        if schema is None:
-            schema = {"type": "object", "properties": {}}
 
-        # Validate schema conforms to MCP restrictions
-        self._validate_elicitation_schema(schema)
+        effective_mode = mode or "form"
+
+        if effective_mode == "form":
+            if schema is None:
+                schema = {"type": "object", "properties": {}}
+            # Validate schema conforms to MCP restrictions
+            self._validate_elicitation_schema(schema)
+
+        # Auto-inject the io.modelcontextprotocol/related-task _meta when running
+        # in a task context so the client can correlate the outbound request
+        # with the originating task.
+        outbound_meta: dict[str, Any] | None = None
+        if self._ctx._task_id is not None:
+            outbound_meta = {"io.modelcontextprotocol/related-task": {"taskId": self._ctx._task_id}}
 
         result = await self._ctx._session.elicit(
             message=message,
             requested_schema=schema,
+            mode=mode,
+            url=url,
+            elicitation_id=elicitation_id,
+            _meta=outbound_meta,
             timeout=timeout,
         )
         return cast(ElicitResult, result)

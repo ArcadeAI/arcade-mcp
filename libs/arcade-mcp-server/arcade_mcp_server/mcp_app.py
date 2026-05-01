@@ -88,6 +88,10 @@ class MCPApp:
         port: int = 8000,
         reload: bool = False,
         auth: ResourceServerValidator | None = None,
+        icons: list[Any] | None = None,
+        description: str | None = None,
+        website_url: str | None = None,
+        allowed_origins: list[str] | None = None,
         **kwargs: Any,
     ):
         """
@@ -112,7 +116,26 @@ class MCPApp:
         self.instructions = instructions
         self.log_level = log_level
         self.resource_server_validator = auth
-        self.server_kwargs = kwargs
+        self.icons = icons
+        self.description = description
+        self.website_url = website_url
+        self.allowed_origins = allowed_origins
+
+        # ``server_kwargs`` is what we forward to ``create_arcade_mcp`` /
+        # ``run_stdio_server`` (and thence to ``MCPServer``). The named branding
+        # parameters above are NOT in ``**kwargs``, so if we stored the raw
+        # ``kwargs`` the branding would silently vanish at server construction
+        # time. Merge them in explicitly (caller-supplied ``**kwargs`` wins if
+        # somebody also passed them through the kwargs channel).
+        self.server_kwargs = dict(kwargs)
+        for _field, _value in (
+            ("icons", icons),
+            ("description", description),
+            ("website_url", website_url),
+            ("allowed_origins", allowed_origins),
+        ):
+            if _value is not None:
+                self.server_kwargs.setdefault(_field, _value)
         self.transport = transport
         self.host = host
         self.port = port
