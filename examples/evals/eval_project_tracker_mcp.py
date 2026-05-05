@@ -2,14 +2,14 @@
 ProjectTracker MCP tool-selection evaluations (direct MCP — no Code Mode).
 
 Tests that an LLM picks the correct MCP tool and arguments across chains of
-1–8 steps. This benchmark does NOT use pctx Code Mode; the model calls tools
+1-8 steps. This benchmark does NOT use pctx Code Mode; the model calls tools
 directly. For the Code Mode benchmark see eval_pctx_code_mode_live.py.
 
 Workflows:
-  1. project_setup       – 3 steps: create project → sprint → task
-  2. task_lifecycle      – 5 steps: get → comment → log time → review → done
-  3. sprint_management   – 6 steps: list → get sprint → create → move → metrics → search
-  4. full_sprint_cycle   – 8 steps: full lifecycle using every tool
+  1. project_setup       - 3 steps: create project → sprint → task
+  2. task_lifecycle      - 5 steps: get → comment → log time → review → done
+  3. sprint_management   - 6 steps: list → get sprint → create → move → metrics → search
+  4. full_sprint_cycle   - 8 steps: full lifecycle using every tool
 
 Run:
     OPENAI_BASE_URL=https://openrouter.ai/api/v1 \\
@@ -49,7 +49,7 @@ rubric = EvalRubric(
 
 
 # ---------------------------------------------------------------------------
-# Helpers – compact JSON strings for additional_messages tool responses
+# Helpers - compact JSON strings for additional_messages tool responses
 # ---------------------------------------------------------------------------
 
 
@@ -76,17 +76,19 @@ async def _load_server(suite: EvalSuite) -> bool:
             ),
             timeout=20.0,
         )
-        print("  ✓ ProjectTracker MCP server loaded")
-        return True
     except asyncio.TimeoutError:
         print("  ✗ Server load timed out")
+        return False
     except Exception as exc:
         print(f"  ✗ Server load failed: {type(exc).__name__}: {exc}")
-    return False
+        return False
+    else:
+        print("  ✓ ProjectTracker MCP server loaded")
+        return True
 
 
 # ===========================================================================
-# Suite 1 – Project Setup  (3-step chain)
+# Suite 1 - Project Setup  (3-step chain)
 # ===========================================================================
 
 
@@ -105,7 +107,7 @@ async def eval_project_setup() -> EvalSuite:
         return suite
 
     # ------------------------------------------------------------------
-    # Step 1 – create the project
+    # Step 1 - create the project
     # ------------------------------------------------------------------
     suite.add_case(
         name="1/3 · Create project",
@@ -133,7 +135,7 @@ async def eval_project_setup() -> EvalSuite:
     )
 
     # ------------------------------------------------------------------
-    # Step 2 – create a sprint in the newly created project
+    # Step 2 - create a sprint in the newly created project
     # ------------------------------------------------------------------
     proj_response = _j({
         "project_id": _PROJ_PIPE,
@@ -203,7 +205,7 @@ async def eval_project_setup() -> EvalSuite:
     )
 
     # ------------------------------------------------------------------
-    # Step 3 – create a task inside the new sprint
+    # Step 3 - create a task inside the new sprint
     # ------------------------------------------------------------------
     sprint_response = _j({
         "sprint_id": _SPR_PIPE,
@@ -301,7 +303,7 @@ async def eval_project_setup() -> EvalSuite:
 
 
 # ===========================================================================
-# Suite 2 – Task Lifecycle  (5-step chain)
+# Suite 2 - Task Lifecycle  (5-step chain)
 # ===========================================================================
 
 
@@ -343,7 +345,7 @@ async def eval_task_lifecycle() -> EvalSuite:
     })
 
     # ------------------------------------------------------------------
-    # Step 1 – inspect the task
+    # Step 1 - inspect the task
     # ------------------------------------------------------------------
     suite.add_case(
         name="1/5 · Fetch task details",
@@ -355,7 +357,7 @@ async def eval_task_lifecycle() -> EvalSuite:
     )
 
     # ------------------------------------------------------------------
-    # Step 2 – leave a progress comment
+    # Step 2 - leave a progress comment
     # ------------------------------------------------------------------
     suite.add_case(
         name="2/5 · Add progress comment",
@@ -418,7 +420,7 @@ async def eval_task_lifecycle() -> EvalSuite:
     })
 
     # ------------------------------------------------------------------
-    # Step 3 – log 4 hours of implementation work
+    # Step 3 - log 4 hours of implementation work
     # ------------------------------------------------------------------
     suite.add_case(
         name="3/5 · Log implementation hours",
@@ -500,7 +502,7 @@ async def eval_task_lifecycle() -> EvalSuite:
     })
 
     # ------------------------------------------------------------------
-    # Step 4 – move to in_review
+    # Step 4 - move to in_review
     # ------------------------------------------------------------------
     suite.add_case(
         name="4/5 · Move task to in_review",
@@ -591,7 +593,7 @@ async def eval_task_lifecycle() -> EvalSuite:
     })
 
     # ------------------------------------------------------------------
-    # Step 5 – mark done after review passes
+    # Step 5 - mark done after review passes
     # ------------------------------------------------------------------
     suite.add_case(
         name="5/5 · Mark task done",
@@ -702,7 +704,7 @@ async def eval_task_lifecycle() -> EvalSuite:
 
 
 # ===========================================================================
-# Suite 3 – Sprint Management  (6-step chain)
+# Suite 3 - Sprint Management  (6-step chain)
 # ===========================================================================
 
 
@@ -805,7 +807,7 @@ async def eval_sprint_management() -> EvalSuite:
     )
 
     # ------------------------------------------------------------------
-    # Step 3 – add a new critical task to the sprint
+    # Step 3 - add a new critical task to the sprint
     # ------------------------------------------------------------------
     suite.add_case(
         name="3/6 · Add critical task to sprint",
@@ -887,7 +889,7 @@ async def eval_sprint_management() -> EvalSuite:
     })
 
     # ------------------------------------------------------------------
-    # Step 4 – pull task_003 from backlog into the sprint
+    # Step 4 - pull task_003 from backlog into the sprint
     # ------------------------------------------------------------------
     suite.add_case(
         name="4/6 · Move backlog task into sprint",
@@ -980,7 +982,7 @@ async def eval_sprint_management() -> EvalSuite:
     })
 
     # ------------------------------------------------------------------
-    # Step 5 – pull sprint metrics
+    # Step 5 - pull sprint metrics
     # ------------------------------------------------------------------
     suite.add_case(
         name="5/6 · Get sprint metrics",
@@ -1107,7 +1109,7 @@ async def eval_sprint_management() -> EvalSuite:
     })
 
     # ------------------------------------------------------------------
-    # Step 6 – search for high/critical open tasks
+    # Step 6 - search for high/critical open tasks
     # ------------------------------------------------------------------
     suite.add_case(
         name="6/6 · Search high-priority open tasks",
@@ -1228,7 +1230,7 @@ async def eval_sprint_management() -> EvalSuite:
 
 
 # ===========================================================================
-# Suite 4 – Full Sprint Cycle  (8-step chain)
+# Suite 4 - Full Sprint Cycle  (8-step chain)
 # ===========================================================================
 
 
@@ -1341,7 +1343,7 @@ async def eval_full_sprint_cycle() -> EvalSuite:
             proj_r,
         ),
         (
-            f"Create Sprint 1 in {_PROJ_AUTH} May 1–14 with 60h capacity.",
+            f"Create Sprint 1 in {_PROJ_AUTH} May 1-14 with 60h capacity.",
             "ProjectTracker_CreateSprint",
             f'{{"project_id":"{_PROJ_AUTH}","name":"Sprint 1","start_date":"2025-05-01","end_date":"2025-05-14","capacity_hours":60.0}}',
             spr_r,
