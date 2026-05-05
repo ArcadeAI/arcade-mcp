@@ -1,0 +1,102 @@
+# Graphify ignore — keep extraction focused on source code and design docs.
+# Same syntax as .gitignore.
+
+# --- VCS / worktree / agent infra ---
+.git/
+.worktrees/
+.claude/
+.cursor/
+.context/
+.beads/
+.runtime/
+.gc/
+.zed/
+
+# --- Agent instruction files (don't extract our own prompts as knowledge) ---
+AGENTS.md
+CLAUDE.md
+CLAUDE.local.md
+**/CLAUDE.local.md
+.cursorrules
+
+# --- Dependencies / lockfiles ---
+node_modules/
+.pnp
+.pnp.js
+bun.lock
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+uv.lock
+poetry.lock
+Cargo.lock
+mise.lock
+.alchemy
+
+# --- Build outputs ---
+dist/
+build/
+storybook-static/
+*.tsbuildinfo
+.next/
+.turbo/
+.cache/
+
+# --- Python caches / venv ---
+__pycache__/
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# --- Test artefacts ---
+coverage/
+.nyc_output/
+.playwright-mcp/
+__screenshots__/
+__snapshots__/
+
+# --- Terraform / OpenTofu state ---
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# --- Logs / scratch / tmp ---
+logs/
+*.log
+scratch/
+tmp/
+temp/
+.DS_Store
+
+# --- Binary / static assets we don't want extracted as concepts ---
+*.svg
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.ico
+*.woff
+*.woff2
+*.ttf
+*.otf
+*.eot
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.mp3
+*.wav
+*.m4a
+*.ogg
+*.pdf
+*.zip
+*.tgz
+
+# --- Translated/duplicated docs ---
+docs/translations/
+
+# --- Graphify's own outputs (don't feed back into itself) ---
+graphify-out/

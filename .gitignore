@@ -187,3 +187,10 @@ libs/arcade-mcp-server/site/*
 # Ignore any directory named `monorepo` at any depth
 monorepo/
 **/monorepo/
+
+# Graphify outputs (regeneratable; too large for git)
+graphify-out/cache/
+graphify-out/manifest.json
+graphify-out/.graphify_analysis.json
+graphify-out/graph.json
+graphify-out/cost.json
