@@ -289,6 +289,90 @@ class TestTaskManagerResultBlocking:
         assert task_manager.has_stored_error("task_nonexistent") is False
 
     @pytest.mark.asyncio
+    async def test_get_result_with_classification_error_path(self, task_manager):
+        """A failed task returns ``(error_dict, True)`` so the handler
+        can wrap it in a ``JSONRPCError`` without a separate, racy
+        ``has_stored_error`` lookup.
+        """
+        task = await task_manager.create_task(context_key=CONTEXT_A)
+        error_data = {"code": -32603, "message": "Tool execution failed"}
+        await task_manager.set_error(task.taskId, error_data)
+        await task_manager.update_status(task.taskId, TaskStatus.FAILED)
+        payload, is_error = await task_manager.get_result_with_classification(
+            task.taskId, context_key=CONTEXT_A
+        )
+        assert is_error is True
+        assert payload == error_data
+
+    @pytest.mark.asyncio
+    async def test_get_result_with_classification_success_path(self, task_manager):
+        task = await task_manager.create_task(context_key=CONTEXT_A)
+        result_data = {"content": [{"type": "text", "text": "ok"}], "isError": False}
+        await task_manager.set_result(task.taskId, result_data)
+        await task_manager.update_status(task.taskId, TaskStatus.COMPLETED)
+        payload, is_error = await task_manager.get_result_with_classification(
+            task.taskId, context_key=CONTEXT_A
+        )
+        assert is_error is False
+        assert payload == result_data
+
+    @pytest.mark.asyncio
+    async def test_get_result_with_classification_cancelled_fallback_is_not_error(
+        self, task_manager
+    ):
+        """A cancelled task with no explicit error/result returns
+        ``({"status": "cancelled", ...}, False)``. Cancellation is a
+        success-shaped response per the MCP wire spec, NOT a JSON-RPC
+        error.
+        """
+        task = await task_manager.create_task(context_key=CONTEXT_A)
+        await task_manager.cancel_task(task.taskId, context_key=CONTEXT_A)
+        payload, is_error = await task_manager.get_result_with_classification(
+            task.taskId, context_key=CONTEXT_A
+        )
+        assert is_error is False
+        assert payload.get("status") == "cancelled"
+
+    @pytest.mark.asyncio
+    async def test_get_result_with_classification_survives_concurrent_evict(
+        self, task_manager
+    ):
+        """Regression for the TOCTOU race the atomic API was introduced
+        to fix: a stored error must remain classified as an error even
+        if the periodic cleanup evicts the task immediately after the
+        payload is captured. The atomic call captures payload AND
+        classification under one critical section, so a follow-on
+        eviction cannot flip the classification.
+        """
+        task = await task_manager.create_task(context_key=CONTEXT_A)
+        error_data = {"code": -32603, "message": "boom"}
+        await task_manager.set_error(task.taskId, error_data)
+        await task_manager.update_status(task.taskId, TaskStatus.FAILED)
+        payload, is_error = await task_manager.get_result_with_classification(
+            task.taskId, context_key=CONTEXT_A
+        )
+        # Now simulate the cleanup-loop eviction that previously caused
+        # the misclassification: a post-hoc ``has_stored_error`` would
+        # now return ``False`` (the entry is gone), but the captured
+        # ``is_error`` must remain ``True``.
+        task_manager._evict(task.taskId)
+        assert task_manager.has_stored_error(task.taskId) is False
+        assert is_error is True
+        assert payload == error_data
+
+    @pytest.mark.asyncio
+    async def test_get_result_with_classification_wrong_context_raises(
+        self, task_manager
+    ):
+        task = await task_manager.create_task(context_key=CONTEXT_A)
+        await task_manager.set_result(task.taskId, {"done": True})
+        await task_manager.update_status(task.taskId, TaskStatus.COMPLETED)
+        with pytest.raises(NotFoundError):
+            await task_manager.get_result_with_classification(
+                task.taskId, context_key=CONTEXT_B
+            )
+
+    @pytest.mark.asyncio
     async def test_cleanup_expired_releases_get_result_waiters(self):
         """Regression: when ``cleanup_expired`` evicts a task whose TTL
         expired WHILE a ``get_result`` caller was already blocked on its

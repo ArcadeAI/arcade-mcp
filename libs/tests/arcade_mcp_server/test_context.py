@@ -357,6 +357,54 @@ class TestContext:
         )
 
     @pytest.mark.asyncio
+    async def test_elicit_url_mode_rejects_schema(self, mcp_server):
+        """URL-mode elicitation does not consume ``schema``; the session
+        layer ignores ``requested_schema`` for ``mode="url"``. Calling
+        with both ``mode="url"`` and a non-None schema must raise
+        ``ValueError`` rather than silently discard the schema, otherwise
+        a developer combining the two has no signal that their schema
+        constraint never took effect.
+        """
+        session = Mock()
+        session.elicit = AsyncMock(return_value={"action": "accept"})
+        context = Context(server=mcp_server)
+        context.set_session(session)
+
+        with pytest.raises(ValueError, match="schema is not supported in URL-mode"):
+            await context.ui.elicit(
+                "Verify yourself",
+                mode="url",
+                url="https://example.com/verify",
+                elicitation_id="elicit-1",
+                schema={"type": "object", "properties": {}},
+            )
+        # Session must not be invoked when validation fails at intake.
+        session.elicit.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_elicit_url_mode_without_schema_passes_through(self, mcp_server):
+        """The legitimate URL-mode usage (no schema) must still work
+        unchanged after the rejection guard is added.
+        """
+        session = Mock()
+        session.elicit = AsyncMock(return_value={"action": "accept"})
+        context = Context(server=mcp_server)
+        context.set_session(session)
+
+        result = await context.ui.elicit(
+            "Verify yourself",
+            mode="url",
+            url="https://example.com/verify",
+            elicitation_id="elicit-1",
+        )
+        assert result == {"action": "accept"}
+        session.elicit.assert_called_once()
+        kwargs = session.elicit.call_args.kwargs
+        assert kwargs["mode"] == "url"
+        assert kwargs["url"] == "https://example.com/verify"
+        assert kwargs["requested_schema"] is None
+
+    @pytest.mark.asyncio
     async def test_notification_queueing(self, mcp_server):
         """Test notification queueing methods."""
         session = Mock()

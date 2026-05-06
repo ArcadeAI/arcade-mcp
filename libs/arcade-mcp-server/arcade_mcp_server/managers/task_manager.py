@@ -451,6 +451,47 @@ class TaskManager:
         Performs the same O(1) TTL check as ``get_task``/``cancel_task``.
         Without this, ``tasks/result`` could return a result for a task
         that ``tasks/get`` had already reported as not found.
+
+        Note for callers that need to distinguish error-vs-success
+        payloads: prefer ``get_result_with_classification``. A separate
+        post-hoc ``has_stored_error`` call is racy -- ``_cleanup_loop``
+        can ``_evict`` the task between the two reads, causing the error
+        to be misclassified as a success (the error dict was already
+        captured here, but the second-pass ``has_stored_error`` would
+        then see no entry in ``_errors``).
+        """
+        result, _is_error = await self._get_result_internal(task_id, context_key)
+        return result
+
+    async def get_result_with_classification(
+        self, task_id: str, context_key: str
+    ) -> tuple[Any, bool]:
+        """Atomic ``get_result`` that also returns whether the payload was
+        a stored error.
+
+        Returns ``(payload, is_error)``:
+
+        - ``is_error=True``: ``payload`` is the JSON-RPC error dict stored
+          via ``set_error``; the caller should wrap it in a
+          ``JSONRPCError`` response.
+        - ``is_error=False``: ``payload`` is either the success result
+          stored via ``set_result`` or the cancellation fallback
+          ``{"status": "cancelled", ...}``; the caller should wrap it
+          in a ``JSONRPCResponse``.
+
+        Eliminates the TOCTOU window between ``get_result`` and a
+        separate ``has_stored_error`` call: the periodic ``_cleanup_loop``
+        could ``_evict`` the task between those two reads, causing the
+        already-fetched error payload to be misclassified as a success.
+        Here both reads happen inside one async call after ``event.wait``
+        with no intervening ``await``, so eviction cannot interleave
+        between the classification check and the payload return.
+        """
+        return await self._get_result_internal(task_id, context_key)
+
+    async def _get_result_internal(self, task_id: str, context_key: str) -> tuple[Any, bool]:
+        """Shared implementation for ``get_result`` and
+        ``get_result_with_classification``.
         """
         # Context check
         entry = self._tasks.get(task_id)
@@ -479,13 +520,15 @@ class TaskManager:
         if task_id not in self._tasks:
             raise NotFoundError(f"Task not found: {task_id}")
 
-        # Return error if present, otherwise result
+        # Read error and result classification in the same critical
+        # section (no ``await`` between the membership check and the
+        # value read), so ``_cleanup_loop._evict`` cannot interleave.
         if task_id in self._errors:
-            return self._errors[task_id]
+            return self._errors[task_id], True
         if task_id in self._results:
-            return self._results[task_id]
+            return self._results[task_id], False
         # Cancelled with no explicit result/error
-        return {"status": "cancelled", "message": "Task was cancelled"}
+        return {"status": "cancelled", "message": "Task was cancelled"}, False
 
     def track_background_task(self, task_id: str, bg: asyncio.Task[Any]) -> None:
         """Track a background asyncio.Task for a managed task."""

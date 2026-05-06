@@ -2121,7 +2121,9 @@ class MCPServer:
         resource_owner = self._get_resource_owner_from_context()
         try:
             context_key = self._get_task_context_key(session, resource_owner)
-            result = await self._task_manager.get_result(task_id, context_key)
+            result, is_error = await self._task_manager.get_result_with_classification(
+                task_id, context_key
+            )
         except TaskNotFoundError:
             return JSONRPCError(
                 id=msg_id,
@@ -2133,13 +2135,14 @@ class MCPServer:
                 error={"code": -32603, "message": str(e)},
             )
 
-        # Explicit error-vs-result disambiguation via the task manager rather
-        # than duck-typing the stored payload's shape: a stored error is a
-        # JSON-RPC error dict ({"code", "message"}) but other stored values
-        # (e.g. the cancellation fallback {"status": "cancelled", ...}) can
-        # share keys by coincidence. The manager is the source of truth for
-        # which task slots hold errors.
-        if self._task_manager.has_stored_error(task_id):
+        # ``is_error`` is captured atomically with ``result`` inside the task
+        # manager so the periodic ``_cleanup_loop`` cannot ``_evict`` the
+        # task between the payload read and the classification read. A
+        # post-hoc ``has_stored_error`` call would be racy: eviction would
+        # remove the entry from ``_errors`` between the two reads and the
+        # error would be misclassified as a success, corrupting the wire
+        # response type from ``JSONRPCError`` to ``JSONRPCResponse``.
+        if is_error:
             return JSONRPCError(
                 id=msg_id,
                 error=result,

@@ -719,6 +719,19 @@ class UI(_ContextComponent):
 
         effective_mode = mode or "form"
 
+        # URL-mode elicitation does not consume a schema; the session
+        # layer ignores ``requested_schema`` for ``mode="url"``. Surface
+        # a misuse loudly instead of silently discarding the caller's
+        # schema, otherwise a developer who passes both mode="url" and
+        # schema={...} has no signal that their schema constraint never
+        # took effect.
+        if effective_mode == "url" and schema is not None:
+            raise ValueError(
+                "schema is not supported in URL-mode elicitation; the session "
+                "ignores requested_schema for mode='url'. Pass schema only with "
+                "mode='form' (or omit mode entirely for form mode)."
+            )
+
         if effective_mode == "form":
             if schema is None:
                 schema = {"type": "object", "properties": {}}
