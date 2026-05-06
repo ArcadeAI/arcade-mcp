@@ -10,6 +10,7 @@ from arcade_core.catalog import MaterializedTool, ToolDefinitionError
 from arcade_mcp_server import tool
 from arcade_mcp_server.mcp_app import MCPApp
 from arcade_mcp_server.server import MCPServer
+from arcade_mcp_server.types import ToolExecution
 
 
 class TestMCPAppVersionValidation:
@@ -266,6 +267,65 @@ class TestMCPApp:
         # Verify tools can still be called
         assert simple_tool("test") == "Response: test"
         assert simple_tool2("test") == "Response: test"
+
+    def test_tool_decorator_plumbs_execution_kwarg(self, mcp_app: MCPApp):
+        """``@mcp_app.tool(execution=...)`` writes the dunder used by the
+        MCP wire conversion / taskSupport policy enforcement.
+        """
+        execution = ToolExecution(taskSupport="optional")
+
+        @mcp_app.tool(execution=execution)
+        def reportable_tool(message: Annotated[str, "A message"]) -> str:
+            """A tool that supports task augmentation."""
+            return f"Response: {message}"
+
+        assert reportable_tool.__tool_execution__ is execution
+        assert reportable_tool.__tool_execution__.taskSupport == "optional"
+
+    def test_add_tool_plumbs_execution_kwarg(self, mcp_app: MCPApp):
+        """``app.add_tool(func, execution=...)`` (no pre-decoration) sets
+        the dunder so the registration path is symmetric with
+        ``@app.tool``.
+        """
+        execution = ToolExecution(taskSupport="required")
+
+        def background_tool(message: Annotated[str, "A message"]) -> str:
+            """A tool that must be invoked as a task."""
+            return f"Response: {message}"
+
+        registered = mcp_app.add_tool(background_tool, execution=execution)
+        assert registered.__tool_execution__ is execution
+        assert registered.__tool_execution__.taskSupport == "required"
+
+    def test_add_tool_execution_kwarg_overrides_pre_decoration(self, mcp_app: MCPApp):
+        """A pre-decorated ``@tool(execution=...)`` callable can have its
+        policy overridden by an explicit ``execution=`` at ``add_tool``
+        time. This pins the documented override semantic.
+        """
+        @tool(execution=ToolExecution(taskSupport="optional"))
+        def overridable_tool(message: Annotated[str, "A message"]) -> str:
+            """A tool registered with one policy and overridden at add_tool."""
+            return f"Response: {message}"
+
+        override = ToolExecution(taskSupport="forbidden")
+        registered = mcp_app.add_tool(overridable_tool, execution=override)
+        assert registered.__tool_execution__ is override
+
+    def test_add_tool_execution_kwarg_omitted_preserves_pre_decoration(
+        self, mcp_app: MCPApp
+    ):
+        """When ``add_tool`` is called without ``execution=`` on a
+        pre-decorated tool, the pre-decoration's policy is preserved.
+        """
+        pre = ToolExecution(taskSupport="optional")
+
+        @tool(execution=pre)
+        def pre_decorated_tool(message: Annotated[str, "A message"]) -> str:
+            """Pre-decorated tool."""
+            return f"Response: {message}"
+
+        registered = mcp_app.add_tool(pre_decorated_tool)
+        assert registered.__tool_execution__ is pre
 
     @pytest.mark.asyncio
     async def test_tools_api(

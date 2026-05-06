@@ -24,11 +24,16 @@ from arcade_core.subprocess_utils import (
 from arcade_core.utils import snake_to_pascal_case
 from arcade_tdk.auth import ToolAuthorization
 from arcade_tdk.error_adapters import ErrorAdapter
-from arcade_tdk.tool import tool as tool_decorator
 from loguru import logger
 from watchfiles import watch
 
 from arcade_mcp_server._validation import normalize_version
+
+# Use the MCP-aware wrapper so ``execution=`` (and any future MCP-specific
+# kwargs) plumb through ``MCPApp.tool`` / ``MCPApp.add_tool``. Importing
+# arcade-tdk's bare ``tool`` here would silently strip any MCP-typed kwargs
+# the ``MCPApp`` API accepts.
+from arcade_mcp_server.decorators import tool as tool_decorator
 from arcade_mcp_server.exceptions import ServerError
 from arcade_mcp_server.logging_utils import intercept_standard_logging
 from arcade_mcp_server.managers.resource import (
@@ -39,7 +44,14 @@ from arcade_mcp_server.managers.resource import (
 from arcade_mcp_server.resource_server.base import ResourceServerValidator
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.settings import MCPSettings, ServerSettings, find_env_file
-from arcade_mcp_server.types import Annotations, Prompt, PromptMessage, Resource, ResourceTemplate
+from arcade_mcp_server.types import (
+    Annotations,
+    Prompt,
+    PromptMessage,
+    Resource,
+    ResourceTemplate,
+    ToolExecution,
+)
 from arcade_mcp_server.usage import ServerTracker
 from arcade_mcp_server.worker import create_arcade_mcp, serve_with_force_quit
 
@@ -292,8 +304,14 @@ class MCPApp:
         adapters: list[ErrorAdapter] | None = None,
         metadata: ToolMetadata | None = None,
         meta: dict[str, Any] | None = None,
+        execution: ToolExecution | None = None,
     ) -> Callable[P, T]:
-        """Add a tool for build-time materialization (pre-server)."""
+        """Add a tool for build-time materialization (pre-server).
+
+        ``execution`` declares MCP 2025-11-25 task-augmentation policy
+        (``taskSupport``). When ``func`` is already decorated by ``@tool``,
+        ``execution`` here overrides any policy set on the decorator.
+        """
         if meta and "arcade" in meta:
             raise ToolDefinitionError(
                 "The 'arcade' key in meta is reserved. "
@@ -310,7 +328,14 @@ class MCPApp:
                 requires_metadata=requires_metadata,
                 adapters=adapters,
                 metadata=metadata,
+                execution=execution,
             )
+        elif execution is not None:
+            # Pre-decorated tool with an explicit ``execution=`` at registration
+            # time: write the dunder directly. The catalog reads it off the
+            # decorated callable (`MCPServer._handle_call_tool` and
+            # `convert.create_mcp_tool` both `getattr(..., "__tool_execution__")`).
+            func.__tool_execution__ = execution  # type: ignore[attr-defined]
         try:
             self._catalog.add_tool(
                 func,
@@ -464,8 +489,14 @@ class MCPApp:
         adapters: list[ErrorAdapter] | None = None,
         metadata: ToolMetadata | None = None,
         meta: dict[str, Any] | None = None,
+        execution: ToolExecution | None = None,
     ) -> Callable[[Callable[P, T]], Callable[P, T]] | Callable[P, T]:
-        """Decorator for adding tools with optional parameters."""
+        """Decorator for adding tools with optional parameters.
+
+        ``execution`` declares MCP 2025-11-25 task-augmentation policy
+        (``taskSupport``) on the decorated tool, mirroring the standalone
+        ``@tool(execution=...)`` from ``arcade_mcp_server``.
+        """
 
         def decorator(f: Callable[P, T]) -> Callable[P, T]:
             return self.add_tool(
@@ -478,6 +509,7 @@ class MCPApp:
                 adapters=adapters,
                 metadata=metadata,
                 meta=meta,
+                execution=execution,
             )
 
         if func is not None:

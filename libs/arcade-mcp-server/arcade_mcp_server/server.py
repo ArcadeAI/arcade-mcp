@@ -2217,7 +2217,14 @@ class MCPServer:
 
         token_ctx = set_current_model_context(bg_context)
         progress_token = self._task_manager.get_progress_token(task_id)
-        token_meta = set_request_meta({"progressToken": progress_token} if progress_token else None)
+        # ``progress_token`` is the spec-defined ``str | int`` ProgressToken from
+        # ``ProgressNotificationParams``. Use ``is not None`` rather than
+        # truthiness: an integer token of ``0`` is a valid token but is falsy,
+        # and a truthiness check would silently drop progress notifications for
+        # that task (``Progress.report`` skips when meta carries no progressToken).
+        token_meta = set_request_meta(
+            {"progressToken": progress_token} if progress_token is not None else None
+        )
 
         # Tasks may be evicted by TTL cleanup at any time, so
         # ``update_status`` can raise ``TaskNotFoundError`` in addition to
