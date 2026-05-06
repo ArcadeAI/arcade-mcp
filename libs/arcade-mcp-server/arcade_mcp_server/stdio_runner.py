@@ -93,15 +93,18 @@ async def run_stdio_server(
     except Exception as e:
         logger.debug(f"Unable to log settings/tool env keys: {e}")
 
-    sever_kwargs = {
+    server_kwargs: dict[str, Any] = {
         "catalog": catalog,
         "settings": settings,
         "initial_resources": initial_resources,
         "tool_meta_extensions": tool_meta_extensions,
-        "pctx_url": pctx_url,
         **kwargs,
     }
-    server = PctxMCPServer(**sever_kwargs) if pctx_url else MCPServer(**sever_kwargs)
+    server = (
+        PctxMCPServer(pctx_url=pctx_url, **server_kwargs)
+        if pctx_url
+        else MCPServer(**server_kwargs)
+    )
 
     transport = StdioTransport()
 

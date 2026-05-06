@@ -65,7 +65,6 @@ def _build_code_mode_tools(disclosure: ToolDisclosure) -> list[MCPTool]:
                 name=name,
                 description=get_tool_description(name, disclosure=disclosure),
                 inputSchema=input_schema,
-                outputSchema={"type": "string"},
             )
         )
     return tools
@@ -103,9 +102,10 @@ class PctxMCPServer(MCPServer):
         message: ListToolsRequest,
         session: ServerSession | None = None,
     ) -> JSONRPCResponse[ListToolsResult] | JSONRPCError:
+        # orig_tools = await self._tool_manager.list_tools()
         return JSONRPCResponse(
             id=message.id,
-            result=ListToolsResult(tools=list(self._pctx_code_mode_tools)),
+            result=ListToolsResult(tools=self._pctx_code_mode_tools),
         )
 
     async def _handle_call_tool(self, message, session=None):

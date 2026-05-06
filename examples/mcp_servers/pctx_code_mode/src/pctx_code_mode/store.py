@@ -5,9 +5,12 @@ Seeded with stable demo data so evaluations can use predictable IDs.
 """
 
 import uuid
-from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Literal, TypedDict, cast
+
+from typing_extensions import Unpack
+
+ProjectStatus = Literal["planning", "active", "on_hold", "completed", "archived"]
 
 
 def _now() -> str:
@@ -23,39 +26,24 @@ def _uid(prefix: str) -> str:
 # ---------------------------------------------------------------------------
 
 
-@dataclass
-class Project:
-    project_id: str
+class ProjectCreate(TypedDict):
     name: str
     description: str
     owner_id: str
-    status: str  # planning | active | on_hold | completed | archived
+    status: ProjectStatus
     tags: list[str]
     settings: dict[str, Any]
     sprint_ids: list[str]
     member_ids: list[str]
+
+
+class Project(ProjectCreate):
+    project_id: str
     created_at: str
     updated_at: str
 
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "project_id": self.project_id,
-            "name": self.name,
-            "description": self.description,
-            "owner_id": self.owner_id,
-            "status": self.status,
-            "tags": self.tags,
-            "settings": self.settings,
-            "sprint_count": len(self.sprint_ids),
-            "member_ids": self.member_ids,
-            "created_at": self.created_at,
-            "updated_at": self.updated_at,
-        }
 
-
-@dataclass
-class Sprint:
-    sprint_id: str
+class SprintCreate(TypedDict):
     project_id: str
     name: str
     status: str  # planning | active | completed
@@ -65,30 +53,15 @@ class Sprint:
     capacity_hours: float
     task_ids: list[str]
     retrospective_notes: str
+
+
+class Sprint(SprintCreate):
+    sprint_id: str
     created_at: str
     updated_at: str
 
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "sprint_id": self.sprint_id,
-            "project_id": self.project_id,
-            "name": self.name,
-            "status": self.status,
-            "start_date": self.start_date,
-            "end_date": self.end_date,
-            "goals": self.goals,
-            "capacity_hours": self.capacity_hours,
-            "task_count": len(self.task_ids),
-            "task_ids": self.task_ids,
-            "retrospective_notes": self.retrospective_notes,
-            "created_at": self.created_at,
-            "updated_at": self.updated_at,
-        }
 
-
-@dataclass
-class Task:
-    task_id: str
+class TaskCreate(TypedDict):
     sprint_id: str | None
     project_id: str
     title: str
@@ -99,41 +72,20 @@ class Task:
     labels: list[str]
     estimate_hours: float
     parent_task_id: str | None
-    subtask_ids: list[str]
     acceptance_criteria: list[str]
+
+
+class Task(TaskCreate):
+    task_id: str
+    subtask_ids: list[str]
     comment_ids: list[str]
     time_entry_ids: list[str]
     logged_hours: float
     created_at: str
     updated_at: str
 
-    def to_dict(self, include_full: bool = True) -> dict[str, Any]:
-        d: dict[str, Any] = {
-            "task_id": self.task_id,
-            "sprint_id": self.sprint_id,
-            "project_id": self.project_id,
-            "title": self.title,
-            "status": self.status,
-            "priority": self.priority,
-            "assignee_id": self.assignee_id,
-            "labels": self.labels,
-            "estimate_hours": self.estimate_hours,
-            "logged_hours": self.logged_hours,
-            "parent_task_id": self.parent_task_id,
-            "subtask_count": len(self.subtask_ids),
-            "subtask_ids": self.subtask_ids,
-            "comment_count": len(self.comment_ids),
-            "created_at": self.created_at,
-            "updated_at": self.updated_at,
-        }
-        if include_full:
-            d["description"] = self.description
-            d["acceptance_criteria"] = self.acceptance_criteria
-        return d
 
-
-@dataclass
-class Comment:
+class Comment(TypedDict):
     comment_id: str
     task_id: str
     author_id: str
@@ -142,20 +94,8 @@ class Comment:
     created_at: str
     updated_at: str
 
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "comment_id": self.comment_id,
-            "task_id": self.task_id,
-            "author_id": self.author_id,
-            "body": self.body,
-            "attachments": self.attachments,
-            "created_at": self.created_at,
-            "updated_at": self.updated_at,
-        }
 
-
-@dataclass
-class TimeEntry:
+class TimeEntry(TypedDict):
     entry_id: str
     task_id: str
     user_id: str
@@ -163,17 +103,6 @@ class TimeEntry:
     description: str
     work_date: str
     created_at: str
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "entry_id": self.entry_id,
-            "task_id": self.task_id,
-            "user_id": self.user_id,
-            "hours": self.hours,
-            "description": self.description,
-            "work_date": self.work_date,
-            "created_at": self.created_at,
-        }
 
 
 # ---------------------------------------------------------------------------
@@ -241,7 +170,7 @@ class ProjectStore:
         )
         self.sprints["spr_001"] = sprint
 
-        seed_tasks = [
+        seed_tasks: list[Task] = [
             Task(
                 task_id="task_001",
                 sprint_id="spr_001",
@@ -354,16 +283,21 @@ class ProjectStore:
         ]
 
         for task in seed_tasks:
-            self.tasks[task.task_id] = task
+            self.tasks[task["task_id"]] = task
 
     # ------------------------------------------------------------------
     # Project helpers
     # ------------------------------------------------------------------
 
-    def create_project(self, **kwargs: Any) -> Project:
+    def create_project(self, **kwargs: Unpack[ProjectCreate]) -> Project:
         project_id = _uid("proj")
         now = _now()
-        proj = Project(project_id=project_id, created_at=now, updated_at=now, **kwargs)
+        proj: Project = {
+            "project_id": project_id,
+            "created_at": now,
+            "updated_at": now,
+            **kwargs,
+        }
         self.projects[project_id] = proj
         return proj
 
@@ -374,15 +308,20 @@ class ProjectStore:
     # Sprint helpers
     # ------------------------------------------------------------------
 
-    def create_sprint(self, **kwargs: Any) -> Sprint:
+    def create_sprint(self, **kwargs: Unpack[SprintCreate]) -> Sprint:
         sprint_id = _uid("spr")
         now = _now()
-        sprint = Sprint(sprint_id=sprint_id, created_at=now, updated_at=now, **kwargs)
+        sprint: Sprint = {
+            "sprint_id": sprint_id,
+            "created_at": now,
+            "updated_at": now,
+            **kwargs,
+        }
         self.sprints[sprint_id] = sprint
-        proj = self.projects.get(sprint.project_id)
+        proj = self.projects.get(sprint["project_id"])
         if proj:
-            proj.sprint_ids.append(sprint_id)
-            proj.updated_at = now
+            proj["sprint_ids"].append(sprint_id)
+            proj["updated_at"] = now
         return sprint
 
     def get_sprint(self, sprint_id: str) -> Sprint | None:
@@ -392,31 +331,32 @@ class ProjectStore:
     # Task helpers
     # ------------------------------------------------------------------
 
-    def create_task(self, **kwargs: Any) -> Task:
+    def create_task(self, **kwargs: Unpack[TaskCreate]) -> Task:
         task_id = _uid("task")
         now = _now()
-        task = Task(
-            task_id=task_id,
-            comment_ids=[],
-            time_entry_ids=[],
-            subtask_ids=[],
-            logged_hours=0.0,
-            created_at=now,
-            updated_at=now,
+        task: Task = {
+            "task_id": task_id,
+            "comment_ids": [],
+            "time_entry_ids": [],
+            "subtask_ids": [],
+            "logged_hours": 0.0,
+            "created_at": now,
+            "updated_at": now,
             **kwargs,
-        )
+        }
         self.tasks[task_id] = task
         # Register in sprint
-        sprint = self.sprints.get(task.sprint_id or "")
+        sprint = self.sprints.get(task.get("sprint_id") or "")
         if sprint:
-            sprint.task_ids.append(task_id)
-            sprint.updated_at = now
+            sprint["task_ids"].append(task_id)
+            sprint["updated_at"] = now
         # Register as subtask on parent
-        if task.parent_task_id:
-            parent = self.tasks.get(task.parent_task_id)
+        parent_id = task.get("parent_task_id")
+        if parent_id:
+            parent = self.tasks.get(parent_id)
             if parent:
-                parent.subtask_ids.append(task_id)
-                parent.updated_at = now
+                parent["subtask_ids"].append(task_id)
+                parent["updated_at"] = now
         return task
 
     def get_task(self, task_id: str) -> Task | None:
@@ -428,13 +368,14 @@ class ProjectStore:
         task = self.tasks.get(task_id)
         if not task:
             return None
+        task_dict = cast(dict[str, Any], task)
         changes: dict[str, Any] = {}
         for key, new_val in updates.items():
-            old_val = getattr(task, key, None)
+            old_val = task_dict.get(key)
             if old_val != new_val:
                 changes[key] = {"from": old_val, "to": new_val}
-                setattr(task, key, new_val)
-        task.updated_at = _now()
+                task_dict[key] = new_val
+        task["updated_at"] = _now()
         return task, changes
 
     # ------------------------------------------------------------------
@@ -459,8 +400,8 @@ class ProjectStore:
             updated_at=now,
         )
         self.comments[comment_id] = comment
-        task.comment_ids.append(comment_id)
-        task.updated_at = now
+        task["comment_ids"].append(comment_id)
+        task["updated_at"] = now
         return comment
 
     # ------------------------------------------------------------------
@@ -485,9 +426,9 @@ class ProjectStore:
             created_at=now,
         )
         self.time_entries[entry_id] = entry
-        task.time_entry_ids.append(entry_id)
-        task.logged_hours += hours
-        task.updated_at = now
+        task["time_entry_ids"].append(entry_id)
+        task["logged_hours"] += hours
+        task["updated_at"] = now
         return entry
 
     # ------------------------------------------------------------------
@@ -501,18 +442,18 @@ class ProjectStore:
         if not sprint:
             return None
 
-        tasks = [self.tasks[tid] for tid in sprint.task_ids if tid in self.tasks]
+        tasks = [self.tasks[tid] for tid in sprint["task_ids"] if tid in self.tasks]
         total = len(tasks)
-        done = sum(1 for t in tasks if t.status == "done")
-        cancelled = sum(1 for t in tasks if t.status == "cancelled")
+        done = sum(1 for t in tasks if t["status"] == "done")
+        cancelled = sum(1 for t in tasks if t["status"] == "cancelled")
         carry_over = total - done - cancelled
-        estimated = sum(t.estimate_hours for t in tasks)
-        logged = sum(t.logged_hours for t in tasks)
+        estimated = sum(t["estimate_hours"] for t in tasks)
+        logged = sum(t["logged_hours"] for t in tasks)
 
         metrics: dict[str, Any] = {
             "sprint_id": sprint_id,
-            "sprint_name": sprint.name,
-            "status": sprint.status,
+            "sprint_name": sprint["name"],
+            "status": sprint["status"],
             "total_tasks": total,
             "completed_tasks": done,
             "cancelled_tasks": cancelled,
@@ -521,9 +462,9 @@ class ProjectStore:
             "hours_estimated": estimated,
             "hours_logged": logged,
             "velocity": logged,
-            "capacity_hours": sprint.capacity_hours,
-            "utilization_rate": round(logged / sprint.capacity_hours, 4)
-            if sprint.capacity_hours
+            "capacity_hours": sprint["capacity_hours"],
+            "utilization_rate": round(logged / sprint["capacity_hours"], 4)
+            if sprint["capacity_hours"]
             else 0.0,
         }
 
@@ -531,12 +472,12 @@ class ProjectStore:
             # Synthetic burndown: linear ideal line vs stepwise actual
             metrics["burndown"] = [
                 {
-                    "date": sprint.start_date,
+                    "date": sprint["start_date"],
                     "remaining_ideal": estimated,
                     "remaining_actual": estimated,
                 },
                 {
-                    "date": sprint.end_date,
+                    "date": sprint["end_date"],
                     "remaining_ideal": 0.0,
                     "remaining_actual": max(0.0, estimated - logged),
                 },
@@ -546,16 +487,16 @@ class ProjectStore:
             by_status: dict[str, int] = {}
             by_priority: dict[str, int] = {}
             for t in tasks:
-                by_status[t.status] = by_status.get(t.status, 0) + 1
-                by_priority[t.priority] = by_priority.get(t.priority, 0) + 1
+                by_status[t["status"]] = by_status.get(t["status"], 0) + 1
+                by_priority[t["priority"]] = by_priority.get(t["priority"], 0) + 1
 
             # Contributor summary
             contributor_hours: dict[str, float] = {}
             contributor_done: dict[str, int] = {}
             for t in tasks:
-                uid = t.assignee_id or "unassigned"
-                contributor_hours[uid] = contributor_hours.get(uid, 0.0) + t.logged_hours
-                if t.status == "done":
+                uid = t["assignee_id"] or "unassigned"
+                contributor_hours[uid] = contributor_hours.get(uid, 0.0) + t["logged_hours"]
+                if t["status"] == "done":
                     contributor_done[uid] = contributor_done.get(uid, 0) + 1
 
             metrics["task_breakdown"] = {
@@ -595,40 +536,42 @@ class ProjectStore:
         results = list(self.tasks.values())
 
         if project_id:
-            results = [t for t in results if t.project_id == project_id]
+            results = [t for t in results if t["project_id"] == project_id]
         if sprint_id:
-            results = [t for t in results if t.sprint_id == sprint_id]
+            results = [t for t in results if t["sprint_id"] == sprint_id]
         if assignee_id:
-            results = [t for t in results if t.assignee_id == assignee_id]
+            results = [t for t in results if t["assignee_id"] == assignee_id]
         if statuses:
-            results = [t for t in results if t.status in statuses]
+            results = [t for t in results if t["status"] in statuses]
         if priorities:
-            results = [t for t in results if t.priority in priorities]
+            results = [t for t in results if t["priority"] in priorities]
         if labels:
-            results = [t for t in results if all(lbl in t.labels for lbl in labels)]
+            results = [t for t in results if all(lbl in t["labels"] for lbl in labels)]
         if has_estimate:
-            results = [t for t in results if t.estimate_hours > 0]
+            results = [t for t in results if t["estimate_hours"] > 0]
         if is_overdue:
-            results = [t for t in results if t.status not in ("done", "cancelled")]
+            results = [t for t in results if t["status"] not in ("done", "cancelled")]
         if query:
             q = query.lower()
-            results = [t for t in results if q in t.title.lower() or q in t.description.lower()]
+            results = [
+                t for t in results if q in t["title"].lower() or q in t["description"].lower()
+            ]
 
         priority_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
         if sort_by == "priority":
-            results.sort(key=lambda t: priority_order.get(t.priority, 99))
+            results.sort(key=lambda t: priority_order.get(t["priority"], 99))
         elif sort_by == "estimate_hours":
-            results.sort(key=lambda t: -t.estimate_hours)
+            results.sort(key=lambda t: -t["estimate_hours"])
         elif sort_by == "created_at":
-            results.sort(key=lambda t: t.created_at, reverse=True)
+            results.sort(key=lambda t: t["created_at"], reverse=True)
         else:
-            results.sort(key=lambda t: t.updated_at, reverse=True)
+            results.sort(key=lambda t: t["updated_at"], reverse=True)
 
         total = len(results)
         results = results[:limit]
 
         return {
-            "tasks": [t.to_dict(include_full=False) for t in results],
+            "tasks": [dict(t) for t in results],
             "total": total,
             "returned": len(results),
             "filters_applied": {

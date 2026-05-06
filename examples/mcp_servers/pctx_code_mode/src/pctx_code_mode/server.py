@@ -13,14 +13,114 @@ Usage:
 
 import json
 import sys
-from typing import Annotated
+from typing import Annotated, Any, Literal, TypedDict, cast
 
+from arcade_core.errors import FatalToolError
 from arcade_mcp_server import MCPApp
-from pctx_client import tool as pctx_tool
 
-from pctx_code_mode.store import get_store
+from pctx_code_mode.store import (
+    Comment,
+    Project,
+    ProjectStatus,
+    Sprint,
+    Task,
+    TimeEntry,
+    get_store,
+)
 
-app = MCPApp(name="ProjectTracker", version="1.0.0", log_level="WARNING")
+app = MCPApp(
+    name="ProjectTracker", version="1.0.0", log_level="WARNING", pctx_url="http://localhost:8000"
+)
+
+
+# ---------------------------------------------------------------------------
+# Tool result types
+# ---------------------------------------------------------------------------
+
+
+class ListProjectsFilters(TypedDict):
+    status_filter: list[str] | None
+    owner_id: str | None
+    tag: str | None
+
+
+class ListProjectsResult(TypedDict):
+    projects: list[Project]
+    total: int
+    returned: int
+    filters: ListProjectsFilters
+
+
+class CloseSprintSummary(TypedDict):
+    total_tasks: int
+    completed_tasks: int
+    carried_over_tasks: int
+    cancelled_tasks: int
+    completion_rate: float
+
+
+class CloseSprintResult(TypedDict):
+    sprint: Sprint
+    summary: CloseSprintSummary
+    carry_over_task_ids: list[str]
+    carry_over_policy: str
+
+
+class TimeLogSummary(TypedDict):
+    total_logged_hours: float
+    entry_count: int
+    entries: list[TimeEntry]
+
+
+class GetTaskResult(Task):
+    subtasks: list[Task]
+    recent_comments: list[Comment]
+    time_log: TimeLogSummary
+
+
+class UpdateTaskResult(TypedDict):
+    task: Task
+    changes: dict[str, Any]
+    message: str | None
+
+
+class MoveTaskResult(TypedDict):
+    task: Task
+    moved_from: str | None
+    moved_to: str | None
+
+
+class AddSubtaskResult(TypedDict):
+    subtask: Task
+    parent_task_id: str
+    parent_subtask_count: int
+
+
+class AddCommentResult(TypedDict):
+    comment: Comment
+    task_comment_count: int
+
+
+class LogTimeResult(TypedDict):
+    entry: TimeEntry
+    task_total_logged_hours: float
+    sprint_total_logged_hours: float
+
+
+class SearchTasksFilters(TypedDict):
+    project_id: str | None
+    sprint_id: str | None
+    assignee_id: str | None
+    statuses: list[str] | None
+    priorities: list[str] | None
+    labels: list[str] | None
+
+
+class SearchTasksResult(TypedDict):
+    tasks: list[Task]
+    total: int
+    returned: int
+    filters_applied: SearchTasksFilters
 
 
 # ---------------------------------------------------------------------------
@@ -28,14 +128,13 @@ app = MCPApp(name="ProjectTracker", version="1.0.0", log_level="WARNING")
 # ---------------------------------------------------------------------------
 
 
-@pctx_tool
 @app.tool
 def create_project(
     name: Annotated[str, "Project name (1-120 characters)"],
     description: Annotated[str, "Full project description including goals and scope"],
     owner_id: Annotated[str, "User ID of the project owner"],
     status: Annotated[
-        str,
+        ProjectStatus,
         "Initial project status: planning, active, on_hold, completed, archived",
     ] = "planning",
     tags: Annotated[
@@ -47,7 +146,7 @@ def create_project(
         "Comma-separated user IDs of initial project members (owner is always included)",
     ] = "",
     settings: Annotated[
-        str,
+        dict[str, Any] | None,
         (
             "JSON object with project-level settings. "
             'Supported keys: "velocity_unit" ("hours"|"points"), '
@@ -57,8 +156,8 @@ def create_project(
             '"review_required" (bool). '
             'Example: {"velocity_unit":"hours","sprint_length_days":14}'
         ),
-    ] = "{}",
-) -> dict:
+    ] = None,
+) -> Project:
     """
     Create a new project. Returns the full project record including the
     generated project_id needed for subsequent sprint and task operations.
@@ -66,14 +165,10 @@ def create_project(
     store = get_store()
     tag_list = [t.strip() for t in tags.split(",") if t.strip()]
     member_list = list({owner_id} | {m.strip() for m in member_ids.split(",") if m.strip()})
-    try:
-        settings_dict = json.loads(settings) if settings.strip() else {}
-    except json.JSONDecodeError as exc:
-        return {"error": f"Invalid settings JSON: {exc}"}
 
     valid_statuses = {"planning", "active", "on_hold", "completed", "archived"}
     if status not in valid_statuses:
-        return {"error": f"status must be one of {sorted(valid_statuses)}, got '{status}'"}
+        raise FatalToolError(f"status must be one of {sorted(valid_statuses)}, got '{status}'")
 
     project = store.create_project(
         name=name.strip(),
@@ -81,27 +176,25 @@ def create_project(
         owner_id=owner_id.strip(),
         status=status,
         tags=tag_list,
-        settings=settings_dict,
+        settings=settings or {},
         sprint_ids=[],
         member_ids=member_list,
     )
-    return project.to_dict()
+    return project
 
 
-@pctx_tool
 @app.tool
 def get_project(
     project_id: Annotated[str, "ID of the project to retrieve"],
-) -> dict:
+) -> Project:
     """Retrieve full project details including sprint IDs, member list, and settings."""
     store = get_store()
     project = store.get_project(project_id)
     if not project:
-        return {"error": f"Project '{project_id}' not found"}
-    return project.to_dict()
+        raise FatalToolError(f"Project '{project_id}' not found")
+    return project
 
 
-@pctx_tool
 @app.tool
 def list_projects(
     status_filter: Annotated[
@@ -111,7 +204,7 @@ def list_projects(
     owner_id: Annotated[str, "Filter to projects owned by this user ID. Empty = all owners."] = "",
     tag: Annotated[str, "Return only projects that include this tag. Empty = no filter."] = "",
     limit: Annotated[int, "Maximum number of projects to return (1-200)"] = 50,
-) -> dict:
+) -> ListProjectsResult:
     """
     List projects with optional filtering. Returns {projects: [...], total, returned, filters}.
     Access the array via result.projects.
@@ -121,18 +214,18 @@ def list_projects(
 
     statuses = [s.strip() for s in status_filter.split(",") if s.strip()]
     if statuses:
-        projects = [p for p in projects if p.status in statuses]
+        projects = [p for p in projects if p["status"] in statuses]
     if owner_id.strip():
-        projects = [p for p in projects if p.owner_id == owner_id.strip()]
+        projects = [p for p in projects if p["owner_id"] == owner_id.strip()]
     if tag.strip():
-        projects = [p for p in projects if tag.strip() in p.tags]
+        projects = [p for p in projects if tag.strip() in p["tags"]]
 
-    projects.sort(key=lambda p: p.updated_at, reverse=True)
+    projects.sort(key=lambda p: p["updated_at"], reverse=True)
     total = len(projects)
     projects = projects[:limit]
 
     return {
-        "projects": [p.to_dict() for p in projects],
+        "projects": projects,
         "total": total,
         "returned": len(projects),
         "filters": {
@@ -148,7 +241,6 @@ def list_projects(
 # ---------------------------------------------------------------------------
 
 
-@pctx_tool
 @app.tool
 def create_sprint(
     project_id: Annotated[str, "ID of the parent project"],
@@ -163,7 +255,7 @@ def create_sprint(
         float,
         "Total available team-hours for this sprint across all members. Used for utilisation metrics.",
     ] = 0.0,
-) -> dict:
+) -> Sprint:
     """
     Create a new sprint inside an existing project. The sprint starts in
     'planning' status. Returns the full sprint record including the
@@ -172,7 +264,7 @@ def create_sprint(
     store = get_store()
     project = store.get_project(project_id)
     if not project:
-        return {"error": f"Project '{project_id}' not found"}
+        raise FatalToolError(f"Project '{project_id}' not found")
 
     goal_list = [g.strip() for g in goals.split(",") if g.strip()]
     sprint = store.create_sprint(
@@ -186,27 +278,25 @@ def create_sprint(
         task_ids=[],
         retrospective_notes="",
     )
-    return sprint.to_dict()
+    return sprint
 
 
-@pctx_tool
 @app.tool
 def get_sprint(
     sprint_id: Annotated[str, "ID of the sprint to retrieve"],
-) -> dict:
+) -> Sprint:
     """Retrieve full sprint details including task IDs, goals, and status."""
     store = get_store()
     sprint = store.get_sprint(sprint_id)
     if not sprint:
-        return {"error": f"Sprint '{sprint_id}' not found"}
-    return sprint.to_dict()
+        raise FatalToolError(f"Sprint '{sprint_id}' not found")
+    return sprint
 
 
-@pctx_tool
 @app.tool
 def activate_sprint(
     sprint_id: Annotated[str, "ID of the sprint to move from planning to active"],
-) -> dict:
+) -> Sprint:
     """
     Transition a sprint from 'planning' to 'active'. Only one sprint per
     project should be active at a time. Returns the updated sprint record.
@@ -214,17 +304,18 @@ def activate_sprint(
     store = get_store()
     sprint = store.get_sprint(sprint_id)
     if not sprint:
-        return {"error": f"Sprint '{sprint_id}' not found"}
-    if sprint.status != "planning":
-        return {"error": f"Sprint is already '{sprint.status}', must be 'planning' to activate"}
-    result = store.update_task  # just touching the store instance
-    sprint.status = "active"
+        raise FatalToolError(f"Sprint '{sprint_id}' not found")
+    if sprint["status"] != "planning":
+        raise FatalToolError(
+            f"Sprint is already '{sprint['status']}', must be 'planning' to activate"
+        )
+    sprint["status"] = "active"
     from pctx_code_mode.store import _now
-    sprint.updated_at = _now()
-    return sprint.to_dict()
+
+    sprint["updated_at"] = _now()
+    return sprint
 
 
-@pctx_tool
 @app.tool
 def close_sprint(
     sprint_id: Annotated[str, "ID of the active sprint to close"],
@@ -245,7 +336,7 @@ def close_sprint(
         str,
         "Free-form retrospective text (what went well, what to improve, action items).",
     ] = "",
-) -> dict:
+) -> CloseSprintResult:
     """
     Close a sprint and handle incomplete tasks per the carry-over policy.
     Returns {sprint, summary: {total_tasks, completed_tasks, carried_over_tasks, cancelled_tasks, completion_rate}, carry_over_task_ids, carry_over_policy}.
@@ -253,45 +344,46 @@ def close_sprint(
     store = get_store()
     sprint = store.get_sprint(sprint_id)
     if not sprint:
-        return {"error": f"Sprint '{sprint_id}' not found"}
+        raise FatalToolError(f"Sprint '{sprint_id}' not found")
 
     valid_policies = {"next_sprint", "backlog", "cancel"}
     if carry_over_policy not in valid_policies:
-        return {"error": f"carry_over_policy must be one of {sorted(valid_policies)}"}
+        raise FatalToolError(f"carry_over_policy must be one of {sorted(valid_policies)}")
 
     if carry_over_policy == "next_sprint" and not next_sprint_id.strip():
-        return {"error": "next_sprint_id is required when carry_over_policy='next_sprint'"}
+        raise FatalToolError("next_sprint_id is required when carry_over_policy='next_sprint'")
 
-    tasks = [store.tasks[tid] for tid in sprint.task_ids if tid in store.tasks]
-    incomplete = [t for t in tasks if t.status not in ("done", "cancelled")]
-    completed = [t for t in tasks if t.status == "done"]
+    tasks = [store.tasks[tid] for tid in sprint["task_ids"] if tid in store.tasks]
+    incomplete = [t for t in tasks if t["status"] not in ("done", "cancelled")]
+    completed = [t for t in tasks if t["status"] == "done"]
 
     from pctx_code_mode.store import _now
+
     now = _now()
 
     carry_over_ids: list[str] = []
     for task in incomplete:
         if carry_over_policy == "next_sprint":
             target = store.sprints.get(next_sprint_id.strip())
-            if target and task.task_id not in target.task_ids:
-                target.task_ids.append(task.task_id)
-            task.sprint_id = next_sprint_id.strip() or None
-            carry_over_ids.append(task.task_id)
+            if target and task["task_id"] not in target["task_ids"]:
+                target["task_ids"].append(task["task_id"])
+            task["sprint_id"] = next_sprint_id.strip() or None
+            carry_over_ids.append(task["task_id"])
         elif carry_over_policy == "backlog":
-            task.sprint_id = None
-            task.status = "backlog"
-            carry_over_ids.append(task.task_id)
+            task["sprint_id"] = None
+            task["status"] = "backlog"
+            carry_over_ids.append(task["task_id"])
         else:  # cancel
-            task.status = "cancelled"
+            task["status"] = "cancelled"
 
-        task.updated_at = now
+        task["updated_at"] = now
 
-    sprint.status = "completed"
-    sprint.retrospective_notes = retrospective_notes
-    sprint.updated_at = now
+    sprint["status"] = "completed"
+    sprint["retrospective_notes"] = retrospective_notes
+    sprint["updated_at"] = now
 
     return {
-        "sprint": sprint.to_dict(),
+        "sprint": sprint,
         "summary": {
             "total_tasks": len(tasks),
             "completed_tasks": len(completed),
@@ -309,10 +401,11 @@ def close_sprint(
 # ---------------------------------------------------------------------------
 
 
-@pctx_tool
 @app.tool
 def create_task(
-    sprint_id: Annotated[str, "ID of the sprint this task belongs to. Use 'backlog' to create an unsprinted task."],
+    sprint_id: Annotated[
+        str, "ID of the sprint this task belongs to. Use 'backlog' to create an unsprinted task."
+    ],
     title: Annotated[str, "Short, imperative task title (1-200 characters)"],
     description: Annotated[
         str,
@@ -339,13 +432,13 @@ def create_task(
         "ID of an existing task to nest this as a subtask under. Leave empty for a top-level task.",
     ] = "",
     acceptance_criteria: Annotated[
-        str,
+        list[str] | None,
         (
             "JSON array of acceptance-criteria strings. Each entry is a testable condition. "
             'Example: ["API returns 200 on success", "Error state shows toast notification"]'
         ),
-    ] = "[]",
-) -> dict:
+    ] = None,
+) -> Task:
     """
     Create a new task (or subtask) inside a sprint. Returns the full task
     record including the generated task_id.
@@ -354,32 +447,27 @@ def create_task(
 
     valid_priorities = {"critical", "high", "medium", "low"}
     if priority not in valid_priorities:
-        return {"error": f"priority must be one of {sorted(valid_priorities)}, got '{priority}'"}
+        raise FatalToolError(
+            f"priority must be one of {sorted(valid_priorities)}, got '{priority}'"
+        )
 
     actual_sprint_id: str | None = None
     if sprint_id.strip() and sprint_id.strip() != "backlog":
         sprint = store.get_sprint(sprint_id.strip())
         if not sprint:
-            return {"error": f"Sprint '{sprint_id}' not found"}
+            raise FatalToolError(f"Sprint '{sprint_id}' not found")
         actual_sprint_id = sprint_id.strip()
-        project_id = sprint.project_id
+        project_id = sprint["project_id"]
     elif parent_task_id.strip():
         parent = store.get_task(parent_task_id.strip())
         if not parent:
-            return {"error": f"Parent task '{parent_task_id}' not found"}
-        project_id = parent.project_id
-        actual_sprint_id = parent.sprint_id
+            raise FatalToolError(f"Parent task '{parent_task_id}' not found")
+        project_id = parent["project_id"]
+        actual_sprint_id = parent["sprint_id"]
     else:
-        return {"error": "Either a valid sprint_id or a parent_task_id is required"}
+        raise FatalToolError("Either a valid sprint_id or a parent_task_id is required")
 
     label_list = [lbl.strip() for lbl in labels.split(",") if lbl.strip()][:10]
-
-    try:
-        criteria = json.loads(acceptance_criteria) if acceptance_criteria.strip() else []
-        if not isinstance(criteria, list):
-            criteria = []
-    except json.JSONDecodeError:
-        criteria = []
 
     task = store.create_task(
         sprint_id=actual_sprint_id,
@@ -392,16 +480,15 @@ def create_task(
         labels=label_list,
         estimate_hours=max(0.0, estimate_hours),
         parent_task_id=parent_task_id.strip() or None,
-        acceptance_criteria=criteria,
+        acceptance_criteria=acceptance_criteria or [],
     )
-    return task.to_dict()
+    return task
 
 
-@pctx_tool
 @app.tool
 def get_task(
     task_id: Annotated[str, "ID of the task to retrieve"],
-) -> dict:
+) -> GetTaskResult:
     """
     Retrieve full task details including description, acceptance criteria,
     subtask IDs, comment count, and time-log summary.
@@ -409,31 +496,23 @@ def get_task(
     store = get_store()
     task = store.get_task(task_id)
     if not task:
-        return {"error": f"Task '{task_id}' not found"}
-    d = task.to_dict(include_full=True)
-    # Inline subtask summaries for convenience
-    d["subtasks"] = [
-        store.tasks[sid].to_dict(include_full=False)
-        for sid in task.subtask_ids
-        if sid in store.tasks
-    ]
-    # Inline recent comments (last 5)
+        raise FatalToolError(f"Task '{task_id}' not found")
+    d: dict[str, Any] = {**task}
+    d["subtasks"] = [store.tasks[sid] for sid in task["subtask_ids"] if sid in store.tasks]
     d["recent_comments"] = [
-        store.comments[cid].to_dict()
-        for cid in task.comment_ids[-5:]
-        if cid in store.comments
+        store.comments[cid] for cid in task["comment_ids"][-5:] if cid in store.comments
     ]
-    # Time entry summary
-    entries = [store.time_entries[eid] for eid in task.time_entry_ids if eid in store.time_entries]
+    entries = [
+        store.time_entries[eid] for eid in task["time_entry_ids"] if eid in store.time_entries
+    ]
     d["time_log"] = {
-        "total_logged_hours": task.logged_hours,
+        "total_logged_hours": task["logged_hours"],
         "entry_count": len(entries),
-        "entries": [e.to_dict() for e in entries[-10:]],
+        "entries": entries[-10:],
     }
-    return d
+    return cast(GetTaskResult, d)
 
 
-@pctx_tool
 @app.tool
 def update_task(
     task_id: Annotated[str, "ID of the task to update"],
@@ -459,7 +538,7 @@ def update_task(
         float,
         "Updated hour estimate. Pass -1 to clear the estimate. 0 = no change.",
     ] = 0.0,
-) -> dict:
+) -> UpdateTaskResult:
     """
     Update one or more fields of an existing task. Only non-empty / non-zero
     arguments are applied. Returns {task: <full task object>, changes: {field: {from, to}}}.
@@ -468,7 +547,7 @@ def update_task(
     store = get_store()
     task = store.get_task(task_id)
     if not task:
-        return {"error": f"Task '{task_id}' not found"}
+        raise FatalToolError(f"Task '{task_id}' not found")
 
     updates: dict = {}
 
@@ -480,13 +559,13 @@ def update_task(
     valid_statuses = {"backlog", "todo", "in_progress", "in_review", "done", "cancelled"}
     if status.strip():
         if status.strip() not in valid_statuses:
-            return {"error": f"status must be one of {sorted(valid_statuses)}"}
+            raise FatalToolError(f"status must be one of {sorted(valid_statuses)}")
         updates["status"] = status.strip()
 
     valid_priorities = {"critical", "high", "medium", "low"}
     if priority.strip():
         if priority.strip() not in valid_priorities:
-            return {"error": f"priority must be one of {sorted(valid_priorities)}"}
+            raise FatalToolError(f"priority must be one of {sorted(valid_priorities)}")
         updates["priority"] = priority.strip()
 
     if assignee_id.strip():
@@ -501,17 +580,16 @@ def update_task(
         updates["estimate_hours"] = estimate_hours
 
     if not updates:
-        return {"task": task.to_dict(), "changes": {}, "message": "No changes applied"}
+        return {"task": task, "changes": {}, "message": "No changes applied"}
 
     result = store.update_task(task_id, updates)
     if result is None:
-        return {"error": f"Task '{task_id}' disappeared during update"}
+        raise FatalToolError(f"Task '{task_id}' disappeared during update")
 
     updated_task, changes = result
-    return {"task": updated_task.to_dict(), "changes": changes}
+    return {"task": updated_task, "changes": changes}
 
 
-@pctx_tool
 @app.tool
 def move_task(
     task_id: Annotated[str, "ID of the task to relocate"],
@@ -523,7 +601,7 @@ def move_task(
         str,
         "Optional new status after move: backlog, todo, in_progress, in_review, done, cancelled. Empty = keep current status.",
     ] = "",
-) -> dict:
+) -> MoveTaskResult:
     """
     Move a task from its current sprint to a different sprint (or backlog).
     Optionally update its status at the same time. Returns {task, moved_from, moved_to}.
@@ -531,50 +609,50 @@ def move_task(
     store = get_store()
     task = store.get_task(task_id)
     if not task:
-        return {"error": f"Task '{task_id}' not found"}
+        raise FatalToolError(f"Task '{task_id}' not found")
 
-    old_sprint_id = task.sprint_id
+    old_sprint_id = task["sprint_id"]
 
     if target_sprint_id.strip() == "backlog":
         # Remove from current sprint
         if old_sprint_id and old_sprint_id in store.sprints:
             sprint = store.sprints[old_sprint_id]
-            sprint.task_ids = [tid for tid in sprint.task_ids if tid != task_id]
-        task.sprint_id = None
+            sprint["task_ids"] = [tid for tid in sprint["task_ids"] if tid != task_id]
+        task["sprint_id"] = None
     else:
         target = store.get_sprint(target_sprint_id.strip())
         if not target:
-            return {"error": f"Target sprint '{target_sprint_id}' not found"}
+            raise FatalToolError(f"Target sprint '{target_sprint_id}' not found")
         # Remove from old sprint
         if old_sprint_id and old_sprint_id in store.sprints:
             old_sprint = store.sprints[old_sprint_id]
-            old_sprint.task_ids = [tid for tid in old_sprint.task_ids if tid != task_id]
+            old_sprint["task_ids"] = [tid for tid in old_sprint["task_ids"] if tid != task_id]
         # Add to new sprint
-        if task_id not in target.task_ids:
-            target.task_ids.append(task_id)
-        task.sprint_id = target_sprint_id.strip()
+        if task_id not in target["task_ids"]:
+            target["task_ids"].append(task_id)
+        task["sprint_id"] = target_sprint_id.strip()
 
     updates: dict = {}
     if new_status.strip():
         valid = {"backlog", "todo", "in_progress", "in_review", "done", "cancelled"}
         if new_status.strip() not in valid:
-            return {"error": f"new_status must be one of {sorted(valid)}"}
+            raise FatalToolError(f"new_status must be one of {sorted(valid)}")
         updates["status"] = new_status.strip()
 
     from pctx_code_mode.store import _now
-    task.updated_at = _now()
+
+    task["updated_at"] = _now()
 
     if updates:
         store.update_task(task_id, updates)
 
     return {
-        "task": task.to_dict(),
+        "task": task,
         "moved_from": old_sprint_id,
-        "moved_to": task.sprint_id,
+        "moved_to": task["sprint_id"],
     }
 
 
-@pctx_tool
 @app.tool
 def add_subtask(
     parent_task_id: Annotated[str, "ID of the parent task to attach this subtask to"],
@@ -583,7 +661,7 @@ def add_subtask(
     assignee_id: Annotated[str, "User ID to assign this subtask to"] = "",
     estimate_hours: Annotated[float, "Hour estimate for this subtask"] = 0.0,
     priority: Annotated[str, "Priority: critical, high, medium, low"] = "medium",
-) -> dict:
+) -> AddSubtaskResult:
     """
     Create a subtask nested under an existing task. The subtask inherits
     the parent's sprint and project. Returns the full subtask record.
@@ -591,15 +669,15 @@ def add_subtask(
     store = get_store()
     parent = store.get_task(parent_task_id)
     if not parent:
-        return {"error": f"Parent task '{parent_task_id}' not found"}
+        raise FatalToolError(f"Parent task '{parent_task_id}' not found")
 
     valid_priorities = {"critical", "high", "medium", "low"}
     if priority not in valid_priorities:
-        return {"error": f"priority must be one of {sorted(valid_priorities)}"}
+        raise FatalToolError(f"priority must be one of {sorted(valid_priorities)}")
 
     task = store.create_task(
-        sprint_id=parent.sprint_id,
-        project_id=parent.project_id,
+        sprint_id=parent["sprint_id"],
+        project_id=parent["project_id"],
         title=title.strip(),
         description=description.strip(),
         status="backlog",
@@ -611,9 +689,9 @@ def add_subtask(
         acceptance_criteria=[],
     )
     return {
-        "subtask": task.to_dict(),
+        "subtask": task,
         "parent_task_id": parent_task_id,
-        "parent_subtask_count": len(parent.subtask_ids),
+        "parent_subtask_count": len(parent["subtask_ids"]),
     }
 
 
@@ -622,7 +700,6 @@ def add_subtask(
 # ---------------------------------------------------------------------------
 
 
-@pctx_tool
 @app.tool
 def add_comment(
     task_id: Annotated[str, "ID of the task to comment on"],
@@ -636,7 +713,7 @@ def add_comment(
             'Example: [{"name": "screenshot.png", "url": "https://..."}]'
         ),
     ] = "[]",
-) -> dict:
+) -> AddCommentResult:
     """
     Add a comment to a task. Returns the created comment record and the
     updated comment count on the task.
@@ -644,14 +721,14 @@ def add_comment(
     store = get_store()
     task = store.get_task(task_id)
     if not task:
-        return {"error": f"Task '{task_id}' not found"}
+        raise FatalToolError(f"Task '{task_id}' not found")
 
     try:
         attachment_list = json.loads(attachments) if attachments.strip() else []
         if not isinstance(attachment_list, list):
             attachment_list = []
     except json.JSONDecodeError as exc:
-        return {"error": f"Invalid attachments JSON: {exc}"}
+        raise FatalToolError(f"Invalid attachments JSON: {exc}")
 
     comment = store.add_comment(
         task_id=task_id,
@@ -660,11 +737,11 @@ def add_comment(
         attachments=attachment_list,
     )
     if comment is None:
-        return {"error": f"Task '{task_id}' not found"}
+        raise FatalToolError(f"Task '{task_id}' not found")
 
     return {
-        "comment": comment.to_dict(),
-        "task_comment_count": len(task.comment_ids),
+        "comment": comment,
+        "task_comment_count": len(task["comment_ids"]),
     }
 
 
@@ -673,7 +750,6 @@ def add_comment(
 # ---------------------------------------------------------------------------
 
 
-@pctx_tool
 @app.tool
 def log_time(
     task_id: Annotated[str, "ID of the task to log time against"],
@@ -684,7 +760,7 @@ def log_time(
         str,
         "Date the work was performed in YYYY-MM-DD format. Use today's date if unsure.",
     ] = "",
-) -> dict:
+) -> LogTimeResult:
     """
     Record a time entry on a task. Accumulates into the task's logged_hours.
     Returns the time entry and updated hour totals for the task and its sprint.
@@ -692,11 +768,12 @@ def log_time(
     store = get_store()
     task = store.get_task(task_id)
     if not task:
-        return {"error": f"Task '{task_id}' not found"}
+        raise FatalToolError(f"Task '{task_id}' not found")
     if hours <= 0:
-        return {"error": "hours must be greater than 0"}
+        raise FatalToolError("hours must be greater than 0")
 
     from datetime import date
+
     effective_date = work_date.strip() if work_date.strip() else date.today().isoformat()
 
     entry = store.log_time(
@@ -707,18 +784,18 @@ def log_time(
         work_date=effective_date,
     )
     if entry is None:
-        return {"error": f"Task '{task_id}' not found"}
+        raise FatalToolError(f"Task '{task_id}' not found")
 
     # Sprint total
     sprint_logged = 0.0
-    if task.sprint_id and task.sprint_id in store.sprints:
-        sprint = store.sprints[task.sprint_id]
-        sprint_tasks = [store.tasks[tid] for tid in sprint.task_ids if tid in store.tasks]
-        sprint_logged = sum(t.logged_hours for t in sprint_tasks)
+    if task["sprint_id"] and task["sprint_id"] in store.sprints:
+        sprint = store.sprints[task["sprint_id"]]
+        sprint_tasks = [store.tasks[tid] for tid in sprint["task_ids"] if tid in store.tasks]
+        sprint_logged = sum(t["logged_hours"] for t in sprint_tasks)
 
     return {
-        "entry": entry.to_dict(),
-        "task_total_logged_hours": task.logged_hours,
+        "entry": entry,
+        "task_total_logged_hours": task["logged_hours"],
         "sprint_total_logged_hours": round(sprint_logged, 2),
     }
 
@@ -728,7 +805,6 @@ def log_time(
 # ---------------------------------------------------------------------------
 
 
-@pctx_tool
 @app.tool
 def get_sprint_metrics(
     sprint_id: Annotated[str, "ID of the sprint to analyse"],
@@ -740,7 +816,7 @@ def get_sprint_metrics(
         bool,
         "Include task counts segmented by status and priority, plus top-contributor list",
     ] = True,
-) -> dict:
+) -> dict[str, Any]:
     """
     Compute velocity, completion rate, utilisation, burndown, and task
     breakdowns for a sprint. Ideal for generating progress reports or
@@ -753,7 +829,7 @@ def get_sprint_metrics(
         include_task_breakdown=include_task_breakdown,
     )
     if metrics is None:
-        return {"error": f"Sprint '{sprint_id}' not found"}
+        raise FatalToolError(f"Sprint '{sprint_id}' not found")
     return metrics
 
 
@@ -762,7 +838,6 @@ def get_sprint_metrics(
 # ---------------------------------------------------------------------------
 
 
-@pctx_tool
 @app.tool
 def search_tasks(
     query: Annotated[
@@ -784,7 +859,9 @@ def search_tasks(
         str,
         "Comma-separated labels; returns tasks that have ALL of them. Empty = no label filter.",
     ] = "",
-    has_estimate: Annotated[bool, "If True, only return tasks that have an estimate set (> 0)."] = False,
+    has_estimate: Annotated[
+        bool, "If True, only return tasks that have an estimate set (> 0)."
+    ] = False,
     is_overdue: Annotated[
         bool,
         "If True, only return incomplete tasks whose sprint has passed its end_date.",
@@ -794,7 +871,7 @@ def search_tasks(
         "Sort field: updated_at (default), created_at, priority, estimate_hours",
     ] = "updated_at",
     limit: Annotated[int, "Maximum results to return (1-100)"] = 20,
-) -> dict:
+) -> SearchTasksResult:
     """
     Search tasks across the entire store with fine-grained filters.
     Returns a list of task summaries (without full description/criteria),
@@ -810,51 +887,22 @@ def search_tasks(
     if sort_by not in valid_sort:
         sort_by = "updated_at"
 
-    return store.search_tasks(
-        query=query.strip(),
-        project_id=project_id.strip(),
-        sprint_id=sprint_id.strip(),
-        assignee_id=assignee_id.strip(),
-        statuses=statuses,
-        priorities=priorities,
-        labels=label_list,
-        has_estimate=has_estimate,
-        is_overdue=is_overdue,
-        sort_by=sort_by,
-        limit=max(1, min(100, limit)),
+    return cast(
+        SearchTasksResult,
+        store.search_tasks(
+            query=query.strip(),
+            project_id=project_id.strip(),
+            sprint_id=sprint_id.strip(),
+            assignee_id=assignee_id.strip(),
+            statuses=statuses,
+            priorities=priorities,
+            labels=label_list,
+            has_estimate=has_estimate,
+            is_overdue=is_overdue,
+            sort_by=sort_by,
+            limit=max(1, min(100, limit)),
+        ),
     )
-
-
-# ---------------------------------------------------------------------------
-# pctx Tool registry
-#
-# All tools are decorated with @pctx_tool (above @app.tool), so each name
-# below is a pctx_client.Tool instance.  Consumers that want direct Code Mode
-# access without going through the MCP transport can do:
-#
-#   from pctx_code_mode.server import pctx_tools
-#   async with Pctx(tools=pctx_tools, url=...) as pctx:
-#       result = await pctx.execute_typescript("...")
-# ---------------------------------------------------------------------------
-
-pctx_tools = [
-    create_project,
-    get_project,
-    list_projects,
-    create_sprint,
-    get_sprint,
-    activate_sprint,
-    close_sprint,
-    create_task,
-    get_task,
-    update_task,
-    move_task,
-    add_subtask,
-    add_comment,
-    log_time,
-    get_sprint_metrics,
-    search_tasks,
-]
 
 
 # ---------------------------------------------------------------------------
@@ -863,7 +911,11 @@ pctx_tools = [
 
 if __name__ == "__main__":
     import os
-    transport = sys.argv[1] if len(sys.argv) > 1 else os.environ.get("ARCADE_SERVER_TRANSPORT", "stdio")
+
+    transport = cast(
+        Literal["stdio", "http"],
+        sys.argv[1] if len(sys.argv) > 1 else os.environ.get("ARCADE_SERVER_TRANSPORT", "stdio"),
+    )
     host = os.environ.get("ARCADE_SERVER_HOST", "127.0.0.1")
     port = int(os.environ.get("ARCADE_SERVER_PORT", "8000"))
     app.run(transport=transport, host=host, port=port)
