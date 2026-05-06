@@ -1,0 +1,40 @@
+[project]
+name = "pctx_code_mode"
+version = "0.1.0"
+description = "pctx Code Mode MCP server — simulates the pctx execution layer with sessions, sandboxed TypeScript/bash execution, and a rich function catalog."
+requires-python = ">=3.10"
+dependencies = ["arcade-mcp-server>=1.17.4,<2.0.0", "pctx-client>=0.3.1"]
+
+[project.optional-dependencies]
+dev = [
+    "arcade-mcp[all]>=1.11.2,<2.0.0",
+    "openai>=1.0.0",
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "mypy>=1.0.0",
+    "ruff>=0.1.0",
+]
+
+[project.entry-points.arcade_toolkits]
+toolkit_name = "pctx_code_mode"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pctx_code_mode"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.mypy]
+python_version = "3.12"
+warn_unused_configs = true
+disallow_untyped_defs = false
+
+[tool.uv.sources]
+# arcade-mcp = { path = "../../../", editable = true }
+# arcade-serve = { path = "../../../libs/arcade-serve/", editable = true }
+# arcade-mcp-server = { path = "../../../libs/arcade-mcp-server/", editable = true }
