@@ -15,6 +15,7 @@ from arcade_core.toolkit import ToolkitLoadError
 from dotenv import load_dotenv
 from loguru import logger
 
+from arcade_mcp_server.pctx_server import PctxMCPServer
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.settings import MCPSettings
 from arcade_mcp_server.types import Resource, ResourceTemplate
@@ -61,6 +62,7 @@ async def run_stdio_server(
     initial_resources: list[tuple[Resource | ResourceTemplate, Callable[..., Any] | None]]
     | None = None,
     tool_meta_extensions: dict[str, dict[str, Any]] | None = None,
+    pctx_url: str | None = None,
     **kwargs: Any,
 ) -> None:
     """Run MCP server with stdio transport."""
@@ -91,13 +93,15 @@ async def run_stdio_server(
     except Exception as e:
         logger.debug(f"Unable to log settings/tool env keys: {e}")
 
-    server = MCPServer(
-        catalog=catalog,
-        settings=settings,
-        initial_resources=initial_resources,
-        tool_meta_extensions=tool_meta_extensions,
+    sever_kwargs = {
+        "catalog": catalog,
+        "settings": settings,
+        "initial_resources": initial_resources,
+        "tool_meta_extensions": tool_meta_extensions,
+        "pctx_url": pctx_url,
         **kwargs,
-    )
+    }
+    server = PctxMCPServer(**sever_kwargs) if pctx_url else MCPServer(**sever_kwargs)
 
     transport = StdioTransport()
 

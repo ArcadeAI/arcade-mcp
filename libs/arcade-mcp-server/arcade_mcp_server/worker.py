@@ -28,6 +28,7 @@ from starlette.types import Receive, Scope, Send
 from arcade_mcp_server.fastapi.auth_routes import create_auth_router
 from arcade_mcp_server.fastapi.middleware import AddTrailingSlashToPathMiddleware
 from arcade_mcp_server.logging_utils import setup_logging
+from arcade_mcp_server.pctx_server import PctxMCPServer
 from arcade_mcp_server.resource_server.base import ResourceServerValidator
 from arcade_mcp_server.resource_server.middleware import ResourceServerMiddleware
 from arcade_mcp_server.server import MCPServer
@@ -81,6 +82,7 @@ async def create_lifespan(
     initial_resources: list[tuple[Resource | ResourceTemplate, Callable[..., Any] | None]]
     | None = None,
     tool_meta_extensions: dict[str, dict[str, Any]] | None = None,
+    pctx_url: str | None = None,
     **kwargs: Any,
 ) -> AsyncGenerator[dict[str, Any], None]:
     """
@@ -104,13 +106,15 @@ async def create_lifespan(
     except Exception as e:
         logger.debug(f"Unable to log settings/tool env keys: {e}")
 
-    mcp_server = MCPServer(
-        catalog,
-        settings=mcp_settings,
-        initial_resources=initial_resources,
-        tool_meta_extensions=tool_meta_extensions,
+    sever_kwargs = {
+        "catalog": catalog,
+        "settings": mcp_settings,
+        "initial_resources": initial_resources,
+        "tool_meta_extensions": tool_meta_extensions,
+        "pctx_url": pctx_url,
         **kwargs,
-    )
+    }
+    mcp_server = PctxMCPServer(**sever_kwargs) if pctx_url else MCPServer(**sever_kwargs)
 
     session_manager = HTTPSessionManager(
         server=mcp_server,

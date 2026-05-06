@@ -88,6 +88,7 @@ class MCPApp:
         port: int = 8000,
         reload: bool = False,
         auth: ResourceServerValidator | None = None,
+        pctx_url: str | None = None,
         **kwargs: Any,
     ):
         """
@@ -104,6 +105,7 @@ class MCPApp:
             port: Port for transport
             reload: Enable auto-reload for development
             auth: Resource Server validator for front-door authentication
+            pctx_url: URL to connect to the pctx code-mode server
             **kwargs: Additional server configuration
         """
         self._name = self._validate_name(name)
@@ -117,6 +119,7 @@ class MCPApp:
         self.host = host
         self.port = port
         self.reload = reload
+        self.pctx_url = pctx_url
 
         # Tool collection (build-time)
         self._catalog = ToolCatalog()
@@ -532,6 +535,7 @@ class MCPApp:
                     settings=self._mcp_settings,
                     initial_resources=self._initial_resources,
                     tool_meta_extensions=self._tool_meta_extensions,
+                    pctx_url=self.pctx_url,
                     **self.server_kwargs,
                 )
             )
@@ -627,6 +631,7 @@ class MCPApp:
             resource_server_validator=self.resource_server_validator,
             initial_resources=self._initial_resources,
             tool_meta_extensions=self._tool_meta_extensions,
+            pctx_url=self.pctx_url,
             **self.server_kwargs,
         )
 
