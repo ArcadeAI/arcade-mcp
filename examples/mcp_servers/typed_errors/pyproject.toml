@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "MCP Server demonstrating typed tool errors (SEP-1303, MCP 2025-11-25)"
 requires-python = ">=3.10"
 dependencies = [
-    "arcade-mcp-server>=1.20.0,<2.0.0",
+    "arcade-mcp-server>=1.22.0rc1,<2.0.0",
 ]
 
 [project.optional-dependencies]

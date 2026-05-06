@@ -140,8 +140,6 @@ def tool(
     adapters: list[ErrorAdapter] | None = None,
     metadata: ToolMetadata | None = None,
 ) -> Callable:
-    """Decorate a function as an Arcade tool."""
-
     def decorator(func: Callable) -> Callable:
         func_name = str(getattr(func, "__name__", None))
         tool_name = name or snake_to_pascal_case(func_name)

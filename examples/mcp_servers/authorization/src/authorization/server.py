@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """authorization MCP server"""
 
+import os
 from typing import Annotated
+from urllib.parse import urlparse
 
 import httpx
 from arcade_mcp_server import Context, MCPApp
@@ -10,13 +12,39 @@ from arcade_mcp_server.resource_server import (
     AuthorizationServerEntry,
     ResourceServerAuth,
 )
+from loguru import logger
 
-# Option 1: Single authorization server — Arcade's intermediate AS
+# Loopback hosts permitted by the canonical-URL HTTPS rule (RFC 8252 Section 7.3,
+# OAuth 2.1 draft Section 8.4.2). Production canonical URLs MUST be HTTPS at a
+# publicly resolvable host. ``urlparse().hostname`` lowercases the host, so the
+# membership check is case-insensitive without extra work.
+_LOOPBACK_HOSTS = frozenset({"127.0.0.1", "::1", "localhost"})
+
+# Option 1: Single authorization server, Arcade's intermediate AS
 # Use expected_audiences when your auth server returns a non-standard audience (aud) claim
 # (e.g., client_id instead of canonical_url). Arcade's intermediate AS issues tokens whose
 # aud claim is "urn:arcade:mcp"; including the canonical_url here keeps acceptance tolerant
 # of clients that bind tokens to the resource URL instead.
-_canonical_url = "http://127.0.0.1:8000/mcp"
+#
+# The canonical URL is sourced from MCP_RESOURCE_SERVER_CANONICAL_URL when set,
+# falling back to the loopback default for zero-config local development. Behind
+# a tunnel (ngrok, Cloudflare, etc.) or in a cloud deployment, set the env var to
+# the publicly reachable HTTPS URL so PRM and the WWW-Authenticate challenge
+# advertise an address remote clients can resolve.
+_canonical_url = os.environ.get(
+    "MCP_RESOURCE_SERVER_CANONICAL_URL",
+    "http://127.0.0.1:8000/mcp",
+)
+if urlparse(_canonical_url).hostname in _LOOPBACK_HOSTS:
+    logger.warning(
+        f"Canonical URL is a loopback address ({_canonical_url}). This is fine "
+        "for local development but breaks remote clients (e.g., MCP Debugger, "
+        "Cursor, Claude Desktop connecting over a tunnel) because PRM and the "
+        "WWW-Authenticate header will advertise an unreachable resource. Before "
+        "exposing this server, set MCP_RESOURCE_SERVER_CANONICAL_URL to the "
+        "publicly reachable HTTPS URL of /mcp (e.g., "
+        "https://your-public-host.example.com/mcp)."
+    )
 resource_server_auth = ResourceServerAuth(
     canonical_url=_canonical_url,
     authorization_servers=[
