@@ -217,9 +217,9 @@ def activate_sprint(
         return {"error": f"Sprint '{sprint_id}' not found"}
     if sprint.status != "planning":
         return {"error": f"Sprint is already '{sprint.status}', must be 'planning' to activate"}
-    result = store.update_task  # just touching the store instance
     sprint.status = "active"
     from pctx_code_mode.store import _now
+
     sprint.updated_at = _now()
     return sprint.to_dict()
 
@@ -267,6 +267,7 @@ def close_sprint(
     completed = [t for t in tasks if t.status == "done"]
 
     from pctx_code_mode.store import _now
+
     now = _now()
 
     carry_over_ids: list[str] = []
@@ -312,7 +313,9 @@ def close_sprint(
 @pctx_tool
 @app.tool
 def create_task(
-    sprint_id: Annotated[str, "ID of the sprint this task belongs to. Use 'backlog' to create an unsprinted task."],
+    sprint_id: Annotated[
+        str, "ID of the sprint this task belongs to. Use 'backlog' to create an unsprinted task."
+    ],
     title: Annotated[str, "Short, imperative task title (1-200 characters)"],
     description: Annotated[
         str,
@@ -419,9 +422,7 @@ def get_task(
     ]
     # Inline recent comments (last 5)
     d["recent_comments"] = [
-        store.comments[cid].to_dict()
-        for cid in task.comment_ids[-5:]
-        if cid in store.comments
+        store.comments[cid].to_dict() for cid in task.comment_ids[-5:] if cid in store.comments
     ]
     # Time entry summary
     entries = [store.time_entries[eid] for eid in task.time_entry_ids if eid in store.time_entries]
@@ -562,6 +563,7 @@ def move_task(
         updates["status"] = new_status.strip()
 
     from pctx_code_mode.store import _now
+
     task.updated_at = _now()
 
     if updates:
@@ -697,6 +699,7 @@ def log_time(
         return {"error": "hours must be greater than 0"}
 
     from datetime import date
+
     effective_date = work_date.strip() if work_date.strip() else date.today().isoformat()
 
     entry = store.log_time(
@@ -784,7 +787,9 @@ def search_tasks(
         str,
         "Comma-separated labels; returns tasks that have ALL of them. Empty = no label filter.",
     ] = "",
-    has_estimate: Annotated[bool, "If True, only return tasks that have an estimate set (> 0)."] = False,
+    has_estimate: Annotated[
+        bool, "If True, only return tasks that have an estimate set (> 0)."
+    ] = False,
     is_overdue: Annotated[
         bool,
         "If True, only return incomplete tasks whose sprint has passed its end_date.",
@@ -863,7 +868,10 @@ pctx_tools = [
 
 if __name__ == "__main__":
     import os
-    transport = sys.argv[1] if len(sys.argv) > 1 else os.environ.get("ARCADE_SERVER_TRANSPORT", "stdio")
+
+    transport = (
+        sys.argv[1] if len(sys.argv) > 1 else os.environ.get("ARCADE_SERVER_TRANSPORT", "stdio")
+    )
     host = os.environ.get("ARCADE_SERVER_HOST", "127.0.0.1")
     port = int(os.environ.get("ARCADE_SERVER_PORT", "8000"))
     app.run(transport=transport, host=host, port=port)
