@@ -139,16 +139,8 @@ def tool(
     requires_metadata: list[str] | None = None,
     adapters: list[ErrorAdapter] | None = None,
     metadata: ToolMetadata | None = None,
-    execution: Any | None = None,
 ) -> Callable:
-    """Decorate a function as an Arcade tool.
-
-    The ``execution`` parameter is an opaque, protocol-specific payload stored on
-    the function as ``__tool_execution__`` and read by protocol adapters at
-    serialisation time. For MCP, pass ``arcade_mcp_server.ToolExecution(...)`` to
-    declare ``taskSupport``; other protocols can read the same dunder as needed.
-    The value is not introspected here, so unsupported payloads simply go unused.
-    """
+    """Decorate a function as an Arcade tool."""
 
     def decorator(func: Callable) -> Callable:
         func_name = str(getattr(func, "__name__", None))
@@ -160,7 +152,6 @@ def tool(
         func.__tool_requires_secrets__ = requires_secrets  # type: ignore[attr-defined]
         func.__tool_requires_metadata__ = requires_metadata  # type: ignore[attr-defined]
         func.__tool_metadata__ = metadata  # type: ignore[attr-defined]
-        func.__tool_execution__ = execution  # type: ignore[attr-defined]
 
         adapter_chain = _build_adapter_chain(adapters, requires_auth)
 

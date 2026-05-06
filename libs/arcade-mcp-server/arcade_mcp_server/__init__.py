@@ -10,9 +10,8 @@ This package provides:
 - Context system for tool execution with MCP methods
 """
 
-from arcade_tdk import tool
-
 from arcade_mcp_server.context import Context
+from arcade_mcp_server.decorators import tool
 from arcade_mcp_server.mcp_app import MCPApp
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.settings import MCPSettings

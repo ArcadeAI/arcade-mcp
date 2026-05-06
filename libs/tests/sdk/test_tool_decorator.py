@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 
 import pytest
 from arcade_core.auth import AuthProviderType, Google
@@ -212,31 +213,31 @@ def test_tool_deprecated_ordering_with_auth():
     assert func_deprecated_before_auth.__tool_requires_auth__ is not None
 
 
-class TestToolDecoratorExecution:
-    def test_tool_without_execution_defaults_none(self):
-        @tool
-        def my_tool() -> str:
-            return "hello"
+# MCP-specific ``execution`` / ``taskSupport`` semantics live in
+# arcade-mcp-server. The corresponding tests live in
+# ``libs/tests/arcade_mcp_server/test_tool_wrapper.py`` (see the
+# ``TestRelocatedFromArcadeTdk`` class). arcade-tdk itself stays
+# protocol-agnostic and no longer exposes an ``execution`` kwarg.
 
-        assert getattr(my_tool, "__tool_execution__", None) is None
 
-    def test_tool_with_execution_parameter(self):
-        # ``execution`` is an opaque payload the decorator stores as
-        # ``__tool_execution__`` verbatim -- the decorator intentionally does
-        # not know the shape. Protocol adapters (e.g. MCP convert) read and
-        # interpret it at serialisation time.
-        payload = object()
+class TestArcadeTdkToolHasNoMCPSpecificKwargs:
+    """Pin the layering boundary: arcade-tdk's ``@tool`` does not accept
+    or document MCP-specific concepts. These tests fail loudly if MCP
+    surface re-leaks into arcade-tdk in a future change.
+    """
 
-        @tool(execution=payload)
-        def my_tool() -> str:
-            return "hello"
+    def test_arcade_tdk_tool_does_not_accept_execution_kwarg(self):
+        with pytest.raises(TypeError, match="unexpected keyword argument 'execution'"):
 
-        assert my_tool.__tool_execution__ is payload
+            @tool(execution="anything")
+            def f() -> str:
+                return "x"
 
-    @pytest.mark.parametrize("payload", [{"taskSupport": "optional"}, "required", 42])
-    def test_tool_with_execution_parametrized(self, payload):
-        @tool(execution=payload)
-        def my_tool() -> str:
-            return "hello"
+    def test_arcade_tdk_tool_signature_has_no_execution_parameter(self):
+        assert "execution" not in inspect.signature(tool).parameters
 
-        assert my_tool.__tool_execution__ == payload
+    def test_arcade_tdk_tool_docstring_does_not_mention_mcp_or_taskSupport(self):
+        doc = (tool.__doc__ or "").lower()
+        assert "mcp" not in doc
+        assert "tasksupport" not in doc
+        assert "arcade_mcp_server" not in doc
