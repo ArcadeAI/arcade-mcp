@@ -433,7 +433,7 @@ class _RequestsExceptionHandler:
         """
         # Lazy import requests types locally to avoid import errors for toolkits that don't use requests
         try:
-            from requests.exceptions import (  # type: ignore[import-untyped]
+            from requests.exceptions import (
                 ConnectionError,
                 ContentDecodingError,
                 HTTPError,
