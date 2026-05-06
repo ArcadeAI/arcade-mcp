@@ -16,7 +16,7 @@ from arcade_mcp_server.resource_server import (
 # (e.g., client_id instead of canonical_url). Arcade's intermediate AS issues tokens whose
 # aud claim is "urn:arcade:mcp"; including the canonical_url here keeps acceptance tolerant
 # of clients that bind tokens to the resource URL instead.
-_canonical_url = "https://5afc-50-189-121-137.ngrok-free.app/mcp"
+_canonical_url = "http://127.0.0.1:8000/mcp"
 resource_server_auth = ResourceServerAuth(
     canonical_url=_canonical_url,
     authorization_servers=[
