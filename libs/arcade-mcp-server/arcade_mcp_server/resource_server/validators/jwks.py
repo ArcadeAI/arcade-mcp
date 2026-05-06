@@ -22,6 +22,7 @@ from arcade_mcp_server.resource_server.base import (
     ResourceOwner,
     ResourceServerValidator,
     TokenExpiredError,
+    _validate_scope_token,
 )
 
 SUPPORTED_ALGORITHMS = {
@@ -355,6 +356,51 @@ class JWKSTokenValidator(ResourceServerValidator):
 
         return client_id
 
+    def _extract_granted_scopes(self, decoded: dict[str, Any]) -> frozenset[str]:
+        """Parse granted scopes from JWT claims.
+
+        Order of precedence: ``scope`` (OAuth-canonical, string) >
+        ``scp`` (vendor convention, list). Tolerant: never raises.
+        Tokens that violate the RFC 6749 ``scope-token`` grammar are
+        silently filtered. A single quirky IdP-issued token MUST NOT
+        401 the request, but it MUST NOT survive into ``granted_scopes``
+        either: downstream paths (logs, diagnostic strings, future
+        header integration) may surface these tokens, and ``base.py``
+        explicitly warns malformed tokens corrupt ``WWW-Authenticate``
+        headers.
+
+        Operators with non-conformant IdPs subclass and override this
+        method to relax the filter.
+
+        Args:
+            decoded: Decoded token claims
+
+        Returns:
+            Frozenset of OAuth scope tokens (validated against the
+            RFC 6749 ``scope-token`` grammar)
+        """
+        raw = decoded.get("scope")
+        if isinstance(raw, str):
+            candidates = raw.split()
+        else:
+            scp = decoded.get("scp")
+            if isinstance(scp, list):
+                candidates = [t for t in scp if isinstance(t, str)]
+            elif isinstance(scp, str):
+                candidates = scp.split()
+            else:
+                return frozenset()
+        valid: list[str] = []
+        for token in candidates:
+            if not token:
+                continue
+            try:
+                _validate_scope_token(token)
+            except ValueError:
+                continue
+            valid.append(token)
+        return frozenset(valid)
+
     async def validate_token(self, token: str) -> ResourceOwner:
         """Validate JWT and return authenticated resource owner.
 
@@ -389,11 +435,13 @@ class JWKSTokenValidator(ResourceServerValidator):
             user_id = self._extract_user_id(decoded)
             client_id = self._extract_client_id(decoded)
             email = decoded.get("email")
+            granted_scopes = self._extract_granted_scopes(decoded)
 
             return ResourceOwner(
                 user_id=user_id,
                 client_id=client_id,
                 email=email,
+                granted_scopes=granted_scopes,
                 claims=decoded,
             )
 

@@ -129,6 +129,7 @@ class TestInsufficientScopeServerHandler:
         must return INSUFFICIENT_SCOPE_ERROR_CODE with _transport metadata."""
         resource_owner = ResourceOwner(
             user_id="alice",
+            granted_scopes=frozenset({"files:read"}),
             claims={"scope": "files:read", "iss": "https://auth.example.com", "sub": "alice"},
         )
 
@@ -158,6 +159,7 @@ class TestInsufficientScopeServerHandler:
         and the required scopes."""
         resource_owner = ResourceOwner(
             user_id="alice",
+            granted_scopes=frozenset({"files:read"}),
             claims={"scope": "files:read", "iss": "https://auth.example.com", "sub": "alice"},
         )
 
@@ -184,6 +186,7 @@ class TestInsufficientScopeServerHandler:
         but it must NOT be INSUFFICIENT_SCOPE_ERROR_CODE."""
         resource_owner = ResourceOwner(
             user_id="alice",
+            granted_scopes=frozenset({"files:read", "files:write"}),
             claims={
                 "scope": "files:read files:write",
                 "iss": "https://auth.example.com",
@@ -233,6 +236,7 @@ class TestInsufficientScopeServerHandler:
         """
         resource_owner = ResourceOwner(
             user_id="alice",
+            granted_scopes=frozenset({"files:read"}),
             claims={"scope": "files:read", "iss": "https://auth.example.com", "sub": "alice"},
         )
 
@@ -432,10 +436,10 @@ class TestMiddlewareScopeParam:
 
         validator = Mock()
         validator.supports_oauth_discovery.return_value = False
-        # Middleware reads validator.default_advertised_scopes (declared on
+        # Middleware reads validator.default_challenge_scopes (declared on
         # ResourceServerValidator ABC). Mock auto-creates attributes as Mock
         # objects, so we must explicitly set None to reflect "no advertisement".
-        validator.default_advertised_scopes = None
+        validator.default_challenge_scopes = None
 
         middleware = ResourceServerMiddleware(
             app=Mock(),
@@ -469,7 +473,7 @@ class TestMiddlewareScopeParam:
 
         validator = Mock()
         validator.supports_oauth_discovery.return_value = True
-        validator.default_advertised_scopes = None
+        validator.default_challenge_scopes = None
 
         middleware = ResourceServerMiddleware(
             app=Mock(),

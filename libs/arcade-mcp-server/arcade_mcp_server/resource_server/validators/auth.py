@@ -18,6 +18,7 @@ from arcade_mcp_server.resource_server.base import (
     ResourceServerValidator,
     TokenExpiredError,
     _validate_advertised_scopes,
+    _validate_resource_metadata_url,
 )
 from arcade_mcp_server.resource_server.validators.jwks import JWKSTokenValidator
 from arcade_mcp_server.settings import MCPSettings
@@ -37,7 +38,8 @@ class ResourceServerAuth(ResourceServerValidator):
         authorization_servers: list[AuthorizationServerEntry] | None = None,
         canonical_url: str | None = None,
         cache_ttl: int = 3600,
-        default_advertised_scopes: list[str] | None = None,
+        scopes_supported: list[str] | None = None,
+        default_challenge_scopes: list[str] | None = None,
     ):
         """Initialize Resource Server.
 
@@ -46,27 +48,35 @@ class ResourceServerAuth(ResourceServerValidator):
 
         Args:
             authorization_servers: List of authorization server entries
-            canonical_url: MCP server canonical URL (or MCP_RESOURCE_SERVER_CANONICAL_URL)
+            canonical_url: MCP server canonical URL (or MCP_RESOURCE_SERVER_CANONICAL_URL).
+                Validated at construction against RFC 6750 char-grammar,
+                RFC 3986 URI structure (scheme is https, or http for loopback
+                hosts only), RFC 3986 character correctness, and the MCP
+                canonical-URI rule (no fragment).
             cache_ttl: JWKS cache TTL in seconds
-            default_advertised_scopes: Optional list of OAuth scopes to advertise on the
-                entry-level 401 ``WWW-Authenticate`` challenge and as
-                ``scopes_supported`` in the Protected Resource Metadata document
-                (RFC 9728). The MCP spec recommends servers include a
-                ``scope`` parameter so clients can apply the
-                principle-of-least-privilege scope-selection strategy. This
-                represents the minimum scope set for basic functionality —
-                additional scopes get requested incrementally via per-tool
-                403 ``insufficient_scope`` step-up at runtime. Each token
-                must conform to the RFC 6750 grammar (validated at
-                construction); duplicates are removed preserving first-seen
-                order. When omitted, no ``scope`` is advertised; clients
-                fall back to the spec selection strategy. Also configurable
-                via the ``MCP_RESOURCE_SERVER_DEFAULT_ADVERTISED_SCOPES``
-                env var (space-separated; explicit kwarg wins).
+            scopes_supported: Operator-declared scopes for RFC 9728 PRM
+                ``scopes_supported``. Per the MCP spec, the *minimum* scopes
+                for basic functionality. ``None`` (the default) omits the
+                field from PRM. Independent of ``default_challenge_scopes``
+                (the spec permits the two surfaces to be unrelated).
+                Configurable via ``MCP_RESOURCE_SERVER_SCOPES_SUPPORTED``
+                (space-separated, explicit kwarg wins). Each token must
+                conform to the RFC 6750 grammar; duplicates are removed
+                preserving first-seen order.
+            default_challenge_scopes: Operator-declared scopes for the
+                entry-401 RFC 6750 ``WWW-Authenticate: scope=`` parameter.
+                ``None`` (the default) omits ``scope=``. Independent of
+                ``scopes_supported``: the spec explicitly permits this set
+                to be a non-subset / non-superset alternative collection.
+                Configurable via
+                ``MCP_RESOURCE_SERVER_DEFAULT_CHALLENGE_SCOPES``
+                (space-separated, explicit kwarg wins). Same RFC 6750
+                grammar validation as ``scopes_supported``.
 
         Raises:
             ValueError: If required fields not provided via params or env vars,
-                or if any advertised scope token violates the RFC 6750 grammar.
+                if ``canonical_url`` violates the URI rules above, or if any
+                scope token violates the RFC 6750 grammar.
 
         Example:
             ```python
@@ -113,13 +123,19 @@ class ResourceServerAuth(ResourceServerValidator):
 
         # Explicit parameters take precedence over environment variables
         if canonical_url is not None:
-            self.canonical_url = canonical_url
+            resolved_canonical = canonical_url
         elif settings.resource_server.canonical_url is not None:
-            self.canonical_url = settings.resource_server.canonical_url
+            resolved_canonical = settings.resource_server.canonical_url
         else:
             raise ValueError(
                 "'canonical_url' required (parameter or MCP_RESOURCE_SERVER_CANONICAL_URL environment variable)"
             )
+
+        # Validate the canonical URL at construction so misconfigurations
+        # surface at server startup, not at the first 401/403 emit.
+        # Settings-level validation also runs (see ResourceServerSettings),
+        # but explicit constructor kwargs bypass that path.
+        self.canonical_url = _validate_resource_metadata_url(resolved_canonical)
 
         if authorization_servers is not None:
             configs = authorization_servers
@@ -130,18 +146,24 @@ class ResourceServerAuth(ResourceServerValidator):
                 "'authorization_servers' required (parameter or MCP_RESOURCE_SERVER_AUTHORIZATION_SERVERS environment variable)"
             )
 
-        # Resolve advertised scopes: explicit kwarg wins, else env var via
-        # MCPSettings (see settings.py field_validator that parses the
-        # space-separated string). Either path runs through the same
-        # RFC 6750 grammar validator — malformed tokens raise ValueError at
-        # construction rather than corrupting the WWW-Authenticate header
-        # at runtime.
-        raw_scopes: list[str] | None = (
-            default_advertised_scopes
-            if default_advertised_scopes is not None
-            else settings.resource_server.default_advertised_scopes
+        # Resolve scopes_supported: explicit kwarg wins, else env var via
+        # MCPSettings. Either path runs through the same RFC 6750 grammar
+        # validator: malformed tokens raise ValueError at construction.
+        raw_supported: list[str] | None = (
+            scopes_supported
+            if scopes_supported is not None
+            else settings.resource_server.scopes_supported
         )
-        self.default_advertised_scopes = _validate_advertised_scopes(raw_scopes)
+        self.scopes_supported = _validate_advertised_scopes(raw_supported)
+
+        # Resolve default_challenge_scopes: same precedence and validation.
+        # Independent of scopes_supported per the SEP-835 surface split.
+        raw_challenge: list[str] | None = (
+            default_challenge_scopes
+            if default_challenge_scopes is not None
+            else settings.resource_server.default_challenge_scopes
+        )
+        self.default_challenge_scopes = _validate_advertised_scopes(raw_challenge)
 
         self._validators = self._create_validators(configs)
 
@@ -158,12 +180,13 @@ class ResourceServerAuth(ResourceServerValidator):
             "authorization_servers": list(self._validators.keys()),
             "bearer_methods_supported": ["header"],
         }
-        # ``scopes_supported`` is OPTIONAL per RFC 9728 but provides clients
-        # with the fallback scope set when the WWW-Authenticate ``scope``
-        # parameter is absent. The MCP spec explicitly references this
-        # fallback in its scope-selection strategy.
-        if self.default_advertised_scopes:
-            metadata["scopes_supported"] = list(self.default_advertised_scopes)
+        # ``scopes_supported`` is OPTIONAL per RFC 9728. The SEP-835 surface
+        # split keeps this independent from ``default_challenge_scopes``:
+        # PRM advertises the documented baseline; the 401 challenge advertises
+        # what the server is asking the client to acquire RIGHT NOW. They MAY
+        # be equal, disjoint, sub/super-sets, or alternative collections.
+        if self.scopes_supported:
+            metadata["scopes_supported"] = list(self.scopes_supported)
         return metadata
 
     def _create_validators(

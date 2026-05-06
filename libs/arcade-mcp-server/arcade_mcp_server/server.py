@@ -64,6 +64,9 @@ from arcade_mcp_server.request_context import (
     set_request_meta,
 )
 from arcade_mcp_server.resource_server.base import ResourceOwner
+from arcade_mcp_server.resource_server.headers import (
+    build_insufficient_scope_www_authenticate,
+)
 from arcade_mcp_server.session import InitializationState, NotificationManager, ServerSession
 from arcade_mcp_server.settings import MCPSettings, ServerSettings
 from arcade_mcp_server.types import (
@@ -122,12 +125,16 @@ INSUFFICIENT_SCOPE_ERROR_CODE = -32043
 
 
 def _extract_scopes(claims: dict[str, Any]) -> set[str]:
-    """Normalise scope extraction across OAuth provider formats.
+    """Legacy helper: normalize scope extraction across OAuth provider formats.
 
-    Handles:
-    - ``scope`` claim (RFC 6749 section 3.3, space-delimited string)
-    - ``scp`` claim (Azure AD / Microsoft Entra, space-delimited string)
-    - Both may also be JSON arrays of strings
+    Retained as a thin shim around the validator's
+    ``_extract_granted_scopes`` extension point so any external caller
+    that imported ``arcade_mcp_server.server._extract_scopes`` keeps
+    working. New code should consume ``ResourceOwner.granted_scopes``
+    directly: the JWKS validator populates that field at token
+    validation time using the same parser, with the additional RFC 6749
+    ``scope-token`` grammar filter that this legacy shim does NOT
+    apply.
     """
     for claim_key in ("scope", "scp"):
         raw = claims.get(claim_key)
@@ -1130,7 +1137,16 @@ class MCPServer:
             # requirements. They also populate ``tool_context.authorization`` for the tool
             # body, which the background-execution path relies on downstream.
 
-            # OAuth scope sufficiency check
+            # OAuth scope sufficiency check.
+            #
+            # Consolidated with the ASGI middleware 403 path: both call
+            # ``build_insufficient_scope_www_authenticate`` so the wire
+            # response is byte-identical regardless of where the scope
+            # shortfall is detected. The inline JSON-RPC framing here is
+            # preserved because stdio transport has no ASGI middleware to
+            # catch raised exceptions; on HTTP the existing ``_transport``
+            # metadata bridge in ``http_streamable.py`` converts the
+            # ``JSONRPCError`` to HTTP 403 + ``WWW-Authenticate``.
             resource_owner = self._get_resource_owner_from_context()
             if (
                 resource_owner is not None
@@ -1145,21 +1161,45 @@ class MCPServer:
                     else []
                 )
                 if required_scopes:
-                    granted_scopes = _extract_scopes(getattr(resource_owner, "claims", None) or {})
+                    # Read granted scopes directly from the validator-
+                    # populated field. The Round 4 ``granted_scopes``
+                    # field already filters tokens against the RFC 6749
+                    # ``scope-token`` grammar; the legacy
+                    # ``_extract_scopes(claims)`` parser would produce a
+                    # different, less-filtered set than what
+                    # ``enforce_scopes`` raises and what the middleware
+                    # emits.
+                    granted_scopes = set(resource_owner.granted_scopes)
                     missing = set(required_scopes) - granted_scopes
                     if missing:
-                        # Build WWW-Authenticate header value
                         resource_metadata_url = self._resolve_resource_metadata_url(session)
-                        rm_part = (
-                            f', resource_metadata="{resource_metadata_url}"'
-                            if resource_metadata_url
-                            else ""
-                        )
-                        www_auth = (
-                            f'Bearer error="insufficient_scope", '
-                            f'scope="{" ".join(required_scopes)}"'
-                            f"{rm_part}"
-                        )
+                        try:
+                            www_auth = build_insufficient_scope_www_authenticate(
+                                required_scopes=required_scopes,
+                                resource_metadata_url=resource_metadata_url,
+                                error_description=None,
+                            )
+                        except ValueError as exc:
+                            # A ValueError here means the tool definition
+                            # contains a malformed scope token (RFC 6749
+                            # ``scope-token`` grammar violation) or the
+                            # canonical URL fails URI validation at emit
+                            # time. Surface a 500-class server error
+                            # rather than corrupt the WWW-Authenticate
+                            # header. Malformed tool definitions are
+                            # operator-time bugs that should be loud.
+                            return JSONRPCError(
+                                id=message.id,
+                                error={
+                                    "code": -32000,
+                                    "message": (
+                                        "Insufficient scope response could "
+                                        "not be constructed: tool definition "
+                                        "or canonical URL is malformed. "
+                                        f"{exc}"
+                                    ),
+                                },
+                            )
                         return JSONRPCError(
                             id=message.id,
                             error={
@@ -2128,20 +2168,27 @@ class MCPServer:
         """Best-effort resolution of the PRM (Protected Resource Metadata) URL.
 
         Inspects session init_options for a canonical_url set by the transport,
-        then falls back to server settings.  Returns ``None`` when the URL
-        cannot be determined (e.g. stdio transport).
+        then falls back to ``self.settings.resource_server.canonical_url``
+        (the field actually declared in ``ResourceServerSettings``).
+        Returns ``None`` when the URL cannot be determined (e.g. stdio
+        transport with no canonical URL configured).
+
+        Query components are preserved per RFC 8707 Section 2 ("Query
+        components MUST be retained when used"); fragments are rejected
+        at intake by ``ResourceServerSettings._validate_canonical_url``
+        and never reach this path.
         """
         canonical: str | None = None
         if session and session.init_options:
             canonical = session.init_options.get("canonical_url")
         if not canonical:
-            canonical = getattr(self.settings.server, "canonical_url", None)
+            canonical = self.settings.resource_server.canonical_url
         if not canonical:
             return None
 
         parsed = urlparse(canonical)
         well_known_path = f"/.well-known/oauth-protected-resource{parsed.path}"
-        return urlunparse((parsed.scheme, parsed.netloc, well_known_path, "", "", ""))
+        return urlunparse((parsed.scheme, parsed.netloc, well_known_path, "", parsed.query, ""))
 
     async def _execute_tool_in_background(
         self,
