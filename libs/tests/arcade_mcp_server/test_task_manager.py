@@ -173,9 +173,15 @@ class TestTaskManager:
         assert task.ttl > 0
 
     @pytest.mark.asyncio
-    async def test_task_unlimited_ttl_only_when_max_retention_none(self):
-        """Task.ttl=None (unlimited) is ONLY reported when _max_retention is None."""
-        manager = TaskManager(max_retention=None)
+    async def test_task_unlimited_ttl_requires_both_settings_disabled(self):
+        """``Task.ttl=None`` (truly unlimited) requires the operator to opt
+        out of BOTH the retention ceiling and the omitted-request default.
+        ``max_retention=None`` alone does NOT yield unlimited tasks for
+        omitted-ttl requests, because ``default_ttl`` is independent and
+        defaults to 5 minutes; conflating the two would silently promote
+        omitted-ttl tasks to ``ttl=None``, which the cleanup loop skips.
+        """
+        manager = TaskManager(max_retention=None, default_ttl=None)
         await manager.start()
         try:
             task = await manager.create_task(context_key=CONTEXT_A, ttl=None)
@@ -184,6 +190,51 @@ class TestTaskManager:
             # Should still exist
             retrieved = await manager.get_task(task.taskId, context_key=CONTEXT_A)
             assert retrieved.taskId == task.taskId
+        finally:
+            await manager.stop()
+
+    @pytest.mark.asyncio
+    async def test_default_ttl_applied_when_max_retention_unlimited(self):
+        """Pin: ``default_ttl`` MUST apply on omitted-ttl requests even when
+        ``max_retention=None``. Without this, an operator who turns off the
+        retention ceiling silently loses the omitted-request default and
+        every omitted-ttl task becomes immortal (``_is_expired`` returns
+        ``False`` for ``ttl=None``, so the cleanup loop never evicts them),
+        leading to unbounded memory growth on long-running servers.
+        """
+        manager = TaskManager(max_retention=None, default_ttl=300_000)
+        await manager.start()
+        try:
+            task = await manager.create_task(context_key=CONTEXT_A)  # no ttl
+            assert task.ttl == 300_000
+        finally:
+            await manager.stop()
+
+    @pytest.mark.asyncio
+    async def test_default_ttl_clamped_by_max_retention_when_both_set(self):
+        """When ``default_ttl > max_retention``, the ceiling wins for omitted
+        requests too. Pins that the omit path runs the same clamp the
+        explicit-ttl path runs.
+        """
+        manager = TaskManager(max_retention=60_000, default_ttl=300_000)
+        await manager.start()
+        try:
+            task = await manager.create_task(context_key=CONTEXT_A)  # no ttl
+            assert task.ttl == 60_000
+        finally:
+            await manager.stop()
+
+    @pytest.mark.asyncio
+    async def test_default_ttl_none_with_max_retention_set_yields_ceiling(self):
+        """``default_ttl=None`` with a finite ``max_retention``: the omit path
+        carries ``None`` through unchanged (no default to clamp). The clamp
+        guard prevents a TypeError on ``min(None, int)``.
+        """
+        manager = TaskManager(max_retention=60_000, default_ttl=None)
+        await manager.start()
+        try:
+            task = await manager.create_task(context_key=CONTEXT_A)  # no ttl
+            assert task.ttl is None
         finally:
             await manager.stop()
 

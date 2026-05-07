@@ -78,16 +78,25 @@ class TaskManager:
     """Manages the lifecycle of MCP tasks.
 
     Args:
-        max_retention: Maximum TTL ceiling in milliseconds. None = unlimited.
+        max_retention: Maximum TTL ceiling in milliseconds. None = no
+            ceiling (clients may request arbitrarily long lifetimes).
             Default is 86_400_000 (24 hours).
-        default_ttl: Default TTL in milliseconds when request omits it.
-            Default is 300_000 (5 minutes).
+        default_ttl: TTL in milliseconds applied when the request omits
+            ``ttl``. Default is 300_000 (5 minutes). ``None`` opts the
+            operator into truly unlimited tasks for omitted requests
+            (combined with ``max_retention=None``, the resulting Task
+            has ``ttl=None`` and never expires). ``default_ttl`` is
+            independent of ``max_retention``: ``max_retention=None``
+            alone does NOT disable the default. Without an explicit
+            ``default_ttl=None`` opt-in, an omitted-ttl request always
+            gets ``default_ttl`` (clamped to ``max_retention`` when
+            that ceiling is set).
     """
 
     def __init__(
         self,
         max_retention: int | None = 86_400_000,
-        default_ttl: int = 300_000,
+        default_ttl: int | None = 300_000,
     ) -> None:
         self._max_retention = max_retention
         self._default_ttl = default_ttl
@@ -188,7 +197,22 @@ class TaskManager:
         Returns:
             The created Task with effective TTL.
         """
-        # Compute effective TTL
+        # Compute effective TTL.
+        #
+        # Two operator settings interact independently:
+        #   * ``max_retention``: ceiling on any TTL the server will honor.
+        #     ``None`` = no ceiling.
+        #   * ``default_ttl``: TTL applied when the client omits one.
+        #     ``None`` = no default; the omitted-ttl path inherits the
+        #     ``None`` (truly unlimited, paired with ``max_retention=None``).
+        #
+        # The two are NOT conflated: ``max_retention=None`` alone does
+        # not disable the default. A server that turns off the ceiling
+        # but leaves the default in place still applies the default for
+        # omitted requests. This matters because ``_is_expired`` and
+        # ``_cleanup_loop`` skip ``ttl=None`` tasks, so silently
+        # promoting an omitted-ttl request to ``None`` would make those
+        # tasks immortal in memory.
         effective_ttl: int | None
         if ttl is not None:
             # Client provided a TTL value
@@ -197,11 +221,9 @@ class TaskManager:
                 effective_ttl = min(effective_ttl, self._max_retention)
         else:
             # Client omitted TTL -- apply default
-            if self._max_retention is not None:
-                effective_ttl = min(self._default_ttl, self._max_retention)
-            else:
-                # Operator unlimited: no default ceiling, keep None (unlimited)
-                effective_ttl = None
+            effective_ttl = self._default_ttl
+            if effective_ttl is not None and self._max_retention is not None:
+                effective_ttl = min(effective_ttl, self._max_retention)
 
         task_id = str(uuid.uuid4())
         now = datetime.now(timezone.utc).isoformat()
