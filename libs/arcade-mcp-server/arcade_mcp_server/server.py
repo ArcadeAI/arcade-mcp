@@ -1265,20 +1265,39 @@ class MCPServer:
                                 "message": "task.ttl cannot be null in request",
                             },
                         )
-                    # ``bool`` is a subclass of ``int`` in Python: ``True == 1``
-                    # and ``False == 0``. Reject it explicitly so neither
-                    # silently passes the positive-int check below
-                    # (``False`` would also be caught by ``<= 0``, but
-                    # ``True`` would slip through as a 1ms TTL).
-                    if isinstance(ttl_value, bool) or (
-                        isinstance(ttl_value, int) and ttl_value <= 0
+                    # The MCP 2025-11-25 schema types ``task.ttl`` as
+                    # ``"type": "integer"`` (number of milliseconds). Reject
+                    # anything that isn't a positive Python ``int``:
+                    #
+                    # * Floats (including whole-valued floats like ``-1.0``
+                    #   and ``0.0``) violate the schema. They also slip past
+                    #   downstream validation: pydantic v2 coerces a
+                    #   whole-valued float to ``int`` on the ``Task`` model,
+                    #   producing a dead-on-arrival task whose ``_is_expired``
+                    #   flips ``True`` the moment it exists. Catch the
+                    #   wrong-type case here so the caller receives a clean
+                    #   ``-32602`` instead of a downstream ``ValidationError``
+                    #   or a phantom ``working`` task that never resolves.
+                    # * ``bool`` is a subclass of ``int`` in Python
+                    #   (``True == 1``, ``False == 0``). ``False`` would also
+                    #   be caught by ``<= 0``, but ``True`` would otherwise
+                    #   slip through as a 1ms TTL, so reject it explicitly.
+                    # * Strings, ``NaN`` (compares False against everything),
+                    #   and ``+Infinity`` would all pass a bare ``<= 0`` test
+                    #   because the comparison never returns ``True`` for
+                    #   them either; the ``isinstance`` gate catches all
+                    #   non-int input before the ordering compare.
+                    if (
+                        not isinstance(ttl_value, int)
+                        or isinstance(ttl_value, bool)
+                        or ttl_value <= 0
                     ):
                         return JSONRPCError(
                             id=message.id,
                             error={
                                 "code": -32602,
                                 "message": (
-                                    f"task.ttl must be a positive integer (got: {ttl_value})"
+                                    f"task.ttl must be a positive integer (got: {ttl_value!r})"
                                 ),
                             },
                         )

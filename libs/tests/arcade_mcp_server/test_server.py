@@ -2939,6 +2939,71 @@ class TestTaskTtlValidation:
         assert response.error["code"] == -32602
 
     @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "ttl_value",
+        [
+            -1.0,  # whole-valued negative float; pydantic would coerce to -1
+            0.0,  # whole-valued zero float; pydantic would coerce to 0
+            0.5,  # fractional float; pydantic raises ValidationError downstream
+            60000.0,  # whole-valued positive float; spec says integer, reject
+            float("nan"),  # NaN compares False vs every ordering
+            float("inf"),  # +Infinity passes a bare ``<= 0`` test
+        ],
+    )
+    async def test_tool_call_rejects_float_ttl(
+        self, mcp_server, initialized_server_session, ttl_value
+    ):
+        """The MCP schema types ``task.ttl`` as ``integer``. Floats violate
+        the schema and -- worse -- whole-valued floats slip past
+        ``isinstance(_, int)``, then pydantic coerces them to ``int`` on
+        the ``Task`` model, producing a dead-on-arrival task. NaN and
+        ``+Infinity`` also bypass any ordering-only check because their
+        comparisons return ``False`` for every relation. The inline
+        validator must reject all non-int payloads with a single
+        ``-32602``.
+        """
+        _enable_tasks(initialized_server_session)
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {
+                "name": "TestToolkit.test_tool",
+                "arguments": {"text": "hello"},
+                "task": {"ttl": ttl_value},
+            },
+        }
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32602
+        assert "must be a positive integer" in response.error["message"]
+
+    @pytest.mark.asyncio
+    async def test_tool_call_rejects_string_ttl(
+        self, mcp_server, initialized_server_session
+    ):
+        """A JSON-string ``ttl`` value must be rejected at the inline
+        validator. Without the type gate the value would survive into
+        ``create_task`` and raise downstream when pydantic tries to coerce
+        it on the ``Task`` model.
+        """
+        _enable_tasks(initialized_server_session)
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {
+                "name": "TestToolkit.test_tool",
+                "arguments": {"text": "hello"},
+                "task": {"ttl": "60000"},
+            },
+        }
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32602
+        assert "must be a positive integer" in response.error["message"]
+
+    @pytest.mark.asyncio
     async def test_tool_call_accepts_positive_ttl(self, mcp_server, initialized_server_session):
         """Sanity check: a positive integer ttl still produces a task."""
         _enable_tasks(initialized_server_session)
