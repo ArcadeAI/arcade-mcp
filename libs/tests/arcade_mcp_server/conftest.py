@@ -1,6 +1,7 @@
 """Shared fixtures and utilities for arcade-mcp-server tests."""
 
 import asyncio
+import os
 from collections.abc import AsyncGenerator
 from typing import Annotated, Any
 from unittest.mock import AsyncMock, Mock
@@ -27,6 +28,27 @@ from arcade_mcp_server.session import ServerSession
 from arcade_mcp_server.settings import MCPSettings
 from arcade_mcp_server.types import ToolExecution
 from arcade_tdk.auth import OAuth2
+
+
+@pytest.fixture(autouse=True)
+def _clear_resource_server_env() -> None:
+    """Strip ``MCP_RESOURCE_SERVER_*`` env vars from every test's starting state.
+
+    The repo-wide ``isolate_environment`` fixture (libs/tests/conftest.py)
+    only snapshots-and-restores; pre-existing shell vars survive into the
+    test body. Several tests in this directory (notably the inline OAuth
+    scope-check tests in ``test_server_oauth_scope_check.py``) assert that
+    PRM and ``WWW-Authenticate`` headers are emitted from a clean slate,
+    so a developer who has ``MCP_RESOURCE_SERVER_CANONICAL_URL`` set in
+    their shell, e.g., to point at an ngrok URL while smoke-testing the
+    authorization example, would otherwise see spurious failures.
+
+    Tests that need a value set use ``monkeypatch.setenv``, which still
+    works because monkeypatch records its own deltas independently of
+    this teardown.
+    """
+    for key in [k for k in os.environ if k.startswith("MCP_RESOURCE_SERVER_")]:
+        del os.environ[key]
 
 
 @pytest.fixture

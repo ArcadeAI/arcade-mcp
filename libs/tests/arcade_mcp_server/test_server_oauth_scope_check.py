@@ -152,7 +152,9 @@ class TestInlineScopeCheckUsesGrantedScopes:
         than emitting a corrupted parameter.
         """
         # Initialized session uses {"transport_type": "http"} (no canonical_url),
-        # and the autouse fixture clears MCP_RESOURCE_SERVER_CANONICAL_URL.
+        # and the directory-level autouse fixture (_clear_resource_server_env
+        # in libs/tests/arcade_mcp_server/conftest.py) strips
+        # MCP_RESOURCE_SERVER_* from os.environ before the test body runs.
         resource_owner = ResourceOwner(
             user_id="alice",
             granted_scopes=frozenset({"files:read"}),
