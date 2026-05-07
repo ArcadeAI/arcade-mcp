@@ -40,6 +40,7 @@ from arcade_core.schema import (
 from arcade_mcp_server.request_context import get_request_meta
 from arcade_mcp_server.resource_server.base import ResourceOwner
 from arcade_mcp_server.types import (
+    RELATED_TASK_META_KEY,
     CallToolParams,
     CallToolRequest,
     CallToolResult,
@@ -472,7 +473,7 @@ class Progress(_ContextComponent):
         # Build _meta with related-task if in task context
         _meta: dict[str, Any] | None = None
         if task_id is not None:
-            _meta = {"io.modelcontextprotocol/related-task": {"taskId": task_id}}
+            _meta = {RELATED_TASK_META_KEY: {"taskId": task_id}}
 
         await session.send_progress_notification(
             progress_token=progress_token,
@@ -603,7 +604,7 @@ class Sampling(_ContextComponent):
         # with the originating task.
         outbound_meta: dict[str, Any] | None = None
         if self._ctx._task_id is not None:
-            outbound_meta = {"io.modelcontextprotocol/related-task": {"taskId": self._ctx._task_id}}
+            outbound_meta = {RELATED_TASK_META_KEY: {"taskId": self._ctx._task_id}}
 
         result = await self._ctx._session.create_message(
             messages=sampling_messages,
@@ -743,7 +744,7 @@ class UI(_ContextComponent):
         # with the originating task.
         outbound_meta: dict[str, Any] | None = None
         if self._ctx._task_id is not None:
-            outbound_meta = {"io.modelcontextprotocol/related-task": {"taskId": self._ctx._task_id}}
+            outbound_meta = {RELATED_TASK_META_KEY: {"taskId": self._ctx._task_id}}
 
         result = await self._ctx._session.elicit(
             message=message,

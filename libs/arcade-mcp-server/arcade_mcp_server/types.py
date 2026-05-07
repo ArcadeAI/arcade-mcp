@@ -16,6 +16,13 @@ JSONRPC_VERSION: Literal["2.0"] = "2.0"
 SUPPORTED_PROTOCOL_VERSIONS: list[str] = ["2025-06-18", "2025-11-25"]
 LATEST_PROTOCOL_VERSION: str = "2025-11-25"
 
+# MCP 2025-11-25 ``_meta`` key for correlating an outbound progress
+# notification, sampling request, elicitation request, or task-result
+# message with the originating task. Defined by SEP-1686. Always paired
+# with a ``{"taskId": <id>}`` value so the client can route the message
+# back to the task it should advance.
+RELATED_TASK_META_KEY: str = "io.modelcontextprotocol/related-task"
+
 # Feature registry — explicit per-version feature set to avoid lexical string comparison.
 # Non-date identifiers like "DRAFT-2025-v3" exist in spec artifacts and would break
 # lexical comparison. This is also how we add future versions cleanly — just add an entry.

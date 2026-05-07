@@ -70,6 +70,7 @@ from arcade_mcp_server.resource_server.headers import (
 from arcade_mcp_server.session import InitializationState, NotificationManager, ServerSession
 from arcade_mcp_server.settings import MCPSettings, ServerSettings
 from arcade_mcp_server.types import (
+    RELATED_TASK_META_KEY,
     BlobResourceContents,
     CallToolRequest,
     CallToolResult,
@@ -1314,9 +1315,7 @@ class MCPServer:
                 self._task_manager.track_background_task(task.taskId, bg)
 
                 # Build result with _meta.io.modelcontextprotocol/related-task
-                result_meta: dict[str, Any] = {
-                    "io.modelcontextprotocol/related-task": {"taskId": task.taskId}
-                }
+                result_meta: dict[str, Any] = {RELATED_TASK_META_KEY: {"taskId": task.taskId}}
                 # Propagate model-immediate-response hint if present
                 if isinstance(task_metadata, dict):
                     immediate_hint = task_metadata.get(
@@ -2184,12 +2183,12 @@ class MCPServer:
         # Success path: inject _meta.io.modelcontextprotocol/related-task
         if isinstance(result, dict):
             result.setdefault("_meta", {})
-            result["_meta"]["io.modelcontextprotocol/related-task"] = {"taskId": task_id}
+            result["_meta"][RELATED_TASK_META_KEY] = {"taskId": task_id}
         elif hasattr(result, "meta"):
             # Pydantic model
             if result.meta is None:
                 result.meta = {}
-            result.meta["io.modelcontextprotocol/related-task"] = {"taskId": task_id}
+            result.meta[RELATED_TASK_META_KEY] = {"taskId": task_id}
 
         return JSONRPCResponse(id=cast("str | int", msg_id), result=result)
 
