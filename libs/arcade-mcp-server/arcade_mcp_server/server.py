@@ -1238,16 +1238,49 @@ class MCPServer:
             if has_task_metadata and session is not None:
                 task_metadata = raw_params["task"]
 
-                # Reject explicit ttl=null in request
-                if (
-                    isinstance(task_metadata, dict)
-                    and "ttl" in task_metadata
-                    and task_metadata["ttl"] is None
-                ):
-                    return JSONRPCError(
-                        id=message.id,
-                        error={"code": -32602, "message": "task.ttl cannot be null in request"},
-                    )
+                # Validate the ``task.ttl`` field when the client supplied it.
+                # The MCP 2025-11-25 ``task.ttl`` is the number of milliseconds
+                # the server will retain the task; the spec permits omitting
+                # the field (server applies its default) but does not permit
+                # ``null`` or non-positive values.
+                #
+                # An explicit ``null`` is rejected for spec conformance. A
+                # zero or negative value is rejected because the resulting
+                # task would be expired the instant it is created: the
+                # client receives a ``CreateTaskResult`` with
+                # ``status="working"`` from this method, and every
+                # subsequent ``tasks/get`` / ``tasks/result`` call would
+                # then fall through to ``NotFoundError`` because
+                # ``_is_expired`` flips true immediately. Reject early so
+                # the failure mode is a single -32602 rather than a
+                # dead-on-arrival task that confuses callers.
+                if isinstance(task_metadata, dict) and "ttl" in task_metadata:
+                    ttl_value = task_metadata["ttl"]
+                    if ttl_value is None:
+                        return JSONRPCError(
+                            id=message.id,
+                            error={
+                                "code": -32602,
+                                "message": "task.ttl cannot be null in request",
+                            },
+                        )
+                    # ``bool`` is a subclass of ``int`` in Python: ``True == 1``
+                    # and ``False == 0``. Reject it explicitly so neither
+                    # silently passes the positive-int check below
+                    # (``False`` would also be caught by ``<= 0``, but
+                    # ``True`` would slip through as a 1ms TTL).
+                    if isinstance(ttl_value, bool) or (
+                        isinstance(ttl_value, int) and ttl_value <= 0
+                    ):
+                        return JSONRPCError(
+                            id=message.id,
+                            error={
+                                "code": -32602,
+                                "message": (
+                                    f"task.ttl must be a positive integer (got: {ttl_value})"
+                                ),
+                            },
+                        )
 
                 ttl_input = (
                     task_metadata.get("ttl")

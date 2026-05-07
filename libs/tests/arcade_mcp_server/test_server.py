@@ -2846,6 +2846,142 @@ class TestTaskAugmentedToolCall:
         )
 
 
+class TestTaskTtlValidation:
+    """Pin: ``task.ttl`` is rejected with -32602 for null, zero, and
+    negative values at the ``tools/call`` entry point.
+
+    The MCP 2025-11-25 spec types ``task.ttl`` as the number of
+    milliseconds the server will retain the task. ``null`` is not a
+    permitted form of "use the default" (omission is), and zero or
+    negative values would create a task that is expired the moment it
+    exists -- the client would receive a ``CreateTaskResult`` with
+    ``status="working"`` but every follow-up ``tasks/get`` would return
+    ``NotFoundError`` because ``_is_expired`` flips true immediately.
+    Rejecting early collapses that dead-on-arrival path to a single
+    invalid-params error.
+    """
+
+    @pytest.mark.asyncio
+    async def test_tool_call_rejects_explicit_null_ttl(
+        self, mcp_server, initialized_server_session
+    ):
+        _enable_tasks(initialized_server_session)
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {
+                "name": "TestToolkit.test_tool",
+                "arguments": {"text": "hello"},
+                "task": {"ttl": None},
+            },
+        }
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32602
+        assert "task.ttl cannot be null" in response.error["message"]
+
+    @pytest.mark.asyncio
+    async def test_tool_call_rejects_zero_ttl(self, mcp_server, initialized_server_session):
+        _enable_tasks(initialized_server_session)
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {
+                "name": "TestToolkit.test_tool",
+                "arguments": {"text": "hello"},
+                "task": {"ttl": 0},
+            },
+        }
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32602
+        assert "must be a positive integer" in response.error["message"]
+        assert "0" in response.error["message"]
+
+    @pytest.mark.asyncio
+    async def test_tool_call_rejects_negative_ttl(self, mcp_server, initialized_server_session):
+        _enable_tasks(initialized_server_session)
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {
+                "name": "TestToolkit.test_tool",
+                "arguments": {"text": "hello"},
+                "task": {"ttl": -100},
+            },
+        }
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32602
+        assert "must be a positive integer" in response.error["message"]
+        assert "-100" in response.error["message"]
+
+    @pytest.mark.asyncio
+    async def test_tool_call_rejects_false_ttl(self, mcp_server, initialized_server_session):
+        """``False`` is a subclass of ``int`` in Python and equals 0; the
+        positive-int check must not silently accept it as a 0ms TTL."""
+        _enable_tasks(initialized_server_session)
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {
+                "name": "TestToolkit.test_tool",
+                "arguments": {"text": "hello"},
+                "task": {"ttl": False},
+            },
+        }
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32602
+
+    @pytest.mark.asyncio
+    async def test_tool_call_accepts_positive_ttl(self, mcp_server, initialized_server_session):
+        """Sanity check: a positive integer ttl still produces a task."""
+        _enable_tasks(initialized_server_session)
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {
+                "name": "TestToolkit.test_tool",
+                "arguments": {"text": "hello"},
+                "task": {"ttl": 1},
+            },
+        }
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert not isinstance(response, JSONRPCError)
+        assert hasattr(response.result, "task")
+        assert response.result.task.status == TaskStatus.WORKING
+
+    @pytest.mark.asyncio
+    async def test_tool_call_omitted_ttl_uses_server_default(
+        self, mcp_server, initialized_server_session
+    ):
+        """Omitting ``task.ttl`` (vs explicit null) is the spec-permitted
+        way to say "use the server default". The validation block must
+        not reject this path."""
+        _enable_tasks(initialized_server_session)
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {
+                "name": "TestToolkit.test_tool",
+                "arguments": {"text": "hello"},
+                "task": {},
+            },
+        }
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert not isinstance(response, JSONRPCError)
+        assert hasattr(response.result, "task")
+        # Server default applied -- task has a positive ttl set internally.
+        assert response.result.task.status == TaskStatus.WORKING
+
+
 class TestTaskHandlersSessionRequired:
     """Regression tests for task handlers requiring a non-None session.
 

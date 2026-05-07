@@ -23,6 +23,7 @@ doesn't support it), see ``URLElicitationRequiredError`` below.
 """
 
 import asyncio
+import html
 import sys
 import threading
 import uuid
@@ -68,7 +69,17 @@ class _CompanionHandler(BaseHTTPRequestHandler):
         if self.path.startswith("/verify/"):
             elicit_id = self.path.removeprefix("/verify/")
             user = "the user"
-            body = _PAGE_HTML.format(user=user, elicit_id=elicit_id).encode()
+            # ``elicit_id`` is interpolated into both element text content
+            # and an HTML attribute value. ``html.escape(quote=True)`` is
+            # the right encoding for both contexts, neutralising
+            # ``<script>``-style payloads and any ``"`` that would break
+            # out of the action-attribute quoting. ``user`` is hardcoded
+            # today, but escaping here keeps the template safe if a future
+            # change parameterises it from request data.
+            body = _PAGE_HTML.format(
+                user=html.escape(user, quote=True),
+                elicit_id=html.escape(elicit_id, quote=True),
+            ).encode()
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
