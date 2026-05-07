@@ -416,15 +416,32 @@ class InsufficientScopeError(Exception):
     ) -> None:
         required_tuple = tuple(required_scopes)
         granted_frozenset = frozenset(granted_scopes)
-        # Validate BOTH against RFC 6749 ``scope-token`` grammar.
-        # ``required`` reaches the WWW-Authenticate header directly;
-        # ``granted`` is diagnostic today but future code paths may
-        # surface it, and base.py warns malformed tokens corrupt
-        # WWW-Authenticate. Defense-in-depth at the construction
-        # boundary catches manual / test misuse.
+        # Validate ``required`` against the RFC 6749 ``scope-token``
+        # grammar at construction. Required scopes reach the
+        # ``WWW-Authenticate: scope="..."`` parameter directly via
+        # ``build_insufficient_scope_www_authenticate``; a malformed
+        # token there would corrupt the header. Defense-in-depth at
+        # the construction boundary fails fast for caller misuse.
+        #
+        # ``granted`` is intentionally NOT validated here. It is
+        # diagnostic-only metadata sourced from a JWT ``scope`` / ``scp``
+        # claim populated by third-party IdPs, and it is never echoed
+        # into the wire response (the middleware 403 path emits only
+        # ``required``). Validating here would convert a non-conformant
+        # IdP-supplied token into a ``ValueError`` raised during
+        # exception construction, which the middleware's
+        # ``except InsufficientScopeError`` handler cannot catch:
+        # the result is a 500 collapsed onto the 403 step-up flow.
+        # ``JWKSResourceServerValidator._extract_granted_scopes``
+        # filters granted tokens at validation time as the canonical
+        # safety net, but that path is overridable, and operators with
+        # non-conformant IdPs are documented as encouraged to relax it.
+        # Custom ``ResourceServerValidator`` subclasses or direct
+        # ``ResourceOwner`` construction (test fixtures, tool code) are
+        # equally valid producers of granted sets that may not conform.
+        # Trust the validator-time filter and treat any unfiltered
+        # token as harmless: it cannot leak past this exception.
         for token in required_tuple:
-            _validate_scope_token(token)
-        for token in granted_frozenset:
             _validate_scope_token(token)
         # Validate ``error_description`` against RFC 6750 ``error-char``
         # grammar at construction. RFC 6750 forbids DQUOTE, backslash,

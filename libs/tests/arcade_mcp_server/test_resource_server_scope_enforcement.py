@@ -91,6 +91,28 @@ class TestEnforceScopes:
             enforce_scopes(scope, ["c", "a", "b"])
         assert exc_info.value.required_scopes == ("c", "a", "b")
 
+    def test_does_not_crash_when_granted_has_malformed_token(self):
+        """Pin: a non-RFC-conformant token in ``ResourceOwner.granted_scopes``
+        (e.g., from a custom validator that does not filter, or direct
+        fixture construction) MUST NOT prevent ``enforce_scopes`` from
+        raising ``InsufficientScopeError``. Validating the granted set at
+        exception construction would convert this into an unhandled
+        ``ValueError`` that the middleware's
+        ``except InsufficientScopeError`` handler cannot catch, collapsing
+        the 403 step-up flow into a 500.
+        """
+        owner = ResourceOwner(
+            user_id="u",
+            granted_scopes=frozenset({"bad token", "files:read"}),
+        )
+        scope = {RESOURCE_OWNER_SCOPE_KEY: owner}
+        with pytest.raises(InsufficientScopeError) as exc_info:
+            enforce_scopes(scope, ["files:write"])
+        assert exc_info.value.required_scopes == ("files:write",)
+        assert exc_info.value.granted_scopes == frozenset(
+            {"bad token", "files:read"}
+        )
+
 
 class TestBuildInsufficientScopeWWWAuthenticate:
     """Tests for the shared ``build_insufficient_scope_www_authenticate``

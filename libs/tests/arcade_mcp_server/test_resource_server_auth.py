@@ -2673,9 +2673,18 @@ class TestInsufficientScopeErrorConstruction:
         with pytest.raises(ValueError):
             InsufficientScopeError(required_scopes=["bad token"])
 
-    def test_validates_granted_scopes_rfc6750(self):
-        with pytest.raises(ValueError):
-            InsufficientScopeError(["read"], granted_scopes=["bad token"])
+    def test_does_not_validate_granted_scopes(self):
+        """Granted scopes are diagnostic-only (never on the wire) and may
+        originate from a third-party IdP that does not conform to the
+        RFC 6749 ``scope-token`` grammar. Validating them at construction
+        would raise a ``ValueError`` that the middleware's
+        ``except InsufficientScopeError`` handler cannot catch, collapsing
+        the 403 step-up flow into an unhandled 500. The construction must
+        accept the granted set as-is.
+        """
+        exc = InsufficientScopeError(["read"], granted_scopes=["bad token"])
+        assert exc.granted_scopes == frozenset({"bad token"})
+        assert exc.required_scopes == ("read",)
 
     @pytest.mark.parametrize(
         "bad_description",
