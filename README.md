@@ -33,7 +33,12 @@ Use it when you need MCP tools that aren't already in the prebuilt catalog: inte
 
 ## Authorized tool calling
 
-Tools can declare which OAuth scopes they need, and Arcade handles the rest: prompting the end user to authorize, storing and refreshing tokens, scoping them per call, and injecting them into your tool at runtime. **The client and the LLM never see the token.**
+Tools can declare:
+
+1. Which OAuth scopes they need, and Arcade handles the rest: prompting the end user to authorize, storing and refreshing tokens, scoping them per call
+2. API keys or any other secrets, and Arcade hosts the secrets securely in an encrypted environment.
+
+The secrets (OAuth tokens, API keys, etc) are securely injected by Arcade into your tool call at runtime, so that your tool can authorize requests to upstream APIs, for example. **The client and the LLM never see the secret values.**
 
 A tool that reads the user's GitHub repos is one decorator away:
 
