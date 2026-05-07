@@ -13,114 +13,33 @@ Usage:
 
 import json
 import sys
-from typing import Annotated, Any, Literal, TypedDict, cast
+from typing import Annotated, Any, Literal, cast
 
 from arcade_core.errors import FatalToolError
 from arcade_mcp_server import MCPApp
 
-from pctx_code_mode.store import (
-    Comment,
+from pctx_code_mode.params import (
+    AddCommentResult,
+    AddSubtaskResult,
+    CloseSprintResult,
+    GetTaskResult,
+    ListProjectsResult,
+    LogTimeResult,
+    MoveTaskResult,
     Project,
     ProjectStatus,
+    SearchTasksResult,
     Sprint,
     Task,
-    TimeEntry,
+    UpdateTaskResult,
+)
+from pctx_code_mode.store import (
     get_store,
 )
 
 app = MCPApp(
-    name="ProjectTracker", version="1.0.0", log_level="WARNING", pctx_url="http://localhost:8000"
+    name="ProjectTracker", version="1.0.0", log_level="WARNING", pctx_url="http://localhost:8080"
 )
-
-
-# ---------------------------------------------------------------------------
-# Tool result types
-# ---------------------------------------------------------------------------
-
-
-class ListProjectsFilters(TypedDict):
-    status_filter: list[str] | None
-    owner_id: str | None
-    tag: str | None
-
-
-class ListProjectsResult(TypedDict):
-    projects: list[Project]
-    total: int
-    returned: int
-    filters: ListProjectsFilters
-
-
-class CloseSprintSummary(TypedDict):
-    total_tasks: int
-    completed_tasks: int
-    carried_over_tasks: int
-    cancelled_tasks: int
-    completion_rate: float
-
-
-class CloseSprintResult(TypedDict):
-    sprint: Sprint
-    summary: CloseSprintSummary
-    carry_over_task_ids: list[str]
-    carry_over_policy: str
-
-
-class TimeLogSummary(TypedDict):
-    total_logged_hours: float
-    entry_count: int
-    entries: list[TimeEntry]
-
-
-class GetTaskResult(Task):
-    subtasks: list[Task]
-    recent_comments: list[Comment]
-    time_log: TimeLogSummary
-
-
-class UpdateTaskResult(TypedDict):
-    task: Task
-    changes: dict[str, Any]
-    message: str | None
-
-
-class MoveTaskResult(TypedDict):
-    task: Task
-    moved_from: str | None
-    moved_to: str | None
-
-
-class AddSubtaskResult(TypedDict):
-    subtask: Task
-    parent_task_id: str
-    parent_subtask_count: int
-
-
-class AddCommentResult(TypedDict):
-    comment: Comment
-    task_comment_count: int
-
-
-class LogTimeResult(TypedDict):
-    entry: TimeEntry
-    task_total_logged_hours: float
-    sprint_total_logged_hours: float
-
-
-class SearchTasksFilters(TypedDict):
-    project_id: str | None
-    sprint_id: str | None
-    assignee_id: str | None
-    statuses: list[str] | None
-    priorities: list[str] | None
-    labels: list[str] | None
-
-
-class SearchTasksResult(TypedDict):
-    tasks: list[Task]
-    total: int
-    returned: int
-    filters_applied: SearchTasksFilters
 
 
 # ---------------------------------------------------------------------------
@@ -587,7 +506,7 @@ def update_task(
         raise FatalToolError(f"Task '{task_id}' disappeared during update")
 
     updated_task, changes = result
-    return {"task": updated_task, "changes": changes}
+    return {"task": updated_task, "changes": changes, "message": None}
 
 
 @app.tool
@@ -918,4 +837,4 @@ if __name__ == "__main__":
     )
     host = os.environ.get("ARCADE_SERVER_HOST", "127.0.0.1")
     port = int(os.environ.get("ARCADE_SERVER_PORT", "8000"))
-    app.run(transport=transport, host=host, port=port)
+    app.run(transport=transport, host=host, port=port, reload=True)

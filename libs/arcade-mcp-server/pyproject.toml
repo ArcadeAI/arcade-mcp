@@ -39,6 +39,7 @@ dependencies = [
     "opentelemetry-api>=1.20.0",
     "opentelemetry-sdk>=1.20.0",
     "pctx-client>=0.3.2",
+    "jsonschema>=4.26.0",
 ]
 
 [project.optional-dependencies]

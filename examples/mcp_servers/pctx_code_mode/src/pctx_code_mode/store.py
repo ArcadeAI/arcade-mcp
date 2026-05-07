@@ -6,11 +6,20 @@ Seeded with stable demo data so evaluations can use predictable IDs.
 
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Literal, TypedDict, cast
+from typing import Any, cast
 
 from typing_extensions import Unpack
 
-ProjectStatus = Literal["planning", "active", "on_hold", "completed", "archived"]
+from pctx_code_mode.params import (
+    Comment,
+    Project,
+    ProjectCreate,
+    Sprint,
+    SprintCreate,
+    Task,
+    TaskCreate,
+    TimeEntry,
+)
 
 
 def _now() -> str:
@@ -19,90 +28,6 @@ def _now() -> str:
 
 def _uid(prefix: str) -> str:
     return f"{prefix}_{uuid.uuid4().hex[:8]}"
-
-
-# ---------------------------------------------------------------------------
-# Data models
-# ---------------------------------------------------------------------------
-
-
-class ProjectCreate(TypedDict):
-    name: str
-    description: str
-    owner_id: str
-    status: ProjectStatus
-    tags: list[str]
-    settings: dict[str, Any]
-    sprint_ids: list[str]
-    member_ids: list[str]
-
-
-class Project(ProjectCreate):
-    project_id: str
-    created_at: str
-    updated_at: str
-
-
-class SprintCreate(TypedDict):
-    project_id: str
-    name: str
-    status: str  # planning | active | completed
-    start_date: str
-    end_date: str
-    goals: list[str]
-    capacity_hours: float
-    task_ids: list[str]
-    retrospective_notes: str
-
-
-class Sprint(SprintCreate):
-    sprint_id: str
-    created_at: str
-    updated_at: str
-
-
-class TaskCreate(TypedDict):
-    sprint_id: str | None
-    project_id: str
-    title: str
-    description: str
-    status: str  # backlog | todo | in_progress | in_review | done | cancelled
-    priority: str  # critical | high | medium | low
-    assignee_id: str | None
-    labels: list[str]
-    estimate_hours: float
-    parent_task_id: str | None
-    acceptance_criteria: list[str]
-
-
-class Task(TaskCreate):
-    task_id: str
-    subtask_ids: list[str]
-    comment_ids: list[str]
-    time_entry_ids: list[str]
-    logged_hours: float
-    created_at: str
-    updated_at: str
-
-
-class Comment(TypedDict):
-    comment_id: str
-    task_id: str
-    author_id: str
-    body: str
-    attachments: list[dict[str, str]]
-    created_at: str
-    updated_at: str
-
-
-class TimeEntry(TypedDict):
-    entry_id: str
-    task_id: str
-    user_id: str
-    hours: float
-    description: str
-    work_date: str
-    created_at: str
 
 
 # ---------------------------------------------------------------------------
