@@ -12,22 +12,20 @@ from __future__ import annotations
 
 import json
 import logging
-from collections.abc import Awaitable
-from typing import Any, Callable
+from typing import Any
 
-import jsonschema
-from pctx_client import AsyncTool as _PctxAsyncToolBase
-from pctx_client import Pctx
+from pctx_client import AsyncTool, Pctx
+from pctx_client import tool as pctx_tool
 from pctx_client.descriptions import get_tool_description
 from pctx_client.models import (
     ExecuteBashInput,
     ExecuteTypescriptInput,
     GetFunctionDetailsInput,
+    SearchFunctionsInput,
     ToolDisclosure,
     ToolDisclosureName,
     ToolName,
 )
-from pydantic import BaseModel, Field
 
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.session import ServerSession
@@ -45,78 +43,6 @@ from arcade_mcp_server.types import (
 )
 
 logger = logging.getLogger("arcade.mcp.pctx")
-
-
-class _SearchFunctionsInput(BaseModel):
-    query: str
-    k: int = 10
-
-
-def _empty_object_schema() -> dict[str, Any]:
-    return {"type": "object", "properties": {}}
-
-
-def _build_code_mode_tools(disclosure: ToolDisclosure) -> list[MCPTool]:
-    """Build the MCPTool DTOs that should be exposed in code-mode."""
-    candidates: list[tuple[ToolName, dict[str, Any]]] = [
-        ("list_functions", _empty_object_schema()),
-        ("get_function_details", GetFunctionDetailsInput.model_json_schema()),
-        ("execute_typescript", ExecuteTypescriptInput.model_json_schema()),
-        ("search_functions", _SearchFunctionsInput.model_json_schema()),
-        ("execute_bash", ExecuteBashInput.model_json_schema()),
-    ]
-
-    tools: list[MCPTool] = []
-    for name, input_schema in candidates:
-        if not disclosure.contains_tool(name):
-            continue
-        tools.append(
-            MCPTool(
-                name=name,
-                description=get_tool_description(name, disclosure=disclosure),
-                inputSchema=input_schema,
-            )
-        )
-    return tools
-
-
-class PctxTool(_PctxAsyncToolBase):
-    """
-    AsyncTool variant for cases where the input/output contracts are
-    already given as JSON Schema dicts rather than Pydantic models.
-
-    The base _PctxAsyncToolBase expects `input_schema` to be a `type[BaseModel]` and
-    validates with `model_validate`, and treats `output_schema` as a Python
-    type fed to `TypeAdapter`. When the schemas originate from an external
-    source (a remote tool registry, an OpenAPI spec, an MCP server, a
-    hand-authored JSON Schema, etc.) there is no Python type to attach —
-    converting JSON Schema back into a synthetic BaseModel is lossy and
-    awkward for `$ref`/`oneOf`/recursive definitions.
-
-    This subclass keeps the dicts as-is and validates them directly with
-    `jsonschema`, so the JSON Schema stays the source of truth end-to-end.
-    """
-
-    input_schema: dict[str, Any] | None = Field(
-        default=None, description="JSON Schema for tool input."
-    )
-    output_schema: dict[str, Any] | None = Field(
-        default=None, description="JSON Schema for tool output."
-    )
-
-    def validate_input(self, obj: Any) -> None:
-        if self.input_schema is not None:
-            jsonschema.validate(obj, self.input_schema)
-
-    def validate_output(self, obj: Any) -> None:
-        if self.output_schema is not None:
-            jsonschema.validate(obj, self.output_schema)
-
-    def input_json_schema(self) -> dict[str, Any] | None:
-        return self.input_schema
-
-    def output_json_schema(self) -> dict[str, Any] | None:
-        return self.output_schema
 
 
 class PctxMCPServer(MCPServer):
@@ -138,7 +64,7 @@ class PctxMCPServer(MCPServer):
         super().__init__(*args, **kwargs)
         self._pctx_url = pctx_url
         self._pctx_disclosure = ToolDisclosure(pctx_disclosure)
-        self._pctx_code_mode_tools: list[MCPTool] = _build_code_mode_tools(self._pctx_disclosure)
+        self._pctx_code_mode_tools: list[MCPTool] = self._build_code_mode_tools()
         logger.info(
             "PctxMCPServer enabled (url=%s, disclosure=%s, tools=%s)",
             self._pctx_url,
@@ -146,20 +72,76 @@ class PctxMCPServer(MCPServer):
             [t.name for t in self._pctx_code_mode_tools],
         )
 
+    def _build_code_mode_tools(self) -> list[MCPTool]:
+        """Build the MCPTool DTOs that should be exposed in code-mode."""
+        # retain arcade <server_name>_ToolName pattern
+        candidates: list[tuple[ToolName, str, dict[str, Any]]] = [
+            ("list_functions", f"{self.name}_ListFunctions", {"type": "object", "properties": {}}),
+            (
+                "get_function_details",
+                f"{self.name}_GetFunctionDetails",
+                GetFunctionDetailsInput.model_json_schema(),
+            ),
+            (
+                "execute_typescript",
+                f"{self.name}_ExecuteTypescript",
+                ExecuteTypescriptInput.model_json_schema(),
+            ),
+            (
+                "search_functions",
+                f"{self.name}_SearchFunctions",
+                SearchFunctionsInput.model_json_schema(),
+            ),
+            ("execute_bash", f"{self.name}_ExecuteBash", ExecuteBashInput.model_json_schema()),
+        ]
+
+        tools: list[MCPTool] = []
+        for pctx_name, arcade_name, input_schema in candidates:
+            if not self._pctx_disclosure.contains_tool(pctx_name):
+                continue
+            tools.append(
+                MCPTool(
+                    name=arcade_name,
+                    description=get_tool_description(pctx_name, disclosure=self._pctx_disclosure),
+                    inputSchema=input_schema,
+                )
+            )
+        return tools
+
     async def _build_pctx_tools(
         self, req_id: RequestId, session: ServerSession | None
-    ) -> list[PctxTool]:
+    ) -> list[AsyncTool]:
+        """Wrap each Arcade catalog tool as a pctx ``AsyncTool``.
+
+        Each returned tool, when invoked by the pctx runtime, dispatches back
+        through ``MCPServer._handle_call_tool`` so execution still flows
+        through the base server's catalog/middleware. Results are unwrapped
+        into Python values: ``structuredContent`` is preferred, otherwise the
+        first ``TextContent`` is JSON-parsed (falling back to the raw string),
+        otherwise the full content list is returned as plain dicts.
+
+        Arcade tool names of the form ``<server>_<tool>`` are split into a
+        pctx ``namespace``/``name`` pair; names without an underscore fall
+        back to the ``tools`` namespace.
+        """
         arcade_tools = await self._tool_manager.list_tools()
 
-        pctx_tools = []
+        pctx_tools: list[AsyncTool] = []
         for t in arcade_tools:
             # Arcade tool names are exposed as `<server_name>_<tool_name>`
             split_name = t.name.split("_", maxsplit=1)
             if len(split_name) == 2:
                 namespace, name = split_name
             else:
-                namespace, name = "tools", split_name
+                namespace, name = "tools", split_name[0]
 
+            @pctx_tool(
+                name=name,
+                namespace=namespace,
+                description=t.description,
+                input_schema=t.inputSchema,
+                output_schema=t.outputSchema,
+            )
             async def _invoke_tool(_internal_arcade_tool_name: str = t.name, **kwargs: Any) -> Any:
                 request = CallToolRequest(
                     id=req_id,
@@ -189,23 +171,7 @@ class PctxMCPServer(MCPServer):
                         return first.text
                 return [c.model_dump(mode="json") for c in result.content]
 
-            class _CoroutineTool(PctxTool):
-                """Concrete asynchronous tool wrapping a coroutine"""
-
-                _coroutine: Callable[..., Awaitable[Any]] = staticmethod(_invoke_tool)
-
-                async def _ainvoke(self, **kwargs: Any) -> Any:
-                    return await self._coroutine(**kwargs)
-
-            pctx_tools.append(
-                _CoroutineTool(
-                    namespace=namespace,
-                    name=name,
-                    description=t.description,
-                    input_schema=t.inputSchema,
-                    output_schema=t.outputSchema,
-                )
-            )
+            pctx_tools.append(_invoke_tool)
         return pctx_tools
 
     async def _handle_list_tools(
@@ -227,17 +193,18 @@ class PctxMCPServer(MCPServer):
             url=self._pctx_url, tools=await self._build_pctx_tools(message.id, session=session)
         ) as p:
             tool_name = message.params.name
-            if tool_name == "list_functions":
+
+            if tool_name == f"{self.name}_ListFunctions":
                 out = (await p.list_functions()).code
-            elif tool_name == "get_function_details":
+            elif tool_name == f"{self.name}_GetFunctionDetails":
                 out = (await p.get_function_details(**args)).code
-            elif tool_name == "execute_typescript":
-                result = await p.execute_typescript(**args)
+            elif tool_name == f"{self.name}_ExecuteTypescript":
+                result = await p.execute_typescript(**args, disclosure=self._pctx_disclosure)
                 out = result.markdown()
-            elif tool_name == "search_functions":
+            elif tool_name == f"{self.name}_SearchFunctions":
                 results = await p.search_functions(**args)
                 out = "\n".join(f.model_dump_json() for f in results)
-            elif tool_name == "execute_bash":
+            elif tool_name == f"{self.name}_ExecuteBash":
                 result = await p.execute_bash(**args)
                 out = result.markdown()
             else:
