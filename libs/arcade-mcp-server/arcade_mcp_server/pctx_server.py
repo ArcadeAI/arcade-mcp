@@ -193,7 +193,7 @@ class PctxMCPServer(MCPServer):
             url=self._pctx_url, tools=await self._build_pctx_tools(message.id, session=session)
         ) as p:
             tool_name = message.params.name
-
+            meta: dict[str, Any] | None = None
             if tool_name == f"{self.name}_ListFunctions":
                 out = (await p.list_functions()).code
             elif tool_name == f"{self.name}_GetFunctionDetails":
@@ -201,6 +201,7 @@ class PctxMCPServer(MCPServer):
             elif tool_name == f"{self.name}_ExecuteTypescript":
                 result = await p.execute_typescript(**args, disclosure=self._pctx_disclosure)
                 out = result.markdown()
+                meta = result.trace.model_dump().get("events")
             elif tool_name == f"{self.name}_SearchFunctions":
                 results = await p.search_functions(**args)
                 out = "\n".join(f.model_dump_json() for f in results)
@@ -216,6 +217,8 @@ class PctxMCPServer(MCPServer):
         return JSONRPCResponse(
             id=message.id,
             result=CallToolResult(
-                content=[TextContent(type="text", text=out)], structuredContent=None, isError=False
+                content=[TextContent(type="text", text=out, meta=meta)],
+                structuredContent=None,
+                isError=False,
             ),
         )

@@ -19,6 +19,9 @@ dev = [
     "ruff>=0.1.0",
 ]
 
+[project.scripts]
+pctx_code_mode = "pctx_code_mode.server:main"
+
 [project.entry-points.arcade_toolkits]
 toolkit_name = "pctx_code_mode"
 

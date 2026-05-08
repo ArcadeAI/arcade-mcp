@@ -13,6 +13,7 @@ Usage:
 
 import json
 import sys
+from os import getenv
 from typing import Annotated, Any, Literal, cast
 
 from arcade_core.errors import FatalToolError
@@ -38,7 +39,10 @@ from pctx_code_mode.store import (
 )
 
 app = MCPApp(
-    name="ProjectTracker", version="1.0.0", log_level="WARNING", pctx_url="http://localhost:8080"
+    name="ProjectTracker",
+    version="1.0.0",
+    log_level="WARNING",
+    pctx_url=getenv("PCTX_URL", "http://localhost:8080"),
 )
 
 
@@ -827,14 +831,15 @@ def search_tasks(
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
-
-if __name__ == "__main__":
-    import os
-
+def main():
     transport = cast(
         Literal["stdio", "http"],
-        sys.argv[1] if len(sys.argv) > 1 else os.environ.get("ARCADE_SERVER_TRANSPORT", "stdio"),
+        sys.argv[1] if len(sys.argv) > 1 else getenv("ARCADE_SERVER_TRANSPORT", "stdio"),
     )
-    host = os.environ.get("ARCADE_SERVER_HOST", "127.0.0.1")
-    port = int(os.environ.get("ARCADE_SERVER_PORT", "8000"))
+    host = getenv("ARCADE_SERVER_HOST", "127.0.0.1")
+    port = int(getenv("ARCADE_SERVER_PORT", "8000"))
     app.run(transport=transport, host=host, port=port, reload=True)
+
+
+if __name__ == "__main__":
+    main()
