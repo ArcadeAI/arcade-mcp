@@ -3348,14 +3348,18 @@ class TestCapabilityFallback:
         assert not hasattr(response.result, "task")  # NOT CreateTaskResult
 
     @pytest.mark.asyncio
-    async def test_required_policy_enforced_for_legacy_clients(
+    async def test_required_policy_not_enforced_for_non_task_capable_sessions(
         self, mcp_server, initialized_server_session
     ):
-        """Regression: a tool with taskSupport="required" must reject synchronous
-        calls from ALL clients, including legacy 2025-06-18 sessions that cannot
-        negotiate task support. Previously the policy check was gated behind
-        ``server_declared_task_tools``, so legacy clients could invoke a
-        "required" tool synchronously and silently bypass the contract.
+        """Pin spec compliance: a 2025-06-18 session (or any session that did
+        not declare ``tasks.requests.tools.call``) MUST receive synchronous
+        execution of a ``taskSupport="required"`` tool. The MCP 2025-11-25
+        tasks spec "Task Support and Handling" rule says receivers that did
+        not declare task capability for a request type MUST process the
+        request normally and ignore task metadata; the tool-level
+        ``taskSupport`` enum is scoped to that negotiation. Enforcing
+        ``required`` against a client that cannot speak tasks would reject
+        calls the spec mandates we accept.
         """
         initialized_server_session.negotiated_version = "2025-06-18"
         initialized_server_session._negotiated_capabilities = {
@@ -3371,9 +3375,10 @@ class TestCapabilityFallback:
             "params": {"name": "TestToolkit.required_task_tool", "arguments": {}},
         }
         response = await mcp_server.handle_message(message, initialized_server_session)
-        assert isinstance(response, JSONRPCError)
-        assert response.error["code"] == -32601
-        assert "required" in response.error["message"].lower()
+        # Tool runs synchronously; no JSON-RPC error.
+        assert not isinstance(response, JSONRPCError)
+        assert hasattr(response.result, "content")  # CallToolResult shape
+        assert not hasattr(response.result, "task")  # NOT CreateTaskResult
 
 
 class TestURLElicitationRequiredErrorType:

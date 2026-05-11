@@ -1096,41 +1096,48 @@ class MCPServer:
                 "tasks.requests.tools.call"
             )
 
-            if not server_declared_task_tools:
-                # Capability fallback: ignore any task metadata on the request
-                # (old clients cannot receive task-augmented responses anyway).
+            # The MCP 2025-11-25 tasks spec scopes the entire ``taskSupport``
+            # negotiation to sessions that declared ``tasks.requests.tools.call``.
+            # When the session did NOT declare task capability for tools/call,
+            # the "Task Support and Handling" section requires receivers to
+            # process the request normally and ignore any task metadata. The
+            # tool-level ``taskSupport`` enum (``forbidden``/``optional``/
+            # ``required``) is part of that negotiation and only applies when
+            # the session has opted in. Enforcing ``required`` against a
+            # client that cannot speak tasks would reject calls the spec
+            # mandates we accept synchronously; ignoring task metadata
+            # without enforcing ``forbidden`` follows from the same rule
+            # because the metadata never reaches the execution path anyway.
+            if server_declared_task_tools:
+                tool_execution = getattr(tool.tool, "__tool_execution__", None)
+                tool_task_support = (
+                    getattr(tool_execution, "taskSupport", None) if tool_execution else None
+                )
+                # No policy configured means synchronous-only by default.
+                if tool_task_support is None:
+                    tool_task_support = "forbidden"
+
+                if tool_task_support == "forbidden" and has_task_metadata:
+                    return JSONRPCError(
+                        id=message.id,
+                        error={
+                            "code": -32601,
+                            "message": "Task augmentation forbidden for this tool",
+                        },
+                    )
+                elif tool_task_support == "required" and not has_task_metadata:
+                    return JSONRPCError(
+                        id=message.id,
+                        error={
+                            "code": -32601,
+                            "message": "Task augmentation required for this tool",
+                        },
+                    )
+            else:
+                # Capability fallback: spec MUST -- ignore any task metadata
+                # on the request and run the tool synchronously regardless of
+                # its ``taskSupport`` policy.
                 has_task_metadata = False
-
-            # Enforce the tool's execution policy against the request.
-            # MCP-specific: the policy lives on the function as the
-            # ``__tool_execution__`` dunder (an MCP ``ToolExecution`` instance).
-            # The policy check runs regardless of client version -- a tool
-            # marked ``taskSupport="required"`` MUST be rejected when called
-            # synchronously, including by legacy clients that can't use tasks.
-            tool_execution = getattr(tool.tool, "__tool_execution__", None)
-            tool_task_support = (
-                getattr(tool_execution, "taskSupport", None) if tool_execution else None
-            )
-            # No policy configured means synchronous-only by default.
-            if tool_task_support is None:
-                tool_task_support = "forbidden"
-
-            if tool_task_support == "forbidden" and has_task_metadata:
-                return JSONRPCError(
-                    id=message.id,
-                    error={
-                        "code": -32601,
-                        "message": "Task augmentation forbidden for this tool",
-                    },
-                )
-            elif tool_task_support == "required" and not has_task_metadata:
-                return JSONRPCError(
-                    id=message.id,
-                    error={
-                        "code": -32601,
-                        "message": "Task augmentation required for this tool",
-                    },
-                )
 
             # ---- Pre-flight checks (apply to BOTH synchronous and task-augmented calls) ----
             # These must run before a task is created so that task-augmented calls cannot
