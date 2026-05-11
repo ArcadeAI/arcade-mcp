@@ -2979,6 +2979,68 @@ class TestTaskTtlValidation:
         assert "must be a positive integer" in response.error["message"]
 
     @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ("task_value", "expected_type_name"),
+        [
+            (None, "NoneType"),
+            (42, "int"),
+            (True, "bool"),
+            ("string", "str"),
+            ([], "list"),
+            ([{"ttl": 60000}], "list"),
+        ],
+    )
+    async def test_tool_call_rejects_non_object_task_metadata(
+        self, mcp_server, initialized_server_session, task_value, expected_type_name
+    ):
+        """The MCP 2025-11-25 schema types ``params.task`` as a
+        ``TaskMetadata`` object. Non-object payloads (``null``, scalars,
+        strings, arrays) MUST be rejected with -32602. Without this gate
+        the request silently falls through to ``ttl_input = None`` and
+        spawns a background task for a malformed request, giving the
+        client a surprise ``CreateTaskResult``.
+        """
+        _enable_tasks(initialized_server_session)
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {
+                "name": "TestToolkit.test_tool",
+                "arguments": {"text": "hello"},
+                "task": task_value,
+            },
+        }
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32602
+        assert "params.task must be a TaskMetadata object" in response.error["message"]
+        assert expected_type_name in response.error["message"]
+
+    @pytest.mark.asyncio
+    async def test_tool_call_accepts_empty_task_object(
+        self, mcp_server, initialized_server_session
+    ):
+        """Sanity check: ``"task": {}`` (no fields) is a valid TaskMetadata
+        per the spec; the server uses its default TTL.
+        """
+        _enable_tasks(initialized_server_session)
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {
+                "name": "TestToolkit.test_tool",
+                "arguments": {"text": "hello"},
+                "task": {},
+            },
+        }
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert not isinstance(response, JSONRPCError)
+        assert hasattr(response.result, "task")
+        assert response.result.task.status == TaskStatus.WORKING
+
+    @pytest.mark.asyncio
     async def test_tool_call_rejects_string_ttl(
         self, mcp_server, initialized_server_session
     ):

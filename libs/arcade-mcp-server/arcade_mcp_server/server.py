@@ -1246,6 +1246,29 @@ class MCPServer:
             if has_task_metadata and session is not None:
                 task_metadata = raw_params["task"]
 
+                # The MCP 2025-11-25 schema types ``params.task`` as a
+                # ``TaskMetadata`` object (``"type": "object"`` in the
+                # JSON schema). Non-object payloads (``null``, scalars,
+                # strings, arrays) violate the schema. Without this gate
+                # the request would fall through to ``ttl_input = None``
+                # via the ``getattr(task_metadata, "ttl", None)`` fallback
+                # and silently spawn a background task with the default
+                # TTL for what is clearly a malformed request. Reject
+                # early with a single -32602 so the caller learns the
+                # shape they sent is wrong rather than getting a
+                # surprise ``CreateTaskResult``.
+                if not isinstance(task_metadata, dict):
+                    return JSONRPCError(
+                        id=message.id,
+                        error={
+                            "code": -32602,
+                            "message": (
+                                "params.task must be a TaskMetadata object "
+                                f"(got: {type(task_metadata).__name__})"
+                            ),
+                        },
+                    )
+
                 # Validate the ``task.ttl`` field when the client supplied it.
                 # The MCP 2025-11-25 ``task.ttl`` is the number of milliseconds
                 # the server will retain the task; the spec permits omitting
@@ -1262,7 +1285,7 @@ class MCPServer:
                 # ``_is_expired`` flips true immediately. Reject early so
                 # the failure mode is a single -32602 rather than a
                 # dead-on-arrival task that confuses callers.
-                if isinstance(task_metadata, dict) and "ttl" in task_metadata:
+                if "ttl" in task_metadata:
                     ttl_value = task_metadata["ttl"]
                     if ttl_value is None:
                         return JSONRPCError(
@@ -1309,11 +1332,7 @@ class MCPServer:
                             },
                         )
 
-                ttl_input = (
-                    task_metadata.get("ttl")
-                    if isinstance(task_metadata, dict)
-                    else getattr(task_metadata, "ttl", None)
-                )
+                ttl_input = task_metadata.get("ttl")
 
                 context_key = self._get_task_context_key(session, resource_owner)
                 task = await self._task_manager.create_task(context_key=context_key, ttl=ttl_input)
