@@ -4105,3 +4105,77 @@ class TestLogToolCallError:
         record = next(r for r in caplog.records if "t error" in r.getMessage())
         assert record.error_developer_message is None
         assert record.error_status_code is None
+
+
+class TestHandleCallToolReturnType:
+    """Pin the public contract for ``MCPServer._handle_call_tool``'s return
+    annotation. Task augmentation widened the signature to
+    ``JSONRPCResponse[Any] | JSONRPCError`` for convenience; the real return
+    union is ``JSONRPCResponse[CallToolResult | CreateTaskResult] | JSONRPCError``.
+    This guard prevents future drift back to ``Any``.
+    """
+
+    def test_handle_call_tool_return_type_is_tightened(self):
+        """The return annotation must precisely describe the return types.
+
+        Either shape is acceptable (Pydantic generics are invariant, so the
+        broader shape may not type-check):
+
+        - ``JSONRPCResponse[CallToolResult | CreateTaskResult] | JSONRPCError``
+        - ``JSONRPCResponse[CallToolResult] | JSONRPCResponse[CreateTaskResult] | JSONRPCError``
+
+        Reject ``JSONRPCResponse[Any] | JSONRPCError``.
+        """
+        import typing
+
+        from arcade_mcp_server.server import MCPServer
+        from arcade_mcp_server.types import (
+            CallToolResult,
+            CreateTaskResult,
+            JSONRPCError,
+            JSONRPCResponse,
+        )
+
+        hints = typing.get_type_hints(MCPServer._handle_call_tool)
+        return_type = hints["return"]
+
+        args = typing.get_args(return_type)
+        assert args, f"return type must be a Union, got {return_type!r}"
+        assert any(a is JSONRPCError for a in args), (
+            f"missing JSONRPCError branch: {args!r}"
+        )
+
+        # All non-error branches must be parameterised JSONRPCResponses,
+        # and the union of their inner types must cover {CallToolResult,
+        # CreateTaskResult}. Pydantic generics produce concrete subclasses,
+        # so inspect ``__pydantic_generic_metadata__`` rather than
+        # ``typing.get_origin`` / ``typing.get_args``.
+        response_branches = [a for a in args if a is not JSONRPCError]
+        assert response_branches, f"no JSONRPCResponse branch: {args!r}"
+
+        inner_types: set[type] = set()
+        for branch in response_branches:
+            assert isinstance(branch, type) and issubclass(branch, JSONRPCResponse), (
+                f"non-error branch must be a JSONRPCResponse subclass, got {branch!r}"
+            )
+            metadata = getattr(branch, "__pydantic_generic_metadata__", {})
+            type_args = metadata.get("args", ())
+            assert type_args, (
+                f"JSONRPCResponse must be parameterised; no Pydantic generic args on "
+                f"{branch!r}"
+            )
+            inner = type_args[0]
+            assert inner is not typing.Any, (
+                "_handle_call_tool return type still has JSONRPCResponse[Any]; "
+                "tighten to JSONRPCResponse[CallToolResult | CreateTaskResult]"
+            )
+            # Inner may itself be a Union; collect the leaves.
+            for sub in typing.get_args(inner) or (inner,):
+                inner_types.add(sub)
+
+        assert CallToolResult in inner_types, (
+            f"CallToolResult missing from response branches: {inner_types!r}"
+        )
+        assert CreateTaskResult in inner_types, (
+            f"CreateTaskResult missing from response branches: {inner_types!r}"
+        )

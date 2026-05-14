@@ -1089,7 +1089,7 @@ class MCPServer:
         self,
         message: CallToolRequest,
         session: ServerSession | None = None,
-    ) -> JSONRPCResponse[Any] | JSONRPCError:
+    ) -> JSONRPCResponse[CallToolResult] | JSONRPCResponse[CreateTaskResult] | JSONRPCError:
         """Handle tool call request."""
         tool_name = message.params.name
         input_params = message.params.arguments or {}
