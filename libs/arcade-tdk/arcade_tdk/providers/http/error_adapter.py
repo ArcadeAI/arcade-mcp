@@ -462,12 +462,12 @@ class _RequestsExceptionHandler:
         try:
             from requests.exceptions import InvalidProxyURL
         except ImportError:
-            InvalidProxyURL = _UnavailableRequestsException
+            InvalidProxyURL = _UnavailableRequestsException  # type: ignore[misc,assignment]
 
         try:
             from requests.exceptions import InvalidHeader
         except ImportError:
-            InvalidHeader = _UnavailableRequestsException
+            InvalidHeader = _UnavailableRequestsException  # type: ignore[misc,assignment]
 
         request_url, request_method = mapper._extract_request_info(exc)
 
