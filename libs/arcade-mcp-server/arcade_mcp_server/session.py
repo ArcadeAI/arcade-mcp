@@ -741,7 +741,15 @@ class ServerSession:
                         )
 
             # Check: assistant messages with tool_use must be followed by user
-            # message with all tool_result blocks
+            # message with all tool_result blocks, and each tool_use id must
+            # match a tool_result toolUseId (bijection).
+            #
+            # Per MCP 2025-11-25 client/sampling.mdx section 5.2 (Tool Use
+            # and Result Balance): "every assistant message containing
+            # ToolUseContent blocks MUST be followed by a user message that
+            # consists entirely of ToolResultContent blocks, with each tool
+            # use (e.g. with id: $id) matched by a corresponding tool result
+            # (with toolUseId: $id), before any other message."
             if role == "assistant":
                 has_tool_use = any(
                     isinstance(b, dict) and b.get("type") == "tool_use" for b in blocks
@@ -768,6 +776,30 @@ class ServerSession:
                         raise ValueError(
                             "assistant message with tool_use must be followed by a "
                             "user message containing tool result blocks"
+                        )
+                    tool_use_ids = {
+                        b["id"]
+                        for b in blocks
+                        if isinstance(b, dict) and b.get("type") == "tool_use" and "id" in b
+                    }
+                    tool_result_ids = {
+                        b["toolUseId"]
+                        for b in next_blocks
+                        if isinstance(b, dict)
+                        and b.get("type") == "tool_result"
+                        and "toolUseId" in b
+                    }
+                    if tool_use_ids != tool_result_ids:
+                        missing_results = tool_use_ids - tool_result_ids
+                        extra_results = tool_result_ids - tool_use_ids
+                        details = []
+                        if missing_results:
+                            details.append(f"missing tool_result for: {sorted(missing_results)}")
+                        if extra_results:
+                            details.append(f"unmatched tool_result for: {sorted(extra_results)}")
+                        raise ValueError(
+                            "assistant tool_use ids must match user tool_result toolUseIds "
+                            "(" + "; ".join(details) + ")"
                         )
 
     async def list_roots(self, timeout: float = 60.0) -> ListRootsResult:

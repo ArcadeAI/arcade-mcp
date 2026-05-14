@@ -587,6 +587,151 @@ class TestSamplingWithTools:
             await server_session.create_message(messages=messages, max_tokens=100)
 
     @pytest.mark.asyncio
+    async def test_create_message_tool_use_ids_must_match_tool_result_ids(self, server_session):
+        """Spec MUST: every tool_use id must be matched by a tool_result.toolUseId
+        (bijection). Mismatched ids must raise ValueError."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(sampling={"tools": {}})
+        messages = [
+            {
+                "role": "assistant",
+                "content": [
+                    {"type": "tool_use", "id": "A", "name": "t", "input": {}},
+                    {"type": "tool_use", "id": "B", "name": "t", "input": {}},
+                ],
+            },
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "tool_result",
+                        "toolUseId": "A",
+                        "content": [{"type": "text", "text": "ok"}],
+                    },
+                    {
+                        "type": "tool_result",
+                        "toolUseId": "C",  # id mismatch -- not in tool_use set
+                        "content": [{"type": "text", "text": "ok"}],
+                    },
+                ],
+            },
+        ]
+        server_session._request_manager = AsyncMock()
+        with pytest.raises(ValueError, match="tool_use ids must match"):
+            await server_session.create_message(messages=messages, max_tokens=100)
+
+    @pytest.mark.asyncio
+    async def test_create_message_extra_tool_results_rejected(self, server_session):
+        """A user message with MORE tool_result blocks than the prior assistant
+        message had tool_use blocks must be rejected (bijection requirement)."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(sampling={"tools": {}})
+        messages = [
+            {
+                "role": "assistant",
+                "content": [
+                    {"type": "tool_use", "id": "A", "name": "t", "input": {}},
+                    {"type": "tool_use", "id": "B", "name": "t", "input": {}},
+                ],
+            },
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "tool_result",
+                        "toolUseId": "A",
+                        "content": [{"type": "text", "text": "ok"}],
+                    },
+                    {
+                        "type": "tool_result",
+                        "toolUseId": "B",
+                        "content": [{"type": "text", "text": "ok"}],
+                    },
+                    {
+                        "type": "tool_result",
+                        "toolUseId": "C",  # extra -- no matching tool_use
+                        "content": [{"type": "text", "text": "ok"}],
+                    },
+                ],
+            },
+        ]
+        server_session._request_manager = AsyncMock()
+        with pytest.raises(ValueError, match="tool_use ids must match"):
+            await server_session.create_message(messages=messages, max_tokens=100)
+
+    @pytest.mark.asyncio
+    async def test_create_message_missing_tool_results_rejected(self, server_session):
+        """A user message with FEWER tool_result blocks than the prior assistant
+        message had tool_use blocks must be rejected (bijection requirement)."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(sampling={"tools": {}})
+        messages = [
+            {
+                "role": "assistant",
+                "content": [
+                    {"type": "tool_use", "id": "A", "name": "t", "input": {}},
+                    {"type": "tool_use", "id": "B", "name": "t", "input": {}},
+                ],
+            },
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "tool_result",
+                        "toolUseId": "A",
+                        "content": [{"type": "text", "text": "ok"}],
+                    },
+                    # missing toolUseId="B"
+                ],
+            },
+        ]
+        server_session._request_manager = AsyncMock()
+        with pytest.raises(ValueError, match="tool_use ids must match"):
+            await server_session.create_message(messages=messages, max_tokens=100)
+
+    @pytest.mark.asyncio
+    async def test_create_message_balanced_ids_pass(self, server_session):
+        """Regression guard: a properly balanced tool_use/tool_result pairing
+        must continue to validate successfully."""
+        server_session.negotiated_version = "2025-11-25"
+        server_session._client_capabilities = ClientCapabilities(sampling={"tools": {}})
+        server_session._request_manager = AsyncMock()
+        server_session._request_manager.send_request = AsyncMock(
+            return_value={
+                "role": "assistant",
+                "content": {"type": "text", "text": "done"},
+                "model": "test-model",
+                "stopReason": "endTurn",
+            }
+        )
+        messages = [
+            {
+                "role": "assistant",
+                "content": [
+                    {"type": "tool_use", "id": "A", "name": "t", "input": {}},
+                    {"type": "tool_use", "id": "B", "name": "t", "input": {}},
+                ],
+            },
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "tool_result",
+                        "toolUseId": "A",
+                        "content": [{"type": "text", "text": "ok"}],
+                    },
+                    {
+                        "type": "tool_result",
+                        "toolUseId": "B",
+                        "content": [{"type": "text", "text": "ok"}],
+                    },
+                ],
+            },
+        ]
+        # Should NOT raise.
+        await server_session.create_message(messages=messages, max_tokens=100)
+
+    @pytest.mark.asyncio
     async def test_include_context_stripped_without_sampling_context_capability(
         self, server_session
     ):
