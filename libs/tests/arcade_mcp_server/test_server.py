@@ -1236,6 +1236,112 @@ class TestMCPServer:
         assert response.result.isError is False
 
 
+class TestParamsMetaValidation:
+    """Dispatch-boundary validation of params and _meta shape.
+
+    Malformed client input must surface as JSON-RPC -32602 (Invalid params)
+    rather than -32603 (Internal error). The check runs before per-method
+    handlers so every method benefits.
+    """
+
+    @pytest.mark.asyncio
+    async def test_ping_with_null_params_is_accepted(self, mcp_server, initialized_server_session):
+        """params: null is equivalent to omitted params and must be accepted."""
+        message = {"jsonrpc": "2.0", "id": 1, "method": "ping", "params": None}
+        response = await mcp_server.handle_message(message, session=initialized_server_session)
+        assert isinstance(response, JSONRPCResponse)
+
+    @pytest.mark.asyncio
+    async def test_ping_with_array_params_returns_invalid_params(
+        self, mcp_server, initialized_server_session
+    ):
+        message = {"jsonrpc": "2.0", "id": 1, "method": "ping", "params": ["bad"]}
+        response = await mcp_server.handle_message(message, session=initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32602
+        assert "params" in response.error["message"]
+
+    @pytest.mark.asyncio
+    async def test_ping_with_string_params_returns_invalid_params(
+        self, mcp_server, initialized_server_session
+    ):
+        message = {"jsonrpc": "2.0", "id": 1, "method": "ping", "params": "bad"}
+        response = await mcp_server.handle_message(message, session=initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32602
+
+    @pytest.mark.asyncio
+    async def test_meta_string_returns_invalid_params(
+        self, mcp_server, initialized_server_session
+    ):
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "ping",
+            "params": {"_meta": "bad"},
+        }
+        response = await mcp_server.handle_message(message, session=initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32602
+        assert "_meta" in response.error["message"]
+
+    @pytest.mark.asyncio
+    async def test_meta_array_returns_invalid_params(
+        self, mcp_server, initialized_server_session
+    ):
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "ping",
+            "params": {"_meta": []},
+        }
+        response = await mcp_server.handle_message(message, session=initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32602
+
+    @pytest.mark.asyncio
+    async def test_meta_null_is_accepted(self, mcp_server, initialized_server_session):
+        """_meta: null is equivalent to omitted _meta and must be accepted."""
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "ping",
+            "params": {"_meta": None},
+        }
+        response = await mcp_server.handle_message(message, session=initialized_server_session)
+        assert isinstance(response, JSONRPCResponse)
+
+    @pytest.mark.asyncio
+    async def test_params_absent_is_accepted(self, mcp_server, initialized_server_session):
+        """A request with no params field at all must continue to work."""
+        message = {"jsonrpc": "2.0", "id": 1, "method": "ping"}
+        response = await mcp_server.handle_message(message, session=initialized_server_session)
+        assert isinstance(response, JSONRPCResponse)
+
+    @pytest.mark.asyncio
+    async def test_valid_meta_object_is_accepted(self, mcp_server, initialized_server_session):
+        """A well-formed _meta object continues to flow through to request context."""
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "ping",
+            "params": {"_meta": {"progressToken": "abc-123"}},
+        }
+        response = await mcp_server.handle_message(message, session=initialized_server_session)
+        assert isinstance(response, JSONRPCResponse)
+
+    @pytest.mark.parametrize("method", ["ping", "tools/list", "resources/list", "prompts/list"])
+    @pytest.mark.asyncio
+    async def test_invalid_params_rejected_for_all_methods(
+        self, mcp_server, initialized_server_session, method
+    ):
+        """Validation runs at the dispatch boundary, before any per-method handler."""
+        message = {"jsonrpc": "2.0", "id": 1, "method": method, "params": "bad"}
+        response = await mcp_server.handle_message(message, session=initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32602
+
+
 class TestMissingSecretsWarnings:
     """Test startup warnings for missing tool secrets."""
 

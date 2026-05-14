@@ -663,14 +663,30 @@ class MCPServer:
                     error={"code": -32601, "message": "Method not found"},
                 )
 
+        # Validate params/_meta shape before per-method handlers run. Malformed
+        # client input (non-object params, non-object _meta) would otherwise
+        # raise inside set_request_meta / handler parsing and surface as
+        # JSON-RPC -32603 (Internal Error). Per JSON-RPC 2.0, client-malformed
+        # input is -32602 (Invalid params).
+        raw_params = message.get("params")
+        if raw_params is not None and not isinstance(raw_params, dict):
+            return JSONRPCError(
+                id=msg_id,
+                error={"code": -32602, "message": "params must be an object"},
+            )
+        raw_meta = raw_params.get("_meta") if isinstance(raw_params, dict) else None
+        if raw_meta is not None and not isinstance(raw_meta, dict):
+            return JSONRPCError(
+                id=msg_id,
+                error={"code": -32602, "message": "params._meta must be an object"},
+            )
+
         # Create context and apply middleware
         try:
             # Store the request's meta via ContextVar for per-request isolation
             meta_token = None
             if session:
-                params = message.get("params", {})
-                meta = params.get("_meta")
-                meta_token = set_request_meta(meta)
+                meta_token = set_request_meta(raw_meta)
 
             # Create request context
             context = (
