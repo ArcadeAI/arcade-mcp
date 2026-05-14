@@ -129,6 +129,39 @@ logger = logging.getLogger("arcade.mcp")
 INSUFFICIENT_SCOPE_ERROR_CODE = -32043
 
 
+def _build_arcade_error_meta(error: ToolCallError) -> dict[str, Any]:
+    """Build the ``_meta.arcade`` payload that accompanies a tool error
+    ``CallToolResult``.
+
+    Schema (camelCase on the wire, matching
+    ``examples/mcp_servers/typed_errors/README.md``):
+
+    - ``errorKind``: ErrorKind enum value as string. Always present.
+    - ``canRetry``: bool. Always present.
+    - ``additionalPromptContent``: str. Present iff the error carries it.
+    - ``retryAfterMs``: int. Present iff the error carries it.
+    - ``statusCode``: int. Present iff the error carries it.
+
+    Optional fields are omitted when absent (rather than set to ``None``) so
+    clients can distinguish "field absent" from "field explicitly null".
+    """
+    kind = error.kind
+    arcade_meta: dict[str, Any] = {
+        "errorKind": kind.value if hasattr(kind, "value") else str(kind),
+        "canRetry": bool(error.can_retry),
+    }
+    additional_prompt = getattr(error, "additional_prompt_content", None)
+    if additional_prompt:
+        arcade_meta["additionalPromptContent"] = additional_prompt
+    retry_after = getattr(error, "retry_after_ms", None)
+    if retry_after is not None:
+        arcade_meta["retryAfterMs"] = retry_after
+    status_code = getattr(error, "status_code", None)
+    if status_code is not None:
+        arcade_meta["statusCode"] = status_code
+    return arcade_meta
+
+
 def _extract_scopes(claims: dict[str, Any]) -> set[str]:
     """Legacy helper: normalize scope extraction across OAuth provider formats.
 
@@ -1476,14 +1509,33 @@ class MCPServer:
                 # Per the MCP spec, structuredContent MUST validate against outputSchema —
                 # but error payloads will violate a tool's declared output schema.
                 # The error message is conveyed via ``content`` (TextContent) instead.
-                return JSONRPCResponse(
-                    id=message.id,
-                    result=CallToolResult(
+                #
+                # ``_meta.arcade.*`` carries the typed-error contract documented in
+                # ``examples/mcp_servers/typed_errors/README.md`` so clients can read
+                # ``errorKind`` / ``canRetry`` / ``retryAfterMs`` without parsing the
+                # text content. Only emitted when a ``ToolCallError`` is in scope;
+                # the legacy fallback path (``content = "Error calling tool"``) has
+                # no structured error to surface. ``**{"_meta": ...}`` matches the
+                # alias convention used by CreateTaskResult above and works under
+                # ``Result.model_config.populate_by_name=True``.
+                error_meta: dict[str, Any] | None = (
+                    {"arcade": _build_arcade_error_meta(error)} if error is not None else None
+                )
+                call_tool_result = (
+                    CallToolResult(
                         content=content,
                         structuredContent=None,
                         isError=True,
-                    ),
+                        **{"_meta": error_meta},
+                    )
+                    if error_meta is not None
+                    else CallToolResult(
+                        content=content,
+                        structuredContent=None,
+                        isError=True,
+                    )
                 )
+                return JSONRPCResponse(id=message.id, result=call_tool_result)
         except NotFoundError:
             # MCP 2025-11-25 requires unknown-tool errors to be surfaced as
             # JSON-RPC protocol errors (-32602), not CallToolResult.

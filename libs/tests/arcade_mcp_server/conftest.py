@@ -264,6 +264,99 @@ def materialized_retryable_failing_tool(
 
 
 @pytest.fixture
+def context_required_failing_tool_func():
+    """A tool that raises ContextRequiredToolError with additional_prompt_content."""
+    from arcade_mcp_server.exceptions import ContextRequiredToolError
+
+    @tool(execution=ToolExecution(taskSupport="optional"))
+    def context_required_failing_tool() -> Annotated[str, "Never returned"]:
+        """A tool that needs human/LLM input before the orchestrator retries."""
+        raise ContextRequiredToolError(
+            message="Email is ambiguous.",
+            additional_prompt_content="Please ask the user for a full email address.",
+        )
+
+    return context_required_failing_tool
+
+
+@pytest.fixture
+def context_required_failing_tool_def() -> ToolDefinition:
+    return _make_tool_def(
+        "context_required_failing_tool",
+        "TestToolkit.context_required_failing_tool",
+    )
+
+
+@pytest.fixture
+def materialized_context_required_failing_tool(
+    context_required_failing_tool_func, context_required_failing_tool_def
+) -> MaterializedTool:
+    return _materialize(context_required_failing_tool_func, context_required_failing_tool_def)
+
+
+@pytest.fixture
+def upstream_rate_limit_tool_func():
+    """A tool that raises UpstreamRateLimitError with retry_after_ms."""
+    from arcade_mcp_server.exceptions import UpstreamRateLimitError
+
+    @tool(execution=ToolExecution(taskSupport="optional"))
+    def upstream_rate_limit_tool() -> Annotated[str, "Never returned"]:
+        """A tool that always returns HTTP 429 from the upstream."""
+        raise UpstreamRateLimitError(
+            message="rate limited",
+            retry_after_ms=2000,
+        )
+
+    return upstream_rate_limit_tool
+
+
+@pytest.fixture
+def upstream_rate_limit_tool_def() -> ToolDefinition:
+    return _make_tool_def(
+        "upstream_rate_limit_tool",
+        "TestToolkit.upstream_rate_limit_tool",
+    )
+
+
+@pytest.fixture
+def materialized_upstream_rate_limit_tool(
+    upstream_rate_limit_tool_func, upstream_rate_limit_tool_def
+) -> MaterializedTool:
+    return _materialize(upstream_rate_limit_tool_func, upstream_rate_limit_tool_def)
+
+
+@pytest.fixture
+def upstream_auth_error_tool_func():
+    """A tool that raises UpstreamError(status_code=403)."""
+    from arcade_mcp_server.exceptions import UpstreamError
+
+    @tool(execution=ToolExecution(taskSupport="optional"))
+    def upstream_auth_error_tool() -> Annotated[str, "Never returned"]:
+        """A tool whose upstream always rejects with HTTP 403."""
+        raise UpstreamError(
+            message="forbidden",
+            status_code=403,
+        )
+
+    return upstream_auth_error_tool
+
+
+@pytest.fixture
+def upstream_auth_error_tool_def() -> ToolDefinition:
+    return _make_tool_def(
+        "upstream_auth_error_tool",
+        "TestToolkit.upstream_auth_error_tool",
+    )
+
+
+@pytest.fixture
+def materialized_upstream_auth_error_tool(
+    upstream_auth_error_tool_func, upstream_auth_error_tool_def
+) -> MaterializedTool:
+    return _materialize(upstream_auth_error_tool_func, upstream_auth_error_tool_def)
+
+
+@pytest.fixture
 def slow_tool_func():
     """A tool that sleeps for a long time (for cancellation tests)."""
 
@@ -511,6 +604,9 @@ def tool_catalog(
     materialized_tool_with_auth: MaterializedTool,
     materialized_failing_tool: MaterializedTool,
     materialized_retryable_failing_tool: MaterializedTool,
+    materialized_context_required_failing_tool: MaterializedTool,
+    materialized_upstream_rate_limit_tool: MaterializedTool,
+    materialized_upstream_auth_error_tool: MaterializedTool,
     materialized_slow_tool: MaterializedTool,
     materialized_error_result_tool: MaterializedTool,
     materialized_forbidden_task_tool: MaterializedTool,
@@ -526,6 +622,9 @@ def tool_catalog(
         materialized_tool_with_auth,
         materialized_failing_tool,
         materialized_retryable_failing_tool,
+        materialized_context_required_failing_tool,
+        materialized_upstream_rate_limit_tool,
+        materialized_upstream_auth_error_tool,
         materialized_slow_tool,
         materialized_error_result_tool,
         materialized_forbidden_task_tool,
