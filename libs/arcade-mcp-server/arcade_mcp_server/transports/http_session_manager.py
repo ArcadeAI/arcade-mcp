@@ -76,7 +76,7 @@ def _replay_receive(body: bytes, original_receive: Receive) -> Receive:
                 "body": body,
                 "more_body": False,
             }
-        return await original_receive()
+        return dict(await original_receive())
 
     return receive
 
