@@ -388,21 +388,39 @@ class TestTaskManagerResultBlocking:
         assert payload == result_data
 
     @pytest.mark.asyncio
-    async def test_get_result_with_classification_cancelled_fallback_is_not_error(
+    async def test_get_result_with_classification_cancelled_fallback_returns_call_tool_result(
         self, task_manager
     ):
-        """A cancelled task with no explicit error/result returns
-        ``({"status": "cancelled", ...}, False)``. Cancellation is a
-        success-shaped response per the MCP wire spec, NOT a JSON-RPC
-        error.
+        """A cancelled task with no explicit result returns a CallToolResult
+        wire shape (``isError=True`` with text content), classified as a
+        successful JSON-RPC response so the caller wraps it in a
+        ``JSONRPCResponse`` per spec section 4 (tasks/result must return the
+        underlying request's response shape).
         """
+        from arcade_mcp_server.types import CallToolResult, TextContent
+
         task = await task_manager.create_task(context_key=CONTEXT_A)
         await task_manager.cancel_task(task.taskId, context_key=CONTEXT_A)
         payload, is_error = await task_manager.get_result_with_classification(
             task.taskId, context_key=CONTEXT_A
         )
         assert is_error is False
-        assert payload.get("status") == "cancelled"
+        assert isinstance(payload, CallToolResult)
+        assert payload.isError is True
+        assert len(payload.content) == 1
+        assert isinstance(payload.content[0], TextContent)
+        assert "cancelled" in payload.content[0].text.lower()
+
+    @pytest.mark.asyncio
+    async def test_has_stored_result_returns_true_after_set_result(self, task_manager):
+        task = await task_manager.create_task(context_key=CONTEXT_A)
+        assert task_manager.has_stored_result(task.taskId) is False
+        await task_manager.set_result(task.taskId, {"done": True})
+        assert task_manager.has_stored_result(task.taskId) is True
+
+    @pytest.mark.asyncio
+    async def test_has_stored_result_false_for_unknown_task(self, task_manager):
+        assert task_manager.has_stored_result("task_nonexistent") is False
 
     @pytest.mark.asyncio
     async def test_get_result_with_classification_survives_concurrent_evict(

@@ -2789,6 +2789,73 @@ class TestTaskAugmentedToolCall:
         assert task.status == TaskStatus.CANCELLED
 
     @pytest.mark.asyncio
+    async def test_cancelled_in_flight_bg_task_stores_call_tool_result(
+        self, mcp_server, initialized_server_session
+    ):
+        """Spec MUST (tasks.mdx:468): tasks/result for a task-augmented
+        tools/call must return the underlying response shape
+        (CallToolResult), not an ad-hoc {"status": "cancelled", ...} dict.
+        When the background asyncio.Task is cancelled mid-flight the
+        handler stores a synthetic isError=True CallToolResult so the
+        client sees a spec-conformant payload.
+        """
+        _enable_tasks(initialized_server_session)
+        sid = initialized_server_session.session_id
+
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {
+                "name": "TestToolkit.slow_tool",
+                "arguments": {},
+                "task": {"ttl": 60000},
+            },
+        }
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        task_id = response.result.task.taskId
+
+        # Give the bg task a moment to start before cancelling.
+        await asyncio.sleep(0.01)
+
+        cancel_msg = {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "tasks/cancel",
+            "params": {"taskId": task_id},
+        }
+        await mcp_server.handle_message(cancel_msg, initialized_server_session)
+
+        # Pull tasks/result and check the underlying payload shape.
+        result_msg = {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "tasks/result",
+            "params": {"taskId": task_id},
+        }
+        result_response = await mcp_server.handle_message(
+            result_msg, initialized_server_session
+        )
+
+        # Spec: cancelled task -> JSONRPCResponse with a CallToolResult body
+        # whose isError=True. Not a JSONRPCError.
+        assert isinstance(result_response, JSONRPCResponse)
+        payload = result_response.result
+        # The payload should be a CallToolResult (or a dict with the same shape
+        # depending on whether the bg-task path or the fallback fired).
+        if hasattr(payload, "isError"):
+            assert payload.isError is True
+            assert any(
+                hasattr(c, "text") and "cancel" in c.text.lower() for c in payload.content
+            )
+        else:
+            assert isinstance(payload, dict)
+            assert payload.get("isError") is True
+        # Task itself stays cancelled.
+        task = await mcp_server._task_manager.get_task(task_id, context_key=f"session:{sid}")
+        assert task.status == TaskStatus.CANCELLED
+
+    @pytest.mark.asyncio
     async def test_task_augmented_call_runs_check_tool_requirements(
         self, mcp_server, initialized_server_session
     ):

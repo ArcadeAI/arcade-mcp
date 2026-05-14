@@ -16,7 +16,7 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from arcade_mcp_server.types import Task, TaskStatus
+from arcade_mcp_server.types import CallToolResult, Task, TaskStatus, TextContent
 
 logger = logging.getLogger("arcade.mcp.tasks")
 
@@ -479,6 +479,15 @@ class TaskManager:
         """
         return task_id in self._errors
 
+    def has_stored_result(self, task_id: str) -> bool:
+        """Return True if a successful result was stored for this task.
+
+        Used by the background-task cancellation handler to avoid
+        overwriting a result the tool body already produced if cancellation
+        arrived between ``set_result`` and ``update_status``.
+        """
+        return task_id in self._results
+
     async def get_result(self, task_id: str, context_key: str) -> Any:
         """Get task result, blocking until terminal if still working.
 
@@ -563,8 +572,20 @@ class TaskManager:
             return self._errors[task_id], True
         if task_id in self._results:
             return self._results[task_id], False
-        # Cancelled with no explicit result/error
-        return {"status": "cancelled", "message": "Task was cancelled"}, False
+        # Per MCP 2025-11-25 utilities/tasks.mdx section 4: for tasks in a
+        # terminal status, receivers MUST return from tasks/result exactly
+        # what the underlying request would have returned. For a
+        # task-augmented tools/call that is a CallToolResult, not an
+        # ad-hoc {"status": "cancelled", ...} dict. This fallback covers
+        # the racy edge case where the background asyncio.Task was killed
+        # before its CancelledError handler could call set_result.
+        return (
+            CallToolResult(
+                isError=True,
+                content=[TextContent(type="text", text="Task was cancelled")],
+            ),
+            False,
+        )
 
     def track_background_task(self, task_id: str, bg: asyncio.Task[Any]) -> None:
         """Track a background asyncio.Task for a managed task."""

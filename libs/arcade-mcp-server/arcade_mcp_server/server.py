@@ -2347,6 +2347,26 @@ class MCPServer:
             with contextlib.suppress(InvalidTaskStateError, TaskNotFoundError):
                 await self._task_manager.update_status(task_id, new_status)
         except asyncio.CancelledError:
+            # Per MCP 2025-11-25 utilities/tasks.mdx section 4: tasks/result
+            # for a task-augmented tools/call MUST return the underlying
+            # response shape (CallToolResult), not an ad-hoc dict. Store a
+            # synthetic isError=True result so the eventual tasks/result
+            # call materialises the spec-conformant payload.
+            #
+            # asyncio.shield ensures the storage completes even though the
+            # surrounding coroutine is being torn down by cancellation; the
+            # raise below still propagates immediately after.
+            if not self._task_manager.has_stored_result(task_id):
+                with contextlib.suppress(Exception):
+                    await asyncio.shield(
+                        self._task_manager.set_result(
+                            task_id,
+                            CallToolResult(
+                                isError=True,
+                                content=[TextContent(type="text", text="Task was cancelled")],
+                            ),
+                        )
+                    )
             with contextlib.suppress(InvalidTaskStateError, TaskNotFoundError):
                 await self._task_manager.update_status(task_id, TaskStatus.CANCELLED)
             raise  # propagate
