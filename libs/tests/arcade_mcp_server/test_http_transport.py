@@ -9,8 +9,11 @@ level rather than via full ASGI integration.
 import json
 from unittest.mock import Mock
 
+import pytest
+
 from arcade_mcp_server.transports.http_session_manager import (
     _create_transport_error_response,
+    _replay_receive,
     _validate_accept_header,
     _validate_origin,
     _validate_protocol_version_header,
@@ -191,6 +194,67 @@ class TestMCPProtocolVersionHeader:
         assert error.status_code == 400
         body = json.loads(error.body)
         assert "does not match negotiated version" in body["error"]["message"]
+
+
+class TestReplayReceive:
+    """Tests for _replay_receive.
+
+    The helper replays a consumed HTTP body for the inner transport and
+    must NOT synthesize a fake ``http.disconnect`` after it -- the SSE
+    response handler reads ``receive()`` concurrently to detect client
+    disconnects, so a synthetic disconnect tears the stream down before
+    the response body is sent. Chaining to the original receive lets
+    real disconnects propagate while keeping the replay semantics.
+    """
+
+    @pytest.mark.asyncio
+    async def test_first_call_replays_body(self):
+        async def original_receive():
+            pytest.fail("original receive should not run on the first call")
+
+        receive = _replay_receive(b'{"hello":"world"}', original_receive)
+        msg = await receive()
+        assert msg == {
+            "type": "http.request",
+            "body": b'{"hello":"world"}',
+            "more_body": False,
+        }
+
+    @pytest.mark.asyncio
+    async def test_subsequent_calls_chain_to_original_receive(self):
+        """After the body replay, the inner handler's reads must reach the
+        real receive callable (not a synthesized disconnect)."""
+        calls = []
+
+        async def original_receive():
+            calls.append("orig")
+            return {"type": "http.request", "body": b"", "more_body": False}
+
+        receive = _replay_receive(b"x", original_receive)
+        first = await receive()
+        assert first["type"] == "http.request"
+        assert first["body"] == b"x"
+        assert calls == []
+
+        # All subsequent calls must reach original_receive.
+        second = await receive()
+        third = await receive()
+        assert second == {"type": "http.request", "body": b"", "more_body": False}
+        assert third == {"type": "http.request", "body": b"", "more_body": False}
+        assert calls == ["orig", "orig"]
+
+    @pytest.mark.asyncio
+    async def test_real_disconnect_propagates(self):
+        """If the client actually disconnects, the inner handler must see
+        the real ``http.disconnect`` event so streams shut down cleanly."""
+
+        async def original_receive():
+            return {"type": "http.disconnect"}
+
+        receive = _replay_receive(b"x", original_receive)
+        await receive()  # consume the replayed body
+        disconnect = await receive()
+        assert disconnect == {"type": "http.disconnect"}
 
 
 class TestCORSHeaders:

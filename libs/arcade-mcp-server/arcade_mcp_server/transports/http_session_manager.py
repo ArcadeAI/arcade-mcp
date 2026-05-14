@@ -48,19 +48,25 @@ def _create_transport_error_response(
     )
 
 
-def _replay_receive(body: bytes) -> Receive:
+def _replay_receive(body: bytes, original_receive: Receive) -> Receive:
     """Return a fresh Receive callable that replays ``body`` as a single
-    ``http.request`` message, then yields ``http.disconnect``.
+    ``http.request`` message, then chains to ``original_receive``.
 
     After the session manager reads and parses the incoming HTTP body (to detect
     ``initialize``), the inner transport creates a new Starlette Request and
     calls ``request.body()`` again. On ASGI servers that do not internally
     buffer (e.g. ``httpx.ASGITransport``), the original receive callable is
-    exhausted — the inner call would then hang waiting for more messages.
-    This helper lets the outer handler hand the inner handler a receive
-    callable that replays the body so the second read succeeds.
+    exhausted -- the inner call would then hang waiting for more messages.
+
+    This helper hands the inner handler a receive callable that replays the
+    consumed body for the first read, then delegates back to the real
+    ``receive`` for any subsequent reads. Chaining to the real receive
+    preserves genuine ``http.disconnect`` propagation: SSE responses
+    (``EventSourceResponse``) read receive() concurrently to detect client
+    disconnects, so synthesizing a fake disconnect tears the stream down
+    before the response body is sent.
     """
-    state = {"sent_request": False, "sent_disconnect": False}
+    state = {"sent_request": False}
 
     async def receive() -> dict:
         if not state["sent_request"]:
@@ -70,14 +76,7 @@ def _replay_receive(body: bytes) -> Receive:
                 "body": body,
                 "more_body": False,
             }
-        if not state["sent_disconnect"]:
-            state["sent_disconnect"] = True
-            return {"type": "http.disconnect"}
-        # After disconnect, block forever -- the ASGI spec says no further
-        # messages are sent after http.disconnect.
-        event = anyio.Event()
-        await event.wait()
-        return {"type": "http.disconnect"}  # unreachable
+        return await original_receive()
 
     return receive
 
@@ -342,7 +341,9 @@ class HTTPSessionManager:
 
         # Replay the body for the inner transport so ASGI servers that do not
         # buffer receive() (e.g. httpx.ASGITransport) can still read the body.
-        inner_receive: Receive = _replay_receive(body_bytes) if body_bytes is not None else receive
+        inner_receive: Receive = (
+            _replay_receive(body_bytes, receive) if body_bytes is not None else receive
+        )
 
         # --- Accept header validation (POST only) ---
         # Per MCP 2025-11-25 transports.mdx section 2: "The client MUST include an
@@ -461,7 +462,9 @@ class HTTPSessionManager:
         # If we consumed the body, provide a replay receive so the inner
         # transport (which creates its own Request and calls .body()) can
         # still read it on ASGI hosts that don't buffer receive().
-        inner_receive: Receive = _replay_receive(body_bytes) if body_bytes is not None else receive
+        inner_receive: Receive = (
+            _replay_receive(body_bytes, receive) if body_bytes is not None else receive
+        )
 
         # --- Accept header validation (POST only) ---
         # Per MCP 2025-11-25 transports.mdx section 2: "The client MUST include an
