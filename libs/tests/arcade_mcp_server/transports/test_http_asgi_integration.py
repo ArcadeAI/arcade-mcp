@@ -49,19 +49,32 @@ async def _http_client(
     *,
     stateless: bool = False,
     allowed_origins: list[str] | None = None,
+    json_response: bool = True,
+    resource_owner_factory: object | None = None,
 ) -> AsyncIterator[httpx.AsyncClient]:
     """Async context manager producing an httpx.AsyncClient against an ASGI-mounted manager.
 
     Keeps manager.run() and the httpx client inside the same task scope so
     anyio's cancel-scope bookkeeping stays consistent.
+
+    ``json_response=False`` opts into SSE response mode.
+    ``resource_owner_factory`` (when supplied) is invoked per request and the
+    return value is stored on the ASGI scope under ``"resource_owner"``,
+    matching what the resource-server middleware would do in production.
     """
     mcp_server.allowed_origins = allowed_origins if allowed_origins is not None else ["*"]
     manager = HTTPSessionManager(
         server=mcp_server,
-        json_response=True,
+        json_response=json_response,
         stateless=stateless,
     )
-    app = _build_asgi_app(manager)
+
+    async def mcp_endpoint(scope: Scope, receive: Receive, send: Send) -> None:
+        if resource_owner_factory is not None:
+            scope["resource_owner"] = resource_owner_factory()  # type: ignore[operator]
+        await manager.handle_request(scope, receive, send)
+
+    app = Starlette(routes=[Mount("/mcp", app=mcp_endpoint)])
 
     async with manager.run():
         transport = httpx.ASGITransport(app=app)
@@ -451,3 +464,162 @@ class TestFullRoundTrip:
         async with _http_client(mcp_server) as client:
             init, _ = await _initialize(client, protocol_version="2025-06-18")
         assert init["result"]["protocolVersion"] == "2025-06-18"
+
+
+# -----------------------------------------------------------------------------
+# SSE 403 / WWW-Authenticate short-circuit for INSUFFICIENT_SCOPE
+# -----------------------------------------------------------------------------
+
+
+class TestSSEInsufficientScopeShortCircuit:
+    """SSE response mode must redirect insufficient_scope errors through the
+    JSON path so the client receives HTTP 403 + WWW-Authenticate (RFC 9728
+    PRM scope step-up).
+
+    The SSE channel commits to 200 text/event-stream as soon as it opens; the
+    HTTP status and WWW-Authenticate header cannot be changed after that.
+    Detecting the error before opening the stream is the only conformant
+    path."""
+
+    @staticmethod
+    def _low_priv_owner_factory():
+        from arcade_mcp_server.resource_server.base import ResourceOwner
+
+        return ResourceOwner(
+            user_id="alice",
+            granted_scopes=frozenset({"files:read"}),
+            claims={
+                "scope": "files:read",
+                "iss": "https://auth.example.com",
+                "sub": "alice",
+            },
+        )
+
+    @staticmethod
+    async def _sse_initialize(client: httpx.AsyncClient) -> str:
+        """Initialize handshake when the server is in SSE mode.
+
+        Returns the negotiated session id. The initialize response itself
+        arrives as a single SSE event, not raw JSON.
+        """
+        resp = await client.post(
+            "/mcp/",
+            headers={
+                "Accept": "application/json, text/event-stream",
+                "Content-Type": "application/json",
+            },
+            json={
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": "2025-11-25",
+                    "capabilities": {},
+                    "clientInfo": {"name": "t", "version": "0"},
+                },
+            },
+        )
+        assert resp.status_code == 200, resp.text
+        session_id = resp.headers.get("Mcp-Session-Id")
+        assert session_id is not None
+        return session_id
+
+    @pytest.mark.asyncio
+    async def test_sse_path_insufficient_scope_returns_json_403_with_www_authenticate(
+        self, mcp_server: MCPServer
+    ) -> None:
+        """SSE mode + insufficient scope must reply HTTP 403 with WWW-Authenticate,
+        not a 200 SSE stream."""
+        async with _http_client(
+            mcp_server,
+            json_response=False,
+            resource_owner_factory=self._low_priv_owner_factory,
+        ) as client:
+            session_id = await self._sse_initialize(client)
+            await client.post(
+                "/mcp/",
+                headers={
+                    "Accept": "application/json, text/event-stream",
+                    "Content-Type": "application/json",
+                    "Mcp-Session-Id": session_id,
+                },
+                json={"jsonrpc": "2.0", "method": "notifications/initialized"},
+            )
+
+            resp = await client.post(
+                "/mcp/",
+                headers={
+                    "Accept": "application/json, text/event-stream",
+                    "Content-Type": "application/json",
+                    "Mcp-Session-Id": session_id,
+                },
+                json={
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "method": "tools/call",
+                    "params": {
+                        "name": "TestToolkit.scoped_tool",
+                        "arguments": {"text": "x"},
+                    },
+                },
+            )
+
+        assert resp.status_code == 403
+        assert "WWW-Authenticate" in resp.headers
+        assert 'error="insufficient_scope"' in resp.headers["WWW-Authenticate"]
+        # The response body must NOT be SSE event-stream framing.
+        assert "text/event-stream" not in resp.headers.get("Content-Type", "")
+        body = resp.json()
+        # _transport metadata must be stripped from the client-facing body.
+        assert "_transport" not in body.get("error", {}).get("data", {})
+
+    @pytest.mark.asyncio
+    async def test_sse_path_succeeds_for_normally_authorized_call(
+        self, mcp_server: MCPServer
+    ) -> None:
+        """Regression guard: the SSE peek-and-route must not short-circuit
+        responses that are NOT INSUFFICIENT_SCOPE_ERROR_CODE. A normal SSE
+        response continues to stream as text/event-stream."""
+
+        def full_priv_owner_factory():
+            from arcade_mcp_server.resource_server.base import ResourceOwner
+
+            return ResourceOwner(
+                user_id="alice",
+                granted_scopes=frozenset({"files:read", "files:write"}),
+                claims={
+                    "scope": "files:read files:write",
+                    "iss": "https://auth.example.com",
+                    "sub": "alice",
+                },
+            )
+
+        async with _http_client(
+            mcp_server,
+            json_response=False,
+            resource_owner_factory=full_priv_owner_factory,
+        ) as client:
+            session_id = await self._sse_initialize(client)
+            await client.post(
+                "/mcp/",
+                headers={
+                    "Accept": "application/json, text/event-stream",
+                    "Content-Type": "application/json",
+                    "Mcp-Session-Id": session_id,
+                },
+                json={"jsonrpc": "2.0", "method": "notifications/initialized"},
+            )
+
+            list_resp = await client.post(
+                "/mcp/",
+                headers={
+                    "Accept": "application/json, text/event-stream",
+                    "Content-Type": "application/json",
+                    "Mcp-Session-Id": session_id,
+                },
+                json={"jsonrpc": "2.0", "id": 2, "method": "tools/list"},
+            )
+
+        # In SSE mode a successful response is delivered as an event stream.
+        assert list_resp.status_code == 200
+        assert "text/event-stream" in list_resp.headers.get("Content-Type", "")

@@ -534,14 +534,59 @@ class HTTPStreamableTransport:
                 finally:
                     await self._clean_up_memory_streams(request_id)
             else:
-                # SSE response mode
+                # SSE response mode.
+                #
+                # Before opening the SSE stream we peek at the first response
+                # event. Insufficient-scope errors carry ``_transport.http_status``
+                # (403) and a ``WWW-Authenticate`` challenge that the SSE channel
+                # cannot honor (the response headers are already committed to
+                # ``200 text/event-stream`` once the stream opens). Detecting
+                # them here lets us short-circuit to a regular JSON 403 so the
+                # OAuth client can perform scope step-up via RFC 9728 PRM.
+                session_message = SessionMessage(
+                    message=message,
+                    resource_owner=resource_owner,
+                )
+                await writer.send(session_message)
+
+                first_event: EventMessage | None = None
+                try:
+                    async for event_message in request_stream_reader:
+                        first_event = event_message
+                        break
+                except Exception:
+                    logger.exception("Error reading first SSE event")
+                    await self._clean_up_memory_streams(request_id)
+                    raise
+
+                if (
+                    first_event is not None
+                    and isinstance(first_event.message, JSONRPCError)
+                    and first_event.message.error.get("code") == INSUFFICIENT_SCOPE_ERROR_CODE
+                ):
+                    # Short-circuit: emit a JSON 403 with WWW-Authenticate so
+                    # the SSE 200/text-event-stream contract is never opened.
+                    await self._clean_up_memory_streams(request_id)
+                    response = self._create_json_response(first_event.message)
+                    await response(scope, receive, send)
+                    return
+
                 sse_stream_writer, sse_stream_reader = anyio.create_memory_object_stream[
                     dict[str, str]
                 ](0)
 
-                async def sse_writer() -> None:
+                async def sse_writer(first: EventMessage | None = first_event) -> None:
                     try:
                         async with sse_stream_writer, request_stream_reader:
+                            # Re-emit the captured first event before resuming
+                            # the normal read loop. Without this the SSE stream
+                            # would silently drop whatever response the handler
+                            # produced before the peek.
+                            if first is not None:
+                                event_data = self._create_event_data(first)
+                                await sse_stream_writer.send(event_data)
+                                if isinstance(first.message, (JSONRPCResponse, JSONRPCError)):
+                                    return
                             async for event_message in request_stream_reader:
                                 event_data = self._create_event_data(event_message)
                                 await sse_stream_writer.send(event_data)
@@ -570,14 +615,7 @@ class HTTPStreamableTransport:
                 )
 
                 try:
-                    async with anyio.create_task_group() as tg:
-                        tg.start_soon(response, scope, receive, send)
-                        # Send SessionMessage object
-                        session_message = SessionMessage(
-                            message=message,
-                            resource_owner=resource_owner,
-                        )
-                        await writer.send(session_message)
+                    await response(scope, receive, send)
                 except Exception:
                     logger.exception("SSE response error")
                     await sse_stream_writer.aclose()
