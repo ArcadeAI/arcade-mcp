@@ -28,6 +28,15 @@ uv run python src/task_augmentation/server.py stdio  # stdio also works
 
 ## Wire-level walkthrough
 
+### Tool names on the wire
+
+The table above uses Python function names (`generate_report`, `deep_research`,
+`quick_lookup`). On the wire, `tools/list` exposes each tool as
+`{Toolkit}_{Tool}` in PascalCase: `MCPApp(name="task_augmentation")` becomes
+the `TaskAugmentation` toolkit, and `generate_report` becomes
+`TaskAugmentation_GenerateReport`. The JSON examples below use the wire form
+so the snippets are copy-pasteable against the running server.
+
 The client MUST declare task support for `tools/call` during `initialize`:
 
 ```json
@@ -46,7 +55,7 @@ The client MUST declare task support for `tools/call` during `initialize`:
 ```json
 {
   "method": "tools/call",
-  "params": { "name": "generate_report", "arguments": {"topic": "llamas"} }
+  "params": { "name": "TaskAugmentation_GenerateReport", "arguments": {"topic": "llamas"} }
 }
 ```
 
@@ -59,7 +68,7 @@ still fire but carry **no** `related-task` `_meta` because there's no task.
 {
   "method": "tools/call",
   "params": {
-    "name": "generate_report",
+    "name": "TaskAugmentation_GenerateReport",
     "arguments": {"topic": "llamas"},
     "task": {"ttl": 300}
   }
@@ -128,7 +137,7 @@ client UI can present the elicit dialog in the context of the right task.
 {
   "method": "tools/call",
   "params": {
-    "name": "quick_lookup",
+    "name": "TaskAugmentation_QuickLookup",
     "arguments": {"key": "greeting"},
     "task": {"ttl": 60}
   }
@@ -157,7 +166,7 @@ synchronous — to exercise the task path you need a client that sends
 curl -s -X POST http://127.0.0.1:8000/mcp \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json, text/event-stream' \
-  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"generate_report","arguments":{"topic":"llamas"},"task":{"ttl":300}}}' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"TaskAugmentation_GenerateReport","arguments":{"topic":"llamas"},"task":{"ttl":300}}}' \
   | jq
 ```
 
