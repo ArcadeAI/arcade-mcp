@@ -25,7 +25,7 @@ from arcade_mcp_server.transports.http_streamable import (
     EventStore,
     HTTPStreamableTransport,
 )
-from arcade_mcp_server.types import SUPPORTED_PROTOCOL_VERSIONS
+from arcade_mcp_server.types import INVALID_REQUEST, SUPPORTED_PROTOCOL_VERSIONS
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 def _create_transport_error_response(
     status_code: int,
     message: str,
-    code: int = -32600,
+    code: int = INVALID_REQUEST,
 ) -> Response:
     """Create a transport-level error response.
 
@@ -98,11 +98,15 @@ def _validate_origin(request: Request, allowed_origins: list[str] | None) -> Res
 
     # If allowed_origins is None or empty list, reject any Origin
     if allowed_origins is None or len(allowed_origins) == 0:
-        return _create_transport_error_response(403, "Forbidden: Origin not allowed", -32600)
+        return _create_transport_error_response(
+            403, "Forbidden: Origin not allowed", INVALID_REQUEST
+        )
 
     # Check against allowlist
     if origin not in allowed_origins:
-        return _create_transport_error_response(403, "Forbidden: Origin not allowed", -32600)
+        return _create_transport_error_response(
+            403, "Forbidden: Origin not allowed", INVALID_REQUEST
+        )
 
     return None
 
@@ -124,7 +128,7 @@ def _validate_accept_header(request: Request) -> Response | None:
         return _create_transport_error_response(
             406,
             "Not Acceptable: Client must accept both application/json and text/event-stream",
-            -32600,
+            INVALID_REQUEST,
         )
     return None
 

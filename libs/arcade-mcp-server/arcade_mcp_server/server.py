@@ -70,6 +70,10 @@ from arcade_mcp_server.resource_server.headers import (
 from arcade_mcp_server.session import InitializationState, NotificationManager, ServerSession
 from arcade_mcp_server.settings import MCPSettings, ServerSettings
 from arcade_mcp_server.types import (
+    INTERNAL_ERROR,
+    INVALID_PARAMS,
+    INVALID_REQUEST,
+    METHOD_NOT_FOUND,
     RELATED_TASK_META_KEY,
     BlobResourceContents,
     CallToolRequest,
@@ -583,7 +587,7 @@ class MCPServer:
             return JSONRPCError(
                 id=message.get("id") if isinstance(message, dict) else None,
                 error={
-                    "code": -32600,
+                    "code": INVALID_REQUEST,
                     "message": (
                         "✗ Invalid request\n\n"
                         "  The request is not a valid JSON-RPC message.\n\n"
@@ -619,7 +623,7 @@ class MCPServer:
             return JSONRPCError(
                 id=msg_id,
                 error={
-                    "code": -32600,
+                    "code": INVALID_REQUEST,
                     "message": (
                         "✗ Not initialized\n\n"
                         "  This request cannot be processed before the session is initialized.\n\n"
@@ -638,7 +642,7 @@ class MCPServer:
             return JSONRPCError(
                 id=msg_id,
                 error={
-                    "code": -32601,
+                    "code": METHOD_NOT_FOUND,
                     "message": (
                         f"✗ Method not found: {method}\n\n"
                         f"  The requested method is not supported by this server.\n\n"
@@ -660,7 +664,7 @@ class MCPServer:
             if not session.has_capability(required_cap):
                 return JSONRPCError(
                     id=msg_id,
-                    error={"code": -32601, "message": "Method not found"},
+                    error={"code": METHOD_NOT_FOUND, "message": "Method not found"},
                 )
 
         # Validate params/_meta shape before per-method handlers run. Malformed
@@ -672,13 +676,13 @@ class MCPServer:
         if raw_params is not None and not isinstance(raw_params, dict):
             return JSONRPCError(
                 id=msg_id,
-                error={"code": -32602, "message": "params must be an object"},
+                error={"code": INVALID_PARAMS, "message": "params must be an object"},
             )
         raw_meta = raw_params.get("_meta") if isinstance(raw_params, dict) else None
         if raw_meta is not None and not isinstance(raw_meta, dict):
             return JSONRPCError(
                 id=msg_id,
-                error={"code": -32602, "message": "params._meta must be an object"},
+                error={"code": INVALID_PARAMS, "message": "params._meta must be an object"},
             )
 
         # Create context and apply middleware
@@ -740,7 +744,7 @@ class MCPServer:
             return JSONRPCError(
                 id=msg_id,
                 error={
-                    "code": -32603,
+                    "code": INTERNAL_ERROR,
                     "message": (
                         "✗ Internal server error\n\n"
                         "  An unexpected error occurred while processing the request.\n\n"
@@ -977,7 +981,7 @@ class MCPServer:
             return JSONRPCError(
                 id=message.id,
                 error={
-                    "code": -32603,
+                    "code": INTERNAL_ERROR,
                     "message": (
                         "✗ Failed to list tools\n\n"
                         "  An error occurred while retrieving the tool list.\n\n"
@@ -1137,7 +1141,7 @@ class MCPServer:
                     return JSONRPCError(
                         id=message.id,
                         error={
-                            "code": -32601,
+                            "code": METHOD_NOT_FOUND,
                             "message": "Task augmentation forbidden for this tool",
                         },
                     )
@@ -1145,7 +1149,7 @@ class MCPServer:
                     return JSONRPCError(
                         id=message.id,
                         error={
-                            "code": -32601,
+                            "code": METHOD_NOT_FOUND,
                             "message": "Task augmentation required for this tool",
                         },
                     )
@@ -1277,7 +1281,7 @@ class MCPServer:
                     return JSONRPCError(
                         id=message.id,
                         error={
-                            "code": -32602,
+                            "code": INVALID_PARAMS,
                             "message": (
                                 "params.task must be a TaskMetadata object "
                                 f"(got: {type(task_metadata).__name__})"
@@ -1307,7 +1311,7 @@ class MCPServer:
                         return JSONRPCError(
                             id=message.id,
                             error={
-                                "code": -32602,
+                                "code": INVALID_PARAMS,
                                 "message": "task.ttl cannot be null in request",
                             },
                         )
@@ -1341,7 +1345,7 @@ class MCPServer:
                         return JSONRPCError(
                             id=message.id,
                             error={
-                                "code": -32602,
+                                "code": INVALID_PARAMS,
                                 "message": (
                                     f"task.ttl must be a positive integer (got: {ttl_value!r})"
                                 ),
@@ -1450,7 +1454,7 @@ class MCPServer:
                         self._tracker.track_tool_call(False, "invalid tool input")
                         return JSONRPCError(
                             id=message.id,
-                            error={"code": -32602, "message": str(error)},
+                            error={"code": INVALID_PARAMS, "message": str(error)},
                         )
 
                     error_text = error.message
@@ -1487,7 +1491,7 @@ class MCPServer:
             return JSONRPCError(
                 id=message.id,
                 error={
-                    "code": -32602,
+                    "code": INVALID_PARAMS,
                     "message": f"Unknown tool: {tool_name}",
                 },
             )
@@ -1507,7 +1511,7 @@ class MCPServer:
                 # 2025-06-18: input validation → JSONRPCError -32602
                 return JSONRPCError(
                     id=message.id,
-                    error={"code": -32602, "message": str(e)},
+                    error={"code": INVALID_PARAMS, "message": str(e)},
                 )
         except Exception:
             logger.exception("Error calling tool")
@@ -1515,7 +1519,7 @@ class MCPServer:
             return JSONRPCError(
                 id=message.id,
                 error={
-                    "code": -32603,
+                    "code": INTERNAL_ERROR,
                     "message": (
                         "✗ Tool execution failed\n\n"
                         "  An unexpected error occurred while executing the tool.\n\n"
@@ -1824,7 +1828,7 @@ class MCPServer:
             return JSONRPCError(
                 id=message.id,
                 error={
-                    "code": -32603,
+                    "code": INTERNAL_ERROR,
                     "message": (
                         "✗ Failed to list resources\n\n"
                         "  An error occurred while retrieving the resource list.\n\n"
@@ -1857,7 +1861,7 @@ class MCPServer:
             return JSONRPCError(
                 id=message.id,
                 error={
-                    "code": -32603,
+                    "code": INTERNAL_ERROR,
                     "message": (
                         "✗ Failed to list resource templates\n\n"
                         "  An error occurred while retrieving resource templates.\n\n"
@@ -1907,7 +1911,7 @@ class MCPServer:
             return JSONRPCError(
                 id=message.id,
                 error={
-                    "code": -32603,
+                    "code": INTERNAL_ERROR,
                     "message": (
                         f"✗ Failed to read resource\n\n"
                         f"  An error occurred while reading: {message.params.uri}\n\n"
@@ -1939,7 +1943,7 @@ class MCPServer:
             return JSONRPCError(
                 id=message.id,
                 error={
-                    "code": -32603,
+                    "code": INTERNAL_ERROR,
                     "message": (
                         "✗ Failed to list prompts\n\n"
                         "  An error occurred while retrieving the prompt list.\n\n"
@@ -1985,7 +1989,7 @@ class MCPServer:
             return JSONRPCError(
                 id=message.id,
                 error={
-                    "code": -32603,
+                    "code": INTERNAL_ERROR,
                     "message": (
                         f"✗ Failed to get prompt\n\n"
                         f"  An error occurred while retrieving prompt: {message.params.name}\n\n"
@@ -2070,7 +2074,7 @@ class MCPServer:
         if not task_id:
             return JSONRPCError(
                 id=msg_id,
-                error={"code": -32602, "message": "Missing taskId parameter"},
+                error={"code": INVALID_PARAMS, "message": "Missing taskId parameter"},
             )
 
         if session is None:
@@ -2080,7 +2084,10 @@ class MCPServer:
             # a real miss. Surface the real cause instead.
             return JSONRPCError(
                 id=msg_id,
-                error={"code": -32603, "message": "Task handlers require an active session"},
+                error={
+                    "code": INTERNAL_ERROR,
+                    "message": "Task handlers require an active session",
+                },
             )
 
         resource_owner = self._get_resource_owner_from_context()
@@ -2090,12 +2097,12 @@ class MCPServer:
         except TaskNotFoundError:
             return JSONRPCError(
                 id=msg_id,
-                error={"code": -32602, "message": "Task not found"},
+                error={"code": INVALID_PARAMS, "message": "Task not found"},
             )
         except IncompleteAuthContextError as e:
             return JSONRPCError(
                 id=msg_id,
-                error={"code": -32603, "message": str(e)},
+                error={"code": INTERNAL_ERROR, "message": str(e)},
             )
 
         result = GetTaskResult(
@@ -2121,7 +2128,10 @@ class MCPServer:
         if session is None:
             return JSONRPCError(
                 id=msg_id,
-                error={"code": -32603, "message": "Task handlers require an active session"},
+                error={
+                    "code": INTERNAL_ERROR,
+                    "message": "Task handlers require an active session",
+                },
             )
 
         resource_owner = self._get_resource_owner_from_context()
@@ -2136,12 +2146,12 @@ class MCPServer:
             # Invalid/expired cursors return -32602 (invalid params).
             return JSONRPCError(
                 id=msg_id,
-                error={"code": -32602, "message": f"Invalid cursor: {e}"},
+                error={"code": INVALID_PARAMS, "message": f"Invalid cursor: {e}"},
             )
         except IncompleteAuthContextError as e:
             return JSONRPCError(
                 id=msg_id,
-                error={"code": -32603, "message": str(e)},
+                error={"code": INTERNAL_ERROR, "message": str(e)},
             )
 
         result = ListTasksResult(tasks=tasks, nextCursor=next_cursor)
@@ -2159,13 +2169,16 @@ class MCPServer:
         if not task_id:
             return JSONRPCError(
                 id=msg_id,
-                error={"code": -32602, "message": "Missing taskId parameter"},
+                error={"code": INVALID_PARAMS, "message": "Missing taskId parameter"},
             )
 
         if session is None:
             return JSONRPCError(
                 id=msg_id,
-                error={"code": -32603, "message": "Task handlers require an active session"},
+                error={
+                    "code": INTERNAL_ERROR,
+                    "message": "Task handlers require an active session",
+                },
             )
 
         resource_owner = self._get_resource_owner_from_context()
@@ -2175,17 +2188,17 @@ class MCPServer:
         except TaskNotFoundError:
             return JSONRPCError(
                 id=msg_id,
-                error={"code": -32602, "message": "Task not found"},
+                error={"code": INVALID_PARAMS, "message": "Task not found"},
             )
         except InvalidTaskStateError:
             return JSONRPCError(
                 id=msg_id,
-                error={"code": -32602, "message": "Task is already in a terminal state"},
+                error={"code": INVALID_PARAMS, "message": "Task is already in a terminal state"},
             )
         except IncompleteAuthContextError as e:
             return JSONRPCError(
                 id=msg_id,
-                error={"code": -32603, "message": str(e)},
+                error={"code": INTERNAL_ERROR, "message": str(e)},
             )
 
         result = CancelTaskResult(
@@ -2211,13 +2224,16 @@ class MCPServer:
         if not task_id:
             return JSONRPCError(
                 id=msg_id,
-                error={"code": -32602, "message": "Missing taskId parameter"},
+                error={"code": INVALID_PARAMS, "message": "Missing taskId parameter"},
             )
 
         if session is None:
             return JSONRPCError(
                 id=msg_id,
-                error={"code": -32603, "message": "Task handlers require an active session"},
+                error={
+                    "code": INTERNAL_ERROR,
+                    "message": "Task handlers require an active session",
+                },
             )
 
         resource_owner = self._get_resource_owner_from_context()
@@ -2229,12 +2245,12 @@ class MCPServer:
         except TaskNotFoundError:
             return JSONRPCError(
                 id=msg_id,
-                error={"code": -32602, "message": "Task not found"},
+                error={"code": INVALID_PARAMS, "message": "Task not found"},
             )
         except IncompleteAuthContextError as e:
             return JSONRPCError(
                 id=msg_id,
-                error={"code": -32603, "message": str(e)},
+                error={"code": INTERNAL_ERROR, "message": str(e)},
             )
 
         # ``is_error`` is captured atomically with ``result`` inside the task
@@ -2385,7 +2401,7 @@ class MCPServer:
                 await self._task_manager.update_status(task_id, TaskStatus.CANCELLED)
             raise  # propagate
         except Exception as e:
-            await self._task_manager.set_error(task_id, {"code": -32603, "message": str(e)})
+            await self._task_manager.set_error(task_id, {"code": INTERNAL_ERROR, "message": str(e)})
             with contextlib.suppress(InvalidTaskStateError, TaskNotFoundError):
                 await self._task_manager.update_status(task_id, TaskStatus.FAILED)
         finally:

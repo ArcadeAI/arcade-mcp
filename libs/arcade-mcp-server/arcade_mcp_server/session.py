@@ -25,6 +25,8 @@ from arcade_mcp_server.exceptions import (
 )
 from arcade_mcp_server.resource_server.base import ResourceOwner
 from arcade_mcp_server.types import (
+    INTERNAL_ERROR,
+    PARSE_ERROR,
     VERSION_FEATURES,
     CancelledNotification,
     CancelledParams,
@@ -464,13 +466,13 @@ class ServerSession:
         except json.JSONDecodeError:
             await self._send_error_response(
                 None,
-                -32700,
+                PARSE_ERROR,
                 "Parse error",
             )
         except Exception as e:
             await self._send_error_response(
                 None,
-                -32603,
+                INTERNAL_ERROR,
                 (
                     f"✗ Internal server error\n\n"
                     f"  An unexpected error occurred: {e!s}\n\n"

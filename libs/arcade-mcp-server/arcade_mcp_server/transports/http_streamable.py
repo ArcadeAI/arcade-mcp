@@ -203,7 +203,7 @@ class HTTPStreamableTransport:
             # Fallback: treat as error
             return JSONRPCError(
                 id=cast("str | int | None", parsed.get("id")),
-                error={"code": -32600, "message": "Invalid message"},
+                error={"code": INVALID_REQUEST, "message": "Invalid message"},
             )
 
     @property
