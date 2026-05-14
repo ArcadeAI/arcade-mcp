@@ -3406,10 +3406,10 @@ class TestRelatedTaskMetadata:
             assert related.get("taskId") == task.taskId
 
     @pytest.mark.asyncio
-    async def test_tasks_result_error_response_returns_underlying_error_unchanged(
+    async def test_tasks_result_error_response_returns_underlying_error(
         self, mcp_server, initialized_server_session
     ):
-        """tasks/result for a FAILED task returns the underlying JSON-RPC error unchanged."""
+        """tasks/result for a FAILED task returns the underlying JSON-RPC error."""
         _enable_tasks(initialized_server_session)
         sid = initialized_server_session.session_id
         task = await mcp_server._task_manager.create_task(context_key=f"session:{sid}")
@@ -3426,6 +3426,56 @@ class TestRelatedTaskMetadata:
         response = await mcp_server.handle_message(message, initialized_server_session)
         assert isinstance(response, JSONRPCError)
         assert response.error["code"] == -32603
+
+    @pytest.mark.asyncio
+    async def test_tasks_result_error_response_includes_related_task_meta(
+        self, mcp_server, initialized_server_session
+    ):
+        """Spec MUST (tasks.mdx sections 4 and 6): all task-related responses
+        include the io.modelcontextprotocol/related-task key in their _meta.
+        On the JSON-RPC error path that lives under error.data._meta.
+        """
+        _enable_tasks(initialized_server_session)
+        sid = initialized_server_session.session_id
+        task = await mcp_server._task_manager.create_task(context_key=f"session:{sid}")
+        error_data = {"code": -32603, "message": "Internal error"}
+        await mcp_server._task_manager.set_error(task.taskId, error_data)
+        await mcp_server._task_manager.update_status(task.taskId, TaskStatus.FAILED)
+
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tasks/result",
+            "params": {"taskId": task.taskId},
+        }
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        data = response.error.get("data", {})
+        meta = data.get("_meta", {})
+        related = meta.get("io.modelcontextprotocol/related-task", {})
+        assert related.get("taskId") == task.taskId
+
+    @pytest.mark.asyncio
+    async def test_tasks_result_task_not_found_does_not_inject_meta(
+        self, mcp_server, initialized_server_session
+    ):
+        """Regression guard: the not-found branch has no associated task id,
+        so it must not inject related-task metadata."""
+        _enable_tasks(initialized_server_session)
+
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tasks/result",
+            "params": {"taskId": "task_does_not_exist"},
+        }
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        # No related-task metadata leaked from the not-found branch.
+        data = response.error.get("data") or {}
+        meta = data.get("_meta") if isinstance(data, dict) else None
+        if isinstance(meta, dict):
+            assert "io.modelcontextprotocol/related-task" not in meta
 
     @pytest.mark.asyncio
     async def test_tasks_get_response_should_not_include_related_task_meta(

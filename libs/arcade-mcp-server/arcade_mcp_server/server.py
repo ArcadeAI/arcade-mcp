@@ -2245,6 +2245,20 @@ class MCPServer:
         # error would be misclassified as a success, corrupting the wire
         # response type from ``JSONRPCError`` to ``JSONRPCResponse``.
         if is_error:
+            # Per MCP 2025-11-25 utilities/tasks.mdx (sections 4 and 6):
+            # all task-related responses MUST include the
+            # ``io.modelcontextprotocol/related-task`` key in their _meta
+            # field. JSON-RPC errors carry arbitrary metadata under
+            # ``error.data._meta`` by convention. The success path below
+            # injects the same key into ``result._meta``; the error path
+            # must do the same for ``error.data._meta`` so the client can
+            # correlate the error response with the originating task.
+            if isinstance(result, dict):
+                data = result.setdefault("data", {})
+                if isinstance(data, dict):
+                    meta = data.setdefault("_meta", {})
+                    if isinstance(meta, dict):
+                        meta[RELATED_TASK_META_KEY] = {"taskId": task_id}
             return JSONRPCError(
                 id=msg_id,
                 error=result,
