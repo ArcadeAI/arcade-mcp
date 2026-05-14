@@ -41,7 +41,6 @@ from arcade_mcp_server.types import (
     ToolUseContent,
     UntitledMultiSelectEnumSchema,
     UntitledSingleSelectEnumSchema,
-    URLElicitationRequiredError,
 )
 from arcade_mcp_server.worker import create_arcade_mcp, run_arcade_mcp
 
@@ -73,7 +72,6 @@ __all__ = [
     "ToolExecution",
     "ToolResultContent",
     "ToolUseContent",
-    "URLElicitationRequiredError",
     "UntitledMultiSelectEnumSchema",
     "UntitledSingleSelectEnumSchema",
     "create_arcade_mcp",

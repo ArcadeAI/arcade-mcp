@@ -37,8 +37,8 @@ from arcade_mcp_server.types import (
     ToolUseContent,
     UntitledMultiSelectEnumSchema,
     UntitledSingleSelectEnumSchema,
-    URLElicitationRequiredError,
 )
+from arcade_mcp_server.types import URLElicitationRequiredError
 from pydantic import ValidationError
 
 

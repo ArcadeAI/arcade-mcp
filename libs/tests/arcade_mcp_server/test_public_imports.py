@@ -30,7 +30,6 @@ def test_v2025_11_25_type_imports():
         ToolUseContent,
         UntitledMultiSelectEnumSchema,
         UntitledSingleSelectEnumSchema,
-        URLElicitationRequiredError,
     )
 
     assert Icon is not None
@@ -47,7 +46,6 @@ def test_v2025_11_25_type_imports():
     assert TaskStatusNotification is not None
     assert ElicitRequestURLParams is not None
     assert ElicitationCompleteNotification is not None
-    assert URLElicitationRequiredError is not None
     assert UntitledSingleSelectEnumSchema is not None
     assert TitledSingleSelectEnumSchema is not None
     assert UntitledMultiSelectEnumSchema is not None
