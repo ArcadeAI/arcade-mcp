@@ -2336,27 +2336,33 @@ class TestTaskContextKey:
             mcp_server._get_task_context_key(initialized_server_session, owner)
 
     @pytest.mark.asyncio
-    async def test_unknown_client_id_produces_key(self, mcp_server, initialized_server_session):
+    async def test_missing_client_id_and_azp_raises_incomplete_auth_context(
+        self, mcp_server, initialized_server_session
+    ):
+        """Per spec section 9.1: collapsing missing client identity into a
+        shared bucket would violate task isolation across clients. Fail
+        closed instead so the handler returns a JSON-RPC error.
+        """
         owner = ResourceOwner(
             user_id="alice",
-            client_id="unknown",
+            client_id=None,
             claims={"iss": "https://accounts.google.com", "sub": "alice"},
         )
-        key = mcp_server._get_task_context_key(initialized_server_session, owner)
-        assert key.startswith("auth:")
-        assert "unknown" in key
+        with pytest.raises(IncompleteAuthContextError):
+            mcp_server._get_task_context_key(initialized_server_session, owner)
 
     @pytest.mark.asyncio
-    async def test_unknown_client_id_logs_warning(
-        self, mcp_server, initialized_server_session, caplog
+    async def test_empty_client_id_raises_incomplete_auth_context(
+        self, mcp_server, initialized_server_session
     ):
+        """An empty-string client_id is treated the same as a missing one."""
         owner = ResourceOwner(
             user_id="alice",
-            client_id="unknown",
+            client_id="",
             claims={"iss": "https://accounts.google.com", "sub": "alice"},
         )
-        mcp_server._get_task_context_key(initialized_server_session, owner)
-        assert any("lacks azp/client_id claims" in record.message for record in caplog.records)
+        with pytest.raises(IncompleteAuthContextError):
+            mcp_server._get_task_context_key(initialized_server_session, owner)
 
     @pytest.mark.asyncio
     async def test_colons_in_claims_are_encoded(self, mcp_server, initialized_server_session):

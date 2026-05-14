@@ -2028,6 +2028,15 @@ class MCPServer:
 
         Auth context: ``auth:{issuer}:{client_id}:{user_id}``.
         Fallback (stdio): ``session:{session_id}``.
+
+        Per MCP 2025-11-25 utilities/tasks.mdx section 9.1 (Task Isolation
+        and Access Control): when context binding is available, receivers
+        MUST reject ``tasks/get``, ``tasks/result``, and ``tasks/cancel``
+        requests for tasks that do not belong to the same authorization
+        context as the requestor. Falling back to a shared ``"unknown"``
+        bucket when both ``client_id`` and ``azp`` are missing would
+        collapse multiple clients into one namespace and violate that
+        isolation guarantee, so we fail closed instead.
         """
         if resource_owner is not None:
             issuer = resource_owner.claims.get("iss")
@@ -2035,11 +2044,11 @@ class MCPServer:
                 raise IncompleteAuthContextError(
                     "Resource owner token lacks 'iss' claim; cannot scope tasks"
                 )
-            client_id = resource_owner.client_id or "unknown"
-            if client_id == "unknown":
-                logger.warning(
-                    "Resource owner lacks azp/client_id claims -- tasks will share "
-                    "scope across all clients for this user+issuer (known limitation)"
+            client_id = resource_owner.client_id
+            if not client_id:
+                raise IncompleteAuthContextError(
+                    "Resource owner token lacks 'client_id'/'azp' claim; "
+                    "cannot scope tasks safely across clients"
                 )
             user_id = resource_owner.user_id
             return (
