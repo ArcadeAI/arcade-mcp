@@ -920,8 +920,13 @@ class TestE2ETransportCompliance:
         assert error is not None
         assert error.status_code == 400
 
-    def test_stateless_header_required(self) -> None:
-        """Stateless mode: MCP-Protocol-Version header is required (400 if absent)."""
+    def test_stateless_non_initialize_missing_header_falls_back_to_2025_03_26(self) -> None:
+        """Spec backcompat: stateless non-initialize without header -> assume 2025-03-26.
+
+        MCP 2025-11-25 transports.mdx: on a non-initialize HTTP request,
+        the server SHOULD assume protocol version 2025-03-26 when the
+        MCP-Protocol-Version header is absent, for backwards compatibility.
+        """
         from arcade_mcp_server.transports.http_session_manager import (
             _validate_protocol_version_header,
         )
@@ -939,11 +944,36 @@ class TestE2ETransportCompliance:
             }
             return StarletteRequest(scope)
 
-        # No header in stateless mode -> 400
         req = _make_req({})
-        error, _ = _validate_protocol_version_header(req, is_stateless=True)
-        assert error is not None
-        assert error.status_code == 400
+        error, version = _validate_protocol_version_header(req, is_stateless=True)
+        assert error is None
+        assert version == "2025-03-26"
+
+    def test_stateless_initialize_skips_header_check(self) -> None:
+        """Stateless initialize is exempt from the header requirement.
+
+        Initialize IS the version-negotiation request -- it carries
+        params.protocolVersion -- so blocking it before the header is
+        present would block negotiation itself.
+        """
+        from arcade_mcp_server.transports.http_session_manager import (
+            _validate_protocol_version_header,
+        )
+        from starlette.requests import Request as StarletteRequest
+
+        scope = {
+            "type": "http",
+            "method": "POST",
+            "headers": [],
+            "path": "/mcp",
+            "query_string": b"",
+            "root_path": "",
+        }
+        req = StarletteRequest(scope)
+        error, _ = _validate_protocol_version_header(
+            req, is_stateless=True, is_initialize=True
+        )
+        assert error is None
 
     @pytest.mark.asyncio
     async def test_insufficient_scope_returns_403(self, mcp_server: MCPServer) -> None:

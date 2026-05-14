@@ -141,18 +141,45 @@ class TestMCPProtocolVersionHeader:
         assert error is None
         assert version is None
 
-    def test_missing_header_stateless_returns_400(self):
-        """Stateless: missing header -> 400."""
+    def test_missing_header_stateless_non_initialize_falls_back_to_2025_03_26(self):
+        """Spec backcompat: stateless non-initialize with no header -> assume 2025-03-26."""
         req = _make_request({})
-        error, _ = _validate_protocol_version_header(req, is_stateless=True)
-        assert error is not None
-        assert error.status_code == 400
+        error, version = _validate_protocol_version_header(req, is_stateless=True)
+        assert error is None
+        assert version == "2025-03-26"
 
     def test_initialize_skips_validation(self):
         """Initialize IS version negotiation -> skip header validation."""
         req = _make_request({})
         error, _ = _validate_protocol_version_header(req, is_initialize=True)
         assert error is None
+
+    def test_stateless_initialize_skips_header_requirement(self):
+        """Stateless mode must also exempt initialize from the header check."""
+        req = _make_request({})
+        error, _ = _validate_protocol_version_header(
+            req, is_stateless=True, is_initialize=True
+        )
+        assert error is None
+
+    def test_stateless_non_initialize_invalid_header_still_returns_400(self):
+        """Backcompat applies only to MISSING header. An unsupported version is still rejected."""
+        req = _make_request({"mcp-protocol-version": "9999-01-01"})
+        error, _ = _validate_protocol_version_header(req, is_stateless=True)
+        assert error is not None
+        assert error.status_code == 400
+
+    def test_stateless_initialize_with_invalid_header_is_still_accepted(self):
+        """Initialize carries params.protocolVersion -- header is ignored entirely."""
+        req = _make_request({"mcp-protocol-version": "9999-01-01"})
+        error, version = _validate_protocol_version_header(
+            req, is_stateless=True, is_initialize=True
+        )
+        assert error is None
+        # The validator returns the raw header value when initialize-exempt;
+        # downstream code in _handle_stateless_request uses
+        # params.protocolVersion for the actual negotiation.
+        assert version == "9999-01-01"
 
     def test_version_mismatch_with_negotiated_returns_400(self):
         """Stateful: header mismatch with negotiated version -> 400."""

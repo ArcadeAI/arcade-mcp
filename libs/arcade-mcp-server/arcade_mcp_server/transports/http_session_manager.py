@@ -140,18 +140,25 @@ def _validate_protocol_version_header(
     """Validate MCP-Protocol-Version header.
 
     Returns (error_response, version_from_header).
+
+    Per MCP 2025-11-25 transports.mdx:
+    - Initialize IS the version-negotiation request (carries
+      ``params.protocolVersion``) and is exempt from header validation
+      in both stateful and stateless modes.
+    - On non-initialize requests with no header, the server SHOULD
+      assume protocol version ``2025-03-26`` for backwards compatibility.
     """
     header_version = request.headers.get(MCP_PROTOCOL_VERSION_HEADER)
 
+    # Initialize IS version negotiation: skip header validation in both modes.
+    if is_initialize:
+        return None, header_version
+
     if is_stateless:
-        # Stateless: header is REQUIRED
         if header_version is None:
-            return (
-                _create_transport_error_response(
-                    400, "Bad Request: MCP-Protocol-Version header is required in stateless mode"
-                ),
-                None,
-            )
+            # Spec backcompat: assume 2025-03-26 when the header is absent
+            # on a non-initialize request.
+            return None, "2025-03-26"
         if header_version not in SUPPORTED_PROTOCOL_VERSIONS:
             return (
                 _create_transport_error_response(
@@ -159,11 +166,6 @@ def _validate_protocol_version_header(
                 ),
                 None,
             )
-        return None, header_version
-
-    # Stateful mode
-    if is_initialize:
-        # Initialize IS version negotiation — skip header validation
         return None, header_version
 
     if header_version is not None:
@@ -354,9 +356,12 @@ class HTTPSessionManager:
                 await accept_error(scope, receive, send)
                 return
 
-        # --- Protocol version header validation (required in stateless) ---
+        # --- Protocol version header validation ---
+        # Initialize is exempt (it carries params.protocolVersion). For
+        # other stateless requests without the header, the validator falls
+        # back to 2025-03-26 per the spec's backwards-compatibility rule.
         version_error, header_version = _validate_protocol_version_header(
-            request, is_stateless=True
+            request, is_stateless=True, is_initialize=is_initialize
         )
         if version_error is not None:
             await version_error(scope, receive, send)

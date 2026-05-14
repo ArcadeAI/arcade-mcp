@@ -291,7 +291,15 @@ class TestProtocolVersionHeader:
         assert "id" not in body  # transport error omits id
 
     @pytest.mark.asyncio
-    async def test_stateless_requires_version_header(self, mcp_server: MCPServer) -> None:
+    async def test_stateless_non_initialize_missing_header_uses_backcompat(
+        self, mcp_server: MCPServer
+    ) -> None:
+        """Spec backcompat: a stateless non-initialize POST without the
+        MCP-Protocol-Version header must NOT 400. The server assumes
+        2025-03-26 and dispatches the request.
+
+        Per MCP 2025-11-25 transports.mdx:276-279.
+        """
         async with _http_client(mcp_server, stateless=True) as client:
             resp = await client.post(
                 "/mcp/",
@@ -302,7 +310,38 @@ class TestProtocolVersionHeader:
                 },
                 json={"jsonrpc": "2.0", "id": 1, "method": "tools/list"},
             )
-        assert resp.status_code == 400
+        # Spec requires the request to be processed, not rejected at transport.
+        assert resp.status_code != 400
+
+    @pytest.mark.asyncio
+    async def test_stateless_initialize_without_header_is_accepted(
+        self, mcp_server: MCPServer
+    ) -> None:
+        """Stateless initialize MUST be exempt from the header check.
+
+        Initialize carries params.protocolVersion so the header is
+        redundant; blocking it would prevent negotiation.
+        """
+        async with _http_client(mcp_server, stateless=True) as client:
+            resp = await client.post(
+                "/mcp/",
+                headers={
+                    "Accept": "application/json, text/event-stream",
+                    "Content-Type": "application/json",
+                    # no MCP-Protocol-Version
+                },
+                json={
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "initialize",
+                    "params": {
+                        "protocolVersion": "2025-11-25",
+                        "capabilities": {},
+                        "clientInfo": {"name": "test", "version": "0"},
+                    },
+                },
+            )
+        assert resp.status_code != 400
 
     @pytest.mark.asyncio
     async def test_version_header_mismatch_with_negotiated_returns_400(
