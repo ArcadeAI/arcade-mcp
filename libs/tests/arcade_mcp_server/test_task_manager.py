@@ -104,6 +104,26 @@ class TestTaskManager:
             await task_manager.cancel_task(task.taskId, context_key=CONTEXT_A)
 
     @pytest.mark.asyncio
+    async def test_cancel_already_cancelled_task_raises(self, task_manager):
+        """Spec MUST: cancellation of a task already in ``cancelled`` returns
+        -32602 (Invalid params). update_status treats same-status terminal
+        transitions as idempotent no-ops, so cancel_task itself must perform
+        the precheck.
+        """
+        task = await task_manager.create_task(context_key=CONTEXT_A)
+        await task_manager.cancel_task(task.taskId, context_key=CONTEXT_A)
+        with pytest.raises(InvalidTaskStateError):
+            await task_manager.cancel_task(task.taskId, context_key=CONTEXT_A)
+
+    @pytest.mark.asyncio
+    async def test_cancel_failed_task_raises(self, task_manager):
+        """Spec MUST: cancellation of a failed task returns -32602."""
+        task = await task_manager.create_task(context_key=CONTEXT_A)
+        await task_manager.update_status(task.taskId, TaskStatus.FAILED)
+        with pytest.raises(InvalidTaskStateError):
+            await task_manager.cancel_task(task.taskId, context_key=CONTEXT_A)
+
+    @pytest.mark.asyncio
     async def test_task_status_transitions(self, task_manager):
         """Valid transitions: working -> input_required -> working -> completed."""
         task = await task_manager.create_task(context_key=CONTEXT_A)

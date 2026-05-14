@@ -384,6 +384,15 @@ class TaskManager:
         cannot be cancelled/revived after ``tasks/get`` has already reported
         "not found" for it. Without this check there was a small race window
         where the two handlers disagreed about the task's existence.
+
+        Per MCP 2025-11-25 utilities/tasks.mdx section 5 (Cancelling Tasks):
+        "Receivers MUST reject cancellation requests for tasks already in a
+        terminal status (completed, failed, or cancelled) with error code
+        -32602 (Invalid params)." ``update_status`` treats a same-status
+        terminal transition as an idempotent no-op (used by other callers),
+        so cancel_task performs its own precheck to surface
+        InvalidTaskStateError for the spec-mandated case where the request
+        targets a task that has already reached ``cancelled``.
         """
         entry = self._tasks.get(task_id)
         if entry is None or entry[0] != context_key:
@@ -392,6 +401,11 @@ class TaskManager:
         if self._is_expired(task):
             self._evict(task_id)
             raise NotFoundError(f"Task not found: {task_id}")
+
+        if task.status in TERMINAL_STATUSES:
+            raise InvalidTaskStateError(
+                f"Cannot cancel task in terminal status: {task.status.value}"
+            )
 
         task = await self.update_status(task_id, TaskStatus.CANCELLED)
 
