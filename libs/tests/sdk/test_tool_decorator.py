@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 
 import pytest
 from arcade_core.auth import AuthProviderType, Google
@@ -210,3 +211,33 @@ def test_tool_deprecated_ordering_with_auth():
         == "Test description for func_deprecated_before_auth"
     )
     assert func_deprecated_before_auth.__tool_requires_auth__ is not None
+
+
+# MCP-specific ``execution`` / ``taskSupport`` semantics live in
+# arcade-mcp-server. The corresponding tests live in
+# ``libs/tests/arcade_mcp_server/test_tool_wrapper.py`` (see the
+# ``TestRelocatedFromArcadeTdk`` class). arcade-tdk itself stays
+# protocol-agnostic and no longer exposes an ``execution`` kwarg.
+
+
+class TestArcadeTdkToolHasNoMCPSpecificKwargs:
+    """Pin the layering boundary: arcade-tdk's ``@tool`` does not accept
+    or document MCP-specific concepts. These tests fail loudly if MCP
+    surface re-leaks into arcade-tdk in a future change.
+    """
+
+    def test_arcade_tdk_tool_does_not_accept_execution_kwarg(self):
+        with pytest.raises(TypeError, match="unexpected keyword argument 'execution'"):
+
+            @tool(execution="anything")
+            def f() -> str:
+                return "x"
+
+    def test_arcade_tdk_tool_signature_has_no_execution_parameter(self):
+        assert "execution" not in inspect.signature(tool).parameters
+
+    def test_arcade_tdk_tool_docstring_does_not_mention_mcp_or_taskSupport(self):
+        doc = (tool.__doc__ or "").lower()
+        assert "mcp" not in doc
+        assert "tasksupport" not in doc
+        assert "arcade_mcp_server" not in doc

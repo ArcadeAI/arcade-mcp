@@ -4,7 +4,6 @@ from unittest.mock import Mock, patch
 
 import httpx
 import requests
-
 from arcade_core.errors import (
     ErrorKind,
     FatalToolError,

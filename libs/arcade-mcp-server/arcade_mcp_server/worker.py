@@ -256,7 +256,16 @@ def create_arcade_mcp(
                     "MCP_RESOURCE_SERVER_CANONICAL_URL environment variable"
                 )
 
-        mcp_proxy = ResourceServerMiddleware(mcp_proxy, resource_server_validator, canonical_url)
+        # The MCP spec recommends advertising ``scope`` on the entry-401
+        # challenge. The validator owns ``default_challenge_scopes`` (RFC
+        # 6750 surface) and ``scopes_supported`` (RFC 9728 surface), both
+        # declared on ``ResourceServerValidator`` ABC; the middleware
+        # reads them directly from the validator. No plumbing needed here.
+        mcp_proxy = ResourceServerMiddleware(
+            mcp_proxy,
+            resource_server_validator,
+            canonical_url,
+        )
 
     # Mount the ASGI proxy to handle all /mcp requests
     app.mount("/mcp", mcp_proxy, name="mcp-proxy")

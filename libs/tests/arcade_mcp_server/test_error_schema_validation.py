@@ -8,9 +8,7 @@ both are present — setting structuredContent to None avoids the validation
 requirement entirely. The error message is still available in content (TextContent).
 """
 
-import json
 from typing import Annotated
-from unittest.mock import AsyncMock, Mock
 
 import pytest
 from arcade_core.catalog import MaterializedTool, ToolCatalog, ToolMeta, create_func_models
@@ -235,9 +233,9 @@ class TestServerErrorPathsStructuredContent:
                     for c in response.result.content if hasattr(c, "text"))
 
     @pytest.mark.asyncio
-    async def test_unknown_tool_error_has_none_structuredcontent(self, mcp_server):
-        """Unknown tool error → structuredContent is None, content has error text."""
-        from arcade_mcp_server.types import CallToolRequest
+    async def test_unknown_tool_error_returns_jsonrpc_error(self, mcp_server):
+        """Unknown tool -> JSON-RPC protocol error -32602 per MCP 2025-11-25 spec."""
+        from arcade_mcp_server.types import CallToolRequest, JSONRPCError
 
         message = CallToolRequest(
             jsonrpc="2.0",
@@ -248,17 +246,14 @@ class TestServerErrorPathsStructuredContent:
 
         response = await mcp_server._handle_call_tool(message)
 
-        assert response.result.isError is True
-        assert response.result.structuredContent is None
-        # Content should mention the unknown tool
-        assert len(response.result.content) > 0
-        content_text = response.result.content[0].text
-        assert "Unknown tool" in content_text
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32602
+        assert "Unknown tool" in response.error["message"]
 
     @pytest.mark.asyncio
-    async def test_error_content_still_has_message(self, mcp_server):
-        """Error responses have the error message in content even with structuredContent=None."""
-        from arcade_mcp_server.types import CallToolRequest
+    async def test_unknown_tool_error_includes_tool_name(self, mcp_server):
+        """Unknown tool protocol error includes the tool name in the message."""
+        from arcade_mcp_server.types import CallToolRequest, JSONRPCError
 
         message = CallToolRequest(
             jsonrpc="2.0",
@@ -269,8 +264,5 @@ class TestServerErrorPathsStructuredContent:
 
         response = await mcp_server._handle_call_tool(message)
 
-        assert response.result.structuredContent is None
-        assert response.result.isError is True
-        # The content list should not be empty — it carries the error info
-        assert len(response.result.content) > 0
-        assert response.result.content[0].text != ""
+        assert isinstance(response, JSONRPCError)
+        assert "DoesNotExist.Tool" in response.error["message"]

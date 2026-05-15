@@ -41,7 +41,7 @@ class TestHTTPSessionManager:
         """Test that stateless mode routes to _handle_stateless_request."""
         manager = HTTPSessionManager(server=mcp_server, stateless=True)
 
-        scope = {"type": "http", "method": "POST"}
+        scope = {"type": "http", "method": "POST", "headers": []}
         receive = AsyncMock()
         send = AsyncMock()
 
@@ -56,7 +56,7 @@ class TestHTTPSessionManager:
         """Test that stateful mode routes to _handle_stateful_request."""
         manager = HTTPSessionManager(server=mcp_server, stateless=False)
 
-        scope = {"type": "http", "method": "POST"}
+        scope = {"type": "http", "method": "POST", "headers": []}
         receive = AsyncMock()
         send = AsyncMock()
 
@@ -139,7 +139,10 @@ class TestHTTPSessionManagerStateful:
         scope = {
             "type": "http",
             "method": "POST",
-            "headers": [(MCP_SESSION_ID_HEADER.lower().encode(), existing_session_id.encode())],
+            "headers": [
+                (MCP_SESSION_ID_HEADER.lower().encode(), existing_session_id.encode()),
+                (b"accept", b"application/json, text/event-stream"),
+            ],
         }
         receive = AsyncMock()
         send = AsyncMock()
@@ -161,7 +164,10 @@ class TestHTTPSessionManagerStateful:
         scope = {
             "type": "http",
             "method": "POST",
-            "headers": [(MCP_SESSION_ID_HEADER.lower().encode(), b"invalid-session-id")],
+            "headers": [
+                (MCP_SESSION_ID_HEADER.lower().encode(), b"invalid-session-id"),
+                (b"accept", b"application/json, text/event-stream"),
+            ],
         }
         receive = AsyncMock()
         send = AsyncMock()

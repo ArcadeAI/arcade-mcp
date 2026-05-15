@@ -10,31 +10,70 @@ This package provides:
 - Context system for tool execution with MCP methods
 """
 
-from arcade_tdk import tool
-
 from arcade_mcp_server.context import Context
+from arcade_mcp_server.decorators import tool
 from arcade_mcp_server.mcp_app import MCPApp
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.settings import MCPSettings
 from arcade_mcp_server.types import (
     Annotations,
     BlobResourceContents,
+    CancelTaskResult,
+    CreateTaskResult,
+    ElicitationCompleteNotification,
+    ElicitRequestURLParams,
+    GetTaskResult,
+    Icon,
+    LegacyTitledEnumSchema,
+    ListTasksResult,
     Resource,
     ResourceTemplate,
+    SamplingMessageContentBlock,
+    Task,
+    TaskStatus,
+    TaskStatusNotification,
     TextResourceContents,
+    TitledMultiSelectEnumSchema,
+    TitledSingleSelectEnumSchema,
+    ToolChoice,
+    ToolExecution,
+    ToolResultContent,
+    ToolUseContent,
+    UntitledMultiSelectEnumSchema,
+    UntitledSingleSelectEnumSchema,
 )
 from arcade_mcp_server.worker import create_arcade_mcp, run_arcade_mcp
 
 __all__ = [
     "Annotations",
     "BlobResourceContents",
+    "CancelTaskResult",
     "Context",
+    "CreateTaskResult",
+    "ElicitRequestURLParams",
+    "ElicitationCompleteNotification",
+    "GetTaskResult",
+    "Icon",
+    "LegacyTitledEnumSchema",
+    "ListTasksResult",
     "MCPApp",
     "MCPServer",
     "MCPSettings",
     "Resource",
     "ResourceTemplate",
+    "SamplingMessageContentBlock",
+    "Task",
+    "TaskStatus",
+    "TaskStatusNotification",
     "TextResourceContents",
+    "TitledMultiSelectEnumSchema",
+    "TitledSingleSelectEnumSchema",
+    "ToolChoice",
+    "ToolExecution",
+    "ToolResultContent",
+    "ToolUseContent",
+    "UntitledMultiSelectEnumSchema",
+    "UntitledSingleSelectEnumSchema",
     "create_arcade_mcp",
     "run_arcade_mcp",
     "tool",

@@ -21,6 +21,7 @@ from arcade_mcp_server.convert import (
     convert_to_mcp_content,
     create_mcp_tool,
 )
+from arcade_mcp_server.types import ToolExecution
 
 # Small PNG header (1x1 transparent pixel) used for byte-image param tests
 PNG_BYTES = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde"
@@ -662,6 +663,103 @@ class TestConvertContentToStructuredContent:
         assert result == {"result": "custom-str"}
 
 
+class TestConvertToolExecution:
+    """MCP conversion reads ``__tool_execution__`` off the tool function.
+
+    The policy lives on the function (set by ``@tool(execution=...)``) -- it is
+    NOT stored on ``ToolDefinition`` in arcade-core, which stays protocol-neutral.
+    """
+
+    def test_convert_no_execution_on_function(self):
+        """Tool without __tool_execution__ -> no execution on MCPTool."""
+        tool_def = ToolDefinition(
+            name="test",
+            fully_qualified_name="Toolkit.test",
+            description="test",
+            toolkit=ToolkitDefinition(name="Toolkit"),
+            input=ToolInput(parameters=[]),
+            output=ToolOutput(available_modes=["value"]),
+            requirements=ToolRequirements(),
+        )
+
+        @tool
+        def f() -> str:
+            return "result"
+
+        input_model, output_model = create_func_models(f)
+        meta = ToolMeta(module=f.__module__, toolkit=tool_def.toolkit.name)
+        mat_tool = MaterializedTool(
+            tool=f,
+            definition=tool_def,
+            meta=meta,
+            input_model=input_model,
+            output_model=output_model,
+        )
+
+        mcp_tool = create_mcp_tool(mat_tool)
+        assert mcp_tool.execution is None
+
+    def test_convert_populates_execution_from_function_dunder(self):
+        """Tool with execution policy on the function -> execution on MCPTool."""
+        tool_def = ToolDefinition(
+            name="test",
+            fully_qualified_name="Toolkit.test",
+            description="test",
+            toolkit=ToolkitDefinition(name="Toolkit"),
+            input=ToolInput(parameters=[]),
+            output=ToolOutput(available_modes=["value"]),
+            requirements=ToolRequirements(),
+        )
+
+        @tool(execution=ToolExecution(taskSupport="optional"))
+        def f() -> str:
+            return "result"
+
+        input_model, output_model = create_func_models(f)
+        meta = ToolMeta(module=f.__module__, toolkit=tool_def.toolkit.name)
+        mat_tool = MaterializedTool(
+            tool=f,
+            definition=tool_def,
+            meta=meta,
+            input_model=input_model,
+            output_model=output_model,
+        )
+
+        mcp_tool = create_mcp_tool(mat_tool)
+        assert mcp_tool.execution is not None
+        assert mcp_tool.execution.taskSupport == "optional"
+
+    def test_convert_ignores_non_toolexecution_payload(self):
+        """Non-ToolExecution ``__tool_execution__`` is ignored (guard against
+        arbitrary dunder payloads reaching the MCP wire)."""
+        tool_def = ToolDefinition(
+            name="test",
+            fully_qualified_name="Toolkit.test",
+            description="test",
+            toolkit=ToolkitDefinition(name="Toolkit"),
+            input=ToolInput(parameters=[]),
+            output=ToolOutput(available_modes=["value"]),
+            requirements=ToolRequirements(),
+        )
+
+        @tool(execution={"taskSupport": "optional"})  # dict, not ToolExecution
+        def f() -> str:
+            return "result"
+
+        input_model, output_model = create_func_models(f)
+        meta = ToolMeta(module=f.__module__, toolkit=tool_def.toolkit.name)
+        mat_tool = MaterializedTool(
+            tool=f,
+            definition=tool_def,
+            meta=meta,
+            input_model=input_model,
+            output_model=output_model,
+        )
+
+        mcp_tool = create_mcp_tool(mat_tool)
+        assert mcp_tool.execution is None
+
+
 class TestOutputSchemaOptionalTypedDictFields:
     """Test that outputSchema correctly represents optional TypedDict fields.
 
@@ -673,7 +771,6 @@ class TestOutputSchemaOptionalTypedDictFields:
 
     def _make_tool_and_mcp_tool(self, return_type, annotation_desc="result"):
         """Helper: register a tool returning `return_type` and get the MCP tool."""
-        from typing_extensions import TypedDict
 
         @tool
         def f() -> Annotated[return_type, annotation_desc]:

@@ -17,34 +17,35 @@ from arcade_core.errors import (
 )
 
 __all__ = [
-    # Re-exports
+    "AuthorizationError",
+    "ContextRequiredToolError",
+    "ElicitationModeNotSupportedError",
+    "ElicitationNotSupportedError",
     "ErrorKind",
     "FatalToolError",
-    "NetworkTransportError",
-    "RetryableToolError",
-    "ToolExecutionError",
-    "ToolRuntimeError",
-    "UpstreamError",
-    "UpstreamRateLimitError",
-    "ContextRequiredToolError",
-    # Base exceptions
+    "IncompleteAuthContextError",
+    "LifespanError",
+    "MCPContextError",
     "MCPError",
     "MCPRuntimeError",
-    # Server exceptions
-    "ServerError",
-    "SessionError",
-    "RequestError",
-    "ResponseError",
-    "ServerRequestError",
-    "LifespanError",
-    # Context exceptions
-    "MCPContextError",
+    "NetworkTransportError",
     "NotFoundError",
-    "AuthorizationError",
     "PromptError",
-    "ResourceError",
-    "TransportError",
     "ProtocolError",
+    "RequestError",
+    "ResourceError",
+    "ResponseError",
+    "RetryableToolError",
+    "ServerError",
+    "ServerRequestError",
+    "SessionError",
+    "SessionNotInitializedError",
+    "ToolExecutionError",
+    "ToolRuntimeError",
+    "TransportError",
+    "UnsupportedSchemaDialectError",
+    "UpstreamError",
+    "UpstreamRateLimitError",
 ]
 
 
@@ -62,6 +63,14 @@ class ServerError(MCPRuntimeError):
 
 class SessionError(ServerError):
     """Error in session management"""
+
+
+class ElicitationNotSupportedError(SessionError):
+    """Client did not declare elicitation capability — server must not send elicitation."""
+
+
+class ElicitationModeNotSupportedError(SessionError):
+    """Client does not support the requested elicitation mode (form or url)."""
 
 
 class RequestError(ServerError):
@@ -109,3 +118,21 @@ class TransportError(MCPRuntimeError):
 
 class ProtocolError(MCPRuntimeError):
     """Error in MCP protocol handling."""
+
+
+class IncompleteAuthContextError(MCPError):
+    """Auth context is missing required claims (e.g., iss) for task scoping."""
+
+
+class UnsupportedSchemaDialectError(MCPError, ValueError):
+    """Raised when a JSON Schema $schema URI declares an unsupported dialect.
+
+    Inherits from both ``MCPError`` (so framework-level catchers keep
+    working) and ``ValueError`` (so tool authors doing ``except ValueError``
+    around ``context.ui.elicit(...)`` catch bad-dialect errors alongside
+    the rest of ``_validate_elicitation_schema``'s ``ValueError`` family).
+    """
+
+
+class SessionNotInitializedError(SessionError):
+    """Raised when an outbound request is attempted before session initialization."""

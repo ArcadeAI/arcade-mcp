@@ -10,6 +10,7 @@ from arcade_core.catalog import MaterializedTool, ToolDefinitionError
 from arcade_mcp_server import tool
 from arcade_mcp_server.mcp_app import MCPApp
 from arcade_mcp_server.server import MCPServer
+from arcade_mcp_server.types import ToolExecution
 from loguru import logger as loguru_logger
 
 
@@ -168,6 +169,48 @@ class TestMCPApp:
         assert app._mcp_settings.server.name == "PartialApp"
         assert app._mcp_settings.server.version == "0.1.0"
 
+    def test_mcp_app_branding_fields_forwarded_to_server_kwargs(self):
+        """Regression: branding fields (icons, description, website_url,
+        allowed_origins) must land in ``server_kwargs`` so that they reach
+        ``MCPServer`` when ``_create_and_run_server`` / ``run_stdio_server``
+        call ``create_arcade_mcp(**self.server_kwargs)``. Previously these
+        named parameters were stored only on ``self`` and the ``**kwargs``
+        channel captured by ``server_kwargs`` was empty of them, so the
+        entire server-branding feature was silently dropped at runtime.
+        """
+        icons = [{"src": "https://example.com/icon.png", "mimeType": "image/png"}]
+        app = MCPApp(
+            name="BrandingApp",
+            version="2.0.0",
+            icons=icons,
+            description="Server description",
+            website_url="https://example.com",
+            allowed_origins=["https://foo.example.com"],
+        )
+
+        # Still addressable as attributes on the app (public API).
+        assert app.icons == icons
+        assert app.description == "Server description"
+        assert app.website_url == "https://example.com"
+        assert app.allowed_origins == ["https://foo.example.com"]
+
+        # MUST also propagate through to the MCPServer constructor.
+        assert app.server_kwargs["icons"] == icons
+        assert app.server_kwargs["description"] == "Server description"
+        assert app.server_kwargs["website_url"] == "https://example.com"
+        assert app.server_kwargs["allowed_origins"] == ["https://foo.example.com"]
+
+    def test_mcp_app_branding_fields_omitted_when_none(self):
+        """When branding fields are not supplied, ``server_kwargs`` must not
+        carry None-valued entries (they'd shadow any defaults on the
+        downstream server constructor).
+        """
+        app = MCPApp(name="NoBranding")
+        assert "icons" not in app.server_kwargs
+        assert "description" not in app.server_kwargs
+        assert "website_url" not in app.server_kwargs
+        assert "allowed_origins" not in app.server_kwargs
+
     def test_add_tool(self, mcp_app: MCPApp):
         """Test adding a tool to the MCP app."""
 
@@ -225,6 +268,64 @@ class TestMCPApp:
         # Verify tools can still be called
         assert simple_tool("test") == "Response: test"
         assert simple_tool2("test") == "Response: test"
+
+    def test_tool_decorator_plumbs_execution_kwarg(self, mcp_app: MCPApp):
+        """``@mcp_app.tool(execution=...)`` writes the dunder used by the
+        MCP wire conversion / taskSupport policy enforcement.
+        """
+        execution = ToolExecution(taskSupport="optional")
+
+        @mcp_app.tool(execution=execution)
+        def reportable_tool(message: Annotated[str, "A message"]) -> str:
+            """A tool that supports task augmentation."""
+            return f"Response: {message}"
+
+        assert reportable_tool.__tool_execution__ is execution
+        assert reportable_tool.__tool_execution__.taskSupport == "optional"
+
+    def test_add_tool_plumbs_execution_kwarg(self, mcp_app: MCPApp):
+        """``app.add_tool(func, execution=...)`` (no pre-decoration) sets
+        the dunder so the registration path is symmetric with
+        ``@app.tool``.
+        """
+        execution = ToolExecution(taskSupport="required")
+
+        def background_tool(message: Annotated[str, "A message"]) -> str:
+            """A tool that must be invoked as a task."""
+            return f"Response: {message}"
+
+        registered = mcp_app.add_tool(background_tool, execution=execution)
+        assert registered.__tool_execution__ is execution
+        assert registered.__tool_execution__.taskSupport == "required"
+
+    def test_add_tool_execution_kwarg_overrides_pre_decoration(self, mcp_app: MCPApp):
+        """A pre-decorated ``@tool(execution=...)`` callable can have its
+        policy overridden by an explicit ``execution=`` at ``add_tool``
+        time. This pins the documented override semantic.
+        """
+
+        @tool(execution=ToolExecution(taskSupport="optional"))
+        def overridable_tool(message: Annotated[str, "A message"]) -> str:
+            """A tool registered with one policy and overridden at add_tool."""
+            return f"Response: {message}"
+
+        override = ToolExecution(taskSupport="forbidden")
+        registered = mcp_app.add_tool(overridable_tool, execution=override)
+        assert registered.__tool_execution__ is override
+
+    def test_add_tool_execution_kwarg_omitted_preserves_pre_decoration(self, mcp_app: MCPApp):
+        """When ``add_tool`` is called without ``execution=`` on a
+        pre-decorated tool, the pre-decoration's policy is preserved.
+        """
+        pre = ToolExecution(taskSupport="optional")
+
+        @tool(execution=pre)
+        def pre_decorated_tool(message: Annotated[str, "A message"]) -> str:
+            """Pre-decorated tool."""
+            return f"Response: {message}"
+
+        registered = mcp_app.add_tool(pre_decorated_tool)
+        assert registered.__tool_execution__ is pre
 
     @pytest.mark.asyncio
     async def test_tools_api(
@@ -643,8 +744,7 @@ class TestMCPApp:
                 loguru_logger.remove(sink_id)
 
         assert not any(
-            "Resource Server authentication" in r["message"]
-            or "MCP routes" in r["message"]
+            "Resource Server authentication" in r["message"] or "MCP routes" in r["message"]
             for r in captured
         )
 
@@ -1114,3 +1214,34 @@ class TestMCPAppResourceAnnotationsMetaTemplates:
         _, handler = app._initial_resources[0]
         with pytest.raises(NotFoundError, match="File not found"):
             handler("file:///missing.txt")
+
+
+class TestMCPAppMetadata:
+    """MCPApp metadata (title, icons, description, websiteUrl) wired through."""
+
+    def test_mcp_app_accepts_title(self):
+        app = MCPApp(name="TestApp", version="1.0.0", title="My Test Server")
+        assert app.title == "My Test Server"
+
+    def test_mcp_app_accepts_icons(self):
+        from arcade_mcp_server.types import Icon
+
+        app = MCPApp(
+            name="TestApp",
+            version="1.0.0",
+            icons=[Icon(src="https://example.com/icon.png")],
+        )
+        assert app.icons is not None
+        assert len(app.icons) == 1
+
+    def test_mcp_app_accepts_description(self):
+        app = MCPApp(name="TestApp", version="1.0.0", description="A test server")
+        assert app.description == "A test server"
+
+    def test_mcp_app_accepts_website_url(self):
+        app = MCPApp(name="TestApp", version="1.0.0", website_url="https://example.com")
+        assert app.website_url == "https://example.com"
+
+    def test_mcp_app_accepts_allowed_origins(self):
+        app = MCPApp(name="TestApp", version="1.0.0", allowed_origins=["https://example.com"])
+        assert app.allowed_origins == ["https://example.com"]

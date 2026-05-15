@@ -399,7 +399,10 @@ def _http_post(
     body = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(url, data=body, method="POST")  # noqa: S310
     req.add_header("Content-Type", "application/json")
-    req.add_header("Accept", "application/json")
+    # MCP 2025-11-25 streamable HTTP requires clients to accept both JSON and SSE
+    # on POSTs (the server may respond either way). Sending only application/json
+    # trips the server's Accept-header validation with 406 Not Acceptable.
+    req.add_header("Accept", "application/json, text/event-stream")
     if extra_headers:
         for k, v in extra_headers.items():
             req.add_header(k, v)
