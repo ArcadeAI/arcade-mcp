@@ -491,6 +491,54 @@ def _load_config_or_none() -> Config | None:
         return None
 
 
+def _resolve_url(
+    host: str | None,
+    port: int | None,
+    force_tls: bool,
+    force_no_tls: bool,
+    saved_url: str | None,
+    prod_host: str,
+    default_port: int | None,
+) -> str:
+    """
+    Resolve a service base URL from explicit flags, the URL saved at login,
+    and a hardcoded production host.
+
+    With no flags at all, the saved URL is returned verbatim (or the prod
+    default if nothing was saved). When ``--host`` is set, it is a clean
+    override and the saved URL is ignored entirely. When ``--port``,
+    ``--tls``, or ``--no-tls`` is set without ``--host``, those flags layer
+    on top of the saved host so users can tweak the connection (port, TLS)
+    without losing the environment they logged into. Without a saved URL,
+    partial flags fall back to the production host.
+    """
+    if host is None and port is None and not force_tls and not force_no_tls:
+        return saved_url or compute_base_url(
+            False, False, prod_host, None, default_port=default_port
+        )
+
+    if host is None and saved_url:
+        parsed = urlparse(saved_url)
+        if parsed.hostname:
+            host = parsed.hostname
+            if port is None and parsed.port:
+                port = parsed.port
+            # Preserve the saved scheme unless the user is overriding it.
+            if not force_tls and not force_no_tls:
+                if parsed.scheme == "https":
+                    force_tls = True
+                elif parsed.scheme == "http":
+                    force_no_tls = True
+
+    return compute_base_url(
+        force_tls,
+        force_no_tls,
+        host or prod_host,
+        port,
+        default_port=default_port,
+    )
+
+
 def resolve_engine_url(
     host: str | None,
     port: int | None,
@@ -502,17 +550,21 @@ def resolve_engine_url(
 
     Resolution order:
     1. Explicit per-command flags (``-h``, ``-p``, ``--tls``, ``--no-tls``).
+       ``-h`` replaces the saved host wholesale; the others layer on top of
+       the saved host so the connection stays in the same environment.
     2. ``engine_url`` persisted in ``~/.arcade/credentials.yaml`` at login.
     3. Production default (``https://api.arcade.dev``).
     """
-    if host is not None or port is not None or force_tls or force_no_tls:
-        return compute_base_url(force_tls, force_no_tls, host or PROD_ENGINE_HOST, port)
-
     config = _load_config_or_none()
-    if config and config.engine_url:
-        return config.engine_url
-
-    return compute_base_url(False, False, PROD_ENGINE_HOST, None)
+    return _resolve_url(
+        host,
+        port,
+        force_tls,
+        force_no_tls,
+        saved_url=config.engine_url if config else None,
+        prod_host=PROD_ENGINE_HOST,
+        default_port=9099,
+    )
 
 
 def resolve_coordinator_url(
@@ -524,23 +576,19 @@ def resolve_coordinator_url(
     """
     Resolve the Arcade Coordinator base URL for a CLI command.
 
-    Resolution order mirrors ``resolve_engine_url`` but falls back to the
-    production Coordinator host.
+    Mirrors ``resolve_engine_url`` against the saved ``coordinator_url`` and
+    the production Coordinator host.
     """
-    if host is not None or port is not None or force_tls or force_no_tls:
-        return compute_base_url(
-            force_tls,
-            force_no_tls,
-            host or PROD_COORDINATOR_HOST,
-            port,
-            default_port=None,
-        )
-
     config = _load_config_or_none()
-    if config and config.coordinator_url:
-        return config.coordinator_url
-
-    return compute_base_url(False, False, PROD_COORDINATOR_HOST, None, default_port=None)
+    return _resolve_url(
+        host,
+        port,
+        force_tls,
+        force_no_tls,
+        saved_url=config.coordinator_url if config else None,
+        prod_host=PROD_COORDINATOR_HOST,
+        default_port=None,
+    )
 
 
 def derive_engine_url_from_coordinator(coordinator_url: str) -> str | None:
