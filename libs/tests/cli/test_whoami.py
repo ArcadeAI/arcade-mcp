@@ -9,7 +9,14 @@ from arcade_cli.main import cli
 
 @pytest.fixture
 def isolated_config_dir(tmp_path, monkeypatch):
+    # Config.get_config_file_path() reads ARCADE_WORK_DIR dynamically.
     monkeypatch.setenv("ARCADE_WORK_DIR", str(tmp_path))
+    # CREDENTIALS_FILE_PATH in arcade_core.constants is frozen at import time
+    # and does NOT honor ARCADE_WORK_DIR; the main CLI callback uses it to gate
+    # logged-in commands. Point it at the same file Config writes to so the
+    # gate sees the staged credentials.
+    credentials_file = str(tmp_path / "credentials.yaml")
+    monkeypatch.setattr("arcade_cli.authn.CREDENTIALS_FILE_PATH", credentials_file)
     return tmp_path
 
 
