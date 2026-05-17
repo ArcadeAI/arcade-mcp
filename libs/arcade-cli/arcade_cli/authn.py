@@ -475,6 +475,7 @@ def save_credentials_from_whoami(
     tokens: TokenResponse,
     whoami: WhoAmIResponse,
     coordinator_url: str,
+    engine_url: str | None = None,
 ) -> None:
     """
     Save OAuth credentials to the config file using WhoAmI response.
@@ -485,6 +486,10 @@ def save_credentials_from_whoami(
     Args:
         tokens: OAuth tokens
         whoami: Response from /whoami endpoint with user and orgs/projects
+        coordinator_url: Coordinator URL that was used for the OAuth flow
+        engine_url: Matching Engine URL for the same environment, persisted so
+            subsequent CLI commands default to it. ``None`` leaves the field
+            unset, which causes commands to fall back to the prod default.
     """
     # Ensure config directory exists
     os.makedirs(ARCADE_CONFIG_PATH, exist_ok=True)
@@ -505,6 +510,7 @@ def save_credentials_from_whoami(
 
     config = Config(
         coordinator_url=coordinator_url,
+        engine_url=engine_url,
         auth=AuthConfig(
             access_token=tokens.access_token,
             refresh_token=tokens.refresh_token,

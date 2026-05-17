@@ -124,6 +124,11 @@ class Config(BaseConfig):
     Base URL of the Arcade Coordinator used for authentication flows.
     """
 
+    engine_url: str | None = None
+    """
+    Base URL of the Arcade Engine used for tool, server, secret, and deploy operations.
+    """
+
     auth: AuthConfig | None = None
     """
     OAuth authentication configuration.

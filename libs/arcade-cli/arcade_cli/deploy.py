@@ -31,9 +31,9 @@ from arcade_cli.configure import find_python_interpreter
 from arcade_cli.console import console
 from arcade_cli.secret import load_env_file
 from arcade_cli.utils import (
-    compute_base_url,
     get_auth_headers,
     get_org_scoped_url,
+    resolve_engine_url,
     validate_and_get_config,
 )
 
@@ -814,7 +814,7 @@ def deploy_server_logic(
     server_name: str | None,
     server_version: str | None,
     secrets: str,
-    host: str,
+    host: str | None,
     port: int | None,
     force_tls: bool,
     force_no_tls: bool,
@@ -839,7 +839,7 @@ def deploy_server_logic(
     # Step 1: Validate user is logged in
     console.print("\nValidating user is logged in...", style="dim")
     config = validate_and_get_config()
-    engine_url = compute_base_url(force_tls, force_no_tls, host, port)
+    engine_url = resolve_engine_url(host, port, force_tls, force_no_tls)
     user_email = config.user.email if config.user else "User"
     console.print(f"✓ {user_email} is logged in", style="green")
 
