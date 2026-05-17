@@ -1,5 +1,6 @@
 import importlib.util
 import ipaddress
+import logging
 import os
 import shlex
 import sys
@@ -14,6 +15,7 @@ from typing import Any, Callable, cast
 from urllib.parse import urlparse
 
 import idna
+import yaml
 from arcade_core import ToolCatalog, Toolkit
 from arcade_core.config_model import Config
 from arcade_core.constants import LOCALHOST, PROD_COORDINATOR_HOST, PROD_ENGINE_HOST
@@ -483,11 +485,26 @@ def create_cli_catalog_local() -> ToolCatalog:
     return _discover_installed_toolkits(catalog)
 
 
+_resolution_logger = logging.getLogger(__name__)
+
+
 def _load_config_or_none() -> Config | None:
-    """Load the credentials config if present, returning None when it isn't."""
+    """Load the credentials config if present, returning None when it isn't.
+
+    URL resolution happens on every CLI command, so this swallows any reason
+    the credentials file can't be loaded (missing, malformed YAML, validation
+    failure, permission denied) and falls back to defaults. A broken file
+    must never crash unrelated commands; a warning is logged so the cause is
+    discoverable.
+    """
     try:
         return Config.load_from_file()
-    except (FileNotFoundError, ValueError):
+    except FileNotFoundError:
+        return None
+    except (ValueError, yaml.YAMLError, OSError) as exc:
+        _resolution_logger.warning(
+            "Could not load credentials for host resolution; using defaults: %s", exc
+        )
         return None
 
 

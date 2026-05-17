@@ -127,3 +127,36 @@ def test_resolve_coordinator_url_partial_flag_no_creds_uses_prod(
     assert (
         resolve_coordinator_url(None, 8000, False, False) == "https://cloud.arcade.dev:8000"
     )
+
+
+# --- Robustness against corrupted credentials.yaml --------------------------
+
+
+def test_resolve_engine_url_falls_back_when_credentials_is_malformed_yaml(
+    isolated_config_dir,
+) -> None:
+    # A bad YAML file should not crash CLI commands. Fall back to prod default.
+    creds = isolated_config_dir / "credentials.yaml"
+    creds.write_text("this: is\n  not: valid: yaml: at: all\n", encoding="utf-8")
+    assert resolve_engine_url(None, None, False, False) == "https://api.arcade.dev"
+
+
+def test_resolve_engine_url_falls_back_when_credentials_is_unreadable(
+    isolated_config_dir, monkeypatch
+) -> None:
+    creds = isolated_config_dir / "credentials.yaml"
+    creds.write_text("cloud: {}\n", encoding="utf-8")
+
+    def _raise_oserror(*_args, **_kwargs):
+        raise OSError("simulated read failure")
+
+    monkeypatch.setattr("pathlib.Path.read_text", _raise_oserror)
+    assert resolve_engine_url(None, None, False, False) == "https://api.arcade.dev"
+
+
+def test_resolve_coordinator_url_falls_back_when_credentials_is_malformed_yaml(
+    isolated_config_dir,
+) -> None:
+    creds = isolated_config_dir / "credentials.yaml"
+    creds.write_text("garbage: [unterminated\n", encoding="utf-8")
+    assert resolve_coordinator_url(None, None, False, False) == "https://cloud.arcade.dev"
