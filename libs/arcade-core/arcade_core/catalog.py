@@ -227,7 +227,8 @@ class MaterializedTool:
     def tool(self) -> Callable:
         """Resolve the underlying callable, importing the toolkit if needed."""
         if self._tool is None:
-            assert self._tool_factory is not None
+            if self._tool_factory is None:
+                raise RuntimeError("MaterializedTool has no callable or tool factory.")
             self._tool = self._tool_factory()
             self._tool_factory = None
         return self._tool
