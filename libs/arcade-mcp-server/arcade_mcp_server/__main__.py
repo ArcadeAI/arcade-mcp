@@ -31,9 +31,79 @@ from arcade_mcp_server.logging_utils import setup_logging
 from arcade_mcp_server.stdio_runner import initialize_tool_catalog, run_stdio_server
 
 
+def _build_manifest_command(argv: list[str]) -> int:
+    """Discover installed toolkits and write a precomputed catalog manifest.
+
+    Run at Docker image build time to skip toolkit discovery + Pydantic
+    model construction on every container start.
+    """
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        prog="python -m arcade_mcp_server build-manifest",
+        description="Build a precomputed tool catalog manifest from installed toolkits.",
+    )
+    parser.add_argument(
+        "--output",
+        "-o",
+        required=True,
+        help="Path where the manifest JSON should be written.",
+    )
+    parser.add_argument(
+        "--tool-package",
+        "-p",
+        dest="tool_package",
+        help="Build for a single installed package instead of all of them.",
+    )
+    parser.add_argument(
+        "--discover-installed",
+        "--all",
+        action="store_true",
+        default=True,
+        help="Include every installed arcade-* toolkit (default).",
+    )
+    parser.add_argument(
+        "--show-packages",
+        action="store_true",
+        help="Log loaded packages during discovery.",
+    )
+    args = parser.parse_args(argv)
+
+    # Set up logging before any toolkit imports
+    setup_logging(level="INFO", stdio_mode=False)
+
+    from arcade_core.discovery import discover_tools
+    from arcade_core.manifest import write_manifest
+
+    catalog = discover_tools(
+        tool_package=args.tool_package,
+        show_packages=args.show_packages,
+        discover_installed=args.discover_installed,
+    )
+    if len(catalog) == 0:
+        logger.error("No tools discovered. Manifest would be empty.")
+        return 1
+
+    # Force materialization of every tool definition so the manifest
+    # captures the full ToolDefinition for each one.
+    for tool in catalog:
+        _ = tool.definition
+
+    out = Path(args.output).expanduser().resolve()
+    out.parent.mkdir(parents=True, exist_ok=True)
+    written = write_manifest(catalog, out)
+    logger.info(f"Wrote manifest with {len(catalog)} tools to {written}")
+    return 0
+
+
 def main() -> None:
     """Main entry point for arcade_mcp_server module."""
     import argparse
+
+    # Subcommand dispatch: handle build-manifest before the main parser so it
+    # doesn't collide with the legacy transport positional.
+    if len(sys.argv) >= 2 and sys.argv[1] == "build-manifest":
+        sys.exit(_build_manifest_command(sys.argv[2:]))
 
     parser = argparse.ArgumentParser(
         description="Run Arcade MCP Server",

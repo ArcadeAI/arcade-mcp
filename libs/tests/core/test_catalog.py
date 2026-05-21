@@ -453,7 +453,12 @@ def test_add_tool_with_disabled_toolkit(monkeypatch):
 def test_add_toolkit_with_invalid_tools(
     tool_name: str, expected_error_type: type, expected_error_substring: str
 ):
-    """Test that add_toolkit raises the correct error for various invalid tool definitions."""
+    """Test that invalid tool definitions surface the correct error.
+
+    Cheap errors (missing description, malformed secrets/metadata, missing
+    return type) raise at registration time. Signature-level errors are
+    detected lazily, on first access to the tool's ``definition``.
+    """
     catalog = ToolCatalog()
 
     # Create a toolkit that references our test tool
@@ -470,14 +475,34 @@ def test_add_toolkit_with_invalid_tools(
 
     current_module = sys.modules[__name__]
 
+    # Errors that depend on signature inspection are deferred to first
+    # ``definition`` access; the rest still raise at registration time.
+    LAZY_TOOLS = {
+        "tool_with_unsupported_param_type",
+        "tool_with_missing_input_parameter_annotation",
+        "tool_with_no_type_annotation",
+        "tool_with_invalid_param_name",
+        "tool_with_too_many_annotations",
+        "tool_with_required_union_param",
+        "tool_with_non_callable_default_factory",
+        "tool_with_multiple_tool_contexts",
+        "tool_with_unsupported_output_type",
+    }
+
     with patch("arcade_core.catalog.import_module") as mock_import:
         mock_import.return_value = current_module
 
-        # Add the toolkit and expect the specified error
-        with pytest.raises(expected_error_type) as exc_info:
+        if tool_name in LAZY_TOOLS:
+            # add_toolkit succeeds; the error surfaces when we materialize.
             catalog.add_toolkit(test_toolkit)
+            with pytest.raises(expected_error_type) as exc_info:
+                # Force materialization of every registered tool's definition.
+                for materialized in catalog._tools.values():
+                    _ = materialized.definition
+        else:
+            with pytest.raises(expected_error_type) as exc_info:
+                catalog.add_toolkit(test_toolkit)
 
-        # Check that the error message contains the expected substring
         actual_error_message = str(exc_info.value)
         # Adjust for Python 3.11 and below where Annotated is returned as "typing.Annotated"
         if "typing.Annotated" in actual_error_message:

@@ -333,18 +333,42 @@ def create_arcade_mcp_factory() -> FastAPI:
     server_title = os.environ.get("ARCADE_MCP_SERVER_TITLE")
     server_instructions = os.environ.get("ARCADE_MCP_SERVER_INSTRUCTIONS")
 
-    # Rediscover tools since there have been changes
-    try:
-        catalog = discover_tools(
-            tool_package=tool_package,
-            show_packages=show_packages,
-            discover_installed=discover_installed,
-            server_name=server_name,
-            server_version=server_version,
-        )
-    except ToolkitLoadError as exc:
-        logger.error(str(exc))
-        raise RuntimeError(f"Failed to discover tools: {exc}") from exc
+    # If a precomputed manifest is available, load from it and skip discovery
+    # entirely. This is the production fast-path: boot and /worker/tools both
+    # become O(JSON parse) regardless of installed toolkit count.
+    manifest_path = os.environ.get("ARCADE_CATALOG_MANIFEST")
+    if manifest_path:
+        from arcade_core.catalog import ToolCatalog
+
+        if tool_package:
+            raise RuntimeError(
+                "ARCADE_CATALOG_MANIFEST and --tool-package are mutually exclusive: "
+                "the manifest pins which tools are served. Rebuild the manifest with the "
+                "intended packages installed, or unset ARCADE_CATALOG_MANIFEST."
+            )
+        if not os.path.isfile(manifest_path):
+            raise RuntimeError(
+                f"ARCADE_CATALOG_MANIFEST={manifest_path} is set but the file does not exist."
+            )
+        try:
+            catalog = ToolCatalog.from_manifest(manifest_path)
+        except Exception as exc:
+            logger.error(f"Failed to load catalog manifest from {manifest_path}: {exc}")
+            raise RuntimeError(f"Failed to load catalog manifest: {exc}") from exc
+        logger.info(f"Catalog loaded from manifest: {manifest_path}")
+    else:
+        # Rediscover tools since there have been changes
+        try:
+            catalog = discover_tools(
+                tool_package=tool_package,
+                show_packages=show_packages,
+                discover_installed=discover_installed,
+                server_name=server_name,
+                server_version=server_version,
+            )
+        except ToolkitLoadError as exc:
+            logger.error(str(exc))
+            raise RuntimeError(f"Failed to discover tools: {exc}") from exc
 
     total_tools = len(catalog)
     if total_tools == 0:

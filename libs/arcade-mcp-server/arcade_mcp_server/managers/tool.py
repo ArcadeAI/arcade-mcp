@@ -19,7 +19,7 @@ from arcade_mcp_server.types import MCPTool
 logger = logging.getLogger("arcade.mcp.managers.tool")
 
 
-class ManagedTool(TypedDict):
+class ManagedTool(TypedDict, total=False):
     dto: MCPTool
     materialized: MaterializedTool
 
@@ -47,16 +47,26 @@ class ToolManager(ComponentManager[Key, ManagedTool]):
         return create_mcp_tool(materialized_tool)
 
     async def load_from_catalog(self, catalog: ToolCatalog) -> None:
+        # Load only the FQN + materialized handle here. The MCPTool DTO is
+        # built lazily on first access (in ``list_tools`` and ``get_tool``)
+        # to keep server startup cheap when the catalog has many tools.
         pairs: list[tuple[Key, ManagedTool]] = []
-        for t in catalog:
-            fq = t.definition.fully_qualified_name
-            pairs.append((fq, {"dto": self._to_dto(t), "materialized": t}))
+        for fq_name, t in catalog.items():
+            fq = str(fq_name)
+            pairs.append((fq, {"materialized": t}))
             self._sanitized_to_key[self._sanitize_name(fq)] = fq
         await self.registry.bulk_load(pairs)
 
+    def _ensure_dto(self, rec: ManagedTool) -> MCPTool:
+        dto = rec.get("dto")
+        if dto is None:
+            dto = self._to_dto(rec["materialized"])
+            rec["dto"] = dto
+        return dto
+
     async def list_tools(self) -> list[MCPTool]:
         records = await self.registry.list()
-        return [r["dto"] for r in records]
+        return [self._ensure_dto(r) for r in records]
 
     async def get_tool(self, name: str) -> MaterializedTool:
         # Try exact key first (dotted FQN)
@@ -108,7 +118,7 @@ class ToolManager(ComponentManager[Key, ManagedTool]):
             except KeyError:
                 logger.warning(f"Tool meta extension for '{fqn}' skipped: tool not found")
                 continue
-            dto = rec["dto"]
+            dto = self._ensure_dto(rec)
             if dto.meta is None:
                 dto.meta = {}
             dto.meta.update(extra_meta)

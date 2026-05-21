@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from importlib import import_module
+from pathlib import Path
 from types import ModuleType
 from typing import (
     Annotated,
@@ -91,6 +92,51 @@ def is_typeddict(tp: type) -> bool:
         return False
 
 
+def _validate_tool_eagerly(tool: Callable) -> None:
+    """Run cheap validation that doesn't require signature inspection.
+
+    These checks mirror the ones in ``create_tool_definition`` /
+    ``create_secrets_requirement`` / ``create_metadata_requirement`` but skip
+    parameter inspection. Catching them at registration time preserves the
+    existing developer experience for the most common mistakes without
+    forcing the full lazy definition to be built upfront.
+    """
+    raw_tool_name = getattr(tool, "__tool_name__", tool.__name__)
+
+    tool_description = getattr(tool, "__tool_description__", None)
+    if not tool_description:
+        raise ToolDefinitionError(
+            f"Tool '{raw_tool_name}' is missing a description. Tool descriptions are specified as docstrings for the tool function."
+        )
+
+    if does_function_return_value(tool) and tool.__annotations__.get("return") is None:
+        raise ToolOutputSchemaError(f"Tool '{raw_tool_name}' must have a return type")
+
+    # Eagerly construct (and discard) the cheap requirement objects so that
+    # malformed secrets/metadata declarations are detected at registration.
+    auth_requirement = create_auth_requirement(tool)
+    create_secrets_requirement(tool)
+    create_metadata_requirement(tool, auth_requirement)
+
+
+def compute_fully_qualified_name(
+    tool: Callable, toolkit_name: str, toolkit_version: str | None = None
+) -> FullyQualifiedName:
+    """Compute a tool's FullyQualifiedName without building its full definition.
+
+    Mirrors the FQN derivation inside ``ToolCatalog.create_tool_definition`` but
+    avoids signature inspection, wire-type traversal, and Pydantic model
+    construction.
+    """
+    raw_tool_name = getattr(tool, "__tool_name__", tool.__name__)
+    tool_name = snake_to_pascal_case(raw_tool_name)
+    toolkit_definition = ToolkitDefinition(
+        name=snake_to_pascal_case(space_to_snake_case(toolkit_name)),
+        version=toolkit_version,
+    )
+    return FullyQualifiedName.from_toolkit(tool_name, toolkit_definition)
+
+
 @dataclass
 class WireTypeInfo:
     """
@@ -121,18 +167,110 @@ class ToolMeta(BaseModel):
     date_updated: datetime = Field(default_factory=datetime.now)
 
 
-class MaterializedTool(BaseModel):
-    """
-    Data structure that holds tool information while stored in the Catalog
+class MaterializedTool:
+    """Tool information stored in the Catalog.
+
+    Supports two layers of lazy work:
+
+    1. ``definition`` / ``input_model`` / ``output_model`` are materialized
+       lazily from a ``factory`` callable on first access, deferring the
+       expensive Pydantic-model + ``ToolDefinition`` construction.
+    2. ``tool`` (the callable itself) can also be lazy: when a manifest is
+       loaded from disk, the toolkit's Python module hasn't been imported
+       yet. Pass ``tool_factory`` instead of ``tool`` and the import is
+       deferred until execution time (or until ``input_model`` /
+       ``output_model`` is needed, which requires the signature).
     """
 
-    tool: Callable
-    definition: ToolDefinition
-    meta: ToolMeta
+    __slots__ = (
+        "_definition",
+        "_factory",
+        "_input_model",
+        "_output_model",
+        "_tool",
+        "_tool_factory",
+        "meta",
+    )
 
-    # Thought (Sam): Should generate create these from ToolDefinition?
-    input_model: type[BaseModel]
-    output_model: type[BaseModel]
+    def __init__(
+        self,
+        *,
+        meta: ToolMeta,
+        tool: Callable | None = None,
+        tool_factory: Callable[[], Callable] | None = None,
+        definition: ToolDefinition | None = None,
+        input_model: type[BaseModel] | None = None,
+        output_model: type[BaseModel] | None = None,
+        factory: Callable[
+            [Callable], tuple[ToolDefinition, type[BaseModel], type[BaseModel]]
+        ]
+        | None = None,
+    ) -> None:
+        if tool is None and tool_factory is None:
+            raise ValueError("MaterializedTool requires either tool or tool_factory.")
+        self._tool = tool
+        self._tool_factory = tool_factory
+        self.meta = meta
+        self._definition = definition
+        self._input_model = input_model
+        self._output_model = output_model
+        self._factory = factory
+        if (
+            definition is None or input_model is None or output_model is None
+        ) and factory is None:
+            raise ValueError(
+                "MaterializedTool requires either eager (definition, input_model, "
+                "output_model) or a lazy factory."
+            )
+
+    @property
+    def tool(self) -> Callable:
+        """Resolve the underlying callable, importing the toolkit if needed."""
+        if self._tool is None:
+            assert self._tool_factory is not None
+            self._tool = self._tool_factory()
+            self._tool_factory = None
+        return self._tool
+
+    @property
+    def is_tool_resolved(self) -> bool:
+        """True when the callable is in memory (no import required)."""
+        return self._tool is not None
+
+    def _materialize(self) -> None:
+        if self._factory is None:
+            return
+        defn, in_m, out_m = self._factory(self.tool)
+        # Don't clobber a pre-built definition (manifest case): the factory
+        # may have rebuilt it from the just-imported function, but the
+        # manifest copy is the source of truth at runtime.
+        if self._definition is None:
+            self._definition = defn
+        self._input_model = in_m
+        self._output_model = out_m
+        self._factory = None  # release closure once materialized
+
+    @property
+    def definition(self) -> ToolDefinition:
+        if self._definition is None:
+            self._materialize()
+        return cast(ToolDefinition, self._definition)
+
+    @property
+    def input_model(self) -> type[BaseModel]:
+        if self._input_model is None:
+            self._materialize()
+        return cast("type[BaseModel]", self._input_model)
+
+    @property
+    def output_model(self) -> type[BaseModel]:
+        if self._output_model is None:
+            self._materialize()
+        return cast("type[BaseModel]", self._output_model)
+
+    @property
+    def is_materialized(self) -> bool:
+        return self._factory is None
 
     @property
     def name(self) -> str:
@@ -149,6 +287,36 @@ class MaterializedTool(BaseModel):
     @property
     def requires_auth(self) -> bool:
         return self.definition.requirements.authorization is not None
+
+    def requires_secrets_keys(self) -> list[str]:
+        """Return declared secret keys without forcing tool import or definition materialization.
+
+        Prefers a pre-built ``_definition`` (manifest-loaded tools) since that
+        avoids importing the toolkit just to read decorator attributes. Falls
+        back to ``__tool_requires_secrets__`` set by the ``@tool`` decorator
+        when the function is already in memory.
+        """
+        # Manifest-loaded tools have the definition pre-built; reading from
+        # it avoids forcing a toolkit import for the startup secrets check.
+        if self._definition is not None:
+            secrets = self._definition.requirements.secrets or []
+            from_def = [s.key for s in secrets if s.key]
+            if from_def:
+                return from_def
+
+        # Tool already in memory (discovery path) — read decorator attrs.
+        if self._tool is None:
+            return []
+
+        raw = getattr(self._tool, "__tool_requires_secrets__", None) or []
+        seen: dict[str, str] = {}
+        for k in raw:
+            if not isinstance(k, str):
+                continue
+            lowered = k.lower()
+            if lowered not in seen:
+                seen[lowered] = k
+        return list(seen.values())
 
 
 class ToolCatalog(BaseModel):
@@ -214,6 +382,11 @@ class ToolCatalog(BaseModel):
         """
         Add a function to the catalog as a tool.
 
+        The expensive Pydantic model and ``ToolDefinition`` construction is
+        deferred to the first attribute access on the resulting
+        ``MaterializedTool``. Only the fully-qualified name is computed
+        eagerly, so catalog lookup and iteration remain cheap.
+
         Args:
             tool_func: The function to add to the catalog.
             toolkit_or_name: The toolkit or name of the toolkit.
@@ -221,9 +394,6 @@ class ToolCatalog(BaseModel):
             toolkit_version: The version of the toolkit. Overrides the version of the toolkit if provided.
             toolkit_description: The description of the toolkit. Overrides the description of the toolkit if provided.
         """
-
-        input_model, output_model = create_func_models(tool_func)
-
         if isinstance(toolkit_or_name, Toolkit):
             toolkit = toolkit_or_name
             toolkit_name = toolkit.name
@@ -236,18 +406,18 @@ class ToolCatalog(BaseModel):
         if not toolkit_name:
             raise ValueError("A server name or server must be provided.")
 
-        definition = ToolCatalog.create_tool_definition(
-            tool_func,
-            toolkit_name,
-            toolkit_version,
-            toolkit_description,
-        )
+        # Cheap eager validation — catch easy-to-detect mistakes at registration
+        # time so toolkit authors get fast feedback. The expensive signature
+        # inspection happens lazily on first ``definition`` access.
+        _validate_tool_eagerly(tool_func)
 
-        fully_qualified_name = definition.get_fully_qualified_name()
+        fully_qualified_name = compute_fully_qualified_name(
+            tool_func, toolkit_name, toolkit_version
+        )
 
         if fully_qualified_name in self._tools:
             raise ToolkitLoadError(
-                f"Tool '{definition.name}' in server '{toolkit_name}' already exists in the catalog."
+                f"Tool '{fully_qualified_name.name}' in server '{toolkit_name}' already exists in the catalog."
             )
 
         if str(fully_qualified_name).lower() in self._disabled_tools:
@@ -258,8 +428,25 @@ class ToolCatalog(BaseModel):
             logger.info(f"Server '{toolkit_name!s}' is disabled and will not be cataloged.")
             return
 
+        # Capture by value, not reference, so closures stay correct across loops.
+        _tk_name = toolkit_name
+        _tk_version = toolkit_version
+        _tk_description = toolkit_description
+
+        def _factory(
+            func: Callable,
+        ) -> tuple[ToolDefinition, type[BaseModel], type[BaseModel]]:
+            # Match the original eager order: build Pydantic models first so
+            # unsupported output types raise ToolOutputSchemaError (as opposed
+            # to the ToolDefinitionError that ``create_tool_definition`` would
+            # surface from the wire-type path).
+            input_model, output_model = create_func_models(func)
+            definition = ToolCatalog.create_tool_definition(
+                func, _tk_name, _tk_version, _tk_description
+            )
+            return definition, input_model, output_model
+
         self._tools[fully_qualified_name] = MaterializedTool(
-            definition=definition,
             tool=tool_func,
             meta=ToolMeta(
                 module=module.__name__ if module else tool_func.__module__,
@@ -267,8 +454,7 @@ class ToolCatalog(BaseModel):
                 package=toolkit.package_name if toolkit else None,
                 path=module.__file__ if module else None,
             ),
-            input_model=input_model,
-            output_model=output_model,
+            factory=_factory,
         )
 
     def add_module(
@@ -341,6 +527,94 @@ class ToolCatalog(BaseModel):
                         f"Error encountered while adding tool {tool_name} from {module_name}. Reason: {e}"
                     ).with_context(tool_name)
 
+    @classmethod
+    def from_manifest(cls, path: str | Path) -> "ToolCatalog":
+        """Build a catalog from a precomputed manifest, deferring toolkit imports.
+
+        Each entry's ``ToolDefinition`` is loaded eagerly (so ``/worker/tools``
+        and ``tools/list`` are O(JSON parse)), but the underlying Python
+        function and its Pydantic input/output models stay un-resolved until
+        the first ``tools/call`` for that tool. ``ARCADE_DISABLED_TOOLS`` and
+        ``ARCADE_DISABLED_TOOLKITS`` are honored at load time so deployments
+        can override the manifest without rebuilding.
+        """
+        # Local imports to break the catalog→manifest import cycle.
+        from arcade_core.manifest import (
+            check_manifest_staleness,
+            load_manifest,
+            make_tool_factory,
+        )
+
+        manifest = load_manifest(path)
+        warnings_ = check_manifest_staleness(manifest)
+        for warn in warnings_:
+            logger.warning(f"Catalog manifest staleness: {warn}")
+
+        catalog = cls()
+
+        for entry in manifest.entries:
+            fqn = FullyQualifiedName.from_toolkit(
+                entry.definition.name,
+                entry.definition.toolkit,
+            )
+            if str(fqn).lower() in catalog._disabled_tools:
+                logger.info(f"Tool '{fqn!s}' is disabled and will not be loaded from manifest.")
+                continue
+            if entry.toolkit_name.lower() in catalog._disabled_toolkits:
+                logger.info(
+                    f"Server '{entry.toolkit_name}' is disabled and will not be loaded from manifest."
+                )
+                continue
+            if fqn in catalog._tools:
+                raise ToolkitLoadError(
+                    f"Tool '{fqn.name}' in server '{entry.toolkit_name}' "
+                    f"appears multiple times in the manifest."
+                )
+
+            tool_factory = make_tool_factory(entry.module_name, entry.function_name)
+
+            # Restore the context-parameter name dropped during serialization
+            # (ToolInput.tool_context_parameter_name is exclude=True). Without
+            # this, ToolExecutor.run silently skips Context injection for every
+            # manifest-loaded tool, see executor.py:55-56.
+            definition = entry.definition
+            if (
+                entry.tool_context_parameter_name is not None
+                and definition.input.tool_context_parameter_name is None
+            ):
+                definition = definition.model_copy(
+                    update={
+                        "input": definition.input.model_copy(
+                            update={
+                                "tool_context_parameter_name": entry.tool_context_parameter_name
+                            }
+                        )
+                    }
+                )
+
+            # ``_factory`` builds input/output Pydantic models on first access.
+            # The definition is already pinned from the manifest, so the
+            # tuple's definition entry is unused (see ``MaterializedTool._materialize``).
+            def _models_factory(
+                func: Callable,
+                _defn: ToolDefinition = definition,
+            ) -> tuple[ToolDefinition, type[BaseModel], type[BaseModel]]:
+                input_model, output_model = create_func_models(func)
+                return _defn, input_model, output_model
+
+            catalog._tools[fqn] = MaterializedTool(
+                meta=ToolMeta(
+                    module=entry.module_name,
+                    toolkit=entry.toolkit_name,
+                    package=entry.package_name,
+                ),
+                tool_factory=tool_factory,
+                definition=definition,
+                factory=_models_factory,
+            )
+
+        return catalog
+
     def __getitem__(self, name: FullyQualifiedName) -> MaterializedTool:
         return self.get_tool(name)
 
@@ -357,7 +631,17 @@ class ToolCatalog(BaseModel):
         return len(self._tools) == 0
 
     def get_tool_names(self) -> list[FullyQualifiedName]:
-        return [tool.definition.get_fully_qualified_name() for tool in self._tools.values()]
+        # Use the dict keys directly — they are already FullyQualifiedName instances
+        # computed at insertion time, so no tool definition needs to be materialized.
+        return list(self._tools.keys())
+
+    def items(self) -> Iterator[tuple[FullyQualifiedName, MaterializedTool]]:
+        """Iterate over (fully_qualified_name, materialized_tool) pairs.
+
+        Yields the FQN dict key first so callers can route tools without
+        triggering lazy materialization of the underlying ``ToolDefinition``.
+        """
+        yield from self._tools.items()
 
     def find_tool_by_func(self, func: Callable) -> ToolDefinition:
         """

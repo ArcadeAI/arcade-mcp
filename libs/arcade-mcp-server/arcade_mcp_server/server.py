@@ -835,22 +835,32 @@ class MCPServer:
         # Get all available secrets from settings and environment
         available_secrets = set(self.settings.tool_secrets().keys()) | set(os.environ.keys())
 
-        # Check each tool for missing secrets
+        # Check each tool for missing secrets. Use the cheap accessor so
+        # lazily-loaded tools don't trigger full definition materialization
+        # during startup. For tools that already have an eagerly-built
+        # definition (e.g. test fixtures), prefer its ``name`` to preserve
+        # the warning format.
         managed_tools = await self._tool_manager.registry.list()
         for managed_tool in managed_tools:
             tool = managed_tool["materialized"]
-            if tool.definition.requirements and tool.definition.requirements.secrets:
-                missing_secrets = []
-                for secret_requirement in tool.definition.requirements.secrets:
-                    if secret_requirement.key not in available_secrets:
-                        missing_secrets.append(secret_requirement.key)
-
-                if missing_secrets:
-                    secret_list = "', '".join(missing_secrets)
+            declared = tool.requires_secrets_keys()
+            if not declared:
+                continue
+            missing_secrets = [key for key in declared if key not in available_secrets]
+            if missing_secrets:
+                secret_list = "', '".join(missing_secrets)
+                # Prefer the pre-built definition name (manifest-loaded tools
+                # and fully materialized tools both have one) so we don't force
+                # a toolkit import just to format a warning string.
+                if tool._definition is not None:
                     tool_name = tool.definition.name
-                    logger.warning(
-                        f"Tool '{tool_name}' declares secret(s) '{secret_list}' which is/are not set. It will return an error if called."
-                    )
+                elif tool.is_tool_resolved:
+                    tool_name = getattr(tool.tool, "__tool_name__", tool.tool.__name__)
+                else:
+                    tool_name = "<unknown>"
+                logger.warning(
+                    f"Tool '{tool_name}' declares secret(s) '{secret_list}' which is/are not set. It will return an error if called."
+                )
 
     async def _handle_call_tool(
         self,

@@ -63,8 +63,15 @@ def create_mcp_tool(materialized_tool: MaterializedTool) -> MCPTool:
             # (it wraps non-object types in a result property internally)
             output_schema = _build_value_schema_json(output_def.value_schema)
 
-    # Build MCP tool annotations from metadata behavior fields
-    title = getattr(materialized_tool.tool, "__tool_name__", definition.name)
+    # Build MCP tool annotations from metadata behavior fields.
+    # Prefer the resolved callable's __tool_name__ only when the toolkit is
+    # already imported — manifest-loaded tools defer the import to the first
+    # invocation, and the definition's PascalCase name is equivalent for all
+    # toolkits that don't override it via @tool(name=...).
+    if materialized_tool.is_tool_resolved:
+        title = getattr(materialized_tool.tool, "__tool_name__", definition.name)
+    else:
+        title = definition.name
     tool_metadata = definition.metadata
     if tool_metadata and tool_metadata.behavior:
         behavior = tool_metadata.behavior
