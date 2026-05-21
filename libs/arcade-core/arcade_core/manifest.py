@@ -11,8 +11,10 @@ from __future__ import annotations
 import importlib.metadata
 import json
 import logging
+from collections.abc import Callable
 from importlib import import_module
 from pathlib import Path
+from typing import cast
 
 from pydantic import BaseModel, Field
 
@@ -161,9 +163,7 @@ def check_manifest_staleness(manifest: CatalogManifest) -> list[str]:
             )
             continue
         if current != pkg.version:
-            warnings.append(
-                f"manifest pinned {pkg.name}=={pkg.version} but {current} is installed"
-            )
+            warnings.append(f"manifest pinned {pkg.name}=={pkg.version} but {current} is installed")
     return warnings
 
 
@@ -175,7 +175,7 @@ class ManifestToolResolutionError(RuntimeError):
     """
 
 
-def make_tool_factory(module_name: str, function_name: str):
+def make_tool_factory(module_name: str, function_name: str) -> Callable[[], Callable[..., object]]:
     """Return a zero-arg callable that imports the module and returns the function.
 
     Used by ``ToolCatalog.from_manifest`` to defer toolkit imports until
@@ -185,7 +185,7 @@ def make_tool_factory(module_name: str, function_name: str):
     "manifest stale" from "the tool function itself raised at import".
     """
 
-    def _resolve() -> object:
+    def _resolve() -> Callable[..., object]:
         try:
             module = import_module(module_name)
         except ImportError as exc:
@@ -196,7 +196,7 @@ def make_tool_factory(module_name: str, function_name: str):
                 f"python -m arcade_mcp_server build-manifest."
             ) from exc
         try:
-            return getattr(module, function_name)
+            return cast("Callable[..., object]", getattr(module, function_name))
         except AttributeError as exc:
             raise ManifestToolResolutionError(
                 f"Manifest references function '{function_name}' in module "

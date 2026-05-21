@@ -201,9 +201,7 @@ class MaterializedTool:
         definition: ToolDefinition | None = None,
         input_model: type[BaseModel] | None = None,
         output_model: type[BaseModel] | None = None,
-        factory: Callable[
-            [Callable], tuple[ToolDefinition, type[BaseModel], type[BaseModel]]
-        ]
+        factory: Callable[[Callable], tuple[ToolDefinition, type[BaseModel], type[BaseModel]]]
         | None = None,
     ) -> None:
         if tool is None and tool_factory is None:
@@ -215,9 +213,7 @@ class MaterializedTool:
         self._input_model = input_model
         self._output_model = output_model
         self._factory = factory
-        if (
-            definition is None or input_model is None or output_model is None
-        ) and factory is None:
+        if (definition is None or input_model is None or output_model is None) and factory is None:
             raise ValueError(
                 "MaterializedTool requires either eager (definition, input_model, "
                 "output_model) or a lazy factory."
