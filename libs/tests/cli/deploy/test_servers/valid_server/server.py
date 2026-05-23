@@ -34,7 +34,7 @@ def whisper_secret(context: Context) -> Annotated[str, "The last 4 characters of
 
 # To use this tool, you need to either set your ARCADE_API_KEY as an environment variable or
 # use the Arcade CLI (uv pip install arcade-mcp) and run 'arcade login' to authenticate.
-@app.tool(requires_auth=GitHub(scopes=["public_repo"]))
+@app.tool(requires_auth=GitHub())
 async def star_repo(
     context: Context,
     owner: Annotated[str, "GitHub owner (user or org). E.g. 'ArcadeAI'"],

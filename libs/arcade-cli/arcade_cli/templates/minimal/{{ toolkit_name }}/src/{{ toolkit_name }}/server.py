@@ -42,7 +42,7 @@ def whisper_secret(context: Context) -> Annotated[str, "The last 4 characters of
 # To use this tool locally, you need to install the Arcade CLI (uv tool install arcade-mcp)
 # and then run 'arcade login' to authenticate.
 @app.tool(
-    requires_auth=GitHub(scopes=["public_repo"]),
+    requires_auth=GitHub(),
     metadata=ToolMetadata(
         classification=Classification(
             service_domains=[ServiceDomain.SOURCE_CODE],
