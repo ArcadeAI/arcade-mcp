@@ -48,7 +48,7 @@ def whisper_secret(context: Context) -> Annotated[str, "The last 4 characters of
             service_domains=[ServiceDomain.SOURCE_CODE],
         ),
         behavior=Behavior(
-            operations=[Operation.CREATE],
+            operations=[Operation.UPDATE],
             read_only=False,
             destructive=False,
             idempotent=True,
