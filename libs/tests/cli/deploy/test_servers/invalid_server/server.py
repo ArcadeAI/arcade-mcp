@@ -6,7 +6,7 @@ from typing import Annotated
 
 import httpx
 from arcade_mcp_server import Context, MCPApp
-from arcade_mcp_server.auth import Reddit
+from arcade_mcp_server.auth import GitHub
 
 app = MCPApp(name="simpleserver", version="1.0.0", log_level="DEBUG")
 
@@ -34,32 +34,29 @@ def whisper_secret(context: Context) -> Annotated[str, "The last 4 characters of
 
 # To use this tool, you need to either set your ARCADE_API_KEY as an environment variable or
 # use the Arcade CLI (uv pip install arcade-mcp) and run 'arcade login' to authenticate.
-@app.tool(requires_auth=Reddit(scopes=["read"]))
-async def get_posts_in_subreddit(
-    context: Context, subreddit: Annotated[str, "The name of the subreddit"]
-) -> dict:
-    """Get posts from a specific subreddit"""
-    # Normalize the subreddit name
-    subreddit = subreddit.lower().replace("r/", "").replace(" ", "")
-
-    # Prepare the httpx request
+@app.tool(requires_auth=GitHub())
+async def star_repo(
+    context: Context,
+    owner: Annotated[str, "GitHub owner (user or org). E.g. 'ArcadeAI'"],
+    repo: Annotated[str, "GitHub repository name. E.g. 'arcade-mcp'"],
+) -> Annotated[str, "Confirmation that the repository was starred"]:
+    """Star a public GitHub repository on behalf of the authenticated user."""
     # OAuth token is injected into the context at runtime.
     # LLMs and MCP clients cannot see or access your OAuth tokens.
     oauth_token = context.get_auth_token_or_empty()
     headers = {
         "Authorization": f"Bearer {oauth_token}",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
         "User-Agent": "simple_server-mcp-server",
     }
-    params = {"limit": 5}
-    url = f"https://oauth.reddit.com/r/{subreddit}/hot"
+    url = f"https://api.github.com/user/starred/{owner}/{repo}"
 
-    # Make the request
     async with httpx.AsyncClient() as client:
-        response = await client.get(url, headers=headers, params=params)
+        response = await client.put(url, headers=headers)
         response.raise_for_status()
 
-        # Return the response
-        return response.json()
+    return f"Starred {owner}/{repo}."
 
 
 # Run with specific transport
