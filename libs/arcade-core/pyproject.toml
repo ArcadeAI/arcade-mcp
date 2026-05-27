@@ -1,6 +1,6 @@
 [project]
 name = "arcade-core"
-version = "4.7.1"
+version = "4.7.2"
 description = "Arcade Core - Core library for Arcade platform"
 readme = "README.md"
 license = { text = "MIT" }
@@ -20,7 +20,7 @@ dependencies = [
     "pydantic>=2.7.0",
     "pyyaml>=6.0",
     "loguru>=0.7.0",
-    "pyjwt>=2.8.0",
+    "pyjwt>=2.12.0",
     "toml>=0.10.2",
     "httpx>=0.27.0",
     "packaging>=24.1",
