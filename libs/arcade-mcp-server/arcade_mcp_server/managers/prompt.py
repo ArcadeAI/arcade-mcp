@@ -37,7 +37,10 @@ class PromptHandler:
             params = [
                 p
                 for p in sig.parameters.values()
-                if p.name != "self" and p.kind not in (p.VAR_POSITIONAL, p.VAR_KEYWORD)
+                if p.name != "self"
+                and p.kind
+                not in (p.VAR_POSITIONAL, p.VAR_KEYWORD, p.KEYWORD_ONLY)
+                and p.default is p.empty
             ]
             return len(params) >= 2
         except (ValueError, TypeError):
