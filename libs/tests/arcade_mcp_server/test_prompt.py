@@ -1,10 +1,11 @@
 """Tests for Prompt Manager implementation."""
 
 import asyncio
+from unittest.mock import MagicMock
 
 import pytest
 from arcade_mcp_server.exceptions import NotFoundError, PromptError
-from arcade_mcp_server.managers.prompt import PromptManager
+from arcade_mcp_server.managers.prompt import PromptHandler, PromptManager
 from arcade_mcp_server.types import (
     GetPromptResult,
     Prompt,
@@ -239,3 +240,122 @@ class TestPromptManager:
 
         with pytest.raises(PromptError):
             await manager.get_prompt("error_prompt", {})
+
+
+class TestPromptHandlerContext:
+    """Test context parameter support in prompt handlers."""
+
+    @pytest.mark.asyncio
+    async def test_handler_with_context_parameter(self):
+        """Test that a prompt handler with context receives the context object."""
+        received_context = None
+
+        async def handler_with_context(context, args: dict[str, str]) -> list[PromptMessage]:
+            nonlocal received_context
+            received_context = context
+            name = args.get("name", "World")
+            return [PromptMessage(role="user", content={"type": "text", "text": f"Hello {name}"})]
+
+        prompt = Prompt(
+            name="ctx_prompt",
+            description="A prompt with context",
+            arguments=[PromptArgument(name="name", required=False)],
+        )
+        manager = PromptManager()
+        await manager.add_prompt(prompt, handler_with_context)
+
+        mock_context = MagicMock()
+        result = await manager.get_prompt("ctx_prompt", {"name": "Alice"}, context=mock_context)
+
+        assert received_context is mock_context
+        assert len(result.messages) == 1
+        assert "Hello Alice" in result.messages[0].content["text"]
+
+    @pytest.mark.asyncio
+    async def test_handler_without_context_still_works(self):
+        """Test backward compatibility: old-style handlers without context still work."""
+
+        async def handler_no_context(args: dict[str, str]) -> list[PromptMessage]:
+            name = args.get("name", "World")
+            return [PromptMessage(role="user", content={"type": "text", "text": f"Hello {name}"})]
+
+        prompt = Prompt(
+            name="no_ctx_prompt",
+            description="A prompt without context",
+            arguments=[PromptArgument(name="name", required=False)],
+        )
+        manager = PromptManager()
+        await manager.add_prompt(prompt, handler_no_context)
+
+        mock_context = MagicMock()
+        result = await manager.get_prompt(
+            "no_ctx_prompt", {"name": "Bob"}, context=mock_context
+        )
+
+        assert len(result.messages) == 1
+        assert "Hello Bob" in result.messages[0].content["text"]
+
+    @pytest.mark.asyncio
+    async def test_handler_without_context_no_context_provided(self):
+        """Test old-style handler works when no context is provided at all."""
+
+        async def handler_no_context(args: dict[str, str]) -> list[PromptMessage]:
+            return [PromptMessage(role="user", content={"type": "text", "text": "Hi"})]
+
+        prompt = Prompt(name="simple", description="Simple prompt")
+        manager = PromptManager()
+        await manager.add_prompt(prompt, handler_no_context)
+
+        result = await manager.get_prompt("simple", {})
+        assert len(result.messages) == 1
+
+    @pytest.mark.asyncio
+    async def test_default_handler_works_without_context(self):
+        """Test that the default handler (no user handler) still works."""
+        prompt = Prompt(name="default_prompt", description="Default prompt")
+        manager = PromptManager()
+        await manager.add_prompt(prompt)
+
+        result = await manager.get_prompt("default_prompt", {}, context=MagicMock())
+        assert len(result.messages) == 1
+        assert "Default prompt" in result.messages[0].content["text"]
+
+    @pytest.mark.asyncio
+    async def test_sync_handler_with_context(self):
+        """Test that a synchronous handler with context works."""
+
+        def sync_handler_with_context(context, args: dict[str, str]) -> list[PromptMessage]:
+            return [
+                PromptMessage(
+                    role="user", content={"type": "text", "text": f"Sync: {args.get('name', '')}"}
+                )
+            ]
+
+        prompt = Prompt(
+            name="sync_ctx",
+            description="Sync with context",
+            arguments=[PromptArgument(name="name", required=False)],
+        )
+        manager = PromptManager()
+        await manager.add_prompt(prompt, sync_handler_with_context)
+
+        mock_context = MagicMock()
+        result = await manager.get_prompt("sync_ctx", {"name": "Test"}, context=mock_context)
+
+        assert "Sync: Test" in result.messages[0].content["text"]
+
+    def test_check_accepts_context_two_params(self):
+        """Test introspection detects 2-param handler as context-accepting."""
+
+        def handler(ctx, args):
+            pass
+
+        assert PromptHandler._check_accepts_context(handler) is True
+
+    def test_check_accepts_context_one_param(self):
+        """Test introspection detects 1-param handler as not context-accepting."""
+
+        def handler(args):
+            pass
+
+        assert PromptHandler._check_accepts_context(handler) is False

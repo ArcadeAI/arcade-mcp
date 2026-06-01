@@ -774,7 +774,7 @@ class _PromptsAPI:
         self._app = app
 
     async def add(
-        self, prompt: Prompt, handler: Callable[[dict[str, str]], list[PromptMessage]] | None = None
+        self, prompt: Prompt, handler: Callable[..., list[PromptMessage]] | None = None
     ) -> None:
         if self._app.server is None:
             raise ServerError("No server bound to app. Set app.server to use runtime prompts API.")

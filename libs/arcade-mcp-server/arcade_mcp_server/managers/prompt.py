@@ -6,8 +6,9 @@ Async-safe prompts with registry-based storage and deterministic listing.
 
 from __future__ import annotations
 
+import inspect
 import logging
-from typing import Callable
+from typing import Any, Callable
 
 from arcade_mcp_server.exceptions import NotFoundError, PromptError
 from arcade_mcp_server.managers.base import ComponentManager
@@ -22,10 +23,28 @@ class PromptHandler:
     def __init__(
         self,
         prompt: Prompt,
-        handler: Callable[[dict[str, str]], list[PromptMessage]] | None = None,
+        handler: Callable[..., list[PromptMessage]] | None = None,
     ) -> None:
         self.prompt = prompt
         self.handler = handler or self._default_handler
+        self._accepts_context = self._check_accepts_context(self.handler)
+
+    @staticmethod
+    def _check_accepts_context(handler: Callable[..., Any]) -> bool:
+        """Check if the handler accepts a context parameter (2-parameter signature)."""
+        try:
+            sig = inspect.signature(handler)
+            params = [
+                p
+                for p in sig.parameters.values()
+                if p.name != "self"
+                and p.kind
+                not in (p.VAR_POSITIONAL, p.VAR_KEYWORD, p.KEYWORD_ONLY)
+                and p.default is p.empty
+            ]
+            return len(params) >= 2
+        except (ValueError, TypeError):
+            return False
 
     def __eq__(self, other: object) -> bool:  # pragma: no cover - simple comparison
         if not isinstance(other, PromptHandler):
@@ -43,7 +62,9 @@ class PromptHandler:
             )
         ]
 
-    async def get_messages(self, arguments: dict[str, str] | None = None) -> list[PromptMessage]:
+    async def get_messages(
+        self, arguments: dict[str, str] | None = None, context: Any | None = None
+    ) -> list[PromptMessage]:
         args = arguments or {}
 
         # Validate required arguments
@@ -52,7 +73,10 @@ class PromptHandler:
                 if arg.required and arg.name not in args:
                     raise PromptError(f"Required argument '{arg.name}' not provided")
 
-        result = self.handler(args)
+        if self._accepts_context:
+            result = self.handler(context, args)
+        else:
+            result = self.handler(args)
         if hasattr(result, "__await__"):
             result = await result
 
@@ -72,7 +96,10 @@ class PromptManager(ComponentManager[str, PromptHandler]):
         return [h.prompt for h in handlers]
 
     async def get_prompt(
-        self, name: str, arguments: dict[str, str] | None = None
+        self,
+        name: str,
+        arguments: dict[str, str] | None = None,
+        context: Any | None = None,
     ) -> GetPromptResult:
         try:
             handler = await self.registry.get(name)
@@ -80,7 +107,7 @@ class PromptManager(ComponentManager[str, PromptHandler]):
             raise NotFoundError(f"Prompt '{name}' not found")
 
         try:
-            messages = await handler.get_messages(arguments)
+            messages = await handler.get_messages(arguments, context=context)
             return GetPromptResult(
                 description=handler.prompt.description,
                 messages=messages,
@@ -93,7 +120,7 @@ class PromptManager(ComponentManager[str, PromptHandler]):
     async def add_prompt(
         self,
         prompt: Prompt,
-        handler: Callable[[dict[str, str]], list[PromptMessage]] | None = None,
+        handler: Callable[..., list[PromptMessage]] | None = None,
     ) -> None:
         prompt_handler = PromptHandler(prompt, handler)
         await self.registry.upsert(prompt.name, prompt_handler)
@@ -109,7 +136,7 @@ class PromptManager(ComponentManager[str, PromptHandler]):
         self,
         name: str,
         prompt: Prompt,
-        handler: Callable[[dict[str, str]], list[PromptMessage]] | None = None,
+        handler: Callable[..., list[PromptMessage]] | None = None,
     ) -> Prompt:
         # Ensure exists
         try:
