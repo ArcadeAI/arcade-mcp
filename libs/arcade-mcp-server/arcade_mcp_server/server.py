@@ -68,7 +68,11 @@ from arcade_mcp_server.resource_server.headers import (
     build_insufficient_scope_www_authenticate,
 )
 from arcade_mcp_server.session import InitializationState, NotificationManager, ServerSession
-from arcade_mcp_server.settings import MCPSettings, ServerSettings
+from arcade_mcp_server.settings import (
+    MCPSettings,
+    ServerSettings,
+    is_reserved_tool_secret_key,
+)
 from arcade_mcp_server.types import (
     INTERNAL_ERROR,
     INVALID_PARAMS,
@@ -1036,6 +1040,16 @@ class MCPServer:
         # secrets
         if tool.definition.requirements and tool.definition.requirements.secrets:
             for secret in tool.definition.requirements.secrets:
+                if is_reserved_tool_secret_key(secret.key):
+                    # Framework control-plane credentials authenticate the
+                    # server/worker to Arcade and must never be handed to tool
+                    # code, regardless of whether they live in the tool
+                    # environment pool or the raw process environment.
+                    logger.warning(
+                        f"Tool '{tool.definition.name}' requested reserved secret "
+                        f"'{secret.key}'; refusing to expose it to tool code."
+                    )
+                    continue
                 if secret.key in self.settings.tool_secrets():
                     tool_context.set_secret(secret.key, self.settings.tool_secrets()[secret.key])
                 elif secret.key in os.environ:

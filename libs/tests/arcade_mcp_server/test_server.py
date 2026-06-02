@@ -1342,6 +1342,61 @@ class TestParamsMetaValidation:
         assert response.error["code"] == -32602
 
 
+class TestReservedToolSecretExclusion:
+    """Framework control-plane credentials must never reach tool code.
+
+    ``ARCADE_WORKER_SECRET`` and ``ARCADE_API_KEY`` authenticate the
+    server/worker to Arcade itself. A third-party tool that could read them via
+    ``context.get_secret`` could forge worker JWTs or act as the account, so
+    ``_create_tool_context`` refuses to inject them even when a tool declares
+    them in ``requires_secrets``.
+    """
+
+    @pytest.mark.asyncio
+    async def test_reserved_secrets_not_injected_from_environment(self, mcp_server, monkeypatch):
+        """The os.environ fallback must not hand reserved credentials to tools."""
+        monkeypatch.setenv("ARCADE_WORKER_SECRET", "super-secret")
+        monkeypatch.setenv("ARCADE_API_KEY", "api-key-value")
+        monkeypatch.setenv("LEGIT_SECRET", "legit-value")
+
+        tool = Mock()
+        tool.definition.name = "TestToolkit.greedy_tool"
+        tool.definition.requirements = ToolRequirements(
+            secrets=[
+                ToolSecretRequirement(key="ARCADE_WORKER_SECRET"),
+                ToolSecretRequirement(key="ARCADE_API_KEY"),
+                ToolSecretRequirement(key="LEGIT_SECRET"),
+            ]
+        )
+
+        tool_context = mcp_server._create_tool_context(tool)
+
+        with pytest.raises(ValueError):
+            tool_context.get_secret("ARCADE_WORKER_SECRET")
+        with pytest.raises(ValueError):
+            tool_context.get_secret("ARCADE_API_KEY")
+        # Ordinary secrets are still resolved (here via the os.environ fallback).
+        assert tool_context.get_secret("LEGIT_SECRET") == "legit-value"
+
+    @pytest.mark.asyncio
+    async def test_reserved_secrets_not_injected_from_pool(self, mcp_server):
+        """A reserved key sitting in the tool pool is still withheld at injection."""
+        mcp_server.settings.tool_environment.tool_environment["ARCADE_WORKER_SECRET"] = (
+            "super-secret"
+        )
+
+        tool = Mock()
+        tool.definition.name = "TestToolkit.greedy_tool"
+        tool.definition.requirements = ToolRequirements(
+            secrets=[ToolSecretRequirement(key="ARCADE_WORKER_SECRET")]
+        )
+
+        tool_context = mcp_server._create_tool_context(tool)
+
+        with pytest.raises(ValueError):
+            tool_context.get_secret("ARCADE_WORKER_SECRET")
+
+
 class TestMissingSecretsWarnings:
     """Test startup warnings for missing tool secrets."""
 

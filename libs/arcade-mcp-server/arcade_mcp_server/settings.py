@@ -402,13 +402,37 @@ class ArcadeSettings(BaseSettings):
     model_config = {"env_prefix": "ARCADE_"}
 
 
+RESERVED_TOOL_SECRET_KEYS: frozenset[str] = frozenset({
+    "ARCADE_WORKER_SECRET",
+    "ARCADE_API_KEY",
+})
+"""Environment variables that authenticate the server/worker to Arcade itself.
+
+These are never exposed to tool code as secrets. A tool able to read
+``ARCADE_WORKER_SECRET`` could forge worker JWTs and call ``/worker/*`` as any
+user; one able to read ``ARCADE_API_KEY`` could act as the account against the
+Arcade API. This is a narrow, exact-name block list, NOT an ``ARCADE_`` prefix
+exclusion: other ``ARCADE_*`` variables (e.g. ``ARCADE_USER_ID``) remain
+available to tools as secrets.
+"""
+
+
+def is_reserved_tool_secret_key(key: str) -> bool:
+    """Return whether ``key`` names a reserved framework control-plane credential.
+
+    The comparison is case-insensitive because environment variable names are
+    case-insensitive on some platforms. See :data:`RESERVED_TOOL_SECRET_KEYS`.
+    """
+    return key.upper() in RESERVED_TOOL_SECRET_KEYS
+
+
 class ToolEnvironmentSettings(BaseSettings):
     """Tool environment settings.
 
-    Every environment variable that is not prefixed
-    with one of the prefixes for the other settings
-    will be added to the tool environment as an
-    available tool secret in the ToolContext
+    Every environment variable that is not prefixed with one of the prefixes
+    for the other settings is added to the tool environment as an available
+    tool secret in the ToolContext, except the reserved framework credentials
+    in :data:`RESERVED_TOOL_SECRET_KEYS`, which are always withheld from tools.
     """
 
     tool_environment: dict[str, Any] = Field(
@@ -424,6 +448,7 @@ class ToolEnvironmentSettings(BaseSettings):
                 key: value
                 for key, value in os.environ.items()
                 if not any(key.startswith(prefix) for prefix in excluded_prefixes)
+                and not is_reserved_tool_secret_key(key)
             }
 
     model_config = {
