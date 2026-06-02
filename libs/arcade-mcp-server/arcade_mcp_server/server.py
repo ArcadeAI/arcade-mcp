@@ -68,7 +68,11 @@ from arcade_mcp_server.resource_server.headers import (
     build_insufficient_scope_www_authenticate,
 )
 from arcade_mcp_server.session import InitializationState, NotificationManager, ServerSession
-from arcade_mcp_server.settings import MCPSettings, ServerSettings
+from arcade_mcp_server.settings import (
+    MCPSettings,
+    ServerSettings,
+    is_reserved_tool_secret_key,
+)
 from arcade_mcp_server.types import (
     INTERNAL_ERROR,
     INVALID_PARAMS,
@@ -1036,6 +1040,16 @@ class MCPServer:
         # secrets
         if tool.definition.requirements and tool.definition.requirements.secrets:
             for secret in tool.definition.requirements.secrets:
+                if is_reserved_tool_secret_key(secret.key):
+                    # Framework control-plane credentials authenticate the
+                    # server/worker to Arcade and must never be handed to tool
+                    # code, regardless of whether they live in the tool
+                    # environment pool or the raw process environment.
+                    logger.warning(
+                        f"Tool '{tool.definition.name}' requested reserved secret "
+                        f"'{secret.key}'; refusing to expose it to tool code."
+                    )
+                    continue
                 if secret.key in self.settings.tool_secrets():
                     tool_context.set_secret(secret.key, self.settings.tool_secrets()[secret.key])
                 elif secret.key in os.environ:
@@ -1773,38 +1787,74 @@ class MCPServer:
 
         # Check secrets
         if tool.definition.requirements and tool.definition.requirements.secrets:
+            reserved_secrets = []
             missing_secrets = []
             for secret_requirement in tool.definition.requirements.secrets:
+                if is_reserved_tool_secret_key(secret_requirement.key):
+                    # Reserved framework credentials are intentionally never
+                    # injected (see _create_tool_context). Report them as
+                    # reserved rather than "missing": the variable may already
+                    # be set in the environment, so telling the caller to set
+                    # it would be misleading and impossible to act on.
+                    reserved_secrets.append(secret_requirement.key)
+                    continue
                 try:
                     tool_context.get_secret(secret_requirement.key)
                 except ValueError:
                     missing_secrets.append(secret_requirement.key)
-            if missing_secrets:
-                missing_secrets_str = ", ".join(missing_secrets)
 
-                # Create actionable error message
-                fix_instructions = "\n\n  To fix, either:\n"
-                fix_instructions += "  1. Add to .env file:\n"
-                for secret in missing_secrets:
-                    fix_instructions += f"       {secret}=your_value_here\n"
-                fix_instructions += "  2. Set environment variable:\n"
-                for secret in missing_secrets:
-                    fix_instructions += f"       export {secret}=your_value_here\n"
-                fix_instructions += "\n  Then restart the server."
+            if reserved_secrets or missing_secrets:
+                user_message = ""
+                llm_instructions = ""
 
-                user_message = f"✗ Missing {'secret' if len(missing_secrets) == 1 else 'secrets'}: {missing_secrets_str}\n\n"
-                user_message += f"  Tool '{tool_name}' requires {'this secret' if len(missing_secrets) == 1 else 'these secrets'} but {'it is' if len(missing_secrets) == 1 else 'they are'} not configured."
-                user_message += fix_instructions
+                if reserved_secrets:
+                    reserved_str = ", ".join(reserved_secrets)
+                    one = len(reserved_secrets) == 1
+                    it = "it" if one else "them"
+                    cred = "a framework credential" if one else "framework credentials"
+                    user_message += (
+                        f"✗ Reserved {'secret' if one else 'secrets'}: {reserved_str}\n\n"
+                        f"  Tool '{tool_name}' declares {'this secret' if one else 'these secrets'}, "
+                        f"but Arcade reserves {it} as {cred} for the server's own authentication "
+                        f"and never exposes {it} to tools.\n\n"
+                        f"  To fix, remove {it} from the tool's required secrets."
+                    )
+                    llm_instructions += (
+                        f"The '{tool_name}' tool declares reserved secret(s) {reserved_str} that the "
+                        f"Arcade MCP server never exposes to tools. The developer must remove {it} "
+                        f"from the tool's requires_secrets; setting the environment variable will not help. "
+                    )
 
-                tool_response = {
-                    "message": user_message,
-                    "llm_instructions": (
+                if missing_secrets:
+                    if user_message:
+                        user_message += "\n\n"
+                    missing_secrets_str = ", ".join(missing_secrets)
+
+                    # Create actionable error message
+                    fix_instructions = "\n\n  To fix, either:\n"
+                    fix_instructions += "  1. Add to .env file:\n"
+                    for secret in missing_secrets:
+                        fix_instructions += f"       {secret}=your_value_here\n"
+                    fix_instructions += "  2. Set environment variable:\n"
+                    for secret in missing_secrets:
+                        fix_instructions += f"       export {secret}=your_value_here\n"
+                    fix_instructions += "\n  Then restart the server."
+
+                    user_message += f"✗ Missing {'secret' if len(missing_secrets) == 1 else 'secrets'}: {missing_secrets_str}\n\n"
+                    user_message += f"  Tool '{tool_name}' requires {'this secret' if len(missing_secrets) == 1 else 'these secrets'} but {'it is' if len(missing_secrets) == 1 else 'they are'} not configured."
+                    user_message += fix_instructions
+
+                    llm_instructions += (
                         f"The MCP server is missing required secrets for the '{tool_name}' tool. "
                         f"The developer needs to provide {'this secret' if len(missing_secrets) == 1 else 'these secrets'} by either: "
                         f"1) Adding {'it' if len(missing_secrets) == 1 else 'them'} to a .env file in the server's working directory (e.g., {missing_secrets[0]}=your_secret_value), or "
                         f"2) Setting {'it' if len(missing_secrets) == 1 else 'them'} as environment variable{'s' if len(missing_secrets) > 1 else ''} before starting the server (e.g., export {missing_secrets[0]}=your_secret_value). "
                         "Once the secrets are configured, restart the MCP server for the changes to take effect."
-                    ),
+                    )
+
+                tool_response = {
+                    "message": user_message,
+                    "llm_instructions": llm_instructions.strip(),
                 }
                 return self._create_error_response(message, tool_response)
 

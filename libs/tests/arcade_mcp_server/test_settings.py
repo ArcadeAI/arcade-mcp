@@ -1,7 +1,12 @@
 """Tests for MCP Settings."""
 
 import pytest
-from arcade_mcp_server.settings import MCPSettings, ServerSettings
+from arcade_mcp_server.settings import (
+    MCPSettings,
+    ServerSettings,
+    ToolEnvironmentSettings,
+    is_reserved_tool_secret_key,
+)
 from pydantic import ValidationError
 
 
@@ -144,3 +149,55 @@ class TestServerSettingsVersionValidation:
         monkeypatch.setenv("MCP_SERVER_VERSION", "not-valid")
         with pytest.raises(ValidationError, match="semver"):
             MCPSettings.from_env()
+
+
+class TestReservedToolSecretKeys:
+    """Reserved framework credentials must never be exposed to tools as secrets."""
+
+    def test_is_reserved_tool_secret_key_matches_credentials(self) -> None:
+        """The worker secret and the API key are reserved."""
+        assert is_reserved_tool_secret_key("ARCADE_WORKER_SECRET")
+        assert is_reserved_tool_secret_key("ARCADE_API_KEY")
+
+    def test_is_reserved_tool_secret_key_is_case_insensitive(self) -> None:
+        """Environment variable names are case-insensitive on some platforms."""
+        assert is_reserved_tool_secret_key("arcade_worker_secret")
+        assert is_reserved_tool_secret_key("Arcade_Api_Key")
+
+    def test_is_reserved_tool_secret_key_does_not_overmatch_arcade_prefix(self) -> None:
+        """The block list is exact-name, NOT an ``ARCADE_`` prefix exclusion."""
+        assert not is_reserved_tool_secret_key("ARCADE_USER_ID")
+        assert not is_reserved_tool_secret_key("ARCADE_API_URL")
+        assert not is_reserved_tool_secret_key("ARCADE_ENVIRONMENT")
+        assert not is_reserved_tool_secret_key("MY_TOOL_TOKEN")
+
+    def test_tool_environment_excludes_reserved_credentials(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """The collected tool pool drops the worker secret and API key."""
+        monkeypatch.setenv("ARCADE_WORKER_SECRET", "super-secret")
+        monkeypatch.setenv("ARCADE_API_KEY", "api-key-value")
+        monkeypatch.setenv("ARCADE_USER_ID", "user-123")
+        monkeypatch.setenv("MY_TOOL_TOKEN", "tool-token")
+
+        pool = ToolEnvironmentSettings().tool_environment
+
+        assert "ARCADE_WORKER_SECRET" not in pool
+        assert "ARCADE_API_KEY" not in pool
+        # Non-credential ARCADE_* vars and ordinary vars stay available to tools.
+        assert pool.get("ARCADE_USER_ID") == "user-123"
+        assert pool.get("MY_TOOL_TOKEN") == "tool-token"
+
+    def test_mcp_settings_tool_secrets_excludes_reserved_credentials(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """``MCPSettings.tool_secrets()`` does not surface reserved credentials."""
+        monkeypatch.setenv("ARCADE_WORKER_SECRET", "super-secret")
+        monkeypatch.setenv("ARCADE_API_KEY", "api-key-value")
+        monkeypatch.setenv("MY_TOOL_TOKEN", "tool-token")
+
+        secrets = MCPSettings().tool_secrets()
+
+        assert "ARCADE_WORKER_SECRET" not in secrets
+        assert "ARCADE_API_KEY" not in secrets
+        assert secrets.get("MY_TOOL_TOKEN") == "tool-token"

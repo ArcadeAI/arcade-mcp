@@ -1342,6 +1342,127 @@ class TestParamsMetaValidation:
         assert response.error["code"] == -32602
 
 
+class TestReservedToolSecretExclusion:
+    """Framework control-plane credentials must never reach tool code.
+
+    ``ARCADE_WORKER_SECRET`` and ``ARCADE_API_KEY`` authenticate the
+    server/worker to Arcade itself. A third-party tool that could read them via
+    ``context.get_secret`` could forge worker JWTs or act as the account, so
+    ``_create_tool_context`` refuses to inject them even when a tool declares
+    them in ``requires_secrets``.
+    """
+
+    @pytest.mark.asyncio
+    async def test_reserved_secrets_not_injected_from_environment(self, mcp_server, monkeypatch):
+        """The os.environ fallback must not hand reserved credentials to tools."""
+        monkeypatch.setenv("ARCADE_WORKER_SECRET", "super-secret")
+        monkeypatch.setenv("ARCADE_API_KEY", "api-key-value")
+        monkeypatch.setenv("LEGIT_SECRET", "legit-value")
+
+        tool = Mock()
+        tool.definition.name = "TestToolkit.greedy_tool"
+        tool.definition.requirements = ToolRequirements(
+            secrets=[
+                ToolSecretRequirement(key="ARCADE_WORKER_SECRET"),
+                ToolSecretRequirement(key="ARCADE_API_KEY"),
+                ToolSecretRequirement(key="LEGIT_SECRET"),
+            ]
+        )
+
+        tool_context = mcp_server._create_tool_context(tool)
+
+        with pytest.raises(ValueError):
+            tool_context.get_secret("ARCADE_WORKER_SECRET")
+        with pytest.raises(ValueError):
+            tool_context.get_secret("ARCADE_API_KEY")
+        # Ordinary secrets are still resolved (here via the os.environ fallback).
+        assert tool_context.get_secret("LEGIT_SECRET") == "legit-value"
+
+    @pytest.mark.asyncio
+    async def test_reserved_secrets_not_injected_from_pool(self, mcp_server):
+        """A reserved key sitting in the tool pool is still withheld at injection."""
+        mcp_server.settings.tool_environment.tool_environment["ARCADE_WORKER_SECRET"] = (
+            "super-secret"
+        )
+
+        tool = Mock()
+        tool.definition.name = "TestToolkit.greedy_tool"
+        tool.definition.requirements = ToolRequirements(
+            secrets=[ToolSecretRequirement(key="ARCADE_WORKER_SECRET")]
+        )
+
+        tool_context = mcp_server._create_tool_context(tool)
+
+        with pytest.raises(ValueError):
+            tool_context.get_secret("ARCADE_WORKER_SECRET")
+
+    @pytest.mark.asyncio
+    async def test_reserved_secret_reported_as_reserved_not_missing(self, mcp_server, monkeypatch):
+        """A declared reserved secret yields a 'reserved' error, not the misleading
+        'add it to .env' guidance (the variable may be set but is deliberately withheld)."""
+        monkeypatch.setenv("ARCADE_WORKER_SECRET", "super-secret")
+
+        tool = Mock()
+        tool.definition.name = "TestToolkit.greedy_tool"
+        tool.definition.requirements = ToolRequirements(
+            secrets=[ToolSecretRequirement(key="ARCADE_WORKER_SECRET")]
+        )
+        tool_context = mcp_server._create_tool_context(tool)
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=1,
+            method="tools/call",
+            params={"name": "TestToolkit.greedy_tool", "arguments": {}},
+        )
+
+        result = await mcp_server._check_tool_requirements(
+            tool, tool_context, message, "TestToolkit.greedy_tool"
+        )
+
+        assert isinstance(result, JSONRPCResponse)
+        assert isinstance(result.result, CallToolResult)
+        assert result.result.isError is True
+        content_text = result.result.content[0].text
+        assert "Reserved" in content_text
+        assert "ARCADE_WORKER_SECRET" in content_text
+        assert "remove" in content_text.lower()
+        # The misleading "set the variable" guidance must NOT appear for it.
+        assert "ARCADE_WORKER_SECRET=your_value_here" not in content_text
+
+    @pytest.mark.asyncio
+    async def test_reserved_and_missing_secrets_reported_separately(self, mcp_server):
+        """A mix of reserved and genuinely-missing secrets keeps each in its own
+        section: only the genuinely-missing one gets the actionable .env guidance."""
+        tool = Mock()
+        tool.definition.name = "TestToolkit.mixed_tool"
+        tool.definition.requirements = ToolRequirements(
+            secrets=[
+                ToolSecretRequirement(key="ARCADE_API_KEY"),
+                ToolSecretRequirement(key="DATABASE_URL"),
+            ]
+        )
+        tool_context = mcp_server._create_tool_context(tool)
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=1,
+            method="tools/call",
+            params={"name": "TestToolkit.mixed_tool", "arguments": {}},
+        )
+
+        result = await mcp_server._check_tool_requirements(
+            tool, tool_context, message, "TestToolkit.mixed_tool"
+        )
+
+        content_text = result.result.content[0].text
+        assert "Reserved" in content_text
+        assert "ARCADE_API_KEY" in content_text
+        assert "Missing" in content_text
+        assert "DATABASE_URL" in content_text
+        # The genuinely-missing secret keeps actionable guidance; the reserved one does not.
+        assert "DATABASE_URL=your_value_here" in content_text
+        assert "ARCADE_API_KEY=your_value_here" not in content_text
+
+
 class TestMissingSecretsWarnings:
     """Test startup warnings for missing tool secrets."""
 
