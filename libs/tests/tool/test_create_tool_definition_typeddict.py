@@ -285,6 +285,7 @@ def func_returns_nested_typedicts() -> Annotated[CustomerDict, "Customer informa
                             "description": ValueSchema(val_type="string", enum=None),
                             "price": ValueSchema(val_type="integer", enum=None),
                         },
+                        required_keys=[],
                     ),
                     available_modes=["value", "error"],
                     description="Product info with optional fields",
@@ -328,3 +329,22 @@ def test_create_tool_def_from_typeddict(func_under_test, expected_tool_def_field
 
     for field, expected_value in expected_tool_def_fields.items():
         assert getattr(tool_def, field) == expected_value
+
+
+class AllOptionalDict(TypedDict, total=False):
+    """A TypedDict where every field is optional."""
+
+    name: str
+    count: int
+
+
+@tool(desc="Take an all-optional TypedDict")
+def run_all_optional_td(cfg: Annotated[AllOptionalDict, "Config"]) -> str:
+    return "ok"
+
+
+def test_typeddict_all_optional_has_empty_required_keys():
+    vs = ToolCatalog.create_tool_definition(run_all_optional_td, "1.0").input.parameters[0].value_schema
+    # total=False with no required keys is a known-empty required set (empty list), distinct
+    # from a freeform dict whose shape is unknown (None).
+    assert vs.required_keys == []

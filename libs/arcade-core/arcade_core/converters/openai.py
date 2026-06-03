@@ -140,13 +140,19 @@ def _add_null_to_type(schema: OpenAIFunctionParameterProperty) -> None:
     """Union a property's type with "null" so it may be omitted in strict mode.
 
     Strict mode lists every property in ``required``; an optional property is then
-    expressed by allowing ``null`` rather than by leaving it out of ``required``.
+    expressed by allowing ``null`` rather than by leaving it out of ``required``. When the
+    property is an enum, ``None`` is appended to the enum too: ``type`` and ``enum`` are
+    independent assertions, so a null value must satisfy both.
     """
     param_type = schema.get("type")
     if isinstance(param_type, str):
         schema["type"] = [param_type, "null"]
     elif isinstance(param_type, list) and "null" not in param_type:
         schema["type"] = [*param_type, "null"]
+
+    enum_values = schema.get("enum")
+    if isinstance(enum_values, list) and None not in enum_values:
+        schema["enum"] = [*enum_values, None]
 
 
 def _build_object_schema(
@@ -157,9 +163,9 @@ def _build_object_schema(
 
     Strict mode requires ``additionalProperties: false`` on every object and every
     property listed in ``required``. Fields that are not actually required are unioned
-    with ``null`` so the model may omit them. When ``required_keys`` is known (TypedDict)
-    a field is required iff it appears there; when it is unknown (e.g. a Pydantic model,
-    which does not expose required keys here) the field's ``nullable`` flag decides.
+    with ``null`` so the model may omit them. When ``required_keys`` is a list (a known
+    shape, possibly empty) a field is required iff it appears there; when it is ``None``
+    (an unknown shape) the field's ``nullable`` flag decides.
     """
     required_set = set(required_keys or [])
     field_schemas: dict[str, OpenAIFunctionParameterProperty] = {}

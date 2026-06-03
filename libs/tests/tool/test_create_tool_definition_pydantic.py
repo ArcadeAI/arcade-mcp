@@ -507,3 +507,30 @@ def test_nested_pydantic_required_keys_are_recursive():
     # `label` defaults, so the outer object only requires `variables`.
     assert vs.required_keys == ["variables"]
     assert vs.properties["variables"].required_keys == ["gene"]
+
+
+class AllDefaultedModel(BaseModel):
+    """A model where every field has a default."""
+
+    count: int = 5
+    label: str = "x"
+
+
+@tool(desc="Take an all-defaulted Pydantic model")
+def run_all_defaulted(cfg: Annotated[AllDefaultedModel, "Config"]) -> str:
+    return "ok"
+
+
+def test_pydantic_all_defaulted_has_empty_required_keys():
+    vs = _first_param_value_schema(run_all_defaulted)
+    # A structured model with no required fields is a known-empty required set, not an
+    # unknown shape: required_keys is an empty list, distinct from a freeform dict's None.
+    assert vs.required_keys == []
+
+
+def test_freeform_dict_has_none_required_keys():
+    from arcade_core.catalog import extract_properties
+
+    properties, required_keys = extract_properties(dict)
+    assert properties is None
+    assert required_keys is None

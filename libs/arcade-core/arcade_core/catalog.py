@@ -860,8 +860,11 @@ def extract_properties(
     """
     Extract properties from TypedDict, Pydantic models, or other structured types.
 
-    Returns (properties, required_keys). required_keys is a sorted list of required
-    property names for TypedDict types, or None for other types.
+    Returns (properties, required_keys). For a known structured type (TypedDict or
+    Pydantic model) required_keys is a sorted list of required property names, which is
+    empty when every field is optional. For a type with no known shape (e.g. a freeform
+    ``dict``) required_keys is None, signaling that requiredness is unknown rather than
+    known-empty.
     """
     properties = {}
 
@@ -891,7 +894,7 @@ def extract_properties(
             if field_info.is_required():
                 pydantic_required_keys.append(field_name)
 
-        return (properties or None, sorted(pydantic_required_keys) or None)
+        return (properties or None, sorted(pydantic_required_keys))
 
     # Handle TypedDict
     elif is_typeddict(type_to_check):
@@ -917,8 +920,7 @@ def extract_properties(
 
             properties[field_name] = wire_info
 
-        req = sorted(getattr(type_to_check, "__required_keys__", frozenset()))
-        required_keys = req or None  # normalize empty → None
+        required_keys = sorted(getattr(type_to_check, "__required_keys__", frozenset()))
         return (properties or None, required_keys)
 
     # Handle regular dict with type annotations (e.g., dict[str, Any])

@@ -473,6 +473,79 @@ class TestAnthropicConverter:
         assert result["input_schema"]["required"] == ["query"]
 
 
+class TestAnthropicNullableFields:
+    """Nullable nested fields must accept null in the standard-dialect schema."""
+
+    def test_required_nullable_nested_field_allows_null(self):
+        """A nested field that is required yet nullable (`str | None` with no default) must
+        stay in `required` while its type unions `null`, so a null value validates."""
+        param = InputParameter(
+            name="record",
+            required=True,
+            description="A record.",
+            value_schema=ValueSchema(
+                val_type="json",
+                properties={
+                    "name": ValueSchema(val_type="string"),
+                    "note": ValueSchema(val_type="string", nullable=True),
+                },
+                required_keys=["name", "note"],
+            ),
+        )
+
+        schema = _convert_input_parameters_to_json_schema([param])["properties"]["record"]
+
+        assert set(schema["required"]) == {"name", "note"}
+        assert schema["properties"]["name"]["type"] == "string"
+        assert schema["properties"]["note"]["type"] == ["string", "null"]
+
+    def test_nullable_nested_enum_field_allows_null_in_enum(self):
+        """A nullable nested enum field unions `null` into its type and appends `None` to enum."""
+        param = InputParameter(
+            name="record",
+            required=True,
+            description="A record.",
+            value_schema=ValueSchema(
+                val_type="json",
+                properties={
+                    "status": ValueSchema(
+                        val_type="string", enum=["open", "closed"], nullable=True
+                    ),
+                },
+                required_keys=["status"],
+            ),
+        )
+
+        schema = _convert_input_parameters_to_json_schema([param])["properties"]["record"]
+        status = schema["properties"]["status"]
+
+        assert status["type"] == ["string", "null"]
+        assert status["enum"] == ["open", "closed", None]
+
+    def test_required_nullable_nested_field_end_to_end(self):
+        """A Pydantic field typed `str | None` with no default is required and nullable;
+        Anthropic must emit it nullable rather than a bare single-type schema."""
+        from arcade_core.catalog import ToolCatalog
+        from arcade_tdk import tool
+        from pydantic import BaseModel
+
+        class Record(BaseModel):
+            name: str
+            note: str | None
+
+        @tool(desc="t")
+        def f(record: Annotated[Record, "record"]) -> str:
+            return ""
+
+        catalog = ToolCatalog()
+        catalog.add_tool(f, "endtoend")
+        mat_tool = next(iter(catalog))
+        schema = to_anthropic(mat_tool)["input_schema"]["properties"]["record"]
+
+        assert set(schema["required"]) == {"name", "note"}
+        assert schema["properties"]["note"]["type"] == ["string", "null"]
+
+
 class TestHelperFunctions:
     """Test helper functions used by the converter."""
 

@@ -464,6 +464,136 @@ class TestOpenAIConverter:
         }
 
 
+class TestOpenAIStrictNullability:
+    """Strict-mode nullability for structured objects and optional enums."""
+
+    def test_object_with_empty_required_keys_makes_fields_nullable(self):
+        """An object whose required set is known-empty (all fields defaulted) must list every
+        field in `required` but render each as a nullable union so the model may omit it."""
+        param = InputParameter(
+            name="config",
+            required=True,
+            description="All-defaulted config.",
+            value_schema=ValueSchema(
+                val_type="json",
+                properties={
+                    "count": ValueSchema(val_type="integer"),
+                    "label": ValueSchema(val_type="string"),
+                },
+                required_keys=[],
+            ),
+        )
+
+        schema = _convert_input_parameters_to_json_schema([param])["properties"]["config"]
+
+        assert schema["additionalProperties"] is False
+        assert set(schema["required"]) == {"count", "label"}
+        assert schema["properties"]["count"]["type"] == ["integer", "null"]
+        assert schema["properties"]["label"]["type"] == ["string", "null"]
+
+    def test_freeform_dict_param_stays_open(self):
+        """A freeform dict (json with no properties and unknown shape) must stay open: no
+        `properties`, no `additionalProperties: false`, no forced `required`."""
+        param = InputParameter(
+            name="payload",
+            required=True,
+            description="Arbitrary JSON.",
+            value_schema=ValueSchema(val_type="json"),
+        )
+
+        schema = _convert_input_parameters_to_json_schema([param])["properties"]["payload"]
+
+        assert schema["type"] == "object"
+        assert "properties" not in schema
+        assert "additionalProperties" not in schema
+        assert "required" not in schema
+
+    def test_optional_enum_param_allows_null_in_enum(self):
+        """An optional enum param gets `null` in its type AND `None` appended to its enum, so
+        a null value satisfies both the type and enum assertions."""
+        param = InputParameter(
+            name="status",
+            required=False,
+            description="Status choice.",
+            value_schema=ValueSchema(val_type="string", enum=["open", "closed"]),
+        )
+
+        schema = _convert_input_parameters_to_json_schema([param])["properties"]["status"]
+
+        assert schema["type"] == ["string", "null"]
+        assert schema["enum"] == ["open", "closed", None]
+
+    def test_nullable_enum_nested_field_allows_null_in_enum(self):
+        """A nullable enum field inside an object gets `null` in type AND `None` in enum."""
+        param = InputParameter(
+            name="filter",
+            required=True,
+            description="Filter object.",
+            value_schema=ValueSchema(
+                val_type="json",
+                properties={
+                    "status": ValueSchema(
+                        val_type="string", enum=["open", "closed"], nullable=True
+                    ),
+                },
+                required_keys=["status"],
+            ),
+        )
+
+        schema = _convert_input_parameters_to_json_schema([param])["properties"]["filter"]
+        status = schema["properties"]["status"]
+
+        assert status["type"] == ["string", "null"]
+        assert status["enum"] == ["open", "closed", None]
+
+
+class TestOpenAIEndToEnd:
+    """Catalog-to-converter checks for structured params."""
+
+    def _to_openai_first_param(self, func, param_name):
+        from arcade_core.catalog import ToolCatalog
+
+        catalog = ToolCatalog()
+        catalog.add_tool(func, "endtoend")
+        mat_tool = next(iter(catalog))
+        return to_openai(mat_tool)["function"]["parameters"]["properties"][param_name]
+
+    def test_all_defaulted_pydantic_model_fields_not_forced(self):
+        """A Pydantic model whose fields all have defaults must not force a value for any field:
+        each field is rendered nullable even though its Python type is not `T | None`."""
+        from arcade_tdk import tool
+        from pydantic import BaseModel
+
+        class AllDefaulted(BaseModel):
+            count: int = 5
+            label: str = "x"
+
+        @tool(desc="t")
+        def f(cfg: Annotated[AllDefaulted, "cfg"]) -> str:
+            return ""
+
+        schema = self._to_openai_first_param(f, "cfg")
+
+        assert schema["additionalProperties"] is False
+        assert set(schema["required"]) == {"count", "label"}
+        assert schema["properties"]["count"]["type"] == ["integer", "null"]
+        assert schema["properties"]["label"]["type"] == ["string", "null"]
+
+    def test_freeform_dict_param_stays_open_end_to_end(self):
+        """A `dict` param has an unknown shape and must stay an open object."""
+        from arcade_tdk import tool
+
+        @tool(desc="t")
+        def f(payload: Annotated[dict, "payload"]) -> str:
+            return ""
+
+        schema = self._to_openai_first_param(f, "payload")
+
+        assert schema["type"] == "object"
+        assert "properties" not in schema
+        assert "additionalProperties" not in schema
+
+
 class TestHelperFunctions:
     """Test helper functions used by the converter."""
 
