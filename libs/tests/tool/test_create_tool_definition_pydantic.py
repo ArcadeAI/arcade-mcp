@@ -534,3 +534,28 @@ def test_freeform_dict_has_none_required_keys():
     properties, required_keys = extract_properties(dict)
     assert properties is None
     assert required_keys is None
+
+
+class EmptyModel(BaseModel):
+    """A model that declares no fields."""
+
+
+@tool(desc="Take a zero-field Pydantic model")
+def run_empty_model(cfg: Annotated[EmptyModel, "Config"]) -> str:
+    return "ok"
+
+
+def test_zero_field_pydantic_model_extract_properties_is_known_empty():
+    from arcade_core.catalog import extract_properties
+
+    properties, required_keys = extract_properties(EmptyModel)
+    # A zero-field model has a known-empty shape ({}, []), distinct from a freeform dict's
+    # unknown shape (None, None), so converters can emit it as a closed object.
+    assert properties == {}
+    assert required_keys == []
+
+
+def test_zero_field_pydantic_model_value_schema_has_empty_properties():
+    vs = _first_param_value_schema(run_empty_model)
+    assert vs.properties == {}
+    assert vs.required_keys == []

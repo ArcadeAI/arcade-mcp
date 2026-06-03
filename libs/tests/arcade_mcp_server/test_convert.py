@@ -545,6 +545,35 @@ class TestCreateMCPTool:
         assert "properties" not in param
         assert "additionalProperties" not in param
 
+    def test_input_schema_empty_object_is_closed(self):
+        """An object with a known-empty shape (properties == {}) is closed: it carries
+        `properties: {}` and `additionalProperties: false`, valid under OpenAI strict mode."""
+        mcp_tool = self._make_tool_with_param(
+            ValueSchema(val_type="json", properties={}, required_keys=[])
+        )
+        param = mcp_tool.inputSchema["properties"]["param"]
+
+        assert param["type"] == "object"
+        assert param["properties"] == {}
+        assert param["additionalProperties"] is False
+
+    def test_input_schema_array_of_empty_object_items_are_closed(self):
+        """`list[<empty object>]` item schemas carry `properties: {}` and
+        `additionalProperties: false`."""
+        mcp_tool = self._make_tool_with_param(
+            ValueSchema(
+                val_type="array",
+                inner_val_type="json",
+                inner_properties={},
+                inner_required_keys=[],
+            )
+        )
+        items = mcp_tool.inputSchema["properties"]["param"]["items"]
+
+        assert items["type"] == "object"
+        assert items["properties"] == {}
+        assert items["additionalProperties"] is False
+
     @pytest.mark.parametrize(
         "val_type",
         ["string", "integer", "number", "boolean"],

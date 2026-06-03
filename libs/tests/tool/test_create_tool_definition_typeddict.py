@@ -348,3 +348,28 @@ def test_typeddict_all_optional_has_empty_required_keys():
     # total=False with no required keys is a known-empty required set (empty list), distinct
     # from a freeform dict whose shape is unknown (None).
     assert vs.required_keys == []
+
+
+class EmptyDict(TypedDict):
+    """A TypedDict that declares no fields."""
+
+
+@tool(desc="Take an empty TypedDict")
+def run_empty_td(cfg: Annotated[EmptyDict, "Config"]) -> str:
+    return "ok"
+
+
+def test_empty_typeddict_extract_properties_is_known_empty():
+    from arcade_core.catalog import extract_properties
+
+    properties, required_keys = extract_properties(EmptyDict)
+    # An empty TypedDict has a known-empty shape ({}, []), distinct from a freeform dict's
+    # unknown shape (None, None), so converters can emit it as a closed object.
+    assert properties == {}
+    assert required_keys == []
+
+
+def test_empty_typeddict_value_schema_has_empty_properties():
+    vs = ToolCatalog.create_tool_definition(run_empty_td, "1.0").input.parameters[0].value_schema
+    assert vs.properties == {}
+    assert vs.required_keys == []

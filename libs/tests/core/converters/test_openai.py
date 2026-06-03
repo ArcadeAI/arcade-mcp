@@ -547,6 +547,49 @@ class TestOpenAIStrictNullability:
         assert status["enum"] == ["open", "closed", None]
 
 
+class TestOpenAIStrictEmptyObjects:
+    """A known-empty object shape ({}) must close in strict mode; a freeform dict stays open."""
+
+    def test_empty_object_param_is_closed(self):
+        """An object with a known-empty shape (properties == {}) is emitted closed: it carries
+        `properties: {}`, `additionalProperties: false`, and an empty `required`."""
+        param = InputParameter(
+            name="cfg",
+            required=True,
+            description="Empty config.",
+            value_schema=ValueSchema(val_type="json", properties={}, required_keys=[]),
+        )
+
+        schema = _convert_input_parameters_to_json_schema([param])["properties"]["cfg"]
+
+        assert schema["type"] == "object"
+        assert schema["properties"] == {}
+        assert schema["additionalProperties"] is False
+        assert schema["required"] == []
+
+    def test_array_of_empty_object_items_are_closed(self):
+        """`list[<empty object>]` item schemas close the same way: `properties: {}`,
+        `additionalProperties: false`, empty `required`."""
+        param = InputParameter(
+            name="items",
+            required=True,
+            description="Empty items.",
+            value_schema=ValueSchema(
+                val_type="array",
+                inner_val_type="json",
+                inner_properties={},
+                inner_required_keys=[],
+            ),
+        )
+
+        items = _convert_input_parameters_to_json_schema([param])["properties"]["items"]["items"]
+
+        assert items["type"] == "object"
+        assert items["properties"] == {}
+        assert items["additionalProperties"] is False
+        assert items["required"] == []
+
+
 class TestOpenAIEndToEnd:
     """Catalog-to-converter checks for structured params."""
 
@@ -592,6 +635,63 @@ class TestOpenAIEndToEnd:
         assert schema["type"] == "object"
         assert "properties" not in schema
         assert "additionalProperties" not in schema
+
+    def test_zero_field_pydantic_model_param_is_closed_end_to_end(self):
+        """A zero-field Pydantic model has a known-empty shape and must close in strict mode."""
+        from arcade_tdk import tool
+        from pydantic import BaseModel
+
+        class EmptyModel(BaseModel):
+            pass
+
+        @tool(desc="t")
+        def f(cfg: Annotated[EmptyModel, "cfg"]) -> str:
+            return ""
+
+        schema = self._to_openai_first_param(f, "cfg")
+
+        assert schema["type"] == "object"
+        assert schema["properties"] == {}
+        assert schema["additionalProperties"] is False
+        assert schema["required"] == []
+
+    def test_empty_typeddict_param_is_closed_end_to_end(self):
+        """An empty TypedDict has a known-empty shape and must close in strict mode."""
+        from arcade_tdk import tool
+        from typing_extensions import TypedDict
+
+        class EmptyTD(TypedDict):
+            pass
+
+        @tool(desc="t")
+        def f(td: Annotated[EmptyTD, "td"]) -> str:
+            return ""
+
+        schema = self._to_openai_first_param(f, "td")
+
+        assert schema["type"] == "object"
+        assert schema["properties"] == {}
+        assert schema["additionalProperties"] is False
+        assert schema["required"] == []
+
+    def test_list_of_empty_model_items_are_closed_end_to_end(self):
+        """`list[<zero-field model>]` array items must close in strict mode."""
+        from arcade_tdk import tool
+        from pydantic import BaseModel
+
+        class EmptyModel(BaseModel):
+            pass
+
+        @tool(desc="t")
+        def f(items: Annotated[list[EmptyModel], "items"]) -> str:
+            return ""
+
+        items = self._to_openai_first_param(f, "items")["items"]
+
+        assert items["type"] == "object"
+        assert items["properties"] == {}
+        assert items["additionalProperties"] is False
+        assert items["required"] == []
 
 
 class TestHelperFunctions:

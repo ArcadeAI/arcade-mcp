@@ -275,14 +275,15 @@ def _value_schema_to_json_schema(value_schema: Any) -> dict[str, Any]:
         schema: dict[str, Any] = {"type": "object"}
         if getattr(value_schema, "enum", None):
             schema["enum"] = list(value_schema.enum)
-        if getattr(value_schema, "properties", None):
+        if getattr(value_schema, "properties", None) is not None:
             schema["properties"] = {}
             for prop_name, prop_schema in value_schema.properties.items():
                 schema["properties"][prop_name] = _value_schema_to_json_schema(prop_schema)
                 if getattr(prop_schema, "description", None):
                     schema["properties"][prop_name]["description"] = prop_schema.description
-            # Close objects with a known shape so the schema is valid under OpenAI strict
-            # mode. Open dicts (no properties) stay open, since they accept arbitrary keys.
+            # Close objects with a known shape (including a known-empty one) so the schema is
+            # valid under OpenAI strict mode. A freeform dict has no properties (None) and stays
+            # open, since it accepts arbitrary keys.
             schema["additionalProperties"] = False
         if getattr(value_schema, "required_keys", None):
             schema["required"] = list(value_schema.required_keys)
@@ -294,7 +295,7 @@ def _value_schema_to_json_schema(value_schema: Any) -> dict[str, Any]:
     if val_type == "array" and getattr(value_schema, "inner_val_type", None):
         inner_type = value_schema.inner_val_type
         items_schema: dict[str, Any] = {"type": _map_type_to_json_schema_type(inner_type)}
-        if inner_type == "json" and getattr(value_schema, "inner_properties", None):
+        if inner_type == "json" and getattr(value_schema, "inner_properties", None) is not None:
             items_schema["properties"] = {}
             for prop_name, prop_schema in value_schema.inner_properties.items():
                 items_schema["properties"][prop_name] = _value_schema_to_json_schema(prop_schema)

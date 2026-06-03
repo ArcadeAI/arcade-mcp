@@ -876,3 +876,55 @@ class TestAnthropicVsOpenAIDifferences:
         assert schema["required"] == ["email"]
         assert "additionalProperties" not in schema
         assert schema["properties"]["name"]["type"] == "string"
+
+    def test_empty_object_param_is_object_with_empty_properties(self):
+        """An object with a known-empty shape (properties == {}) is emitted as a typed object
+        with empty `properties` and no `required` (no fields are required)."""
+        param = InputParameter(
+            name="cfg",
+            required=True,
+            description="Empty config.",
+            value_schema=ValueSchema(val_type="json", properties={}, required_keys=[]),
+        )
+
+        schema = _convert_input_parameters_to_json_schema([param])["properties"]["cfg"]
+
+        assert schema["type"] == "object"
+        assert schema["properties"] == {}
+        assert "required" not in schema
+
+    def test_array_of_empty_object_items_have_empty_properties(self):
+        """`list[<empty object>]` items are typed objects with empty `properties`."""
+        param = InputParameter(
+            name="items",
+            required=True,
+            description="Empty items.",
+            value_schema=ValueSchema(
+                val_type="array",
+                inner_val_type="json",
+                inner_properties={},
+                inner_required_keys=[],
+            ),
+        )
+
+        items = _convert_input_parameters_to_json_schema([param])["properties"]["items"]["items"]
+
+        assert items["type"] == "object"
+        assert items["properties"] == {}
+        assert "required" not in items
+
+    def test_freeform_dict_param_stays_open(self):
+        """A freeform dict (json with no properties, unknown shape) stays an open object: no
+        `properties` key and no `additionalProperties` constraint."""
+        param = InputParameter(
+            name="payload",
+            required=True,
+            description="Arbitrary JSON.",
+            value_schema=ValueSchema(val_type="json"),
+        )
+
+        schema = _convert_input_parameters_to_json_schema([param])["properties"]["payload"]
+
+        assert schema["type"] == "object"
+        assert "properties" not in schema
+        assert "additionalProperties" not in schema

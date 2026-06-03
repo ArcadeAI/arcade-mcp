@@ -209,7 +209,7 @@ def _convert_value_schema_to_json_schema(
 
     if value_schema.val_type == "array" and value_schema.inner_val_type:
         schema = {"type": "array"}
-        if value_schema.inner_val_type == "json" and value_schema.inner_properties:
+        if value_schema.inner_val_type == "json" and value_schema.inner_properties is not None:
             schema["items"] = _build_object_schema(
                 value_schema.inner_properties, value_schema.inner_required_keys
             )
@@ -223,7 +223,7 @@ def _convert_value_schema_to_json_schema(
             schema["items"] = items_schema
         return schema
 
-    if value_schema.val_type == "json" and value_schema.properties:
+    if value_schema.val_type == "json" and value_schema.properties is not None:
         return _build_object_schema(value_schema.properties, value_schema.required_keys)
 
     schema = {"type": type_mapping[value_schema.val_type]}

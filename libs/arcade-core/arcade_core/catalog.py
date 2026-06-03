@@ -775,12 +775,13 @@ def get_wire_type_info(_type: type) -> WireTypeInfo:
         inner_info = get_wire_type_info(inner_type)
         inner_wire_type = cast(InnerWireType, inner_info.wire_type)
 
-        # If inner type has properties (it's a complex object), propagate them
-        if inner_info.properties:
+        # If inner type has a known object shape (possibly empty), propagate it. A known-empty
+        # shape ({}) is distinct from None (unknown shape) so converters can close it.
+        if inner_info.properties is not None:
             inner_properties = inner_info.properties
             inner_required_keys = inner_info.required_keys
         # If inner type is array (nested arrays), propagate inner_properties
-        elif inner_info.inner_properties:
+        elif inner_info.inner_properties is not None:
             inner_properties = inner_info.inner_properties
             inner_required_keys = inner_info.inner_required_keys
     else:
@@ -861,10 +862,11 @@ def extract_properties(
     Extract properties from TypedDict, Pydantic models, or other structured types.
 
     Returns (properties, required_keys). For a known structured type (TypedDict or
-    Pydantic model) required_keys is a sorted list of required property names, which is
-    empty when every field is optional. For a type with no known shape (e.g. a freeform
-    ``dict``) required_keys is None, signaling that requiredness is unknown rather than
-    known-empty.
+    Pydantic model) properties is a dict of its fields, empty when the type declares no
+    fields, and required_keys is a sorted list of required property names, empty when every
+    field is optional. A known-empty shape (no fields) therefore yields ``({}, [])``, which
+    converters can distinguish from a type with no known shape (e.g. a freeform ``dict``),
+    which yields ``(None, None)`` to signal that both shape and requiredness are unknown.
     """
     properties = {}
 
@@ -894,7 +896,7 @@ def extract_properties(
             if field_info.is_required():
                 pydantic_required_keys.append(field_name)
 
-        return (properties or None, sorted(pydantic_required_keys))
+        return (properties, sorted(pydantic_required_keys))
 
     # Handle TypedDict
     elif is_typeddict(type_to_check):
@@ -921,7 +923,7 @@ def extract_properties(
             properties[field_name] = wire_info
 
         required_keys = sorted(getattr(type_to_check, "__required_keys__", frozenset()))
-        return (properties or None, required_keys)
+        return (properties, required_keys)
 
     # Handle regular dict with type annotations (e.g., dict[str, Any])
     elif get_origin(type_to_check) is dict:
@@ -935,9 +937,10 @@ def wire_type_info_to_value_schema(wire_info: WireTypeInfo) -> ValueSchema:
     """
     Convert WireTypeInfo to ValueSchema, including nested properties.
     """
-    # Convert nested properties if they exist
+    # Convert nested properties if they exist. A known-empty object shape ({}) is preserved
+    # as {} rather than collapsed to None so converters can emit it as a closed object.
     properties = None
-    if wire_info.properties:
+    if wire_info.properties is not None:
         properties = {
             name: wire_type_info_to_value_schema(nested_info)
             for name, nested_info in wire_info.properties.items()
@@ -945,7 +948,7 @@ def wire_type_info_to_value_schema(wire_info: WireTypeInfo) -> ValueSchema:
 
     # Convert inner properties for array items
     inner_properties = None
-    if wire_info.inner_properties:
+    if wire_info.inner_properties is not None:
         inner_properties = {
             name: wire_type_info_to_value_schema(nested_info)
             for name, nested_info in wire_info.inner_properties.items()
