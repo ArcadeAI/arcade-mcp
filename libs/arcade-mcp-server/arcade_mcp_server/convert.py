@@ -281,6 +281,9 @@ def _value_schema_to_json_schema(value_schema: Any) -> dict[str, Any]:
                 schema["properties"][prop_name] = _value_schema_to_json_schema(prop_schema)
                 if getattr(prop_schema, "description", None):
                     schema["properties"][prop_name]["description"] = prop_schema.description
+            # Close objects with a known shape so the schema is valid under OpenAI strict
+            # mode. Open dicts (no properties) stay open, since they accept arbitrary keys.
+            schema["additionalProperties"] = False
         if getattr(value_schema, "required_keys", None):
             schema["required"] = list(value_schema.required_keys)
         return _apply_nullable(schema, value_schema)
@@ -297,6 +300,8 @@ def _value_schema_to_json_schema(value_schema: Any) -> dict[str, Any]:
                 items_schema["properties"][prop_name] = _value_schema_to_json_schema(prop_schema)
                 if getattr(prop_schema, "description", None):
                     items_schema["properties"][prop_name]["description"] = prop_schema.description
+            # Close array-of-object items with a known shape (see object branch above).
+            items_schema["additionalProperties"] = False
             if getattr(value_schema, "inner_required_keys", None):
                 items_schema["required"] = list(value_schema.inner_required_keys)
         schema["items"] = items_schema

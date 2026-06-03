@@ -867,6 +867,7 @@ def extract_properties(
 
     # Handle Pydantic BaseModel
     if isinstance(type_to_check, type) and issubclass(type_to_check, BaseModel):
+        pydantic_required_keys: list[str] = []
         for field_name, field_info in type_to_check.model_fields.items():
             # Get the field type
             field_type = field_info.annotation
@@ -874,16 +875,23 @@ def extract_properties(
                 continue
 
             # Handle Optional types (Union[T, None])
-            if is_strict_optional(field_type):
+            is_nullable = is_strict_optional(field_type)
+            if is_nullable:
                 # Extract the non-None type from Optional
                 field_type = next(arg for arg in get_args(field_type) if arg is not type(None))
 
             # Get wire type info recursively
             # field_type cannot be None here due to the check above
             wire_info = get_wire_type_info(field_type)
+            if is_nullable:
+                wire_info.nullable = True
             properties[field_name] = wire_info
 
-        return (properties or None, None)
+            # A Pydantic field is required when it has no default (default or factory).
+            if field_info.is_required():
+                pydantic_required_keys.append(field_name)
+
+        return (properties or None, sorted(pydantic_required_keys) or None)
 
     # Handle TypedDict
     elif is_typeddict(type_to_check):
