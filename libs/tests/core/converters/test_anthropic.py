@@ -750,3 +750,56 @@ class TestAnthropicVsOpenAIDifferences:
         # OpenAI strict mode requires: "additionalProperties": false
         # Anthropic should NOT have this constraint
         assert "additionalProperties" not in result
+
+    def test_array_of_object_items_expand_item_fields(self):
+        """`list[<object>]` parameters expand the object's fields into the array `items`
+        schema. Anthropic uses standard JSON Schema, so only the actually-required fields
+        appear in `required` and optional fields keep a single (non-nullable) type."""
+        param = InputParameter(
+            name="attachments",
+            required=False,
+            description="Files to attach.",
+            value_schema=ValueSchema(
+                val_type="array",
+                inner_val_type="json",
+                inner_properties={
+                    "source": ValueSchema(val_type="string"),
+                    "filename": ValueSchema(val_type="string"),
+                    "mime_type": ValueSchema(val_type="string"),
+                },
+                inner_required_keys=["source"],
+            ),
+        )
+
+        items = _convert_input_parameters_to_json_schema([param])["properties"]["attachments"][
+            "items"
+        ]
+
+        assert items.get("properties", {}).keys() == {"source", "filename", "mime_type"}
+        assert items["required"] == ["source"]
+        assert items["properties"]["source"]["type"] == "string"
+        assert items["properties"]["filename"]["type"] == "string"
+        assert "additionalProperties" not in items
+
+    def test_object_param_includes_required_keys(self):
+        """A top-level object parameter lists only its actually-required fields in
+        `required` and adds no `additionalProperties` constraint."""
+        param = InputParameter(
+            name="recipient",
+            required=True,
+            description="Message recipient.",
+            value_schema=ValueSchema(
+                val_type="json",
+                properties={
+                    "email": ValueSchema(val_type="string"),
+                    "name": ValueSchema(val_type="string"),
+                },
+                required_keys=["email"],
+            ),
+        )
+
+        schema = _convert_input_parameters_to_json_schema([param])["properties"]["recipient"]
+
+        assert schema["required"] == ["email"]
+        assert "additionalProperties" not in schema
+        assert schema["properties"]["name"]["type"] == "string"

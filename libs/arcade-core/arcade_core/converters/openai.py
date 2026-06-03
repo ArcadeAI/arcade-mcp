@@ -25,7 +25,7 @@ class OpenAIFunctionParameterProperty(TypedDict, total=False):
     enum: list[Any]
     """Allowed values for enum properties."""
 
-    items: dict[str, Any]
+    items: "OpenAIFunctionParameterProperty"
     """Schema for array items when type is 'array'."""
 
     properties: dict[str, "OpenAIFunctionParameterProperty"]
@@ -136,6 +136,56 @@ def _create_tool_schema(
     return tool
 
 
+def _add_null_to_type(schema: OpenAIFunctionParameterProperty) -> None:
+    """Union a property's type with "null" so it may be omitted in strict mode.
+
+    Strict mode lists every property in ``required``; an optional property is then
+    expressed by allowing ``null`` rather than by leaving it out of ``required``.
+    """
+    param_type = schema.get("type")
+    if isinstance(param_type, str):
+        schema["type"] = [param_type, "null"]
+    elif isinstance(param_type, list) and "null" not in param_type:
+        schema["type"] = [*param_type, "null"]
+
+
+def _build_object_schema(
+    properties: dict[str, ValueSchema],
+    required_keys: list[str] | None,
+) -> OpenAIFunctionParameterProperty:
+    """Build a strict-mode object schema from a structured type's fields.
+
+    Strict mode requires ``additionalProperties: false`` on every object and every
+    property listed in ``required``. Fields that are not actually required are unioned
+    with ``null`` so the model may omit them. When ``required_keys`` is known (TypedDict)
+    a field is required iff it appears there; when it is unknown (e.g. a Pydantic model,
+    which does not expose required keys here) the field's ``nullable`` flag decides.
+    """
+    required_set = set(required_keys or [])
+    field_schemas: dict[str, OpenAIFunctionParameterProperty] = {}
+
+    for name, field_value_schema in properties.items():
+        field_schema = _convert_value_schema_to_json_schema(field_value_schema)
+        if field_value_schema.description:
+            field_schema["description"] = field_value_schema.description
+
+        if required_keys is None:
+            is_required = not field_value_schema.nullable
+        else:
+            is_required = name in required_set
+        if field_value_schema.nullable or not is_required:
+            _add_null_to_type(field_schema)
+
+        field_schemas[name] = field_schema
+
+    return {
+        "type": "object",
+        "properties": field_schemas,
+        "required": list(properties.keys()),
+        "additionalProperties": False,
+    }
+
+
 def _convert_value_schema_to_json_schema(
     value_schema: ValueSchema,
 ) -> OpenAIFunctionParameterProperty:
@@ -149,28 +199,30 @@ def _convert_value_schema_to_json_schema(
         "array": "array",
     }
 
-    schema: OpenAIFunctionParameterProperty = {"type": type_mapping[value_schema.val_type]}
+    schema: OpenAIFunctionParameterProperty
 
     if value_schema.val_type == "array" and value_schema.inner_val_type:
-        items_schema: dict[str, Any] = {"type": type_mapping[value_schema.inner_val_type]}
+        schema = {"type": "array"}
+        if value_schema.inner_val_type == "json" and value_schema.inner_properties:
+            schema["items"] = _build_object_schema(
+                value_schema.inner_properties, value_schema.inner_required_keys
+            )
+        else:
+            items_schema: OpenAIFunctionParameterProperty = {
+                "type": type_mapping[value_schema.inner_val_type]
+            }
+            # For arrays of scalars, enum applies to the items, not the array itself
+            if value_schema.enum:
+                items_schema["enum"] = value_schema.enum
+            schema["items"] = items_schema
+        return schema
 
-        # For arrays, enum should be applied to the items, not the array itself
-        if value_schema.enum:
-            items_schema["enum"] = value_schema.enum
-
-        schema["items"] = items_schema
-    else:
-        # Handle enum for non-array types
-        if value_schema.enum:
-            schema["enum"] = value_schema.enum
-
-    # Handle object properties
     if value_schema.val_type == "json" and value_schema.properties:
-        schema["properties"] = {
-            name: _convert_value_schema_to_json_schema(nested_schema)
-            for name, nested_schema in value_schema.properties.items()
-        }
+        return _build_object_schema(value_schema.properties, value_schema.required_keys)
 
+    schema = {"type": type_mapping[value_schema.val_type]}
+    if value_schema.enum:
+        schema["enum"] = value_schema.enum
     return schema
 
 
@@ -192,21 +244,15 @@ def _convert_input_parameters_to_json_schema(
     for parameter in parameters:
         param_schema = _convert_value_schema_to_json_schema(parameter.value_schema)
 
-        # For optional parameters in strict mode, we need to add "null" as a type option
+        # In strict mode every parameter is listed in `required`; optional ones are
+        # expressed by allowing "null" rather than by omission.
         if not parameter.required:
-            param_type = param_schema.get("type")
-            if isinstance(param_type, str):
-                # Convert single type to union with null
-                param_schema["type"] = [param_type, "null"]
-            elif isinstance(param_type, list) and "null" not in param_type:
-                param_schema["type"] = [*param_type, "null"]
+            _add_null_to_type(param_schema)
 
         if parameter.description:
             param_schema["description"] = parameter.description
         properties[parameter.name] = param_schema
 
-        # In strict mode, all parameters (including optional ones) go in required array
-        # Optional parameters are handled by adding "null" to their type
         required.append(parameter.name)
 
     json_schema: OpenAIFunctionParameters = {

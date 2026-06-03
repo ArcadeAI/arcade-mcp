@@ -545,3 +545,61 @@ class TestHelperFunctions:
 
         # Optional parameter should have union type with null
         assert result["properties"]["optional_param"]["type"] == ["integer", "null"]
+
+    def test_array_of_object_items_expand_item_fields(self):
+        """`list[<object>]` parameters expand the object's fields into the array `items`
+        schema. OpenAI strict mode requires every field in `required` and
+        `additionalProperties: false` on each item object; fields absent from
+        `inner_required_keys` are expressed as nullable unions so they may be omitted."""
+        param = InputParameter(
+            name="attachments",
+            required=False,
+            description="Files to attach.",
+            value_schema=ValueSchema(
+                val_type="array",
+                inner_val_type="json",
+                inner_properties={
+                    "source": ValueSchema(val_type="string"),
+                    "filename": ValueSchema(val_type="string"),
+                    "mime_type": ValueSchema(val_type="string"),
+                },
+                inner_required_keys=["source"],
+            ),
+        )
+
+        items = _convert_input_parameters_to_json_schema([param])["properties"]["attachments"][
+            "items"
+        ]
+
+        assert items.get("properties", {}).keys() == {"source", "filename", "mime_type"}
+        assert items["additionalProperties"] is False
+        assert set(items["required"]) == {"source", "filename", "mime_type"}
+        assert items["properties"]["source"]["type"] == "string"
+        assert items["properties"]["filename"]["type"] == ["string", "null"]
+        assert items["properties"]["mime_type"]["type"] == ["string", "null"]
+
+    def test_object_param_expands_with_strict_fields(self):
+        """A top-level (and nested) object parameter is a full strict-mode object: every
+        property in `required`, `additionalProperties: false`, and properties absent from
+        `required_keys` expressed as nullable unions."""
+        param = InputParameter(
+            name="recipient",
+            required=True,
+            description="Message recipient.",
+            value_schema=ValueSchema(
+                val_type="json",
+                properties={
+                    "email": ValueSchema(val_type="string"),
+                    "name": ValueSchema(val_type="string"),
+                },
+                required_keys=["email"],
+            ),
+        )
+
+        schema = _convert_input_parameters_to_json_schema([param])["properties"]["recipient"]
+
+        assert schema["type"] == "object"
+        assert schema["additionalProperties"] is False
+        assert set(schema["required"]) == {"email", "name"}
+        assert schema["properties"]["email"]["type"] == "string"
+        assert schema["properties"]["name"]["type"] == ["string", "null"]
