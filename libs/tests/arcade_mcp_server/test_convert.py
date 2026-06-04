@@ -461,6 +461,119 @@ class TestCreateMCPTool:
         )
         return create_mcp_tool(mat_tool)
 
+    def _make_tool_with_param(self, value_schema: ValueSchema, *, required: bool = True):
+        """Helper to create a materialized tool with a single input param ValueSchema."""
+        tool_def = ToolDefinition(
+            name="test",
+            fully_qualified_name="Test.test",
+            description="Test",
+            toolkit=ToolkitDefinition(name="Test"),
+            input=ToolInput(
+                parameters=[
+                    InputParameter(
+                        name="param",
+                        required=required,
+                        description="A param",
+                        value_schema=value_schema,
+                    )
+                ]
+            ),
+            output=ToolOutput(),
+            requirements=ToolRequirements(),
+        )
+
+        @tool
+        def f(param: Annotated[str, "A param"]):
+            return param
+
+        input_model, output_model = create_func_models(f)
+        meta = ToolMeta(module=f.__module__, toolkit=tool_def.toolkit.name)
+        mat_tool = MaterializedTool(
+            tool=f,
+            definition=tool_def,
+            meta=meta,
+            input_model=input_model,
+            output_model=output_model,
+        )
+        return create_mcp_tool(mat_tool)
+
+    def test_input_schema_nested_object_is_closed(self):
+        """Objects with a known shape close at every level (additionalProperties: false),
+        because a known shape has a fixed set of keys."""
+        inner = {
+            "source": ValueSchema(val_type="string"),
+            "meta": ValueSchema(
+                val_type="json",
+                properties={"key": ValueSchema(val_type="string")},
+                required_keys=["key"],
+            ),
+        }
+        mcp_tool = self._make_tool_with_param(
+            ValueSchema(val_type="json", properties=inner, required_keys=["source"])
+        )
+        param = mcp_tool.inputSchema["properties"]["param"]
+
+        assert param["additionalProperties"] is False
+        assert param["properties"]["meta"]["additionalProperties"] is False
+
+    def test_input_schema_array_of_object_items_are_closed(self):
+        """list[<object>] item schemas must carry properties AND additionalProperties: false."""
+        mcp_tool = self._make_tool_with_param(
+            ValueSchema(
+                val_type="array",
+                inner_val_type="json",
+                inner_properties={
+                    "source": ValueSchema(val_type="string"),
+                    "filename": ValueSchema(val_type="string"),
+                },
+                inner_required_keys=["source"],
+            )
+        )
+        items = mcp_tool.inputSchema["properties"]["param"]["items"]
+
+        assert items["properties"].keys() == {"source", "filename"}
+        assert items["required"] == ["source"]
+        assert items["additionalProperties"] is False
+
+    def test_input_schema_open_dict_stays_open(self):
+        """A freeform dict (json with no properties) must stay open: closing it would reject
+        every key. additionalProperties: false applies only to objects with a known shape."""
+        mcp_tool = self._make_tool_with_param(ValueSchema(val_type="json"))
+        param = mcp_tool.inputSchema["properties"]["param"]
+
+        assert param["type"] == "object"
+        assert "properties" not in param
+        assert "additionalProperties" not in param
+
+    def test_input_schema_empty_object_is_closed(self):
+        """An object with a known-empty shape (properties == {}) is closed: it carries
+        `properties: {}` and `additionalProperties: false`, the same as any known shape."""
+        mcp_tool = self._make_tool_with_param(
+            ValueSchema(val_type="json", properties={}, required_keys=[])
+        )
+        param = mcp_tool.inputSchema["properties"]["param"]
+
+        assert param["type"] == "object"
+        assert param["properties"] == {}
+        assert param["additionalProperties"] is False
+
+    def test_input_schema_array_of_empty_object_items_are_closed(self):
+        """`list[<empty object>]` item schemas carry `properties: {}` and
+        `additionalProperties: false`."""
+        mcp_tool = self._make_tool_with_param(
+            ValueSchema(
+                val_type="array",
+                inner_val_type="json",
+                inner_properties={},
+                inner_required_keys=[],
+            )
+        )
+        items = mcp_tool.inputSchema["properties"]["param"]["items"]
+
+        assert items["type"] == "object"
+        assert items["properties"] == {}
+        assert items["additionalProperties"] is False
+
     @pytest.mark.parametrize(
         "val_type",
         ["string", "integer", "number", "boolean"],

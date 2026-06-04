@@ -17,8 +17,8 @@ from arcade_core.schema import InputParameter, ValueSchema
 class AnthropicInputSchemaProperty(TypedDict, total=False):
     """Type definition for a property within Anthropic input schema."""
 
-    type: str
-    """The JSON Schema type for this property."""
+    type: str | list[str]
+    """The JSON Schema type(s) for this property. A list expresses a union (e.g. ["string", "null"])."""
 
     description: str
     """Description of the property."""
@@ -26,7 +26,7 @@ class AnthropicInputSchemaProperty(TypedDict, total=False):
     enum: list[Any]
     """Allowed values for enum properties."""
 
-    items: dict[str, Any]
+    items: "AnthropicInputSchemaProperty"
     """Schema for array items when type is 'array'."""
 
     properties: dict[str, "AnthropicInputSchemaProperty"]
@@ -112,6 +112,49 @@ def _create_tool_schema(
     return tool
 
 
+def _add_null_to_type(schema: AnthropicInputSchemaProperty) -> None:
+    """Union a field's type with "null" so a null value validates.
+
+    A nested field can be required yet nullable (``str | None`` with no default): it must
+    stay required while still accepting null. When the field is an enum, ``None`` is
+    appended to the enum too, since ``type`` and ``enum`` are independent assertions.
+    """
+    field_type = schema.get("type")
+    if isinstance(field_type, str):
+        schema["type"] = [field_type, "null"]
+    elif isinstance(field_type, list) and "null" not in field_type:
+        schema["type"] = [*field_type, "null"]
+
+    enum_values = schema.get("enum")
+    if isinstance(enum_values, list) and None not in enum_values:
+        schema["enum"] = [*enum_values, None]
+
+
+def _build_object_schema(
+    properties: dict[str, ValueSchema],
+    required_keys: list[str] | None,
+) -> AnthropicInputSchemaProperty:
+    """Build an object schema from a structured type's fields.
+
+    Anthropic uses standard JSON Schema: only the actually-required fields appear in
+    ``required`` and there is no ``additionalProperties`` constraint. A nullable field
+    unions ``null`` into its type so a null value validates even when the field is required.
+    """
+    field_schemas: dict[str, AnthropicInputSchemaProperty] = {}
+    for name, field_value_schema in properties.items():
+        field_schema = _convert_value_schema_to_json_schema(field_value_schema)
+        if field_value_schema.description:
+            field_schema["description"] = field_value_schema.description
+        if field_value_schema.nullable:
+            _add_null_to_type(field_schema)
+        field_schemas[name] = field_schema
+
+    schema: AnthropicInputSchemaProperty = {"type": "object", "properties": field_schemas}
+    if required_keys:
+        schema["required"] = list(required_keys)
+    return schema
+
+
 def _convert_value_schema_to_json_schema(
     value_schema: ValueSchema,
 ) -> AnthropicInputSchemaProperty:
@@ -125,28 +168,30 @@ def _convert_value_schema_to_json_schema(
         "array": "array",
     }
 
-    schema: AnthropicInputSchemaProperty = {"type": type_mapping[value_schema.val_type]}
+    schema: AnthropicInputSchemaProperty
 
     if value_schema.val_type == "array" and value_schema.inner_val_type:
-        items_schema: dict[str, Any] = {"type": type_mapping[value_schema.inner_val_type]}
+        schema = {"type": "array"}
+        if value_schema.inner_val_type == "json" and value_schema.inner_properties is not None:
+            schema["items"] = _build_object_schema(
+                value_schema.inner_properties, value_schema.inner_required_keys
+            )
+        else:
+            items_schema: AnthropicInputSchemaProperty = {
+                "type": type_mapping[value_schema.inner_val_type]
+            }
+            # For arrays of scalars, enum applies to the items, not the array itself
+            if value_schema.enum:
+                items_schema["enum"] = value_schema.enum
+            schema["items"] = items_schema
+        return schema
 
-        # For arrays, enum should be applied to the items, not the array itself
-        if value_schema.enum:
-            items_schema["enum"] = value_schema.enum
+    if value_schema.val_type == "json" and value_schema.properties is not None:
+        return _build_object_schema(value_schema.properties, value_schema.required_keys)
 
-        schema["items"] = items_schema
-    else:
-        # Handle enum for non-array types
-        if value_schema.enum:
-            schema["enum"] = value_schema.enum
-
-    # Handle object properties
-    if value_schema.val_type == "json" and value_schema.properties:
-        schema["properties"] = {
-            name: _convert_value_schema_to_json_schema(nested_schema)
-            for name, nested_schema in value_schema.properties.items()
-        }
-
+    schema = {"type": type_mapping[value_schema.val_type]}
+    if value_schema.enum:
+        schema["enum"] = value_schema.enum
     return schema
 
 

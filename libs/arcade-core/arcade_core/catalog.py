@@ -775,12 +775,13 @@ def get_wire_type_info(_type: type) -> WireTypeInfo:
         inner_info = get_wire_type_info(inner_type)
         inner_wire_type = cast(InnerWireType, inner_info.wire_type)
 
-        # If inner type has properties (it's a complex object), propagate them
-        if inner_info.properties:
+        # If inner type has a known object shape (possibly empty), propagate it. A known-empty
+        # shape ({}) is distinct from None (unknown shape) so converters can close it.
+        if inner_info.properties is not None:
             inner_properties = inner_info.properties
             inner_required_keys = inner_info.required_keys
         # If inner type is array (nested arrays), propagate inner_properties
-        elif inner_info.inner_properties:
+        elif inner_info.inner_properties is not None:
             inner_properties = inner_info.inner_properties
             inner_required_keys = inner_info.inner_required_keys
     else:
@@ -860,13 +861,18 @@ def extract_properties(
     """
     Extract properties from TypedDict, Pydantic models, or other structured types.
 
-    Returns (properties, required_keys). required_keys is a sorted list of required
-    property names for TypedDict types, or None for other types.
+    Returns (properties, required_keys). For a known structured type (TypedDict or
+    Pydantic model) properties is a dict of its fields, empty when the type declares no
+    fields, and required_keys is a sorted list of required property names, empty when every
+    field is optional. A known-empty shape (no fields) therefore yields ``({}, [])``, which
+    converters can distinguish from a type with no known shape (e.g. a freeform ``dict``),
+    which yields ``(None, None)`` to signal that both shape and requiredness are unknown.
     """
     properties = {}
 
     # Handle Pydantic BaseModel
     if isinstance(type_to_check, type) and issubclass(type_to_check, BaseModel):
+        pydantic_required_keys: list[str] = []
         for field_name, field_info in type_to_check.model_fields.items():
             # Get the field type
             field_type = field_info.annotation
@@ -874,16 +880,23 @@ def extract_properties(
                 continue
 
             # Handle Optional types (Union[T, None])
-            if is_strict_optional(field_type):
+            is_nullable = is_strict_optional(field_type)
+            if is_nullable:
                 # Extract the non-None type from Optional
                 field_type = next(arg for arg in get_args(field_type) if arg is not type(None))
 
             # Get wire type info recursively
             # field_type cannot be None here due to the check above
             wire_info = get_wire_type_info(field_type)
+            if is_nullable:
+                wire_info.nullable = True
             properties[field_name] = wire_info
 
-        return (properties or None, None)
+            # A Pydantic field is required when it has no default (default or factory).
+            if field_info.is_required():
+                pydantic_required_keys.append(field_name)
+
+        return (properties, sorted(pydantic_required_keys))
 
     # Handle TypedDict
     elif is_typeddict(type_to_check):
@@ -909,9 +922,8 @@ def extract_properties(
 
             properties[field_name] = wire_info
 
-        req = sorted(getattr(type_to_check, "__required_keys__", frozenset()))
-        required_keys = req or None  # normalize empty → None
-        return (properties or None, required_keys)
+        required_keys = sorted(getattr(type_to_check, "__required_keys__", frozenset()))
+        return (properties, required_keys)
 
     # Handle regular dict with type annotations (e.g., dict[str, Any])
     elif get_origin(type_to_check) is dict:
@@ -925,9 +937,10 @@ def wire_type_info_to_value_schema(wire_info: WireTypeInfo) -> ValueSchema:
     """
     Convert WireTypeInfo to ValueSchema, including nested properties.
     """
-    # Convert nested properties if they exist
+    # Convert nested properties if they exist. A known-empty object shape ({}) is preserved
+    # as {} rather than collapsed to None so converters can emit it as a closed object.
     properties = None
-    if wire_info.properties:
+    if wire_info.properties is not None:
         properties = {
             name: wire_type_info_to_value_schema(nested_info)
             for name, nested_info in wire_info.properties.items()
@@ -935,7 +948,7 @@ def wire_type_info_to_value_schema(wire_info: WireTypeInfo) -> ValueSchema:
 
     # Convert inner properties for array items
     inner_properties = None
-    if wire_info.inner_properties:
+    if wire_info.inner_properties is not None:
         inner_properties = {
             name: wire_type_info_to_value_schema(nested_info)
             for name, nested_info in wire_info.inner_properties.items()
