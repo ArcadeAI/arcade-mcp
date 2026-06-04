@@ -1,6 +1,6 @@
 [project]
 name = "arcade-serve"
-version = "3.2.5"
+version = "3.3.0"
 description = "Arcade Serve - Serving infrastructure for Arcade tools and workers"
 readme = "README.md"
 license = {text = "MIT"}
@@ -41,6 +41,10 @@ dev = [
     "pre-commit>=3.4.0",
     "pytest-asyncio>=0.23.7",
 ]
+
+# Optional: if `arcade-telemetry` is importable at runtime, OTELHandler
+# delegates provider setup to it and create_arcade_mcp() registers its
+# CorrelationMiddleware. Detected via importlib; no declaration needed.
 
 [build-system]
 requires = ["hatchling"]

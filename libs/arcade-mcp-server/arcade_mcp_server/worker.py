@@ -18,6 +18,7 @@ from arcade_core.catalog import ToolCatalog
 from arcade_core.discovery import discover_tools
 from arcade_core.toolkit import ToolkitLoadError
 from arcade_serve.fastapi import FastAPIWorker, TaskTrackerMiddleware
+from arcade_serve.fastapi import _arcade_telemetry as _arcade_telemetry_bridge
 from arcade_serve.fastapi.telemetry import OTELHandler
 from fastapi import FastAPI
 from loguru import logger
@@ -159,6 +160,8 @@ def create_arcade_mcp(
     otel_handler = OTELHandler(
         enable=otel_enable,
         log_level=logging.DEBUG if debug else logging.INFO,
+        service_name=mcp_settings.server.name or "worker",
+        service_version=mcp_settings.server.version or "",
     )
 
     @asynccontextmanager
@@ -195,6 +198,10 @@ def create_arcade_mcp(
         lifespan=lifespan,
     )
     otel_handler.instrument_app(app)
+
+    _correlation_mw = _arcade_telemetry_bridge.correlation_middleware_cls()
+    if _correlation_mw is not None:
+        app.add_middleware(_correlation_mw)  # type: ignore[arg-type]
 
     task_tracker = TaskTrackerMiddleware(app)
     app.state.task_tracker = task_tracker
