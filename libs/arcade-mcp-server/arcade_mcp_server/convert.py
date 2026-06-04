@@ -281,9 +281,9 @@ def _value_schema_to_json_schema(value_schema: Any) -> dict[str, Any]:
                 schema["properties"][prop_name] = _value_schema_to_json_schema(prop_schema)
                 if getattr(prop_schema, "description", None):
                     schema["properties"][prop_name]["description"] = prop_schema.description
-            # Close objects with a known shape (including a known-empty one) so the schema is
-            # valid under OpenAI strict mode. A freeform dict has no properties (None) and stays
-            # open, since it accepts arbitrary keys.
+            # A known shape has a fixed set of keys, so close the object with
+            # additionalProperties: false. A freeform dict has no properties (None) and
+            # stays open, since it accepts arbitrary keys.
             schema["additionalProperties"] = False
         if getattr(value_schema, "required_keys", None):
             schema["required"] = list(value_schema.required_keys)

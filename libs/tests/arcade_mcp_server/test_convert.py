@@ -498,8 +498,8 @@ class TestCreateMCPTool:
         return create_mcp_tool(mat_tool)
 
     def test_input_schema_nested_object_is_closed(self):
-        """Objects with a known shape must set additionalProperties: false at every level, so
-        the schema is valid when an MCP host forwards it to OpenAI strict mode."""
+        """Objects with a known shape close at every level (additionalProperties: false),
+        because a known shape has a fixed set of keys."""
         inner = {
             "source": ValueSchema(val_type="string"),
             "meta": ValueSchema(
@@ -547,7 +547,7 @@ class TestCreateMCPTool:
 
     def test_input_schema_empty_object_is_closed(self):
         """An object with a known-empty shape (properties == {}) is closed: it carries
-        `properties: {}` and `additionalProperties: false`, valid under OpenAI strict mode."""
+        `properties: {}` and `additionalProperties: false`, the same as any known shape."""
         mcp_tool = self._make_tool_with_param(
             ValueSchema(val_type="json", properties={}, required_keys=[])
         )
