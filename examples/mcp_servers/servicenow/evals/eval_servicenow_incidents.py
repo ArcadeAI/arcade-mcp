@@ -109,7 +109,7 @@ def servicenow_incident_eval_suite() -> EvalSuite:
     # -------------------------------------------------------------------------
     suite.add_case(
         name="Search for all critical new incidents",
-        user_message="Show me all critical priority incidents that are currently new or in progress.",
+        user_message="Show me all critical priority incidents that are new and haven't been picked up yet.",
         expected_tool_calls=[
             ExpectedToolCall(
                 func=search_incidents,

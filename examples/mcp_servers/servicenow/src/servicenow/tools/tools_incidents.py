@@ -33,7 +33,10 @@ _DEFAULT_FIELDS = (
     "urgency,impact,category,assigned_to,caller_id,opened_at,sys_updated_on"
 )
 
-_SERVICENOW_AUTH = OAuth2(id="servicenow", scopes=["useraccount"])
+# ServiceNow OAuth scopes are instance-specific and configured by the enterprise
+# admin. Omitting scopes here requests the default access level — adjust in your
+# Arcade dashboard if your instance requires explicit scope declarations.
+_SERVICENOW_AUTH = OAuth2(id="servicenow")
 
 
 def _headers(oauth_token: str) -> dict[str, str]:
@@ -42,6 +45,25 @@ def _headers(oauth_token: str) -> dict[str, str]:
         "Accept": "application/json",
         "Content-Type": "application/json",
     }
+
+
+def _raise_for_status(response: httpx.Response, resource_hint: str = "") -> None:
+    """Translate ServiceNow HTTP errors into descriptive ValueErrors."""
+    if response.is_success:
+        return
+    code = response.status_code
+    if code == 401:
+        raise ValueError(
+            "ServiceNow authentication failed — your OAuth token may have expired."
+        )
+    if code == 403:
+        raise ValueError(
+            "Permission denied — your ServiceNow account lacks access to this resource."
+        )
+    if code == 404:
+        hint = f": {resource_hint}" if resource_hint else ""
+        raise ValueError(f"Incident not found{hint}.")
+    raise ValueError(f"ServiceNow API error {code}: {response.text}")
 
 
 async def _resolve_sys_id(
@@ -63,7 +85,7 @@ async def _resolve_sys_id(
             "sysparm_limit": 1,
         },
     )
-    response.raise_for_status()
+    _raise_for_status(response, sys_id_or_number)
     results = response.json().get("result", [])
     if not results:
         raise ValueError(f"Incident '{sys_id_or_number}' not found.")
@@ -117,7 +139,7 @@ async def create_incident(
             headers=_headers(oauth_token),
             json=payload,
         )
-        response.raise_for_status()
+        _raise_for_status(response)
         return response.json().get("result", {})
 
 
@@ -167,7 +189,7 @@ async def update_incident(
             headers=hdrs,
             json=payload,
         )
-        response.raise_for_status()
+        _raise_for_status(response, sys_id_or_number)
         return response.json().get("result", {})
 
 
@@ -197,6 +219,7 @@ async def search_incidents(
         str | None, "Filter by assigned ServiceNow username"
     ] = None,
     limit: Annotated[int, "Maximum number of results to return (1-100)"] = 20,
+    offset: Annotated[int, "Number of results to skip for pagination (default 0)"] = 0,
 ) -> list[dict]:
     """
     Search or filter ServiceNow incidents.
@@ -204,6 +227,9 @@ async def search_incidents(
     Supports a raw sysparm_query string for advanced filtering, or individual
     convenience filters for the most common fields. Results are ordered by most
     recently updated first.
+
+    To paginate, increment offset by the limit value on each subsequent call
+    (e.g. offset=0, offset=20, offset=40, ...).
     """
     instance_url = context.get_secret("SERVICENOW_INSTANCE_URL").rstrip("/")
     oauth_token = context.get_auth_token_or_empty()
@@ -223,6 +249,7 @@ async def search_incidents(
     params: dict[str, str | int] = {
         "sysparm_query": f"{query}^ORDERBYDESCsys_updated_on",
         "sysparm_limit": min(max(1, limit), 100),
+        "sysparm_offset": max(0, offset),
         "sysparm_display_value": "true",
         "sysparm_fields": _DEFAULT_FIELDS,
     }
@@ -233,7 +260,7 @@ async def search_incidents(
             headers=_headers(oauth_token),
             params=params,
         )
-        response.raise_for_status()
+        _raise_for_status(response)
         return response.json().get("result", [])
 
 
@@ -273,7 +300,7 @@ async def add_comment(
             headers=hdrs,
             json={field: comment},
         )
-        response.raise_for_status()
+        _raise_for_status(response, sys_id_or_number)
         return response.json().get("result", {})
 
 
@@ -288,12 +315,16 @@ async def list_my_incidents(
         "Filter by state: 'new', 'in_progress', 'on_hold', 'resolved', 'closed', 'cancelled'",
     ] = None,
     limit: Annotated[int, "Maximum number of incidents to return (1-100)"] = 20,
+    offset: Annotated[int, "Number of results to skip for pagination (default 0)"] = 0,
 ) -> list[dict]:
     """
     List incidents assigned to the authenticated user.
 
     Uses the Arcade session's user identity to filter incidents. Results are
     ordered by most recently updated first.
+
+    To paginate, increment offset by the limit value on each subsequent call
+    (e.g. offset=0, offset=20, offset=40, ...).
     """
     instance_url = context.get_secret("SERVICENOW_INSTANCE_URL").rstrip("/")
     oauth_token = context.get_auth_token_or_empty()
@@ -307,6 +338,7 @@ async def list_my_incidents(
     params: dict[str, str | int] = {
         "sysparm_query": "^".join(query_parts) + "^ORDERBYDESCsys_updated_on",
         "sysparm_limit": min(max(1, limit), 100),
+        "sysparm_offset": max(0, offset),
         "sysparm_display_value": "true",
         "sysparm_fields": _DEFAULT_FIELDS,
     }
@@ -317,7 +349,7 @@ async def list_my_incidents(
             headers=_headers(oauth_token),
             params=params,
         )
-        response.raise_for_status()
+        _raise_for_status(response)
         return response.json().get("result", [])
 
 
@@ -368,5 +400,5 @@ async def change_state(
             headers=hdrs,
             json=payload,
         )
-        response.raise_for_status()
+        _raise_for_status(response, sys_id_or_number)
         return response.json().get("result", {})
