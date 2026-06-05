@@ -34,7 +34,7 @@ from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
     ModelSpec,
     Provider,
-    compute_base_url,
+    derive_engine_url_from_coordinator,
     expand_provider_configs,
     get_default_model,
     get_eval_files,
@@ -44,6 +44,7 @@ from arcade_cli.utils import (
     parse_output_paths,
     parse_provider_spec,
     require_dependency,
+    resolve_engine_url,
     resolve_provider_api_keys,
     version_callback,
 )
@@ -108,6 +109,7 @@ def login(
         return
 
     coordinator_url = build_coordinator_url(host, port)
+    engine_url = derive_engine_url_from_coordinator(coordinator_url)
 
     try:
         result = perform_oauth_login(
@@ -116,16 +118,17 @@ def login(
             callback_timeout_seconds=timeout,
         )
 
-        # Save credentials
-        save_credentials_from_whoami(result.tokens, result.whoami, coordinator_url)
+        save_credentials_from_whoami(result.tokens, result.whoami, coordinator_url, engine_url)
 
-        # Success message
         console.print(f"\n✅ Logged in as {result.email}.", style="bold green")
         if result.selected_org and result.selected_project:
             console.print(
                 f"\nActive project: {result.selected_org.name} / {result.selected_project.name}",
                 style="dim",
             )
+        console.print(f"Coordinator: {coordinator_url}", style="dim")
+        if engine_url:
+            console.print(f"Engine:      {engine_url}", style="dim")
         console.print(
             "Run 'arcade org list' or 'arcade project list' to see available options.",
             style="dim",
@@ -199,6 +202,19 @@ def whoami(
         console.print(f"   ID: {config.context.project_id}", style="dim")
     else:
         console.print("\nNo active organization/project set.", style="yellow")
+
+    coordinator_display = config.coordinator_url or f"https://{PROD_COORDINATOR_HOST}"
+    engine_display = config.engine_url or f"https://{PROD_ENGINE_HOST} (fallback)"
+    coordinator_style = (
+        "bold yellow"
+        if config.coordinator_url and PROD_COORDINATOR_HOST not in config.coordinator_url
+        else "bold"
+    )
+    engine_style = (
+        "bold yellow" if config.engine_url and PROD_ENGINE_HOST not in config.engine_url else "bold"
+    )
+    console.print(f"\nCoordinator: {coordinator_display}", style=coordinator_style)
+    console.print(f"Engine:      {engine_display}", style=engine_style)
 
     console.print("\nRun 'arcade org list' or 'arcade project list' to see options.", style="dim")
 
@@ -363,11 +379,14 @@ def show(
     tool: Optional[str] = typer.Option(
         None, "-t", "--tool", help="The specific tool to show details for"
     ),
-    host: str = typer.Option(
-        PROD_ENGINE_HOST,
+    host: Optional[str] = typer.Option(
+        None,
         "-h",
         "--host",
-        help="The Arcade Engine address to show the tools/servers of.",
+        help=(
+            "The Arcade Engine address to show the tools/servers of. "
+            "Defaults to the host from `arcade login`, then `api.arcade.dev`."
+        ),
     ),
     local: bool = typer.Option(
         False,
@@ -946,11 +965,14 @@ def deploy(
         rich_help_panel="Advanced",
         click_type=click.Choice(["auto", "all", "skip"], case_sensitive=False),
     ),
-    host: str = typer.Option(
-        PROD_ENGINE_HOST,
+    host: Optional[str] = typer.Option(
+        None,
         "--host",
         "-h",
-        help="The Arcade Engine host to deploy to",
+        help=(
+            "The Arcade Engine host to deploy to. "
+            "Defaults to the host from `arcade login`, then `api.arcade.dev`."
+        ),
         hidden=True,
     ),
     port: Optional[int] = typer.Option(
@@ -1039,11 +1061,14 @@ def upgrade(
 
 @cli.command(help="Open the Arcade Dashboard in a web browser", rich_help_panel="User")
 def dashboard(
-    host: str = typer.Option(
-        PROD_ENGINE_HOST,
+    host: Optional[str] = typer.Option(
+        None,
         "-h",
         "--host",
-        help="The Arcade Engine host that serves the dashboard.",
+        help=(
+            "The Arcade Engine host that serves the dashboard. "
+            "Defaults to the host from `arcade login`, then `api.arcade.dev`."
+        ),
     ),
     port: Optional[int] = typer.Option(
         None,
@@ -1077,8 +1102,7 @@ def dashboard(
         if local:
             host = "localhost"
 
-        # Construct base URL (for both health check and dashboard)
-        base_url = compute_base_url(force_tls, force_no_tls, host, port)
+        base_url = resolve_engine_url(host, port, force_tls, force_no_tls)
         dashboard_url = f"{base_url}/dashboard"
 
         # Try to hit /health endpoint on engine and warn if it is down

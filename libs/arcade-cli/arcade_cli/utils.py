@@ -1,5 +1,6 @@
 import importlib.util
 import ipaddress
+import logging
 import os
 import shlex
 import sys
@@ -14,9 +15,10 @@ from typing import Any, Callable, cast
 from urllib.parse import urlparse
 
 import idna
+import yaml
 from arcade_core import ToolCatalog, Toolkit
 from arcade_core.config_model import Config
-from arcade_core.constants import LOCALHOST
+from arcade_core.constants import LOCALHOST, PROD_COORDINATOR_HOST, PROD_ENGINE_HOST
 from arcade_core.discovery import (
     analyze_files_for_tools,
     build_minimal_toolkit,
@@ -483,6 +485,162 @@ def create_cli_catalog_local() -> ToolCatalog:
     return _discover_installed_toolkits(catalog)
 
 
+_resolution_logger = logging.getLogger(__name__)
+
+
+def _load_config_or_none() -> Config | None:
+    """Load the credentials config if present, returning None when it isn't.
+
+    URL resolution happens on every CLI command, so this swallows any reason
+    the credentials file can't be loaded (missing, malformed YAML, validation
+    failure, permission denied) and falls back to defaults. A broken file
+    must never crash unrelated commands; a warning is logged so the cause is
+    discoverable.
+    """
+    try:
+        return Config.load_from_file()
+    except FileNotFoundError:
+        return None
+    except (ValueError, yaml.YAMLError, OSError) as exc:
+        _resolution_logger.warning(
+            "Could not load credentials for host resolution; using defaults: %s", exc
+        )
+        return None
+
+
+def _resolve_url(
+    host: str | None,
+    port: int | None,
+    force_tls: bool,
+    force_no_tls: bool,
+    saved_url: str | None,
+    prod_host: str,
+    default_port: int | None,
+) -> str:
+    """
+    Resolve a service base URL from explicit flags, the URL saved at login,
+    and a hardcoded production host.
+
+    With no flags at all, the saved URL is returned verbatim (or the prod
+    default if nothing was saved). When ``--host`` is set, it is a clean
+    override and the saved URL is ignored entirely. When ``--port``,
+    ``--tls``, or ``--no-tls`` is set without ``--host``, those flags layer
+    on top of the saved host so users can tweak the connection (port, TLS)
+    without losing the environment they logged into. Without a saved URL,
+    partial flags fall back to the production host.
+    """
+    if host is None and port is None and not force_tls and not force_no_tls:
+        return saved_url or compute_base_url(
+            False, False, prod_host, None, default_port=default_port
+        )
+
+    if host is None and saved_url:
+        parsed = urlparse(saved_url)
+        if parsed.hostname:
+            host = parsed.hostname
+            if port is None and parsed.port:
+                port = parsed.port
+            # Preserve the saved scheme unless the user is overriding it.
+            if not force_tls and not force_no_tls:
+                if parsed.scheme == "https":
+                    force_tls = True
+                elif parsed.scheme == "http":
+                    force_no_tls = True
+
+    return compute_base_url(
+        force_tls,
+        force_no_tls,
+        host or prod_host,
+        port,
+        default_port=default_port,
+    )
+
+
+def resolve_engine_url(
+    host: str | None,
+    port: int | None,
+    force_tls: bool,
+    force_no_tls: bool,
+) -> str:
+    """
+    Resolve the Arcade Engine base URL for a CLI command.
+
+    Resolution order:
+    1. Explicit per-command flags (``-h``, ``-p``, ``--tls``, ``--no-tls``).
+       ``-h`` replaces the saved host wholesale; the others layer on top of
+       the saved host so the connection stays in the same environment.
+    2. ``engine_url`` persisted in ``~/.arcade/credentials.yaml`` at login.
+    3. Production default (``https://api.arcade.dev``).
+    """
+    config = _load_config_or_none()
+    return _resolve_url(
+        host,
+        port,
+        force_tls,
+        force_no_tls,
+        saved_url=config.engine_url if config else None,
+        prod_host=PROD_ENGINE_HOST,
+        default_port=9099,
+    )
+
+
+def resolve_coordinator_url(
+    host: str | None,
+    port: int | None,
+    force_tls: bool,
+    force_no_tls: bool,
+) -> str:
+    """
+    Resolve the Arcade Coordinator base URL for a CLI command.
+
+    Mirrors ``resolve_engine_url`` against the saved ``coordinator_url`` and
+    the production Coordinator host.
+    """
+    config = _load_config_or_none()
+    return _resolve_url(
+        host,
+        port,
+        force_tls,
+        force_no_tls,
+        saved_url=config.coordinator_url if config else None,
+        prod_host=PROD_COORDINATOR_HOST,
+        default_port=None,
+    )
+
+
+def derive_engine_url_from_coordinator(coordinator_url: str) -> str | None:
+    """
+    Derive the Arcade Engine base URL from a Coordinator URL.
+
+    Convention: every Arcade environment uses ``cloud.X`` for the Coordinator and
+    ``api.X`` for the Engine. The port (if any) is preserved. Local development
+    uses ``localhost:8000`` for the Coordinator and ``localhost:9099`` for the
+    Engine.
+
+    Returns None when the coordinator URL does not match a known convention so
+    callers can fall back to other sources (saved config, prod default, etc.)
+    rather than constructing an invalid URL.
+    """
+    try:
+        parsed = urlparse(coordinator_url)
+    except ValueError:
+        return None
+
+    hostname = parsed.hostname
+    if hostname is None or not parsed.scheme:
+        return None
+
+    if hostname.startswith("cloud."):
+        new_hostname = "api." + hostname[len("cloud.") :]
+        netloc = f"{new_hostname}:{parsed.port}" if parsed.port else new_hostname
+        return f"{parsed.scheme}://{netloc}"
+
+    if hostname in ("localhost", "127.0.0.1", "0.0.0.0"):  # noqa: S104
+        return "http://localhost:9099"
+
+    return None
+
+
 def compute_base_url(
     force_tls: bool,
     force_no_tls: bool,
@@ -577,13 +735,13 @@ def compute_base_url(
 
 
 def get_tools_from_engine(
-    host: str,
+    host: str | None,
     port: int | None = None,
     force_tls: bool = False,
     force_no_tls: bool = False,
     toolkit: str | None = None,
 ) -> list[ToolDefinition]:
-    base_url = compute_base_url(force_tls, force_no_tls, host, port)
+    base_url = resolve_engine_url(host, port, force_tls, force_no_tls)
     client = get_arcade_client(base_url)
 
     tools = []
