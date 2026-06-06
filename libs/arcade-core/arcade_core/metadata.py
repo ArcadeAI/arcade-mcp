@@ -109,6 +109,9 @@ class ServiceDomain(str, Enum):
     PRODUCT_ANALYTICS = "product_analytics"
     """Product analytics — user behavior tracking, funnels, retention, session replay, and experimentation."""
 
+    SALES_INTELLIGENCE = "sales_intelligence"
+    """Sales intelligence and prospecting platforms: B2B contact and company databases, lead enrichment, and buyer intent data."""
+
 
 class Operation(str, Enum):
     """
