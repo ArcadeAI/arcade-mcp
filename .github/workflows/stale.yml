@@ -13,7 +13,7 @@ jobs:
       pull-requests: write
 
     steps:
-      - uses: actions/stale@v9
+      - uses: actions/stale@v10
         with:
           start-date: "2026-04-07"
           days-before-stale: 14
