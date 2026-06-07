@@ -53,9 +53,7 @@ def _raise_for_status(response: httpx.Response, resource_hint: str = "") -> None
         return
     code = response.status_code
     if code == 401:
-        raise ValueError(
-            "ServiceNow authentication failed — your OAuth token may have expired."
-        )
+        raise ValueError("ServiceNow authentication failed — your OAuth token may have expired.")
     if code == 403:
         raise ValueError(
             "Permission denied — your ServiceNow account lacks access to this resource."
@@ -154,9 +152,7 @@ async def update_incident(
     description: Annotated[str | None, "New detailed description"] = None,
     urgency: Annotated[str | None, "New urgency: 'high', 'medium', or 'low'"] = None,
     impact: Annotated[str | None, "New impact: 'high', 'medium', or 'low'"] = None,
-    category: Annotated[
-        str | None, "New category (e.g. 'network', 'hardware', 'software')"
-    ] = None,
+    category: Annotated[str | None, "New category (e.g. 'network', 'hardware', 'software')"] = None,
     assigned_to: Annotated[str | None, "ServiceNow username to assign the incident to"] = None,
 ) -> dict:
     """
@@ -215,9 +211,7 @@ async def search_incidents(
         str | None,
         "Filter by priority: 'critical', 'high', 'moderate', 'low', 'planning'",
     ] = None,
-    assigned_to: Annotated[
-        str | None, "Filter by assigned ServiceNow username"
-    ] = None,
+    assigned_to: Annotated[str | None, "Filter by assigned ServiceNow username"] = None,
     limit: Annotated[int, "Maximum number of results to return (1-100)"] = 20,
     offset: Annotated[int, "Number of results to skip for pagination (default 0)"] = 0,
 ) -> list[dict]:
