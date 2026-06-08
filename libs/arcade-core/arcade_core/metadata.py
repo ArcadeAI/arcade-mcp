@@ -112,6 +112,9 @@ class ServiceDomain(str, Enum):
     OBSERVABILITY = "observability"
     """Logs, traces, metrics, and APM for application and infrastructure monitoring."""
 
+    SALES_INTELLIGENCE = "sales_intelligence"
+    """Sales intelligence and prospecting platforms: B2B contact and company databases, lead enrichment, and buyer intent data."""
+
 
 class Operation(str, Enum):
     """

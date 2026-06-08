@@ -327,6 +327,26 @@ class TestToolDecoratorWithMetadata:
         assert hasattr(my_tool, "__tool_metadata__")
         assert my_tool.__tool_metadata__.classification.service_domains == [ServiceDomain.MESSAGING]
 
+    def test_decorator_accepts_sales_intelligence_domain(self):
+        """SALES_INTELLIGENCE classifies sales-intelligence / prospecting services (e.g. Apollo)."""
+        assert ServiceDomain.SALES_INTELLIGENCE.value == "sales_intelligence"
+
+        @tool(
+            desc="Search a prospecting database",
+            metadata=ToolMetadata(
+                classification=Classification(
+                    service_domains=[ServiceDomain.SALES_INTELLIGENCE]
+                ),
+                behavior=Behavior(operations=[Operation.READ], read_only=True, open_world=True),
+            ),
+        )
+        def search_people() -> str:
+            return "results"
+
+        assert search_people.__tool_metadata__.classification.service_domains == [
+            ServiceDomain.SALES_INTELLIGENCE
+        ]
+
     def test_decorator_without_metadata_is_backward_compatible(self):
         """Decorator should work without metadata (existing tools unchanged)."""
 
