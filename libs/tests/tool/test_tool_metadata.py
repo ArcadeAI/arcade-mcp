@@ -86,6 +86,23 @@ class TestToolMetadataValidation:
         )
         assert metadata is not None
 
+    def test_observability_service_domain_validates(self):
+        """A read-only observability tool classifies and validates cleanly."""
+        assert ServiceDomain.OBSERVABILITY.value == "observability"
+        metadata = ToolMetadata(
+            classification=Classification(
+                service_domains=[ServiceDomain.OBSERVABILITY],
+            ),
+            behavior=Behavior(
+                operations=[Operation.READ],
+                read_only=True,
+                destructive=False,
+                idempotent=True,
+                open_world=True,
+            ),
+        )
+        metadata.validate_for_tool()
+
     def test_mutating_operation_with_read_only_raises(self):
         """Mutating operations with read_only=True should raise when validated."""
         metadata = ToolMetadata(
