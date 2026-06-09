@@ -153,8 +153,8 @@ def test_otel_handler_delegates_when_arcade_telemetry_present(
 def test_create_arcade_mcp_registers_correlation_middleware(
     fake_arcade_telemetry, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """When arcade-telemetry is available, create_arcade_mcp adds its
-    CorrelationMiddleware to the FastAPI app."""
+    """With arcade-telemetry available AND otel_enable=True, create_arcade_mcp
+    adds CorrelationMiddleware to the FastAPI app."""
     monkeypatch.setenv("MCP_SERVER_NAME", "test-mcp")
     monkeypatch.setenv("MCP_SERVER_VERSION", "0.1.0")
 
@@ -164,16 +164,38 @@ def test_create_arcade_mcp_registers_correlation_middleware(
 
     catalog = ToolCatalog()
     mcp_settings = MCPSettings.from_env()
-    app = create_arcade_mcp(catalog, mcp_settings=mcp_settings)
+    app = create_arcade_mcp(catalog, mcp_settings=mcp_settings, otel_enable=True)
 
     middleware_classes = [m.cls for m in app.user_middleware]
     assert fake_arcade_telemetry.correlation_middleware_cls in middleware_classes
 
 
+def test_create_arcade_mcp_skips_middleware_when_otel_disabled(
+    fake_arcade_telemetry, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Even with arcade-telemetry available, otel_enable=False must NOT add
+    CorrelationMiddleware. Matches the documented behavior table — when OTel
+    is off, the middleware stack must not change."""
+    monkeypatch.setenv("MCP_SERVER_NAME", "test-mcp")
+    monkeypatch.setenv("MCP_SERVER_VERSION", "0.1.0")
+
+    from arcade_core import ToolCatalog
+    from arcade_mcp_server.settings import MCPSettings
+    from arcade_mcp_server.worker import create_arcade_mcp
+
+    catalog = ToolCatalog()
+    mcp_settings = MCPSettings.from_env()
+    app = create_arcade_mcp(catalog, mcp_settings=mcp_settings, otel_enable=False)
+
+    middleware_classes = [m.cls for m in app.user_middleware]
+    assert fake_arcade_telemetry.correlation_middleware_cls not in middleware_classes
+
+
 def test_create_arcade_mcp_skips_middleware_without_arcade_telemetry(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Without arcade-telemetry installed, no CorrelationMiddleware is added."""
+    """Without arcade-telemetry installed, no CorrelationMiddleware is added
+    regardless of the otel_enable flag."""
     monkeypatch.delitem(sys.modules, "arcade_telemetry", raising=False)
     monkeypatch.delitem(sys.modules, "arcade_telemetry.starlette", raising=False)
     monkeypatch.setenv("MCP_SERVER_NAME", "test-mcp")

@@ -199,9 +199,10 @@ def create_arcade_mcp(
     )
     otel_handler.instrument_app(app)
 
-    _correlation_mw = _arcade_telemetry_bridge.correlation_middleware_cls()
-    if _correlation_mw is not None:
-        app.add_middleware(_correlation_mw)  # type: ignore[arg-type]
+    if otel_enable:
+        _correlation_mw = _arcade_telemetry_bridge.correlation_middleware_cls()
+        if _correlation_mw is not None:
+            app.add_middleware(_correlation_mw)  # type: ignore[arg-type]
 
     task_tracker = TaskTrackerMiddleware(app)
     app.state.task_tracker = task_tracker
