@@ -94,12 +94,13 @@ class OTELHandler:
         logging.info(
             "🔎 Initializing OpenTelemetry. Use environment variables to configure the connection"
         )
-        self.resource = Resource(
-            attributes={
-                service_attributes.SERVICE_NAME: self.service_name,
-                deployment_attributes.DEPLOYMENT_ENVIRONMENT_NAME: self.environment,
-            }
-        )
+        resource_attrs: dict[str, str] = {
+            service_attributes.SERVICE_NAME: self.service_name,
+            deployment_attributes.DEPLOYMENT_ENVIRONMENT_NAME: self.environment,
+        }
+        if self.service_version:
+            resource_attrs[service_attributes.SERVICE_VERSION] = self.service_version
+        self.resource = Resource(attributes=resource_attrs)
 
         self._init_tracer()
         self._init_metrics()

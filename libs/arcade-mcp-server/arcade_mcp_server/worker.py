@@ -160,8 +160,8 @@ def create_arcade_mcp(
     otel_handler = OTELHandler(
         enable=otel_enable,
         log_level=logging.DEBUG if debug else logging.INFO,
-        service_name=mcp_settings.server.name or "worker",
-        service_version=mcp_settings.server.version or "",
+        service_name=mcp_settings.server.name,
+        service_version=mcp_settings.server.version,
     )
 
     @asynccontextmanager

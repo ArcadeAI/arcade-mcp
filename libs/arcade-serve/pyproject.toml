@@ -42,10 +42,6 @@ dev = [
     "pytest-asyncio>=0.23.7",
 ]
 
-# Optional: if `arcade-telemetry` is importable at runtime, OTELHandler
-# delegates provider setup to it and create_arcade_mcp() registers its
-# CorrelationMiddleware. Detected via importlib; no declaration needed.
-
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
