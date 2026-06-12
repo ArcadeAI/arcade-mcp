@@ -327,25 +327,28 @@ class TestToolDecoratorWithMetadata:
         assert hasattr(my_tool, "__tool_metadata__")
         assert my_tool.__tool_metadata__.classification.service_domains == [ServiceDomain.MESSAGING]
 
-    def test_decorator_accepts_sales_intelligence_domain(self):
-        """SALES_INTELLIGENCE classifies sales-intelligence / prospecting services (e.g. Apollo)."""
-        assert ServiceDomain.SALES_INTELLIGENCE.value == "sales_intelligence"
+    @pytest.mark.parametrize(
+        ("domain", "wire_value"),
+        [
+            (ServiceDomain.SALES_INTELLIGENCE, "sales_intelligence"),
+            (ServiceDomain.WEB_SEARCH, "web_search"),
+        ],
+    )
+    def test_decorator_accepts_service_domain(self, domain, wire_value):
+        """Each ServiceDomain round-trips through the decorator with its expected wire value."""
+        assert domain.value == wire_value
 
         @tool(
-            desc="Search a prospecting database",
+            desc="Tool backed by an external service",
             metadata=ToolMetadata(
-                classification=Classification(
-                    service_domains=[ServiceDomain.SALES_INTELLIGENCE]
-                ),
+                classification=Classification(service_domains=[domain]),
                 behavior=Behavior(operations=[Operation.READ], read_only=True, open_world=True),
             ),
         )
-        def search_people() -> str:
+        def domain_tool() -> str:
             return "results"
 
-        assert search_people.__tool_metadata__.classification.service_domains == [
-            ServiceDomain.SALES_INTELLIGENCE
-        ]
+        assert domain_tool.__tool_metadata__.classification.service_domains == [domain]
 
     def test_decorator_without_metadata_is_backward_compatible(self):
         """Decorator should work without metadata (existing tools unchanged)."""
