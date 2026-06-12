@@ -1,8 +1,9 @@
 import logging
 import os
 import time
+from collections.abc import Callable
 from datetime import datetime
-from typing import Any, Callable, ClassVar
+from typing import Any, ClassVar
 
 from arcade_core.catalog import ToolCatalog, Toolkit
 from arcade_core.executor import ToolExecutor
@@ -12,14 +13,16 @@ from arcade_core.schema import (
     ToolCallResponse,
     ToolDefinition,
 )
+from arcade_core.triggers import TriggerType, validate_trigger_types
 from opentelemetry import trace
 from opentelemetry.metrics import Meter
 
-from arcade_serve.core.common import Router, Worker
+from arcade_serve.core.common import Router, TriggerTypesResponse, Worker
 from arcade_serve.core.components import (
     CallToolComponent,
     CatalogComponent,
     HealthCheckComponent,
+    TriggerTypesComponent,
     WorkerComponent,
 )
 
@@ -38,6 +41,7 @@ class BaseWorker(Worker):
         CatalogComponent,
         CallToolComponent,
         HealthCheckComponent,
+        TriggerTypesComponent,
     )
 
     def __init__(
@@ -51,6 +55,7 @@ class BaseWorker(Worker):
         If no secret is provided, the worker will use the ARCADE_WORKER_SECRET environment variable.
         """
         self.catalog = ToolCatalog()
+        self.trigger_types: list[TriggerType] = []
         self.disable_auth = disable_auth
         if disable_auth:
             logger.warning(
@@ -100,6 +105,20 @@ class BaseWorker(Worker):
         Register a toolkit to the catalog.
         """
         self.catalog.add_toolkit(toolkit)
+
+    def register_trigger_types(self, trigger_types: list[TriggerType]) -> None:
+        """
+        Register toolkit-declared trigger types, validating the combined set.
+        """
+        combined = [*self.trigger_types, *trigger_types]
+        validate_trigger_types(combined)
+        self.trigger_types = combined
+
+    def get_trigger_types(self) -> TriggerTypesResponse:
+        """
+        Get the trigger types declared by the worker's toolkits.
+        """
+        return TriggerTypesResponse(trigger_types=self.trigger_types)
 
     async def call_tool(self, tool_request: ToolCallRequest) -> ToolCallResponse:
         """

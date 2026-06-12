@@ -340,7 +340,7 @@ def test_register_routes_registers_default_components(base_worker, mock_router):
     assert mock_router.add_route.call_count == len(BaseWorker.default_components)
 
     calls = mock_router.add_route.call_args_list
-    expected_paths = ["tools", "tools/invoke", "health"]
+    expected_paths = ["tools", "tools/invoke", "health", "triggers"]
     registered_paths = [
         call[0][0] for call in calls
     ]  # call[0] are positional args, call[0][0] is endpoint_path

@@ -10,6 +10,7 @@ from arcade_serve.core.common import (
     HealthCheckResponse,
     RequestData,
     Router,
+    TriggerTypesResponse,
     Worker,
     WorkerComponent,
 )
@@ -82,6 +83,34 @@ class CallToolComponent(WorkerComponent):
                 for key, value in build_tool_error_span_attributes(response.output.error).items():
                     current_span.set_attribute(key, value)
             return response
+
+
+class TriggerTypesComponent(WorkerComponent):
+    def __init__(self, worker: Worker) -> None:
+        self.worker = worker
+
+    def register(self, router: Router) -> None:
+        """
+        Register the trigger-types route with the router.
+        """
+        router.add_route(
+            "triggers",
+            self,
+            method="GET",
+            response_type=TriggerTypesResponse,
+            operation_id="get_trigger_types",
+            description="Get the trigger types declared by the worker's toolkits",
+            summary="Get the declared trigger types",
+            tags=["Arcade"],
+        )
+
+    async def __call__(self, request: RequestData) -> TriggerTypesResponse:
+        """
+        Handle the request to get the declared trigger types.
+        """
+        tracer = trace.get_tracer(__name__)
+        with tracer.start_as_current_span("TriggerTypes"):
+            return self.worker.get_trigger_types()
 
 
 class HealthCheckComponent(WorkerComponent):

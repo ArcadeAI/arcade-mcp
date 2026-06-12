@@ -1,13 +1,23 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from arcade_core.schema import ToolCallRequest, ToolCallResponse, ToolDefinition
+from arcade_core.triggers import TriggerType
 from pydantic import BaseModel
 
 CatalogResponse = list[ToolDefinition]
 HealthCheckResponse = dict[str, str]
 JSONResponse = dict[str, Any]
-ResponseData = CatalogResponse | ToolCallResponse | HealthCheckResponse
+
+
+class TriggerTypesResponse(BaseModel):
+    """Envelope for trigger-type declarations served to the engine."""
+
+    trigger_types: list[TriggerType]
+
+
+ResponseData = CatalogResponse | ToolCallResponse | HealthCheckResponse | TriggerTypesResponse
 
 
 class RequestData(BaseModel):
@@ -84,6 +94,13 @@ class Worker(ABC):
     def health_check(self) -> HealthCheckResponse:
         """
         Perform a health check of the worker
+        """
+        pass
+
+    @abstractmethod
+    def get_trigger_types(self) -> TriggerTypesResponse:
+        """
+        Get the trigger types declared by the worker's toolkits.
         """
         pass
 
