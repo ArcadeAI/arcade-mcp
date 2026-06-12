@@ -86,9 +86,6 @@ class CallToolComponent(WorkerComponent):
 
 
 class TriggerTypesComponent(WorkerComponent):
-    def __init__(self, worker: Worker) -> None:
-        self.worker = worker
-
     def register(self, router: Router) -> None:
         """
         Register the trigger-types route with the router.
