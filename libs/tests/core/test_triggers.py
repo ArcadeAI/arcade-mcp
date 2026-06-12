@@ -1,7 +1,7 @@
 """Trigger-type declaration model: load-time validation."""
 
 import pytest
-from arcade_core.triggers import TriggerType
+from arcade_core.triggers import TriggerType, validate_trigger_types
 from pydantic import ValidationError
 
 
@@ -32,3 +32,11 @@ def test_missing_config_schema_fails_validation_naming_the_field():
         TriggerType.model_validate(declaration)
 
     assert "config_schema" in str(exc_info.value)
+
+
+def test_duplicate_slug_within_a_toolkit_fails_validation_naming_the_slug():
+    first = TriggerType.model_validate(valid_webhook_declaration())
+    second = TriggerType.model_validate(valid_webhook_declaration())
+
+    with pytest.raises(ValueError, match=r"slack\.message\.received"):
+        validate_trigger_types([first, second])
