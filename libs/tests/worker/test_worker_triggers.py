@@ -59,6 +59,17 @@ def client_no_auth(test_app, worker_no_auth):
     return TestClient(test_app)
 
 
+def test_no_declarations_yields_an_empty_envelope():
+    app = FastAPI()
+    FastAPIWorker(app=app, disable_auth=True)
+    client = TestClient(app)
+
+    response = client.get("/worker/triggers")
+
+    assert response.status_code == 200
+    assert response.json() == {"trigger_types": []}
+
+
 def test_declared_trigger_types_are_served_with_complete_fields(client_no_auth):
     response = client_no_auth.get("/worker/triggers")
 
