@@ -672,3 +672,51 @@ class TestNestedTypedDictStrictness:
                 document_id="d",
                 requests=[{"text": "x", "location": 0, "banana": 1}],
             )
+
+    def test_optional_list_of_typeddict_allows_none_and_rejects_typos(self):
+        """The exact google_sheets / google_docs production shape:
+        `requests: Annotated[list[BatchUpdateRequest] | None, ...] = None`.
+
+        Optional[list[TypedDict]] must stay omittable and accept None, while
+        still forbidding unknown keys inside list elements once a list is
+        supplied. This is the single hottest deployed shape, so it gets a
+        direct regression test even though the composed paths
+        (Optional unwrap + list element wrap + extra='forbid') are each
+        covered individually elsewhere."""
+
+        class BatchUpdateRequest(TypedDict):
+            text: str
+            location: int
+
+        @tool
+        def batch_update(
+            document_id: Annotated[str, "doc id"],
+            requests: Annotated[list[BatchUpdateRequest] | None, "batch requests"] = None,
+        ) -> Annotated[str, "r"]:
+            """batch update"""
+            return "ok"
+
+        local_cat = ToolCatalog()
+        local_cat.add_tool(batch_update, "LocalToolkit")
+        td = local_cat.find_tool_by_func(batch_update)
+        mt_local = local_cat.get_tool(td.get_fully_qualified_name())
+
+        # Omission defaults to None.
+        assert mt_local.input_model(document_id="d").requests is None
+        # Explicit None validates.
+        assert mt_local.input_model(document_id="d", requests=None).requests is None
+        # A valid list of TypedDicts round-trips.
+        valid = mt_local.input_model(
+            document_id="d",
+            requests=[{"text": "x", "location": 0}],
+        )
+        assert valid.model_dump() == {
+            "document_id": "d",
+            "requests": [{"text": "x", "location": 0}],
+        }
+        # A typo inside a list element must still raise.
+        with pytest.raises(ValidationError):
+            mt_local.input_model(
+                document_id="d",
+                requests=[{"text": "x", "location": 0, "banana": 1}],
+            )
