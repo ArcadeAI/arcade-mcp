@@ -73,21 +73,26 @@ class OTELHandler:
 
         if _arcade_telemetry.is_available():
             logging.info("🔎 Initializing OpenTelemetry via arcade-telemetry")
-            self._arcade_telemetry_handle = _arcade_telemetry.init_providers(
+            handle = _arcade_telemetry.init_providers(
                 service_name=self.service_name,
                 environment=self.environment,
                 version=self.service_version,
                 log_level=self.log_level,
             )
-            FastAPIInstrumentor().instrument_app(
-                app, excluded_urls=EXCLUDED_URLS, exclude_spans=EXCLUDED_SPANS
-            )
-            # Pass tracer_provider=None so instrumentors pick up the global
-            # provider set by arcade-telemetry.
-            HTTPXClientInstrumentor()._instrument(tracer_provider=None)
-            AioHttpClientInstrumentor()._instrument(tracer_provider=None)
-            RequestsInstrumentor()._instrument(tracer_provider=None)
-            return
+            if handle is not None:
+                self._arcade_telemetry_handle = handle
+                FastAPIInstrumentor().instrument_app(
+                    app, excluded_urls=EXCLUDED_URLS, exclude_spans=EXCLUDED_SPANS
+                )
+                # Pass tracer_provider=None so instrumentors pick up the global
+                # provider set by arcade-telemetry.
+                HTTPXClientInstrumentor()._instrument(tracer_provider=None)
+                AioHttpClientInstrumentor()._instrument(tracer_provider=None)
+                RequestsInstrumentor()._instrument(tracer_provider=None)
+                return
+            # init_providers returned None (arcade-telemetry import race or
+            # internal opt-out) — fall through to the in-house OTLP setup so
+            # shutdown() has something to tear down.
 
         logging.info(
             "🔎 Initializing OpenTelemetry. Use environment variables to configure the connection"
