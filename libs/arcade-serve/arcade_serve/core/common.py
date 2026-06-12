@@ -97,12 +97,14 @@ class Worker(ABC):
         """
         pass
 
-    @abstractmethod
     def get_trigger_types(self) -> TriggerTypesResponse:
         """
         Get the trigger types declared by the worker's toolkits.
+
+        Non-abstract so existing Worker implementations keep working:
+        a worker that declares no trigger types serves an empty envelope.
         """
-        pass
+        return TriggerTypesResponse(trigger_types=[])
 
 
 class WorkerComponent(ABC):
