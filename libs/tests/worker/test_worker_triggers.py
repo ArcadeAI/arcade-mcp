@@ -59,6 +59,17 @@ def client_no_auth(test_app, worker_no_auth):
     return TestClient(test_app)
 
 
+def test_unauthenticated_request_is_rejected():
+    app = FastAPI()
+    worker = FastAPIWorker(app=app, secret="test-secret")  # noqa: S106
+    worker.register_trigger_types([webhook_type()])
+    client = TestClient(app)
+
+    response = client.get("/worker/triggers", headers={"Authorization": "Bearer invalid-token"})
+
+    assert response.status_code == 401
+
+
 def test_no_declarations_yields_an_empty_envelope():
     app = FastAPI()
     FastAPIWorker(app=app, disable_auth=True)
