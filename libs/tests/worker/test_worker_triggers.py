@@ -1,7 +1,14 @@
 """GET /worker/triggers — trigger-type declarations served on the worker protocol."""
 
 import pytest
+from arcade_core.schema import ToolCallRequest, ToolCallResponse
 from arcade_core.triggers import TriggerType
+from arcade_serve.core.common import (
+    CatalogResponse,
+    HealthCheckResponse,
+    TriggerTypesResponse,
+    Worker,
+)
 from arcade_serve.fastapi.worker import FastAPIWorker
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -57,6 +64,22 @@ def worker_no_auth(test_app):
 @pytest.fixture
 def client_no_auth(test_app, worker_no_auth):
     return TestClient(test_app)
+
+
+def test_worker_implementations_without_trigger_support_serve_an_empty_envelope():
+    class MinimalWorker(Worker):
+        def get_catalog(self) -> CatalogResponse:
+            return []
+
+        async def call_tool(self, request: ToolCallRequest) -> ToolCallResponse:
+            raise NotImplementedError
+
+        def health_check(self) -> HealthCheckResponse:
+            return {"status": "ok"}
+
+    worker = MinimalWorker()
+
+    assert worker.get_trigger_types() == TriggerTypesResponse(trigger_types=[])
 
 
 def test_unauthenticated_request_is_rejected():
