@@ -199,11 +199,6 @@ def create_arcade_mcp(
     )
     otel_handler.instrument_app(app)
 
-    if otel_enable:
-        _correlation_mw = _arcade_telemetry_bridge.correlation_middleware_cls()
-        if _correlation_mw is not None:
-            app.add_middleware(_correlation_mw)  # type: ignore[arg-type]
-
     task_tracker = TaskTrackerMiddleware(app)
     app.state.task_tracker = task_tracker
 
@@ -215,6 +210,16 @@ def create_arcade_mcp(
         return await task_tracker.dispatch(request, call_next)
 
     app.add_middleware(AddTrailingSlashToPathMiddleware)
+
+    # Register CorrelationMiddleware last so it lands outermost in the
+    # Starlette stack — `add_middleware` order is innermost-first, so the
+    # final call wraps everything else. This ensures every other middleware
+    # (task tracker, trailing-slash, auth) runs with the X-Request-Id
+    # contextvar already populated.
+    if otel_enable:
+        _correlation_mw = _arcade_telemetry_bridge.correlation_middleware_cls()
+        if _correlation_mw is not None:
+            app.add_middleware(_correlation_mw)  # type: ignore[arg-type]
 
     # Add OAuth discovery endpoint if auth is enabled
     if resource_server_validator and resource_server_validator.supports_oauth_discovery():
