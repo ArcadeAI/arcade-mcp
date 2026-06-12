@@ -18,6 +18,7 @@ from arcade_core.catalog import ToolCatalog
 from arcade_core.discovery import discover_tools
 from arcade_core.toolkit import ToolkitLoadError
 from arcade_serve.fastapi import FastAPIWorker, TaskTrackerMiddleware
+from arcade_serve.fastapi import _arcade_telemetry as _arcade_telemetry_bridge
 from arcade_serve.fastapi.telemetry import OTELHandler
 from fastapi import FastAPI
 from loguru import logger
@@ -159,6 +160,8 @@ def create_arcade_mcp(
     otel_handler = OTELHandler(
         enable=otel_enable,
         log_level=logging.DEBUG if debug else logging.INFO,
+        service_name=mcp_settings.server.name,
+        service_version=mcp_settings.server.version,
     )
 
     @asynccontextmanager
@@ -207,6 +210,16 @@ def create_arcade_mcp(
         return await task_tracker.dispatch(request, call_next)
 
     app.add_middleware(AddTrailingSlashToPathMiddleware)
+
+    # Register CorrelationMiddleware last so it lands outermost in the
+    # Starlette stack — `add_middleware` order is innermost-first, so the
+    # final call wraps everything else. This ensures every other middleware
+    # (task tracker, trailing-slash, auth) runs with the X-Request-Id
+    # contextvar already populated.
+    if otel_enable:
+        _correlation_mw = _arcade_telemetry_bridge.correlation_middleware_cls()
+        if _correlation_mw is not None:
+            app.add_middleware(_correlation_mw)  # type: ignore[arg-type]
 
     # Add OAuth discovery endpoint if auth is enabled
     if resource_server_validator and resource_server_validator.supports_oauth_discovery():
