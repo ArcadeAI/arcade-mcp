@@ -47,11 +47,6 @@ def init_providers(
     the OTELHandler in-house setup instead". The return type is intentionally
     ``Any`` so this module doesn't pull arcade-telemetry types into the
     public arcade-serve API.
-
-    ``log_format``/``max_bytes``/``destination`` are intentionally not
-    threaded through — ``install_loguru_integration`` reads each from
-    ``Config.from_env()`` when omitted, so ``ARCADE_TELEMETRY_LOG_FORMAT``
-    etc. flow through without arcade-serve duplicating the env binding.
     """
     module = _try_import(_TELEMETRY_MODULE)
     if module is None:
