@@ -80,16 +80,8 @@ class OTELHandler:
                 environment=self.environment,
                 version=self.service_version,
                 log_level=self.log_level,
+                log_format=os.environ.get("ARCADE_TELEMETRY_LOG_FORMAT", "json"),
             )
-            log_format = os.environ.get("ARCADE_TELEMETRY_LOG_FORMAT", "json")
-            if _arcade_telemetry.install_loguru_integration(
-                service_name=self.service_name,
-                environment=self.environment,
-                version=self.service_version,
-                log_format=log_format,
-                log_level=self.log_level,
-            ):
-                logging.info("🔎 arcade-telemetry loguru sink installed (format=%s)", log_format)
             FastAPIInstrumentor().instrument_app(
                 app, excluded_urls=EXCLUDED_URLS, exclude_spans=EXCLUDED_SPANS
             )

@@ -38,8 +38,10 @@ def init_providers(
     environment: str,
     version: str,
     log_level: int,
+    log_format: str = "json",
 ) -> Any | None:
-    """Initialize global OTel providers via arcade-telemetry.
+    """Initialize global OTel providers via arcade-telemetry, and wire the
+    loguru → OTLP bridge if ``arcade_telemetry.loguru`` is importable.
 
     Returns the arcade-telemetry ``Telemetry`` handle on success, or ``None``
     if arcade-telemetry is not installed. Callers should treat ``None`` as "do
@@ -50,42 +52,22 @@ def init_providers(
     module = _try_import(_TELEMETRY_MODULE)
     if module is None:
         return None
-    return module.new_telemetry(
+    tel = module.new_telemetry(
         service_name=service_name,
         environment=environment,
         version=version,
         log_level=log_level,
     )
-
-
-def install_loguru_integration(
-    *,
-    service_name: str,
-    environment: str,
-    version: str,
-    log_format: str = "json",
-    log_level: str | int = "INFO",
-) -> bool:
-    """Thin wrapper around ``arcade_telemetry.loguru.install_loguru_integration``.
-
-    Returns True if arcade-telemetry (with its ``loguru`` extra) is installed
-    and the integration was wired; False if either is absent, in which case
-    arcade-serve leaves loguru on its default ANSI stdout sink.
-    """
-    module = _try_import(f"{_TELEMETRY_MODULE}.loguru")
-    if module is None:
-        return False
-    fn = getattr(module, "install_loguru_integration", None)
-    if fn is None:
-        return False
-    fn(
-        service=service_name,
-        environment=environment,
-        version=version,
-        log_format=log_format,
-        log_level=log_level,
-    )
-    return True
+    loguru_module = _try_import(f"{_TELEMETRY_MODULE}.loguru")
+    if loguru_module is not None:
+        loguru_module.install_loguru_integration(
+            service=service_name,
+            environment=environment,
+            version=version,
+            log_format=log_format,
+            log_level=log_level,
+        )
+    return tel
 
 
 def correlation_middleware_cls() -> type | None:
