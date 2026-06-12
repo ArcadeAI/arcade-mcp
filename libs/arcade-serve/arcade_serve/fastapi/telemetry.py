@@ -80,7 +80,6 @@ class OTELHandler:
                 environment=self.environment,
                 version=self.service_version,
                 log_level=self.log_level,
-                log_format=os.environ.get("ARCADE_TELEMETRY_LOG_FORMAT", "json"),
             )
             FastAPIInstrumentor().instrument_app(
                 app, excluded_urls=EXCLUDED_URLS, exclude_spans=EXCLUDED_SPANS
