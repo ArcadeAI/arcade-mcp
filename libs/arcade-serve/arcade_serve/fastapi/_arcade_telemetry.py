@@ -58,6 +58,36 @@ def init_providers(
     )
 
 
+def install_loguru_integration(
+    *,
+    service_name: str,
+    environment: str,
+    version: str,
+    log_format: str = "json",
+    log_level: str | int = "INFO",
+) -> bool:
+    """Thin wrapper around ``arcade_telemetry.loguru.install_loguru_integration``.
+
+    Returns True if arcade-telemetry (with its ``loguru`` extra) is installed
+    and the integration was wired; False if either is absent, in which case
+    arcade-serve leaves loguru on its default ANSI stdout sink.
+    """
+    module = _try_import(f"{_TELEMETRY_MODULE}.loguru")
+    if module is None:
+        return False
+    fn = getattr(module, "install_loguru_integration", None)
+    if fn is None:
+        return False
+    fn(
+        service=service_name,
+        environment=environment,
+        version=version,
+        log_format=log_format,
+        log_level=log_level,
+    )
+    return True
+
+
 def correlation_middleware_cls() -> type | None:
     """Return arcade-telemetry's ASGI CorrelationMiddleware class, or None."""
     module = _try_import(_STARLETTE_MODULE)
