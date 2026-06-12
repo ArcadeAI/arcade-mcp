@@ -334,9 +334,7 @@ class TestToolDecoratorWithMetadata:
         @tool(
             desc="Search a prospecting database",
             metadata=ToolMetadata(
-                classification=Classification(
-                    service_domains=[ServiceDomain.SALES_INTELLIGENCE]
-                ),
+                classification=Classification(service_domains=[ServiceDomain.SALES_INTELLIGENCE]),
                 behavior=Behavior(operations=[Operation.READ], read_only=True, open_world=True),
             ),
         )
@@ -345,6 +343,24 @@ class TestToolDecoratorWithMetadata:
 
         assert search_people.__tool_metadata__.classification.service_domains == [
             ServiceDomain.SALES_INTELLIGENCE
+        ]
+
+    def test_decorator_accepts_web_search_domain(self):
+        """WEB_SEARCH classifies web search engines and search APIs (e.g. Google Search, Exa)."""
+        assert ServiceDomain.WEB_SEARCH.value == "web_search"
+
+        @tool(
+            desc="Search the web",
+            metadata=ToolMetadata(
+                classification=Classification(service_domains=[ServiceDomain.WEB_SEARCH]),
+                behavior=Behavior(operations=[Operation.READ], read_only=True, open_world=True),
+            ),
+        )
+        def search_web() -> str:
+            return "results"
+
+        assert search_web.__tool_metadata__.classification.service_domains == [
+            ServiceDomain.WEB_SEARCH
         ]
 
     def test_decorator_without_metadata_is_backward_compatible(self):
