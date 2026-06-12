@@ -57,6 +57,11 @@ def init_providers(
         version=version,
         log_level=log_level,
     )
+    if tel is None:
+        # arcade-telemetry opted out (e.g. all signals routed to NONE) — skip
+        # the loguru bridge too, otherwise OTELHandler's fallthrough to the
+        # in-house OTLP path would attach loguru AND stdlib handlers.
+        return None
     loguru_module = _try_import(f"{_TELEMETRY_MODULE}.loguru")
     if loguru_module is not None:
         loguru_module.install_loguru_integration(
