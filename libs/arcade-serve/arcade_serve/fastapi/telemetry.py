@@ -72,9 +72,7 @@ class OTELHandler:
             return
 
         if _arcade_telemetry.is_available():
-            logging.info(
-                "🔎 Initializing OpenTelemetry via arcade-telemetry (Sentry + request correlation)"
-            )
+            logging.info("🔎 Initializing OpenTelemetry via arcade-telemetry")
             self._arcade_telemetry_handle = _arcade_telemetry.init_providers(
                 service_name=self.service_name,
                 environment=self.environment,
