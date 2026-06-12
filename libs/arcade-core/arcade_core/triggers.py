@@ -54,3 +54,15 @@ class TriggerType(BaseModel):
 
     dedupe: Literal["unique", "greatest", "last"] | None = None
     """Poll-kind: watermark dedupe strategy."""
+
+
+def validate_trigger_types(trigger_types: list[TriggerType]) -> None:
+    """Validate a toolkit's trigger-type declarations as a collection.
+
+    Raises ValueError naming the offending slug so toolkit load fails fast.
+    """
+    seen: set[str] = set()
+    for trigger_type in trigger_types:
+        if trigger_type.slug in seen:
+            raise ValueError(f"Duplicate trigger type slug: {trigger_type.slug}")
+        seen.add(trigger_type.slug)
