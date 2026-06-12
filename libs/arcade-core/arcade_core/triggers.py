@@ -7,7 +7,9 @@ fail toolkit load, never reach the wire.
 
 from typing import Any, Literal
 
-from pydantic import BaseModel
+from jsonschema import exceptions as jsonschema_exceptions
+from jsonschema.validators import validator_for
+from pydantic import BaseModel, field_validator
 
 
 class TriggerType(BaseModel):
@@ -54,6 +56,16 @@ class TriggerType(BaseModel):
 
     dedupe: Literal["unique", "greatest", "last"] | None = None
     """Poll-kind: watermark dedupe strategy."""
+
+    @field_validator("config_schema")
+    @classmethod
+    def _config_schema_is_valid_json_schema(cls, value: dict[str, Any]) -> dict[str, Any]:
+        validator_class = validator_for(value)
+        try:
+            validator_class.check_schema(value)
+        except jsonschema_exceptions.SchemaError as e:
+            raise ValueError(f"not a valid JSON Schema: {e.message}") from e
+        return value
 
 
 def validate_trigger_types(trigger_types: list[TriggerType]) -> None:

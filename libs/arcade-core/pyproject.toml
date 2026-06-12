@@ -29,6 +29,7 @@ dependencies = [
     "types-pytz==2024.2.0.20241003",
     "types-toml==0.10.8.20240310",
     "posthog>=6.7.6,<7.0.0",
+    "jsonschema>=4.26.0",
 ]
 
 [project.optional-dependencies]
