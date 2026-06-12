@@ -34,6 +34,16 @@ def test_missing_config_schema_fails_validation_naming_the_field():
     assert "config_schema" in str(exc_info.value)
 
 
+def test_invalid_config_schema_fails_validation_naming_the_field():
+    declaration = valid_webhook_declaration()
+    declaration["config_schema"] = {"type": "not-a-real-type"}
+
+    with pytest.raises(ValidationError) as exc_info:
+        TriggerType.model_validate(declaration)
+
+    assert "config_schema" in str(exc_info.value)
+
+
 def test_duplicate_slug_within_a_toolkit_fails_validation_naming_the_slug():
     first = TriggerType.model_validate(valid_webhook_declaration())
     second = TriggerType.model_validate(valid_webhook_declaration())
