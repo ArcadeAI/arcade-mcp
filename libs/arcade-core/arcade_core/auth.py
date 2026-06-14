@@ -177,6 +177,15 @@ class Reddit(OAuth2):
         super().__init__(id=id, scopes=scopes)
 
 
+class Sentry(OAuth2):
+    """Marks a tool as requiring Sentry authorization."""
+
+    provider_id: str = "sentry"
+
+    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
+        super().__init__(id=id, scopes=scopes)
+
+
 class Slack(OAuth2):
     """Marks a tool as requiring Slack (user token) authorization."""
 
