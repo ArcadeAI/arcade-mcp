@@ -105,6 +105,15 @@ class GitHub(OAuth2):
         super().__init__(id=id, scopes=scopes)
 
 
+class GitLab(OAuth2):
+    """Marks a tool as requiring GitLab authorization."""
+
+    provider_id: str = "gitlab"
+
+    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
+        super().__init__(id=id, scopes=scopes)
+
+
 class Google(OAuth2):
     """Marks a tool as requiring Google authorization."""
 
