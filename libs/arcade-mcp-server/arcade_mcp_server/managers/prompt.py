@@ -111,9 +111,13 @@ class PromptManager(ComponentManager[str, PromptHandler]):
         prompt: Prompt,
         handler: Callable[[dict[str, str]], list[PromptMessage]] | None = None,
     ) -> Prompt:
-        # Ensure exists
+        # Remove the existing entry (this also verifies it exists). Removing by the
+        # original ``name`` rather than just upserting by ``prompt.name`` ensures a
+        # rename (prompt.name != name) does not leave the old entry orphaned in the
+        # registry. Mirrors ResourceManager.update_resource, which handles URI
+        # changes the same way.
         try:
-            _ = await self.registry.get(name)
+            await self.registry.remove(name)
         except KeyError:
             raise NotFoundError(f"Prompt '{name}' not found")
 
