@@ -1,0 +1,6 @@
+---
+alwaysApply: false
+description: Extract tacit knowledge through non-obvious microquestions — things only the user knows that can't be found in code, docs, or research. Use when about to guess at intent, context, or constraints, or when user says 'ask me', 'what do you need to know', 'what's missing'. Skips questions answerable by reading the codebase or searching the web.
+---
+
+@.claude/skills/elicit/SKILL.md

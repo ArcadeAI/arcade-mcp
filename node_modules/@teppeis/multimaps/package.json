@@ -1,0 +1,75 @@
+{
+  "name": "@teppeis/multimaps",
+  "description": "Multimap classes for TypeScript and JavaScript",
+  "version": "3.0.0",
+  "author": "Teppei Sato <teppeis@gmail.com>",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "type": "module",
+  "main": "./dist/cjs/index.js",
+  "types": "./dist/cjs/index.d.ts",
+  "module": "./dist/esm/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "default": "./dist/esm/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "run-p build:*",
+    "build:cjs": "tsc -p tsconfig.cjs.json && ./gen-cjs-packagejson.sh",
+    "build:esm": "tsc",
+    "clean": "rimraf dist test/ts40/dist",
+    "lint:eslint": "eslint .",
+    "lint:prettier": "prettier --check .",
+    "fix": "run-s fix:prettier fix:eslint",
+    "fix:eslint": "npm run lint:eslint -- --fix",
+    "fix:prettier": "npm run lint:prettier -- --write",
+    "prepublishOnly": "run-s clean build",
+    "test": "run-p -cl --aggregate-output lint:* type unit test:nest",
+    "test:install": "cd test/exports && npm i && cd ../ts40 && npm i",
+    "test:nest": "run-s test-exports test-ts40",
+    "test-exports": "cd test/exports && npm t",
+    "test-ts40": "cd test/ts40 && npm t",
+    "type": "tsc -p tsconfig.test.json",
+    "unit": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "@tsconfig/node14": "^1.0.3",
+    "@types/node": "^14.18.38",
+    "@vitest/coverage-c8": "^0.29.3",
+    "c8": "^7.12.0",
+    "eslint": "^8.36.0",
+    "eslint-config-teppeis": "^16.0.0",
+    "npm-run-all": "^4.1.5",
+    "power-assert": "^1.6.1",
+    "prettier": "^2.8.4",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.9.5",
+    "vitest": "^0.29.3"
+  },
+  "homepage": "https://github.com/teppeis/multimaps#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/teppeis/multimaps.git"
+  },
+  "bugs": {
+    "url": "https://github.com/teppeis/multimaps/issues"
+  },
+  "keywords": [
+    "map",
+    "multi-map",
+    "multimap",
+    "typescript"
+  ],
+  "license": "MIT"
+}

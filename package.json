@@ -1,0 +1,25 @@
+{
+  "name": "arcade-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "lint:gherkin": "safeword lint-gherkin",
+    "lint": "eslint . && bun run lint:gherkin",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "knip": "knip",
+    "test:bdd": "cucumber-js",
+    "lint:sh": "shellcheck **/*.sh"
+  },
+  "devDependencies": {
+    "@cucumber/cucumber": "^13.0.0",
+    "@types/node": "^25.9.3",
+    "dependency-cruiser": "^17.4.3",
+    "eslint": "^9.39.4",
+    "knip": "^6.16.1",
+    "prettier": "^3.8.4",
+    "prettier-plugin-sh": "^0.18.1",
+    "safeword": "^0.47.0",
+    "tsx": "^4.22.4"
+  }
+}

@@ -1,0 +1,39 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+/*
+ * SonarQube JavaScript Plugin
+ * Copyright (C) SonarSource Sàrl
+ * mailto:info AT sonarsource DOT com
+ *
+ * You can redistribute and/or modify this program under the terms of
+ * the Sonar Source-Available License Version 1, as published by SonarSource Sàrl.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the Sonar Source-Available License for more details.
+ *
+ * You should have received a copy of the Sonar Source-Available License
+ * along with this program; if not, see https://sonarsource.com/license/ssal/
+ */
+const Detector_js_1 = __importDefault(require("../Detector.js"));
+class KeywordsDetector extends Detector_js_1.default {
+    constructor(probability, ...keywords) {
+        super(probability);
+        this.keywords = keywords;
+    }
+    scan(line) {
+        let matchers = 0;
+        const words = line.split(/[ \t(),{}]/);
+        for (const word of words) {
+            if (this.keywords.includes(word)) {
+                matchers++;
+            }
+        }
+        return matchers;
+    }
+}
+exports.default = KeywordsDetector;

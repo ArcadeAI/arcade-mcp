@@ -1,0 +1,16 @@
+# Safeword Codex project configuration.
+#
+# Project-local Codex config loads only after the project is reviewed and trusted.
+# Run Codex's hook trust flow after setup/upgrade before assuming these gates run.
+
+[features]
+hooks = true
+
+[[hooks.PreToolUse]]
+matcher = "^(apply_patch|Bash|Edit|Write|MultiEdit|NotebookEdit)$"
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = 'bun "$(git rev-parse --show-toplevel)/.safeword/hooks/codex/pre-tool-quality.ts"'
+timeout = 30
+statusMessage = "Checking safeword PreToolUse gates"

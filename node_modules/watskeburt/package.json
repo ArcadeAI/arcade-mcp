@@ -1,0 +1,53 @@
+{
+	"name": "watskeburt",
+	"version": "5.0.3",
+	"description": "List files changed since a git revision",
+	"keywords": [
+		"git",
+		"diff"
+	],
+	"homepage": "https://github.com/sverweij/watskeburt",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/sverweij/watskeburt.git"
+	},
+	"bugs": {
+		"url": "https://github.com/sverweij/watskeburt/issues"
+	},
+	"author": {
+		"name": "Sander Verweij",
+		"url": "https://sverweij.github.io"
+	},
+	"license": "MIT",
+	"bin": {
+		"watskeburt": "dist/run-cli.js"
+	},
+	"main": "dist/main.js",
+	"module": "dist/main.js",
+	"type": "module",
+	"sideEffects": false,
+	"exports": {
+		".": [
+			{
+				"types": "./types/watskeburt.d.ts",
+				"import": "./dist/main.js"
+			},
+			"./dist/main.js"
+		]
+	},
+	"types": "types/watskeburt.d.ts",
+	"files": [
+		"dist",
+		"!**/*.DS_Store",
+		"types",
+		"LICENSE",
+		"package.json",
+		"README.md"
+	],
+	"engines": {
+		"node": "^20.12||^22.13||>=24.0"
+	},
+	"scripts": {
+		"test": "echo see github for test, build and analysis scripts"
+	}
+}

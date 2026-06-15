@@ -1,0 +1,6 @@
+---
+description: USE WHEN BDD thresholds exceeded (2+ stories, >15 scenarios, >20 tasks). Split protocol and examples.
+alwaysApply: false
+---
+
+@.claude/skills/bdd/SPLITTING.md

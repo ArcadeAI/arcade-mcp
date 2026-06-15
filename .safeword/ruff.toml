@@ -1,0 +1,27 @@
+# Safeword Ruff config - adds rules on top of project config
+# Used by hooks for LLM enforcement. Human pre-commits use project config.
+# Re-run `safeword upgrade` to regenerate after project config changes.
+#
+# NOTE: Uses extend-select (additive) so your select/ignore are preserved.
+# Known edge case: ruff may drop parent ignore rules when child uses
+# extend-select (https://github.com/astral-sh/ruff/issues/10622).
+# If a project ignore stops working, duplicate it in this file.
+
+# Inherit from project's pyproject.toml
+extend = "../pyproject.toml"
+
+line-length = 100
+
+[lint]
+extend-select = ["E", "F", "W", "I", "UP", "B", "SIM", "C4", "RUF", "PTH", "RET", "S", "T20", "TC", "ERA", "PERF", "PLE", "PLW"]
+ignore = [
+    "COM812", # missing trailing comma - conflicts with formatter
+    "ISC001", # single-line-implicit-string-concatenation - conflicts with formatter
+    "E501",   # line too long - formatter handles this
+]
+
+[lint.per-file-ignores]
+"tests/**" = ["S101"]  # allow assert in tests
+
+[lint.mccabe]
+max-complexity = 10

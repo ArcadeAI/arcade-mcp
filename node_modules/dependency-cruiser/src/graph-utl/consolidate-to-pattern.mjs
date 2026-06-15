@@ -1,0 +1,56 @@
+import consolidateModules from "./consolidate-modules.mjs";
+import consolidateModuleDependencies from "./consolidate-module-dependencies.mjs";
+import { getCachedRegExp } from "#utl/regex-util.mjs";
+
+function squashDependencyToPattern(pCollapsePattern) {
+	return (pDependency) => {
+		const lCollapseMatch = getCachedRegExp(pCollapsePattern).exec(
+			pDependency.resolved,
+		);
+
+		return {
+			...pDependency,
+			resolved: lCollapseMatch ? lCollapseMatch[0] : pDependency.resolved,
+		};
+	};
+}
+
+function determineConsolidatedness(pConsolidated, pCollapseMatch, pSource) {
+	let lReturnValue = false;
+
+	// if it was  already established it's consolidated (e.g. from an earlier
+	// consolidation step) there's no need to recalc
+	if (pConsolidated === true) {
+		lReturnValue = true;
+	} else {
+		lReturnValue = pCollapseMatch ? pCollapseMatch[0] !== pSource : false;
+	}
+	return lReturnValue;
+}
+
+function squashModuleToPattern(pCollapsePattern) {
+	return (pModule) => {
+		const lCollapseMatch = getCachedRegExp(pCollapsePattern).exec(
+			pModule.source,
+		);
+
+		return {
+			...pModule,
+			source: lCollapseMatch ? lCollapseMatch[0] : pModule.source,
+			consolidated: determineConsolidatedness(
+				pModule.consolidated,
+				lCollapseMatch,
+				pModule.source,
+			),
+			dependencies: pModule.dependencies.map(
+				squashDependencyToPattern(pCollapsePattern),
+			),
+		};
+	};
+}
+
+export default function consolidateToPattern(pModules, pCollapsePattern) {
+	return consolidateModules(
+		pModules.map(squashModuleToPattern(pCollapsePattern)),
+	).map(consolidateModuleDependencies);
+}

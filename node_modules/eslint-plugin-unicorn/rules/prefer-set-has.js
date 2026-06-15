@@ -1,0 +1,233 @@
+import {findVariable} from '@eslint-community/eslint-utils';
+import {getVariableIdentifiers} from './utils/index.js';
+import {isCallOrNewExpression, isMethodCall} from './ast/index.js';
+
+const MESSAGE_ID_ERROR = 'error';
+const MESSAGE_ID_SUGGESTION = 'suggestion';
+const messages = {
+	[MESSAGE_ID_ERROR]: '`{{name}}` should be a `Set`, and use `{{name}}.has()` to check existence or non-existence.',
+	[MESSAGE_ID_SUGGESTION]: 'Switch `{{name}}` to `Set`.',
+};
+
+/*
+Some of these methods can be `Iterator`.
+
+Since `Iterator` don't have an `includes()` method, we are safe to assume they are array. Except `concat` and `slice` which can be a string: https://github.com/sindresorhus/eslint-plugin-unicorn/issues/2216
+*/
+const methodsReturnsArray = [
+	// `Array`
+	'copyWithin',
+	'fill',
+	'filter',
+	'flat',
+	'flatMap',
+	'map',
+	'reverse',
+	'sort',
+	'splice',
+	'toReversed',
+	'toSorted',
+	'toSpliced',
+	'with',
+
+	// `String`
+	'split',
+
+	// `Iterator`
+	'toArray',
+];
+
+const methodsReturnsArrayAndString = [
+	'slice',
+	'concat',
+];
+
+const isStringLiteral = node =>
+	(node.type === 'Literal' && typeof node.value === 'string')
+	|| (node.type === 'TemplateLiteral' && node.expressions.length === 0);
+
+const isIdentifierInitializedWithArray = (node, scope, visitedVariables = new Set()) => {
+	if (node.type !== 'Identifier') {
+		return false;
+	}
+
+	const variable = findVariable(scope, node);
+	if (!variable || visitedVariables.has(variable) || variable.defs.length !== 1) {
+		return false;
+	}
+
+	visitedVariables.add(variable);
+
+	const [definition] = variable.defs;
+
+	return definition.type === 'Variable'
+		&& definition.kind === 'const'
+		&& Boolean(definition.node.init)
+		&& isArrayMethodCall(definition.node.init, scope, visitedVariables);
+};
+
+const isIncludesCall = node =>
+	isMethodCall(node.parent.parent, {
+		method: 'includes',
+		optionalCall: false,
+		optionalMember: false,
+		argumentsLength: 1,
+	})
+	&& node.parent.object === node;
+
+const multipleCallNodeTypes = new Set([
+	'ForOfStatement',
+	'ForStatement',
+	'ForInStatement',
+	'WhileStatement',
+	'DoWhileStatement',
+	'FunctionDeclaration',
+	'FunctionExpression',
+	'ArrowFunctionExpression',
+]);
+
+const isMultipleCall = (identifier, node) => {
+	const root = node.parent.parent.parent;
+	let {parent} = identifier.parent; // `.include()` callExpression
+	while (
+		parent
+		&& parent !== root
+	) {
+		if (multipleCallNodeTypes.has(parent.type)) {
+			return true;
+		}
+
+		parent = parent.parent;
+	}
+
+	return false;
+};
+
+const isArrayMethodCall = (node, scope, visitedVariables = new Set()) =>
+	// `[]`
+	node.type === 'ArrayExpression'
+	// `Array()` and `new Array()`
+	|| isCallOrNewExpression(node, {
+		name: 'Array',
+		optional: false,
+	})
+	// `Array.from()` and `Array.of()`
+	|| isMethodCall(node, {
+		object: 'Array',
+		methods: ['from', 'of'],
+		optionalCall: false,
+		optionalMember: false,
+	})
+	// Methods that return an array
+	|| isMethodCall(node, {
+		methods: methodsReturnsArray,
+		optionalCall: false,
+		optionalMember: false,
+	})
+	|| (
+		isMethodCall(node, {
+			methods: methodsReturnsArrayAndString,
+			optionalCall: false,
+			optionalMember: false,
+		})
+		&& !isStringLiteral(node.callee.object)
+		&& (
+			node.callee.object.type !== 'Identifier'
+			|| isIdentifierInitializedWithArray(node.callee.object, scope, visitedVariables)
+		)
+	);
+
+/** @param {import('eslint').Rule.RuleContext} context */
+const create = context => {
+	context.on('Identifier', node => {
+		const {parent} = node;
+
+		if (!(
+			parent.type === 'VariableDeclarator'
+			&& parent.id === node
+			&& Boolean(parent.init)
+			&& parent.parent.type === 'VariableDeclaration'
+			&& parent.parent.declarations.includes(parent)
+			// Exclude `export const foo = [];`
+			&& !(
+				parent.parent.parent.type === 'ExportNamedDeclaration'
+				&& parent.parent.parent.declaration === parent.parent
+			)
+			&& isArrayMethodCall(parent.init, context.sourceCode.getScope(parent.init))
+		)) {
+			return;
+		}
+
+		const variable = findVariable(context.sourceCode.getScope(node), node);
+
+		// This was reported https://github.com/sindresorhus/eslint-plugin-unicorn/issues/1075#issuecomment-768073342
+		// But can't reproduce, just ignore this case
+		/* c8 ignore next 3 */
+		if (!variable) {
+			return;
+		}
+
+		const identifiers = getVariableIdentifiers(variable).filter(identifier => identifier !== node);
+
+		if (
+			identifiers.length === 0
+			|| identifiers.some(identifier => !isIncludesCall(identifier))
+		) {
+			return;
+		}
+
+		if (
+			identifiers.length === 1
+			&& identifiers.every(identifier => !isMultipleCall(identifier, node))
+		) {
+			return;
+		}
+
+		const problem = {
+			node,
+			messageId: MESSAGE_ID_ERROR,
+			data: {
+				name: node.name,
+			},
+		};
+
+		const fix = function * (fixer) {
+			yield fixer.insertTextBefore(node.parent.init, 'new Set(');
+			yield fixer.insertTextAfter(node.parent.init, ')');
+
+			for (const identifier of identifiers) {
+				yield fixer.replaceText(identifier.parent.property, 'has');
+			}
+		};
+
+		if (node.typeAnnotation) {
+			problem.suggest = [
+				{
+					messageId: MESSAGE_ID_SUGGESTION,
+					fix,
+				},
+			];
+		} else {
+			problem.fix = fix;
+		}
+
+		return problem;
+	});
+};
+
+/** @type {import('eslint').Rule.RuleModule} */
+const config = {
+	create,
+	meta: {
+		type: 'suggestion',
+		docs: {
+			description: 'Prefer `Set#has()` over `Array#includes()` when checking for existence or non-existence.',
+			recommended: 'unopinionated',
+		},
+		fixable: 'code',
+		hasSuggestions: true,
+		messages,
+	},
+};
+
+export default config;

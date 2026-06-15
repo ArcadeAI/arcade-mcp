@@ -1,0 +1,33 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.shannonEntropy = shannonEntropy;
+/*
+ * SonarQube JavaScript Plugin
+ * Copyright (C) SonarSource Sàrl
+ * mailto:info AT sonarsource DOT com
+ *
+ * You can redistribute and/or modify this program under the terms of
+ * the Sonar Source-Available License Version 1, as published by SonarSource Sàrl.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the Sonar Source-Available License for more details.
+ *
+ * You should have received a copy of the Sonar Source-Available License
+ * along with this program; if not, see https://sonarsource.com/license/ssal/
+ */
+function shannonEntropy(str) {
+    if (!str) {
+        return 0;
+    }
+    const len = str.length;
+    const occurrences = {};
+    for (const ch of str) {
+        occurrences[ch] = (occurrences[ch] ?? 0) + 1;
+    }
+    return (Object.values(occurrences)
+        .map(count => count / len)
+        .map(freq => -freq * Math.log(freq))
+        .reduce((acc, e) => acc + e, 0) / Math.log(2));
+}

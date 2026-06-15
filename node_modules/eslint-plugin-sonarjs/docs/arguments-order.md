@@ -1,0 +1,9 @@
+# sonarjs/arguments-order
+
+📝 Parameters should be passed in the correct order.
+
+💼 This rule is enabled in the ✅ `recommended` config.
+
+💭 This rule requires [type information](https://typescript-eslint.io/linting/typed-linting).
+
+<!-- end auto-generated rule header -->

@@ -1,0 +1,45 @@
+{
+  "name": "acorn-jsx-walk",
+  "version": "2.0.0",
+  "description": "JSX support for Acorn Walk",
+  "keywords": [
+    "acorn",
+    "jsx",
+    "walk",
+    "parse"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sderosiaux/acorn-jsx-walk.git"
+  },
+  "main": "dist/acorn-jsx-walk.js",
+  "module": "dist/acorn-jsx-walk.mjs",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "prebuild": "rimraf dist",
+    "build": "./node_modules/rollup/bin/rollup -c ./build/rollup.conf.js",
+    "lint": "./node_modules/eslint/bin/eslint.js src test",
+    "pretest": "rimraf .reify-cache/ && npm run lint",
+    "test": "mocha -r reify test/**/*.spec.js",
+    "testing": "npm test -- --watch",
+    "prepublish": "npm test && npm run build"
+  },
+  "devDependencies": {
+    "acorn": "^6.1.1",
+    "acorn-jsx": "^5.0.1",
+    "acorn-walk": "^6.1.1",
+    "chai": "^4.2.0",
+    "eslint": "^5.15.1",
+    "mocha": "^6.0.2",
+    "reify": "^0.18.1",
+    "rimraf": "^2.5.2",
+    "rollup": "^1.5.0",
+    "rollup-plugin-buble": "^0.19.6",
+    "rollup-plugin-json": "^3.1.0",
+    "rollup-plugin-node-resolve": "^4.0.1"
+  },
+  "author": "Julian Lloyd <me@jlmak.es>",
+  "license": "MIT"
+}

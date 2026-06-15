@@ -1,0 +1,25 @@
+{
+  "name": "jsx-ast-utils-x",
+  "version": "0.1.0",
+  "description": "AST utility module for statically analyzing JSX",
+  "repository": "git+https://github.com/eslinter/jsx-ast-utils-x.git",
+  "author": "Ethan Cohen",
+  "maintainers": [
+    "JounQin <admin@1stg.me> (https://www.1stG.me)"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": "^18.18.0 || ^20.9.0 || >=21.1.0"
+  },
+  "main": "lib/index.js",
+  "files": [
+    "lib"
+  ],
+  "keywords": [
+    "jsx",
+    "ast",
+    "lint",
+    "eslint",
+    "jsx-ast-utils"
+  ]
+}

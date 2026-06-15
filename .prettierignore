@@ -1,2 +1,12 @@
 # Ignore Python files for Prettier
 *.py
+
+# Safeword - managed prettier exclusions
+.safeword/
+.cursor/
+.project/tickets/INDEX.md
+.project/tickets/INDEX-completed.md
+.project/learnings/INDEX.md
+.safeword-project/tickets/INDEX.md
+.safeword-project/tickets/INDEX-completed.md
+.safeword-project/learnings/INDEX.md

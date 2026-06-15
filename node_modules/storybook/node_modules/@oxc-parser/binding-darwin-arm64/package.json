@@ -1,0 +1,39 @@
+{
+  "name": "@oxc-parser/binding-darwin-arm64",
+  "version": "0.127.0",
+  "cpu": [
+    "arm64"
+  ],
+  "main": "parser.darwin-arm64.node",
+  "files": [
+    "parser.darwin-arm64.node"
+  ],
+  "description": "Oxc Parser Node API",
+  "keywords": [
+    "ast",
+    "estree",
+    "javascript",
+    "oxc",
+    "parser",
+    "typescript"
+  ],
+  "author": "Boshen and oxc contributors",
+  "homepage": "https://oxc.rs/docs/guide/usage/parser",
+  "license": "MIT",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oxc-project/oxc.git",
+    "directory": "napi/parser"
+  },
+  "bugs": "https://github.com/oxc-project/oxc/issues",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "os": [
+    "darwin"
+  ]
+}

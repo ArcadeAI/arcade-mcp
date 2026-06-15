@@ -1,0 +1,11 @@
+{
+  "ignore": [
+    ".safeword/**",
+    ".project/**",
+    ".safeword-project/**"
+  ],
+  "ignoreDependencies": [
+    "safeword",
+    "dependency-cruiser"
+  ]
+}

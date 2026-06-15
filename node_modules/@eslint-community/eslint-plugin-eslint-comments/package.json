@@ -1,0 +1,120 @@
+{
+    "name": "@eslint-community/eslint-plugin-eslint-comments",
+    "version": "4.7.2",
+    "description": "Additional ESLint rules for ESLint directive comments.",
+    "keywords": [
+        "eslint",
+        "eslintplugin",
+        "eslint-plugin",
+        "plugin",
+        "comment",
+        "comments",
+        "directive",
+        "global",
+        "globals",
+        "exported",
+        "eslint-env",
+        "eslint-enable",
+        "eslint-disable",
+        "eslint-disable-line",
+        "eslint-disable-next-line"
+    ],
+    "homepage": "https://github.com/eslint-community/eslint-plugin-eslint-comments#readme",
+    "bugs": {
+        "url": "https://github.com/eslint-community/eslint-plugin-eslint-comments/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/eslint-community/eslint-plugin-eslint-comments"
+    },
+    "funding": "https://opencollective.com/eslint",
+    "license": "MIT",
+    "author": "Toru Nagashima",
+    "type": "commonjs",
+    "exports": {
+        ".": {
+            "types": "./types/index.d.ts",
+            "default": "./index.js"
+        },
+        "./configs": {
+            "types": "./types/configs.d.ts",
+            "default": "./configs.js"
+        },
+        "./package.json": "./package.json"
+    },
+    "main": "index.js",
+    "types": "./types/index.d.ts",
+    "typesVersions": {
+        "*": {
+            "configs": [
+                "./types/configs.d.ts"
+            ]
+        }
+    },
+    "files": [
+        "configs.js",
+        "lib",
+        "types"
+    ],
+    "scripts": {
+        "check-exports": "attw --pack",
+        "clean": "rimraf .nyc_output coverage docs/.vitepress/cache",
+        "coverage": "nyc report --reporter lcov && opener coverage/lcov-report/index.html",
+        "debug": "mocha \"tests/lib/**/*.js\" --reporter dot --timeout 8000",
+        "docs:build": "vitepress build docs",
+        "docs:watch": "vitepress dev docs",
+        "format": "npm run -s format:prettier -- --write",
+        "format:check": "npm run -s format:prettier -- --check",
+        "format:prettier": "prettier .",
+        "lint": "run-p lint:*",
+        "lint:eslint": "eslint lib scripts tests",
+        "lint:format": "npm run -s format:check",
+        "test": "nyc npm run debug",
+        "test:types": "tsc -p tsconfig.json",
+        "preversion": "npm test",
+        "version": "node scripts/update && git add .",
+        "postversion": "git push && git push --tags",
+        "watch": "npm run -s test -- --watch --growl"
+    },
+    "dependencies": {
+        "escape-string-regexp": "^4.0.0",
+        "ignore": "^7.0.5"
+    },
+    "devDependencies": {
+        "@arethetypeswrong/cli": "^0.18.2",
+        "@babel/core": "^7.28.6",
+        "@babel/eslint-parser": "^7.28.6",
+        "@eslint/core": "^0.13.0",
+        "@eslint/css": "^0.6.0",
+        "@types/eslint": "^8.56.12",
+        "@types/node": "^14.18.63",
+        "@vuepress/plugin-pwa": "^1.9.10",
+        "cross-spawn": "^7.0.6",
+        "esbuild": "^0.27.2",
+        "eslint": "^8.57.1",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-eslint-plugin": "^5.5.1",
+        "eslint-plugin-n": "^15.7.0",
+        "eslint-plugin-prettier": "^4.2.5",
+        "expect-type": "^1.3.0",
+        "fflate": "0.8.2",
+        "globals": "^13.24.0",
+        "mocha": "^9.2.2",
+        "modern-monaco": "0.4.0",
+        "npm-run-all2": "^8.0.4",
+        "nyc": "^15.1.0",
+        "opener": "^1.5.2",
+        "prettier": "2.8.8",
+        "rimraf": "^3.0.2",
+        "semver": "^7.7.3",
+        "typescript": "^5.9.3",
+        "vite-plugin-eslint4b": "^0.2.5",
+        "vitepress": "^1.6.4"
+    },
+    "peerDependencies": {
+        "eslint": "^6.0.0 || ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0"
+    },
+    "engines": {
+        "node": "^12.22.0 || ^14.17.0 || >=16.0.0"
+    }
+}

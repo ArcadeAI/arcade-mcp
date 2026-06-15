@@ -1,0 +1,116 @@
+"use strict";
+/*
+ * SonarQube JavaScript Plugin
+ * Copyright (C) SonarSource Sàrl
+ * mailto:info AT sonarsource DOT com
+ *
+ * You can redistribute and/or modify this program under the terms of
+ * the Sonar Source-Available License Version 1, as published by SonarSource Sàrl.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the Sonar Source-Available License for more details.
+ *
+ * You should have received a copy of the Sonar Source-Available License
+ * along with this program; if not, see https://sonarsource.com/license/ssal/
+ */
+// https://sonarsource.github.io/rspec/#/rspec/S5148/javascript
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.rule = void 0;
+const generate_meta_js_1 = require("../helpers/generate-meta.js");
+const ast_js_1 = require("../helpers/ast.js");
+const meta = __importStar(require("./generated-meta.js"));
+const REQUIRED_OPTION = 'noopener';
+const REQUIRED_OPTION_INDEX = 2;
+const URL_INDEX = 0;
+exports.rule = {
+    meta: (0, generate_meta_js_1.generateMeta)(meta, {
+        messages: {
+            missingNoopener: 'Make sure not using "noopener" is safe here.',
+        },
+    }),
+    create(context) {
+        return {
+            CallExpression: (node) => {
+                if (!(0, ast_js_1.isMethodCall)(node)) {
+                    return;
+                }
+                const { object, property } = node.callee;
+                const isWindowOpen = (0, ast_js_1.isIdentifier)(property, 'open') &&
+                    ((0, ast_js_1.isIdentifier)(object, 'window') || isThisWindow(object));
+                if (!isWindowOpen) {
+                    return;
+                }
+                const args = node.arguments;
+                const hasHttpUrl = URL_INDEX < args.length && isHttpUrl(context, args[URL_INDEX]);
+                if (!hasHttpUrl) {
+                    return;
+                }
+                if (args.length <= REQUIRED_OPTION_INDEX ||
+                    !hasRequiredOption(context, args[REQUIRED_OPTION_INDEX])) {
+                    context.report({
+                        messageId: 'missingNoopener',
+                        node: property,
+                    });
+                }
+            },
+        };
+    },
+};
+function isThisWindow(node) {
+    return (node.type === 'MemberExpression' &&
+        node.object.type === 'ThisExpression' &&
+        (0, ast_js_1.isIdentifier)(node.property, 'window'));
+}
+function hasRequiredOption(context, argument) {
+    const stringOrNothing = extractString(context, argument);
+    return stringOrNothing?.includes(REQUIRED_OPTION);
+}
+function isHttpUrl(context, argument) {
+    const stringOrNothing = extractString(context, argument);
+    return (stringOrNothing !== undefined &&
+        (stringOrNothing.startsWith('http://') || stringOrNothing.startsWith('https://')));
+}
+function extractString(context, node) {
+    const literalNodeOrNothing = (0, ast_js_1.getValueOfExpression)(context, node, 'Literal');
+    if (literalNodeOrNothing === undefined || !(0, ast_js_1.isStringLiteral)(literalNodeOrNothing)) {
+        return undefined;
+    }
+    else {
+        return literalNodeOrNothing.value;
+    }
+}

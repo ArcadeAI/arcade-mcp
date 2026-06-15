@@ -1,0 +1,6 @@
+---
+description: USE WHEN in BDD intake phase OR ticket has phase:intake. Guides discovery and context gathering for features.
+alwaysApply: false
+---
+
+@.claude/skills/bdd/DISCOVERY.md

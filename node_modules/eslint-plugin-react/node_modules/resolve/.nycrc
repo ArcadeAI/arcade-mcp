@@ -1,0 +1,16 @@
+{
+	"all": true,
+	"reporter": [
+		"html",
+		"text",
+		"lcov"
+	],
+	"exclude": [
+		"coverage",
+		"eslint.config.mjs",
+		"example",
+		"scripts",
+		"test",
+		"**/*.d.*ts"
+	]
+}

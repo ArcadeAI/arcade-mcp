@@ -1,0 +1,6 @@
+---
+alwaysApply: false
+description: Step-aware quality review at TDD phase boundaries — review test quality after RED, implementation correctness after GREEN, completed scenario after REFACTOR. Use when user says 'review my test', 'review my implementation', 'is this GREEN solid?', or just finished a TDD step. (Note: Claude Code triggers this automatically via the phase-tracking hook; Cursor users must invoke explicitly.)
+---
+
+@.claude/skills/tdd-review/SKILL.md

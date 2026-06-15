@@ -1,0 +1,100 @@
+{
+  "name": "astrojs-compiler-sync",
+  "version": "1.1.1",
+  "description": "@astrojs/compiler to process synchronously.",
+  "main": "lib/index.cjs",
+  "types": "lib/index.d.cts",
+  "files": [
+    "lib",
+    "browser"
+  ],
+  "exports": {
+    ".": {
+      "browser": {
+        "types": "./browser/index.d.ts",
+        "default": "./browser/index.js"
+      },
+      "import": {
+        "types": "./lib/index.d.ts",
+        "default": "./lib/index.js"
+      },
+      "require": {
+        "types": "./lib/index.d.ts",
+        "default": "./lib/index.cjs"
+      }
+    },
+    "./browser": {
+      "types": "./browser/index.d.ts",
+      "default": "./browser/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "type": "module",
+  "engines": {
+    "node": "^18.18.0 || >=20.9.0"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "eslint-fix": "npm run lint -- --fix",
+    "test": "mocha \"tests/**/*.js\" --reporter dot --timeout 60000",
+    "cover": "nyc --reporter=lcov npm run test",
+    "preversion": "npm run lint && npm test",
+    "release": "changeset publish"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ota-meshi/astrojs-compiler-sync.git"
+  },
+  "keywords": [
+    "astro",
+    "astrojs",
+    "parser"
+  ],
+  "author": "Yosuke Ota",
+  "funding": "https://github.com/sponsors/ota-meshi",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ota-meshi/astrojs-compiler-sync/issues"
+  },
+  "homepage": "https://github.com/ota-meshi/astrojs-compiler-sync#readme",
+  "peerDependencies": {
+    "@astrojs/compiler": ">=0.27.0"
+  },
+  "dependencies": {
+    "synckit": "^0.11.0"
+  },
+  "devDependencies": {
+    "@astrojs/compiler": "^2.0.0",
+    "@changesets/changelog-github": "^0.5.0",
+    "@changesets/cli": "^2.24.2",
+    "@ota-meshi/eslint-plugin": "^0.15.0",
+    "@types/chai": "^5.0.0",
+    "@types/mocha": "^10.0.0",
+    "@types/node": "^22.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "chai": "^5.0.0",
+    "eslint": "^8.15.0",
+    "eslint-config-prettier": "^10.0.0",
+    "eslint-formatter-codeframe": "^7.32.1",
+    "eslint-plugin-eslint-comments": "^3.2.0",
+    "eslint-plugin-json-schema-validator": "^5.0.0",
+    "eslint-plugin-jsonc": "^2.0.0",
+    "eslint-plugin-jsx-a11y": "^6.5.1",
+    "eslint-plugin-n": "^17.0.0",
+    "eslint-plugin-node-dependencies": "^0.12.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "eslint-plugin-react": "^7.29.4",
+    "eslint-plugin-regexp": "^2.0.0",
+    "eslint-plugin-simple-import-sort": "^12.0.0",
+    "eslint-plugin-yml": "^1.1.0",
+    "mocha": "^11.0.0",
+    "nyc": "^17.0.0",
+    "prettier": "^3.0.0",
+    "semver": "^7.3.5",
+    "typescript": "^5.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

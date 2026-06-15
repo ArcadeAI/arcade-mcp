@@ -1,0 +1,171 @@
+{
+	"name": "dependency-cruiser",
+	"version": "17.4.3",
+	"description": "Validate and visualize dependencies. With your rules. JavaScript, TypeScript, CoffeeScript. ES6, CommonJS, AMD.",
+	"keywords": [
+		"static analysis",
+		"circular",
+		"dependencies",
+		"typescript",
+		"javascript",
+		"coffeescript",
+		"ES6",
+		"ES2015",
+		"AMD",
+		"CommonJS",
+		"validation",
+		"spelunking"
+	],
+	"author": "Sander Verweij (https://sverweij.github.io)",
+	"contributors": [
+		"0xflotus (https://github.com/0xflotus)",
+		"Álvaro Cuesta (https://github.com/alvaro-cuesta)",
+		"anna (https://github.com/annamooseity)",
+		"Bastian Hess (https://github.com/bashess)",
+		"Bin (https://github.com/soulhat)",
+		"Brody McKee (https://github.com/mrmckeb)",
+		"Christian Vuerings (https://github.com/christianvuerings)",
+		"Creative Ataraxia (https://github.com/Creative-Ataraxia)",
+		"cunzaizhuyi (https://github.com/cunzaizhuyi)",
+		"Daniel Edholm Ignat (https://github.com/dignite)",
+		"Daniel Rodríguez Rivero (https://danielorodriguez.com)",
+		"davidparkagoda (https://github.com/davidparkagoda)",
+		"electrovir (https://github.com/electrovir)",
+		"Emily Marigold Klassen (https://forivall.com)",
+		"Frederik Schubert (https://github.com/ferdynator)",
+		"Frieder Bluemle (https://github.com/friederbluemle)",
+		"fusheng (https://github.com/lin-hun)",
+		"Greg Lockwood (https://github.com/greglockwood)",
+		"Hirotaka Miyagi (https://mh4gf.dev)",
+		"Ivan (https://github.com/Winner95)",
+		"Jeremy Magland (https://github.com/magland)",
+		"Jessica Kerr (https://jessitron.com)",
+		"Jon Lauridsen (https://jonlauridsen.com)",
+		"Joshua T (https://github.com/radiantly)",
+		"KenjiroKubota (https://github.com/kubotak-is)",
+		"Kentaro Suzuki (https://github.com/sushichan044)",
+		"Klaus Meinhardt (https://github.com/ajafff)",
+		"Lars Artmann (https://larsartmann.com)",
+		"Luke Page (https://github.com/lukeapage)",
+		"Martin Slota (https://github.com/martinslota)",
+		"Matt Button (https://github.com/BRMatt)",
+		"Millicent Billette (https://github.com/1000i100)",
+		"Nick Ribal (https://github.com/elektronik2k5)",
+		"Quentin de Metz (https://github.com/quentindemetz)",
+		"Radosław Kłos (https://klos.dev)",
+		"Richard Musiol (https://github.com/neelance)",
+		"Roy Swinkels (https://github.com/donroyco)",
+		"Sebastian Landwehr (https://sebastianlandwehr.com)",
+		"Sharang Pai (https://sharangpai.me)",
+		"Stefan Gojan (https://stefan-gojan.de)",
+		"Tharun Rajendran (https://github.com/tharun208)",
+		"TruongSinh Tran-Nguyen (https://truongsinh.pro)",
+		"Valentin Semirulnik (https://github.com/7rulnik)",
+		"Yuanhai He (https://bestmike007.com)",
+		"정건우 (https://www.zigae.com/)"
+	],
+	"type": "module",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/sverweij/dependency-cruiser.git"
+	},
+	"bugs": {
+		"url": "https://github.com/sverweij/dependency-cruiser/issues"
+	},
+	"homepage": "https://github.com/sverweij/dependency-cruiser",
+	"bin": {
+		"dependency-cruiser": "bin/dependency-cruise.mjs",
+		"dependency-cruise": "bin/dependency-cruise.mjs",
+		"depcruise": "bin/dependency-cruise.mjs",
+		"depcruise-baseline": "bin/depcruise-baseline.mjs",
+		"depcruise-fmt": "bin/depcruise-fmt.mjs",
+		"depcruise-wrap-stream-in-html": "bin/wrap-stream-in-html.mjs"
+	},
+	"main": "src/main/index.mjs",
+	"imports": {
+		"#*": "./src/*"
+	},
+	"exports": {
+		".": {
+			"types": "./types/dependency-cruiser.d.mts",
+			"import": "./src/main/index.mjs"
+		},
+		"./config-utl/extract-babel-config": {
+			"types": "./types/config-utl/extract-babel-config.d.mts",
+			"import": "./src/config-utl/extract-babel-config.mjs"
+		},
+		"./config-utl/extract-depcruise-config": {
+			"types": "./types/config-utl/extract-depcruise-config.d.mts",
+			"import": "./src/config-utl/extract-depcruise-config/index.mjs"
+		},
+		"./config-utl/extract-depcruise-options": {
+			"types": "./types/config-utl/extract-depcruise-options.d.mts",
+			"import": "./src/config-utl/extract-depcruise-options.mjs"
+		},
+		"./config-utl/extract-ts-config": {
+			"types": "./types/config-utl/extract-ts-config.d.mts",
+			"import": "./src/config-utl/extract-ts-config.mjs"
+		},
+		"./config-utl/extract-webpack-resolve-config": {
+			"types": "./types/config-utl/extract-webpack-resolve-config.d.mts",
+			"import": "./src/config-utl/extract-webpack-resolve-config.mjs"
+		},
+		"./sample-reporter-plugin": {
+			"types": "./types/plugins/stats-reporter-plugin.d.mts",
+			"import": "./configs/plugins/stats-reporter-plugin.mjs"
+		},
+		"./sample-3d-reporter-plugin": {
+			"types": "./types/plugins/3d-reporter-plugin.d.mts",
+			"import": "./configs/plugins/3d-reporter-plugin.mjs"
+		},
+		"./mermaid-reporter-plugin": {
+			"types": "./types/plugins/mermaid-reporter-plugin.d.mts",
+			"import": "./src/report/mermaid.mjs"
+		}
+	},
+	"types": "types/dependency-cruiser.d.mts",
+	"files": [
+		"bin",
+		"configs/**/*.cjs",
+		"configs/plugins/",
+		"src",
+		"!src/**/*.json",
+		"!src/**/*.md",
+		"!src/**/*.ts",
+		"!src/**/*.schema.mjs",
+		"!types/README.md",
+		"!src/schema/README.md",
+		"!**/*.DS_Store",
+		"types/**/*.d.mts",
+		"LICENSE",
+		"package.json",
+		"README.md"
+	],
+	"dependencies": {
+		"acorn": "8.16.0",
+		"acorn-jsx": "5.3.2",
+		"acorn-jsx-walk": "2.0.0",
+		"acorn-loose": "8.5.2",
+		"acorn-walk": "8.3.5",
+		"commander": "14.0.3",
+		"enhanced-resolve": "5.22.1",
+		"ignore": "7.0.5",
+		"interpret": "3.1.1",
+		"is-installed-globally": "1.0.0",
+		"json5": "2.2.3",
+		"picomatch": "4.0.4",
+		"prompts": "2.4.2",
+		"rechoir": "0.8.0",
+		"safe-regex": "2.1.1",
+		"semver": "7.8.1",
+		"tsconfig-paths-webpack-plugin": "4.2.0",
+		"watskeburt": "5.0.3"
+	},
+	"engines": {
+		"node": "^20.12||^22||>=24"
+	},
+	"scripts": {
+		"test": "echo see github for test, build and analysis scripts"
+	}
+}

@@ -1,0 +1,6 @@
+---
+description: USE WHEN in BDD implement phase. RED/GREEN TDD cycle; run /refactor after GREEN.
+alwaysApply: false
+---
+
+@.claude/skills/bdd/TDD.md

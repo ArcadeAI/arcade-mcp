@@ -1,0 +1,253 @@
+/* eslint-disable security/detect-object-injection */
+import { dirname, resolve, sep } from "node:path/posix";
+import { getCachedRegExp, replaceGroupPlaceholders } from "#utl/regex-util.mjs";
+import { intersects } from "#utl/array-util.mjs";
+
+// by their nature some dependency types always occur alongside other
+// dependency types - aliased, type-only, import, export will always
+// occur paired with 'local', 'npm' or core. Hence we only include
+// a subset of dependency types where we _care_ if they are duplicates
+const DEPENDENCY_TYPE_DUPLICATES_THAT_MATTER = new Set([
+	"core",
+	"local",
+	"localmodule",
+	"npm",
+	"npm-bundled",
+	"npm-dev",
+	"npm-no-pkg",
+	"npm-optional",
+	"npm-peer",
+	"npm-unknown",
+]);
+
+export function propertyEquals(pRule, pDependency, pProperty) {
+	// The properties can be booleans, so we can't use !pRule.to[pProperty]
+	if (Object.hasOwn(pRule.to, pProperty)) {
+		return pDependency[pProperty] === pRule.to[pProperty];
+	}
+	return true;
+}
+
+export function propertyMatches(pRule, pDependency, pRuleProperty, pProperty) {
+	return (
+		!pRule.to[pRuleProperty] ||
+		(pDependency[pProperty] &&
+			getCachedRegExp(pRule.to[pRuleProperty]).test(pDependency[pProperty]))
+	);
+}
+
+export function propertyMatchesNot(
+	pRule,
+	pDependency,
+	pRuleProperty,
+	pProperty,
+) {
+	return (
+		!pRule.to[pRuleProperty] ||
+		(pDependency[pProperty] &&
+			!getCachedRegExp(pRule.to[pRuleProperty]).test(pDependency[pProperty]))
+	);
+}
+
+export function matchesFromPath(pRule, pModule) {
+	return (
+		!pRule.from.path || getCachedRegExp(pRule.from.path).test(pModule.source)
+	);
+}
+
+export function matchesFromPathNot(pRule, pModule) {
+	return (
+		!pRule.from.pathNot ||
+		!getCachedRegExp(pRule.from.pathNot).test(pModule.source)
+	);
+}
+
+export function matchesModulePath(pRule, pModule) {
+	return (
+		!pRule.module.path ||
+		getCachedRegExp(pRule.module.path).test(pModule.source)
+	);
+}
+
+export function matchesModulePathNot(pRule, pModule) {
+	return (
+		!pRule.module.pathNot ||
+		!getCachedRegExp(pRule.module.pathNot).test(pModule.source)
+	);
+}
+
+function _matchesToPath(pRule, pString, pGroups = []) {
+	return (
+		!pRule.to.path ||
+		getCachedRegExp(replaceGroupPlaceholders(pRule.to.path, pGroups)).test(
+			pString,
+		)
+	);
+}
+
+export function matchesToPath(pRule, pDependency, pGroups) {
+	return _matchesToPath(pRule, pDependency.resolved, pGroups);
+}
+
+export function matchToModulePath(pRule, pModule, pGroups) {
+	return _matchesToPath(pRule, pModule.source, pGroups);
+}
+
+function _matchesToPathNot(pRule, pString, pGroups = []) {
+	return (
+		!pRule.to.pathNot ||
+		!getCachedRegExp(replaceGroupPlaceholders(pRule.to.pathNot, pGroups)).test(
+			pString,
+		)
+	);
+}
+
+export function matchesToPathNot(pRule, pDependency, pGroups) {
+	return _matchesToPathNot(pRule, pDependency.resolved, pGroups);
+}
+
+export function matchToModulePathNot(pRule, pModule, pGroups) {
+	return _matchesToPathNot(pRule, pModule.source, pGroups);
+}
+
+export function matchesToDependencyTypes(pRule, pDependency) {
+	return (
+		!pRule.to.dependencyTypes ||
+		intersects(pDependency.dependencyTypes, pRule.to.dependencyTypes)
+	);
+}
+
+export function matchesToDependencyTypesNot(pRule, pDependency) {
+	return (
+		!pRule.to.dependencyTypesNot ||
+		!intersects(pDependency.dependencyTypes, pRule.to.dependencyTypesNot)
+	);
+}
+
+export function matchesToVia(pRule, pDependency, pGroups) {
+	let lReturnValue = true;
+	if (pRule.to.via && pDependency.cycle) {
+		if (pRule.to.via.path) {
+			lReturnValue = pDependency.cycle.some(({ name }) =>
+				getCachedRegExp(
+					replaceGroupPlaceholders(pRule.to.via.path, pGroups),
+				).test(name),
+			);
+		}
+		if (pRule.to.via.pathNot) {
+			lReturnValue = !pDependency.cycle.every(({ name }) =>
+				getCachedRegExp(
+					replaceGroupPlaceholders(pRule.to.via.pathNot, pGroups),
+				).test(name),
+			);
+		}
+		if (pRule.to.via.dependencyTypes) {
+			lReturnValue &&= pDependency.cycle.some(({ dependencyTypes }) =>
+				pRule.to.via.dependencyTypes.some((pRuleDependencyType) =>
+					dependencyTypes.includes(pRuleDependencyType),
+				),
+			);
+		}
+		if (pRule.to.via.dependencyTypesNot) {
+			lReturnValue &&= !pDependency.cycle.every(({ dependencyTypes }) =>
+				pRule.to.via.dependencyTypesNot.some((pRuleDependencyType) =>
+					dependencyTypes.includes(pRuleDependencyType),
+				),
+			);
+		}
+	}
+	return lReturnValue;
+}
+
+export function matchesToViaOnly(pRule, pDependency, pGroups) {
+	let lReturnValue = true;
+	if (pRule.to.viaOnly && pDependency.cycle) {
+		if (pRule.to.viaOnly.path) {
+			lReturnValue = pDependency.cycle.every(({ name }) =>
+				getCachedRegExp(
+					replaceGroupPlaceholders(pRule.to.viaOnly.path, pGroups),
+				).test(name),
+			);
+		}
+		if (pRule.to.viaOnly.pathNot) {
+			lReturnValue = !pDependency.cycle.some(({ name }) =>
+				getCachedRegExp(
+					replaceGroupPlaceholders(pRule.to.viaOnly.pathNot, pGroups),
+				).test(name),
+			);
+		}
+		if (pRule.to.viaOnly.dependencyTypes) {
+			lReturnValue &&= pDependency.cycle.every(({ dependencyTypes }) =>
+				pRule.to.viaOnly.dependencyTypes.some((pRuleDependencyType) =>
+					dependencyTypes.includes(pRuleDependencyType),
+				),
+			);
+		}
+		if (pRule.to.viaOnly.dependencyTypesNot) {
+			lReturnValue &&= !pDependency.cycle.some(({ dependencyTypes }) =>
+				pRule.to.viaOnly.dependencyTypesNot.some((pRuleDependencyType) =>
+					dependencyTypes.includes(pRuleDependencyType),
+				),
+			);
+		}
+	}
+	return lReturnValue;
+}
+
+export function matchesToIsMoreUnstable(pRule, pModule, pDependency) {
+	if (Object.hasOwn(pRule.to, "moreUnstable")) {
+		return (
+			(pRule.to.moreUnstable &&
+				pModule.instability < pDependency.instability) ||
+			(!pRule.to.moreUnstable && pModule.instability >= pDependency.instability)
+		);
+	}
+	return true;
+}
+
+export function matchesMoreThanOneDependencyType(pRule, pDependency) {
+	/**
+	 * this rule exists to weed out i.e. dependencies declared in both
+	 * dependencies and devDependencies. We, however, also use the dependencyTypes
+	 * to specify closer to the source what kind of dependency it is (aliased via
+	 * a subpath import => both 'aliased' and 'aliased-subpath-import').
+	 *
+	 * Moreover an alias per definition is also a regular dependency. So we also
+	 * need to exclude those.
+	 *
+	 * Something similar goes for dependencies that are imported as 'type-only' -
+	 * which are some sort of regular dependency as well. Hence the use of the
+	 * DEPENDENCY_TYPE_DUPLICATES_THAT_MATTER set.
+	 */
+
+	if (Object.hasOwn(pRule.to, "moreThanOneDependencyType")) {
+		return (
+			pRule.to.moreThanOneDependencyType ===
+			pDependency.dependencyTypes.filter((pDependencyType) =>
+				DEPENDENCY_TYPE_DUPLICATES_THAT_MATTER.has(pDependencyType),
+			).length >
+				1
+		);
+	}
+	return true;
+}
+
+export function matchesAncestor(pRule, pModule, pDependency) {
+	if (Object.hasOwn(pRule.to, "ancestor")) {
+		if (pDependency.coreModule || pDependency.couldNotResolve) {
+			return false;
+		}
+		const lModulePath = dirname(resolve(pModule.source)) + sep;
+		const lDependencyPath = dirname(resolve(pDependency.resolved)) + sep;
+		const lDoesMatchAncestor =
+			lModulePath.startsWith(lDependencyPath) &&
+			lModulePath.length > lDependencyPath.length;
+
+		if (pRule.to.ancestor) {
+			return lDoesMatchAncestor;
+		} else {
+			return !lDoesMatchAncestor;
+		}
+	}
+	return true;
+}

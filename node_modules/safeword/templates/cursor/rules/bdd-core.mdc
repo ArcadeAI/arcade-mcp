@@ -1,0 +1,6 @@
+---
+description: USE WHEN starting feature work, running /bdd, resuming a BDD ticket, or user says 'add', 'implement', 'build', 'feature', 'resume', 'continue'. Orchestrates BDD phases.
+alwaysApply: false
+---
+
+@.claude/skills/bdd/SKILL.md

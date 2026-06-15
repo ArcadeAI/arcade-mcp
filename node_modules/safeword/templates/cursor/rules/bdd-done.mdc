@@ -1,0 +1,6 @@
+---
+description: USE WHEN in BDD done phase (verify.md exists). Close the ticket — verification already happened in verify.
+alwaysApply: false
+---
+
+@.claude/skills/bdd/DONE.md

@@ -1,0 +1,209 @@
+---
+description: Four-phase debugging framework that ensures root cause identification before fixes. Use when encountering bugs, test failures, unexpected behavior, or when previous fix attempts failed. Enforces investigate-first discipline ('debug this', 'fix this error', 'test is failing', 'not working').
+alwaysApply: false
+---
+
+# Systematic Debugger
+
+Find root cause before fixing. Symptom fixes are failure.
+
+**Iron Law:** NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST
+
+## When to Use
+
+Answer IN ORDER. Stop at first match:
+
+1. Bug, error, or test failure? → Use this skill
+2. Unexpected behavior? → Use this skill
+3. Previous fix didn't work? → Use this skill (especially important)
+4. Performance problem? → Use this skill
+5. None of above? → Skip this skill
+
+**Use especially when:**
+
+- Under time pressure (emergencies make guessing tempting)
+- "Quick fix" seems obvious (red flag)
+- Already tried 1+ fixes that didn't work
+
+## The Four Phases
+
+Complete each phase before proceeding.
+
+### Phase 1: Root Cause Investigation
+
+**BEFORE attempting ANY fix:**
+
+**1. Read Error Messages Completely**
+
+```text
+Don't skip past errors. They often contain the exact solution.
+- Full stack trace (note line numbers, file paths)
+- Error codes and messages
+- Warnings that preceded the error
+```
+
+**2. Reproduce Consistently**
+
+| Can reproduce?  | Action                                               |
+| --------------- | ---------------------------------------------------- |
+| Yes, every time | Proceed to step 3                                    |
+| Sometimes       | Gather more data - when does it happen vs not?       |
+| Never           | Cannot debug what you cannot reproduce - gather logs |
+
+**3. Check Recent Changes**
+
+```bash
+git diff HEAD~5          # Recent code changes
+git log --oneline -10    # Recent commits
+```
+
+What changed that could cause this? Dependencies? Config? Environment?
+
+**4. Trace Data Flow (Root Cause Tracing)**
+
+When error is deep in call stack:
+
+```text
+Symptom: Error at line 50 in utils.js
+    ↑ Called by handler.js:120
+    ↑ Called by router.js:45
+    ↑ Called by app.js:10 ← ROOT CAUSE: bad input here
+```
+
+**Technique:**
+
+1. Find where error occurs (symptom)
+2. Ask: "What called this with bad data?"
+3. Trace up until you find the SOURCE
+4. Fix at source, not at symptom
+
+**5. Multi-Component Systems**
+
+When system has multiple layers (API → service → database):
+
+```bash
+# Log at EACH boundary before proposing fixes
+echo "=== Layer 1 (API): request=$REQUEST ==="
+echo "=== Layer 2 (Service): input=$INPUT ==="
+echo "=== Layer 3 (DB): query=$QUERY ==="
+```
+
+Run once to find WHERE it breaks. Then investigate that layer.
+
+### Phase 2: Pattern Analysis
+
+**1. Find Working Examples**
+
+Locate similar working code in same codebase. What works that's similar?
+
+**2. Identify Differences**
+
+| Working code     | Broken code    | Could this matter? |
+| ---------------- | -------------- | ------------------ |
+| Uses async/await | Uses callbacks | Yes - timing       |
+| Validates input  | No validation  | Yes - bad data     |
+
+List ALL differences. Don't assume "that can't matter."
+
+### Phase 3: Hypothesis Testing
+
+**1. Form Single Hypothesis**
+
+Write it down: "I think X is the root cause because Y"
+
+Be specific:
+
+- ❌ "Something's wrong with the database"
+- ✅ "Connection pool exhausted because connections aren't released in error path"
+
+**2. Test Minimally**
+
+| Rule                     | Why                    |
+| ------------------------ | ---------------------- |
+| ONE change at a time     | Isolate what works     |
+| Smallest possible change | Avoid side effects     |
+| Don't bundle fixes       | Can't tell what helped |
+
+**3. Evaluate Result**
+
+| Result          | Action                                  |
+| --------------- | --------------------------------------- |
+| Fixed           | Phase 4 (verify)                        |
+| Not fixed       | NEW hypothesis (return to 3.1)          |
+| Partially fixed | Found one issue, continue investigating |
+
+### Root Cause Checkpoint (REQUIRED)
+
+Before proceeding to Phase 4:
+
+1. **Document root cause** in ticket (under "## Root Cause" section)
+2. **If using tickets:** Update frontmatter to `subtype: bug-investigated`
+
+### Phase 4: Implementation
+
+**1. Create Failing Test**
+
+Before fixing, write test that fails due to the bug:
+
+```javascript
+it('handles empty input without crashing', () => {
+  // This test should FAIL before fix, PASS after
+  expect(() => processData('')).not.toThrow();
+});
+```
+
+**2. Implement Fix**
+
+- Address ROOT CAUSE identified in Phase 1
+- ONE change
+- No "while I'm here" improvements
+
+**3. Verify**
+
+- [ ] New test passes
+- [ ] Existing tests still pass
+- [ ] Issue actually resolved (not just test passing)
+
+**4. If Fix Doesn't Work**
+
+| Fix attempts | Action                                   |
+| ------------ | ---------------------------------------- |
+| 1-2          | Return to Phase 1 with new information   |
+| 3+           | STOP - Question architecture (see below) |
+
+**5. After 3+ Failed Fixes: Question Architecture**
+
+Pattern indicating architectural problem:
+
+- Each fix reveals new coupling/shared state
+- Fixes require "massive refactoring"
+- Each fix creates new symptoms elsewhere
+
+**STOP and ask:**
+
+- Is this pattern fundamentally sound?
+- Should we refactor vs. continue patching?
+- Discuss with user before more fix attempts
+
+## Red Flags - STOP Immediately
+
+If you catch yourself thinking:
+
+| Thought                                        | Reality                           |
+| ---------------------------------------------- | --------------------------------- |
+| "Quick fix for now, investigate later"         | Investigate NOW or you never will |
+| "Just try changing X"                          | That's guessing, not debugging    |
+| "I'll add multiple fixes and test"             | Can't isolate what worked         |
+| "I don't fully understand but this might work" | You need to understand first      |
+| "One more fix attempt" (after 2+ failures)     | 3+ failures = wrong approach      |
+
+**ALL mean: STOP. Return to Phase 1.**
+
+## Quick Reference
+
+| Phase             | Key Question                          | Success Criteria                   |
+| ----------------- | ------------------------------------- | ---------------------------------- |
+| 1. Root Cause     | "WHY is this happening?"              | Understand cause, not just symptom |
+| 2. Pattern        | "What's different from working code?" | Identified key differences         |
+| 3. Hypothesis     | "Is my theory correct?"               | Confirmed or formed new theory     |
+| 4. Implementation | "Does the fix work?"                  | Test passes, issue resolved        |
