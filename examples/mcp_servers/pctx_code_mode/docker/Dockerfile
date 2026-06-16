@@ -1,4 +1,4 @@
-FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim
+FROM ghcr.io/astral-sh/uv:0.11.21-python3.11-trixie-slim
 
 RUN useradd -m -u 1000 appuser
 
