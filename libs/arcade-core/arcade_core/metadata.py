@@ -118,6 +118,9 @@ class ServiceDomain(str, Enum):
     SALES_INTELLIGENCE = "sales_intelligence"
     """Sales intelligence and prospecting platforms: B2B contact and company databases, lead enrichment, and buyer intent data."""
 
+    SURVEY = "survey"
+    """Survey, form, and questionnaire builders for collecting and analyzing responses."""
+
 
 class Operation(str, Enum):
     """
