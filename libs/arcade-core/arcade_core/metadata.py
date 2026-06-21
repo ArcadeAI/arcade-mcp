@@ -40,6 +40,9 @@ class ServiceDomain(str, Enum):
     CRM = "crm"
     """Customer relationship management - contacts, deals, pipelines, sales activities."""
 
+    CONTACTS = "contacts"
+    """Address books and people directories — managing personal or organizational contact records."""
+
     EMAIL = "email"
     """Email services for sending, receiving, and managing messages."""
 

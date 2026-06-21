@@ -347,6 +347,24 @@ class TestToolDecoratorWithMetadata:
             ServiceDomain.SALES_INTELLIGENCE
         ]
 
+    def test_decorator_accepts_contacts_domain(self):
+        """CONTACTS classifies address-book / people-directory services (e.g. Google Contacts)."""
+        assert ServiceDomain.CONTACTS.value == "contacts"
+
+        @tool(
+            desc="Search the organization directory",
+            metadata=ToolMetadata(
+                classification=Classification(service_domains=[ServiceDomain.CONTACTS]),
+                behavior=Behavior(operations=[Operation.READ], read_only=True, open_world=True),
+            ),
+        )
+        def search_directory() -> str:
+            return "results"
+
+        assert search_directory.__tool_metadata__.classification.service_domains == [
+            ServiceDomain.CONTACTS
+        ]
+
     def test_decorator_without_metadata_is_backward_compatible(self):
         """Decorator should work without metadata (existing tools unchanged)."""
 
