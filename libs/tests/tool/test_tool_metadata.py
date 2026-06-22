@@ -365,6 +365,24 @@ class TestToolDecoratorWithMetadata:
             ServiceDomain.CONTACTS
         ]
 
+    def test_decorator_accepts_survey_domain(self):
+        """SURVEY classifies survey / form-builder services (e.g. Google Forms)."""
+        assert ServiceDomain.SURVEY.value == "survey"
+
+        @tool(
+            desc="List form responses",
+            metadata=ToolMetadata(
+                classification=Classification(service_domains=[ServiceDomain.SURVEY]),
+                behavior=Behavior(operations=[Operation.READ], read_only=True, open_world=True),
+            ),
+        )
+        def list_responses() -> str:
+            return "results"
+
+        assert list_responses.__tool_metadata__.classification.service_domains == [
+            ServiceDomain.SURVEY
+        ]
+
     def test_decorator_without_metadata_is_backward_compatible(self):
         """Decorator should work without metadata (existing tools unchanged)."""
 
