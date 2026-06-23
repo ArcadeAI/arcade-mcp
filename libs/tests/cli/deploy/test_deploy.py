@@ -3,6 +3,7 @@ import io
 import socket
 import subprocess
 import tarfile
+import zipfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -10,7 +11,12 @@ import httpx
 import pytest
 from arcade_cli.deploy import (
     DEPLOY_TIMEOUT_SECONDS,
+    CreateDeploymentRequest,
+    DeploymentToolkits,
+    ToolkitBundle,
     create_package_archive,
+    create_zip_archive,
+    deploy_server_logic,
     deploy_server_to_engine,
     get_required_secrets,
     get_server_info,
@@ -160,6 +166,161 @@ def test_create_package_archive_excludes_files(tmp_path: Path) -> None:
         # Verify included files are present
         assert any("main.py" in name for name in filenames)
         assert any("pyproject.toml" in name for name in filenames)
+
+
+# Tests for create_zip_archive (Cloudflare Python worker packaging)
+
+
+def test_create_zip_archive_uses_relative_paths(tmp_path: Path) -> None:
+    """Entries are stored relative to the package dir (no top-level dir), so a
+    'src/worker.py' entrypoint resolves inside the archive."""
+    worker = tmp_path / "worker"
+    (worker / "src").mkdir(parents=True)
+    (worker / "src" / "worker.py").write_text("main", encoding="utf-8")
+    (worker / "python_modules").mkdir()
+    (worker / "python_modules" / "six.py").write_text("x = 1", encoding="utf-8")
+    (worker / "pyproject.toml").write_text("project", encoding="utf-8")
+
+    archive_base64 = create_zip_archive(worker)
+    names = zipfile.ZipFile(io.BytesIO(base64.b64decode(archive_base64))).namelist()
+
+    assert "src/worker.py" in names
+    assert "python_modules/six.py" in names
+    assert "pyproject.toml" in names
+    # No top-level directory prefix (unlike the tar.gz packager).
+    assert not any(name.startswith("worker/") for name in names)
+
+
+def test_create_zip_archive_excludes_files(tmp_path: Path) -> None:
+    """The same exclusions as the tar.gz packager apply."""
+    worker = tmp_path / "worker"
+    worker.mkdir()
+    (worker / "worker.py").write_text("main", encoding="utf-8")
+    (worker / ".venv-workers").mkdir()
+    (worker / ".venv-workers" / "x").write_text("v", encoding="utf-8")
+    (worker / "__pycache__").mkdir()
+    (worker / "__pycache__" / "c.pyc").write_text("c", encoding="utf-8")
+    (worker / "uv.lock").write_text("lock", encoding="utf-8")
+
+    names = zipfile.ZipFile(io.BytesIO(base64.b64decode(create_zip_archive(worker)))).namelist()
+
+    assert "worker.py" in names
+    assert not any(".venv-workers" in n for n in names)
+    assert not any("__pycache__" in n for n in names)
+    assert not any(n.endswith(".lock") for n in names)
+
+
+def test_create_zip_archive_nonexistent_dir(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="Package directory not found"):
+        create_zip_archive(tmp_path / "nope")
+
+
+def test_create_zip_archive_produces_valid_zip(tmp_path: Path) -> None:
+    """The output must start with the zip magic so the engine detects Python."""
+    worker = tmp_path / "worker"
+    worker.mkdir()
+    (worker / "worker.py").write_text("main", encoding="utf-8")
+    raw = base64.b64decode(create_zip_archive(worker))
+    assert raw[:2] == b"PK"
+
+
+# Tests for CreateDeploymentRequest host/runtime
+
+
+def test_create_deployment_request_omits_host_runtime_when_unset() -> None:
+    """The default path must not send host/runtime, keeping the payload unchanged."""
+    req = CreateDeploymentRequest(
+        name="s",
+        description="d",
+        toolkits=DeploymentToolkits(
+            bundles=[ToolkitBundle(name="s", version="1", bytes="x", entrypoint="server.py")]
+        ),
+    )
+    dumped = req.model_dump(exclude_none=True)
+    assert "host" not in dumped
+    assert "runtime" not in dumped
+
+
+def test_create_deployment_request_includes_cloudflare_target() -> None:
+    req = CreateDeploymentRequest(
+        name="s",
+        description="d",
+        toolkits=DeploymentToolkits(
+            bundles=[ToolkitBundle(name="s", version="1", bytes="x", entrypoint="worker.py")]
+        ),
+        host="cloudflare",
+        runtime="python",
+    )
+    dumped = req.model_dump(exclude_none=True)
+    assert dumped["host"] == "cloudflare"
+    assert dumped["runtime"] == "python"
+
+
+# Tests for the Cloudflare Python deploy path
+
+
+@patch("arcade_cli.deploy._monitor_deployment_with_logs", return_value=("running", []))
+@patch("arcade_cli.deploy.deploy_server_to_engine")
+@patch("arcade_cli.deploy.server_already_exists", return_value=False)
+@patch("arcade_cli.deploy.find_env_file", return_value=None)
+@patch("arcade_cli.deploy.compute_base_url", return_value="https://engine.example.com")
+@patch("arcade_cli.deploy.verify_server_and_get_metadata")
+@patch("arcade_cli.deploy.validate_and_get_config")
+def test_deploy_server_logic_cloudflare_python(
+    mock_config: MagicMock,
+    mock_verify: MagicMock,
+    mock_base_url: MagicMock,
+    mock_find_env: MagicMock,
+    mock_exists: MagicMock,
+    mock_deploy: MagicMock,
+    mock_monitor: MagicMock,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """`runtime=python` zips the worker, skips local validation, and sends
+    host=cloudflare + runtime=python with the .py entrypoint."""
+    mock_config.return_value = MagicMock(user=MagicMock(email="dev@example.com"))
+
+    worker = tmp_path / "worker"
+    (worker / "src").mkdir(parents=True)
+    (worker / "pyproject.toml").write_text("[project]\nname='w'\n", encoding="utf-8")
+    (worker / "src" / "worker.py").write_text(
+        "from workers import WorkerEntrypoint", encoding="utf-8"
+    )
+    (worker / "python_modules").mkdir()
+    (worker / "python_modules" / "six.py").write_text("x = 1", encoding="utf-8")
+    monkeypatch.chdir(worker)
+
+    deploy_server_logic(
+        entrypoint="src/worker.py",
+        skip_validate=False,
+        server_name="my-cf-worker",
+        server_version="1.0.0",
+        secrets="skip",
+        host="api.arcade.dev",
+        port=None,
+        force_tls=False,
+        force_no_tls=False,
+        debug=False,
+        runtime="python",
+    )
+
+    # Local validation must be skipped for a Pyodide worker.
+    mock_verify.assert_not_called()
+
+    # The request must target Cloudflare with a Python runtime and a zip bundle.
+    assert mock_deploy.call_count == 1
+    payload = mock_deploy.call_args.args[1]
+    assert payload["host"] == "cloudflare"
+    assert payload["runtime"] == "python"
+    bundle = payload["toolkits"]["bundles"][0]
+    assert bundle["entrypoint"] == "src/worker.py"
+
+    raw = base64.b64decode(bundle["bytes"])
+    assert raw[:2] == b"PK", "Cloudflare Python worker must be a zip"
+    names = zipfile.ZipFile(io.BytesIO(raw)).namelist()
+    assert "src/worker.py" in names
+    assert "python_modules/six.py" in names
 
 
 # Tests for wait_for_health

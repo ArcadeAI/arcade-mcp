@@ -7,6 +7,7 @@ import random
 import subprocess
 import tarfile
 import time
+import zipfile
 from collections import deque
 from pathlib import Path
 from typing import cast
@@ -94,6 +95,11 @@ class CreateDeploymentRequest(BaseModel):
     name: str
     description: str
     toolkits: DeploymentToolkits
+    # Optional deployment target. Sent only when set (model_dump(exclude_none=True))
+    # so the default path is byte-for-byte unchanged. The engine routes by these:
+    # host="cloudflare" + runtime="python" selects the Cloudflare Pyodide path.
+    host: str | None = None
+    runtime: str | None = None
 
 
 class UpdateDeploymentRequest(BaseModel):
@@ -353,6 +359,23 @@ def update_deployment(
         client.close()
 
 
+def _is_excluded_archive_path(parts: tuple[str, ...]) -> bool:
+    """Return True if any path component should be excluded from a deployment
+    archive: hidden files/dirs, __pycache__, .egg-info, dist/build, .lock files.
+    Shared by the tar.gz and zip packagers so they exclude the same things.
+    """
+    for part in parts:
+        if (
+            part.startswith(".")
+            or part == "__pycache__"
+            or part.endswith(".egg-info")
+            or part in ["dist", "build"]
+            or part.endswith(".lock")
+        ):
+            return True
+    return False
+
+
 def create_package_archive(package_dir: Path) -> str:
     """
     Create a tar.gz archive of the package directory.
@@ -373,29 +396,8 @@ def create_package_archive(package_dir: Path) -> str:
         raise ValueError(f"Package path must be a directory: {package_dir}")
 
     def exclude_filter(tarinfo: tarfile.TarInfo) -> tarfile.TarInfo | None:
-        """Filter for files/directories to exclude from the archive.
-
-        Filters out:
-        - Hidden files and directories
-        - __pycache__ directories
-        - .egg-info directories
-        - dist and build directories
-        - files ending with .lock
-        """
-        name = tarinfo.name
-
-        parts = Path(name).parts
-
-        for part in parts:
-            if (
-                part.startswith(".")
-                or part == "__pycache__"
-                or part.endswith(".egg-info")
-                or part in ["dist", "build"]
-                or part.endswith(".lock")
-            ):
-                return None
-
+        if _is_excluded_archive_path(Path(tarinfo.name).parts):
+            return None
         return tarinfo
 
     # Create tar.gz archive in memory
@@ -409,6 +411,46 @@ def create_package_archive(package_dir: Path) -> str:
     package_bytes_b64 = base64.b64encode(package_bytes).decode("utf-8")
 
     return package_bytes_b64
+
+
+def create_zip_archive(package_dir: Path) -> str:
+    """
+    Create a zip archive of the package directory, base64-encoded.
+
+    Used for Cloudflare Python (Pyodide) workers: the engine detects a Python
+    worker by the zip container, then uploads each file in it as a separate
+    Worker module. Unlike create_package_archive (tar.gz, used by the
+    JavaScript/Porter paths), entries are stored *relative to package_dir* with
+    no top-level directory, so a worker entrypoint like "src/worker.py" resolves
+    inside the archive. The same exclusion rules apply.
+
+    Args:
+        package_dir: Path to the worker directory to archive
+
+    Returns:
+        Base64-encoded string of the zip archive bytes
+
+    Raises:
+        ValueError: If package_dir doesn't exist or is not a directory
+    """
+    if not package_dir.exists():
+        raise ValueError(f"Package directory not found: {package_dir}")
+
+    if not package_dir.is_dir():
+        raise ValueError(f"Package path must be a directory: {package_dir}")
+
+    byte_stream = io.BytesIO()
+    with zipfile.ZipFile(byte_stream, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for path in sorted(package_dir.rglob("*")):
+            if not path.is_file():
+                continue
+            rel = path.relative_to(package_dir)
+            if _is_excluded_archive_path(rel.parts):
+                continue
+            zf.write(path, arcname=rel.as_posix())
+
+    byte_stream.seek(0)
+    return base64.b64encode(byte_stream.read()).decode("utf-8")
 
 
 def _resolve_server_process_stdio(debug: bool) -> tuple[int | None, int | None]:
@@ -819,6 +861,7 @@ def deploy_server_logic(
     force_tls: bool,
     force_no_tls: bool,
     debug: bool,
+    runtime: str = "auto",
 ) -> None:
     """
     Main logic for deploying an MCP server to Arcade Engine.
@@ -873,17 +916,28 @@ def deploy_server_logic(
     else:
         console.print("[!] No .env file found in current or parent directories", style="yellow")
 
-    # Step 4: Verify server and extract metadata (or skip if --skip-validate)
+    # A Cloudflare Python (Pyodide) worker is deployed as a zip archive and runs
+    # on the Workers runtime, so it can't be started locally under CPython for
+    # validation — skip that step (main.py requires an explicit name/version).
+    is_cloudflare_python = runtime == "python"
+
+    # Step 4: Verify server and extract metadata (or skip)
     required_secrets_from_validation: set[str] = set()
 
-    if skip_validate:
-        console.print("\n[!] Skipping server validation (--skip-validate set)", style="yellow")
-        # Use the provided server_name and server_version
-        # These are guaranteed to be set due to validation in main.py
+    if skip_validate or is_cloudflare_python:
+        if is_cloudflare_python:
+            console.print(
+                "\n[!] Cloudflare Python worker: skipping local validation "
+                "(a Pyodide worker can't run under plain CPython)",
+                style="yellow",
+            )
+        else:
+            console.print("\n[!] Skipping server validation (--skip-validate set)", style="yellow")
+        # server_name/version are guaranteed set by validation in main.py.
         if server_name is None:
-            raise ValueError("server_name must be provided when skip_validate is True")
+            raise ValueError("server_name must be provided when skipping validation")
         if server_version is None:
-            raise ValueError("server_version must be provided when skip_validate is True")
+            raise ValueError("server_version must be provided when skipping validation")
 
         console.print(f"✓ Using server name: {server_name}", style="green")
         console.print(f"✓ Using server version: {server_version}", style="green")
@@ -926,10 +980,15 @@ def deploy_server_logic(
         else:
             console.print("\n✓ No required secrets found", style="green")
 
-    # Step 6: Create tar.gz archive of current directory
+    # Step 6: Package the current directory. Cloudflare Python workers ship as a
+    # zip (the engine detects Python by the zip container); the default path ships
+    # a tar.gz.
     console.print("\nCreating deployment package...", style="dim")
     try:
-        archive_base64 = create_package_archive(current_dir)
+        if is_cloudflare_python:
+            archive_base64 = create_zip_archive(current_dir)
+        else:
+            archive_base64 = create_package_archive(current_dir)
         archive_size_kb = len(archive_base64) * 3 / 4 / 1024  # base64 is ~4/3 larger
         console.print(f"✓ Package created ({archive_size_kb:.1f} KB)", style="green")
     except Exception as e:
@@ -959,8 +1018,13 @@ def deploy_server_logic(
                 name=server_name,
                 description="MCP Server deployed via CLI",
                 toolkits=deployment_toolkits,
+                # A Cloudflare Python worker must target the Cloudflare host
+                # explicitly — runtime-only Python routing goes to Porter.
+                host="cloudflare" if is_cloudflare_python else None,
+                runtime="python" if is_cloudflare_python else None,
             )
-            deploy_server_to_engine(engine_url, create_request.model_dump(), debug)
+            # exclude_none keeps the default (auto) payload byte-for-byte unchanged.
+            deploy_server_to_engine(engine_url, create_request.model_dump(exclude_none=True), debug)
     except Exception as e:
         raise ValueError(f"Deployment failed: {e}") from e
 

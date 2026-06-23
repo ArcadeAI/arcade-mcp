@@ -946,6 +946,21 @@ def deploy(
         rich_help_panel="Advanced",
         click_type=click.Choice(["auto", "all", "skip"], case_sensitive=False),
     ),
+    runtime: str = typer.Option(
+        "auto",
+        "--runtime",
+        "-r",
+        help=(
+            "Worker runtime / deployment target:\n"
+            "  `auto` (default): a standard MCP server; packaged as tar.gz and validated locally.\n"
+            "  `python`: a Cloudflare Python (Pyodide) worker; packaged as a zip and deployed to "
+            "Cloudflare. Local validation is skipped (a Pyodide worker can't run under CPython), so "
+            "`--server-name` and `--server-version` are required, and `--entrypoint` must be the `.py` "
+            "main module (e.g. `src/worker.py`)."
+        ),
+        show_choices=True,
+        click_type=click.Choice(["auto", "python"], case_sensitive=False),
+    ),
     host: str = typer.Option(
         PROD_ENGINE_HOST,
         "--host",
@@ -988,12 +1003,17 @@ def deploy(
     """
     from arcade_cli.deploy import deploy_server_logic
 
-    if skip_validate and not (server_name and server_version):
+    # A Cloudflare Python worker can't be validated locally (it runs on Pyodide),
+    # so it skips validation and therefore needs an explicit name and version,
+    # exactly like --skip-validate.
+    needs_explicit_metadata = skip_validate or runtime == "python"
+    if needs_explicit_metadata and not (server_name and server_version):
+        flag = "--runtime python" if runtime == "python" else "--skip-validate"
         handle_cli_error(
-            "When --skip-validate is set, you must provide --server-name and --server-version.",
+            f"When {flag} is set, you must provide --server-name and --server-version.",
             should_exit=True,
         )
-    if skip_validate and secrets == "auto":
+    if needs_explicit_metadata and secrets == "auto":
         secrets = "skip"
 
     try:
@@ -1008,6 +1028,7 @@ def deploy(
             force_tls=force_tls,
             force_no_tls=force_no_tls,
             debug=debug,
+            runtime=runtime,
         )
     except Exception as e:
         handle_cli_error("Failed to deploy server", e, debug)
