@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+# Generated at runtime by mcp_smoke_client.py / run_cors.py / the static ui:// resources
+grid_bridge.html
+grid_preview.html
+grid_preview_full.html
+embed_preview.html
+embed_preview_full.html
