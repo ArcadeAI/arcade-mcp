@@ -1877,7 +1877,6 @@ class MCPServer:
             )
 
         req = tool.definition.requirements.authorization
-        provider_id = str(getattr(req, "provider_id", ""))
         provider_type = str(getattr(req, "provider_type", ""))
         # TypedDict requires concrete type; supply empty scopes if absent when oauth2 provider
         oauth2_req = (
@@ -1887,11 +1886,16 @@ class MCPServer:
             if isinstance(req, CoreToolAuthRequirement) and provider_type.lower() == "oauth2"
             else AuthRequirementOauth2()
         )
-        auth_req = AuthRequirement(
-            provider_id=provider_id,
-            provider_type=provider_type,
-            oauth2=oauth2_req,
-        )
+        auth_req = AuthRequirement(provider_type=provider_type, oauth2=oauth2_req)
+        # provider_id and id are both optional on the requirement. Built-in providers
+        # identify via provider_id; custom providers identify via id (with no
+        # provider_id). Forward each only when set.
+        provider_id = getattr(req, "provider_id", None)
+        if provider_id:
+            auth_req["provider_id"] = str(provider_id)
+        provider_specific_id = getattr(req, "id", None)
+        if provider_specific_id:
+            auth_req["id"] = str(provider_specific_id)
 
         # Log a warning if user_id is not set
         final_user_id = user_id or "anonymous"
