@@ -589,8 +589,14 @@ class TestMCPServer:
 
     @pytest.mark.asyncio
     async def test_check_authorization_forwards_builtin_provider_id(self, mcp_server):
-        """Built-in providers identify via `provider_id`; it must be forwarded unchanged
-        and an unset `id` must not be sent (never as the string "None")."""
+        """Built-in provider (provider_id set, no id): forward provider_id verbatim, add no id key.
+
+        This documents the common built-in path (e.g. ``Google(scopes=[...])``). The
+        stringified-``None`` regression it guards against applied to ``provider_id`` when
+        *absent* — that case is exercised by
+        ``test_check_authorization_forwards_custom_provider_id``; the ``id``-forwarding
+        regression is exercised by ``test_check_authorization_forwards_both_provider_id_and_id``.
+        """
         mock_arcade = Mock()
         mock_response = Mock()
         mock_response.status = "completed"
@@ -610,9 +616,38 @@ class TestMCPServer:
         auth_requirement = mock_arcade.auth.authorize.call_args.kwargs["auth_requirement"]
         assert auth_requirement.get("provider_id") == "google"
         assert "id" not in auth_requirement
-        assert auth_requirement.get("id") != "None"
         assert auth_requirement["provider_type"] == "oauth2"
         assert auth_requirement["oauth2"]["scopes"] == ["profile"]
+
+    @pytest.mark.asyncio
+    async def test_check_authorization_forwards_both_provider_id_and_id(self, mcp_server):
+        """When a requirement carries BOTH provider_id and id, both must reach the Engine.
+
+        This is the discriminating regression guard for the id-forwarding fix: the pre-fix
+        code dropped ``id`` even when ``provider_id`` was present (e.g. ``Google(id="…")``),
+        so it emitted only ``provider_id`` here and this assertion would fail.
+        """
+        mock_arcade = Mock()
+        mock_response = Mock()
+        mock_response.status = "completed"
+        mock_arcade.auth.authorize = AsyncMock(return_value=mock_response)
+        mcp_server.arcade = mock_arcade
+
+        tool = Mock()
+        tool.definition.requirements.authorization = ToolAuthRequirement(
+            provider_type="oauth2",
+            provider_id="acme",
+            id="acme-eu",
+            oauth2=OAuth2Requirement(scopes=["read"]),
+        )
+
+        await mcp_server._check_authorization(tool, user_id="user@example.com")
+
+        auth_requirement = mock_arcade.auth.authorize.call_args.kwargs["auth_requirement"]
+        assert auth_requirement.get("provider_id") == "acme"
+        assert auth_requirement.get("id") == "acme-eu"
+        assert auth_requirement["provider_type"] == "oauth2"
+        assert auth_requirement["oauth2"]["scopes"] == ["read"]
 
     @pytest.mark.asyncio
     async def test_check_tool_requirements_no_requirements(self, mcp_server, materialized_tool):

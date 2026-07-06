@@ -1877,7 +1877,7 @@ class MCPServer:
             )
 
         req = tool.definition.requirements.authorization
-        provider_type = str(getattr(req, "provider_type", "") or "")
+        provider_type = str(getattr(req, "provider_type", ""))
         # TypedDict requires concrete type; supply empty scopes if absent when oauth2 provider
         oauth2_req = (
             AuthRequirementOauth2(
