@@ -1889,9 +1889,7 @@ class MCPServer:
         auth_req = AuthRequirement(provider_type=provider_type, oauth2=oauth2_req)
         # provider_id and id are both optional on the requirement. Built-in providers
         # identify via provider_id; custom providers identify via id (with no
-        # provider_id). Forward each only when set: coercing an absent value with
-        # str() would send the literal string "None" as the provider alias, and
-        # dropping `id` would leave the Engine unable to resolve a custom provider.
+        # provider_id). Forward each only when set.
         provider_id = getattr(req, "provider_id", None)
         if provider_id:
             auth_req["provider_id"] = str(provider_id)
