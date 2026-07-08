@@ -150,6 +150,21 @@ class Microsoft(OAuth2):
         super().__init__(id=id, scopes=scopes)
 
 
+class MicrosoftPowerBI(Microsoft):
+    """Marks a tool as requiring Power BI Service authorization.
+
+    Dedicated Power BI Service provider. Reuses the Microsoft Entra endpoints but
+    authorizes on a separate connection so that Power BI resource scopes
+    (https://analysis.windows.net/powerbi/api/*) never mix with Microsoft Graph
+    scopes in a single authorize request (Entra AADSTS70011).
+    """
+
+    provider_id: str = "microsoft-powerbi"
+
+    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
+        super().__init__(id=id, scopes=scopes)
+
+
 class Notion(OAuth2):
     """Marks a tool as requiring Notion authorization."""
 

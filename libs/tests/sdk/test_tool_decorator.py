@@ -1,7 +1,7 @@
 import asyncio
 
 import pytest
-from arcade_core.auth import AuthProviderType, Google
+from arcade_core.auth import AuthProviderType, Google, Microsoft, MicrosoftPowerBI
 from arcade_tdk import tool
 from arcade_tdk.auth import OAuth2, PagerDuty
 
@@ -57,6 +57,18 @@ async def test_async_function():
             "pagerduty",
             "my_pagerduty_provider123",
         ),
+        (
+            MicrosoftPowerBI,
+            {"scopes": ["test_scope", "another.scope"]},
+            "microsoft-powerbi",
+            None,
+        ),
+        (
+            MicrosoftPowerBI,
+            {"id": "my_powerbi_provider123", "scopes": ["test_scope", "another.scope"]},
+            "microsoft-powerbi",
+            "my_powerbi_provider123",
+        ),
     ],
 )
 def test_tool_decorator_with_auth_success(
@@ -76,6 +88,24 @@ def test_tool_decorator_with_auth_success(
     assert test_tool.__tool_requires_auth__.provider_type == AuthProviderType.oauth2
     assert test_tool.__tool_requires_auth__.id == expected_id
     assert test_tool.__tool_requires_auth__.scopes == ["test_scope", "another.scope"]
+
+
+def test_microsoft_powerbi_provider_defaults():
+    auth = MicrosoftPowerBI()
+
+    assert auth.provider_id == "microsoft-powerbi"
+    assert auth.id is None
+    assert auth.scopes is None
+    assert auth.provider_type == AuthProviderType.oauth2
+    # Subclasses Microsoft so it inherits the Microsoft Graph error adapter mapping.
+    assert isinstance(auth, Microsoft)
+
+
+def test_microsoft_powerbi_importable_from_mcp_server_auth():
+    from arcade_mcp_server.auth import MicrosoftPowerBI as MicrosoftPowerBIFromServer
+
+    assert MicrosoftPowerBIFromServer is MicrosoftPowerBI
+    assert MicrosoftPowerBIFromServer().provider_id == "microsoft-powerbi"
 
 
 @pytest.mark.parametrize(
