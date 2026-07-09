@@ -18,6 +18,7 @@ from arcade_core.catalog import ToolCatalog
 from arcade_core.discovery import discover_tools
 from arcade_core.toolkit import ToolkitLoadError
 from arcade_serve.fastapi import FastAPIWorker, TaskTrackerMiddleware
+from arcade_serve.fastapi import _arcade_telemetry as _arcade_telemetry_bridge
 from arcade_serve.fastapi.telemetry import OTELHandler
 from fastapi import FastAPI
 from loguru import logger
@@ -159,6 +160,8 @@ def create_arcade_mcp(
     otel_handler = OTELHandler(
         enable=otel_enable,
         log_level=logging.DEBUG if debug else logging.INFO,
+        service_name=mcp_settings.server.name,
+        service_version=mcp_settings.server.version,
     )
 
     @asynccontextmanager
@@ -208,6 +211,16 @@ def create_arcade_mcp(
 
     app.add_middleware(AddTrailingSlashToPathMiddleware)
 
+    # Register CorrelationMiddleware last so it lands outermost in the
+    # Starlette stack — `add_middleware` order is innermost-first, so the
+    # final call wraps everything else. This ensures every other middleware
+    # (task tracker, trailing-slash, auth) runs with the X-Request-Id
+    # contextvar already populated.
+    if otel_enable:
+        _correlation_mw = _arcade_telemetry_bridge.correlation_middleware_cls()
+        if _correlation_mw is not None:
+            app.add_middleware(_correlation_mw)  # type: ignore[arg-type]
+
     # Add OAuth discovery endpoint if auth is enabled
     if resource_server_validator and resource_server_validator.supports_oauth_discovery():
         canonical_url = getattr(resource_server_validator, "canonical_url", None)
@@ -256,7 +269,16 @@ def create_arcade_mcp(
                     "MCP_RESOURCE_SERVER_CANONICAL_URL environment variable"
                 )
 
-        mcp_proxy = ResourceServerMiddleware(mcp_proxy, resource_server_validator, canonical_url)
+        # The MCP spec recommends advertising ``scope`` on the entry-401
+        # challenge. The validator owns ``default_challenge_scopes`` (RFC
+        # 6750 surface) and ``scopes_supported`` (RFC 9728 surface), both
+        # declared on ``ResourceServerValidator`` ABC; the middleware
+        # reads them directly from the validator. No plumbing needed here.
+        mcp_proxy = ResourceServerMiddleware(
+            mcp_proxy,
+            resource_server_validator,
+            canonical_url,
+        )
 
     # Mount the ASGI proxy to handle all /mcp requests
     app.mount("/mcp", mcp_proxy, name="mcp-proxy")

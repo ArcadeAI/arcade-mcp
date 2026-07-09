@@ -211,6 +211,7 @@ def read_products(
                             "price": ValueSchema(val_type="integer", enum=None),
                             "stock_quantity": ValueSchema(val_type="integer", enum=None),
                         },
+                        required_keys=["price", "product_name", "stock_quantity"],
                     ),
                     available_modes=["value", "error"],
                     description="The product, price, and quantity",
@@ -379,6 +380,8 @@ def read_products(
                                                 val_type="integer", enum=None
                                             ),
                                         },
+                                        required_keys=["column", "greater_than"],
+                                        nullable=True,
                                     ),
                                     "highest_price": ValueSchema(
                                         val_type="json",
@@ -387,6 +390,8 @@ def read_products(
                                             "column": ValueSchema(val_type="string", enum=None),
                                             "price": ValueSchema(val_type="integer", enum=None),
                                         },
+                                        required_keys=["column", "price"],
+                                        nullable=True,
                                     ),
                                     "lowest_price": ValueSchema(
                                         val_type="json",
@@ -395,8 +400,11 @@ def read_products(
                                             "column": ValueSchema(val_type="string", enum=None),
                                             "price": ValueSchema(val_type="integer", enum=None),
                                         },
+                                        required_keys=["column", "price"],
+                                        nullable=True,
                                     ),
                                 },
+                                required_keys=["column", "query"],
                             ),
                         ),
                         InputParameter(
@@ -420,6 +428,7 @@ def read_products(
                             "price": ValueSchema(val_type="integer", enum=None),
                             "stock_quantity": ValueSchema(val_type="integer", enum=None),
                         },
+                        inner_required_keys=["price", "product_name", "stock_quantity"],
                     ),
                     available_modes=["value", "error"],
                     description="Data with the selected columns",
@@ -434,3 +443,119 @@ def test_create_tool_def_from_pydantic(func_under_test, expected_tool_def_fields
 
     for field, expected_value in expected_tool_def_fields.items():
         assert getattr(tool_def, field) == expected_value
+
+
+class QueryVariables(BaseModel):
+    """Variables for a single query."""
+
+    gene: str
+    organism: str = "human"
+    limit: int | None = None
+
+
+class BatchRequest(BaseModel):
+    """A batch request wrapping query variables."""
+
+    variables: QueryVariables
+    label: str | None = None
+
+
+@tool(desc="Run a query with Pydantic-model variables")
+def run_query(variables: Annotated[QueryVariables, "The query variables"]) -> str:
+    return "ok"
+
+
+@tool(desc="Run a batch of queries (list of Pydantic models)")
+def run_batch(variables_list: Annotated[list[QueryVariables], "Variables per query"]) -> str:
+    return "ok"
+
+
+@tool(desc="Run a query with a nested Pydantic model")
+def run_nested(request: Annotated[BatchRequest, "The batch request"]) -> str:
+    return "ok"
+
+
+def _first_param_value_schema(func):
+    return ToolCatalog.create_tool_definition(func, "1.0").input.parameters[0].value_schema
+
+
+def test_pydantic_required_keys_excludes_defaulted_fields():
+    vs = _first_param_value_schema(run_query)
+    assert vs.val_type == "json"
+    assert set(vs.properties.keys()) == {"gene", "organism", "limit"}
+    # Only `gene` lacks a default; `organism` and `limit` default, so are not required.
+    assert vs.required_keys == ["gene"]
+
+
+def test_pydantic_optional_field_is_nullable():
+    vs = _first_param_value_schema(run_query)
+    assert vs.properties["limit"].nullable is True
+    assert vs.properties["gene"].nullable is None
+    assert vs.properties["organism"].nullable is None
+
+
+def test_list_of_pydantic_carries_inner_required_keys():
+    vs = _first_param_value_schema(run_batch)
+    assert vs.val_type == "array"
+    assert vs.inner_val_type == "json"
+    assert vs.inner_required_keys == ["gene"]
+    assert vs.inner_properties["limit"].nullable is True
+
+
+def test_nested_pydantic_required_keys_are_recursive():
+    vs = _first_param_value_schema(run_nested)
+    # `label` defaults, so the outer object only requires `variables`.
+    assert vs.required_keys == ["variables"]
+    assert vs.properties["variables"].required_keys == ["gene"]
+
+
+class AllDefaultedModel(BaseModel):
+    """A model where every field has a default."""
+
+    count: int = 5
+    label: str = "x"
+
+
+@tool(desc="Take an all-defaulted Pydantic model")
+def run_all_defaulted(cfg: Annotated[AllDefaultedModel, "Config"]) -> str:
+    return "ok"
+
+
+def test_pydantic_all_defaulted_has_empty_required_keys():
+    vs = _first_param_value_schema(run_all_defaulted)
+    # A structured model with no required fields is a known-empty required set, not an
+    # unknown shape: required_keys is an empty list, distinct from a freeform dict's None.
+    assert vs.required_keys == []
+
+
+def test_freeform_dict_has_none_required_keys():
+    from arcade_core.catalog import extract_properties
+
+    properties, required_keys = extract_properties(dict)
+    assert properties is None
+    assert required_keys is None
+
+
+class EmptyModel(BaseModel):
+    """A model that declares no fields."""
+
+
+@tool(desc="Take a zero-field Pydantic model")
+def run_empty_model(cfg: Annotated[EmptyModel, "Config"]) -> str:
+    return "ok"
+
+
+def test_zero_field_pydantic_model_extract_properties_is_known_empty():
+    from arcade_core.catalog import extract_properties
+
+    properties, required_keys = extract_properties(EmptyModel)
+    # A zero-field model has a known-empty shape ({}, []), distinct from a freeform dict's
+    # unknown shape (None, None), so converters can emit it as a closed object.
+    assert properties == {}
+    assert required_keys == []
+
+
+def test_zero_field_pydantic_model_value_schema_has_empty_properties():
+    vs = _first_param_value_schema(run_empty_model)
+    assert vs.properties == {}
+    assert vs.required_keys == []

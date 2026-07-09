@@ -433,7 +433,7 @@ class _RequestsExceptionHandler:
         """
         # Lazy import requests types locally to avoid import errors for toolkits that don't use requests
         try:
-            from requests.exceptions import (  # type: ignore[import-untyped]
+            from requests.exceptions import (
                 ConnectionError,
                 ContentDecodingError,
                 HTTPError,
@@ -461,13 +461,17 @@ class _RequestsExceptionHandler:
 
         try:
             from requests.exceptions import InvalidProxyURL
+
+            _invalid_proxy_url_cls: type[Exception] = InvalidProxyURL
         except ImportError:
-            InvalidProxyURL = _UnavailableRequestsException
+            _invalid_proxy_url_cls = _UnavailableRequestsException
 
         try:
             from requests.exceptions import InvalidHeader
+
+            _invalid_header_cls: type[Exception] = InvalidHeader
         except ImportError:
-            InvalidHeader = _UnavailableRequestsException
+            _invalid_header_cls = _UnavailableRequestsException
 
         request_url, request_method = mapper._extract_request_info(exc)
 
@@ -506,7 +510,7 @@ class _RequestsExceptionHandler:
                 request_method=request_method,
             )
         # InvalidProxyURL is a subclass of InvalidURL — check proxy first.
-        if isinstance(exc, InvalidProxyURL):
+        if isinstance(exc, _invalid_proxy_url_cls):
             return mapper._build_construction_error(
                 exc=exc,
                 message="HTTP proxy URL is invalid or malformed.",
@@ -520,7 +524,7 @@ class _RequestsExceptionHandler:
                 request_url=request_url,
                 request_method=request_method,
             )
-        if isinstance(exc, InvalidHeader):
+        if isinstance(exc, _invalid_header_cls):
             return mapper._build_construction_error(
                 exc=exc,
                 message="HTTP request contains an invalid header name or value.",

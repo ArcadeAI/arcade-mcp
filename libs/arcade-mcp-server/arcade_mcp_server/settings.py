@@ -146,6 +146,22 @@ class TransportSettings(BaseSettings):
         ge=10,
         le=10000,
     )
+    allowed_origins: list[str] | None = Field(
+        default=None,
+        description="Allowed Origin headers (comma-separated). None = reject any Origin. ['*'] = allow all.",
+    )
+
+    @field_validator("allowed_origins", mode="before")
+    @classmethod
+    def parse_allowed_origins(cls, v: Any) -> list[str] | None:
+        """Parse comma-separated origins from env var."""
+        if v is None:
+            return None
+        if isinstance(v, str):
+            return [s.strip() for s in v.split(",") if s.strip()]
+        if isinstance(v, list):
+            return v
+        return None
 
     model_config = {"env_prefix": "MCP_TRANSPORT_"}
 
@@ -199,6 +215,75 @@ class ResourceServerSettings(BaseSettings):
         description="JSON array of authorization server entries."
         'Example: \'[{"authorization_server_url":"https://auth.example.com","issuer":"https://auth.example.com","jwks_uri":"https://auth.example.com/oauth2/jwks","algorithm":"RS256"}]\'',
     )
+    scopes_supported: list[str] | None = Field(
+        default=None,
+        description=(
+            "Space-separated OAuth scopes for RFC 9728 PRM "
+            "``scopes_supported`` (the *minimum* scopes for basic "
+            "functionality). Independent of ``default_challenge_scopes``. "
+            "Example: 'mcp offline_access'. Empty/unset omits the field "
+            "from PRM."
+        ),
+    )
+    default_challenge_scopes: list[str] | None = Field(
+        default=None,
+        description=(
+            "Space-separated OAuth scopes for the entry-401 RFC 6750 "
+            "``WWW-Authenticate: scope=`` parameter. Independent of "
+            "``scopes_supported``: the spec permits this set to be a "
+            "non-subset / non-superset alternative collection. "
+            "Example: 'mcp offline_access'. Empty/unset omits ``scope=`` "
+            "from the entry-401 challenge (clients fall back to the MCP "
+            "spec selection strategy)."
+        ),
+    )
+
+    @field_validator("scopes_supported", "default_challenge_scopes", mode="before")
+    @classmethod
+    def _parse_space_separated_scopes(cls, v: Any) -> list[str] | None:
+        """Parse space-separated scopes from environment variable.
+
+        ``str.split()`` (no args) splits on any whitespace, collapses
+        runs, and yields no empty strings, exactly the right semantics
+        for OAuth scope lists. Empty / whitespace-only input becomes
+        ``None`` (NOT ``[]``) to match the "no advertisement" convention
+        used throughout the resource_server module.
+
+        Applied to both ``scopes_supported`` and
+        ``default_challenge_scopes`` since the two surfaces share the
+        same wire encoding (RFC 6749 ``scope`` parameter form).
+        """
+        if v is None:
+            return None
+        if isinstance(v, str):
+            tokens = v.split()
+            return tokens or None
+        if isinstance(v, list):
+            return v or None
+        return None
+
+    @field_validator("canonical_url", mode="after")
+    @classmethod
+    def _validate_canonical_url(cls, v: str | None) -> str | None:
+        """Validate ``canonical_url`` at intake time.
+
+        A misconfigured ``MCP_RESOURCE_SERVER_CANONICAL_URL=hello world``
+        passes the bare RFC 6750 char-grammar (space is permitted) but is
+        not a URL. Intake-time URI validation rejects the misconfiguration
+        with a precise scheme/netloc/loopback/whitespace/percent-escape/
+        fragment classification rather than letting the bad value
+        propagate into PRM documents and 401/403 headers.
+
+        Imported lazily to avoid pulling resource_server into the
+        settings import chain at module-load time.
+        """
+        if v is None:
+            return None
+        from arcade_mcp_server.resource_server.base import (
+            _validate_resource_metadata_url,
+        )
+
+        return _validate_resource_metadata_url(v)
 
     @field_validator("authorization_servers", mode="before")
     @classmethod
@@ -317,13 +402,37 @@ class ArcadeSettings(BaseSettings):
     model_config = {"env_prefix": "ARCADE_"}
 
 
+RESERVED_TOOL_SECRET_KEYS: frozenset[str] = frozenset({
+    "ARCADE_WORKER_SECRET",
+    "ARCADE_API_KEY",
+})
+"""Environment variables that authenticate the server/worker to Arcade itself.
+
+These are never exposed to tool code as secrets. A tool able to read
+``ARCADE_WORKER_SECRET`` could forge worker JWTs and call ``/worker/*`` as any
+user; one able to read ``ARCADE_API_KEY`` could act as the account against the
+Arcade API. This is a narrow, exact-name block list, NOT an ``ARCADE_`` prefix
+exclusion: other ``ARCADE_*`` variables (e.g. ``ARCADE_USER_ID``) remain
+available to tools as secrets.
+"""
+
+
+def is_reserved_tool_secret_key(key: str) -> bool:
+    """Return whether ``key`` names a reserved framework control-plane credential.
+
+    The comparison is case-insensitive because environment variable names are
+    case-insensitive on some platforms. See :data:`RESERVED_TOOL_SECRET_KEYS`.
+    """
+    return key.upper() in RESERVED_TOOL_SECRET_KEYS
+
+
 class ToolEnvironmentSettings(BaseSettings):
     """Tool environment settings.
 
-    Every environment variable that is not prefixed
-    with one of the prefixes for the other settings
-    will be added to the tool environment as an
-    available tool secret in the ToolContext
+    Every environment variable that is not prefixed with one of the prefixes
+    for the other settings is added to the tool environment as an available
+    tool secret in the ToolContext, except the reserved framework credentials
+    in :data:`RESERVED_TOOL_SECRET_KEYS`, which are always withheld from tools.
     """
 
     tool_environment: dict[str, Any] = Field(
@@ -339,6 +448,7 @@ class ToolEnvironmentSettings(BaseSettings):
                 key: value
                 for key, value in os.environ.items()
                 if not any(key.startswith(prefix) for prefix in excluded_prefixes)
+                and not is_reserved_tool_secret_key(key)
             }
 
     model_config = {

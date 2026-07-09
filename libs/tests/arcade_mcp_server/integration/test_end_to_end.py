@@ -642,7 +642,7 @@ async def test_http_e2e():
 
         headers = {
             "Content-Type": "application/json",
-            "Accept": "application/json",
+            "Accept": "application/json, text/event-stream",
         }
         client = httpx.Client(base_url=base_url, timeout=30.0, headers=headers)
 
@@ -782,7 +782,7 @@ async def test_http_direct_python_invocation():
         # Verify server is healthy and tools are discoverable
         headers = {
             "Content-Type": "application/json",
-            "Accept": "application/json",
+            "Accept": "application/json, text/event-stream",
         }
         client = httpx.Client(base_url=f"http://127.0.0.1:{port}", timeout=10.0, headers=headers)
 

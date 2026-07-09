@@ -14,6 +14,7 @@ from opentelemetry.trace import SpanKind, StatusCode
 from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
 
 from arcade_mcp_server.middleware.base import CallNext, Middleware, MiddlewareContext
+from arcade_mcp_server.request_context import get_request_meta
 from arcade_mcp_server.types import JSONRPCResponse
 
 logger = logging.getLogger("arcade.mcp.telemetry")
@@ -213,7 +214,7 @@ class TelemetryPassbackMiddleware(Middleware):
         session = getattr(mcp_ctx, "_session", None)
         if session is None:
             return {}
-        meta = getattr(session, "_request_meta", None)
+        meta = get_request_meta()
         if meta is None:
             return {}
 

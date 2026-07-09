@@ -4,6 +4,7 @@ Manages HTTP streaming sessions with optional resumability via event store.
 """
 
 import contextlib
+import json
 import logging
 from collections.abc import AsyncIterator
 from http import HTTPStatus
@@ -17,14 +18,183 @@ from starlette.responses import Response
 from starlette.types import Receive, Scope, Send
 
 from arcade_mcp_server.server import MCPServer
-from arcade_mcp_server.session import ServerSession
+from arcade_mcp_server.session import InitializationState, ServerSession
 from arcade_mcp_server.transports.http_streamable import (
+    MCP_PROTOCOL_VERSION_HEADER,
     MCP_SESSION_ID_HEADER,
     EventStore,
     HTTPStreamableTransport,
 )
+from arcade_mcp_server.types import INVALID_REQUEST, SUPPORTED_PROTOCOL_VERSIONS
 
 logger = logging.getLogger(__name__)
+
+
+def _create_transport_error_response(
+    status_code: int,
+    message: str,
+    code: int = INVALID_REQUEST,
+) -> Response:
+    """Create a transport-level error response.
+
+    The body MUST OMIT the id field entirely — transport errors have no
+    associated request id. Uses a raw dict, not the JSONRPCError model.
+    """
+    body = {"jsonrpc": "2.0", "error": {"code": code, "message": message}}
+    return Response(
+        json.dumps(body),
+        status_code=status_code,
+        media_type="application/json",
+    )
+
+
+def _replay_receive(body: bytes, original_receive: Receive) -> Receive:
+    """Return a fresh Receive callable that replays ``body`` as a single
+    ``http.request`` message, then chains to ``original_receive``.
+
+    After the session manager reads and parses the incoming HTTP body (to detect
+    ``initialize``), the inner transport creates a new Starlette Request and
+    calls ``request.body()`` again. On ASGI servers that do not internally
+    buffer (e.g. ``httpx.ASGITransport``), the original receive callable is
+    exhausted -- the inner call would then hang waiting for more messages.
+
+    This helper hands the inner handler a receive callable that replays the
+    consumed body for the first read, then delegates back to the real
+    ``receive`` for any subsequent reads. Chaining to the real receive
+    preserves genuine ``http.disconnect`` propagation: SSE responses
+    (``EventSourceResponse``) read receive() concurrently to detect client
+    disconnects, so synthesizing a fake disconnect tears the stream down
+    before the response body is sent.
+    """
+    state = {"sent_request": False}
+
+    async def receive() -> dict:
+        if not state["sent_request"]:
+            state["sent_request"] = True
+            return {
+                "type": "http.request",
+                "body": body,
+                "more_body": False,
+            }
+        return dict(await original_receive())
+
+    return receive
+
+
+def _validate_origin(request: Request, allowed_origins: list[str] | None) -> Response | None:
+    """Validate the Origin header against ``allowed_origins``.
+
+    Returns a 403 Response if invalid, None if OK.
+    """
+    origin = request.headers.get("origin")
+
+    if origin is None:
+        # No Origin header → non-browser client → allow
+        return None
+
+    # If allowed_origins is ["*"], allow any
+    if allowed_origins is not None and "*" in allowed_origins:
+        return None
+
+    # If allowed_origins is None or empty list, reject any Origin
+    if allowed_origins is None or len(allowed_origins) == 0:
+        return _create_transport_error_response(
+            403, "Forbidden: Origin not allowed", INVALID_REQUEST
+        )
+
+    # Check against allowlist
+    if origin not in allowed_origins:
+        return _create_transport_error_response(
+            403, "Forbidden: Origin not allowed", INVALID_REQUEST
+        )
+
+    return None
+
+
+def _validate_accept_header(request: Request) -> Response | None:
+    """Validate Accept header.
+
+    Client MUST include Accept header listing both application/json
+    AND text/event-stream. Wildcards satisfy.
+    Returns 406 if invalid, None if OK.
+    """
+    accept = request.headers.get("accept", "")
+    accept_types = [t.strip().split(";")[0].strip() for t in accept.split(",")]
+
+    has_json = any(t in ("application/json", "*/*", "application/*") for t in accept_types)
+    has_sse = any(t in ("text/event-stream", "*/*", "text/*") for t in accept_types)
+
+    if not (has_json and has_sse):
+        return _create_transport_error_response(
+            406,
+            "Not Acceptable: Client must accept both application/json and text/event-stream",
+            INVALID_REQUEST,
+        )
+    return None
+
+
+def _validate_protocol_version_header(
+    request: Request,
+    session: ServerSession | None = None,
+    *,
+    is_stateless: bool = False,
+    is_initialize: bool = False,
+) -> tuple[Response | None, str | None]:
+    """Validate MCP-Protocol-Version header.
+
+    Returns (error_response, version_from_header).
+
+    Per MCP 2025-11-25 transports.mdx:
+    - Initialize IS the version-negotiation request (carries
+      ``params.protocolVersion``) and is exempt from header validation
+      in both stateful and stateless modes.
+    - On non-initialize requests with no header, the server SHOULD
+      assume protocol version ``2025-03-26`` for backwards compatibility.
+    """
+    header_version = request.headers.get(MCP_PROTOCOL_VERSION_HEADER)
+
+    # Initialize IS version negotiation: skip header validation in both modes.
+    if is_initialize:
+        return None, header_version
+
+    if is_stateless:
+        if header_version is None:
+            # Spec backcompat: assume 2025-03-26 when the header is absent
+            # on a non-initialize request.
+            return None, "2025-03-26"
+        if header_version not in SUPPORTED_PROTOCOL_VERSIONS:
+            return (
+                _create_transport_error_response(
+                    400, f"Bad Request: Unsupported protocol version: {header_version}"
+                ),
+                None,
+            )
+        return None, header_version
+
+    if header_version is not None:
+        if header_version not in SUPPORTED_PROTOCOL_VERSIONS:
+            return (
+                _create_transport_error_response(
+                    400, f"Bad Request: Unsupported protocol version: {header_version}"
+                ),
+                None,
+            )
+        # Hardening: if session has negotiated version, header must match
+        if (
+            session is not None
+            and session.negotiated_version is not None
+            and header_version != session.negotiated_version
+        ):
+            return (
+                _create_transport_error_response(
+                    400,
+                    f"Bad Request: MCP-Protocol-Version {header_version} "
+                    f"does not match negotiated version {session.negotiated_version}",
+                ),
+                None,
+            )
+
+    return None, header_version
 
 
 class HTTPSessionManager:
@@ -117,6 +287,37 @@ class HTTPSessionManager:
         if self._task_group is None:
             raise RuntimeError("Task group is not initialized. Make sure to use run().")
 
+        request = Request(scope, receive)
+
+        # --- Origin validation (ALL methods, before anything else) ---
+        allowed_origins = getattr(self.server, "allowed_origins", None)
+        origin_error = _validate_origin(request, allowed_origins)
+        if origin_error is not None:
+            await origin_error(scope, receive, send)
+            return
+
+        # --- Handle OPTIONS (CORS preflight) ---
+        if request.method == "OPTIONS":
+            origin = request.headers.get("origin", "*")
+            cors_origin = (
+                origin
+                if (allowed_origins and "*" in allowed_origins)
+                else (origin if allowed_origins and origin in allowed_origins else "*")
+            )
+            response = Response(
+                content=None,
+                status_code=204,
+                headers={
+                    "Access-Control-Allow-Origin": cors_origin,
+                    "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+                    "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept, Mcp-Session-Id, MCP-Protocol-Version",
+                    "Access-Control-Expose-Headers": "Mcp-Session-Id, MCP-Protocol-Version",
+                    "Access-Control-Max-Age": "86400",
+                },
+            )
+            await response(scope, receive, send)
+            return
+
         if self.stateless:
             await self._handle_stateless_request(scope, receive, send)
         else:
@@ -129,6 +330,63 @@ class HTTPSessionManager:
         send: Send,
     ) -> None:
         """Process request in stateless mode - new transport per request."""
+        request = Request(scope, receive)
+
+        # --- Detect if this is an initialize request ---
+        is_initialize = False
+        body_bytes: bytes | None = None
+        if request.method == "POST":
+            try:
+                body_bytes = await request.body()
+                raw = json.loads(body_bytes) if body_bytes else {}
+                is_initialize = isinstance(raw, dict) and raw.get("method") == "initialize"
+            except Exception:  # noqa: S110
+                pass
+
+        # Replay the body for the inner transport so ASGI servers that do not
+        # buffer receive() (e.g. httpx.ASGITransport) can still read the body.
+        inner_receive: Receive = (
+            _replay_receive(body_bytes, receive) if body_bytes is not None else receive
+        )
+
+        # --- Accept header validation (POST only) ---
+        # Per MCP 2025-11-25 transports.mdx section 2: "The client MUST include an
+        # Accept header, listing both application/json and text/event-stream
+        # as supported content types." No carve-out for initialize — the
+        # server MAY respond to an initialize POST with an SSE stream, so the
+        # client must advertise support for both content types on every POST.
+        if request.method == "POST":
+            accept_error = _validate_accept_header(request)
+            if accept_error is not None:
+                await accept_error(scope, receive, send)
+                return
+
+        # --- Protocol version header validation ---
+        # Initialize is exempt (it carries params.protocolVersion). For
+        # other stateless requests without the header, the validator falls
+        # back to 2025-03-26 per the spec's backwards-compatibility rule.
+        version_error, header_version = _validate_protocol_version_header(
+            request, is_stateless=True, is_initialize=is_initialize
+        )
+        if version_error is not None:
+            await version_error(scope, receive, send)
+            return
+
+        # --- Stateless version conflict check for initialize ---
+        if is_initialize and header_version:
+            try:
+                raw = json.loads(body_bytes) if body_bytes else {}
+                init_version = raw.get("params", {}).get("protocolVersion")
+                if init_version and init_version != header_version:
+                    error_resp = _create_transport_error_response(
+                        400,
+                        "Bad Request: MCP-Protocol-Version header conflicts with initialize protocolVersion",
+                    )
+                    await error_resp(scope, receive, send)
+                    return
+            except Exception:  # noqa: S110
+                pass
+
         logger.debug("Stateless mode: Creating new transport for this request")
 
         # Create transport without session ID in stateless mode
@@ -152,7 +410,16 @@ class HTTPSessionManager:
                         read_stream=read_stream,
                         write_stream=write_stream,
                         init_options={"transport_type": "http"},
+                        stateless=True,
                     )
+
+                    # --- Stateless auto-initialize ---
+                    if header_version:
+                        session.negotiated_version = header_version
+                        session._negotiated_capabilities = self.server._build_capabilities(
+                            version=header_version, stateless=True
+                        )
+                        session.initialization_state = InitializationState.INITIALIZED
 
                     # Set the session on the transport
                     http_transport.session = session
@@ -169,8 +436,8 @@ class HTTPSessionManager:
             raise RuntimeError("Task group not initialized")
         await self._task_group.start(run_stateless_server)
 
-        # Handle the HTTP request
-        await http_transport.handle_request(scope, receive, send)
+        # Handle the HTTP request (replay body so inner Request() can read it)
+        await http_transport.handle_request(scope, inner_receive, send)
 
         # Terminate the transport
         await http_transport.terminate()
@@ -185,11 +452,55 @@ class HTTPSessionManager:
         request = Request(scope, receive)
         request_mcp_session_id = request.headers.get(MCP_SESSION_ID_HEADER)
 
+        # --- Detect if this is an initialize request ---
+        is_initialize = False
+        body_bytes: bytes | None = None
+        if request.method == "POST" and request_mcp_session_id is None:
+            try:
+                body_bytes = await request.body()
+                raw = json.loads(body_bytes) if body_bytes else {}
+                is_initialize = isinstance(raw, dict) and raw.get("method") == "initialize"
+            except Exception:  # noqa: S110
+                pass
+
+        # If we consumed the body, provide a replay receive so the inner
+        # transport (which creates its own Request and calls .body()) can
+        # still read it on ASGI hosts that don't buffer receive().
+        inner_receive: Receive = (
+            _replay_receive(body_bytes, receive) if body_bytes is not None else receive
+        )
+
+        # --- Accept header validation (POST only) ---
+        # Per MCP 2025-11-25 transports.mdx section 2: "The client MUST include an
+        # Accept header, listing both application/json and text/event-stream
+        # as supported content types." The rule applies to every POST
+        # (including initialize) — the server MAY respond to initialize with
+        # an SSE stream, so the client must advertise support for both types.
+        if request.method == "POST":
+            accept_error = _validate_accept_header(request)
+            if accept_error is not None:
+                await accept_error(scope, receive, send)
+                return
+
+        # --- Protocol version header validation ---
+        # Find the session for the transport (if existing)
+        session: ServerSession | None = None
+        if request_mcp_session_id and request_mcp_session_id in self._server_instances:
+            transport = self._server_instances[request_mcp_session_id]
+            session = transport.session
+
+        version_error, _ = _validate_protocol_version_header(
+            request, session=session, is_initialize=is_initialize
+        )
+        if version_error is not None:
+            await version_error(scope, receive, send)
+            return
+
         # Existing session case
         if request_mcp_session_id and request_mcp_session_id in self._server_instances:
             transport = self._server_instances[request_mcp_session_id]
             logger.debug("Session already exists, handling request directly")
-            await transport.handle_request(scope, receive, send)
+            await transport.handle_request(scope, inner_receive, send)
             return
 
         if request_mcp_session_id is None:
@@ -253,8 +564,9 @@ class HTTPSessionManager:
                     raise RuntimeError("Task group not initialized")
                 await self._task_group.start(run_server)
 
-                # Handle the HTTP request
-                await http_transport.handle_request(scope, receive, send)
+                # Handle the HTTP request (replay body so inner Request() can
+                # read it on ASGI hosts that do not buffer receive()).
+                await http_transport.handle_request(scope, inner_receive, send)
         else:
             # Invalid session ID
             response = Response(

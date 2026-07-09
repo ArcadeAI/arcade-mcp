@@ -6,7 +6,13 @@ from typing import Any
 from arcade_core.catalog import MaterializedTool
 from arcade_core.schema import ToolDefinition
 
-from arcade_mcp_server.types import MCPContent, MCPTool, TextContent, ToolAnnotations
+from arcade_mcp_server.types import (
+    MCPContent,
+    MCPTool,
+    TextContent,
+    ToolAnnotations,
+    ToolExecution,
+)
 
 logger = logging.getLogger("arcade.mcp")
 
@@ -78,6 +84,14 @@ def create_mcp_tool(materialized_tool: MaterializedTool) -> MCPTool:
     else:
         annotations = ToolAnnotations(title=title)
 
+    # MCP-specific tool metadata travels on the function as ``__tool_execution__``
+    # (set by ``@tool(execution=...)``). This reads it off the materialized
+    # tool at convert time.
+    raw_execution = getattr(materialized_tool.tool, "__tool_execution__", None)
+    mcp_execution: ToolExecution | None = (
+        raw_execution if isinstance(raw_execution, ToolExecution) else None
+    )
+
     # Build _meta.arcade structure
     arcade_meta = _build_arcade_meta(definition)
     meta = {"arcade": arcade_meta} if arcade_meta else None
@@ -89,6 +103,7 @@ def create_mcp_tool(materialized_tool: MaterializedTool) -> MCPTool:
         inputSchema=build_input_schema_from_definition(definition),
         outputSchema=output_schema if output_schema else None,
         annotations=annotations,
+        execution=mcp_execution,
         _meta=meta,
     )
 
@@ -260,12 +275,16 @@ def _value_schema_to_json_schema(value_schema: Any) -> dict[str, Any]:
         schema: dict[str, Any] = {"type": "object"}
         if getattr(value_schema, "enum", None):
             schema["enum"] = list(value_schema.enum)
-        if getattr(value_schema, "properties", None):
+        if getattr(value_schema, "properties", None) is not None:
             schema["properties"] = {}
             for prop_name, prop_schema in value_schema.properties.items():
                 schema["properties"][prop_name] = _value_schema_to_json_schema(prop_schema)
                 if getattr(prop_schema, "description", None):
                     schema["properties"][prop_name]["description"] = prop_schema.description
+            # A known shape has a fixed set of keys, so close the object with
+            # additionalProperties: false. A freeform dict has no properties (None) and
+            # stays open, since it accepts arbitrary keys.
+            schema["additionalProperties"] = False
         if getattr(value_schema, "required_keys", None):
             schema["required"] = list(value_schema.required_keys)
         return _apply_nullable(schema, value_schema)
@@ -276,12 +295,14 @@ def _value_schema_to_json_schema(value_schema: Any) -> dict[str, Any]:
     if val_type == "array" and getattr(value_schema, "inner_val_type", None):
         inner_type = value_schema.inner_val_type
         items_schema: dict[str, Any] = {"type": _map_type_to_json_schema_type(inner_type)}
-        if inner_type == "json" and getattr(value_schema, "inner_properties", None):
+        if inner_type == "json" and getattr(value_schema, "inner_properties", None) is not None:
             items_schema["properties"] = {}
             for prop_name, prop_schema in value_schema.inner_properties.items():
                 items_schema["properties"][prop_name] = _value_schema_to_json_schema(prop_schema)
                 if getattr(prop_schema, "description", None):
                     items_schema["properties"][prop_name]["description"] = prop_schema.description
+            # Close array-of-object items with a known shape (see object branch above).
+            items_schema["additionalProperties"] = False
             if getattr(value_schema, "inner_required_keys", None):
                 items_schema["required"] = list(value_schema.inner_required_keys)
         schema["items"] = items_schema

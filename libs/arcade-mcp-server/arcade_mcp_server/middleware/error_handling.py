@@ -5,7 +5,13 @@ from typing import Any
 
 from arcade_mcp_server.convert import convert_to_mcp_content
 from arcade_mcp_server.middleware.base import CallNext, Middleware, MiddlewareContext
-from arcade_mcp_server.types import CallToolResult, JSONRPCError
+from arcade_mcp_server.types import (
+    INTERNAL_ERROR,
+    INVALID_PARAMS,
+    METHOD_NOT_FOUND,
+    CallToolResult,
+    JSONRPCError,
+)
 
 logger = logging.getLogger("arcade.mcp")
 
@@ -97,10 +103,10 @@ class ErrorHandlingMiddleware(Middleware):
 
         # Map common errors to JSON-RPC codes
         if error_type in ["ValueError", "TypeError", "KeyError"]:
-            return -32602  # Invalid params
+            return INVALID_PARAMS
         elif error_type in ["NotFoundError", "FileNotFoundError"]:
-            return -32601  # Method not found
+            return METHOD_NOT_FOUND
         elif error_type in ["PermissionError", "AuthorizationError"]:
-            return -32603  # Internal error (used for auth)
+            return INTERNAL_ERROR  # Auth failures surface as internal error
         else:
-            return -32603  # Generic internal error
+            return INTERNAL_ERROR

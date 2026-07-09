@@ -473,6 +473,79 @@ class TestAnthropicConverter:
         assert result["input_schema"]["required"] == ["query"]
 
 
+class TestAnthropicNullableFields:
+    """Nullable nested fields must accept null in the standard-dialect schema."""
+
+    def test_required_nullable_nested_field_allows_null(self):
+        """A nested field that is required yet nullable (`str | None` with no default) must
+        stay in `required` while its type unions `null`, so a null value validates."""
+        param = InputParameter(
+            name="record",
+            required=True,
+            description="A record.",
+            value_schema=ValueSchema(
+                val_type="json",
+                properties={
+                    "name": ValueSchema(val_type="string"),
+                    "note": ValueSchema(val_type="string", nullable=True),
+                },
+                required_keys=["name", "note"],
+            ),
+        )
+
+        schema = _convert_input_parameters_to_json_schema([param])["properties"]["record"]
+
+        assert set(schema["required"]) == {"name", "note"}
+        assert schema["properties"]["name"]["type"] == "string"
+        assert schema["properties"]["note"]["type"] == ["string", "null"]
+
+    def test_nullable_nested_enum_field_allows_null_in_enum(self):
+        """A nullable nested enum field unions `null` into its type and appends `None` to enum."""
+        param = InputParameter(
+            name="record",
+            required=True,
+            description="A record.",
+            value_schema=ValueSchema(
+                val_type="json",
+                properties={
+                    "status": ValueSchema(
+                        val_type="string", enum=["open", "closed"], nullable=True
+                    ),
+                },
+                required_keys=["status"],
+            ),
+        )
+
+        schema = _convert_input_parameters_to_json_schema([param])["properties"]["record"]
+        status = schema["properties"]["status"]
+
+        assert status["type"] == ["string", "null"]
+        assert status["enum"] == ["open", "closed", None]
+
+    def test_required_nullable_nested_field_end_to_end(self):
+        """A Pydantic field typed `str | None` with no default is required and nullable;
+        Anthropic must emit it nullable rather than a bare single-type schema."""
+        from arcade_core.catalog import ToolCatalog
+        from arcade_tdk import tool
+        from pydantic import BaseModel
+
+        class Record(BaseModel):
+            name: str
+            note: str | None
+
+        @tool(desc="t")
+        def f(record: Annotated[Record, "record"]) -> str:
+            return ""
+
+        catalog = ToolCatalog()
+        catalog.add_tool(f, "endtoend")
+        mat_tool = next(iter(catalog))
+        schema = to_anthropic(mat_tool)["input_schema"]["properties"]["record"]
+
+        assert set(schema["required"]) == {"name", "note"}
+        assert schema["properties"]["note"]["type"] == ["string", "null"]
+
+
 class TestHelperFunctions:
     """Test helper functions used by the converter."""
 
@@ -750,3 +823,108 @@ class TestAnthropicVsOpenAIDifferences:
         # OpenAI strict mode requires: "additionalProperties": false
         # Anthropic should NOT have this constraint
         assert "additionalProperties" not in result
+
+    def test_array_of_object_items_expand_item_fields(self):
+        """`list[<object>]` parameters expand the object's fields into the array `items`
+        schema. Anthropic uses standard JSON Schema, so only the actually-required fields
+        appear in `required` and optional fields keep a single (non-nullable) type."""
+        param = InputParameter(
+            name="attachments",
+            required=False,
+            description="Files to attach.",
+            value_schema=ValueSchema(
+                val_type="array",
+                inner_val_type="json",
+                inner_properties={
+                    "source": ValueSchema(val_type="string"),
+                    "filename": ValueSchema(val_type="string"),
+                    "mime_type": ValueSchema(val_type="string"),
+                },
+                inner_required_keys=["source"],
+            ),
+        )
+
+        items = _convert_input_parameters_to_json_schema([param])["properties"]["attachments"][
+            "items"
+        ]
+
+        assert items.get("properties", {}).keys() == {"source", "filename", "mime_type"}
+        assert items["required"] == ["source"]
+        assert items["properties"]["source"]["type"] == "string"
+        assert items["properties"]["filename"]["type"] == "string"
+        assert "additionalProperties" not in items
+
+    def test_object_param_includes_required_keys(self):
+        """A top-level object parameter lists only its actually-required fields in
+        `required` and adds no `additionalProperties` constraint."""
+        param = InputParameter(
+            name="recipient",
+            required=True,
+            description="Message recipient.",
+            value_schema=ValueSchema(
+                val_type="json",
+                properties={
+                    "email": ValueSchema(val_type="string"),
+                    "name": ValueSchema(val_type="string"),
+                },
+                required_keys=["email"],
+            ),
+        )
+
+        schema = _convert_input_parameters_to_json_schema([param])["properties"]["recipient"]
+
+        assert schema["required"] == ["email"]
+        assert "additionalProperties" not in schema
+        assert schema["properties"]["name"]["type"] == "string"
+
+    def test_empty_object_param_is_object_with_empty_properties(self):
+        """An object with a known-empty shape (properties == {}) is emitted as a typed object
+        with empty `properties` and no `required` (no fields are required)."""
+        param = InputParameter(
+            name="cfg",
+            required=True,
+            description="Empty config.",
+            value_schema=ValueSchema(val_type="json", properties={}, required_keys=[]),
+        )
+
+        schema = _convert_input_parameters_to_json_schema([param])["properties"]["cfg"]
+
+        assert schema["type"] == "object"
+        assert schema["properties"] == {}
+        assert "required" not in schema
+
+    def test_array_of_empty_object_items_have_empty_properties(self):
+        """`list[<empty object>]` items are typed objects with empty `properties`."""
+        param = InputParameter(
+            name="items",
+            required=True,
+            description="Empty items.",
+            value_schema=ValueSchema(
+                val_type="array",
+                inner_val_type="json",
+                inner_properties={},
+                inner_required_keys=[],
+            ),
+        )
+
+        items = _convert_input_parameters_to_json_schema([param])["properties"]["items"]["items"]
+
+        assert items["type"] == "object"
+        assert items["properties"] == {}
+        assert "required" not in items
+
+    def test_freeform_dict_param_stays_open(self):
+        """A freeform dict (json with no properties, unknown shape) stays an open object: no
+        `properties` key and no `additionalProperties` constraint."""
+        param = InputParameter(
+            name="payload",
+            required=True,
+            description="Arbitrary JSON.",
+            value_schema=ValueSchema(val_type="json"),
+        )
+
+        schema = _convert_input_parameters_to_json_schema([param])["properties"]["payload"]
+
+        assert schema["type"] == "object"
+        assert "properties" not in schema
+        assert "additionalProperties" not in schema

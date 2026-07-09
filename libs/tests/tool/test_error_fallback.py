@@ -6,7 +6,6 @@ from arcade_core.executor import ToolExecutor
 from arcade_core.schema import ToolContext
 from arcade_tdk import tool
 
-
 catalog = ToolCatalog()
 
 

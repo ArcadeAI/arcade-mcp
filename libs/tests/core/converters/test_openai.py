@@ -464,6 +464,236 @@ class TestOpenAIConverter:
         }
 
 
+class TestOpenAIStrictNullability:
+    """Strict-mode nullability for structured objects and optional enums."""
+
+    def test_object_with_empty_required_keys_makes_fields_nullable(self):
+        """An object whose required set is known-empty (all fields defaulted) must list every
+        field in `required` but render each as a nullable union so the model may omit it."""
+        param = InputParameter(
+            name="config",
+            required=True,
+            description="All-defaulted config.",
+            value_schema=ValueSchema(
+                val_type="json",
+                properties={
+                    "count": ValueSchema(val_type="integer"),
+                    "label": ValueSchema(val_type="string"),
+                },
+                required_keys=[],
+            ),
+        )
+
+        schema = _convert_input_parameters_to_json_schema([param])["properties"]["config"]
+
+        assert schema["additionalProperties"] is False
+        assert set(schema["required"]) == {"count", "label"}
+        assert schema["properties"]["count"]["type"] == ["integer", "null"]
+        assert schema["properties"]["label"]["type"] == ["string", "null"]
+
+    def test_freeform_dict_param_stays_open(self):
+        """A freeform dict (json with no properties and unknown shape) must stay open: no
+        `properties`, no `additionalProperties: false`, no forced `required`."""
+        param = InputParameter(
+            name="payload",
+            required=True,
+            description="Arbitrary JSON.",
+            value_schema=ValueSchema(val_type="json"),
+        )
+
+        schema = _convert_input_parameters_to_json_schema([param])["properties"]["payload"]
+
+        assert schema["type"] == "object"
+        assert "properties" not in schema
+        assert "additionalProperties" not in schema
+        assert "required" not in schema
+
+    def test_optional_enum_param_allows_null_in_enum(self):
+        """An optional enum param gets `null` in its type AND `None` appended to its enum, so
+        a null value satisfies both the type and enum assertions."""
+        param = InputParameter(
+            name="status",
+            required=False,
+            description="Status choice.",
+            value_schema=ValueSchema(val_type="string", enum=["open", "closed"]),
+        )
+
+        schema = _convert_input_parameters_to_json_schema([param])["properties"]["status"]
+
+        assert schema["type"] == ["string", "null"]
+        assert schema["enum"] == ["open", "closed", None]
+
+    def test_nullable_enum_nested_field_allows_null_in_enum(self):
+        """A nullable enum field inside an object gets `null` in type AND `None` in enum."""
+        param = InputParameter(
+            name="filter",
+            required=True,
+            description="Filter object.",
+            value_schema=ValueSchema(
+                val_type="json",
+                properties={
+                    "status": ValueSchema(
+                        val_type="string", enum=["open", "closed"], nullable=True
+                    ),
+                },
+                required_keys=["status"],
+            ),
+        )
+
+        schema = _convert_input_parameters_to_json_schema([param])["properties"]["filter"]
+        status = schema["properties"]["status"]
+
+        assert status["type"] == ["string", "null"]
+        assert status["enum"] == ["open", "closed", None]
+
+
+class TestOpenAIStrictEmptyObjects:
+    """A known-empty object shape ({}) must close in strict mode; a freeform dict stays open."""
+
+    def test_empty_object_param_is_closed(self):
+        """An object with a known-empty shape (properties == {}) is emitted closed: it carries
+        `properties: {}`, `additionalProperties: false`, and an empty `required`."""
+        param = InputParameter(
+            name="cfg",
+            required=True,
+            description="Empty config.",
+            value_schema=ValueSchema(val_type="json", properties={}, required_keys=[]),
+        )
+
+        schema = _convert_input_parameters_to_json_schema([param])["properties"]["cfg"]
+
+        assert schema["type"] == "object"
+        assert schema["properties"] == {}
+        assert schema["additionalProperties"] is False
+        assert schema["required"] == []
+
+    def test_array_of_empty_object_items_are_closed(self):
+        """`list[<empty object>]` item schemas close the same way: `properties: {}`,
+        `additionalProperties: false`, empty `required`."""
+        param = InputParameter(
+            name="items",
+            required=True,
+            description="Empty items.",
+            value_schema=ValueSchema(
+                val_type="array",
+                inner_val_type="json",
+                inner_properties={},
+                inner_required_keys=[],
+            ),
+        )
+
+        items = _convert_input_parameters_to_json_schema([param])["properties"]["items"]["items"]
+
+        assert items["type"] == "object"
+        assert items["properties"] == {}
+        assert items["additionalProperties"] is False
+        assert items["required"] == []
+
+
+class TestOpenAIEndToEnd:
+    """Catalog-to-converter checks for structured params."""
+
+    def _to_openai_first_param(self, func, param_name):
+        from arcade_core.catalog import ToolCatalog
+
+        catalog = ToolCatalog()
+        catalog.add_tool(func, "endtoend")
+        mat_tool = next(iter(catalog))
+        return to_openai(mat_tool)["function"]["parameters"]["properties"][param_name]
+
+    def test_all_defaulted_pydantic_model_fields_not_forced(self):
+        """A Pydantic model whose fields all have defaults must not force a value for any field:
+        each field is rendered nullable even though its Python type is not `T | None`."""
+        from arcade_tdk import tool
+        from pydantic import BaseModel
+
+        class AllDefaulted(BaseModel):
+            count: int = 5
+            label: str = "x"
+
+        @tool(desc="t")
+        def f(cfg: Annotated[AllDefaulted, "cfg"]) -> str:
+            return ""
+
+        schema = self._to_openai_first_param(f, "cfg")
+
+        assert schema["additionalProperties"] is False
+        assert set(schema["required"]) == {"count", "label"}
+        assert schema["properties"]["count"]["type"] == ["integer", "null"]
+        assert schema["properties"]["label"]["type"] == ["string", "null"]
+
+    def test_freeform_dict_param_stays_open_end_to_end(self):
+        """A `dict` param has an unknown shape and must stay an open object."""
+        from arcade_tdk import tool
+
+        @tool(desc="t")
+        def f(payload: Annotated[dict, "payload"]) -> str:
+            return ""
+
+        schema = self._to_openai_first_param(f, "payload")
+
+        assert schema["type"] == "object"
+        assert "properties" not in schema
+        assert "additionalProperties" not in schema
+
+    def test_zero_field_pydantic_model_param_is_closed_end_to_end(self):
+        """A zero-field Pydantic model has a known-empty shape and must close in strict mode."""
+        from arcade_tdk import tool
+        from pydantic import BaseModel
+
+        class EmptyModel(BaseModel):
+            pass
+
+        @tool(desc="t")
+        def f(cfg: Annotated[EmptyModel, "cfg"]) -> str:
+            return ""
+
+        schema = self._to_openai_first_param(f, "cfg")
+
+        assert schema["type"] == "object"
+        assert schema["properties"] == {}
+        assert schema["additionalProperties"] is False
+        assert schema["required"] == []
+
+    def test_empty_typeddict_param_is_closed_end_to_end(self):
+        """An empty TypedDict has a known-empty shape and must close in strict mode."""
+        from arcade_tdk import tool
+        from typing_extensions import TypedDict
+
+        class EmptyTD(TypedDict):
+            pass
+
+        @tool(desc="t")
+        def f(td: Annotated[EmptyTD, "td"]) -> str:
+            return ""
+
+        schema = self._to_openai_first_param(f, "td")
+
+        assert schema["type"] == "object"
+        assert schema["properties"] == {}
+        assert schema["additionalProperties"] is False
+        assert schema["required"] == []
+
+    def test_list_of_empty_model_items_are_closed_end_to_end(self):
+        """`list[<zero-field model>]` array items must close in strict mode."""
+        from arcade_tdk import tool
+        from pydantic import BaseModel
+
+        class EmptyModel(BaseModel):
+            pass
+
+        @tool(desc="t")
+        def f(items: Annotated[list[EmptyModel], "items"]) -> str:
+            return ""
+
+        items = self._to_openai_first_param(f, "items")["items"]
+
+        assert items["type"] == "object"
+        assert items["properties"] == {}
+        assert items["additionalProperties"] is False
+        assert items["required"] == []
+
+
 class TestHelperFunctions:
     """Test helper functions used by the converter."""
 
@@ -545,3 +775,61 @@ class TestHelperFunctions:
 
         # Optional parameter should have union type with null
         assert result["properties"]["optional_param"]["type"] == ["integer", "null"]
+
+    def test_array_of_object_items_expand_item_fields(self):
+        """`list[<object>]` parameters expand the object's fields into the array `items`
+        schema. OpenAI strict mode requires every field in `required` and
+        `additionalProperties: false` on each item object; fields absent from
+        `inner_required_keys` are expressed as nullable unions so they may be omitted."""
+        param = InputParameter(
+            name="attachments",
+            required=False,
+            description="Files to attach.",
+            value_schema=ValueSchema(
+                val_type="array",
+                inner_val_type="json",
+                inner_properties={
+                    "source": ValueSchema(val_type="string"),
+                    "filename": ValueSchema(val_type="string"),
+                    "mime_type": ValueSchema(val_type="string"),
+                },
+                inner_required_keys=["source"],
+            ),
+        )
+
+        items = _convert_input_parameters_to_json_schema([param])["properties"]["attachments"][
+            "items"
+        ]
+
+        assert items.get("properties", {}).keys() == {"source", "filename", "mime_type"}
+        assert items["additionalProperties"] is False
+        assert set(items["required"]) == {"source", "filename", "mime_type"}
+        assert items["properties"]["source"]["type"] == "string"
+        assert items["properties"]["filename"]["type"] == ["string", "null"]
+        assert items["properties"]["mime_type"]["type"] == ["string", "null"]
+
+    def test_object_param_expands_with_strict_fields(self):
+        """A top-level (and nested) object parameter is a full strict-mode object: every
+        property in `required`, `additionalProperties: false`, and properties absent from
+        `required_keys` expressed as nullable unions."""
+        param = InputParameter(
+            name="recipient",
+            required=True,
+            description="Message recipient.",
+            value_schema=ValueSchema(
+                val_type="json",
+                properties={
+                    "email": ValueSchema(val_type="string"),
+                    "name": ValueSchema(val_type="string"),
+                },
+                required_keys=["email"],
+            ),
+        )
+
+        schema = _convert_input_parameters_to_json_schema([param])["properties"]["recipient"]
+
+        assert schema["type"] == "object"
+        assert schema["additionalProperties"] is False
+        assert set(schema["required"]) == {"email", "name"}
+        assert schema["properties"]["email"]["type"] == "string"
+        assert schema["properties"]["name"]["type"] == ["string", "null"]

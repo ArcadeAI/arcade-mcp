@@ -86,6 +86,23 @@ class TestToolMetadataValidation:
         )
         assert metadata is not None
 
+    def test_observability_service_domain_validates(self):
+        """A read-only observability tool classifies and validates cleanly."""
+        assert ServiceDomain.OBSERVABILITY.value == "observability"
+        metadata = ToolMetadata(
+            classification=Classification(
+                service_domains=[ServiceDomain.OBSERVABILITY],
+            ),
+            behavior=Behavior(
+                operations=[Operation.READ],
+                read_only=True,
+                destructive=False,
+                idempotent=True,
+                open_world=True,
+            ),
+        )
+        metadata.validate_for_tool()
+
     def test_mutating_operation_with_read_only_raises(self):
         """Mutating operations with read_only=True should raise when validated."""
         metadata = ToolMetadata(
@@ -309,6 +326,62 @@ class TestToolDecoratorWithMetadata:
 
         assert hasattr(my_tool, "__tool_metadata__")
         assert my_tool.__tool_metadata__.classification.service_domains == [ServiceDomain.MESSAGING]
+
+    def test_decorator_accepts_sales_intelligence_domain(self):
+        """SALES_INTELLIGENCE classifies sales-intelligence / prospecting services (e.g. Apollo)."""
+        assert ServiceDomain.SALES_INTELLIGENCE.value == "sales_intelligence"
+
+        @tool(
+            desc="Search a prospecting database",
+            metadata=ToolMetadata(
+                classification=Classification(
+                    service_domains=[ServiceDomain.SALES_INTELLIGENCE]
+                ),
+                behavior=Behavior(operations=[Operation.READ], read_only=True, open_world=True),
+            ),
+        )
+        def search_people() -> str:
+            return "results"
+
+        assert search_people.__tool_metadata__.classification.service_domains == [
+            ServiceDomain.SALES_INTELLIGENCE
+        ]
+
+    def test_decorator_accepts_contacts_domain(self):
+        """CONTACTS classifies address-book / people-directory services (e.g. Google Contacts)."""
+        assert ServiceDomain.CONTACTS.value == "contacts"
+
+        @tool(
+            desc="Search the organization directory",
+            metadata=ToolMetadata(
+                classification=Classification(service_domains=[ServiceDomain.CONTACTS]),
+                behavior=Behavior(operations=[Operation.READ], read_only=True, open_world=True),
+            ),
+        )
+        def search_directory() -> str:
+            return "results"
+
+        assert search_directory.__tool_metadata__.classification.service_domains == [
+            ServiceDomain.CONTACTS
+        ]
+
+    def test_decorator_accepts_survey_domain(self):
+        """SURVEY classifies survey / form-builder services (e.g. Google Forms)."""
+        assert ServiceDomain.SURVEY.value == "survey"
+
+        @tool(
+            desc="List form responses",
+            metadata=ToolMetadata(
+                classification=Classification(service_domains=[ServiceDomain.SURVEY]),
+                behavior=Behavior(operations=[Operation.READ], read_only=True, open_world=True),
+            ),
+        )
+        def list_responses() -> str:
+            return "results"
+
+        assert list_responses.__tool_metadata__.classification.service_domains == [
+            ServiceDomain.SURVEY
+        ]
 
     def test_decorator_without_metadata_is_backward_compatible(self):
         """Decorator should work without metadata (existing tools unchanged)."""

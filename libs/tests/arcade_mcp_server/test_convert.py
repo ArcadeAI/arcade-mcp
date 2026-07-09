@@ -21,6 +21,7 @@ from arcade_mcp_server.convert import (
     convert_to_mcp_content,
     create_mcp_tool,
 )
+from arcade_mcp_server.types import ToolExecution
 
 # Small PNG header (1x1 transparent pixel) used for byte-image param tests
 PNG_BYTES = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde"
@@ -460,6 +461,119 @@ class TestCreateMCPTool:
         )
         return create_mcp_tool(mat_tool)
 
+    def _make_tool_with_param(self, value_schema: ValueSchema, *, required: bool = True):
+        """Helper to create a materialized tool with a single input param ValueSchema."""
+        tool_def = ToolDefinition(
+            name="test",
+            fully_qualified_name="Test.test",
+            description="Test",
+            toolkit=ToolkitDefinition(name="Test"),
+            input=ToolInput(
+                parameters=[
+                    InputParameter(
+                        name="param",
+                        required=required,
+                        description="A param",
+                        value_schema=value_schema,
+                    )
+                ]
+            ),
+            output=ToolOutput(),
+            requirements=ToolRequirements(),
+        )
+
+        @tool
+        def f(param: Annotated[str, "A param"]):
+            return param
+
+        input_model, output_model = create_func_models(f)
+        meta = ToolMeta(module=f.__module__, toolkit=tool_def.toolkit.name)
+        mat_tool = MaterializedTool(
+            tool=f,
+            definition=tool_def,
+            meta=meta,
+            input_model=input_model,
+            output_model=output_model,
+        )
+        return create_mcp_tool(mat_tool)
+
+    def test_input_schema_nested_object_is_closed(self):
+        """Objects with a known shape close at every level (additionalProperties: false),
+        because a known shape has a fixed set of keys."""
+        inner = {
+            "source": ValueSchema(val_type="string"),
+            "meta": ValueSchema(
+                val_type="json",
+                properties={"key": ValueSchema(val_type="string")},
+                required_keys=["key"],
+            ),
+        }
+        mcp_tool = self._make_tool_with_param(
+            ValueSchema(val_type="json", properties=inner, required_keys=["source"])
+        )
+        param = mcp_tool.inputSchema["properties"]["param"]
+
+        assert param["additionalProperties"] is False
+        assert param["properties"]["meta"]["additionalProperties"] is False
+
+    def test_input_schema_array_of_object_items_are_closed(self):
+        """list[<object>] item schemas must carry properties AND additionalProperties: false."""
+        mcp_tool = self._make_tool_with_param(
+            ValueSchema(
+                val_type="array",
+                inner_val_type="json",
+                inner_properties={
+                    "source": ValueSchema(val_type="string"),
+                    "filename": ValueSchema(val_type="string"),
+                },
+                inner_required_keys=["source"],
+            )
+        )
+        items = mcp_tool.inputSchema["properties"]["param"]["items"]
+
+        assert items["properties"].keys() == {"source", "filename"}
+        assert items["required"] == ["source"]
+        assert items["additionalProperties"] is False
+
+    def test_input_schema_open_dict_stays_open(self):
+        """A freeform dict (json with no properties) must stay open: closing it would reject
+        every key. additionalProperties: false applies only to objects with a known shape."""
+        mcp_tool = self._make_tool_with_param(ValueSchema(val_type="json"))
+        param = mcp_tool.inputSchema["properties"]["param"]
+
+        assert param["type"] == "object"
+        assert "properties" not in param
+        assert "additionalProperties" not in param
+
+    def test_input_schema_empty_object_is_closed(self):
+        """An object with a known-empty shape (properties == {}) is closed: it carries
+        `properties: {}` and `additionalProperties: false`, the same as any known shape."""
+        mcp_tool = self._make_tool_with_param(
+            ValueSchema(val_type="json", properties={}, required_keys=[])
+        )
+        param = mcp_tool.inputSchema["properties"]["param"]
+
+        assert param["type"] == "object"
+        assert param["properties"] == {}
+        assert param["additionalProperties"] is False
+
+    def test_input_schema_array_of_empty_object_items_are_closed(self):
+        """`list[<empty object>]` item schemas carry `properties: {}` and
+        `additionalProperties: false`."""
+        mcp_tool = self._make_tool_with_param(
+            ValueSchema(
+                val_type="array",
+                inner_val_type="json",
+                inner_properties={},
+                inner_required_keys=[],
+            )
+        )
+        items = mcp_tool.inputSchema["properties"]["param"]["items"]
+
+        assert items["type"] == "object"
+        assert items["properties"] == {}
+        assert items["additionalProperties"] is False
+
     @pytest.mark.parametrize(
         "val_type",
         ["string", "integer", "number", "boolean"],
@@ -662,6 +776,103 @@ class TestConvertContentToStructuredContent:
         assert result == {"result": "custom-str"}
 
 
+class TestConvertToolExecution:
+    """MCP conversion reads ``__tool_execution__`` off the tool function.
+
+    The policy lives on the function (set by ``@tool(execution=...)``) -- it is
+    NOT stored on ``ToolDefinition`` in arcade-core, which stays protocol-neutral.
+    """
+
+    def test_convert_no_execution_on_function(self):
+        """Tool without __tool_execution__ -> no execution on MCPTool."""
+        tool_def = ToolDefinition(
+            name="test",
+            fully_qualified_name="Toolkit.test",
+            description="test",
+            toolkit=ToolkitDefinition(name="Toolkit"),
+            input=ToolInput(parameters=[]),
+            output=ToolOutput(available_modes=["value"]),
+            requirements=ToolRequirements(),
+        )
+
+        @tool
+        def f() -> str:
+            return "result"
+
+        input_model, output_model = create_func_models(f)
+        meta = ToolMeta(module=f.__module__, toolkit=tool_def.toolkit.name)
+        mat_tool = MaterializedTool(
+            tool=f,
+            definition=tool_def,
+            meta=meta,
+            input_model=input_model,
+            output_model=output_model,
+        )
+
+        mcp_tool = create_mcp_tool(mat_tool)
+        assert mcp_tool.execution is None
+
+    def test_convert_populates_execution_from_function_dunder(self):
+        """Tool with execution policy on the function -> execution on MCPTool."""
+        tool_def = ToolDefinition(
+            name="test",
+            fully_qualified_name="Toolkit.test",
+            description="test",
+            toolkit=ToolkitDefinition(name="Toolkit"),
+            input=ToolInput(parameters=[]),
+            output=ToolOutput(available_modes=["value"]),
+            requirements=ToolRequirements(),
+        )
+
+        @tool(execution=ToolExecution(taskSupport="optional"))
+        def f() -> str:
+            return "result"
+
+        input_model, output_model = create_func_models(f)
+        meta = ToolMeta(module=f.__module__, toolkit=tool_def.toolkit.name)
+        mat_tool = MaterializedTool(
+            tool=f,
+            definition=tool_def,
+            meta=meta,
+            input_model=input_model,
+            output_model=output_model,
+        )
+
+        mcp_tool = create_mcp_tool(mat_tool)
+        assert mcp_tool.execution is not None
+        assert mcp_tool.execution.taskSupport == "optional"
+
+    def test_convert_ignores_non_toolexecution_payload(self):
+        """Non-ToolExecution ``__tool_execution__`` is ignored (guard against
+        arbitrary dunder payloads reaching the MCP wire)."""
+        tool_def = ToolDefinition(
+            name="test",
+            fully_qualified_name="Toolkit.test",
+            description="test",
+            toolkit=ToolkitDefinition(name="Toolkit"),
+            input=ToolInput(parameters=[]),
+            output=ToolOutput(available_modes=["value"]),
+            requirements=ToolRequirements(),
+        )
+
+        @tool(execution={"taskSupport": "optional"})  # dict, not ToolExecution
+        def f() -> str:
+            return "result"
+
+        input_model, output_model = create_func_models(f)
+        meta = ToolMeta(module=f.__module__, toolkit=tool_def.toolkit.name)
+        mat_tool = MaterializedTool(
+            tool=f,
+            definition=tool_def,
+            meta=meta,
+            input_model=input_model,
+            output_model=output_model,
+        )
+
+        mcp_tool = create_mcp_tool(mat_tool)
+        assert mcp_tool.execution is None
+
+
 class TestOutputSchemaOptionalTypedDictFields:
     """Test that outputSchema correctly represents optional TypedDict fields.
 
@@ -673,7 +884,6 @@ class TestOutputSchemaOptionalTypedDictFields:
 
     def _make_tool_and_mcp_tool(self, return_type, annotation_desc="result"):
         """Helper: register a tool returning `return_type` and get the MCP tool."""
-        from typing_extensions import TypedDict
 
         @tool
         def f() -> Annotated[return_type, annotation_desc]:
