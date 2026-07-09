@@ -109,6 +109,13 @@ def test_microsoft_powerbi_importable_from_mcp_server_auth():
     assert MicrosoftPowerBIFromServer().provider_id == "microsoft-powerbi"
 
 
+def test_microsoft_powerbi_importable_from_tdk_auth():
+    from arcade_tdk.auth import MicrosoftPowerBI as MicrosoftPowerBIFromTdk
+
+    assert MicrosoftPowerBIFromTdk is MicrosoftPowerBI
+    assert MicrosoftPowerBIFromTdk().provider_id == "microsoft-powerbi"
+
+
 @pytest.mark.parametrize(
     "auth_class, auth_kwargs",
     [
