@@ -383,6 +383,26 @@ class TestToolDecoratorWithMetadata:
             ServiceDomain.SURVEY
         ]
 
+    def test_decorator_accepts_business_intelligence_domain(self):
+        """BUSINESS_INTELLIGENCE classifies BI / data-viz platforms (e.g. Power BI, Tableau)."""
+        assert ServiceDomain.BUSINESS_INTELLIGENCE.value == "business_intelligence"
+
+        @tool(
+            desc="Run a DAX query against a semantic model",
+            metadata=ToolMetadata(
+                classification=Classification(
+                    service_domains=[ServiceDomain.BUSINESS_INTELLIGENCE]
+                ),
+                behavior=Behavior(operations=[Operation.READ], read_only=True, open_world=True),
+            ),
+        )
+        def query_dataset() -> str:
+            return "results"
+
+        assert query_dataset.__tool_metadata__.classification.service_domains == [
+            ServiceDomain.BUSINESS_INTELLIGENCE
+        ]
+
     def test_decorator_without_metadata_is_backward_compatible(self):
         """Decorator should work without metadata (existing tools unchanged)."""
 

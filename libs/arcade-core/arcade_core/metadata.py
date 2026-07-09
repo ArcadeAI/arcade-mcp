@@ -121,6 +121,9 @@ class ServiceDomain(str, Enum):
     SURVEY = "survey"
     """Survey, form, and questionnaire builders for collecting and analyzing responses."""
 
+    BUSINESS_INTELLIGENCE = "business_intelligence"
+    """Business-intelligence and data-visualization platforms: dashboards, reports, semantic models, and analytical queries over curated datasets."""
+
 
 class Operation(str, Enum):
     """
