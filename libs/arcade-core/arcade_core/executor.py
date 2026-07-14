@@ -5,6 +5,7 @@ from typing import Any
 
 from pydantic import BaseModel, ValidationError
 
+from arcade_core.catalog import is_typeddict_model
 from arcade_core.errors import (
     ToolInputError,
     ToolOutputError,
@@ -49,7 +50,7 @@ class ToolExecutor:
             inputs = await ToolExecutor._serialize_input(input_model, **kwargs)
 
             # prepare the arguments for the function call
-            func_args = inputs.model_dump()
+            func_args = _build_func_args(inputs)
 
             # inject ToolContext, if the target function supports it
             if definition.input.tool_context_parameter_name is not None:
@@ -143,3 +144,24 @@ class ToolExecutor:
             ) from e
 
         return output
+
+
+def _build_func_args(inputs: BaseModel) -> dict[str, Any]:
+    """Map the validated input model to keyword arguments for the tool function.
+
+    Each argument reaches the tool as the Python type it declared: a parameter
+    annotated as a BaseModel arrives as a model instance (so attribute access
+    works), while a parameter annotated as a TypedDict arrives as a plain dict
+    (so subscript access works). Dumping the whole model would collapse nested
+    models to dicts and break attribute access; keeping every field as-is would
+    hand TypedDict params a wrapper model they cannot subscript.
+    """
+    return {name: _to_func_arg(getattr(inputs, name)) for name in type(inputs).model_fields}
+
+
+def _to_func_arg(value: Any) -> Any:
+    if isinstance(value, list):
+        return [_to_func_arg(item) for item in value]
+    if is_typeddict_model(value):
+        return value.model_dump()
+    return value
