@@ -303,13 +303,6 @@ class TrackedTyperCommand(TyperCommand):
 class TrackedTyperGroup(TyperGroup):
     """Custom TyperGroup that creates tracked commands."""
 
-    def command(self, *args: Any, **kwargs: Any) -> Any:
-        """Override command decorator to use TrackedTyperCommand."""
-        # Set the custom command class
-        kwargs["cls"] = TrackedTyperCommand
-        result: Any = super().command(*args, **kwargs)
-        return result
-
     def list_commands(self, ctx: Context) -> list[str]:  # type: ignore[override]
         """Return list of commands in the order appear."""
         return list(self.commands)
@@ -328,9 +321,9 @@ class TrackedTyper(typer.Typer):
         result: Any = super().command(name, cls=cls, **kwargs)
         return result
 
-    def callback(self, name: str | None = None, **kwargs: Any) -> Any:
+    def callback(self, *args: Any, **kwargs: Any) -> Any:
         """Override callback decorator to track callback execution."""
-        original_callback_decorator: Any = super().callback(name, **kwargs)
+        original_callback_decorator: Any = super().callback(*args, **kwargs)
 
         def decorator(func: Any) -> Any:
             @functools.wraps(func)
