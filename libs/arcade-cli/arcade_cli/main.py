@@ -698,7 +698,7 @@ def evals(
     rich_help_panel="Manage",
 )
 def configure(
-    client: str = typer.Argument(  # type: ignore[call-overload]
+    client: str = typer.Argument(
         ...,
         help="The MCP client to configure (claude, cursor, vscode)",
         click_type=click.Choice(["claude", "cursor", "vscode"], case_sensitive=False),
@@ -711,7 +711,7 @@ def configure(
         help="The name of the Python file in the current directory that runs the server. This file must run the server when invoked directly. Only used for stdio servers.",
         rich_help_panel="Stdio Options",
     ),
-    transport: str = typer.Option(  # type: ignore[call-overload]
+    transport: str = typer.Option(
         "stdio",
         "--transport",
         "-t",
@@ -726,7 +726,7 @@ def configure(
         help="Optional name of the server to set in the configuration file (defaults to the name of the current directory)",
         rich_help_panel="Configuration File Options",
     ),
-    host: str = typer.Option(  # type: ignore[call-overload]
+    host: str = typer.Option(
         "local",
         "--host",
         "-h",
@@ -789,7 +789,7 @@ def configure(
     rich_help_panel="Run",
 )
 def connect(
-    client: str = typer.Argument(  # type: ignore[call-overload]
+    client: str = typer.Argument(
         ...,
         help="MCP client to connect to the remote gateway",
         click_type=click.Choice(
@@ -931,7 +931,7 @@ def deploy(
         help="Explicit server version to use when `--skip-validate` is set. Only used when `--skip-validate` is set.",
         rich_help_panel="Advanced",
     ),
-    secrets: str = typer.Option(  # type: ignore[call-overload]
+    secrets: str = typer.Option(
         "auto",
         "--secrets",
         "-s",
