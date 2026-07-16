@@ -328,9 +328,9 @@ class TrackedTyper(typer.Typer):
         result: Any = super().command(name, cls=cls, **kwargs)
         return result
 
-    def callback(self, name: str | None = None, **kwargs: Any) -> Any:
+    def callback(self, *args: Any, **kwargs: Any) -> Any:
         """Override callback decorator to track callback execution."""
-        original_callback_decorator: Any = super().callback(name, **kwargs)
+        original_callback_decorator: Any = super().callback(*args, **kwargs)
 
         def decorator(func: Any) -> Any:
             @functools.wraps(func)
