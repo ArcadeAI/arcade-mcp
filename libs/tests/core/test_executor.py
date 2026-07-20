@@ -16,6 +16,7 @@ from arcade_tdk.errors import (
     RetryableToolError,
     ToolExecutionError,
 )
+from pydantic import BaseModel
 from typing_extensions import TypedDict
 
 
@@ -380,6 +381,92 @@ def multi_field_tool(
 
 
 catalog.add_tool(multi_field_tool, "MultiFieldToolkit")
+
+
+# ---- Typed-object inputs ----
+# The executor must hand a tool its arguments as the Python types it declared:
+# a BaseModel param as a model instance (attribute access), and a TypedDict param
+# as a plain dict (subscript access).
+
+
+class NestedAddress(BaseModel):
+    city: Annotated[str, "city"]
+
+
+class NestedPerson(BaseModel):
+    name: Annotated[str, "name"]
+    address: Annotated[NestedAddress, "nested address"]
+
+
+class LineItem(BaseModel):
+    label: Annotated[str, "label"]
+    qty: Annotated[int, "quantity"]
+
+
+class FsNodeDict(TypedDict):
+    name: str
+    size: int
+
+
+@tool
+def greet_person(
+    person: Annotated[NestedPerson, "a person with a nested address"],
+) -> Annotated[str, "greeting"]:
+    """Reach into a nested BaseModel via attribute access."""
+    return f"{person.name} from {person.address.city}"
+
+
+@tool
+def total_quantity(items: Annotated[list[LineItem], "items to total"]) -> Annotated[int, "total"]:
+    """Reach into a list of BaseModels via attribute access."""
+    return sum(item.qty for item in items)
+
+
+@tool
+def describe_fs_node(
+    node: Annotated[FsNodeDict, "a filesystem node (TypedDict)"],
+) -> Annotated[str, "description"]:
+    """Reach into a TypedDict via subscript access."""
+    return f"{node['name']}:{node['size']}"
+
+
+for _typed_input_tool in (greet_person, total_quantity, describe_fs_node):
+    catalog.add_tool(_typed_input_tool, "TypedInputToolkit")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "tool_func, inputs, expected_value",
+    [
+        (
+            greet_person,
+            {"person": {"name": "Alice", "address": {"city": "NYC"}}},
+            "Alice from NYC",
+        ),
+        (
+            total_quantity,
+            {"items": [{"label": "a", "qty": 2}, {"label": "b", "qty": 3}]},
+            5,
+        ),
+        (describe_fs_node, {"node": {"name": "root", "size": 10}}, "root:10"),
+    ],
+    ids=["nested_basemodel", "list_of_basemodel", "typeddict_dict_access"],
+)
+async def test_executor_preserves_declared_input_types(tool_func, inputs, expected_value):
+    tool_definition = catalog.find_tool_by_func(tool_func)
+    full_tool = catalog.get_tool(tool_definition.get_fully_qualified_name())
+
+    output = await ToolExecutor.run(
+        func=tool_func,
+        definition=tool_definition,
+        input_model=full_tool.input_model,
+        output_model=full_tool.output_model,
+        context=ToolContext(),
+        **inputs,
+    )
+
+    assert output.error is None, output.error
+    assert output.value == expected_value
 
 
 @pytest.mark.asyncio

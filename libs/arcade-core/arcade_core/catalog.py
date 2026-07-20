@@ -1336,6 +1336,17 @@ class _StrictTypedDictBaseModel(_TypedDictBaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+def is_typeddict_model(value: Any) -> bool:
+    """Return True when value is a Pydantic model synthesized from a TypedDict.
+
+    A parameter annotated as a TypedDict (or list[TypedDict]) is wrapped in a
+    Pydantic model for validation, but the tool function still expects a plain
+    dict. The executor uses this to re-emit such arguments as dicts while leaving
+    genuine BaseModel arguments as model instances.
+    """
+    return isinstance(value, _TypedDictBaseModel)
+
+
 def create_model_from_typeddict(
     typeddict_class: type, model_name: str, strict: bool = False
 ) -> type[BaseModel]:
