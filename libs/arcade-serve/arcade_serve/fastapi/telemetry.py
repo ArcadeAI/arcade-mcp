@@ -87,7 +87,8 @@ class OTELHandler:
                 # Pass tracer_provider=None so instrumentors pick up the global
                 # provider set by arcade-telemetry.
                 HTTPXClientInstrumentor()._instrument(tracer_provider=None)
-                AioHttpClientInstrumentor()._instrument(tracer_provider=None)
+                # aiohttp's instrumentor stub types tracer_provider as non-optional.
+                AioHttpClientInstrumentor()._instrument(tracer_provider=None)  # type: ignore[arg-type]
                 RequestsInstrumentor()._instrument(tracer_provider=None)
                 return
             # init_providers returned None (arcade-telemetry import race or
@@ -112,7 +113,9 @@ class OTELHandler:
             app, excluded_urls=EXCLUDED_URLS, exclude_spans=EXCLUDED_SPANS
         )
         HTTPXClientInstrumentor()._instrument(tracer_provider=self._tracer_provider)
-        AioHttpClientInstrumentor()._instrument(tracer_provider=self._tracer_provider)
+        # aiohttp's instrumentor stub wants a non-optional api TracerProvider; the SDK
+        # provider set just above is compatible at runtime.
+        AioHttpClientInstrumentor()._instrument(tracer_provider=self._tracer_provider)  # type: ignore[arg-type]
         RequestsInstrumentor()._instrument(tracer_provider=self._tracer_provider)
 
     def _init_tracer(self) -> None:
@@ -123,7 +126,9 @@ class OTELHandler:
         self._tracer_span_exporter = OTLPSpanExporter()
 
         try:
-            self._tracer_span_exporter.export([trace.get_tracer(__name__).start_span("ping")])
+            # start_span is typed as the API Span; at runtime it is an SDK span, which is
+            # the ReadableSpan the exporter consumes.
+            self._tracer_span_exporter.export([trace.get_tracer(__name__).start_span("ping")])  # type: ignore[list-item]
         except Exception as e:
             raise ConnectionError(
                 f"Could not connect to OpenTelemetry Tracer endpoint. Check OpenTelemetry configuration or disable: {e}"
