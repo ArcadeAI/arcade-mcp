@@ -29,7 +29,7 @@ from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
 from opentelemetry.sdk.resources import Resource
-from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace import ReadableSpan, TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.semconv._incubating.attributes import deployment_attributes
 from opentelemetry.semconv.attributes import service_attributes
@@ -84,12 +84,11 @@ class OTELHandler:
                 FastAPIInstrumentor().instrument_app(
                     app, excluded_urls=EXCLUDED_URLS, exclude_spans=EXCLUDED_SPANS
                 )
-                # Pass tracer_provider=None so instrumentors pick up the global
-                # provider set by arcade-telemetry.
-                HTTPXClientInstrumentor()._instrument(tracer_provider=None)
-                # aiohttp's instrumentor stub types tracer_provider as non-optional.
-                AioHttpClientInstrumentor()._instrument(tracer_provider=None)  # type: ignore[arg-type]
-                RequestsInstrumentor()._instrument(tracer_provider=None)
+                # Omit tracer_provider so the instrumentors resolve the global
+                # provider set by arcade-telemetry (the API's documented default).
+                HTTPXClientInstrumentor()._instrument()
+                AioHttpClientInstrumentor()._instrument()
+                RequestsInstrumentor()._instrument()
                 return
             # init_providers returned None (arcade-telemetry import race or
             # internal opt-out) — fall through to the in-house OTLP setup so
@@ -112,11 +111,14 @@ class OTELHandler:
         FastAPIInstrumentor().instrument_app(
             app, excluded_urls=EXCLUDED_URLS, exclude_spans=EXCLUDED_SPANS
         )
-        HTTPXClientInstrumentor()._instrument(tracer_provider=self._tracer_provider)
-        # aiohttp's instrumentor stub wants a non-optional api TracerProvider; the SDK
-        # provider set just above is compatible at runtime.
-        AioHttpClientInstrumentor()._instrument(tracer_provider=self._tracer_provider)  # type: ignore[arg-type]
-        RequestsInstrumentor()._instrument(tracer_provider=self._tracer_provider)
+        # _init_tracer set this just above; narrow away the Optional so the typed
+        # aiohttp instrumentor kwargs accept it.
+        tracer_provider = self._tracer_provider
+        if tracer_provider is None:
+            raise RuntimeError("tracer provider was not initialized")
+        HTTPXClientInstrumentor()._instrument(tracer_provider=tracer_provider)
+        AioHttpClientInstrumentor()._instrument(tracer_provider=tracer_provider)
+        RequestsInstrumentor()._instrument(tracer_provider=tracer_provider)
 
     def _init_tracer(self) -> None:
         self._tracer_provider = TracerProvider(resource=self.resource)
@@ -125,10 +127,13 @@ class OTELHandler:
         # Create an OTLP exporter
         self._tracer_span_exporter = OTLPSpanExporter()
 
+        # An SDK tracer provider is active (set just above), so start_span returns an
+        # SDK span; narrow to the ReadableSpan the exporter consumes.
+        ping_span = trace.get_tracer(__name__).start_span("ping")
+        if not isinstance(ping_span, ReadableSpan):
+            raise TypeError("expected an SDK ReadableSpan for the connectivity probe")
         try:
-            # start_span is typed as the API Span; at runtime it is an SDK span, which is
-            # the ReadableSpan the exporter consumes.
-            self._tracer_span_exporter.export([trace.get_tracer(__name__).start_span("ping")])  # type: ignore[list-item]
+            self._tracer_span_exporter.export([ping_span])
         except Exception as e:
             raise ConnectionError(
                 f"Could not connect to OpenTelemetry Tracer endpoint. Check OpenTelemetry configuration or disable: {e}"
