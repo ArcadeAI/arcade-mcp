@@ -576,6 +576,31 @@ def compute_base_url(
         return f"{protocol}://{encoded_host}"
 
 
+def resolve_coordinator_url(
+    host: str | None,
+    port: int | None,
+    force_tls: bool,
+    force_no_tls: bool,
+) -> str:
+    """Resolve coordinator CLI options, falling back to the saved login host."""
+    if host is None and port is None and not force_tls and not force_no_tls:
+        from arcade_core.config_model import Config
+
+        saved_url = Config.load_from_file().coordinator_url
+        if saved_url:
+            return saved_url
+
+    from arcade_core.constants import PROD_COORDINATOR_HOST
+
+    return compute_base_url(
+        force_tls,
+        force_no_tls,
+        host or PROD_COORDINATOR_HOST,
+        port,
+        default_port=None,
+    )
+
+
 def get_tools_from_engine(
     host: str,
     port: int | None = None,
