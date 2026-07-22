@@ -11,6 +11,7 @@ from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
     compute_base_url,
     handle_cli_error,
+    resolve_coordinator_url,
 )
 
 app = TrackedTyper(
@@ -35,11 +36,12 @@ state = {
 
 @app.callback()
 def main(
-    host: str = typer.Option(
-        PROD_COORDINATOR_HOST,
+    host: str | None = typer.Option(
+        None,
         "--host",
         "-h",
         help="The Arcade Coordinator host.",
+        show_default=PROD_COORDINATOR_HOST,
     ),
     port: int = typer.Option(
         None,
@@ -59,8 +61,7 @@ def main(
     ),
 ) -> None:
     """Configure Coordinator connection options for organization commands."""
-    coordinator_url = compute_base_url(force_tls, force_no_tls, host, port, default_port=None)
-    state["coordinator_url"] = coordinator_url
+    state["coordinator_url"] = resolve_coordinator_url(host, port, force_tls, force_no_tls)
 
 
 @app.command("list", help="List organizations you belong to")
