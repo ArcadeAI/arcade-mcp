@@ -133,14 +133,14 @@ def test_otel_handler_delegates_when_arcade_telemetry_present(
     assert kwargs["service_name"] == "worker"
     assert kwargs["version"] == "9.9.9"
 
-    # FastAPI / HTTPX / aiohttp / Requests instrumentors still run, but with
-    # tracer_provider=None so they pick up arcade-telemetry's globals.
+    # FastAPI / HTTPX / aiohttp / Requests instrumentors still run, with
+    # tracer_provider omitted so they pick up arcade-telemetry's global providers.
     mock_fastapi_instrumentor.return_value.instrument_app.assert_called_once_with(
         app, excluded_urls="/worker/health", exclude_spans=["send", "receive"]
     )
-    mock_httpx.return_value._instrument.assert_called_once_with(tracer_provider=None)
-    mock_aiohttp.return_value._instrument.assert_called_once_with(tracer_provider=None)
-    mock_requests.return_value._instrument.assert_called_once_with(tracer_provider=None)
+    mock_httpx.return_value._instrument.assert_called_once_with()
+    mock_aiohttp.return_value._instrument.assert_called_once_with()
+    mock_requests.return_value._instrument.assert_called_once_with()
 
     # Shutdown delegates to the arcade-telemetry handle and does NOT touch the
     # OTLP exporter shutdown path (which would crash since exporters were never
