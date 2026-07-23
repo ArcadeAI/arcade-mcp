@@ -239,3 +239,30 @@ class TestPromptManager:
 
         with pytest.raises(PromptError):
             await manager.get_prompt("error_prompt", {})
+
+    @pytest.mark.asyncio
+    async def test_update_prompt_rename_does_not_orphan_old_entry(
+        self, prompt_manager, sample_prompt, prompt_function
+    ):
+        """A rename via update_prompt must not leave the old entry orphaned."""
+        await prompt_manager.add_prompt(sample_prompt, prompt_function)
+
+        renamed = sample_prompt.model_copy(update={"name": "greeting_v2"})
+        await prompt_manager.update_prompt(sample_prompt.name, renamed, prompt_function)
+
+        prompts = await prompt_manager.list_prompts()
+        assert len(prompts) == 1
+        assert prompts[0].name == "greeting_v2"
+        with pytest.raises(NotFoundError):
+            await prompt_manager.get_prompt("greeting", {"name": "Bob"})
+        result = await prompt_manager.get_prompt("greeting_v2", {"name": "Bob"})
+        assert isinstance(result, GetPromptResult)
+
+    @pytest.mark.asyncio
+    async def test_update_prompt_missing_raises_not_found(
+        self, prompt_manager, sample_prompt, prompt_function
+    ):
+        """Updating a prompt that does not exist raises NotFoundError."""
+        missing = sample_prompt.model_copy(update={"name": "nope"})
+        with pytest.raises(NotFoundError):
+            await prompt_manager.update_prompt("nope", missing, prompt_function)
