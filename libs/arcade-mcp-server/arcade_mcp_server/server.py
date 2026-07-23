@@ -23,6 +23,7 @@ from urllib.parse import quote, urlparse, urlunparse
 
 from arcade_core.auth_tokens import get_valid_access_token
 from arcade_core.catalog import MaterializedTool, ToolCatalog
+from arcade_core.constants import PROD_COORDINATOR_HOST, PROD_ENGINE_HOST
 from arcade_core.errors import ErrorKind, ToolInputError
 from arcade_core.executor import ToolExecutor
 from arcade_core.log_extras import build_tool_error_log_extra, build_tool_error_span_attributes
@@ -189,6 +190,41 @@ def _extract_scopes(claims: dict[str, Any]) -> set[str]:
     return set()
 
 
+def _engine_url_from_coordinator(coordinator_url: str | None) -> str | None:
+    """Map an Arcade coordinator URL to its paired engine (API) URL.
+
+    Arcade environments pair a ``cloud.<domain>`` coordinator (used for login)
+    with an ``api.<domain>`` engine (used for tool authorization): production is
+    ``cloud.arcade.dev`` / ``api.arcade.dev``. Given the coordinator URL recorded
+    by ``arcade login``, swap the leading host label to produce the matching
+    engine URL, preserving scheme and port.
+
+    Returns ``None`` when the host does not follow the recognized ``cloud.*``
+    convention (e.g. ``localhost`` or a custom single-host deployment) so callers
+    fall back to their default rather than targeting a guessed URL.
+    """
+    if not coordinator_url:
+        return None
+
+    coordinator_label = PROD_COORDINATOR_HOST.split(".", 1)[0]  # "cloud"
+    engine_label = PROD_ENGINE_HOST.split(".", 1)[0]  # "api"
+
+    parsed = urlparse(coordinator_url)
+    host = parsed.hostname
+    if not host:
+        return None
+
+    labels = host.split(".")
+    if labels[0] != coordinator_label:
+        return None
+
+    labels[0] = engine_label
+    engine_host = ".".join(labels)
+    netloc = f"{engine_host}:{parsed.port}" if parsed.port else engine_host
+    scheme = parsed.scheme or "https"
+    return f"{scheme}://{netloc}"
+
+
 # Methods that require a specific negotiated sub-capability. The dotted
 # notation matches the nested capability structure.
 CAPABILITY_GATED_METHODS: dict[str, str] = {
@@ -294,10 +330,24 @@ class MCPServer:
         self.auth_disabled = auth_disabled or self.settings.arcade.auth_disabled
 
         # Initialize Arcade client
-        # Fallback to API key in ~/.arcade/credentials.yaml if not provided
+        # Fallback to API key in ~/.arcade/credentials.yaml if not provided.
+        # Pass the API URL only when it was explicitly configured (constructor
+        # arg, ARCADE_API_URL, or a non-default settings value); a bare default
+        # is treated as "unset" so the engine URL can be derived from the login
+        # environment when the credentials come from `arcade login`.
+        default_api_url = type(self.settings.arcade).model_fields["api_url"].default
+        configured_api_url = (
+            arcade_api_url
+            or os.environ.get("ARCADE_API_URL")
+            or (
+                self.settings.arcade.api_url
+                if self.settings.arcade.api_url != default_api_url
+                else None
+            )
+        )
         self._init_arcade_client(
             arcade_api_key or self.settings.arcade.api_key,
-            arcade_api_url or self.settings.arcade.api_url,
+            configured_api_url,
         )
 
         # Component managers (passive)
@@ -396,19 +446,63 @@ class MCPServer:
             logger.debug(f"Could not load org/project context from config: {e}")
         return None
 
+    def _coordinator_url_from_config(self) -> str | None:
+        """Return the coordinator URL recorded by ``arcade login``, if any."""
+        try:
+            from arcade_core.config import config
+
+            coordinator_url = config.coordinator_url
+        except Exception as e:
+            logger.debug(f"Could not load coordinator_url from config: {e}")
+            return None
+        return coordinator_url
+
+    def _resolve_arcade_api_url(
+        self, configured_url: str | None, *, credentials_from_login: bool
+    ) -> str:
+        """Resolve the Arcade engine base URL used for runtime authorization.
+
+        An explicitly configured URL always wins. Otherwise, when the credentials
+        were loaded from ``arcade login``, target the engine that pairs with the
+        coordinator the user logged into, so a non-production login (e.g. a
+        staging domain) does not send its token to the production engine and get
+        a 401. Falls back to the production engine when no coordinator is
+        recorded or its host is not a recognized ``cloud.*`` host.
+        """
+        if configured_url:
+            return configured_url
+
+        default_url = f"https://{PROD_ENGINE_HOST}"
+
+        if credentials_from_login:
+            derived = _engine_url_from_coordinator(self._coordinator_url_from_config())
+            if derived:
+                if derived != default_url:
+                    logger.info(
+                        "Derived Arcade engine URL %s from the coordinator recorded by "
+                        "'arcade login'. Set ARCADE_API_URL to override.",
+                        derived,
+                    )
+                return derived
+
+        return default_url
+
     def _init_arcade_client(self, api_key: str | None, api_url: str | None) -> None:
         """Initialize Arcade client for runtime authorization."""
         self.arcade: AsyncArcade | None = None
 
-        if not api_url:
-            api_url = os.environ.get("ARCADE_API_URL", "https://api.arcade.dev")
-
         final_api_key = api_key
+        credentials_from_login = False
 
-        # If no API key provided, try to load from credentials file
+        # If no API key was configured, fall back to the token from `arcade login`.
         if not final_api_key:
             config_api_key, _ = self._load_config_values()
             final_api_key = config_api_key
+            credentials_from_login = final_api_key is not None
+
+        api_url = self._resolve_arcade_api_url(
+            api_url, credentials_from_login=credentials_from_login
+        )
 
         if final_api_key:
             logger.info(f"Using Arcade client with API URL: {api_url}")
