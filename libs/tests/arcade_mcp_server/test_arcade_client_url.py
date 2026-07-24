@@ -88,6 +88,12 @@ class TestEngineUrlFromCoordinator:
     def test_maps_cloud_host_to_api_host(self, coordinator, expected):
         assert _engine_url_from_coordinator(coordinator) == expected
 
+    def test_malformed_port_returns_none(self):
+        """A cloud host with an invalid port must not raise; ``.port`` raises
+        ValueError on a non-numeric/out-of-range port, and that must degrade to
+        the default rather than crashing resolution."""
+        assert _engine_url_from_coordinator("https://cloud.staging.example.com:bad") is None
+
     @pytest.mark.parametrize(
         "coordinator",
         [
@@ -120,6 +126,11 @@ class TestArcadeClientUrlResolution:
 
     def test_localhost_coordinator_falls_back_to_prod(self):
         server = _build_server(coordinator_url="http://localhost:8000")
+        assert _base_url(server) == PROD_ENGINE_URL
+
+    def test_malformed_coordinator_port_falls_back_to_prod(self):
+        """A corrupt coordinator URL in the config must not fail construction."""
+        server = _build_server(coordinator_url="https://cloud.staging.example.com:bad")
         assert _base_url(server) == PROD_ENGINE_URL
 
     def test_explicit_api_url_arg_wins_over_derivation(self):

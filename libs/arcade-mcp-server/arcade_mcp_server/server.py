@@ -220,7 +220,13 @@ def _engine_url_from_coordinator(coordinator_url: str | None) -> str | None:
 
     labels[0] = engine_label
     engine_host = ".".join(labels)
-    netloc = f"{engine_host}:{parsed.port}" if parsed.port else engine_host
+    try:
+        port = parsed.port
+    except ValueError:
+        # A malformed port (e.g. a hand-edited or corrupt coordinator URL) is a
+        # configuration problem, not a fatal one: fall back to the default.
+        return None
+    netloc = f"{engine_host}:{port}" if port else engine_host
     scheme = parsed.scheme or "https"
     return f"{scheme}://{netloc}"
 
