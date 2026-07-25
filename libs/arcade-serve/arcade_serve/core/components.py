@@ -10,15 +10,11 @@ from arcade_serve.core.common import (
     HealthCheckResponse,
     RequestData,
     Router,
-    Worker,
     WorkerComponent,
 )
 
 
 class CatalogComponent(WorkerComponent):
-    def __init__(self, worker: Worker) -> None:
-        self.worker = worker
-
     def register(self, router: Router) -> None:
         """
         Register the catalog route with the router.
@@ -44,9 +40,6 @@ class CatalogComponent(WorkerComponent):
 
 
 class CallToolComponent(WorkerComponent):
-    def __init__(self, worker: Worker) -> None:
-        self.worker = worker
-
     def register(self, router: Router) -> None:
         """
         Register the call tool route with the router.
@@ -85,9 +78,6 @@ class CallToolComponent(WorkerComponent):
 
 
 class HealthCheckComponent(WorkerComponent):
-    def __init__(self, worker: Worker) -> None:
-        self.worker = worker
-
     def register(self, router: Router) -> None:
         """
         Register the health check route with the router.
