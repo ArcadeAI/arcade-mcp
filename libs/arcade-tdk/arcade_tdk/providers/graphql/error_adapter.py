@@ -29,11 +29,32 @@ _GQL_CODE_TO_STATUS = {
 }
 
 
+class _MissingGqlError(Exception):
+    """Sentinel for a gql exception class absent on the installed gql version.
+
+    Substituted for a class the installed gql does not define so the adapter's
+    ``isinstance()`` checks stay valid but simply never match. Never raised or
+    instantiated.
+    """
+
+
 @lru_cache(maxsize=1)
 def _load_gql_transport_errors() -> (
     tuple[type[Any], type[Any], type[Any], type[Any], type[Any]] | None
 ):
-    """Import gql transport exceptions lazily and cache the result."""
+    """Import gql transport exceptions lazily and cache the result.
+
+    Each class is resolved with ``getattr`` and a never-raised sentinel so a gql
+    version that omits one of these names degrades gracefully instead of raising
+    ``AttributeError``. In particular ``TransportConnectionFailed`` was added in
+    gql 4.0.0 and does NOT exist on the stable 3.5.x line (the gql stable line
+    jumps 3.5.3 -> 4.0.0); consumers pinned to ``gql>=3.5,<4.0`` resolve to 3.5.3.
+    Eagerly reading ``module.TransportConnectionFailed`` there raised
+    ``AttributeError`` — which is not an ``ImportError``, so it escaped the guard,
+    was swallowed by the adapter chain in ``tool.py``, and silently disabled the
+    whole GraphQL adapter (TOO-1338). Resolving with ``getattr`` keeps every class
+    the installed gql *does* define working.
+    """
     try:
         module = importlib.import_module("gql.transport.exceptions")
     except ImportError:
@@ -41,11 +62,11 @@ def _load_gql_transport_errors() -> (
         return None
     else:
         return (
-            module.TransportError,
-            module.TransportQueryError,
-            module.TransportServerError,
-            module.TransportConnectionFailed,
-            module.TransportProtocolError,
+            getattr(module, "TransportError", _MissingGqlError),
+            getattr(module, "TransportQueryError", _MissingGqlError),
+            getattr(module, "TransportServerError", _MissingGqlError),
+            getattr(module, "TransportConnectionFailed", _MissingGqlError),
+            getattr(module, "TransportProtocolError", _MissingGqlError),
         )
 
 
@@ -113,7 +134,7 @@ class GraphQLErrorAdapter(BaseHTTPErrorMapper):
 
         # Extract error codes and map to HTTP status
         codes: list[str] = []
-        status = HTTPStatus.UNPROCESSABLE_ENTITY.value
+        mapped_statuses: list[int] = []
 
         for e in errors_list:
             ext = e.get("extensions") if isinstance(e, dict) else None
@@ -121,8 +142,19 @@ class GraphQLErrorAdapter(BaseHTTPErrorMapper):
             if isinstance(code, str):
                 codes.append(code)
                 mapped = _GQL_CODE_TO_STATUS.get(code)
-                if mapped and mapped > status:
-                    status = mapped
+                if mapped is not None:
+                    mapped_statuses.append(mapped)
+
+        # 422 (Unprocessable Entity) is only a fallback for when no recognized
+        # GraphQL error code was present. When codes DID map, pick the highest
+        # mapped status so a 5xx (retryable) wins over a 4xx in a multi-error
+        # response. The previous code seeded `status` at 422 and only replaced it
+        # when `mapped > status`, so specific 4xx codes below the 422 floor —
+        # NOT_FOUND (404), FORBIDDEN (403), UNAUTHENTICATED (401), BAD_USER_INPUT
+        # (400) — never won and were reported as 422 (TOO-1338, secondary bug).
+        status = (
+            max(mapped_statuses) if mapped_statuses else HTTPStatus.UNPROCESSABLE_ENTITY.value
+        )
 
         unique_codes = sorted(set(codes))
 
