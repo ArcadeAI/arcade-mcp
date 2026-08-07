@@ -143,7 +143,7 @@ def _require_mcp() -> tuple[Any, Any, Any, Any, Any]:
         StdioServerParameters = mcp.StdioServerParameters
         stdio_client = mcp_client_stdio.stdio_client
         sse_client = mcp_client_sse.sse_client
-        streamablehttp_client = mcp_client_http.streamablehttp_client
+        streamablehttp_client = mcp_client_http.streamable_http_client
 
     except ImportError as e:
         raise ImportError(
