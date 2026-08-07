@@ -4,7 +4,7 @@ import importlib
 import logging
 import sys
 from collections.abc import Iterator
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from http import HTTPStatus
 from pathlib import Path
 from types import ModuleType
@@ -160,23 +160,46 @@ def _patch_loader() -> Any:
 def _real_stdio_debug_logging() -> Iterator[None]:
     """Install the real `arcade mcp stdio --debug` logging stack, then fully undo it.
 
-    `setup_logging` calls `logging.basicConfig(..., force=True)`, which wipes the
-    root handlers — including pytest's — so every piece of global state it
-    touches is snapshotted and restored here. Without that, this test would
-    silently break logging for the rest of the session.
+    `setup_logging` is doubly destructive to global state, and both halves are
+    snapshotted here or logging breaks for every test that runs afterwards:
+
+    * `logging.basicConfig(..., force=True)` wipes the stdlib root handlers,
+      including pytest's.
+    * `logger.remove()` drops every pre-existing Loguru sink. Loguru offers no
+      public snapshot/restore, so the handler registry is saved and put back
+      directly. `core.min_level` must go with it — it caches the minimum level
+      across sinks and gates `emit`, so restoring handlers without it leaves the
+      restored sinks silently dropping records.
+
+    Re-inserting the saved handler objects is not sufficient on its own:
+    `logger.remove()` marks each one `_stopped`, and `Handler.emit` returns early
+    on that flag, so a restored sink would be present but permanently silent. The
+    flag is cleared on the way back. Reviving them is safe because `stop()` is a
+    no-op for callable sinks and for plain stream sinks — it only forwards to
+    `stream.stop()` when the stream defines one (loguru 0.7.3).
     """
-    pytest.importorskip("arcade_mcp_server", reason="stdio logging stack lives in arcade-mcp-server")
+    pytest.importorskip(
+        "arcade_mcp_server", reason="stdio logging stack lives in arcade-mcp-server"
+    )
     from arcade_mcp_server.logging_utils import setup_logging
     from loguru import logger as loguru_logger
 
     root = logging.getLogger()
     saved_handlers = root.handlers[:]
     saved_level = root.level
+
+    core = loguru_logger._core  # type: ignore[attr-defined]
+    saved_sinks = dict(core.handlers)
+    saved_min_level = core.min_level
     try:
         setup_logging(level="DEBUG", stdio_mode=True)
         yield
     finally:
-        loguru_logger.remove()
+        loguru_logger.remove()  # drop the sink setup_logging installed
+        for handler in saved_sinks.values():
+            handler._stopped = False  # `remove()` set it; `emit()` returns early on it
+        core.handlers.update(saved_sinks)
+        core.min_level = saved_min_level
         root.handlers[:] = saved_handlers
         root.setLevel(saved_level)
 
@@ -540,9 +563,8 @@ class TestUnresolvedClassDiagnostic:
         `arcade mcp stdio --debug` installs, and it is the only configuration
         under which this diagnostic is emitted at all.
         """
-        with _real_stdio_debug_logging():
-            with _fake_gql_installed(GQL_35X):
-                gql_adapter._load_gql_transport_errors()
+        with _real_stdio_debug_logging(), _fake_gql_installed(GQL_35X):
+            gql_adapter._load_gql_transport_errors()
 
         assert capsys.readouterr().out == ""
 
@@ -557,9 +579,8 @@ class TestUnresolvedClassDiagnostic:
         is the one being used, and turns any future switch of that sink into a
         test failure instead of a corrupted protocol stream.
         """
-        with _real_stdio_debug_logging():
-            with _fake_gql_installed(GQL_35X):
-                gql_adapter._load_gql_transport_errors()
+        with _real_stdio_debug_logging(), _fake_gql_installed(GQL_35X):
+            gql_adapter._load_gql_transport_errors()
 
         captured = capsys.readouterr()
         assert "TransportConnectionFailed" in captured.err
@@ -575,6 +596,42 @@ class TestUnresolvedClassDiagnostic:
         captured = capsys.readouterr()
         assert captured.out == ""
         assert captured.err == ""
+
+
+class TestStdioDebugLoggingHelper:
+    """`_real_stdio_debug_logging` rips up global logging state; it must leave no trace.
+
+    Test-infrastructure tests, but this helper reconfigures process-wide logging,
+    so a leak here shows up as order-dependent flakiness somewhere unrelated.
+    """
+
+    def test_restores_a_preexisting_loguru_sink(self) -> None:
+        """A sink configured before the helper must still receive logs afterwards."""
+        pytest.importorskip("arcade_mcp_server", reason="stdio logging stack")
+        from loguru import logger as loguru_logger
+
+        received: list[str] = []
+        sink_id = loguru_logger.add(received.append, level="DEBUG")
+        try:
+            with _real_stdio_debug_logging():
+                pass
+            loguru_logger.debug("after the helper exits")
+        finally:
+            with suppress(ValueError):  # absent if the restore failed
+                loguru_logger.remove(sink_id)
+
+        assert any("after the helper exits" in message for message in received)
+
+    def test_restores_stdlib_root_handlers(self) -> None:
+        """`setup_logging` calls basicConfig(force=True), which wipes pytest's handlers."""
+        pytest.importorskip("arcade_mcp_server", reason="stdio logging stack")
+        root = logging.getLogger()
+        before = root.handlers[:]
+
+        with _real_stdio_debug_logging():
+            pass
+
+        assert root.handlers == before
 
 
 class TestQueryErrorStatusSelection:
