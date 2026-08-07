@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import logging
 import sys
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -34,8 +35,16 @@ class DummyTransportError(Exception):
         self.code = code
 
 
-class DummyTransportQueryError(Exception):
+class DummyTransportQueryError(DummyTransportError):
+    """Mirrors real gql, where `TransportQueryError` subclasses `TransportError`.
+
+    Deriving this from `Exception` would let a broken branch order in
+    `from_exception` pass every test in this file — see `TestGqlVersionTolerance
+    .test_query_error_is_matched_before_the_transport_catch_all`.
+    """
+
     def __init__(self, errors: list[dict[str, Any]] | None = None) -> None:
+        # `.code` stays None: real query errors carry no HTTP status.
         super().__init__("query error")
         self.errors = errors
 
@@ -96,7 +105,7 @@ def _make_fake_gql_module(profile: str) -> ModuleType:
             super().__init__(message)
             self.code = code
 
-    class TransportQueryError(Exception):
+    class TransportQueryError(TransportError):
         def __init__(
             self, msg: str = "GraphQL error", errors: list[dict[str, Any]] | None = None
         ) -> None:
@@ -425,6 +434,64 @@ class TestGqlVersionTolerance:
             result = gql_adapter.GraphQLErrorAdapter().from_exception(RuntimeError("not gql"))
 
         assert result is None
+
+    @pytest.mark.parametrize("profile", GQL_VERSION_PROFILES)
+    def test_query_error_is_matched_before_the_transport_catch_all(self, profile: str) -> None:
+        """A query error is also a TransportError — the specific branch must win.
+
+        In real gql every transport exception subclasses `TransportError`, so
+        `from_exception`'s ordering is load-bearing: if the catch-all ran first, a
+        query error would route to `_handle_transport_error`, which finds no
+        `.code` and fabricates "status code 500" while dropping the GraphQL
+        message — TOO-1338's symptom, reintroduced.
+        """
+        with _fake_gql_installed(profile) as module:
+            exc = module.TransportQueryError(errors=[{"message": "Entity not found"}])
+            # Guards the guard: if the fake stopped mirroring gql's hierarchy,
+            # this test would silently stop testing anything.
+            assert isinstance(exc, module.TransportError)
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert result.message == "Upstream GraphQL error: Entity not found"
+        assert "status code 500" not in result.message
+
+
+class TestUnresolvedClassDiagnostic:
+    """A silently incomplete class inventory is how TOO-1338 stayed invisible."""
+
+    def test_missing_class_is_named_at_debug_level(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """The one diagnostic that says which branches got disabled."""
+        with caplog.at_level(logging.DEBUG, logger=gql_adapter.__name__):
+            with _fake_gql_installed(GQL_35X):
+                gql_adapter._load_gql_transport_errors()
+
+        records = [r for r in caplog.records if "TransportConnectionFailed" in r.getMessage()]
+        assert records, "a missing gql class must be named in the logs"
+        assert records[0].levelno == logging.DEBUG
+
+    def test_no_diagnostic_when_every_class_resolves(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """A complete inventory is the normal case and must stay quiet."""
+        with caplog.at_level(logging.DEBUG, logger=gql_adapter.__name__):
+            with _fake_gql_installed(GQL_40X):
+                gql_adapter._load_gql_transport_errors()
+
+        assert not [r for r in caplog.records if "does not define" in r.getMessage()]
+
+    def test_diagnostic_never_reaches_stdout_or_stderr(
+        self, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """MCP stdio transport requires a JSON-only channel — logger, never print."""
+        with _fake_gql_installed(GQL_35X):
+            gql_adapter._load_gql_transport_errors()
+
+        captured = capsys.readouterr()
+        assert captured.out == ""
+        assert captured.err == ""
 
 
 class TestQueryErrorStatusSelection:

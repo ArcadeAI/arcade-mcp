@@ -29,6 +29,16 @@ _GQL_CODE_TO_STATUS = {
 }
 
 
+# Resolved from `gql.transport.exceptions`, in the order `from_exception` unpacks them.
+_GQL_ERROR_NAMES = (
+    "TransportError",
+    "TransportQueryError",
+    "TransportServerError",
+    "TransportConnectionFailed",
+    "TransportProtocolError",
+)
+
+
 class _MissingGqlError(Exception):
     """Placeholder for a transport exception the installed gql does not define.
 
@@ -49,20 +59,38 @@ def _load_gql_transport_errors() -> (
     real GraphQL message from every error (TOO-1338). Resolve each class
     defensively instead: classes the installed gql defines still map, and any it
     omits fall back to a sentinel that never matches.
+
+    Tolerating a missing class must not mean hiding it: an inventory gap silently
+    disables error branches, so name any unresolved class in the log. That
+    diagnostic is the difference between debugging the next rename in minutes and
+    rediscovering TOO-1338. Log only — never print. This module is reachable from
+    the MCP stdio transport, where stray stdout corrupts the protocol.
     """
     try:
         module = importlib.import_module("gql.transport.exceptions")
     except ImportError:
         logger.debug("gql not installed; GraphQL adapter disabled")
         return None
-    else:
-        return (
-            getattr(module, "TransportError", _MissingGqlError),
-            getattr(module, "TransportQueryError", _MissingGqlError),
-            getattr(module, "TransportServerError", _MissingGqlError),
-            getattr(module, "TransportConnectionFailed", _MissingGqlError),
-            getattr(module, "TransportProtocolError", _MissingGqlError),
+
+    resolved = {name: getattr(module, name, _MissingGqlError) for name in _GQL_ERROR_NAMES}
+
+    unresolved = [name for name, cls in resolved.items() if cls is _MissingGqlError]
+    if unresolved:
+        logger.debug(
+            "Installed gql does not define %s; the GraphQL error branches matching "
+            "%s are disabled. Expected for TransportConnectionFailed on gql < 4.0; "
+            "anything else suggests the adapter's class inventory is out of date.",
+            ", ".join(unresolved),
+            "them" if len(unresolved) > 1 else "it",
         )
+
+    return (
+        resolved["TransportError"],
+        resolved["TransportQueryError"],
+        resolved["TransportServerError"],
+        resolved["TransportConnectionFailed"],
+        resolved["TransportProtocolError"],
+    )
 
 
 def _extract_error_message(message: Any) -> str:
