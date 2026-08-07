@@ -146,6 +146,15 @@ def _patch_loader() -> Any:
     )
 
 
+def _map_query_errors(errors: Any) -> UpstreamError:
+    """Run a `TransportQueryError` payload through the adapter and return the mapping."""
+    exc = DummyTransportQueryError(errors=errors)
+    with _patch_loader():
+        result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+    assert isinstance(result, UpstreamError)
+    return result
+
+
 class TestGraphQLErrorAdapter:
     # --- Import/caching tests ---
 
@@ -421,14 +430,6 @@ class TestGqlVersionTolerance:
 class TestQueryErrorStatusSelection:
     """422 is the no-recognized-code fallback, not a floor that masks specific 4xx codes."""
 
-    @staticmethod
-    def _map(errors: list[dict[str, Any]]) -> UpstreamError:
-        exc = DummyTransportQueryError(errors=errors)
-        with _patch_loader():
-            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
-        assert isinstance(result, UpstreamError)
-        return result
-
     @pytest.mark.parametrize(
         ("code", "expected_status"),
         [
@@ -445,20 +446,20 @@ class TestQueryErrorStatusSelection:
     )
     def test_lone_code_reports_its_own_status(self, code: str, expected_status: int) -> None:
         """A single recognized code is reported as itself, including codes below 422."""
-        result = self._map([{"message": "boom", "extensions": {"code": code}}])
+        result = _map_query_errors([{"message": "boom", "extensions": {"code": code}}])
 
         assert result.status_code == expected_status
 
     def test_unknown_code_falls_back_to_422(self) -> None:
         """No recognized code → the unprocessable-entity fallback, code still reported."""
-        result = self._map([{"message": "boom", "extensions": {"code": "WEIRD"}}])
+        result = _map_query_errors([{"message": "boom", "extensions": {"code": "WEIRD"}}])
 
         assert result.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
         assert result.extra["gql_error_codes"] == ["WEIRD"]
 
     def test_unmapped_code_does_not_drown_a_mapped_one(self) -> None:
         """A mapped 404 wins over an unrecognized sibling code, which is still reported."""
-        result = self._map([
+        result = _map_query_errors([
             {"message": "missing", "extensions": {"code": "NOT_FOUND"}},
             {"message": "huh", "extensions": {"code": "WEIRD"}},
         ])
@@ -468,9 +469,64 @@ class TestQueryErrorStatusSelection:
 
     def test_highest_mapped_status_wins_across_errors(self) -> None:
         """Multi-code responses keep the existing highest-wins contract (5xx over 4xx)."""
-        result = self._map([
+        result = _map_query_errors([
             {"message": "denied", "extensions": {"code": "FORBIDDEN"}},
             {"message": "boom", "extensions": {"code": "INTERNAL_SERVER_ERROR"}},
         ])
 
         assert result.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+
+    def test_two_mapped_4xx_codes_resolve_numerically(self) -> None:
+        """Two mapped 4xx codes break the tie numerically — the higher status is reported.
+
+        Characterization test: highest-wins applies within 4xx too, so an
+        auth + not-found response is labelled 404. No signal is discarded — both
+        messages and both codes still reach the caller — but the scalar
+        `status_code`/`kind` picks one. Whether auth should out-rank other 4xx
+        is an open taxonomy question (ledger cc-opus-002), not settled here.
+        """
+        result = _map_query_errors([
+            {"message": "Not authenticated", "extensions": {"code": "UNAUTHENTICATED"}},
+            {"message": "Entity not found", "extensions": {"code": "NOT_FOUND"}},
+        ])
+
+        assert result.status_code == HTTPStatus.NOT_FOUND
+        assert "Not authenticated" in result.message
+        assert "Entity not found" in result.message
+        assert result.extra["gql_error_codes"] == ["NOT_FOUND", "UNAUTHENTICATED"]
+
+
+class TestMalformedErrorsPayload:
+    """A non-conforming `errors[]` must degrade, never crash the adapter.
+
+    An exception escaping the adapter is swallowed by `tool.py`'s broad except,
+    which disables the adapter and drops the real message — the exact TOO-1338
+    fault class this change exists to remove.
+    """
+
+    def test_non_dict_error_element_surfaces_its_own_message(self) -> None:
+        """A bare-string element must not raise AttributeError on `.get`."""
+        result = _map_query_errors(["Entity not found"])
+
+        assert result.message == "Upstream GraphQL error: Entity not found"
+        assert result.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+        assert result.extra["gql_error_codes"] == []
+
+    def test_non_dict_element_alongside_a_well_formed_one(self) -> None:
+        """A malformed element must not cost the well-formed element's code or message."""
+        result = _map_query_errors([
+            {"message": "Entity not found", "extensions": {"code": "NOT_FOUND"}},
+            "something went wrong",
+        ])
+
+        assert "Entity not found" in result.message
+        assert "something went wrong" in result.message
+        assert result.status_code == HTTPStatus.NOT_FOUND
+        assert result.extra["gql_error_codes"] == ["NOT_FOUND"]
+
+    def test_non_list_errors_payload_is_treated_as_one_error(self) -> None:
+        """A non-list `errors` must not be iterated character by character."""
+        result = _map_query_errors("Entity not found")
+
+        assert result.message == "Upstream GraphQL error: Entity not found"
+        assert result.status_code == HTTPStatus.UNPROCESSABLE_ENTITY

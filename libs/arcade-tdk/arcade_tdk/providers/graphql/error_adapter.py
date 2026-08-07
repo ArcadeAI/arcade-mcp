@@ -122,9 +122,18 @@ class GraphQLErrorAdapter(BaseHTTPErrorMapper):
     def _handle_query_error(self, exc: Any) -> UpstreamError:
         """Handle TransportQueryError (GraphQL errors in response body)."""
         errors_list = exc.errors or []
+        # A non-conforming server can put anything in `errors`. Normalize rather
+        # than trust the shape: an exception raised here escapes into tool.py's
+        # broad except, which disables the adapter and drops the real message —
+        # the TOO-1338 failure all over again.
+        if not isinstance(errors_list, list):
+            errors_list = [errors_list]
         logger.debug("GraphQL query errors: %s", errors_list)
 
-        messages = [_extract_error_message(e.get("message")) for e in errors_list]
+        messages = [
+            _extract_error_message(e.get("message") if isinstance(e, dict) else e)
+            for e in errors_list
+        ]
         joined = "; ".join(messages) if messages else "Unknown GraphQL error"
 
         # Extract error codes and map to HTTP status
