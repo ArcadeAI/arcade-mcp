@@ -85,7 +85,7 @@ def reset_cache() -> Iterator[None]:
 #
 # These drive the REAL `_load_gql_transport_errors()` (unlike `_patch_loader`
 # below, which bypasses it). gql 3.5.x does not define `TransportConnectionFailed`;
-# gql 4.0.x does. That single missing attribute is TOO-1338.
+# gql 4.0.x does. That single missing attribute is the fault this suite guards.
 
 GQL_35X = "gql-3.5.x"
 GQL_40X = "gql-4.0.x"
@@ -468,7 +468,7 @@ class TestGqlVersionTolerance:
 
     @pytest.mark.parametrize("profile", GQL_VERSION_PROFILES)
     def test_query_error_keeps_real_message_on_every_version(self, profile: str) -> None:
-        """TOO-1338: the GraphQL message must reach the caller, not be swallowed."""
+        """The GraphQL message must reach the caller, not be swallowed."""
         with _fake_gql_installed(profile) as module:
             exc = module.TransportQueryError(
                 errors=[{"message": "Entity not found", "extensions": {"code": "NOT_FOUND"}}]
@@ -504,7 +504,7 @@ class TestGqlVersionTolerance:
         `from_exception`'s ordering is load-bearing: if the catch-all ran first, a
         query error would route to `_handle_transport_error`, which finds no
         `.code` and fabricates "status code 500" while dropping the GraphQL
-        message — TOO-1338's symptom, reintroduced.
+        message — the original symptom, reintroduced.
         """
         with _fake_gql_installed(profile) as module:
             exc = module.TransportQueryError(errors=[{"message": "Entity not found"}])
@@ -541,7 +541,7 @@ class TestGqlVersionTolerance:
 
 
 class TestUnresolvedClassDiagnostic:
-    """A silently incomplete class inventory is how TOO-1338 stayed invisible."""
+    """A silently incomplete class inventory is how the fault stayed invisible."""
 
     def test_missing_class_is_named_at_debug_level(
         self, caplog: pytest.LogCaptureFixture
@@ -787,8 +787,8 @@ class TestMalformedErrorsPayload:
     """A non-conforming `errors[]` must degrade, never crash the adapter.
 
     An exception escaping the adapter is swallowed by `tool.py`'s broad except,
-    which disables the adapter and drops the real message — the exact TOO-1338
-    fault class this change exists to remove.
+    which disables the adapter and drops the real message — the exact fault class
+    this change exists to remove.
     """
 
     def test_non_dict_error_element_surfaces_its_own_message(self) -> None:

@@ -54,18 +54,12 @@ def _load_gql_transport_errors() -> (
 ):
     """Import gql transport exceptions lazily and cache the result.
 
-    gql's exception inventory varies by version — ``TransportConnectionFailed``
-    exists on 4.0.x but not on the 3.5.x line. Reading the names eagerly raised
-    ``AttributeError`` on 3.5.x, which disabled the whole adapter and dropped the
-    real GraphQL message from every error (TOO-1338). Resolve each class
-    defensively instead: classes the installed gql defines still map, and any it
-    omits fall back to a sentinel that never matches.
-
-    Tolerating a missing class must not mean hiding it: an inventory gap silently
-    disables error branches, so name any unresolved class in the log. That
-    diagnostic is the difference between debugging the next rename in minutes and
-    rediscovering TOO-1338. Log only — never print. This module is reachable from
-    the MCP stdio transport, where stray stdout corrupts the protocol.
+    gql's exception inventory varies by version (e.g. ``TransportConnectionFailed``
+    is absent on the 3.5.x line). Resolve each class defensively so a missing one
+    falls back to a never-matching sentinel instead of raising ``AttributeError``,
+    which used to disable the whole adapter and drop the real error message. Log
+    any unresolved class — never ``print``; stray stdout corrupts the MCP stdio
+    protocol.
     """
     try:
         module = importlib.import_module("gql.transport.exceptions")
@@ -150,16 +144,10 @@ class GraphQLErrorAdapter(BaseHTTPErrorMapper):
 
     def _handle_query_error(self, exc: Any) -> UpstreamError:
         """Handle TransportQueryError (GraphQL errors in response body)."""
-        # A non-conforming server can put anything in `errors`. Normalize rather
-        # than trust the shape: an exception raised here escapes into tool.py's
-        # broad except, which disables the adapter and drops the real message —
-        # the TOO-1338 failure all over again.
-        #
-        # Any iterable is a collection of errors, so a tuple maps like a list.
-        # str/bytes/dict are iterable but ARE single errors, and must not be
-        # walked element-wise. Materialize the rest: the payload is traversed
-        # twice below (messages, then codes), and a one-shot iterable would come
-        # up empty on the second pass, silently dropping every error code.
+        # Normalize `errors` before trusting its shape: an exception raised here
+        # escapes to tool.py and drops the real message. str/bytes/dict are single
+        # errors; any other iterable is a collection. list() because the payload is
+        # traversed twice below — a one-shot iterable would empty out.
         errors_list = exc.errors or []
         if isinstance(errors_list, (str, bytes, dict)) or not isinstance(errors_list, Iterable):
             errors_list = [errors_list]
@@ -186,15 +174,9 @@ class GraphQLErrorAdapter(BaseHTTPErrorMapper):
                 if mapped:
                     mapped_statuses.append(mapped)
 
-        # Highest recognized code wins (5xx over 4xx); 422 is only the fallback
-        # for a response whose codes we don't recognize — using it as a floor
-        # masked the more specific 401/403/404/400 codes.
-        #
-        # One numeric rule for every pair, including within 4xx: an auth code
-        # alongside another 4xx does not out-rank it (401 + 404 reports 404).
-        # Special-casing auth would raise whether it also beats 5xx, which would
-        # change retryability. The single scalar loses nothing that matters —
-        # every message and code is still carried in message/extra below.
+        # Highest recognized code wins; 422 only when no code is recognized (using
+        # it as a floor masked 401/403/404/400). One numeric rule for all pairs —
+        # auth doesn't out-rank other 4xx; every code is still kept in `extra`.
         status = max(mapped_statuses) if mapped_statuses else HTTPStatus.UNPROCESSABLE_ENTITY.value
 
         unique_codes = sorted(set(codes))
