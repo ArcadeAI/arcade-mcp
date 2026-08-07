@@ -29,11 +29,27 @@ _GQL_CODE_TO_STATUS = {
 }
 
 
+class _MissingGqlError(Exception):
+    """Placeholder for a transport exception the installed gql does not define.
+
+    Never raised, so the ``isinstance()`` checks that receive it stay valid but
+    can never match.
+    """
+
+
 @lru_cache(maxsize=1)
 def _load_gql_transport_errors() -> (
     tuple[type[Any], type[Any], type[Any], type[Any], type[Any]] | None
 ):
-    """Import gql transport exceptions lazily and cache the result."""
+    """Import gql transport exceptions lazily and cache the result.
+
+    gql's exception inventory varies by version — ``TransportConnectionFailed``
+    exists on 4.0.x but not on the 3.5.x line. Reading the names eagerly raised
+    ``AttributeError`` on 3.5.x, which disabled the whole adapter and dropped the
+    real GraphQL message from every error (TOO-1338). Resolve each class
+    defensively instead: classes the installed gql defines still map, and any it
+    omits fall back to a sentinel that never matches.
+    """
     try:
         module = importlib.import_module("gql.transport.exceptions")
     except ImportError:
@@ -41,11 +57,11 @@ def _load_gql_transport_errors() -> (
         return None
     else:
         return (
-            module.TransportError,
-            module.TransportQueryError,
-            module.TransportServerError,
-            module.TransportConnectionFailed,
-            module.TransportProtocolError,
+            getattr(module, "TransportError", _MissingGqlError),
+            getattr(module, "TransportQueryError", _MissingGqlError),
+            getattr(module, "TransportServerError", _MissingGqlError),
+            getattr(module, "TransportConnectionFailed", _MissingGqlError),
+            getattr(module, "TransportProtocolError", _MissingGqlError),
         )
 
 
@@ -113,7 +129,7 @@ class GraphQLErrorAdapter(BaseHTTPErrorMapper):
 
         # Extract error codes and map to HTTP status
         codes: list[str] = []
-        status = HTTPStatus.UNPROCESSABLE_ENTITY.value
+        mapped_statuses: list[int] = []
 
         for e in errors_list:
             ext = e.get("extensions") if isinstance(e, dict) else None
@@ -121,8 +137,13 @@ class GraphQLErrorAdapter(BaseHTTPErrorMapper):
             if isinstance(code, str):
                 codes.append(code)
                 mapped = _GQL_CODE_TO_STATUS.get(code)
-                if mapped and mapped > status:
-                    status = mapped
+                if mapped:
+                    mapped_statuses.append(mapped)
+
+        # Highest recognized code wins (5xx over 4xx); 422 is only the fallback
+        # for a response whose codes we don't recognize — using it as a floor
+        # masked the more specific 401/403/404/400 codes.
+        status = max(mapped_statuses) if mapped_statuses else HTTPStatus.UNPROCESSABLE_ENTITY.value
 
         unique_codes = sorted(set(codes))
 
