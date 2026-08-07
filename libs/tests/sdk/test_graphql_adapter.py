@@ -167,16 +167,18 @@ def _real_stdio_debug_logging() -> Iterator[None]:
       including pytest's.
     * `logger.remove()` drops every pre-existing Loguru sink. Loguru offers no
       public snapshot/restore, so the handler registry is saved and put back
-      directly. `core.min_level` must go with it — it caches the minimum level
+      directly, together with `core.min_level` — it caches the minimum level
       across sinks and gates `emit`, so restoring handlers without it leaves the
-      restored sinks silently dropping records.
+      restored sinks present but silently dropping records.
 
-    Re-inserting the saved handler objects is not sufficient on its own:
-    `logger.remove()` marks each one `_stopped`, and `Handler.emit` returns early
-    on that flag, so a restored sink would be present but permanently silent. The
-    flag is cleared on the way back. Reviving them is safe because `stop()` is a
-    no-op for callable sinks and for plain stream sinks — it only forwards to
-    `stream.stop()` when the stream defines one (loguru 0.7.3).
+    Crucially, the pre-existing handlers are **detached without being stopped**:
+    `logger.remove` is swapped for `_detach` while `setup_logging` runs. Letting
+    `remove()` stop them and reviving the objects afterwards is not sound, because
+    `stop()` has side effects per sink type — `FileSink.stop()` closes the file
+    and, when no rotation is configured, runs the **compression and retention**
+    functions against the existing log. Never stopping them sidesteps every one of
+    those side effects and works for all sink types, rather than only the callable
+    and stream sinks that happen to have a no-op `stop()`.
     """
     pytest.importorskip(
         "arcade_mcp_server", reason="stdio logging stack lives in arcade-mcp-server"
@@ -191,13 +193,23 @@ def _real_stdio_debug_logging() -> Iterator[None]:
     core = loguru_logger._core  # type: ignore[attr-defined]
     saved_sinks = dict(core.handlers)
     saved_min_level = core.min_level
+
+    def _detach(handler_id: int | None = None) -> None:
+        """Unregister without calling `Handler.stop()` — see the docstring."""
+        if handler_id is None:
+            core.handlers.clear()
+        else:
+            core.handlers.pop(handler_id, None)
+        core.min_level = float("inf")
+
     try:
-        setup_logging(level="DEBUG", stdio_mode=True)
+        with patch.object(loguru_logger, "remove", _detach):
+            setup_logging(level="DEBUG", stdio_mode=True)
         yield
     finally:
-        loguru_logger.remove()  # drop the sink setup_logging installed
-        for handler in saved_sinks.values():
-            handler._stopped = False  # `remove()` set it; `emit()` returns early on it
+        # Only the sink setup_logging added is truly removed (and stopped).
+        for handler_id in [i for i in core.handlers if i not in saved_sinks]:
+            loguru_logger.remove(handler_id)
         core.handlers.update(saved_sinks)
         core.min_level = saved_min_level
         root.handlers[:] = saved_handlers
@@ -621,6 +633,57 @@ class TestStdioDebugLoggingHelper:
                 loguru_logger.remove(sink_id)
 
         assert any("after the helper exits" in message for message in received)
+
+    def test_restores_a_preexisting_file_sink(self, tmp_path: Path) -> None:
+        """A file sink must keep writing, and keep what it had already written."""
+        pytest.importorskip("arcade_mcp_server", reason="stdio logging stack")
+        from loguru import logger as loguru_logger
+
+        log_file = tmp_path / "preexisting.log"
+        sink_id = loguru_logger.add(str(log_file), level="DEBUG", format="{message}")
+        try:
+            loguru_logger.debug("before the helper")
+            with _real_stdio_debug_logging():
+                pass
+            loguru_logger.debug("after the helper exits")
+        finally:
+            with suppress(ValueError):
+                loguru_logger.remove(sink_id)
+
+        contents = log_file.read_text()
+        assert "after the helper exits" in contents  # sink still live
+        assert "before the helper" in contents  # and its history intact
+
+    def test_preexisting_file_sink_is_not_compressed_or_rotated(self, tmp_path: Path) -> None:
+        """`FileSink.stop()` runs compression/retention — the helper must not trigger it.
+
+        This is the case that rules out reviving stopped handler objects. With
+        `compression="gz"` configured, letting `logger.remove()` stop the sink
+        gzips the live log out from under the caller; the file sink then reopens
+        an empty file on the next write and the earlier records are gone from it.
+        """
+        pytest.importorskip("arcade_mcp_server", reason="stdio logging stack")
+        from loguru import logger as loguru_logger
+
+        log_file = tmp_path / "compressed.log"
+        sink_id = loguru_logger.add(
+            str(log_file), level="DEBUG", format="{message}", compression="gz"
+        )
+        try:
+            loguru_logger.debug("before the helper")
+            with _real_stdio_debug_logging():
+                pass
+            loguru_logger.debug("after the helper exits")
+
+            # Asserted before cleanup on purpose: removing the sink ourselves
+            # compresses it, which is correct loguru behaviour and would mask this.
+            assert not list(tmp_path.glob("*.gz")), "the helper compressed a live log sink"
+            contents = log_file.read_text()
+            assert "before the helper" in contents
+            assert "after the helper exits" in contents
+        finally:
+            with suppress(ValueError):
+                loguru_logger.remove(sink_id)
 
     def test_restores_stdlib_root_handlers(self) -> None:
         """`setup_logging` calls basicConfig(force=True), which wipes pytest's handlers."""
