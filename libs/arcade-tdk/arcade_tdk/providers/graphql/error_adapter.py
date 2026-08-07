@@ -1,5 +1,6 @@
 import importlib
 import logging
+from collections.abc import Iterable
 from functools import lru_cache
 from http import HTTPStatus
 from typing import Any
@@ -149,13 +150,21 @@ class GraphQLErrorAdapter(BaseHTTPErrorMapper):
 
     def _handle_query_error(self, exc: Any) -> UpstreamError:
         """Handle TransportQueryError (GraphQL errors in response body)."""
-        errors_list = exc.errors or []
         # A non-conforming server can put anything in `errors`. Normalize rather
         # than trust the shape: an exception raised here escapes into tool.py's
         # broad except, which disables the adapter and drops the real message —
         # the TOO-1338 failure all over again.
-        if not isinstance(errors_list, list):
+        #
+        # Any iterable is a collection of errors, so a tuple maps like a list.
+        # str/bytes/dict are iterable but ARE single errors, and must not be
+        # walked element-wise. Materialize the rest: the payload is traversed
+        # twice below (messages, then codes), and a one-shot iterable would come
+        # up empty on the second pass, silently dropping every error code.
+        errors_list = exc.errors or []
+        if isinstance(errors_list, (str, bytes, dict)) or not isinstance(errors_list, Iterable):
             errors_list = [errors_list]
+        else:
+            errors_list = list(errors_list)
         logger.debug("GraphQL query errors: %s", errors_list)
 
         messages = [

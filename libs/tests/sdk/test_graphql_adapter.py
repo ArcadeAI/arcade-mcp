@@ -54,12 +54,13 @@ class DummyResponse:
         self.headers = headers or {}
 
 
-class DummyTransportServerError(Exception):
+class DummyTransportServerError(DummyTransportError):
+    """Mirrors real gql, where `TransportServerError` subclasses `TransportError`."""
+
     def __init__(
         self, message: str, code: int | None = None, headers: dict[str, str] | None = None
     ):
-        super().__init__(message)
-        self.code = code
+        super().__init__(message, code)
         if headers is not None:
             self.response = DummyResponse(headers)
 
@@ -153,6 +154,31 @@ def _patch_loader() -> Any:
             DummyTransportProtocolError,
         ),
     )
+
+
+@contextmanager
+def _real_stdio_debug_logging() -> Iterator[None]:
+    """Install the real `arcade mcp stdio --debug` logging stack, then fully undo it.
+
+    `setup_logging` calls `logging.basicConfig(..., force=True)`, which wipes the
+    root handlers — including pytest's — so every piece of global state it
+    touches is snapshotted and restored here. Without that, this test would
+    silently break logging for the rest of the session.
+    """
+    pytest.importorskip("arcade_mcp_server", reason="stdio logging stack lives in arcade-mcp-server")
+    from arcade_mcp_server.logging_utils import setup_logging
+    from loguru import logger as loguru_logger
+
+    root = logging.getLogger()
+    saved_handlers = root.handlers[:]
+    saved_level = root.level
+    try:
+        setup_logging(level="DEBUG", stdio_mode=True)
+        yield
+    finally:
+        loguru_logger.remove()
+        root.handlers[:] = saved_handlers
+        root.setLevel(saved_level)
 
 
 def _map_query_errors(errors: Any) -> UpstreamError:
@@ -456,6 +482,28 @@ class TestGqlVersionTolerance:
         assert result.message == "Upstream GraphQL error: Entity not found"
         assert "status code 500" not in result.message
 
+    @pytest.mark.parametrize("profile", GQL_VERSION_PROFILES)
+    def test_server_error_keeps_its_status_and_stays_off_the_network_branch(
+        self, profile: str
+    ) -> None:
+        """A server error carries a real HTTP status; the network branch would discard it.
+
+        Completes the hierarchy fix for the server class. Note the server branch
+        and the `TransportError` catch-all both delegate to
+        `_handle_transport_error`, so their relative order is not observable —
+        what IS observable, and what this pins, is that a server error never
+        reaches the network branch, which returns `NetworkTransportError` with no
+        status at all.
+        """
+        with _fake_gql_installed(profile) as module:
+            exc = module.TransportServerError("Service Unavailable", code=503)
+            assert isinstance(exc, module.TransportError)
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert result.status_code == 503
+        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
+
 
 class TestUnresolvedClassDiagnostic:
     """A silently incomplete class inventory is how TOO-1338 stayed invisible."""
@@ -482,10 +530,45 @@ class TestUnresolvedClassDiagnostic:
 
         assert not [r for r in caplog.records if "does not define" in r.getMessage()]
 
-    def test_diagnostic_never_reaches_stdout_or_stderr(
+    def test_diagnostic_leaves_the_stdio_jsonrpc_channel_clean(
         self, capsys: pytest.CaptureFixture[str]
     ) -> None:
-        """MCP stdio transport requires a JSON-only channel — logger, never print."""
+        """stdout carries JSON-RPC in stdio mode and must stay byte-clean.
+
+        Drives the REAL supported configuration rather than the default test
+        harness: `setup_logging(level="DEBUG", stdio_mode=True)` is what
+        `arcade mcp stdio --debug` installs, and it is the only configuration
+        under which this diagnostic is emitted at all.
+        """
+        with _real_stdio_debug_logging():
+            with _fake_gql_installed(GQL_35X):
+                gql_adapter._load_gql_transport_errors()
+
+        assert capsys.readouterr().out == ""
+
+    def test_diagnostic_goes_to_stderr_the_sanctioned_stdio_sink(
+        self, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """Pins WHICH stream the diagnostic uses, so a reroute to stdout fails here.
+
+        `setup_logging` deliberately sinks to stderr in stdio mode — "stdout is
+        reserved for JSON-RPC" (`logging_utils.py:104-105`). Asserting stderr is
+        non-empty is not asserting pollution: it pins that the sanctioned channel
+        is the one being used, and turns any future switch of that sink into a
+        test failure instead of a corrupted protocol stream.
+        """
+        with _real_stdio_debug_logging():
+            with _fake_gql_installed(GQL_35X):
+                gql_adapter._load_gql_transport_errors()
+
+        captured = capsys.readouterr()
+        assert "TransportConnectionFailed" in captured.err
+        assert captured.out == ""
+
+    def test_module_never_writes_directly_to_either_stream(
+        self, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """With no logging configured at all, the loader must be silent — no bare print."""
         with _fake_gql_installed(GQL_35X):
             gql_adapter._load_gql_transport_errors()
 
@@ -498,30 +581,41 @@ class TestQueryErrorStatusSelection:
     """422 is the no-recognized-code fallback, not a floor that masks specific 4xx codes."""
 
     @pytest.mark.parametrize(
-        ("code", "expected_status"),
+        ("code", "expected_status", "expected_kind"),
         [
-            ("UNAUTHENTICATED", 401),
-            ("NOT_AUTHENTICATED", 401),
-            ("FORBIDDEN", 403),
-            ("ACCESS_DENIED", 403),
-            ("NOT_FOUND", 404),
-            ("BAD_USER_INPUT", 400),
-            ("GRAPHQL_VALIDATION_FAILED", 400),
-            ("GRAPHQL_PARSE_FAILED", 400),
-            ("INTERNAL_SERVER_ERROR", 500),
+            ("UNAUTHENTICATED", 401, ErrorKind.UPSTREAM_RUNTIME_AUTH_ERROR),
+            ("NOT_AUTHENTICATED", 401, ErrorKind.UPSTREAM_RUNTIME_AUTH_ERROR),
+            ("FORBIDDEN", 403, ErrorKind.UPSTREAM_RUNTIME_AUTH_ERROR),
+            ("ACCESS_DENIED", 403, ErrorKind.UPSTREAM_RUNTIME_AUTH_ERROR),
+            ("NOT_FOUND", 404, ErrorKind.UPSTREAM_RUNTIME_NOT_FOUND),
+            ("BAD_USER_INPUT", 400, ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST),
+            ("GRAPHQL_VALIDATION_FAILED", 400, ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST),
+            ("GRAPHQL_PARSE_FAILED", 400, ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST),
+            ("INTERNAL_SERVER_ERROR", 500, ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR),
         ],
     )
-    def test_lone_code_reports_its_own_status(self, code: str, expected_status: int) -> None:
-        """A single recognized code is reported as itself, including codes below 422."""
+    def test_lone_code_reports_its_own_status_and_kind(
+        self, code: str, expected_status: int, expected_kind: ErrorKind
+    ) -> None:
+        """A single recognized code is reported as itself, including codes below 422.
+
+        `kind` is pinned alongside `status_code` because it is wire-visible: it is
+        serialized in `to_payload()` and prefixed onto the agent-facing message.
+        Lifting the 422 floor deliberately upgrades it — an auth failure now reads
+        AUTH_ERROR instead of the generic BAD_REQUEST the floor produced. That is
+        the point of the change, so it gets asserted rather than left implicit.
+        """
         result = _map_query_errors([{"message": "boom", "extensions": {"code": code}}])
 
         assert result.status_code == expected_status
+        assert result.kind == expected_kind
 
     def test_unknown_code_falls_back_to_422(self) -> None:
         """No recognized code → the unprocessable-entity fallback, code still reported."""
         result = _map_query_errors([{"message": "boom", "extensions": {"code": "WEIRD"}}])
 
         assert result.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST
         assert result.extra["gql_error_codes"] == ["WEIRD"]
 
     def test_unmapped_code_does_not_drown_a_mapped_one(self) -> None:
@@ -563,6 +657,7 @@ class TestQueryErrorStatusSelection:
         ])
 
         assert result.status_code == HTTPStatus.NOT_FOUND
+        assert result.kind == ErrorKind.UPSTREAM_RUNTIME_NOT_FOUND
         assert "Not authenticated" in result.message
         assert "Entity not found" in result.message
         assert result.extra["gql_error_codes"] == ["NOT_FOUND", "UNAUTHENTICATED"]
@@ -602,3 +697,40 @@ class TestMalformedErrorsPayload:
 
         assert result.message == "Upstream GraphQL error: Entity not found"
         assert result.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+    def test_tuple_of_error_dicts_is_not_collapsed(self) -> None:
+        """A non-list *sequence* of well-formed errors must map like a list.
+
+        Normalizing on `list` exactly regressed this: the tuple was wrapped and
+        stringified, losing the code and the real message.
+        """
+        result = _map_query_errors((
+            {"message": "Entity not found", "extensions": {"code": "NOT_FOUND"}},
+        ))
+
+        assert result.message == "Upstream GraphQL error: Entity not found"
+        assert result.status_code == HTTPStatus.NOT_FOUND
+        assert result.extra["gql_error_codes"] == ["NOT_FOUND"]
+
+    def test_single_error_dict_is_treated_as_one_error(self) -> None:
+        """A bare dict is one error, not an iterable of its keys."""
+        result = _map_query_errors({
+            "message": "Entity not found",
+            "extensions": {"code": "NOT_FOUND"},
+        })
+
+        assert result.message == "Upstream GraphQL error: Entity not found"
+        assert result.status_code == HTTPStatus.NOT_FOUND
+
+    def test_one_shot_iterable_is_not_exhausted_by_the_first_pass(self) -> None:
+        """`errors_list` is walked twice — messages, then codes.
+
+        A generator must be materialized first, or the second pass sees nothing
+        and every error code is silently dropped.
+        """
+        errors = iter([{"message": "Entity not found", "extensions": {"code": "NOT_FOUND"}}])
+        result = _map_query_errors(errors)
+
+        assert result.message == "Upstream GraphQL error: Entity not found"
+        assert result.extra["gql_error_codes"] == ["NOT_FOUND"]
+        assert result.status_code == HTTPStatus.NOT_FOUND
