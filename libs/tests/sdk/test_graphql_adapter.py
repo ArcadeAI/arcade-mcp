@@ -479,11 +479,16 @@ class TestQueryErrorStatusSelection:
     def test_two_mapped_4xx_codes_resolve_numerically(self) -> None:
         """Two mapped 4xx codes break the tie numerically — the higher status is reported.
 
-        Characterization test: highest-wins applies within 4xx too, so an
-        auth + not-found response is labelled 404. No signal is discarded — both
-        messages and both codes still reach the caller — but the scalar
-        `status_code`/`kind` picks one. Whether auth should out-rank other 4xx
-        is an open taxonomy question (ledger cc-opus-002), not settled here.
+        Highest-wins applies within 4xx too, so an auth + not-found response is
+        labelled 404. This is the decided contract, not an accident: one ordering
+        rule for every pair, no special case for auth codes. Auth deliberately
+        does NOT out-rank other 4xx — that would force the question of whether it
+        out-ranks 5xx as well, which would flip `can_retry` for a FORBIDDEN +
+        INTERNAL_SERVER_ERROR response.
+
+        The scalar `status_code`/`kind` picks one code, but no signal is
+        discarded: both messages and both codes still reach the caller, which is
+        what keeps the single-label choice cheap.
         """
         result = _map_query_errors([
             {"message": "Not authenticated", "extensions": {"code": "UNAUTHENTICATED"}},

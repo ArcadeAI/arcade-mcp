@@ -152,6 +152,12 @@ class GraphQLErrorAdapter(BaseHTTPErrorMapper):
         # Highest recognized code wins (5xx over 4xx); 422 is only the fallback
         # for a response whose codes we don't recognize — using it as a floor
         # masked the more specific 401/403/404/400 codes.
+        #
+        # One numeric rule for every pair, including within 4xx: an auth code
+        # alongside another 4xx does not out-rank it (401 + 404 reports 404).
+        # Special-casing auth would raise whether it also beats 5xx, which would
+        # change retryability. The single scalar loses nothing that matters —
+        # every message and code is still carried in message/extra below.
         status = max(mapped_statuses) if mapped_statuses else HTTPStatus.UNPROCESSABLE_ENTITY.value
 
         unique_codes = sorted(set(codes))
