@@ -22,6 +22,15 @@ def test_require_mcp_raises_helpful_error_when_missing() -> None:
         assert "pip install" in str(exc.value)
 
 
+def test_require_mcp_returns_streamable_http_client() -> None:
+    """Happy path: resolve MCP 2.0's streamable_http_client export."""
+    pytest.importorskip("mcp")
+    import mcp.client.streamable_http as mcp_client_http
+
+    _, _, _, _, streamablehttp_client = loaders._require_mcp()
+    assert streamablehttp_client is mcp_client_http.streamable_http_client
+
+
 def test_ensure_mcp_path_appends() -> None:
     assert loaders._ensure_mcp_path("http://localhost:8000") == "http://localhost:8000/mcp"
     assert loaders._ensure_mcp_path("http://localhost:8000/") == "http://localhost:8000/mcp"
