@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 from arcade_cli import org, project
 from arcade_core.config_model import Config, ContextConfig
+from arcade_core.constants import PROD_COORDINATOR_HOST
 from typer.testing import CliRunner
 
 runner = CliRunner()
@@ -49,3 +50,15 @@ def test_explicit_host_overrides_saved_coordinator_url(_load_config, fetch_organ
 
     assert result.exit_code == 0
     fetch_organizations.assert_called_once_with("https://override.example.com")
+
+
+@patch("arcade_cli.org.fetch_organizations", return_value=[])
+@patch(
+    "arcade_core.config_model.Config.load_from_file",
+    side_effect=FileNotFoundError,
+)
+def test_missing_config_uses_production_coordinator_url(_load_config, fetch_organizations):
+    result = runner.invoke(org.app, ["list"])
+
+    assert result.exit_code == 0
+    fetch_organizations.assert_called_once_with(f"https://{PROD_COORDINATOR_HOST}")

@@ -586,9 +586,12 @@ def resolve_coordinator_url(
     if host is None and port is None and not force_tls and not force_no_tls:
         from arcade_core.config_model import Config
 
-        saved_url = Config.load_from_file().coordinator_url
-        if saved_url:
-            return saved_url
+        try:
+            saved_url = Config.load_from_file().coordinator_url
+            if saved_url:
+                return saved_url
+        except FileNotFoundError:
+            pass
 
     from arcade_core.constants import PROD_COORDINATOR_HOST
 
