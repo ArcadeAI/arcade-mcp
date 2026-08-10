@@ -56,10 +56,7 @@ def _load_gql_transport_errors() -> (
 
     gql's exception inventory varies by version (e.g. ``TransportConnectionFailed``
     is absent on the 3.5.x line). Resolve each class defensively so a missing one
-    falls back to a never-matching sentinel instead of raising ``AttributeError``,
-    which used to disable the whole adapter and drop the real error message. Log
-    any unresolved class — never ``print``; stray stdout corrupts the MCP stdio
-    protocol.
+    falls back to a never-matching sentinel.
     """
     try:
         module = importlib.import_module("gql.transport.exceptions")
