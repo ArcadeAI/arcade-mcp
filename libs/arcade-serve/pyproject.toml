@@ -24,12 +24,12 @@ dependencies = [
     "uvicorn>=0.30.0",
     "watchfiles>=1.0.5",
     "sse-starlette>=2.0.0",
-    "opentelemetry-instrumentation-fastapi==0.49b2",
-    "opentelemetry-exporter-otlp-proto-http==1.28.2",
-    "opentelemetry-exporter-otlp-proto-common==1.28.2",
-    "opentelemetry-instrumentation-httpx==0.49b2",
-    "opentelemetry-instrumentation-aiohttp-client==0.49b2",
-    "opentelemetry-instrumentation-requests==0.49b2",
+    "opentelemetry-instrumentation-fastapi>=0.59b0",
+    "opentelemetry-exporter-otlp-proto-http>=1.38.0",
+    "opentelemetry-exporter-otlp-proto-common>=1.38.0",
+    "opentelemetry-instrumentation-httpx>=0.59b0",
+    "opentelemetry-instrumentation-aiohttp-client>=0.59b0",
+    "opentelemetry-instrumentation-requests>=0.59b0",
     "aiohttp>=3.0.0,<4.0.0",
 ]
 
