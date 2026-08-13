@@ -1,5 +1,6 @@
 import importlib
 import logging
+from collections.abc import Iterable
 from functools import lru_cache
 from http import HTTPStatus
 from typing import Any
@@ -29,24 +30,59 @@ _GQL_CODE_TO_STATUS = {
 }
 
 
+# Resolved from `gql.transport.exceptions`, in the order `from_exception` unpacks them.
+_GQL_ERROR_NAMES = (
+    "TransportError",
+    "TransportQueryError",
+    "TransportServerError",
+    "TransportConnectionFailed",
+    "TransportProtocolError",
+)
+
+
+class _MissingGqlError(Exception):
+    """Placeholder for a transport exception the installed gql does not define.
+
+    Never raised, so the ``isinstance()`` checks that receive it stay valid but
+    can never match.
+    """
+
+
 @lru_cache(maxsize=1)
 def _load_gql_transport_errors() -> (
     tuple[type[Any], type[Any], type[Any], type[Any], type[Any]] | None
 ):
-    """Import gql transport exceptions lazily and cache the result."""
+    """Import gql transport exceptions lazily and cache the result.
+
+    gql's exception inventory varies by version (e.g. ``TransportConnectionFailed``
+    is absent on the 3.5.x line). Resolve each class defensively so a missing one
+    falls back to a never-matching sentinel.
+    """
     try:
         module = importlib.import_module("gql.transport.exceptions")
     except ImportError:
         logger.debug("gql not installed; GraphQL adapter disabled")
         return None
-    else:
-        return (
-            module.TransportError,
-            module.TransportQueryError,
-            module.TransportServerError,
-            module.TransportConnectionFailed,
-            module.TransportProtocolError,
+
+    resolved = {name: getattr(module, name, _MissingGqlError) for name in _GQL_ERROR_NAMES}
+
+    unresolved = [name for name, cls in resolved.items() if cls is _MissingGqlError]
+    if unresolved:
+        logger.debug(
+            "Installed gql does not define %s; the GraphQL error branches matching "
+            "%s are disabled. Expected for TransportConnectionFailed on gql < 4.0; "
+            "anything else suggests the adapter's class inventory is out of date.",
+            ", ".join(unresolved),
+            "them" if len(unresolved) > 1 else "it",
         )
+
+    return (
+        resolved["TransportError"],
+        resolved["TransportQueryError"],
+        resolved["TransportServerError"],
+        resolved["TransportConnectionFailed"],
+        resolved["TransportProtocolError"],
+    )
 
 
 def _extract_error_message(message: Any) -> str:
@@ -105,15 +141,26 @@ class GraphQLErrorAdapter(BaseHTTPErrorMapper):
 
     def _handle_query_error(self, exc: Any) -> UpstreamError:
         """Handle TransportQueryError (GraphQL errors in response body)."""
+        # Normalize `errors` before trusting its shape: an exception raised here
+        # escapes to tool.py and drops the real message. str/bytes/dict are single
+        # errors; any other iterable is a collection. list() because the payload is
+        # traversed twice below — a one-shot iterable would empty out.
         errors_list = exc.errors or []
+        if isinstance(errors_list, (str, bytes, dict)) or not isinstance(errors_list, Iterable):
+            errors_list = [errors_list]
+        else:
+            errors_list = list(errors_list)
         logger.debug("GraphQL query errors: %s", errors_list)
 
-        messages = [_extract_error_message(e.get("message")) for e in errors_list]
+        messages = [
+            _extract_error_message(e.get("message") if isinstance(e, dict) else e)
+            for e in errors_list
+        ]
         joined = "; ".join(messages) if messages else "Unknown GraphQL error"
 
         # Extract error codes and map to HTTP status
         codes: list[str] = []
-        status = HTTPStatus.UNPROCESSABLE_ENTITY.value
+        mapped_statuses: list[int] = []
 
         for e in errors_list:
             ext = e.get("extensions") if isinstance(e, dict) else None
@@ -121,8 +168,13 @@ class GraphQLErrorAdapter(BaseHTTPErrorMapper):
             if isinstance(code, str):
                 codes.append(code)
                 mapped = _GQL_CODE_TO_STATUS.get(code)
-                if mapped and mapped > status:
-                    status = mapped
+                if mapped:
+                    mapped_statuses.append(mapped)
+
+        # Highest recognized code wins; 422 only when no code is recognized (using
+        # it as a floor masked 401/403/404/400). One numeric rule for all pairs —
+        # auth doesn't out-rank other 4xx; every code is still kept in `extra`.
+        status = max(mapped_statuses) if mapped_statuses else HTTPStatus.UNPROCESSABLE_ENTITY.value
 
         unique_codes = sorted(set(codes))
 

@@ -38,7 +38,9 @@ all = [
     # LLM providers (needed for evals)
     "openai==1.82.1",
     "anthropic>=0.40.0",
-    "mcp>=1.9.0",
+    # Pinned to <2.0 until arcade-evals loaders are migrated to the mcp 2.0
+    # streamable-http client API (renamed export + httpx-client-based headers).
+    "mcp>=1.9.0,<2.0.0",
     # Scientific computing (needed for evals)
     "scipy>=1.14.0",
     "numpy>=2.0.0",
@@ -50,7 +52,9 @@ evals = [
     # LLM providers
     "openai==1.82.1",
     "anthropic>=0.40.0",
-    "mcp>=1.9.0",
+    # Pinned to <2.0 until arcade-evals loaders are migrated to the mcp 2.0
+    # streamable-http client API (renamed export + httpx-client-based headers).
+    "mcp>=1.9.0,<2.0.0",
     # Scientific computing
     "scipy>=1.14.0",
     "numpy>=2.0.0",
