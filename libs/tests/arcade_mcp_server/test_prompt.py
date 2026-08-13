@@ -1,8 +1,10 @@
 """Tests for Prompt Manager implementation."""
 
 import asyncio
+from unittest.mock import Mock
 
 import pytest
+from arcade_mcp_server.context import set_current_model_context
 from arcade_mcp_server.exceptions import NotFoundError, PromptError
 from arcade_mcp_server.managers.prompt import PromptManager
 from arcade_mcp_server.types import (
@@ -239,3 +241,140 @@ class TestPromptManager:
 
         with pytest.raises(PromptError):
             await manager.get_prompt("error_prompt", {})
+
+
+class TestPromptHandlerContext:
+    """Test context-aware prompt handlers (SDK parity with TypeScript)."""
+
+    @pytest.fixture
+    def prompt_manager(self):
+        return PromptManager()
+
+    @pytest.fixture
+    def sample_prompt(self):
+        return Prompt(
+            name="greeting",
+            description="A greeting prompt",
+            arguments=[PromptArgument(name="name", required=True)],
+        )
+
+    @pytest.mark.asyncio
+    async def test_context_style_handler_receives_explicit_context(
+        self, prompt_manager, sample_prompt
+    ):
+        """A (context, args) handler receives the context passed to get_prompt."""
+        received = {}
+
+        async def greeting(context, args: dict[str, str]) -> list[PromptMessage]:
+            received["context"] = context
+            return [
+                PromptMessage(
+                    role="user", content={"type": "text", "text": f"Hello {args['name']}"}
+                )
+            ]
+
+        await prompt_manager.add_prompt(sample_prompt, greeting)
+
+        fake_context = Mock()
+        result = await prompt_manager.get_prompt("greeting", {"name": "Ada"}, context=fake_context)
+
+        assert received["context"] is fake_context
+        assert result.messages[0].content["text"] == "Hello Ada"
+
+    @pytest.mark.asyncio
+    async def test_context_style_handler_falls_back_to_current_model_context(
+        self, prompt_manager, sample_prompt
+    ):
+        """Without an explicit context, the active request context is used."""
+        received = {}
+
+        async def greeting(context, args: dict[str, str]) -> list[PromptMessage]:
+            received["context"] = context
+            return [PromptMessage(role="user", content={"type": "text", "text": "hi"})]
+
+        await prompt_manager.add_prompt(sample_prompt, greeting)
+
+        fake_context = Mock()
+        token = set_current_model_context(fake_context)
+        try:
+            await prompt_manager.get_prompt("greeting", {"name": "Ada"})
+        finally:
+            set_current_model_context(None, token)
+
+        assert received["context"] is fake_context
+
+    @pytest.mark.asyncio
+    async def test_context_style_handler_receives_none_without_context(
+        self, prompt_manager, sample_prompt
+    ):
+        """With no context anywhere, a (context, args) handler receives None."""
+        received = {"context": "sentinel"}
+
+        async def greeting(context, args: dict[str, str]) -> list[PromptMessage]:
+            received["context"] = context
+            return [PromptMessage(role="user", content={"type": "text", "text": "hi"})]
+
+        await prompt_manager.add_prompt(sample_prompt, greeting)
+        await prompt_manager.get_prompt("greeting", {"name": "Ada"})
+
+        assert received["context"] is None
+
+    @pytest.mark.asyncio
+    async def test_legacy_handler_does_not_receive_context(self, prompt_manager, sample_prompt):
+        """A single-parameter (args) handler keeps working when a context is active."""
+
+        async def greeting(args: dict[str, str]) -> list[PromptMessage]:
+            return [
+                PromptMessage(
+                    role="user", content={"type": "text", "text": f"Hello {args['name']}"}
+                )
+            ]
+
+        await prompt_manager.add_prompt(sample_prompt, greeting)
+
+        token = set_current_model_context(Mock())
+        try:
+            result = await prompt_manager.get_prompt("greeting", {"name": "Ada"}, context=Mock())
+        finally:
+            set_current_model_context(None, token)
+
+        assert result.messages[0].content["text"] == "Hello Ada"
+
+    @pytest.mark.asyncio
+    async def test_sync_context_style_handler(self, prompt_manager, sample_prompt):
+        """Sync (context, args) handlers are supported."""
+        received = {}
+
+        def greeting(context, args: dict[str, str]) -> list[PromptMessage]:
+            received["context"] = context
+            return [PromptMessage(role="user", content={"type": "text", "text": "hi"})]
+
+        await prompt_manager.add_prompt(sample_prompt, greeting)
+
+        fake_context = Mock()
+        await prompt_manager.get_prompt("greeting", {"name": "Ada"}, context=fake_context)
+
+        assert received["context"] is fake_context
+
+    @pytest.mark.asyncio
+    async def test_var_positional_handler_treated_as_legacy(self, prompt_manager, sample_prompt):
+        """Handlers taking *args are treated as legacy (args-only) for safety."""
+        received = {}
+
+        async def greeting(*args) -> list[PromptMessage]:
+            received["args"] = args
+            return [PromptMessage(role="user", content={"type": "text", "text": "hi"})]
+
+        await prompt_manager.add_prompt(sample_prompt, greeting)
+        await prompt_manager.get_prompt("greeting", {"name": "Ada"}, context=Mock())
+
+        assert received["args"] == ({"name": "Ada"},)
+
+    @pytest.mark.asyncio
+    async def test_default_handler_still_works_with_context(self, prompt_manager, sample_prompt):
+        """The built-in default handler is unaffected by context passing."""
+        await prompt_manager.add_prompt(sample_prompt)
+
+        result = await prompt_manager.get_prompt("greeting", {"name": "Ada"}, context=Mock())
+
+        assert result.messages[0].content["text"] == "A greeting prompt"

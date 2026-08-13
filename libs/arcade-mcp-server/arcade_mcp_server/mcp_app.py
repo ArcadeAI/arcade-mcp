@@ -36,6 +36,7 @@ from arcade_mcp_server._validation import normalize_version
 from arcade_mcp_server.decorators import tool as tool_decorator
 from arcade_mcp_server.exceptions import ServerError
 from arcade_mcp_server.logging_utils import intercept_standard_logging
+from arcade_mcp_server.managers.prompt import PromptHandlerFunc
 from arcade_mcp_server.managers.resource import (
     _is_template_uri,
     make_file_handler,
@@ -47,7 +48,6 @@ from arcade_mcp_server.settings import MCPSettings, ServerSettings, find_env_fil
 from arcade_mcp_server.types import (
     Annotations,
     Prompt,
-    PromptMessage,
     Resource,
     ResourceTemplate,
     ToolExecution,
@@ -773,9 +773,7 @@ class _PromptsAPI:
     def __init__(self, app: MCPApp) -> None:
         self._app = app
 
-    async def add(
-        self, prompt: Prompt, handler: Callable[[dict[str, str]], list[PromptMessage]] | None = None
-    ) -> None:
+    async def add(self, prompt: Prompt, handler: PromptHandlerFunc | None = None) -> None:
         if self._app.server is None:
             raise ServerError("No server bound to app. Set app.server to use runtime prompts API.")
         await self._app.server.prompts.add_prompt(prompt, handler)
