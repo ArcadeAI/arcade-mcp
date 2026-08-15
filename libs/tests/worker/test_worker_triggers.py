@@ -2,6 +2,7 @@
 
 import pytest
 from arcade_core.schema import ToolCallRequest, ToolCallResponse
+from arcade_core.toolkit import Toolkit
 from arcade_core.triggers import TriggerType
 from arcade_serve.core.common import (
     CatalogResponse,
@@ -102,6 +103,26 @@ def test_no_declarations_yields_an_empty_envelope():
 
     assert response.status_code == 200
     assert response.json() == {"trigger_types": []}
+
+
+def test_registering_a_toolkit_exposes_its_trigger_types():
+    app = FastAPI()
+    worker = FastAPIWorker(app=app, disable_auth=True)
+    toolkit = Toolkit(
+        name="gmail",
+        package_name="arcade_gmail",
+        version="1.0.0",
+        description="Gmail toolkit",
+        trigger_types=[poll_type()],
+    )
+
+    worker.register_toolkit(toolkit)
+
+    response = TestClient(app).get("/worker/triggers")
+    assert response.status_code == 200
+    assert [item["slug"] for item in response.json()["trigger_types"]] == [
+        "gmail.message.received"
+    ]
 
 
 def test_declared_trigger_types_are_served_with_complete_fields(client_no_auth):

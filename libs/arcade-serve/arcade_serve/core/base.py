@@ -102,9 +102,12 @@ class BaseWorker(Worker):
 
     def register_toolkit(self, toolkit: Toolkit) -> None:
         """
-        Register a toolkit to the catalog.
+        Register a toolkit's tools and trigger types.
         """
+        combined_trigger_types = [*self.trigger_types, *toolkit.trigger_types]
+        validate_trigger_types(combined_trigger_types)
         self.catalog.add_toolkit(toolkit)
+        self.trigger_types = combined_trigger_types
 
     def register_trigger_types(self, trigger_types: list[TriggerType]) -> None:
         """

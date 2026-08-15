@@ -7,12 +7,14 @@ import sys
 import types
 from collections import defaultdict
 from pathlib import Path, PurePosixPath, PureWindowsPath
+from typing import Any
 
 import toml
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from arcade_core.errors import ToolkitLoadError
 from arcade_core.parse import get_tools_from_file
+from arcade_core.triggers import TriggerType, validate_trigger_types
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +30,9 @@ class Toolkit(BaseModel):
 
     tools: dict[str, list[str]] = defaultdict(list)
     """Mapping of module names to tools"""
+
+    trigger_types: list[TriggerType] = Field(default_factory=list)
+    """Trigger types declared by the toolkit."""
 
     # Other python package metadata
     version: str
@@ -124,6 +129,7 @@ class Toolkit(BaseModel):
         )
 
         toolkit.tools = cls.tools_from_directory(package_dir, package_name)
+        toolkit.trigger_types = cls.trigger_types_from_directory(package_dir)
 
         return toolkit
 
@@ -166,8 +172,26 @@ class Toolkit(BaseModel):
         )
 
         toolkit.tools = cls.tools_from_directory(package_dir, package_name)
+        toolkit.trigger_types = cls.trigger_types_from_directory(package_dir)
 
         return toolkit
+
+    @staticmethod
+    def trigger_types_from_directory(package_dir: Path) -> list[TriggerType]:
+        """Load ``<toolkit>.trigger_types.trigger_types`` when it is declared."""
+        if not (package_dir / "trigger_types.py").is_file():
+            return []
+
+        module_name = f"{package_dir.name}.trigger_types"
+        try:
+            module = importlib.import_module(module_name)
+            raw_declarations: Any = module.trigger_types
+            declarations = [TriggerType.model_validate(item) for item in raw_declarations]
+            validate_trigger_types(declarations)
+        except Exception as e:
+            raise ToolkitLoadError(f"Failed to load trigger types from '{module_name}': {e}") from e
+        else:
+            return declarations
 
     @classmethod
     def from_entrypoint(cls, entry: importlib.metadata.EntryPoint) -> "Toolkit":
