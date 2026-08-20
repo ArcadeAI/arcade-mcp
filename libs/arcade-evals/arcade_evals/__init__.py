@@ -1,3 +1,4 @@
+from ._evalsuite._backend import AnthropicBackend, InferenceBackend, OpenAICompatBackend
 from ._evalsuite._providers import ProviderName
 from ._evalsuite._tool_registry import MCPToolDefinition
 from .capture import CapturedCase, CapturedRun, CapturedToolCall, CaptureResult
@@ -21,6 +22,7 @@ from .loaders import (
 from .weights import FuzzyWeight, Weight, validate_and_normalize_critic_weights
 
 __all__ = [
+    "AnthropicBackend",
     "AnyExpectedToolCall",
     "BinaryCritic",
     "CaptureResult",
@@ -31,12 +33,14 @@ __all__ = [
     "EvalRubric",
     "EvalSuite",
     "ExpectedMCPToolCall",
+    "InferenceBackend",
     "ExpectedToolCall",
     "FuzzyWeight",
     "MCPToolDefinition",
     "NamedExpectedToolCall",
     "NoneCritic",
     "NumericCritic",
+    "OpenAICompatBackend",
     "ProviderName",
     "SimilarityCritic",
     "Weight",
