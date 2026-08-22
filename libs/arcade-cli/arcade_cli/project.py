@@ -1,12 +1,13 @@
+from typing import Optional
+
 import typer
-from arcade_core.constants import PROD_COORDINATOR_HOST
 
 from arcade_cli.authn import fetch_projects
 from arcade_cli.console import console
 from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
-    compute_base_url,
     handle_cli_error,
+    resolve_coordinator_url,
 )
 
 app = TrackedTyper(
@@ -18,26 +19,19 @@ app = TrackedTyper(
     pretty_exceptions_short=True,
 )
 
-state = {
-    "coordinator_url": compute_base_url(
-        force_tls=False,
-        force_no_tls=False,
-        host=PROD_COORDINATOR_HOST,
-        port=None,
-        default_port=None,
-    )
-}
+# Populated by the group callback below, which runs before any subcommand.
+state: dict[str, str] = {}
 
 
 @app.callback()
 def main(
-    host: str = typer.Option(
-        PROD_COORDINATOR_HOST,
+    host: Optional[str] = typer.Option(
+        None,
         "--host",
         "-h",
-        help="The Arcade Coordinator host.",
+        help="The Arcade Coordinator host. Defaults to the host you logged in to.",
     ),
-    port: int = typer.Option(
+    port: Optional[int] = typer.Option(
         None,
         "--port",
         "-p",
@@ -55,8 +49,17 @@ def main(
     ),
 ) -> None:
     """Configure Coordinator connection options for project commands."""
-    coordinator_url = compute_base_url(force_tls, force_no_tls, host, port, default_port=None)
-    state["coordinator_url"] = coordinator_url
+    state["coordinator_url"] = resolve_coordinator_url(host, port, force_tls, force_no_tls)
+
+
+def _coordinator_url() -> str:
+    """The Coordinator URL for this command group.
+
+    Normally set by the group callback above. The fallback re-resolves with no
+    explicit options so a direct call still follows the logged-in Coordinator
+    rather than silently defaulting to production.
+    """
+    return state.get("coordinator_url") or resolve_coordinator_url(None, None, False, False)
 
 
 @app.command("list", help="List projects in the active organization")
@@ -74,7 +77,7 @@ def project_list(
             console.print("No active organization set. Run 'arcade login' first.", style="bold red")
             return
 
-        coordinator_url = state["coordinator_url"]
+        coordinator_url = _coordinator_url()
         projects = fetch_projects(coordinator_url, config.context.org_id)
 
         if not projects:
@@ -126,7 +129,7 @@ def project_set(
             console.print("No active organization set. Run 'arcade login' first.", style="bold red")
             return
 
-        coordinator_url = state["coordinator_url"]
+        coordinator_url = _coordinator_url()
 
         # Verify project exists in current org
         projects = fetch_projects(coordinator_url, config.context.org_id)
