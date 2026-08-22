@@ -242,6 +242,7 @@ def create_arcade_mcp(
             otel_meter=otel_handler.get_meter(),
         )
         worker.catalog = catalog
+        worker.register_trigger_types(catalog.trigger_types)
         logger.info("Worker routes enabled at /worker/* (ARCADE_WORKER_SECRET is set)")
 
     class _MCPASGIProxy:

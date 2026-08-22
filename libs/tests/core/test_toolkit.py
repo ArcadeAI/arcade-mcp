@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from arcade_core.errors import ToolkitLoadError
 from arcade_core.toolkit import Toolkit, Validate
+from arcade_core.triggers import TriggerType
 
 
 class TestToolkit:
@@ -37,6 +38,47 @@ class TestToolkit:
         assert Toolkit._strip_arcade_prefix("myarcade_toolkit") == "myarcade_toolkit"
         assert Toolkit._strip_arcade_prefix("") == ""
         assert Toolkit._strip_arcade_prefix("arcade_") == ""
+
+    def test_loads_trigger_types_from_conventional_module(self, tmp_path, monkeypatch):
+        package_dir = tmp_path / "arcade_example"
+        package_dir.mkdir()
+        (package_dir / "trigger_types.py").touch()
+        declaration = TriggerType(
+            slug="example.changed",
+            name="Example changed",
+            description="Fires when an example changes.",
+            kind="poll",
+            config_schema={"type": "object"},
+            payload_schema={"type": "object"},
+            sample_payload={"id": "123"},
+            version="1",
+            poll_handler="Example.Poll",
+            default_interval=60,
+            dedupe="unique",
+        )
+        module = MagicMock(trigger_types=[declaration])
+        import_module = MagicMock(return_value=module)
+        monkeypatch.setattr("arcade_core.toolkit.importlib.import_module", import_module)
+
+        assert Toolkit.trigger_types_from_directory(package_dir) == [declaration]
+        import_module.assert_called_once_with("arcade_example.trigger_types")
+
+    def test_toolkit_without_trigger_module_has_no_trigger_types(self, tmp_path):
+        package_dir = tmp_path / "arcade_example"
+        package_dir.mkdir()
+
+        assert Toolkit.trigger_types_from_directory(package_dir) == []
+
+    def test_trigger_module_uses_resolved_package_name(self, tmp_path, monkeypatch):
+        package_dir = tmp_path / "project_root"
+        package_dir.mkdir()
+        (package_dir / "trigger_types.py").touch()
+        module = MagicMock(trigger_types=[])
+        import_module = MagicMock(return_value=module)
+        monkeypatch.setattr("arcade_core.toolkit.importlib.import_module", import_module)
+
+        assert Toolkit.trigger_types_from_directory(package_dir, "actual_toolkit") == []
+        import_module.assert_called_once_with("actual_toolkit.trigger_types")
 
 
 class TestFromEntrypoint:

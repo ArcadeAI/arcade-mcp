@@ -2,9 +2,35 @@
 
 from arcade_core import ToolCatalog
 from arcade_core.toolkit import Toolkit
+from arcade_core.triggers import TriggerType
 from arcade_mcp_server.settings import MCPSettings
 from arcade_mcp_server.worker import create_arcade_mcp
 from fastapi.testclient import TestClient
+
+
+def test_integrated_worker_serves_catalog_trigger_types(monkeypatch):
+    monkeypatch.setenv("ARCADE_AUTH_DISABLED", "true")
+    monkeypatch.setenv("ARCADE_WORKER_SECRET", "test")
+    declaration = TriggerType(
+        slug="example.changed",
+        name="Example changed",
+        description="Fires when an example changes.",
+        kind="poll",
+        config_schema={"type": "object"},
+        payload_schema={"type": "object"},
+        sample_payload={"id": "123"},
+        version="1",
+        poll_handler="Example.Poll",
+        default_interval=60,
+        dedupe="unique",
+    )
+    catalog = ToolCatalog(trigger_types=[declaration])
+    app = create_arcade_mcp(catalog, mcp_settings=MCPSettings.from_env())
+
+    response = TestClient(app).get("/worker/triggers")
+
+    assert response.status_code == 200
+    assert response.json()["trigger_types"][0]["slug"] == "example.changed"
 
 
 def test_mcp_routes_in_openapi(monkeypatch):

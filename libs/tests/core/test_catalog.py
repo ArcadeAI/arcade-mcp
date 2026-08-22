@@ -11,6 +11,7 @@ from arcade_core.errors import (
 )
 from arcade_core.schema import FullyQualifiedName, ToolContext
 from arcade_core.toolkit import Toolkit
+from arcade_core.triggers import TriggerType
 from arcade_tdk import tool
 from pydantic import Field
 
@@ -186,6 +187,34 @@ def test_add_tool_with_toolkit():
         catalog.get_tool(FullyQualifiedName("SampleTool", "SampleToolkit", None)).tool
         == sample_tool
     )
+
+
+def test_add_toolkit_collects_trigger_types():
+    declaration = TriggerType(
+        slug="sample.changed",
+        name="Sample changed",
+        description="Fires when a sample changes.",
+        kind="poll",
+        config_schema={"type": "object"},
+        payload_schema={"type": "object"},
+        sample_payload={"id": "123"},
+        version="1",
+        poll_handler="Sample.Poll",
+        default_interval=60,
+        dedupe="unique",
+    )
+    toolkit = Toolkit(
+        name="sample_toolkit",
+        description="A sample toolkit",
+        version="1.0.0",
+        package_name="sample_toolkit",
+        trigger_types=[declaration],
+    )
+    catalog = ToolCatalog()
+
+    catalog.add_toolkit(toolkit)
+
+    assert catalog.trigger_types == [declaration]
 
 
 @pytest.mark.parametrize(
