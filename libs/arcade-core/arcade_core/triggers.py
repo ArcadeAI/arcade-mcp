@@ -57,9 +57,9 @@ class TriggerType(BaseModel):
     dedupe: Literal["unique", "greatest", "last"] | None = None
     """Poll-kind: watermark dedupe strategy."""
 
-    @field_validator("config_schema")
+    @field_validator("config_schema", "payload_schema")
     @classmethod
-    def _config_schema_is_valid_json_schema(cls, value: dict[str, Any]) -> dict[str, Any]:
+    def _schema_is_valid_json_schema(cls, value: dict[str, Any]) -> dict[str, Any]:
         validator_class = validator_for(value)
         try:
             validator_class.check_schema(value)

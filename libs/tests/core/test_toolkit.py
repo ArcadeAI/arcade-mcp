@@ -69,6 +69,17 @@ class TestToolkit:
 
         assert Toolkit.trigger_types_from_directory(package_dir) == []
 
+    def test_trigger_module_uses_resolved_package_name(self, tmp_path, monkeypatch):
+        package_dir = tmp_path / "project_root"
+        package_dir.mkdir()
+        (package_dir / "trigger_types.py").touch()
+        module = MagicMock(trigger_types=[])
+        import_module = MagicMock(return_value=module)
+        monkeypatch.setattr("arcade_core.toolkit.importlib.import_module", import_module)
+
+        assert Toolkit.trigger_types_from_directory(package_dir, "actual_toolkit") == []
+        import_module.assert_called_once_with("actual_toolkit.trigger_types")
+
 
 class TestFromEntrypoint:
     """Test the from_entrypoint class method."""

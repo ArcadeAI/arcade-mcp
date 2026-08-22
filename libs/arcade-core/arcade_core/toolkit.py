@@ -129,7 +129,7 @@ class Toolkit(BaseModel):
         )
 
         toolkit.tools = cls.tools_from_directory(package_dir, package_name)
-        toolkit.trigger_types = cls.trigger_types_from_directory(package_dir)
+        toolkit.trigger_types = cls.trigger_types_from_directory(package_dir, package_name)
 
         return toolkit
 
@@ -172,17 +172,17 @@ class Toolkit(BaseModel):
         )
 
         toolkit.tools = cls.tools_from_directory(package_dir, package_name)
-        toolkit.trigger_types = cls.trigger_types_from_directory(package_dir)
+        toolkit.trigger_types = cls.trigger_types_from_directory(package_dir, package_name)
 
         return toolkit
 
     @staticmethod
-    def trigger_types_from_directory(package_dir: Path) -> list[TriggerType]:
+    def trigger_types_from_directory(package_dir: Path, package_name: str | None = None) -> list[TriggerType]:
         """Load ``<toolkit>.trigger_types.trigger_types`` when it is declared."""
         if not (package_dir / "trigger_types.py").is_file():
             return []
 
-        module_name = f"{package_dir.name}.trigger_types"
+        module_name = f"{package_name or package_dir.name}.trigger_types"
         try:
             module = importlib.import_module(module_name)
             raw_declarations: Any = module.trigger_types
