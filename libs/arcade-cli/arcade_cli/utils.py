@@ -16,7 +16,7 @@ from urllib.parse import urlparse
 import idna
 from arcade_core import ToolCatalog, Toolkit
 from arcade_core.config_model import Config
-from arcade_core.constants import LOCALHOST
+from arcade_core.constants import LOCALHOST, PROD_COORDINATOR_HOST
 from arcade_core.discovery import (
     analyze_files_for_tools,
     build_minimal_toolkit,
@@ -642,6 +642,70 @@ def get_org_project_context() -> tuple[str, str]:
         raise AssertionError("unreachable")  # handle_cli_error raises CLIError
 
     return config.context.org_id, config.context.project_id
+
+
+def get_saved_coordinator_url() -> str | None:
+    """Return the Coordinator URL recorded by ``arcade login``, if any.
+
+    Importing ``arcade_core.config`` loads the credentials file at import time
+    and raises when the user is logged out, so any failure degrades to ``None``
+    and lets callers fall back to their default.
+    """
+    try:
+        from arcade_core.config import config
+
+        return getattr(config, "coordinator_url", None) or None
+    except Exception:
+        return None
+
+
+def resolve_coordinator_url(
+    host: str | None,
+    port: int | None,
+    force_tls: bool,
+    force_no_tls: bool,
+) -> str:
+    """Resolve the Coordinator base URL for a command group.
+
+    ``arcade login -h <coordinator-host>`` stores the Coordinator it authenticated
+    against, and the token it stores is only valid for that Coordinator. Command
+    groups must therefore target the same host by default, otherwise the token and
+    the request URL disagree and the Coordinator answers 401. This mirrors the
+    fallback already used by :func:`get_auth_headers` for the token itself, so both
+    halves of the request resolve to the same environment.
+
+    Resolution precedence:
+
+    1. Explicit connection options win. Passing any of ``--host``/``--port``/
+       ``--tls``/``--no-tls`` means the caller is naming a target, so the URL is
+       built from the flags alone (``--host`` defaulting to production when only
+       the other flags are given).
+    2. Otherwise the Coordinator saved by ``arcade login`` is used verbatim,
+       preserving its scheme and port.
+    3. Otherwise the production Coordinator.
+
+    Args:
+        host: ``--host`` value, or ``None`` when the flag was not passed.
+        port: ``--port`` value, or ``None`` when the flag was not passed.
+        force_tls: Whether ``--tls`` was passed.
+        force_no_tls: Whether ``--no-tls`` was passed.
+
+    Returns:
+        str: The Coordinator base URL the command group should call.
+    """
+    no_explicit_target = host is None and port is None and not force_tls and not force_no_tls
+    if no_explicit_target:
+        saved_coordinator_url = get_saved_coordinator_url()
+        if saved_coordinator_url:
+            return saved_coordinator_url
+
+    return compute_base_url(
+        force_tls,
+        force_no_tls,
+        host if host is not None else PROD_COORDINATOR_HOST,
+        port,
+        default_port=None,
+    )
 
 
 def get_auth_headers(coordinator_url: str | None = None) -> dict[str, str]:
