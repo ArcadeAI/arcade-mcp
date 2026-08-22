@@ -177,7 +177,9 @@ class Toolkit(BaseModel):
         return toolkit
 
     @staticmethod
-    def trigger_types_from_directory(package_dir: Path, package_name: str | None = None) -> list[TriggerType]:
+    def trigger_types_from_directory(
+        package_dir: Path, package_name: str | None = None
+    ) -> list[TriggerType]:
         """Load ``<toolkit>.trigger_types.trigger_types`` when it is declared."""
         if not (package_dir / "trigger_types.py").is_file():
             return []
