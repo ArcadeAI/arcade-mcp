@@ -1599,9 +1599,27 @@ class MCPServer:
                         session and not session.has_feature("tool_execution")
                     ):
                         self._tracker.track_tool_call(False, "invalid tool input")
+                        # Surface the curated user-facing message, never
+                        # ``str(error)``: that renders the whole ToolCallError
+                        # model, so ``developer_message`` and ``stacktrace``
+                        # would reach the client unconditionally. The stacktrace
+                        # of an input-validation failure is a Pydantic traceback
+                        # embedding ``input_value=``, i.e. the rejected argument
+                        # itself — which the executor deliberately keeps out of
+                        # the surfaced fields because it may hold secrets or PII.
+                        # Route internals through the debug-flag gate instead, so
+                        # this branch matches the 2025-11-25 one below.
+                        legacy_message = error.message
+                        if error.additional_prompt_content:
+                            legacy_message += f"\n\n{error.additional_prompt_content}"
+                        legacy_message = augment_error_message_for_debug(
+                            legacy_message,
+                            error.developer_message,
+                            error.stacktrace,
+                        )
                         return JSONRPCError(
                             id=message.id,
-                            error={"code": INVALID_PARAMS, "message": str(error)},
+                            error={"code": INVALID_PARAMS, "message": legacy_message},
                         )
 
                     error_text = error.message
