@@ -19,6 +19,61 @@ from arcade_core.schema import (
 )
 
 
+def _render_declared_type(value_schema: Any) -> str:
+    """Render a parameter's declared type, e.g. ``string`` or ``array[string]``."""
+    val_type = str(value_schema.val_type)
+    inner = getattr(value_schema, "inner_val_type", None)
+    if val_type == "array" and inner:
+        return f"array[{inner}]"
+    return val_type
+
+
+def _expected_shape_guidance(
+    definition: ToolDefinition | None,
+    rejected_fields: list[str],
+) -> str:
+    """Describe the declared shape of the parameters that were rejected.
+
+    Built strictly from the tool's own ``ToolDefinition`` -- never from the
+    submitted values, which may contain secrets or PII (see the note in
+    ``_serialize_input``). Only the rejected parameters are described: the
+    caller already received the full schema from ``tools/list``, so echoing all
+    of it on every failure is noise that buries the actionable part.
+
+    Returns an empty string when there is nothing useful to add, so callers can
+    append unconditionally.
+    """
+    if definition is None or not rejected_fields:
+        return ""
+
+    try:
+        parameters = {param.name: param for param in definition.input.parameters}
+    except AttributeError:
+        return ""
+
+    lines: list[str] = []
+    for name in rejected_fields:
+        param = parameters.get(name)
+        if param is None:
+            # A rejected key with no declared parameter (e.g. an unexpected
+            # extra argument) has no shape to describe.
+            continue
+        qualifier = "required" if param.required else "optional"
+        line = f"  - {param.name} ({_render_declared_type(param.value_schema)}, {qualifier})"
+        if param.description:
+            line += f": {param.description}"
+        enum_values = getattr(param.value_schema, "enum", None)
+        if enum_values:
+            line += f" [allowed values: {', '.join(str(v) for v in enum_values)}]"
+        lines.append(line)
+
+    if not lines:
+        return ""
+
+    rendered = "\n".join(lines)
+    return f"Expected:\n{rendered}\n\nFix these arguments and call the tool again."
+
+
 class ToolExecutor:
     @staticmethod
     async def run(
@@ -46,7 +101,7 @@ class ToolExecutor:
 
         try:
             # serialize the input model
-            inputs = await ToolExecutor._serialize_input(input_model, **kwargs)
+            inputs = await ToolExecutor._serialize_input(input_model, definition, **kwargs)
 
             # prepare the arguments for the function call
             func_args = inputs.model_dump()
@@ -90,9 +145,23 @@ class ToolExecutor:
             )
 
     @staticmethod
-    async def _serialize_input(input_model: type[BaseModel], **kwargs: Any) -> BaseModel:
+    async def _serialize_input(
+        input_model: type[BaseModel],
+        definition: ToolDefinition | None = None,
+        /,
+        **kwargs: Any,
+    ) -> BaseModel:
         """
         Serialize the input to a tool function.
+
+        ``input_model`` and ``definition`` are positional-only: ``**kwargs`` holds
+        the caller-supplied tool arguments, and a tool is free to declare a
+        parameter named ``definition`` (or ``input_model``). Positional-only
+        placement keeps such an argument in ``kwargs`` instead of colliding with
+        these parameters.
+
+        ``definition`` is optional enrichment used to describe the expected shape
+        of rejected parameters; validation works without it.
         """
         try:
             # TODO Logging and telemetry
@@ -115,8 +184,24 @@ class ToolExecutor:
                 f"{'.'.join(str(loc) for loc in err['loc']) or '<root>'}[{err['type']}]"
                 for err in e.errors()
             )
+            # Field paths of the rejected arguments, de-duplicated in the order
+            # Pydantic reported them. Only the top-level name is used, since that
+            # is what maps onto a declared tool parameter.
+            rejected_fields: list[str] = []
+            for err in e.errors():
+                if not err["loc"]:
+                    continue
+                field = str(err["loc"][0])
+                if field not in rejected_fields:
+                    rejected_fields.append(field)
+
+            message = f"Invalid input: {summary}"
+            guidance = _expected_shape_guidance(definition, rejected_fields)
+            if guidance:
+                message = f"{message}\n\n{guidance}"
+
             raise ToolInputError(
-                message=f"Invalid input: {summary}",
+                message=message,
                 developer_message=f"Pydantic validation failed: {developer_summary}",
             ) from e
 
