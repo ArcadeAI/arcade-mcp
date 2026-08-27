@@ -22,7 +22,7 @@ from typing import (
     get_type_hints,
 )
 
-from pydantic import BaseModel, ConfigDict, Field, create_model, model_serializer
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, create_model, model_serializer
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
@@ -35,6 +35,7 @@ from arcade_core.errors import (
     ToolOutputSchemaError,
 )
 from arcade_core.metadata import ToolMetadata
+from arcade_core.resources import ResourceRegistry
 from arcade_core.schema import (
     TOOL_NAME_SEPARATOR,
     FullyQualifiedName,
@@ -159,10 +160,20 @@ class ToolCatalog(BaseModel):
     _disabled_tools: set[str] = set()
     _disabled_toolkits: set[str] = set()
 
+    # Resources ride the catalog because it is the only object handed to the
+    # worker surface. They are a separate collection with separate types; the
+    # catalog is the carrier, not the owner.
+    _resources: ResourceRegistry = PrivateAttr(default_factory=ResourceRegistry)
+
     def __init__(self, **data) -> None:  # type: ignore[no-untyped-def]
         super().__init__(**data)
         self._load_disabled_tools()
         self._load_disabled_toolkits()
+
+    @property
+    def resources(self) -> ResourceRegistry:
+        """The resources declared by the toolkits in this catalog."""
+        return self._resources
 
     def _load_disabled_tools(self) -> None:
         """Load disabled tools from the environment variable.
