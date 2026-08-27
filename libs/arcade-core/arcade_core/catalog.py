@@ -307,7 +307,7 @@ class ToolCatalog(BaseModel):
             description: Optionally override the description of the toolkit with this parameter
         """
 
-        if str(toolkit).lower() in self._disabled_toolkits:
+        if toolkit.name.lower() in self._disabled_toolkits:
             logger.info(f"Server '{toolkit.name!s}' is disabled and will not be cataloged.")
             return
 

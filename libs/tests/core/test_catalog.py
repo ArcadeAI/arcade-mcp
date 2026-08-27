@@ -414,6 +414,16 @@ def test_add_tool_with_whitespace_disabled_tools(monkeypatch):
 def test_add_tool_with_disabled_toolkit(monkeypatch):
     monkeypatch.setenv("ARCADE_DISABLED_TOOLKITS", "SampleToolkitOne")
     catalog = ToolCatalog()
+    declaration = TriggerType(
+        slug="sample.changed",
+        name="Sample changed",
+        description="Fires when a sample changes.",
+        kind="poll",
+        config_schema={"type": "object"},
+        payload_schema={"type": "object"},
+        sample_payload={"id": "123"},
+        version="1",
+    )
 
     catalog.add_toolkit(
         Toolkit(
@@ -421,9 +431,11 @@ def test_add_tool_with_disabled_toolkit(monkeypatch):
             package_name="sample_toolkit_one",
             version="1.0.0",
             description="A sample toolkit",
+            trigger_types=[declaration],
         )
     )
     assert len(catalog._tools) == 0
+    assert catalog.trigger_types == []
 
 
 @pytest.mark.parametrize(
