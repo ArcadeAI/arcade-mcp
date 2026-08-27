@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Sum a list of numbers</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --line: color-mix(in srgb, currentColor 15%, transparent);
+      }
+      body {
+        margin: 0;
+        padding: 1.25rem;
+        font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+      h1 {
+        margin: 0 0 1rem;
+        font-size: 1rem;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+      }
+      .row {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+      }
+      input {
+        flex: 1;
+        padding: 0.5rem 0.65rem;
+        font: inherit;
+        color: inherit;
+        background: transparent;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+      }
+      button {
+        padding: 0.5rem 0.9rem;
+        font: inherit;
+        font-weight: 500;
+        color: inherit;
+        background: transparent;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: color-mix(in srgb, currentColor 8%, transparent);
+      }
+      .total {
+        padding: 0.9rem 1rem;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+      .total dt {
+        margin: 0;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        opacity: 0.65;
+      }
+      .total dd {
+        margin: 0.25rem 0 0;
+        font-size: 1.75rem;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+      .terms {
+        margin: 0.5rem 0 0;
+        font-size: 0.8rem;
+        opacity: 0.65;
+        font-variant-numeric: tabular-nums;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Sum a list of numbers</h1>
+
+    <div class="row">
+      <input
+        id="numbers"
+        value="1, 2, 3, 5, 8, 13"
+        aria-label="Numbers, separated by commas or spaces"
+        autocomplete="off"
+      />
+      <button id="sum" type="button">Sum</button>
+    </div>
+
+    <dl class="total">
+      <dt>Total</dt>
+      <dd id="total">0</dd>
+    </dl>
+    <p class="terms" id="terms"></p>
+
+    <script>
+      const input = document.getElementById("numbers");
+      const total = document.getElementById("total");
+      const terms = document.getElementById("terms");
+
+      const parse = (raw) =>
+        raw
+          .split(/[\s,]+/)
+          .filter(Boolean)
+          .map(Number)
+          .filter((n) => Number.isFinite(n));
+
+      function render() {
+        const numbers = parse(input.value);
+        const sum = numbers.reduce((a, b) => a + b, 0);
+        total.textContent = String(sum);
+        terms.textContent = numbers.length
+          ? `${numbers.length} terms: ${numbers.join(" + ")}`
+          : "Enter some numbers.";
+      }
+
+      document.getElementById("sum").addEventListener("click", render);
+      input.addEventListener("keydown", (e) => e.key === "Enter" && render());
+      render();
+    </script>
+  </body>
+</html>

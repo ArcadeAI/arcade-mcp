@@ -1,0 +1,40 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "arcade_math"
+version = "0.1.0"
+description = "Math tools with a user interface, showing a toolkit-declared resource on the worker protocol"
+requires-python = ">=3.10"
+dependencies = [
+    "arcade-tdk>=3.0.0,<4.0.0",
+]
+
+# Running the toolkit as a worker locally needs the server. A deployed toolkit
+# does not, which is why this is a dev extra rather than a dependency.
+[project.optional-dependencies]
+dev = [
+    "arcade-mcp-server>=1.19.0,<2.0.0",
+]
+
+# Tell Arcade.dev that this package has Arcade tools
+[project.entry-points.arcade_toolkits]
+toolkit_name = "arcade_math"
+
+[tool.hatch.build.targets.wheel]
+packages = ["arcade_math"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"arcade_math/ui/sum_list.html" = "arcade_math/ui/sum_list.html"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+# Working inside the arcade-mcp repo, install the libs from the tree rather than PyPI.
+[tool.uv.sources]
+arcade-tdk = { path = "../../../libs/arcade-tdk/", editable = true }
+arcade-core = { path = "../../../libs/arcade-core/", editable = true }
+arcade-serve = { path = "../../../libs/arcade-serve/", editable = true }
+arcade-mcp-server = { path = "../../../libs/arcade-mcp-server/", editable = true }
