@@ -312,7 +312,10 @@ class ToolCatalog(BaseModel):
             return
 
         combined_trigger_types = [*self.trigger_types, *toolkit.trigger_types]
-        validate_trigger_types(combined_trigger_types)
+        try:
+            validate_trigger_types(combined_trigger_types)
+        except ValueError as e:
+            raise ToolkitLoadError(str(e)).with_context(toolkit.name) from e
 
         for module_name, tool_names in toolkit.tools.items():
             for tool_name in tool_names:

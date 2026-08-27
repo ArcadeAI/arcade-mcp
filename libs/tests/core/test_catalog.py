@@ -217,6 +217,40 @@ def test_add_toolkit_collects_trigger_types():
     assert catalog.trigger_types == [declaration]
 
 
+def test_add_toolkit_rejects_duplicate_trigger_slug_as_toolkit_load_error():
+    declaration = TriggerType(
+        slug="sample.changed",
+        name="Sample changed",
+        description="Fires when a sample changes.",
+        kind="poll",
+        config_schema={"type": "object"},
+        payload_schema={"type": "object"},
+        sample_payload={"id": "123"},
+        version="1",
+    )
+    catalog = ToolCatalog()
+    catalog.add_toolkit(
+        Toolkit(
+            name="first_toolkit",
+            description="A first toolkit",
+            version="1.0.0",
+            package_name="first_toolkit",
+            trigger_types=[declaration],
+        )
+    )
+
+    with pytest.raises(ToolkitLoadError, match=r"Duplicate trigger type slug: sample\.changed"):
+        catalog.add_toolkit(
+            Toolkit(
+                name="second_toolkit",
+                description="A second toolkit",
+                version="1.0.0",
+                package_name="second_toolkit",
+                trigger_types=[declaration],
+            )
+        )
+
+
 @pytest.mark.parametrize(
     "toolkit_version, expected_tool",
     [
