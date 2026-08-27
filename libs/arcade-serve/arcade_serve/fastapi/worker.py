@@ -1,11 +1,13 @@
 import json
 from typing import Any, Callable
 
+from arcade_core.resources import InvalidCursorError, ResourceNotFoundError
 from fastapi import Depends, FastAPI, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from opentelemetry.metrics import Meter
+from pydantic import ValidationError
 from starlette.requests import ClientDisconnect
-from starlette.responses import Response
+from starlette.responses import JSONResponse, Response
 from starlette.routing import Mount
 
 from arcade_serve.core.base import (
@@ -71,6 +73,15 @@ class FastAPIWorker(BaseWorker):
 
 security = HTTPBearer()  # Authorization: Bearer <xxx>
 
+# Reserved code for a read against a URI the worker does not serve.
+RESOURCE_NOT_FOUND = -32002
+INVALID_PARAMS = -32602
+
+
+def _error_response(status_code: int, code: int, message: str) -> JSONResponse:
+    """An error object, carried by an HTTP status."""
+    return JSONResponse(status_code=status_code, content={"code": code, "message": message})
+
 
 class FastAPIRouter(Router):
     def __init__(self, app: FastAPI, worker: BaseWorker) -> None:
@@ -105,16 +116,36 @@ class FastAPIRouter(Router):
                 # Return HTTP 499 (Client Closed Request)
                 return Response(status_code=499)
 
-            body_json = json.loads(body_str) if body_str else {}
-            request_data = RequestData(
-                path=request.url.path,
-                method=request.method,
-                body_json=body_json,
-            )
-            if is_async_callable(handler):
-                return await handler(request_data)
-            else:
+            try:
+                body_json = json.loads(body_str) if body_str else {}
+                request_data = RequestData(
+                    path=request.url.path,
+                    method=request.method,
+                    body_json=body_json,
+                )
+            except (json.JSONDecodeError, ValidationError):
+                # A body that is not a JSON object is the caller's mistake. Parsed
+                # outside this block it escapes as an unhandled 500, which tells the
+                # caller the worker broke rather than that the request was malformed.
+                return _error_response(
+                    400, INVALID_PARAMS, "Invalid params: malformed request body"
+                )
+
+            try:
+                if is_async_callable(handler):
+                    return await handler(request_data)
                 return handler(request_data)
+            except ResourceNotFoundError as e:
+                # 404 here means "no such URI". A 404 from the router means the
+                # endpoint itself is absent, which is a different thing to the
+                # caller and is why only the read path reports one.
+                return _error_response(404, RESOURCE_NOT_FOUND, f"Resource not found: {e.args[0]}")
+            except InvalidCursorError:
+                return _error_response(400, INVALID_PARAMS, "Invalid cursor")
+            except ValidationError as e:
+                return _error_response(
+                    400, INVALID_PARAMS, f"Invalid params: {e.error_count()} error(s)"
+                )
 
         return wrapped_handler
 

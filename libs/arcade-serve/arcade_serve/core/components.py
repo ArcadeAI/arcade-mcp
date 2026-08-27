@@ -1,4 +1,10 @@
 from arcade_core.log_extras import build_tool_error_span_attributes
+from arcade_core.resource_schema import (
+    ListResourcesParams,
+    ListResourcesResult,
+    ReadResourceParams,
+    ReadResourceResult,
+)
 from arcade_core.schema import (
     ToolCallRequest,
     ToolCallResponse,
@@ -99,3 +105,60 @@ class HealthCheckComponent(WorkerComponent):
         Handle the request to check the health of the worker.
         """
         return self.worker.health_check()
+
+
+class ListResourcesComponent(WorkerComponent):
+    def register(self, router: Router) -> None:
+        """
+        Register the resource listing route with the router.
+        """
+        router.add_route(
+            "resources/list",
+            self,
+            method="POST",
+            response_type=ListResourcesResult,
+            operation_id="list_resources",
+            description="List the resources this worker serves",
+            summary="List resources",
+            tags=["Arcade"],
+            # Optional fields are omitted rather than sent as null, which is what
+            # the format specifies. FastAPI would otherwise emit one for every.
+            response_model_exclude_none=True,
+        )
+
+    async def __call__(self, request: RequestData) -> ListResourcesResult:
+        """
+        Handle the request to list resources.
+        """
+        tracer = trace.get_tracer(__name__)
+        with tracer.start_as_current_span("ListResources"):
+            params = ListResourcesParams.model_validate(request.body_json or {})
+            return self.worker.list_resources(params.cursor)
+
+
+class ReadResourceComponent(WorkerComponent):
+    def register(self, router: Router) -> None:
+        """
+        Register the resource read route with the router.
+        """
+        router.add_route(
+            "resources/read",
+            self,
+            method="POST",
+            response_type=ReadResourceResult,
+            operation_id="read_resource",
+            description="Read a resource by URI",
+            summary="Read a resource",
+            tags=["Arcade"],
+            response_model_exclude_none=True,
+        )
+
+    async def __call__(self, request: RequestData) -> ReadResourceResult:
+        """
+        Handle the request to read a resource.
+        """
+        tracer = trace.get_tracer(__name__)
+        with tracer.start_as_current_span("ReadResource") as current_span:
+            params = ReadResourceParams.model_validate(request.body_json or {})
+            current_span.set_attribute("resource_uri", params.uri)
+            return self.worker.read_resource(params.uri)

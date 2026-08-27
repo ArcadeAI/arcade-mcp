@@ -21,6 +21,8 @@ from arcade_serve.core.components import (
     CallToolComponent,
     CatalogComponent,
     HealthCheckComponent,
+    ListResourcesComponent,
+    ReadResourceComponent,
     WorkerComponent,
 )
 
@@ -39,6 +41,8 @@ class BaseWorker(Worker):
         CatalogComponent,
         CallToolComponent,
         HealthCheckComponent,
+        ListResourcesComponent,
+        ReadResourceComponent,
     )
 
     def __init__(

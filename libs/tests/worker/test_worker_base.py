@@ -19,6 +19,8 @@ from arcade_serve.core.components import (
     CallToolComponent,
     CatalogComponent,
     HealthCheckComponent,
+    ListResourcesComponent,
+    ReadResourceComponent,
 )
 from arcade_tdk import tool
 
@@ -340,7 +342,7 @@ def test_register_routes_registers_default_components(base_worker, mock_router):
     assert mock_router.add_route.call_count == len(BaseWorker.default_components)
 
     calls = mock_router.add_route.call_args_list
-    expected_paths = ["tools", "tools/invoke", "health"]
+    expected_paths = ["tools", "tools/invoke", "health", "resources/list", "resources/read"]
     registered_paths = [
         call[0][0] for call in calls
     ]  # call[0] are positional args, call[0][0] is endpoint_path
@@ -351,6 +353,8 @@ def test_register_routes_registers_default_components(base_worker, mock_router):
     assert any(isinstance(call[0][1], CatalogComponent) for call in calls)
     assert any(isinstance(call[0][1], CallToolComponent) for call in calls)
     assert any(isinstance(call[0][1], HealthCheckComponent) for call in calls)
+    assert any(isinstance(call[0][1], ListResourcesComponent) for call in calls)
+    assert any(isinstance(call[0][1], ReadResourceComponent) for call in calls)
 
 
 @pytest.mark.asyncio
