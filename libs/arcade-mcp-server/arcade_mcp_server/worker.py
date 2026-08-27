@@ -374,6 +374,7 @@ def create_arcade_mcp_factory() -> FastAPI:
         raise RuntimeError("No tools found")
 
     logger.info(f"Total tools loaded: {total_tools}")
+    logger.info(f"Total resources loaded: {len(catalog.resources)}")
     if otel_enable:
         logger.info("OpenTelemetry is enabled")
 
