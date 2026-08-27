@@ -23,6 +23,10 @@ DEFAULT_PAGE_SIZE = 250
 
 _CURSOR_PREFIX = "offset:"
 
+#: The scheme a tool's user interface is addressed under. Hosts that render an
+#: interface require it and refuse anything else.
+UI_SCHEME = "ui"
+
 
 class InvalidCursorError(ValueError):
     """Raised when a caller sends a cursor this registry did not issue."""
@@ -53,6 +57,51 @@ def decode_cursor(cursor: str) -> int:
     if offset < 0:
         raise InvalidCursorError(f"malformed cursor: {cursor!r}")
     return offset
+
+
+class InvalidResourcePathError(ValueError):
+    """Raised when a declared path cannot be qualified into a URI."""
+
+
+def qualify(toolkit_name: str, toolkit_version: str, path: str, scheme: str = UI_SCHEME) -> str:
+    """Build the toolkit-qualified URI for a resource a toolkit declares.
+
+    ``ui://Gmail/8.1.0/draft-review.html``. The toolkit segment separates two
+    toolkits packed into one worker image; the version segment separates the
+    same toolkit installed at two versions across two workers, which is what
+    keeps a tool and its interface in agreement.
+
+    The scheme is carried through and never replaced. A host that renders a
+    tool's interface requires ``ui://`` and throws on anything else, so a
+    prefix-replacing qualifier breaks rendering outright.
+    """
+    scheme = scheme.rstrip(":/")
+    if not scheme:
+        raise InvalidResourcePathError("a resource URI needs a scheme")
+    if not toolkit_name:
+        raise InvalidResourcePathError("a resource URI needs a toolkit name")
+    if not toolkit_version:
+        raise InvalidResourcePathError("a resource URI needs a toolkit version")
+
+    segments = [segment for segment in path.split("/") if segment]
+    if not segments:
+        raise InvalidResourcePathError(f"a resource needs a path: {path!r}")
+    if any(segment in (".", "..") for segment in segments):
+        raise InvalidResourcePathError(f"a resource path may not traverse: {path!r}")
+
+    return f"{scheme}://{toolkit_name}/{toolkit_version}/{'/'.join(segments)}"
+
+
+@dataclass(frozen=True)
+class ResourceDeclaration:
+    """What a toolkit author writes. The URI is derived, never typed."""
+
+    path: str
+    name: str
+    scheme: str = UI_SCHEME
+    title: str | None = None
+    description: str | None = None
+    mime_type: str | None = None
 
 
 @dataclass(frozen=True)
@@ -133,6 +182,29 @@ class ResourceRegistry:
             insort(self._uris, resource.uri)
         self._resources[resource.uri] = registered
         return registered
+
+    def declare(
+        self,
+        declaration: ResourceDeclaration,
+        contents: str | bytes,
+        *,
+        toolkit_name: str,
+        toolkit_version: str,
+    ) -> RegisteredResource:
+        """Register a toolkit's declaration, qualifying its URI on the way in.
+
+        Qualification happens here because this is the only point where the
+        declaration and the toolkit's identity are both in scope.
+        """
+        uri = qualify(toolkit_name, toolkit_version, declaration.path, declaration.scheme)
+        resource = Resource(
+            uri=uri,
+            name=declaration.name,
+            title=declaration.title,
+            description=declaration.description,
+            mimeType=declaration.mime_type,
+        )
+        return self.add(resource, contents)
 
     def get(self, uri: str) -> RegisteredResource:
         try:
