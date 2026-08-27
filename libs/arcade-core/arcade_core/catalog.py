@@ -368,6 +368,7 @@ class ToolCatalog(BaseModel):
             return
 
         toolkit_version = version or toolkit.version
+        claimed: dict[str, str] = {}
 
         for module_name, resource_names in (toolkit.resources or {}).items():
             try:
@@ -392,7 +393,7 @@ class ToolCatalog(BaseModel):
                     ).with_context(toolkit.name)
 
                 try:
-                    self._resources.declare(
+                    registered = self._resources.declare(
                         declaration,
                         func(),
                         toolkit_name=toolkit.name,
@@ -403,6 +404,19 @@ class ToolCatalog(BaseModel):
                         f"Could not register resource {resource_name} from {module_name}. "
                         f"Reason: {e}"
                     ).with_context(toolkit.name) from e
+
+                uri = registered.resource.uri
+                owner = f"{module_name}.{resource_name}"
+                if uri in claimed:
+                    # The registry replaces on a repeated URI, so without this the
+                    # earlier declaration is gone and the toolkit still loads. Two
+                    # resources sharing a path is an authoring mistake, and this is
+                    # the only point where both declarations are in scope.
+                    raise ToolkitLoadError(
+                        f"{owner} and {claimed[uri]} both declare {uri}. Two resources "
+                        f"in one toolkit cannot share a path."
+                    ).with_context(toolkit.name)
+                claimed[uri] = owner
 
     def __getitem__(self, name: FullyQualifiedName) -> MaterializedTool:
         return self.get_tool(name)

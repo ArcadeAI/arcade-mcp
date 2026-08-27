@@ -95,6 +95,16 @@ def sneaky() -> str:
     return _read()
 """
 
+# A second module declaring the same path, so both qualify to one URI.
+SECOND_UI_MODULE = """
+from arcade_tdk import resource
+
+
+@resource(path="dashboard.html", mime_type="text/html;profile=example")
+def other_dashboard() -> str:
+    return "<!DOCTYPE html><p>second</p>"
+"""
+
 PYPROJECT = """
 [project]
 name = "arcade_widgets"
@@ -315,3 +325,21 @@ def test_a_decorator_we_do_not_export_is_still_refused():
         "from somewhere_else import *\n\n@resource(path='a.html')\ndef a(): ...",
     ):
         assert get_resources_from_ast(_ast.parse(source)) == [], source
+
+
+
+def test_two_resources_sharing_a_path_fail_the_toolkit(widgets_package):
+    """Qualification collapses them to one URI, and last-writer-wins loses the first."""
+    (widgets_package / "arcade_widgets" / "ui_two.py").write_text(
+        textwrap.dedent(SECOND_UI_MODULE), encoding="utf-8"
+    )
+    toolkit = Toolkit.from_directory(widgets_package)
+    catalog = ToolCatalog()
+
+    with pytest.raises(ToolkitLoadError) as exc_info:
+        catalog.add_toolkit(toolkit)
+
+    message = str(exc_info.value)
+    assert "ui://widgets/2.3.1/dashboard.html" in message
+    assert "other_dashboard" in message
+    assert "dashboard" in message
