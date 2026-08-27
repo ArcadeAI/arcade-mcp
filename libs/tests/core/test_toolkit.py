@@ -545,7 +545,7 @@ def helper_tool():
 
         return package_dir
 
-    @patch("arcade_core.toolkit.get_tools_from_file")
+    @patch("arcade_core.toolkit.get_tools_from_ast")
     def test_skips_file_when_path_matches(self, mock_get_tools, temp_package):
         """Verify skip when __main__.__file__ matches module path (original behavior)."""
         mock_get_tools.return_value = ["some_tool"]
@@ -563,7 +563,7 @@ def helper_tool():
         assert "mypackage.entrypoint" not in result
         assert "mypackage.tools.helper" in result
 
-    @patch("arcade_core.toolkit.get_tools_from_file")
+    @patch("arcade_core.toolkit.get_tools_from_ast")
     def test_skips_file_when_module_name_matches(self, mock_get_tools, temp_package):
         """Verify skip when __main__.__spec__.name matches even if paths differ.
 
@@ -586,7 +586,7 @@ def helper_tool():
         assert "mypackage.entrypoint" not in result
         assert "mypackage.tools.helper" in result
 
-    @patch("arcade_core.toolkit.get_tools_from_file")
+    @patch("arcade_core.toolkit.get_tools_from_ast")
     def test_no_skip_when_different_module(self, mock_get_tools, temp_package):
         """Verify unrelated modules are not skipped."""
         mock_get_tools.return_value = ["some_tool"]
@@ -605,7 +605,7 @@ def helper_tool():
         assert "mypackage.entrypoint" in result
         assert "mypackage.tools.helper" in result
 
-    @patch("arcade_core.toolkit.get_tools_from_file")
+    @patch("arcade_core.toolkit.get_tools_from_ast")
     def test_no_skip_when_no_main_module(self, mock_get_tools, temp_package):
         """Handle case where __main__ is not in sys.modules."""
         mock_get_tools.return_value = ["some_tool"]
@@ -618,7 +618,7 @@ def helper_tool():
         assert "mypackage.entrypoint" in result
         assert "mypackage.tools.helper" in result
 
-    @patch("arcade_core.toolkit.get_tools_from_file")
+    @patch("arcade_core.toolkit.get_tools_from_ast")
     def test_no_skip_when_no_spec(self, mock_get_tools, temp_package):
         """Handle case where __main__ has no __spec__ attribute."""
         mock_get_tools.return_value = ["some_tool"]
@@ -635,7 +635,7 @@ def helper_tool():
         assert "mypackage.entrypoint" in result
         assert "mypackage.tools.helper" in result
 
-    @patch("arcade_core.toolkit.get_tools_from_file")
+    @patch("arcade_core.toolkit.get_tools_from_ast")
     def test_no_skip_when_spec_has_no_name(self, mock_get_tools, temp_package):
         """Handle case where __main__.__spec__ exists but has no name."""
         mock_get_tools.return_value = ["some_tool"]

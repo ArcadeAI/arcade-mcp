@@ -11,7 +11,9 @@ import base64
 import binascii
 import inspect
 from bisect import insort
+from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Any, TypeVar
 
 from arcade_core.resource_schema import (
     BlobResourceContents,
@@ -102,6 +104,65 @@ class ResourceDeclaration:
     title: str | None = None
     description: str | None = None
     mime_type: str | None = None
+
+
+#: Attribute the decorator leaves on a function so registration can find the
+#: declaration after discovery imports the module.
+RESOURCE_ATTRIBUTE = "__arcade_resource__"
+
+F = TypeVar("F", bound=Callable[..., Any])
+
+
+def resource(
+    path: str,
+    *,
+    name: str | None = None,
+    title: str | None = None,
+    description: str | None = None,
+    mime_type: str | None = None,
+    scheme: str = UI_SCHEME,
+) -> Callable[[F], F]:
+    """Declare a static resource a toolkit ships.
+
+    The decorated function returns the bytes. It is called once, when the
+    toolkit is registered, and never on a request.
+
+    The author gives a path relative to the toolkit. The full URI is derived at
+    registration, where the toolkit's name and version are known::
+
+        @resource(path="draft-review.html", mime_type="text/html")
+        def draft_review() -> str:
+            return (Path(__file__).parent / "draft-review.html").read_text()
+
+    Discovery finds these the same way it finds tools, by scanning for the
+    decorator, so a declaration is picked up wherever in the package it lives.
+    """
+
+    def decorator(func: F) -> F:
+        if inspect.iscoroutinefunction(func):
+            # Registration calls this once, synchronously, inside add_toolkit.
+            # Without this the coroutine reaches the contents model and surfaces
+            # as a pydantic type error about a coroutine object at worker boot.
+            raise TypeError(
+                f"@resource cannot decorate the async function {func.__name__!r}. "
+                "A resource is resolved once at registration on a synchronous "
+                "path, so its function must be synchronous."
+            )
+        setattr(
+            func,
+            RESOURCE_ATTRIBUTE,
+            ResourceDeclaration(
+                path=path,
+                name=name or func.__name__,
+                scheme=scheme,
+                title=title,
+                description=description,
+                mime_type=mime_type,
+            ),
+        )
+        return func
+
+    return decorator
 
 
 @dataclass(frozen=True)

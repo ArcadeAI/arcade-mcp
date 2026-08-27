@@ -72,3 +72,95 @@ def get_tools_from_ast(tree: ast.AST) -> list[str]:
             if tool_name:
                 tools.append(tool_name)
     return tools
+
+
+#: Where Arcade's ``@resource`` decorator can be imported from.
+_RESOURCE_DECORATOR_MODULES = frozenset({
+    "arcade_tdk",
+    "arcade_mcp_server",
+    "arcade_core.resources",
+})
+_RESOURCE_DECORATOR = "resource"
+
+
+def _resource_decorator_names(tree: ast.AST) -> set[str]:
+    """The names this module binds Arcade's ``@resource`` decorator to.
+
+    Resolving against the module's own imports is what separates a declaration
+    from a same-named decorator belonging to something else, ``MCPApp.resource``
+    among them. A module that never imports ours cannot be declaring one with it.
+
+    Every spelling that can bind the decorator has to be covered here. Miss one
+    and the declaration goes missing with nothing raised, because the decorator
+    still runs at import time and the resource simply never gets registered.
+    """
+    names: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom):
+            for alias in node.names:
+                bound = alias.asname or alias.name
+                if node.module in _RESOURCE_DECORATOR_MODULES:
+                    if alias.name == _RESOURCE_DECORATOR:
+                        # from arcade_tdk import resource
+                        names.add(bound)
+                    elif alias.name == "*":
+                        # from arcade_tdk import *
+                        names.add(_RESOURCE_DECORATOR)
+                if f"{node.module}.{alias.name}" in _RESOURCE_DECORATOR_MODULES:
+                    # from arcade_core import resources
+                    names.add(f"{bound}.{_RESOURCE_DECORATOR}")
+        elif isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name in _RESOURCE_DECORATOR_MODULES:
+                    # import arcade_tdk / import arcade_core.resources
+                    names.add(f"{alias.asname or alias.name}.{_RESOURCE_DECORATOR}")
+    return names
+
+
+def _dotted_name(node: ast.expr) -> str | None:
+    """The dotted path a decorator expression names, or None if it names none.
+
+    Walks the whole attribute chain, so ``@arcade_core.resources.resource`` is
+    matched against the same binding ``import arcade_core.resources`` produces.
+    """
+    parts: list[str] = []
+    while isinstance(node, ast.Attribute):
+        parts.append(node.attr)
+        node = node.value
+    if not isinstance(node, ast.Name):
+        return None
+    parts.append(node.id)
+    return ".".join(reversed(parts))
+
+
+def _is_resource_declaration(
+    node: ast.FunctionDef | ast.AsyncFunctionDef, bindings: set[str]
+) -> bool:
+    for decorator in node.decorator_list:
+        target = decorator.func if isinstance(decorator, ast.Call) else decorator
+        if _dotted_name(target) in bindings:
+            return True
+    return False
+
+
+def get_resources_from_file(filepath: str | Path) -> list[str]:
+    """
+    Retrieve resource declarations from a Python file.
+    """
+    return get_resources_from_ast(load_ast_tree(filepath))
+
+
+def get_resources_from_ast(tree: ast.AST) -> list[str]:
+    """
+    Retrieve resource declarations from Python source code.
+    """
+    bindings = _resource_decorator_names(tree)
+    if not bindings:
+        return []
+
+    return [
+        node.name
+        for node in ast.walk(tree)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        and _is_resource_declaration(node, bindings)
+    ]

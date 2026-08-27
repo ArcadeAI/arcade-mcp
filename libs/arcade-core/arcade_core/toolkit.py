@@ -12,7 +12,7 @@ import toml
 from pydantic import BaseModel, ConfigDict, field_validator
 
 from arcade_core.errors import ToolkitLoadError
-from arcade_core.parse import get_tools_from_file
+from arcade_core.parse import get_resources_from_ast, get_tools_from_ast, load_ast_tree
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +28,14 @@ class Toolkit(BaseModel):
 
     tools: dict[str, list[str]] = defaultdict(list)
     """Mapping of module names to tools"""
+
+    resources: dict[str, list[str]] = defaultdict(list)
+    """Mapping of module names to resource declarations.
+
+    Only modules that declare a resource appear here, so registration imports
+    exactly the modules it needs. ``tools`` records every scanned module,
+    including ones that contribute nothing.
+    """
 
     # Other python package metadata
     version: str
@@ -123,7 +131,7 @@ class Toolkit(BaseModel):
             repository=repo,
         )
 
-        toolkit.tools = cls.tools_from_directory(package_dir, package_name)
+        toolkit.tools, toolkit.resources = cls.scan_directory(package_dir, package_name)
 
         return toolkit
 
@@ -165,7 +173,7 @@ class Toolkit(BaseModel):
             repository=repo,
         )
 
-        toolkit.tools = cls.tools_from_directory(package_dir, package_name)
+        toolkit.tools, toolkit.resources = cls.scan_directory(package_dir, package_name)
 
         return toolkit
 
@@ -285,7 +293,16 @@ class Toolkit(BaseModel):
     @classmethod
     def tools_from_directory(cls, package_dir: Path, package_name: str) -> dict[str, list[str]]:
         """
-        Load a Toolkit from a directory.
+        Load a Toolkit's tools from a directory.
+        """
+        return cls.scan_directory(package_dir, package_name)[0]
+
+    @classmethod
+    def scan_directory(
+        cls, package_dir: Path, package_name: str
+    ) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
+        """
+        Find a Toolkit's tools and resource declarations in a directory.
         """
         # Get all python files in the package directory
         try:
@@ -312,6 +329,7 @@ class Toolkit(BaseModel):
                 current_module_name = main_spec.name
 
         tools: dict[str, list[str]] = {}
+        resources: dict[str, list[str]] = {}
 
         for module_path in modules:
             # Build import path first (needed for module name comparison in skip logic)
@@ -343,12 +361,16 @@ class Toolkit(BaseModel):
                 continue
 
             cls.validate_file(module_path)
-            tools[full_import_path] = get_tools_from_file(str(module_path))
+            tree = load_ast_tree(str(module_path))
+            tools[full_import_path] = get_tools_from_ast(tree)
+            declared_resources = get_resources_from_ast(tree)
+            if declared_resources:
+                resources[full_import_path] = declared_resources
 
         if not tools:
             raise ToolkitLoadError(f"No tools found in package {package_name}")
 
-        return tools
+        return tools, resources
 
     @classmethod
     def validate_file(cls, file_path: str | Path) -> None:

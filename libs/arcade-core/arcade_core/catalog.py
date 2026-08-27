@@ -35,7 +35,7 @@ from arcade_core.errors import (
     ToolOutputSchemaError,
 )
 from arcade_core.metadata import ToolMetadata
-from arcade_core.resources import ResourceRegistry
+from arcade_core.resources import RESOURCE_ATTRIBUTE, ResourceRegistry
 from arcade_core.schema import (
     TOOL_NAME_SEPARATOR,
     FullyQualifiedName,
@@ -351,6 +351,58 @@ class ToolCatalog(BaseModel):
                     raise ToolDefinitionError(
                         f"Error encountered while adding tool {tool_name} from {module_name}. Reason: {e}"
                     ).with_context(tool_name)
+
+        self._add_toolkit_resources(toolkit, version)
+
+    def _add_toolkit_resources(self, toolkit: Toolkit, version: str | None = None) -> None:
+        """Register the resources a toolkit declares, qualifying each URI.
+
+        A resource that fails to register raises, the same as a tool that fails
+        to register. Both are toolkit primitives, and a toolkit that cannot
+        produce something it declares has not loaded.
+        """
+        if toolkit.name.lower() in self._disabled_toolkits:
+            # add_tool applies this per tool, on the normalised toolkit name.
+            # Resources arrive by a different path and would otherwise be
+            # published for a toolkit whose tools are hidden.
+            return
+
+        toolkit_version = version or toolkit.version
+
+        for module_name, resource_names in (toolkit.resources or {}).items():
+            try:
+                module = import_module(module_name)
+            except Exception as e:
+                raise ToolkitLoadError(
+                    f"Could not import module {module_name}. Reason: {e}"
+                ).with_context(toolkit.name) from e
+
+            for resource_name in resource_names:
+                func = getattr(module, resource_name, None)
+                declaration = getattr(func, RESOURCE_ATTRIBUTE, None) if func is not None else None
+                if func is None or declaration is None:
+                    # Discovery resolves @resource against the module's imports, so
+                    # reaching here means this really is one of ours and the marker
+                    # was lost between the decorator and the module attribute.
+                    raise ToolkitLoadError(
+                        f"{module_name}.{resource_name} is declared with @resource but the "
+                        f"module attribute carries no declaration. A decorator above @resource is "
+                        f"replacing the function without copying its attributes; wrap it "
+                        f"with functools.wraps."
+                    ).with_context(toolkit.name)
+
+                try:
+                    self._resources.declare(
+                        declaration,
+                        func(),
+                        toolkit_name=toolkit.name,
+                        toolkit_version=toolkit_version,
+                    )
+                except Exception as e:
+                    raise ToolkitLoadError(
+                        f"Could not register resource {resource_name} from {module_name}. "
+                        f"Reason: {e}"
+                    ).with_context(toolkit.name) from e
 
     def __getitem__(self, name: FullyQualifiedName) -> MaterializedTool:
         return self.get_tool(name)
