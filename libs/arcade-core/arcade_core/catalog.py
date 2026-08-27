@@ -53,6 +53,7 @@ from arcade_core.schema import (
     ValueSchema,
 )
 from arcade_core.toolkit import Toolkit
+from arcade_core.triggers import TriggerType, validate_trigger_types
 from arcade_core.utils import (
     does_function_return_value,
     first_or_none,
@@ -158,6 +159,8 @@ class ToolCatalog(BaseModel):
 
     _disabled_tools: set[str] = set()
     _disabled_toolkits: set[str] = set()
+
+    trigger_types: list[TriggerType] = Field(default_factory=list)
 
     def __init__(self, **data) -> None:  # type: ignore[no-untyped-def]
         super().__init__(**data)
@@ -304,9 +307,15 @@ class ToolCatalog(BaseModel):
             description: Optionally override the description of the toolkit with this parameter
         """
 
-        if str(toolkit).lower() in self._disabled_toolkits:
+        if toolkit.name.lower() in self._disabled_toolkits:
             logger.info(f"Server '{toolkit.name!s}' is disabled and will not be cataloged.")
             return
+
+        combined_trigger_types = [*self.trigger_types, *toolkit.trigger_types]
+        try:
+            validate_trigger_types(combined_trigger_types)
+        except ValueError as e:
+            raise ToolkitLoadError(str(e)).with_context(toolkit.name) from e
 
         for module_name, tool_names in toolkit.tools.items():
             for tool_name in tool_names:
@@ -340,6 +349,8 @@ class ToolCatalog(BaseModel):
                     raise ToolDefinitionError(
                         f"Error encountered while adding tool {tool_name} from {module_name}. Reason: {e}"
                     ).with_context(tool_name)
+
+        self.trigger_types = combined_trigger_types
 
     def __getitem__(self, name: FullyQualifiedName) -> MaterializedTool:
         return self.get_tool(name)
