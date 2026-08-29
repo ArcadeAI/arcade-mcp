@@ -160,6 +160,7 @@ def test_call_tool_route_no_auth_worker(client_no_auth, call_tool_payload):
     result = response.json()
     assert result["success"] is True
     assert result["output"]["value"] == "hello-123"
+    assert "_meta" not in result
 
 
 def test_call_tool_route_returns_private_protected_api_outcome() -> None:

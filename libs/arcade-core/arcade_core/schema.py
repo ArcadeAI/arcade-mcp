@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Literal, Protocol
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_serializer
 
 from arcade_core.errors import ErrorKind
 from arcade_core.metadata import ToolMetadata
@@ -677,3 +677,13 @@ class ToolCallResponse(BaseModel):
     """Whether the tool execution was successful."""
     output: ToolCallOutput | None = None
     """The output of the tool invocation."""
+    meta: dict[str, Any] | None = Field(default=None, alias="_meta")
+    """Private transport metadata for the Engine."""
+
+    @model_serializer(mode="wrap")
+    def _omit_empty_meta(self, handler: Any) -> dict[str, Any]:
+        result: dict[str, Any] = handler(self)
+        if self.meta is None:
+            result.pop("meta", None)
+            result.pop("_meta", None)
+        return result

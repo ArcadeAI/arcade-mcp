@@ -7,6 +7,7 @@ from typing import Any, Callable, ClassVar
 from arcade_core.catalog import ToolCatalog, Toolkit
 from arcade_core.executor import ToolExecutor
 from arcade_core.log_extras import build_tool_error_log_extra, build_tool_error_span_attributes
+from arcade_core.protected_api import build_protected_api_metadata
 from arcade_core.schema import (
     ToolCallRequest,
     ToolCallResponse,
@@ -193,6 +194,7 @@ class BaseWorker(Worker):
             finished_at=datetime.now().isoformat(),
             success=not output.error,
             output=output,
+            **{"_meta": build_protected_api_metadata(output.protected_api_outcome)},
         )
 
     def health_check(self) -> dict[str, Any]:
