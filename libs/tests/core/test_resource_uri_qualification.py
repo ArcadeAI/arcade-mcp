@@ -81,6 +81,36 @@ def test_a_declaration_with_no_scheme_left_is_rejected(scheme):
         qualify("Gmail", "8.1.0", "a.html", scheme=scheme)
 
 
+@pytest.mark.parametrize(
+    "path",
+    [
+        pytest.param("report?v=2.html", id="? opens a query"),
+        pytest.param("report#top.html", id="# opens a fragment"),
+        pytest.param("a\nb.html", id="a newline"),
+        pytest.param("a\tb.html", id="a tab"),
+        pytest.param("a\x00b.html", id="a NUL"),
+    ],
+)
+def test_a_path_that_breaks_the_uri_is_rejected(path):
+    """These fail at the point of reading, a long way from the declaration."""
+    with pytest.raises(InvalidResourcePathError):
+        qualify("Gmail", "8.1.0", path)
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        pytest.param("café.html", id="non-ascii"),
+        pytest.param("a%20b.html", id="already percent-encoded"),
+        pytest.param("a-b_c.d.html", id="punctuation a filename actually uses"),
+        pytest.param("v2/report.html", id="a subdirectory"),
+    ],
+)
+def test_a_path_a_toolkit_would_really_write_is_accepted(path):
+    """The check above must not become a reason to reject ordinary filenames."""
+    assert qualify("Gmail", "8.1.0", path).endswith(path)
+
+
 @pytest.mark.parametrize("path", ["../secrets", "ui/../../etc/passwd", "./a.html"])
 def test_a_traversing_path_is_rejected(path):
     with pytest.raises(InvalidResourcePathError):
