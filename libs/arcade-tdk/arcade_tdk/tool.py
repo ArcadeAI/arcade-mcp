@@ -4,6 +4,7 @@ import logging
 from typing import Any, Callable, TypeVar
 
 from arcade_core.metadata import ToolMetadata
+from arcade_core.protected_api import PROTECTED_API_METADATA_NAMESPACE
 
 from arcade_tdk.auth import ToolAuthorization
 from arcade_tdk.error_adapters import ErrorAdapter
@@ -139,17 +140,25 @@ def tool(
     requires_metadata: list[str] | None = None,
     adapters: list[ErrorAdapter] | None = None,
     metadata: ToolMetadata | None = None,
+    protected_api: bool = False,
 ) -> Callable:
     def decorator(func: Callable) -> Callable:
         func_name = str(getattr(func, "__name__", None))
         tool_name = name or snake_to_pascal_case(func_name)
+        tool_metadata = metadata
+        if protected_api:
+            extras = dict(metadata.extras or {}) if metadata else {}
+            extras[PROTECTED_API_METADATA_NAMESPACE] = True
+            tool_metadata = (metadata or ToolMetadata()).model_copy(
+                update={"extras": extras}, deep=True
+            )
 
         func.__tool_name__ = tool_name  # type: ignore[attr-defined]
         func.__tool_description__ = desc or inspect.cleandoc(func.__doc__ or "")  # type: ignore[attr-defined]
         func.__tool_requires_auth__ = requires_auth  # type: ignore[attr-defined]
         func.__tool_requires_secrets__ = requires_secrets  # type: ignore[attr-defined]
         func.__tool_requires_metadata__ = requires_metadata  # type: ignore[attr-defined]
-        func.__tool_metadata__ = metadata  # type: ignore[attr-defined]
+        func.__tool_metadata__ = tool_metadata  # type: ignore[attr-defined]
 
         adapter_chain = _build_adapter_chain(adapters, requires_auth)
 
