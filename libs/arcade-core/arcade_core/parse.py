@@ -1,4 +1,5 @@
 import ast
+from collections.abc import Iterator
 from pathlib import Path
 
 
@@ -61,14 +62,35 @@ def get_tools_from_file(filepath: str | Path) -> list[str]:
     return get_tools_from_ast(tree)
 
 
+def _module_scope_functions(node: ast.AST) -> Iterator[ast.FunctionDef | ast.AsyncFunctionDef]:
+    """The functions a module can bind as its own attributes.
+
+    Registration resolves a declaration with getattr on the imported module, so
+    a method or a function nested inside another is not something it can reach.
+    A def and a class open a new scope and stop the descent. Everything else is
+    followed, an if, a try, a with, a loop and a match case alike, and naming
+    none of them individually is the point: a def only appears in a statement
+    list, so descending through expressions cannot turn up a false one, and a
+    statement this misses is a declaration dropped with nothing raised.
+    """
+    for child in ast.iter_child_nodes(node):
+        if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            yield child
+        elif not isinstance(child, ast.ClassDef):
+            yield from _module_scope_functions(child)
+
+
 def get_tools_from_ast(tree: ast.AST) -> list[str]:
     """
     Retrieve tools from Python source code.
     """
-    tools = []
-    for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            tool_name = get_function_name_if_decorated(node)
-            if tool_name:
-                tools.append(tool_name)
-    return tools
+    # One name is one module attribute however many times it is written, so a
+    # module defining the same tool in both arms of an if or a try/except
+    # contributes it once.
+    return list(
+        dict.fromkeys(
+            name
+            for node in _module_scope_functions(tree)
+            if (name := get_function_name_if_decorated(node))
+        )
+    )

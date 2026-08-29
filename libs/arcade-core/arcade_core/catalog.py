@@ -312,7 +312,17 @@ class ToolCatalog(BaseModel):
             for tool_name in tool_names:
                 try:
                     module = import_module(module_name)
-                    tool_func = getattr(module, tool_name)
+                    tool_func = getattr(module, tool_name, None)
+                    if tool_func is None:
+                        # Discovery reads the source, so a tool the module guards
+                        # behind something false at import time is found there and
+                        # absent here. Skipping is what stops one unreachable
+                        # declaration taking the rest of the toolkit offline.
+                        logger.warning(
+                            f"{module_name}.{tool_name} is decorated with @tool but the module "
+                            f"does not define it. Skipping it."
+                        )
+                        continue
                     self.add_tool(
                         tool_func,
                         toolkit,

@@ -1,3 +1,4 @@
+from types import ModuleType
 from typing import Annotated, Union
 from unittest.mock import MagicMock, patch
 
@@ -238,6 +239,30 @@ def test_add_toolkit_type_error():
         # Assert that ToolDefinitionError is raised
         with pytest.raises(ToolDefinitionError):
             catalog.add_toolkit(mock_toolkit)
+
+
+def test_add_toolkit_skips_a_tool_the_module_does_not_define(caplog):
+    """Discovery reads the source, so a tool behind a false guard is found there and absent here."""
+    catalog = ToolCatalog()
+    mock_toolkit = Toolkit(
+        name="mock_toolkit",
+        description="A mock toolkit",
+        version="0.0.1",
+        package_name="mock_toolkit",
+    )
+    mock_toolkit.tools = {"mock_module": ["unreachable", "sample_tool"]}
+
+    # A real module object, because a MagicMock answers every getattr and would
+    # never let the missing-attribute path run.
+    module = ModuleType("mock_module")
+    module.__file__ = "mock_module.py"
+    module.sample_tool = sample_tool  # type: ignore[attr-defined]
+
+    with patch("arcade_core.catalog.import_module", return_value=module):
+        catalog.add_toolkit(mock_toolkit)
+
+    assert len(catalog) == 1, "one unreachable tool must not take the toolkit's other tools with it"
+    assert "mock_module.unreachable" in caplog.text
 
 
 def test_add_toolkit_import_module_error():
