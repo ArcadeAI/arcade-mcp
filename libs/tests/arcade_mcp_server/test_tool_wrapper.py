@@ -13,12 +13,11 @@ import inspect
 
 import pytest
 from arcade_core.metadata import ToolMetadata
+from arcade_mcp_server.decorators import tool
+from arcade_mcp_server.types import ToolExecution
 from arcade_tdk import tool as _arcade_tdk_tool
 from arcade_tdk.auth import OAuth2
 from arcade_tdk.errors import ToolRuntimeError
-
-from arcade_mcp_server.decorators import tool
-from arcade_mcp_server.types import ToolExecution
 
 
 class TestBareAndParameterizedForms:
@@ -162,6 +161,15 @@ class TestDeprecatedForwarding:
             return "x"
 
         assert my_old_tool.__tool_deprecation_message__ == "use my_new_tool instead"
+
+
+class TestProtectedAPICapabilityForwarding:
+    def test_protected_api_declaration_is_forwarded(self):
+        @tool(protected_api=True)
+        def my_tool() -> str:
+            return "ok"
+
+        assert my_tool.__tool_metadata__.extras == {"arcade.token_exchange.v1": True}
 
 
 class TestSignatureMirror:

@@ -32,6 +32,7 @@ def tool(
     requires_metadata: list[str] | None = None,
     adapters: list[ErrorAdapter] | None = None,
     metadata: ToolMetadata | None = None,
+    protected_api: bool = False,
     execution: ToolExecution | None = None,
 ) -> Callable:
     """MCP-aware ``@tool`` decorator.
@@ -54,6 +55,7 @@ def tool(
             requires_metadata=requires_metadata,
             adapters=adapters,
             metadata=metadata,
+            protected_api=protected_api,
         )
         # Write on the error-handler-wrapped callable arcade-tdk returns.
         # Both read sites (``server.py`` for taskSupport policy and
