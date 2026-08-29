@@ -343,8 +343,42 @@ def test_a_declaration_guarded_by_a_module_level_block_is_discovered():
         "try:\n    pass\nexcept ImportError:\n    @resource(path='a.html')\n    def a(): ...",
         "try:\n    pass\nfinally:\n    @resource(path='a.html')\n    def a(): ...",
         "for _ in range(1):\n    @resource(path='a.html')\n    def a(): ...",
+        "with open(__file__):\n    @resource(path='a.html')\n    def a(): ...",
+        # A match case body hangs off `cases`, which is not a field any of the
+        # others use. Walking every child rather than a list of field names is
+        # what keeps a statement like this from going missing.
+        "match 1:\n    case 1:\n        @resource(path='a.html')\n        def a(): ...",
     ):
         assert get_resources_from_ast(_ast.parse(header + source)) == ["a"], source
+
+
+def test_a_name_written_in_two_branches_is_one_declaration():
+    """Only one arm binds at import, so counting both would fail a toolkit with no duplicate."""
+    from arcade_core.parse import get_resources_from_ast
+    import ast as _ast
+
+    header = "from arcade_tdk import resource\n\n"
+    for source in (
+        "if True:\n    @resource(path='a.html')\n    def a(): ...\n"
+        "else:\n    @resource(path='a.html')\n    def a(): ...",
+        "try:\n    @resource(path='a.html')\n    def a(): ...\n"
+        "except ImportError:\n    @resource(path='a.html')\n    def a(): ...",
+    ):
+        assert get_resources_from_ast(_ast.parse(header + source)) == ["a"], source
+
+
+def test_two_declarations_sharing_a_path_are_still_both_found():
+    """Deduplication is by name, so it must not hide a real duplicate from the registry."""
+    from arcade_core.parse import get_resources_from_ast
+    import ast as _ast
+
+    source = (
+        "from arcade_tdk import resource\n\n"
+        "@resource(path='a.html')\ndef a(): ...\n\n"
+        "@resource(path='a.html')\ndef b(): ..."
+    )
+
+    assert get_resources_from_ast(_ast.parse(source)) == ["a", "b"]
 
 
 def test_a_declaration_the_module_never_binds_is_skipped_not_fatal(widgets_package, caplog):

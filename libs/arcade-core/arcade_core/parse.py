@@ -156,17 +156,17 @@ def _module_scope_functions(node: ast.AST) -> Iterator[ast.FunctionDef | ast.Asy
 
     Registration resolves a declaration with getattr on the imported module, so
     a method or a function nested inside another is not something it can reach.
-    An if, try, with or loop body stays in module scope and is followed into; a
-    def or a class opens a new one and is not.
+    A def and a class open a new scope and stop the descent. Everything else is
+    followed, an if, a try, a with, a loop and a match case alike, and naming
+    none of them individually is the point: a def only appears in a statement
+    list, so descending through expressions cannot turn up a false one, and a
+    statement this misses is a declaration dropped with nothing raised.
     """
-    for field in ("body", "orelse", "finalbody"):
-        for stmt in getattr(node, field, []):
-            if isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                yield stmt
-            elif not isinstance(stmt, ast.ClassDef):
-                yield from _module_scope_functions(stmt)
-    for handler in getattr(node, "handlers", []):
-        yield from _module_scope_functions(handler)
+    for child in ast.iter_child_nodes(node):
+        if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            yield child
+        elif not isinstance(child, ast.ClassDef):
+            yield from _module_scope_functions(child)
 
 
 def get_resources_from_ast(tree: ast.AST) -> list[str]:
@@ -177,8 +177,15 @@ def get_resources_from_ast(tree: ast.AST) -> list[str]:
     if not bindings:
         return []
 
-    return [
-        node.name
-        for node in _module_scope_functions(tree)
-        if _is_resource_declaration(node, bindings)
-    ]
+    # One name is one module attribute however many times it is written. A
+    # module that defines the same declaration in both arms of an if or a
+    # try/except contributes it once; counting it twice would register the same
+    # function twice and trip the duplicate-path check on a toolkit that has no
+    # duplicate.
+    return list(
+        dict.fromkeys(
+            node.name
+            for node in _module_scope_functions(tree)
+            if _is_resource_declaration(node, bindings)
+        )
+    )
