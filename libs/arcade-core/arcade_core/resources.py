@@ -89,6 +89,21 @@ def qualify(toolkit_name: str, toolkit_version: str, path: str, scheme: str = UI
     if any(segment in (".", "..") for segment in segments):
         raise InvalidResourcePathError(f"a resource path may not traverse: {path!r}")
 
+    # A path may not carry a character that changes what the URI means or stops
+    # it being one. "?" opens a query and "#" opens a fragment, so either would
+    # leave the resource registered under a string whose path component is
+    # shorter than the author wrote; a control character makes the URI fail to
+    # parse at all. Both fail at the point of reading, far from the declaration.
+    for char in path:
+        if char in "?#":
+            raise InvalidResourcePathError(
+                f"a resource path may not contain {char!r}, which starts a new URI component: {path!r}"
+            )
+        if not char.isprintable():
+            raise InvalidResourcePathError(
+                f"a resource path may not contain a control character: {path!r}"
+            )
+
     return f"{scheme}://{toolkit_name}/{toolkit_version}/{'/'.join(segments)}"
 
 
