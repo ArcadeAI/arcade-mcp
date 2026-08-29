@@ -304,6 +304,43 @@ class TestMCPServer:
         assert "Echo: Hello" in response.result.structuredContent["result"]
 
     @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ("outcome", "value"),
+        [
+            ("accepted", {"message": "ok"}),
+            ("authorization_denied", None),
+            ("unavailable", None),
+        ],
+    )
+    async def test_handle_call_tool_returns_private_protected_api_outcome(
+        self,
+        mcp_server,
+        outcome,
+        value,
+    ):
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=3,
+            method="tools/call",
+            params={"name": "TestToolkit.test_tool", "arguments": {"text": "Hello"}},
+        )
+
+        with patch(
+            "arcade_mcp_server.server.ToolExecutor.run",
+            new=AsyncMock(
+                return_value=ToolCallOutput(value=value, protected_api_outcome=outcome)
+            ),
+        ):
+            response = await mcp_server._handle_call_tool(message)
+
+        assert isinstance(response, JSONRPCResponse)
+        assert isinstance(response.result, CallToolResult)
+        assert response.result.meta == {
+            "arcade.token_exchange.v1": {"protected_api_outcome": outcome}
+        }
+        assert outcome not in str(response.result.content)
+
+    @pytest.mark.asyncio
     async def test_handle_call_tool_with_requires_auth(self, mcp_server):
         """Test tool call request handling with authorization."""
 
