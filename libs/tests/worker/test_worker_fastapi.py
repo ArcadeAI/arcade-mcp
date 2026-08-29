@@ -31,9 +31,10 @@ def error_throwing_tool(
 @tool()
 def protected_api_tool_fastapi(
     context: ToolContext,
+    outcome: Annotated[str, "Protected API outcome"],
 ) -> Annotated[dict[str, str], "Protected API response"]:
-    """Return an accepted protected API result."""
-    context.protected_api_outcome = "accepted"
+    """Return a protected API result."""
+    context.protected_api_outcome = outcome
     return {"message": "ok"}
 
 
@@ -163,7 +164,8 @@ def test_call_tool_route_no_auth_worker(client_no_auth, call_tool_payload):
     assert "_meta" not in result
 
 
-def test_call_tool_route_returns_private_protected_api_outcome() -> None:
+@pytest.mark.parametrize("outcome", ["accepted", "authorization_denied", "unavailable"])
+def test_call_tool_route_returns_private_protected_api_outcome(outcome: str) -> None:
     app = FastAPI()
     worker = FastAPIWorker(app=app, disable_auth=True)
     worker.register_tool(protected_api_tool_fastapi, toolkit_name="protected_api_kit")
@@ -171,6 +173,7 @@ def test_call_tool_route_returns_private_protected_api_outcome() -> None:
     request = ToolCallRequest(
         execution_id="protected-api-exec",
         tool=ToolReference(toolkit="ProtectedApiKit", name="ProtectedApiToolFastapi"),
+        inputs={"outcome": outcome},
     )
 
     response = client.post("/worker/tools/invoke", json=request.model_dump())
@@ -178,7 +181,7 @@ def test_call_tool_route_returns_private_protected_api_outcome() -> None:
     assert response.status_code == 200
     result = response.json()
     assert result["_meta"] == {
-        "arcade.token_exchange.v1": {"protected_api_outcome": "accepted"}
+        "arcade.token_exchange.v1": {"protected_api_outcome": outcome}
     }
     assert "protected_api" not in str(result["output"])
 
