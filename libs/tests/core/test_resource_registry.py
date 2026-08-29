@@ -108,7 +108,18 @@ def test_cursors_round_trip_and_stay_opaque():
     assert "4321" not in encode_cursor(4321)
 
 
-@pytest.mark.parametrize("bad", ["not-base64!!", "", "b2Zmc2V0Oi0x", "cGxhaW4="])
+@pytest.mark.parametrize(
+    "bad",
+    [
+        "not-base64!!",
+        "",
+        "b2Zmc2V0Oi0x",  # offset:-1
+        "cGxhaW4=",  # plain
+        "b2Zmc2V0OmFiYw",  # offset:abc
+        "b2Zmc2V0OjEuNQ",  # offset:1.5
+        "b2Zmc2V0Og",  # offset:
+    ],
+)
 def test_a_cursor_we_did_not_issue_is_rejected(bad):
     registry = ResourceRegistry()
 
@@ -151,3 +162,41 @@ def test_a_nonpositive_page_size_is_refused(bad):
     registry = ResourceRegistry()
     with pytest.raises(ValueError):
         registry.page_size = bad
+
+
+def test_membership_is_by_uri():
+    registry = ResourceRegistry()
+    registry.add(_resource("ui://Gmail/8.1.0/draft.html"), "<!DOCTYPE html>")
+
+    assert "ui://Gmail/8.1.0/draft.html" in registry
+    assert "ui://Gmail/8.1.0/missing.html" not in registry
+    assert 42 not in registry
+
+
+def test_contents_that_are_neither_text_nor_bytes_are_refused():
+    registry = ResourceRegistry()
+
+    with pytest.raises(TypeError) as caught:
+        registry.add(_resource("ui://Gmail/8.1.0/draft.html"), {"not": "bytes"})
+
+    assert "must be str or bytes" in str(caught.value)
+    assert "dict" in str(caught.value)
+    assert "ui://Gmail/8.1.0/draft.html" not in registry
+
+
+def test_a_coroutine_is_refused_with_the_reason_it_cannot_work():
+    """An async resource function reaches here already called, so the value is a coroutine."""
+
+    async def build_it() -> str:
+        return "<!DOCTYPE html>"
+
+    coro = build_it()
+    registry = ResourceRegistry()
+
+    try:
+        with pytest.raises(TypeError) as caught:
+            registry.add(_resource("ui://Gmail/8.1.0/draft.html"), coro)
+    finally:
+        coro.close()
+
+    assert "cannot return a coroutine" in str(caught.value)
