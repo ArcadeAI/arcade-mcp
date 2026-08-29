@@ -74,6 +74,13 @@ def test_a_declaration_missing_an_identity_segment_is_rejected(toolkit, version,
         qualify(toolkit, version, path)
 
 
+@pytest.mark.parametrize("scheme", ["", ":", "//", "://"])
+def test_a_declaration_with_no_scheme_left_is_rejected(scheme):
+    """The separator is stripped before the check, so "://" is as empty as ""."""
+    with pytest.raises(InvalidResourcePathError):
+        qualify("Gmail", "8.1.0", "a.html", scheme=scheme)
+
+
 @pytest.mark.parametrize("path", ["../secrets", "ui/../../etc/passwd", "./a.html"])
 def test_a_traversing_path_is_rejected(path):
     with pytest.raises(InvalidResourcePathError):
