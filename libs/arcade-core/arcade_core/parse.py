@@ -1,4 +1,5 @@
 import ast
+from collections.abc import Iterator
 from pathlib import Path
 
 
@@ -150,6 +151,24 @@ def get_resources_from_file(filepath: str | Path) -> list[str]:
     return get_resources_from_ast(load_ast_tree(filepath))
 
 
+def _module_scope_functions(node: ast.AST) -> Iterator[ast.FunctionDef | ast.AsyncFunctionDef]:
+    """The functions a module can bind as its own attributes.
+
+    Registration resolves a declaration with getattr on the imported module, so
+    a method or a function nested inside another is not something it can reach.
+    An if, try, with or loop body stays in module scope and is followed into; a
+    def or a class opens a new one and is not.
+    """
+    for field in ("body", "orelse", "finalbody"):
+        for stmt in getattr(node, field, []):
+            if isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                yield stmt
+            elif not isinstance(stmt, ast.ClassDef):
+                yield from _module_scope_functions(stmt)
+    for handler in getattr(node, "handlers", []):
+        yield from _module_scope_functions(handler)
+
+
 def get_resources_from_ast(tree: ast.AST) -> list[str]:
     """
     Retrieve resource declarations from Python source code.
@@ -160,7 +179,6 @@ def get_resources_from_ast(tree: ast.AST) -> list[str]:
 
     return [
         node.name
-        for node in ast.walk(tree)
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
-        and _is_resource_declaration(node, bindings)
+        for node in _module_scope_functions(tree)
+        if _is_resource_declaration(node, bindings)
     ]

@@ -44,6 +44,17 @@ def dashboard() -> str:
 
 # A decorator from somewhere else that happens to be called "resource". The AST
 # scan matches on the attribute name, so this reaches registration.
+# Module scope in the source, and never bound when the module is imported.
+GUARDED_MODULE = """
+from arcade_tdk import resource
+
+if __name__ == "__main__":
+
+    @resource(path="unreachable.html", mime_type="text/html")
+    def unreachable() -> str:
+        return "<html></html>"
+"""
+
 LOOKALIKE_MODULE = """
 class _App:
     def resource(self, uri, **kwargs):
@@ -223,10 +234,10 @@ def test_the_declaration_name_defaults_to_the_function_name():
     assert getattr(draft_review, RESOURCE_ATTRIBUTE).name == "draft_review"
 
 
-
 def test_the_decorator_refuses_an_async_function():
     """Registration calls the function synchronously, so an async one cannot work."""
     with pytest.raises(TypeError) as exc_info:
+
         @resource(path="a.html", mime_type="text/html")
         async def a() -> str:
             return "<html>"
@@ -301,6 +312,57 @@ def test_the_decorator_is_found_through_its_module(widgets_package):
         assert get_resources_from_ast(_ast.parse(source)) == ["a"], source
 
 
+def test_only_module_level_declarations_are_discovered():
+    """Registration reaches a declaration with getattr on the module, and nothing else."""
+    from arcade_core.parse import get_resources_from_ast
+    import ast as _ast
+
+    header = "from arcade_tdk import resource\n\n"
+    for source in (
+        # A method is an attribute of the class, not of the module.
+        "class Widgets:\n    @resource(path='a.html')\n    def a(self): ...",
+        # A nested function is a local of its enclosing one.
+        "def outer():\n    @resource(path='a.html')\n    def a(): ...\n    return a",
+        "async def outer():\n    @resource(path='a.html')\n    def a(): ...",
+        # A class nested in a function is doubly out of reach.
+        "def outer():\n    class Inner:\n        @resource(path='a.html')\n        def a(self): ...",
+    ):
+        assert get_resources_from_ast(_ast.parse(header + source)) == [], source
+
+
+def test_a_declaration_guarded_by_a_module_level_block_is_discovered():
+    """if, try and with keep module scope, so the name really can become an attribute."""
+    from arcade_core.parse import get_resources_from_ast
+    import ast as _ast
+
+    header = "from arcade_tdk import resource\n\n"
+    for source in (
+        "if True:\n    @resource(path='a.html')\n    def a(): ...",
+        "if False:\n    pass\nelse:\n    @resource(path='a.html')\n    def a(): ...",
+        "try:\n    @resource(path='a.html')\n    def a(): ...\nexcept ImportError:\n    pass",
+        "try:\n    pass\nexcept ImportError:\n    @resource(path='a.html')\n    def a(): ...",
+        "try:\n    pass\nfinally:\n    @resource(path='a.html')\n    def a(): ...",
+        "for _ in range(1):\n    @resource(path='a.html')\n    def a(): ...",
+    ):
+        assert get_resources_from_ast(_ast.parse(header + source)) == ["a"], source
+
+
+def test_a_declaration_the_module_never_binds_is_skipped_not_fatal(widgets_package, caplog):
+    """A __main__ guard is module scope in the source and absent after an import."""
+    (widgets_package / "arcade_widgets" / "guarded.py").write_text(
+        textwrap.dedent(GUARDED_MODULE), encoding="utf-8"
+    )
+    toolkit = Toolkit.from_directory(widgets_package)
+    assert "unreachable" in toolkit.resources["arcade_widgets.guarded"]
+
+    catalog = ToolCatalog()
+    catalog.add_toolkit(toolkit)
+
+    assert len(catalog) == 1, "the toolkit's tools must survive an unreachable declaration"
+    assert len(catalog.resources) == 1, "and its reachable resource must still register"
+    assert "arcade_widgets.guarded.unreachable" in caplog.text
+
+
 def test_a_disabled_toolkit_registers_no_resources(widgets_package, monkeypatch):
     """Hiding a toolkit's tools must not leave its resources on the worker."""
     toolkit = Toolkit.from_directory(widgets_package)
@@ -325,7 +387,6 @@ def test_a_decorator_we_do_not_export_is_still_refused():
         "from somewhere_else import *\n\n@resource(path='a.html')\ndef a(): ...",
     ):
         assert get_resources_from_ast(_ast.parse(source)) == [], source
-
 
 
 def test_two_resources_sharing_a_path_fail_the_toolkit(widgets_package):
