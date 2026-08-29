@@ -121,8 +121,10 @@ class ListResourcesComponent(WorkerComponent):
             description="List the resources this worker serves",
             summary="List resources",
             tags=["Arcade"],
-            # Optional fields are omitted rather than sent as null, which is what
-            # the format specifies. FastAPI would otherwise emit one for every.
+            # An absent optional field is omitted rather than sent as null,
+            # because a null is not the same thing as an unset one to a client
+            # reading this. FastAPI serializes every unset field as null without
+            # it.
             response_model_exclude_none=True,
         )
 
