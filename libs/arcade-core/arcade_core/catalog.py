@@ -380,11 +380,21 @@ class ToolCatalog(BaseModel):
 
             for resource_name in resource_names:
                 func = getattr(module, resource_name, None)
-                declaration = getattr(func, RESOURCE_ATTRIBUTE, None) if func is not None else None
-                if func is None or declaration is None:
-                    # Discovery resolves @resource against the module's imports, so
-                    # reaching here means this really is one of ours and the marker
-                    # was lost between the decorator and the module attribute.
+                if func is None:
+                    # Discovery reads the source, so a declaration the module
+                    # guards behind something false at import time is found there
+                    # and absent here. Skipping is what stops one unreachable
+                    # declaration taking every tool in the toolkit offline.
+                    logger.warning(
+                        f"{module_name}.{resource_name} is declared with @resource but the module "
+                        f"does not define it. Skipping it."
+                    )
+                    continue
+
+                declaration = getattr(func, RESOURCE_ATTRIBUTE, None)
+                if declaration is None:
+                    # The attribute is here and the marker is not, so something
+                    # replaced the function after @resource ran.
                     raise ToolkitLoadError(
                         f"{module_name}.{resource_name} is declared with @resource but the "
                         f"module attribute carries no declaration. A decorator above @resource is "
