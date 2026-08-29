@@ -327,6 +327,24 @@ class TestToolDecoratorWithMetadata:
         assert hasattr(my_tool, "__tool_metadata__")
         assert my_tool.__tool_metadata__.classification.service_domains == [ServiceDomain.MESSAGING]
 
+    def test_protected_api_declaration_adds_capability_without_mutating_metadata(self):
+        metadata = ToolMetadata(extras={"owner": "payments"})
+
+        @tool(desc="Call a protected API", metadata=metadata, protected_api=True)
+        def protected_tool() -> str:
+            return "ok"
+
+        definition = ToolCatalog.create_tool_definition(
+            protected_tool, toolkit_name="TestToolkit", toolkit_version="1.0.0"
+        )
+
+        assert definition.metadata is not None
+        assert definition.metadata.extras == {
+            "owner": "payments",
+            "arcade.token_exchange.v1": True,
+        }
+        assert metadata.extras == {"owner": "payments"}
+
     def test_decorator_accepts_sales_intelligence_domain(self):
         """SALES_INTELLIGENCE classifies sales-intelligence / prospecting services (e.g. Apollo)."""
         assert ServiceDomain.SALES_INTELLIGENCE.value == "sales_intelligence"
