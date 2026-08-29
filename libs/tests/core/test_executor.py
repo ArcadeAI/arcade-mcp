@@ -117,7 +117,7 @@ def dict_output_tool() -> Annotated[dict, "Returns a plain dict"]:
 @tool
 def protected_api_output_tool(context: ToolContext) -> Annotated[str, "Protected API output"]:
     """Return a value with a private protected API outcome."""
-    setattr(context, "protected_api_outcome", "accepted")
+    context.protected_api_outcome = "accepted"
     return "ok"
 
 

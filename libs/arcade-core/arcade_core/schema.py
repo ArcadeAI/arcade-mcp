@@ -421,6 +421,9 @@ class ToolContext(BaseModel):
     user_id: str | None = None
     """The user ID for the tool invocation (if any)."""
 
+    protected_api_outcome: str | None = Field(default=None, exclude=True, repr=False)
+    """Private protected-API outcome recorded during this invocation."""
+
     model_config = {"arbitrary_types_allowed": True}
 
     def set_secret(self, key: str, value: str) -> None:
@@ -645,6 +648,9 @@ class ToolCallOutput(BaseModel):
     """The error that occurred during the tool invocation."""
     requires_authorization: ToolCallRequiresAuthorization | None = None
     """The authorization requirements for the tool invocation."""
+
+    protected_api_outcome: str | None = Field(default=None, exclude=True, repr=False)
+    """Private protected-API outcome for transport projection."""
 
     model_config = {
         "json_schema_extra": {

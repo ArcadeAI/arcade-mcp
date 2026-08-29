@@ -26,6 +26,15 @@ class ProtectedAPIResult(Generic[T]):
     outcome: ProtectedAPIOutcome
 
 
+def _result(
+    context: ToolContext,
+    value: T | None,
+    outcome: ProtectedAPIOutcome,
+) -> ProtectedAPIResult[T]:
+    context.protected_api_outcome = outcome.value
+    return ProtectedAPIResult(value=value, outcome=outcome)
+
+
 async def call_protected_api(
     context: ToolContext,
     method: str,
@@ -61,18 +70,15 @@ async def call_protected_api(
                 json=json_body,
             )
     except (httpx.RequestError, httpx.InvalidURL):
-        return ProtectedAPIResult(value=None, outcome=ProtectedAPIOutcome.UNAVAILABLE)
+        return _result(context, None, ProtectedAPIOutcome.UNAVAILABLE)
 
     if response.status_code in (401, 403):
-        return ProtectedAPIResult(
-            value=None,
-            outcome=ProtectedAPIOutcome.AUTHORIZATION_DENIED,
-        )
+        return _result(context, None, ProtectedAPIOutcome.AUTHORIZATION_DENIED)
     if not 200 <= response.status_code < 300:
-        return ProtectedAPIResult(value=None, outcome=ProtectedAPIOutcome.UNAVAILABLE)
+        return _result(context, None, ProtectedAPIOutcome.UNAVAILABLE)
 
     try:
         value = response.json()
     except ValueError:
         value = response.text
-    return ProtectedAPIResult(value=value, outcome=ProtectedAPIOutcome.ACCEPTED)
+    return _result(context, value, ProtectedAPIOutcome.ACCEPTED)
