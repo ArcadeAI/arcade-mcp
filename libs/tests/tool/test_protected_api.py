@@ -5,7 +5,6 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
 import pytest
-
 from arcade_core.schema import ToolAuthorizationContext, ToolContext
 from arcade_tdk.protected_api import ProtectedAPIOutcome, call_protected_api
 
@@ -26,7 +25,7 @@ def protected_api_server() -> Generator[tuple[str, list[dict[str, Any]]], None, 
             self.end_headers()
             self.wfile.write(json.dumps({"message": "accepted"}).encode())
 
-        def log_message(self, format: str, *args: Any) -> None:
+        def log_message(self, format_string: str, *args: Any) -> None:
             pass
 
     server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
@@ -57,9 +56,8 @@ async def test_call_protected_api_makes_one_authenticated_attempt(
     expected_value: Any,
 ) -> None:
     base_url, requests = protected_api_server
-    context = ToolContext(
-        authorization=ToolAuthorizationContext(token="target-token-sentinel")
-    )
+    sentinel = "target-token-sentinel"
+    context = ToolContext(authorization=ToolAuthorizationContext(token=sentinel))
 
     result = await call_protected_api(
         context,
