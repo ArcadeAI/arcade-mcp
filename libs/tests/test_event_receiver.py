@@ -9,7 +9,7 @@ from standardwebhooks.webhooks import WebhookVerificationError
 
 
 def load_example() -> ModuleType:
-    path = Path(__file__).parents[1] / "examples" / "event_receiver.py"
+    path = Path(__file__).parents[2] / "examples" / "event_receiver.py"
     spec = importlib.util.spec_from_file_location("event_receiver", path)
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)

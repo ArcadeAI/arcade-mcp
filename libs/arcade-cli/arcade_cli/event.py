@@ -103,9 +103,7 @@ def listen(
 ) -> None:
     try:
         resolve_local_target(forward_to)
-        org_id, project_id = _resolve_listen_context(
-            org_id, project_id, source_type, source_id
-        )
+        org_id, project_id = _resolve_listen_context(org_id, project_id, source_type, source_id)
 
         filters = {
             "event_type": event_type,
@@ -130,9 +128,10 @@ def listen(
         console.print(f"Session signing secret: {secret}", style="bold yellow")
         console.print("This secret and cursor exist only for this process. Press Ctrl-C to stop.")
 
-        with httpx.Client() as engine_client, httpx.Client(
-            trust_env=False, follow_redirects=False
-        ) as local_client:
+        with (
+            httpx.Client() as engine_client,
+            httpx.Client(trust_env=False, follow_redirects=False) as local_client,
+        ):
             listen_for_events(
                 feed_url,
                 get_auth_headers(),
@@ -288,7 +287,7 @@ def listen_for_events(
             continue
 
         items, next_cursor = _parse_event_feed_response(response)
-        for event, item_cursor in items:
+        for event in items:
             try:
                 attempts = forward_until_accepted(
                     event,
@@ -301,7 +300,6 @@ def listen_for_events(
                 )
             except KeyboardInterrupt as exc:
                 raise EventListenInterrupted(str(event.get("id", "unknown event"))) from exc
-            cursor = item_cursor
             on_forwarded(event, attempts)
 
         cursor = next_cursor
@@ -310,7 +308,7 @@ def listen_for_events(
 
 def _parse_event_feed_response(
     response: httpx.Response,
-) -> tuple[list[tuple[dict[str, Any], str]], str]:
+) -> tuple[list[dict[str, Any]], str]:
     try:
         payload = response.json()
     except ValueError as exc:
@@ -322,7 +320,7 @@ def _parse_event_feed_response(
     if not isinstance(raw_items, list) or not isinstance(next_cursor, str):
         raise EventFeedError("Engine returned an invalid event feed response")
 
-    items: list[tuple[dict[str, Any], str]] = []
+    items: list[dict[str, Any]] = []
     for item in raw_items:
         if not isinstance(item, dict):
             raise EventFeedError("Engine returned an invalid event feed item")
@@ -337,7 +335,7 @@ def _parse_event_feed_response(
             or not isinstance(item_cursor, str)
         ):
             raise EventFeedError("Engine returned an invalid event feed item")
-        items.append((event, item_cursor))
+        items.append(event)
     return items, next_cursor
 
 

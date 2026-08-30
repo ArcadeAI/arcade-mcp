@@ -104,15 +104,13 @@ def test_forward_until_accepted_retries_one_event_serially_with_a_stable_identit
     requests: list[tuple[str, bytes, dict[str, str], float, bool]] = []
 
     def post(url: str, **kwargs: object) -> httpx.Response:
-        requests.append(
-            (
-                url,
-                kwargs["content"],
-                kwargs["headers"],
-                kwargs["timeout"],
-                kwargs["follow_redirects"],  # type: ignore[arg-type]
-            )
-        )
+        requests.append((
+            url,
+            kwargs["content"],
+            kwargs["headers"],
+            kwargs["timeout"],
+            kwargs["follow_redirects"],  # type: ignore[arg-type]
+        ))
         outcome = outcomes.pop(0)
         if isinstance(outcome, Exception):
             raise outcome
@@ -159,10 +157,14 @@ def test_listen_for_events_reconnects_from_the_last_acknowledged_cursor_in_order
         httpx.Response(
             200,
             json={
-                "items": [
-                    {"event": event_one, "cursor": "cursor-1"},
-                    {"event": event_two, "cursor": "cursor-2"},
-                ],
+                "items": [{"event": event_one, "cursor": "cursor-1"}],
+                "next_cursor": "cursor-1",
+            },
+        ),
+        httpx.Response(
+            200,
+            json={
+                "items": [{"event": event_two, "cursor": "cursor-2"}],
                 "next_cursor": "cursor-2",
             },
         ),
@@ -205,9 +207,9 @@ def test_listen_for_events_reconnects_from_the_last_acknowledged_cursor_in_order
             on_forwarded=on_forwarded,
         )
 
-    assert requested_cursors == ["latest", "latest"]
+    assert requested_cursors == ["latest", "latest", "cursor-1"]
     assert forwarded == ["evt_1", "evt_2"]
-    assert delays == [1]
+    assert delays == [1, 1]
 
 
 def test_event_listen_command_exposes_context_secret_and_server_filters() -> None:
@@ -244,9 +246,7 @@ def test_event_listen_command_exposes_context_secret_and_server_filters() -> Non
     assert "event_type=gmail.message.received" in result.output
     assert "user_id=user_1" in result.output
     kwargs = listen_mock.call_args.kwargs
-    assert listen_mock.call_args.args[0].endswith(
-        "/v1/orgs/org_1/projects/project_1/event-feed"
-    )
+    assert listen_mock.call_args.args[0].endswith("/v1/orgs/org_1/projects/project_1/event-feed")
     assert kwargs["params"] == {
         "cursor": "latest",
         "event_type": "gmail.message.received",
@@ -257,7 +257,12 @@ def test_event_listen_command_exposes_context_secret_and_server_filters() -> Non
 def test_event_command_is_registered_on_the_arcade_cli() -> None:
     from arcade_cli.main import cli
 
-    result = runner.invoke(cli, ["event", "--help"])
+    with (
+        patch("arcade_cli.main._credentials_file_contains_legacy", return_value=False),
+        patch("arcade_cli.main.check_and_notify"),
+        patch("arcade_cli.main.check_existing_login", return_value=True),
+    ):
+        result = runner.invoke(cli, ["event", "--help"])
 
     assert result.exit_code == 0
     assert "listen" in result.output
@@ -439,7 +444,12 @@ def test_listener_accepts_the_engine_openapi_response_fixture() -> None:
         httpx.Response(
             200,
             json={
-                "items": [{"event": {"type": "event.missing-id", "time": "now", "data": {}}, "cursor": "cursor-1"}],
+                "items": [
+                    {
+                        "event": {"type": "event.missing-id", "time": "now", "data": {}},
+                        "cursor": "cursor-1",
+                    }
+                ],
                 "next_cursor": "cursor-1",
             },
         ),
