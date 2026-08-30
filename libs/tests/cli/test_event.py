@@ -230,3 +230,12 @@ def test_event_listen_command_exposes_context_secret_and_server_filters() -> Non
         "event_type": "gmail.message.received",
         "user_id": "user_1",
     }
+
+
+def test_event_command_is_registered_on_the_arcade_cli() -> None:
+    from arcade_cli.main import cli
+
+    result = runner.invoke(cli, ["event", "--help"])
+
+    assert result.exit_code == 0
+    assert "listen" in result.output
