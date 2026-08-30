@@ -437,6 +437,42 @@ def test_listener_accepts_the_engine_openapi_response_fixture() -> None:
     assert forwarded == ["evt_contract"]
 
 
+def test_listener_continues_from_the_engine_empty_page_fixture() -> None:
+    fixture_dir = Path(__file__).parent / "fixtures"
+    responses = [
+        httpx.Response(200, json=json.loads((fixture_dir / name).read_text()))
+        for name in (
+            "engine_event_feed_empty_response.json",
+            "engine_event_feed_response.json",
+        )
+    ]
+    requested_cursors: list[str] = []
+
+    def get(_url: str, **kwargs: object) -> httpx.Response:
+        requested_cursors.append(kwargs["params"]["cursor"])  # type: ignore[index]
+        return responses.pop(0)
+
+    class ProofComplete(Exception):
+        pass
+
+    with pytest.raises(ProofComplete):
+        listen_for_events(
+            "https://engine.example.test/event-feed",
+            {},
+            {"cursor": "latest"},
+            "http://127.0.0.1:8788/events",
+            generate_listen_secret(),
+            get=get,
+            post=lambda _url, **_kwargs: httpx.Response(204),
+            sleep=lambda _delay: None,
+            now=lambda: datetime.now(timezone.utc),
+            on_retry=lambda _reason, _delay: None,
+            on_forwarded=lambda _event, _attempts: (_ for _ in ()).throw(ProofComplete()),
+        )
+
+    assert requested_cursors == ["latest", "cursor_empty_page"]
+
+
 @pytest.mark.parametrize(
     "response",
     [

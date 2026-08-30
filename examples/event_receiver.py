@@ -41,7 +41,7 @@ class EventHandler(BaseHTTPRequestHandler):
         self.send_response(204)
         self.end_headers()
 
-    def log_message(self, format: str, *args: object) -> None:  # noqa: A002
+    def log_message(self, format: str, *args: object) -> None:  # noqa: A002 - stdlib override
         return
 
 

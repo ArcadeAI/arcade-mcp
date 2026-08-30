@@ -68,10 +68,10 @@ def _resolve_listen_context(
 ) -> tuple[str, str]:
     if (org_id is None) != (project_id is None):
         raise EventListenConfigError("--org and --project must be provided together")
-    if org_id is None or project_id is None:
-        org_id, project_id = get_org_project_context()
     if source_id and not source_type:
         raise EventListenConfigError("--source-type is required with --source-id")
+    if org_id is None or project_id is None:
+        org_id, project_id = get_org_project_context()
     return org_id, project_id
 
 
@@ -143,19 +143,24 @@ def listen(
                 sleep=time.sleep,
                 now=lambda: datetime.now(timezone.utc),
                 on_retry=lambda reason, delay: console.print(
-                    f"Retrying in {delay:g}s: {reason}", style="yellow"
+                    f"Retrying in {delay:g}s: {reason}", style="yellow", markup=False
                 ),
                 on_forwarded=lambda event, attempts: console.print(
                     f"Forwarded {event['type']} ({event['id']}) after {attempts} attempt(s)",
                     style="green",
+                    markup=False,
                 ),
             )
     except EventListenInterrupted as exc:
-        console.print(f"Stopped with {exc.event_id} still unforwarded.", style="yellow")
+        console.print(
+            f"Stopped before the current batch finished; {exc.event_id} was not forwarded.",
+            style="yellow",
+            markup=False,
+        )
     except KeyboardInterrupt:
         console.print("Stopped listening.", style="yellow")
     except (EventFeedError, EventListenConfigError, LocalDestinationError) as exc:
-        console.print(f"Cannot listen for events: {exc}", style="bold red")
+        console.print(f"Cannot listen for events: {exc}", style="bold red", markup=False)
         raise typer.Exit(1) from exc
 
 
