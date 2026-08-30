@@ -48,4 +48,7 @@ class EventHandler(BaseHTTPRequestHandler):
 if __name__ == "__main__":
     EventHandler.secret = os.environ["ARCADE_WEBHOOK_SECRET"]
     print("Listening on http://127.0.0.1:8788/events", flush=True)
-    HTTPServer(("127.0.0.1", 8788), EventHandler).serve_forever()
+    try:
+        HTTPServer(("127.0.0.1", 8788), EventHandler).serve_forever()
+    except KeyboardInterrupt:
+        print("\nStopped.")
