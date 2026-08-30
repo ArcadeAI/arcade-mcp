@@ -1,5 +1,7 @@
+import json
 import socket
 from datetime import datetime, timezone
+from pathlib import Path
 from unittest.mock import patch
 
 import httpx
@@ -383,3 +385,35 @@ def test_interrupting_a_blocked_handoff_names_the_unforwarded_event() -> None:
             on_retry=lambda _reason, _delay: None,
             on_forwarded=lambda _event, _attempts: None,
         )
+
+
+def test_listener_accepts_the_engine_openapi_response_fixture() -> None:
+    fixture_path = Path(__file__).parent / "fixtures" / "engine_event_feed_response.json"
+    payload = json.loads(fixture_path.read_text())
+    response = httpx.Response(200, json=payload)
+
+    class ContractProved(Exception):
+        pass
+
+    forwarded: list[str] = []
+
+    def post(_url: str, **kwargs: object) -> httpx.Response:
+        forwarded.append(str(kwargs["headers"]["webhook-id"]))  # type: ignore[index]
+        return httpx.Response(204)
+
+    with pytest.raises(ContractProved):
+        listen_for_events(
+            "https://engine.example.test/event-feed",
+            {},
+            {"cursor": "latest"},
+            "http://127.0.0.1:8788/events",
+            generate_listen_secret(),
+            get=lambda _url, **_kwargs: response,
+            post=post,
+            sleep=lambda _delay: None,
+            now=lambda: datetime.now(timezone.utc),
+            on_retry=lambda _reason, _delay: None,
+            on_forwarded=lambda _event, _attempts: (_ for _ in ()).throw(ContractProved()),
+        )
+
+    assert forwarded == ["evt_contract"]
