@@ -25,12 +25,6 @@ app = TrackedTyper(
     pretty_exceptions_enable=False,
 )
 
-state = {
-    "engine_url": compute_base_url(
-        host=PROD_ENGINE_HOST, port=None, force_tls=False, force_no_tls=False
-    )
-}
-
 
 class LocalDestinationError(ValueError):
     """The forwarding destination is not an explicit loopback URL."""
@@ -76,18 +70,17 @@ def _resolve_listen_context(
 
 
 @app.callback()
-def main(
-    host: str = typer.Option(PROD_ENGINE_HOST, "--host", "-h", help="The Arcade Engine host."),
-    port: int | None = typer.Option(None, "--port", "-p", help="The Arcade Engine port."),
-    force_tls: bool = typer.Option(False, "--tls", help="Force TLS for Arcade Engine."),
-    force_no_tls: bool = typer.Option(False, "--no-tls", help="Disable TLS for Arcade Engine."),
-) -> None:
-    state["engine_url"] = compute_base_url(force_tls, force_no_tls, host, port)
+def main() -> None:
+    """Group local event-development commands."""
 
 
 @app.command("listen", help="Forward future project events to a local HTTP handler.")
 def listen(
     forward_to: str = typer.Option(..., "--forward-to", help="Local HTTP receiver URL."),
+    host: str = typer.Option(PROD_ENGINE_HOST, "--host", "-h", help="The Arcade Engine host."),
+    port: int | None = typer.Option(None, "--port", "-p", help="The Arcade Engine port."),
+    force_tls: bool = typer.Option(False, "--tls", help="Force TLS for Arcade Engine."),
+    force_no_tls: bool = typer.Option(False, "--no-tls", help="Disable TLS for Arcade Engine."),
     org_id: str | None = typer.Option(None, "--org", help="Organization ID."),
     project_id: str | None = typer.Option(None, "--project", help="Project ID."),
     event_type: str | None = typer.Option(None, "--event-type", help="Filter by event type."),
@@ -104,6 +97,7 @@ def listen(
     try:
         resolve_local_target(forward_to)
         org_id, project_id = _resolve_listen_context(org_id, project_id, source_type, source_id)
+        engine_url = compute_base_url(force_tls, force_no_tls, host, port)
 
         filters = {
             "event_type": event_type,
@@ -115,13 +109,13 @@ def listen(
         }
         params = {"cursor": "latest", **{key: value for key, value in filters.items() if value}}
         feed_url = (
-            f"{state['engine_url']}/v1/orgs/{quote(org_id, safe='')}/projects/"
+            f"{engine_url}/v1/orgs/{quote(org_id, safe='')}/projects/"
             f"{quote(project_id, safe='')}/event-feed"
         )
         secret = generate_listen_secret()
 
         selected_filters = ", ".join(f"{key}={value}" for key, value in filters.items() if value)
-        console.print(f"Engine: {state['engine_url']}")
+        console.print(f"Engine: {engine_url}")
         console.print(f"Listening for future events in {org_id} / {project_id}", style="bold")
         console.print(f"Filters: {selected_filters or 'all events'}")
         console.print(f"Forwarding to {forward_to}")

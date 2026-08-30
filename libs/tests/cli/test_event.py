@@ -2,14 +2,16 @@ import json
 import socket
 from datetime import datetime, timezone
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import httpx
 import pytest
 from arcade_cli.event import (
     EventFeedError,
+    EventListenConfigError,
     EventListenInterrupted,
     LocalDestinationError,
+    _resolve_listen_context,
     app,
     build_forward_request,
     forward_until_accepted,
@@ -139,7 +141,7 @@ def test_forward_until_accepted_retries_one_event_serially_with_a_stable_identit
     assert all(request[4] is False for request in requests)
 
 
-def test_listen_for_events_reconnects_from_the_last_acknowledged_cursor_in_order() -> None:
+def test_listen_for_events_establishes_then_resumes_the_acknowledged_cursor_in_order() -> None:
     event_one = {
         "id": "evt_1",
         "type": "event.one",
@@ -217,13 +219,14 @@ def test_event_listen_command_exposes_context_secret_and_server_filters() -> Non
         patch("arcade_cli.event.get_auth_headers", return_value={"Authorization": "Bearer test"}),
         patch("arcade_cli.event.generate_listen_secret", return_value="whsec_session"),
         patch("arcade_cli.event.listen_for_events", side_effect=KeyboardInterrupt) as listen_mock,
+        patch("arcade_cli.event.httpx.Client") as client_class,
     ):
         result = runner.invoke(
             app,
             [
+                "listen",
                 "--host",
                 "engine.example.test",
-                "listen",
                 "--forward-to",
                 "http://127.0.0.1:8765/hook",
                 "--org",
@@ -252,6 +255,33 @@ def test_event_listen_command_exposes_context_secret_and_server_filters() -> Non
         "event_type": "gmail.message.received",
         "user_id": "user_1",
     }
+    assert client_class.call_args_list == [
+        call(),
+        call(trust_env=False, follow_redirects=False),
+    ]
+
+
+def test_listen_context_defaults_to_the_active_cli_context() -> None:
+    with patch("arcade_cli.event.get_org_project_context", return_value=("org_1", "project_1")):
+        assert _resolve_listen_context(None, None, None, None) == ("org_1", "project_1")
+
+
+@pytest.mark.parametrize(
+    ("org_id", "project_id", "source_type", "source_id", "message"),
+    [
+        ("org_1", None, None, None, "--org and --project"),
+        (None, None, None, "trigger_1", "--source-type"),
+    ],
+)
+def test_listen_context_rejects_incomplete_scope_options(
+    org_id: str | None,
+    project_id: str | None,
+    source_type: str | None,
+    source_id: str | None,
+    message: str,
+) -> None:
+    with pytest.raises(EventListenConfigError, match=message):
+        _resolve_listen_context(org_id, project_id, source_type, source_id)
 
 
 def test_event_command_is_registered_on_the_arcade_cli() -> None:
@@ -405,7 +435,7 @@ def test_interrupting_a_blocked_handoff_names_the_unforwarded_event() -> None:
         )
 
 
-def test_listener_accepts_the_engine_openapi_response_fixture() -> None:
+def test_listener_accepts_the_engine_contract_sample() -> None:
     fixture_path = Path(__file__).parent / "fixtures" / "engine_event_feed_response.json"
     payload = json.loads(fixture_path.read_text())
     response = httpx.Response(200, json=payload)

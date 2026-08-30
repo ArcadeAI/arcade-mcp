@@ -124,7 +124,7 @@ arcade event listen \
   --event-type gmail.message.received
 ```
 
-The command prints its organization, project, filters, and a temporary signing secret. In another terminal, copy that secret and run the verified example receiver:
+The command prints its organization, project, filters, and a temporary signing secret. Listening begins once the initial Engine connection succeeds. In another terminal, copy that secret and run the verified example receiver:
 
 ```bash
 ARCADE_WEBHOOK_SECRET=whsec_... uv run --with standardwebhooks examples/event_receiver.py
