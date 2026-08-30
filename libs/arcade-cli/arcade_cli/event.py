@@ -6,9 +6,8 @@ from datetime import datetime
 from typing import Any, Callable
 from urllib.parse import SplitResult, urlsplit, urlunsplit
 
-from standardwebhooks.webhooks import Webhook
-
 import httpx
+from standardwebhooks.webhooks import Webhook
 
 
 class LocalDestinationError(ValueError):
@@ -90,7 +89,30 @@ def forward_until_accepted(
     now: Callable[[], datetime],
     on_retry: Callable[[str, float], None],
 ) -> int:
-    return 0
+    delays = (1.0, 2.0, 4.0, 5.0)
+    attempt = 0
+    while True:
+        attempt += 1
+        target = resolve_local_target(forward_to)
+        body, headers = build_forward_request(event, secret, now())
+        headers["host"] = target.host_header
+        try:
+            response = post(
+                target.connect_url,
+                content=body,
+                headers=headers,
+                timeout=20.0,
+                follow_redirects=False,
+            )
+            if 200 <= response.status_code < 300:
+                return attempt
+            reason = f"receiver returned HTTP {response.status_code}"
+        except httpx.RequestError as exc:
+            reason = str(exc) or type(exc).__name__
+
+        delay = delays[min(attempt - 1, len(delays) - 1)]
+        on_retry(reason, delay)
+        sleep(delay)
 
 
 def _resolve_localhost(port: int) -> str:

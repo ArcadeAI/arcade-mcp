@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
-import pytest
 import httpx
+import pytest
 from arcade_cli.event import (
     LocalDestinationError,
     build_forward_request,
@@ -82,9 +82,9 @@ def test_forward_until_accepted_retries_one_event_serially_with_a_stable_identit
         requests.append(
             (
                 url,
-                kwargs["content"],  # type: ignore[arg-type]
-                kwargs["headers"],  # type: ignore[arg-type]
-                kwargs["timeout"],  # type: ignore[arg-type]
+                kwargs["content"],
+                kwargs["headers"],
+                kwargs["timeout"],
                 kwargs["follow_redirects"],  # type: ignore[arg-type]
             )
         )
@@ -100,7 +100,7 @@ def test_forward_until_accepted_retries_one_event_serially_with_a_stable_identit
     attempts = forward_until_accepted(
         event,
         "http://127.0.0.1:8765/hook",
-        "whsec_c29tZS10ZXN0LXNlY3JldA==",  # noqa: S106 - published test fixture
+        "whsec_c29tZS10ZXN0LXNlY3JldA==",
         post=post,
         sleep=delays.append,
         now=lambda: attempt_time,
