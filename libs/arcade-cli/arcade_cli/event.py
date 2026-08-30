@@ -1,9 +1,12 @@
 import ipaddress
+import json
 import socket
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 from urllib.parse import SplitResult, urlsplit, urlunsplit
+
+from standardwebhooks.webhooks import Webhook
 
 
 class LocalDestinationError(ValueError):
@@ -56,7 +59,23 @@ def resolve_local_target(url: str) -> ResolvedLocalTarget:
 def build_forward_request(
     event: dict[str, Any], secret: str, attempt_time: datetime
 ) -> tuple[bytes, dict[str, str]]:
-    raise NotImplementedError
+    if attempt_time.tzinfo is None or attempt_time.utcoffset() is None:
+        raise ValueError("attempt_time must include a UTC offset")
+    body = json.dumps(
+        {"type": event["type"], "timestamp": event["time"], "data": event["data"]},
+        separators=(",", ":"),
+        ensure_ascii=False,
+    ).encode()
+    webhook_id = str(event["id"])
+    timestamp = str(int(attempt_time.timestamp()))
+    signature = Webhook(secret).sign(webhook_id, attempt_time, body.decode())
+    return body, {
+        "content-type": "application/json",
+        "webhook-id": webhook_id,
+        "webhook-timestamp": timestamp,
+        "webhook-signature": signature,
+        "webhook-replay": "false",
+    }
 
 
 def _resolve_localhost(port: int) -> str:

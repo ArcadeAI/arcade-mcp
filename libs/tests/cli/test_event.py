@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 import pytest
 from arcade_cli.event import LocalDestinationError, build_forward_request, resolve_local_target
-from standardwebhooks.webhooks import Webhook
+from standardwebhooks.webhooks import Webhook, WebhookVerificationError
 
 
 @pytest.mark.parametrize(
@@ -38,14 +38,14 @@ def test_resolve_local_target_rejects_every_non_explicit_loopback_form(url: str)
 
 
 def test_build_forward_request_uses_the_production_envelope_and_signature() -> None:
-    secret = "whsec_c29tZS10ZXN0LXNlY3JldA=="
+    secret = "whsec_c29tZS10ZXN0LXNlY3JldA=="  # noqa: S105 - published test fixture
     event = {
         "id": "evt_123",
         "type": "gmail.message.received",
         "time": "2026-08-29T21:00:00Z",
         "data": {"subject": "CUSTOMER renewal"},
     }
-    attempt_time = datetime(2026, 8, 30, 4, 0, tzinfo=timezone.utc)
+    attempt_time = datetime.now(timezone.utc)
 
     body, headers = build_forward_request(event, secret, attempt_time)
 
@@ -58,5 +58,5 @@ def test_build_forward_request_uses_the_production_envelope_and_signature() -> N
         "timestamp": "2026-08-29T21:00:00Z",
         "data": {"subject": "CUSTOMER renewal"},
     }
-    with pytest.raises(Exception):
+    with pytest.raises(WebhookVerificationError):
         Webhook(secret).verify(body + b" ", headers)
