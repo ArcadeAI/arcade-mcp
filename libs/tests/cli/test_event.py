@@ -1,5 +1,4 @@
 import pytest
-
 from arcade_cli.event import LocalDestinationError, resolve_local_target
 
 
