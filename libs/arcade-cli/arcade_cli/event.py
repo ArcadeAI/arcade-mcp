@@ -3,10 +3,12 @@ import json
 import socket
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any
+from typing import Any, Callable
 from urllib.parse import SplitResult, urlsplit, urlunsplit
 
 from standardwebhooks.webhooks import Webhook
+
+import httpx
 
 
 class LocalDestinationError(ValueError):
@@ -76,6 +78,19 @@ def build_forward_request(
         "webhook-signature": signature,
         "webhook-replay": "false",
     }
+
+
+def forward_until_accepted(
+    event: dict[str, Any],
+    forward_to: str,
+    secret: str,
+    *,
+    post: Callable[..., httpx.Response],
+    sleep: Callable[[float], None],
+    now: Callable[[], datetime],
+    on_retry: Callable[[str, float], None],
+) -> int:
+    return 0
 
 
 def _resolve_localhost(port: int) -> str:

@@ -1,7 +1,13 @@
 from datetime import datetime, timezone
 
 import pytest
-from arcade_cli.event import LocalDestinationError, build_forward_request, resolve_local_target
+import httpx
+from arcade_cli.event import (
+    LocalDestinationError,
+    build_forward_request,
+    forward_until_accepted,
+    resolve_local_target,
+)
 from standardwebhooks.webhooks import Webhook, WebhookVerificationError
 
 
@@ -60,3 +66,51 @@ def test_build_forward_request_uses_the_production_envelope_and_signature() -> N
     }
     with pytest.raises(WebhookVerificationError):
         Webhook(secret).verify(body + b" ", headers)
+
+
+def test_forward_until_accepted_retries_one_event_serially_with_a_stable_identity() -> None:
+    event = {
+        "id": "evt_retry",
+        "type": "order.created",
+        "time": "2026-08-29T21:00:00Z",
+        "data": {"order_id": "order_1"},
+    }
+    outcomes: list[Exception | int] = [httpx.ReadTimeout("ambiguous timeout"), 503, 204]
+    requests: list[tuple[str, bytes, dict[str, str], float, bool]] = []
+
+    def post(url: str, **kwargs: object) -> httpx.Response:
+        requests.append(
+            (
+                url,
+                kwargs["content"],  # type: ignore[arg-type]
+                kwargs["headers"],  # type: ignore[arg-type]
+                kwargs["timeout"],  # type: ignore[arg-type]
+                kwargs["follow_redirects"],  # type: ignore[arg-type]
+            )
+        )
+        outcome = outcomes.pop(0)
+        if isinstance(outcome, Exception):
+            raise outcome
+        return httpx.Response(outcome)
+
+    delays: list[float] = []
+    retries: list[tuple[str, float]] = []
+    attempt_time = datetime.now(timezone.utc)
+
+    attempts = forward_until_accepted(
+        event,
+        "http://127.0.0.1:8765/hook",
+        "whsec_c29tZS10ZXN0LXNlY3JldA==",  # noqa: S106 - published test fixture
+        post=post,
+        sleep=delays.append,
+        now=lambda: attempt_time,
+        on_retry=lambda reason, delay: retries.append((reason, delay)),
+    )
+
+    assert attempts == 3
+    assert delays == [1, 2]
+    assert len(retries) == 2
+    assert {request[2]["webhook-id"] for request in requests} == {"evt_retry"}
+    assert len({request[1] for request in requests}) == 1
+    assert all(request[3] == 20 for request in requests)
+    assert all(request[4] is False for request in requests)
