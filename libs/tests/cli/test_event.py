@@ -430,3 +430,33 @@ def test_listener_accepts_the_engine_openapi_response_fixture() -> None:
         )
 
     assert forwarded == ["evt_contract"]
+
+
+@pytest.mark.parametrize(
+    "response",
+    [
+        httpx.Response(200, content=b"not json"),
+        httpx.Response(
+            200,
+            json={
+                "items": [{"event": {"type": "event.missing-id", "time": "now", "data": {}}, "cursor": "cursor-1"}],
+                "next_cursor": "cursor-1",
+            },
+        ),
+    ],
+)
+def test_listener_stops_cleanly_on_an_invalid_engine_response(response: httpx.Response) -> None:
+    with pytest.raises(EventFeedError, match="invalid event feed"):
+        listen_for_events(
+            "https://engine.example.test/event-feed",
+            {},
+            {"cursor": "latest"},
+            "http://127.0.0.1:8788/events",
+            generate_listen_secret(),
+            get=lambda _url, **_kwargs: response,
+            post=lambda _url, **_kwargs: httpx.Response(204),
+            sleep=lambda _delay: None,
+            now=lambda: datetime.now(timezone.utc),
+            on_retry=lambda _reason, _delay: None,
+            on_forwarded=lambda _event, _attempts: None,
+        )
