@@ -287,21 +287,8 @@ def listen_for_events(
             sleep(1.0)
             continue
 
-        payload = response.json()
-        if not isinstance(payload, dict):
-            raise EventFeedError("Engine returned an invalid event feed response")
-        items = payload.get("items")
-        next_cursor = payload.get("next_cursor")
-        if not isinstance(items, list) or not isinstance(next_cursor, str):
-            raise EventFeedError("Engine returned an invalid event feed response")
-
-        for item in items:
-            if not isinstance(item, dict):
-                raise EventFeedError("Engine returned an invalid event feed item")
-            event = item.get("event")
-            item_cursor = item.get("cursor")
-            if not isinstance(event, dict) or not isinstance(item_cursor, str):
-                raise EventFeedError("Engine returned an invalid event feed item")
+        items, next_cursor = _parse_event_feed_response(response)
+        for event, item_cursor in items:
             try:
                 attempts = forward_until_accepted(
                     event,
@@ -319,6 +306,39 @@ def listen_for_events(
 
         cursor = next_cursor
         sleep(1.0)
+
+
+def _parse_event_feed_response(
+    response: httpx.Response,
+) -> tuple[list[tuple[dict[str, Any], str]], str]:
+    try:
+        payload = response.json()
+    except ValueError as exc:
+        raise EventFeedError("Engine returned an invalid event feed response") from exc
+    if not isinstance(payload, dict):
+        raise EventFeedError("Engine returned an invalid event feed response")
+    raw_items = payload.get("items")
+    next_cursor = payload.get("next_cursor")
+    if not isinstance(raw_items, list) or not isinstance(next_cursor, str):
+        raise EventFeedError("Engine returned an invalid event feed response")
+
+    items: list[tuple[dict[str, Any], str]] = []
+    for item in raw_items:
+        if not isinstance(item, dict):
+            raise EventFeedError("Engine returned an invalid event feed item")
+        event = item.get("event")
+        item_cursor = item.get("cursor")
+        if (
+            not isinstance(event, dict)
+            or not isinstance(event.get("id"), str)
+            or not isinstance(event.get("type"), str)
+            or not isinstance(event.get("time"), str)
+            or "data" not in event
+            or not isinstance(item_cursor, str)
+        ):
+            raise EventFeedError("Engine returned an invalid event feed item")
+        items.append((event, item_cursor))
+    return items, next_cursor
 
 
 def _event_feed_error_message(response: httpx.Response) -> str:
