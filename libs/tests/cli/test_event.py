@@ -172,7 +172,7 @@ def test_listen_for_events_reconnects_from_the_last_acknowledged_cursor_in_order
             {"Authorization": "Bearer test"},
             {"cursor": "latest", "event_type": "event.one"},
             "http://127.0.0.1:8765/hook",
-            "whsec_c29tZS10ZXN0LXNlY3JldA==",  # noqa: S106 - published test fixture
+            "whsec_c29tZS10ZXN0LXNlY3JldA==",
             get=get,
             post=post,
             sleep=delays.append,

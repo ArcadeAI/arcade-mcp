@@ -133,7 +133,62 @@ def listen_for_events(
     on_retry: Callable[[str, float], None],
     on_forwarded: Callable[[dict[str, Any], int], None],
 ) -> None:
-    return None
+    cursor = params.get("cursor", "latest")
+    while True:
+        request_params = {**params, "cursor": cursor}
+        try:
+            response = get(feed_url, headers=headers, params=request_params, timeout=20.0)
+        except httpx.RequestError as exc:
+            on_retry(str(exc) or "Engine disconnected", 1.0)
+            sleep(1.0)
+            continue
+
+        if 400 <= response.status_code < 500:
+            raise EventFeedError(_event_feed_error_message(response))
+        if response.status_code >= 500:
+            on_retry(f"Engine returned HTTP {response.status_code}", 1.0)
+            sleep(1.0)
+            continue
+
+        payload = response.json()
+        if not isinstance(payload, dict):
+            raise EventFeedError("Engine returned an invalid event feed response")
+        items = payload.get("items")
+        next_cursor = payload.get("next_cursor")
+        if not isinstance(items, list) or not isinstance(next_cursor, str):
+            raise EventFeedError("Engine returned an invalid event feed response")
+
+        for item in items:
+            if not isinstance(item, dict):
+                raise EventFeedError("Engine returned an invalid event feed item")
+            event = item.get("event")
+            item_cursor = item.get("cursor")
+            if not isinstance(event, dict) or not isinstance(item_cursor, str):
+                raise EventFeedError("Engine returned an invalid event feed item")
+            attempts = forward_until_accepted(
+                event,
+                forward_to,
+                secret,
+                post=post,
+                sleep=sleep,
+                now=now,
+                on_retry=on_retry,
+            )
+            cursor = item_cursor
+            on_forwarded(event, attempts)
+
+        cursor = next_cursor
+        sleep(1.0)
+
+
+def _event_feed_error_message(response: httpx.Response) -> str:
+    try:
+        payload = response.json()
+    except ValueError:
+        payload = None
+    if isinstance(payload, dict) and isinstance(payload.get("message"), str):
+        return f"Engine rejected the event feed ({response.status_code}): {payload['message']}"
+    return f"Engine rejected the event feed with HTTP {response.status_code}"
 
 
 def _resolve_localhost(port: int) -> str:
