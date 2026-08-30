@@ -46,6 +46,10 @@ class EventFeedError(RuntimeError):
     """The Engine feed cannot be continued without developer action."""
 
 
+class EventListenConfigError(ValueError):
+    """The local listen command has an invalid option combination."""
+
+
 class EventListenInterrupted(KeyboardInterrupt):
     def __init__(self, event_id: str) -> None:
         self.event_id = event_id
@@ -63,11 +67,11 @@ def _resolve_listen_context(
     source_id: str | None,
 ) -> tuple[str, str]:
     if (org_id is None) != (project_id is None):
-        raise LocalDestinationError("--org and --project must be provided together")
+        raise EventListenConfigError("--org and --project must be provided together")
     if org_id is None or project_id is None:
         org_id, project_id = get_org_project_context()
     if source_id and not source_type:
-        raise LocalDestinationError("--source-type is required with --source-id")
+        raise EventListenConfigError("--source-type is required with --source-id")
     return org_id, project_id
 
 
@@ -118,7 +122,10 @@ def listen(
         )
         secret = generate_listen_secret()
 
+        selected_filters = ", ".join(f"{key}={value}" for key, value in filters.items() if value)
+        console.print(f"Engine: {state['engine_url']}")
         console.print(f"Listening for future events in {org_id} / {project_id}", style="bold")
+        console.print(f"Filters: {selected_filters or 'all events'}")
         console.print(f"Forwarding to {forward_to}")
         console.print(f"Session signing secret: {secret}", style="bold yellow")
         console.print("This secret and cursor exist only for this process. Press Ctrl-C to stop.")
@@ -148,7 +155,7 @@ def listen(
         console.print(f"Stopped with {exc.event_id} still unforwarded.", style="yellow")
     except KeyboardInterrupt:
         console.print("Stopped listening.", style="yellow")
-    except (EventFeedError, LocalDestinationError) as exc:
+    except (EventFeedError, EventListenConfigError, LocalDestinationError) as exc:
         console.print(f"Cannot listen for events: {exc}", style="bold red")
         raise typer.Exit(1) from exc
 

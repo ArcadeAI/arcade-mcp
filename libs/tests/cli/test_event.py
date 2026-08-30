@@ -225,6 +225,9 @@ def test_event_listen_command_exposes_context_secret_and_server_filters() -> Non
     assert "project_1" in result.output
     assert "whsec_session" in result.output
     assert "future" in result.output.lower()
+    assert "https://engine.example.test" in result.output
+    assert "event_type=gmail.message.received" in result.output
+    assert "user_id=user_1" in result.output
     kwargs = listen_mock.call_args.kwargs
     assert listen_mock.call_args.args[0].endswith(
         "/v1/orgs/org_1/projects/project_1/event-feed"

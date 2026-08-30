@@ -114,6 +114,24 @@ arcade configure vscode --entrypoint my_server.py       # VS Code, stdio launchi
 
 For more patterns (MCP resources, sampling, progress reporting, tool chaining, end-to-end agents, eval suites, Resource Server Auth), browse [`examples/mcp_servers/`](examples/mcp_servers/). Run `arcade --help` for the full CLI.
 
+### Receive real events locally
+
+After `arcade login`, forward future events from your active project to a local handler:
+
+```bash
+arcade event listen \
+  --forward-to http://127.0.0.1:8788/events \
+  --event-type gmail.message.received
+```
+
+The command prints its organization, project, filters, and a temporary signing secret. In another terminal, copy that secret and run the verified example receiver:
+
+```bash
+ARCADE_WEBHOOK_SECRET=whsec_... uv run --with standardwebhooks examples/event_receiver.py
+```
+
+The receiver verifies the production Standard Webhooks signature before displaying an event and deduplicates retries by `webhook-id`. Use `arcade event listen --help` for trigger, user, connected-account, and webhook filters, or `--org` and `--project` to override the active context. Stopping the command ends the session; it creates no public endpoint or webhook subscription.
+
 ## With Arcade Cloud
 
 `arcade login` followed by `arcade deploy` packages your server, discovers and upserts required secrets, and polls until it's healthy on Arcade Cloud. From there, the Arcade Engine fulfills [authorized tool calling](#authorized-tool-calling) flows for end users, and `arcade server logs/list/status` plus `arcade dashboard` provide observability and management.
