@@ -5,11 +5,11 @@ import httpx
 import pytest
 from arcade_cli.event import (
     LocalDestinationError,
+    app,
     build_forward_request,
     forward_until_accepted,
     listen_for_events,
     resolve_local_target,
-    app,
 )
 from standardwebhooks.webhooks import Webhook, WebhookVerificationError
 from typer.testing import CliRunner

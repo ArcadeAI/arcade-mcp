@@ -1,18 +1,22 @@
+import base64
 import ipaddress
 import json
+import secrets
 import socket
+import time
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Callable
-from urllib.parse import SplitResult, urlsplit, urlunsplit
+from urllib.parse import SplitResult, quote, urlsplit, urlunsplit
 
 import httpx
 import typer
 from arcade_core.constants import PROD_ENGINE_HOST
 from standardwebhooks.webhooks import Webhook
 
+from arcade_cli.console import console
 from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
-from arcade_cli.utils import compute_base_url, get_auth_headers
+from arcade_cli.utils import compute_base_url, get_auth_headers, get_org_project_context
 
 app = TrackedTyper(
     cls=TrackedTyperGroup,
@@ -42,8 +46,29 @@ class EventFeedError(RuntimeError):
     """The Engine feed cannot be continued without developer action."""
 
 
+class EventListenInterrupted(KeyboardInterrupt):
+    def __init__(self, event_id: str) -> None:
+        self.event_id = event_id
+        super().__init__(event_id)
+
+
 def generate_listen_secret() -> str:
-    return ""
+    return "whsec_" + base64.b64encode(secrets.token_bytes(32)).decode()
+
+
+def _resolve_listen_context(
+    org_id: str | None,
+    project_id: str | None,
+    source_type: str | None,
+    source_id: str | None,
+) -> tuple[str, str]:
+    if (org_id is None) != (project_id is None):
+        raise LocalDestinationError("--org and --project must be provided together")
+    if org_id is None or project_id is None:
+        org_id, project_id = get_org_project_context()
+    if source_id and not source_type:
+        raise LocalDestinationError("--source-type is required with --source-id")
+    return org_id, project_id
 
 
 @app.callback()
@@ -72,7 +97,60 @@ def listen(
         None, "--webhook-subscription-id", help="Mirror one webhook's captured matches."
     ),
 ) -> None:
-    return None
+    try:
+        resolve_local_target(forward_to)
+        org_id, project_id = _resolve_listen_context(
+            org_id, project_id, source_type, source_id
+        )
+
+        filters = {
+            "event_type": event_type,
+            "source_type": source_type,
+            "source_id": source_id,
+            "user_id": user_id,
+            "connection_id": connection_id,
+            "webhook_subscription_id": webhook_subscription_id,
+        }
+        params = {"cursor": "latest", **{key: value for key, value in filters.items() if value}}
+        feed_url = (
+            f"{state['engine_url']}/v1/orgs/{quote(org_id, safe='')}/projects/"
+            f"{quote(project_id, safe='')}/event-feed"
+        )
+        secret = generate_listen_secret()
+
+        console.print(f"Listening for future events in {org_id} / {project_id}", style="bold")
+        console.print(f"Forwarding to {forward_to}")
+        console.print(f"Session signing secret: {secret}", style="bold yellow")
+        console.print("This secret and cursor exist only for this process. Press Ctrl-C to stop.")
+
+        with httpx.Client() as engine_client, httpx.Client(
+            trust_env=False, follow_redirects=False
+        ) as local_client:
+            listen_for_events(
+                feed_url,
+                get_auth_headers(),
+                params=params,
+                forward_to=forward_to,
+                secret=secret,
+                get=engine_client.get,
+                post=local_client.post,
+                sleep=time.sleep,
+                now=lambda: datetime.now(timezone.utc),
+                on_retry=lambda reason, delay: console.print(
+                    f"Retrying in {delay:g}s: {reason}", style="yellow"
+                ),
+                on_forwarded=lambda event, attempts: console.print(
+                    f"Forwarded {event['type']} ({event['id']}) after {attempts} attempt(s)",
+                    style="green",
+                ),
+            )
+    except EventListenInterrupted as exc:
+        console.print(f"Stopped with {exc.event_id} still unforwarded.", style="yellow")
+    except KeyboardInterrupt:
+        console.print("Stopped listening.", style="yellow")
+    except (EventFeedError, LocalDestinationError) as exc:
+        console.print(f"Cannot listen for events: {exc}", style="bold red")
+        raise typer.Exit(1) from exc
 
 
 def resolve_local_target(url: str) -> ResolvedLocalTarget:
@@ -216,15 +294,18 @@ def listen_for_events(
             item_cursor = item.get("cursor")
             if not isinstance(event, dict) or not isinstance(item_cursor, str):
                 raise EventFeedError("Engine returned an invalid event feed item")
-            attempts = forward_until_accepted(
-                event,
-                forward_to,
-                secret,
-                post=post,
-                sleep=sleep,
-                now=now,
-                on_retry=on_retry,
-            )
+            try:
+                attempts = forward_until_accepted(
+                    event,
+                    forward_to,
+                    secret,
+                    post=post,
+                    sleep=sleep,
+                    now=now,
+                    on_retry=on_retry,
+                )
+            except KeyboardInterrupt as exc:
+                raise EventListenInterrupted(str(event.get("id", "unknown event"))) from exc
             cursor = item_cursor
             on_forwarded(event, attempts)
 
