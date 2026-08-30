@@ -1,13 +1,17 @@
+import socket
 from datetime import datetime, timezone
 from unittest.mock import patch
 
 import httpx
 import pytest
 from arcade_cli.event import (
+    EventFeedError,
+    EventListenInterrupted,
     LocalDestinationError,
     app,
     build_forward_request,
     forward_until_accepted,
+    generate_listen_secret,
     listen_for_events,
     resolve_local_target,
 )
@@ -239,3 +243,140 @@ def test_event_command_is_registered_on_the_arcade_cli() -> None:
 
     assert result.exit_code == 0
     assert "listen" in result.output
+
+
+def test_redirect_is_reported_without_following_it() -> None:
+    class RetryObserved(Exception):
+        pass
+
+    posts: list[str] = []
+    retries: list[str] = []
+
+    def post(url: str, **_kwargs: object) -> httpx.Response:
+        posts.append(url)
+        return httpx.Response(302, headers={"location": "https://example.com/events"})
+
+    with pytest.raises(RetryObserved):
+        forward_until_accepted(
+            {"id": "evt_redirect", "type": "event.test", "time": "now", "data": {}},
+            "http://127.0.0.1:8788/events",
+            generate_listen_secret(),
+            post=post,
+            sleep=lambda _delay: (_ for _ in ()).throw(RetryObserved()),
+            now=lambda: datetime.now(timezone.utc),
+            on_retry=lambda reason, _delay: retries.append(reason),
+        )
+
+    assert posts == ["http://127.0.0.1:8788/events"]
+    assert retries == [
+        "event evt_redirect to http://127.0.0.1:8788/events: receiver returned HTTP 302"
+    ]
+
+
+def test_localhost_is_resolved_again_and_rebinding_stops_before_the_second_post() -> None:
+    resolutions = [
+        [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("127.0.0.1", 8788))],
+        [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("203.0.113.7", 8788))],
+    ]
+    posts: list[str] = []
+
+    def post(url: str, **_kwargs: object) -> httpx.Response:
+        posts.append(url)
+        return httpx.Response(503)
+
+    with (
+        patch("arcade_cli.event.socket.getaddrinfo", side_effect=resolutions),
+        pytest.raises(LocalDestinationError, match="non-loopback"),
+    ):
+        forward_until_accepted(
+            {"id": "evt_rebind", "type": "event.test", "time": "now", "data": {}},
+            "http://localhost:8788/events",
+            generate_listen_secret(),
+            post=post,
+            sleep=lambda _delay: None,
+            now=lambda: datetime.now(timezone.utc),
+            on_retry=lambda _reason, _delay: None,
+        )
+
+    assert posts == ["http://127.0.0.1:8788/events"]
+
+
+def test_each_listen_session_uses_an_independent_secret() -> None:
+    first_secret = generate_listen_secret()
+    second_secret = generate_listen_secret()
+    event = {"id": "evt_secret", "type": "event.test", "time": "now", "data": {}}
+
+    body, headers = build_forward_request(event, second_secret, datetime.now(timezone.utc))
+
+    assert first_secret != second_secret
+    assert Webhook(second_secret).verify(body, headers)["type"] == "event.test"
+    with pytest.raises(WebhookVerificationError):
+        Webhook(first_secret).verify(body, headers)
+
+
+def test_terminal_engine_auth_failure_stops_without_forwarding_or_retrying() -> None:
+    requests: list[str] = []
+    forwards: list[str] = []
+    retries: list[str] = []
+
+    def get(url: str, **_kwargs: object) -> httpx.Response:
+        requests.append(url)
+        return httpx.Response(401, json={"message": "authentication required"})
+
+    def post(url: str, **_kwargs: object) -> httpx.Response:
+        forwards.append(url)
+        return httpx.Response(204)
+
+    with pytest.raises(EventFeedError, match="authentication required"):
+        listen_for_events(
+            "https://engine.example.test/event-feed",
+            {"Authorization": "Bearer expired"},
+            {"cursor": "latest"},
+            "http://127.0.0.1:8788/events",
+            generate_listen_secret(),
+            get=get,
+            post=post,
+            sleep=lambda _delay: None,
+            now=lambda: datetime.now(timezone.utc),
+            on_retry=lambda reason, _delay: retries.append(reason),
+            on_forwarded=lambda _event, _attempts: None,
+        )
+
+    assert len(requests) == 1
+    assert forwards == []
+    assert retries == []
+
+
+def test_interrupting_a_blocked_handoff_names_the_unforwarded_event() -> None:
+    response = httpx.Response(
+        200,
+        json={
+            "items": [
+                {
+                    "event": {
+                        "id": "evt_blocked",
+                        "type": "event.test",
+                        "time": "now",
+                        "data": {},
+                    },
+                    "cursor": "cursor-1",
+                }
+            ],
+            "next_cursor": "cursor-1",
+        },
+    )
+
+    with pytest.raises(EventListenInterrupted, match="evt_blocked"):
+        listen_for_events(
+            "https://engine.example.test/event-feed",
+            {},
+            {"cursor": "latest"},
+            "http://127.0.0.1:8788/events",
+            generate_listen_secret(),
+            get=lambda _url, **_kwargs: response,
+            post=lambda _url, **_kwargs: (_ for _ in ()).throw(KeyboardInterrupt),
+            sleep=lambda _delay: None,
+            now=lambda: datetime.now(timezone.utc),
+            on_retry=lambda _reason, _delay: None,
+            on_forwarded=lambda _event, _attempts: None,
+        )

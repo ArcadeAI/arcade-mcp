@@ -243,6 +243,7 @@ def forward_until_accepted(
         except httpx.RequestError as exc:
             reason = str(exc) or type(exc).__name__
 
+        reason = f"event {event['id']} to {forward_to}: {reason}"
         delay = delays[min(attempt - 1, len(delays) - 1)]
         on_retry(reason, delay)
         sleep(delay)
