@@ -1,6 +1,8 @@
 import ipaddress
 import socket
 from dataclasses import dataclass
+from datetime import datetime
+from typing import Any
 from urllib.parse import SplitResult, urlsplit, urlunsplit
 
 
@@ -49,6 +51,12 @@ def resolve_local_target(url: str) -> ResolvedLocalTarget:
         SplitResult("http", f"{connect_host}:{port}", parsed.path, parsed.query, "")
     )
     return ResolvedLocalTarget(connect_url=connect_url, host_header=f"{original_host}:{port}")
+
+
+def build_forward_request(
+    event: dict[str, Any], secret: str, attempt_time: datetime
+) -> tuple[bytes, dict[str, str]]:
+    raise NotImplementedError
 
 
 def _resolve_localhost(port: int) -> str:
