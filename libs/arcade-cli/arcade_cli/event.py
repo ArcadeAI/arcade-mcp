@@ -20,6 +20,10 @@ class ResolvedLocalTarget:
     host_header: str
 
 
+class EventFeedError(RuntimeError):
+    """The Engine feed cannot be continued without developer action."""
+
+
 def resolve_local_target(url: str) -> ResolvedLocalTarget:
     try:
         parsed = urlsplit(url)
@@ -113,6 +117,23 @@ def forward_until_accepted(
         delay = delays[min(attempt - 1, len(delays) - 1)]
         on_retry(reason, delay)
         sleep(delay)
+
+
+def listen_for_events(
+    feed_url: str,
+    headers: dict[str, str],
+    params: dict[str, str],
+    forward_to: str,
+    secret: str,
+    *,
+    get: Callable[..., httpx.Response],
+    post: Callable[..., httpx.Response],
+    sleep: Callable[[float], None],
+    now: Callable[[], datetime],
+    on_retry: Callable[[str, float], None],
+    on_forwarded: Callable[[dict[str, Any], int], None],
+) -> None:
+    return None
 
 
 def _resolve_localhost(port: int) -> str:

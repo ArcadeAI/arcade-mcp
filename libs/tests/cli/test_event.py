@@ -6,6 +6,7 @@ from arcade_cli.event import (
     LocalDestinationError,
     build_forward_request,
     forward_until_accepted,
+    listen_for_events,
     resolve_local_target,
 )
 from standardwebhooks.webhooks import Webhook, WebhookVerificationError
@@ -114,3 +115,72 @@ def test_forward_until_accepted_retries_one_event_serially_with_a_stable_identit
     assert len({request[1] for request in requests}) == 1
     assert all(request[3] == 20 for request in requests)
     assert all(request[4] is False for request in requests)
+
+
+def test_listen_for_events_reconnects_from_the_last_acknowledged_cursor_in_order() -> None:
+    event_one = {
+        "id": "evt_1",
+        "type": "event.one",
+        "time": "2026-08-29T21:00:00Z",
+        "data": {},
+    }
+    event_two = {
+        "id": "evt_2",
+        "type": "event.two",
+        "time": "2026-08-29T21:00:01Z",
+        "data": {},
+    }
+    feed_outcomes: list[Exception | httpx.Response] = [
+        httpx.ConnectError("temporary disconnect"),
+        httpx.Response(
+            200,
+            json={
+                "items": [
+                    {"event": event_one, "cursor": "cursor-1"},
+                    {"event": event_two, "cursor": "cursor-2"},
+                ],
+                "next_cursor": "cursor-2",
+            },
+        ),
+    ]
+    requested_cursors: list[str] = []
+
+    def get(_url: str, **kwargs: object) -> httpx.Response:
+        requested_cursors.append(kwargs["params"]["cursor"])  # type: ignore[index]
+        outcome = feed_outcomes.pop(0)
+        if isinstance(outcome, Exception):
+            raise outcome
+        return outcome
+
+    def post(_url: str, **_kwargs: object) -> httpx.Response:
+        return httpx.Response(204)
+
+    class ProofComplete(Exception):
+        pass
+
+    forwarded: list[str] = []
+
+    def on_forwarded(event: dict[str, object], _attempts: int) -> None:
+        forwarded.append(str(event["id"]))
+        if len(forwarded) == 2:
+            raise ProofComplete
+
+    delays: list[float] = []
+    with pytest.raises(ProofComplete):
+        listen_for_events(
+            "https://api.example.test/v1/orgs/org/projects/project/event-feed",
+            {"Authorization": "Bearer test"},
+            {"cursor": "latest", "event_type": "event.one"},
+            "http://127.0.0.1:8765/hook",
+            "whsec_c29tZS10ZXN0LXNlY3JldA==",  # noqa: S106 - published test fixture
+            get=get,
+            post=post,
+            sleep=delays.append,
+            now=lambda: datetime.now(timezone.utc),
+            on_retry=lambda _reason, _delay: None,
+            on_forwarded=on_forwarded,
+        )
+
+    assert requested_cursors == ["latest", "latest"]
+    assert forwarded == ["evt_1", "evt_2"]
+    assert delays == [1]
