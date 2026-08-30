@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from unittest.mock import patch
 
 import httpx
 import pytest
@@ -8,8 +9,12 @@ from arcade_cli.event import (
     forward_until_accepted,
     listen_for_events,
     resolve_local_target,
+    app,
 )
 from standardwebhooks.webhooks import Webhook, WebhookVerificationError
+from typer.testing import CliRunner
+
+runner = CliRunner()
 
 
 @pytest.mark.parametrize(
@@ -184,3 +189,44 @@ def test_listen_for_events_reconnects_from_the_last_acknowledged_cursor_in_order
     assert requested_cursors == ["latest", "latest"]
     assert forwarded == ["evt_1", "evt_2"]
     assert delays == [1]
+
+
+def test_event_listen_command_exposes_context_secret_and_server_filters() -> None:
+    with (
+        patch("arcade_cli.event.get_auth_headers", return_value={"Authorization": "Bearer test"}),
+        patch("arcade_cli.event.generate_listen_secret", return_value="whsec_session"),
+        patch("arcade_cli.event.listen_for_events", side_effect=KeyboardInterrupt) as listen_mock,
+    ):
+        result = runner.invoke(
+            app,
+            [
+                "--host",
+                "engine.example.test",
+                "listen",
+                "--forward-to",
+                "http://127.0.0.1:8765/hook",
+                "--org",
+                "org_1",
+                "--project",
+                "project_1",
+                "--event-type",
+                "gmail.message.received",
+                "--user-id",
+                "user_1",
+            ],
+        )
+
+    assert result.exit_code == 0
+    assert "org_1" in result.output
+    assert "project_1" in result.output
+    assert "whsec_session" in result.output
+    assert "future" in result.output.lower()
+    kwargs = listen_mock.call_args.kwargs
+    assert listen_mock.call_args.args[0].endswith(
+        "/v1/orgs/org_1/projects/project_1/event-feed"
+    )
+    assert kwargs["params"] == {
+        "cursor": "latest",
+        "event_type": "gmail.message.received",
+        "user_id": "user_1",
+    }

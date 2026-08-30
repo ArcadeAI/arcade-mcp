@@ -7,7 +7,25 @@ from typing import Any, Callable
 from urllib.parse import SplitResult, urlsplit, urlunsplit
 
 import httpx
+import typer
+from arcade_core.constants import PROD_ENGINE_HOST
 from standardwebhooks.webhooks import Webhook
+
+from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
+from arcade_cli.utils import compute_base_url, get_auth_headers
+
+app = TrackedTyper(
+    cls=TrackedTyperGroup,
+    add_completion=False,
+    no_args_is_help=True,
+    pretty_exceptions_enable=False,
+)
+
+state = {
+    "engine_url": compute_base_url(
+        host=PROD_ENGINE_HOST, port=None, force_tls=False, force_no_tls=False
+    )
+}
 
 
 class LocalDestinationError(ValueError):
@@ -22,6 +40,39 @@ class ResolvedLocalTarget:
 
 class EventFeedError(RuntimeError):
     """The Engine feed cannot be continued without developer action."""
+
+
+def generate_listen_secret() -> str:
+    return ""
+
+
+@app.callback()
+def main(
+    host: str = typer.Option(PROD_ENGINE_HOST, "--host", "-h", help="The Arcade Engine host."),
+    port: int | None = typer.Option(None, "--port", "-p", help="The Arcade Engine port."),
+    force_tls: bool = typer.Option(False, "--tls", help="Force TLS for Arcade Engine."),
+    force_no_tls: bool = typer.Option(False, "--no-tls", help="Disable TLS for Arcade Engine."),
+) -> None:
+    state["engine_url"] = compute_base_url(force_tls, force_no_tls, host, port)
+
+
+@app.command("listen", help="Forward future project events to a local HTTP handler.")
+def listen(
+    forward_to: str = typer.Option(..., "--forward-to", help="Local HTTP receiver URL."),
+    org_id: str | None = typer.Option(None, "--org", help="Organization ID."),
+    project_id: str | None = typer.Option(None, "--project", help="Project ID."),
+    event_type: str | None = typer.Option(None, "--event-type", help="Filter by event type."),
+    source_type: str | None = typer.Option(None, "--source-type", help="Filter by source type."),
+    source_id: str | None = typer.Option(None, "--source-id", help="Filter by source ID."),
+    user_id: str | None = typer.Option(None, "--user-id", help="Filter by application user."),
+    connection_id: str | None = typer.Option(
+        None, "--connection-id", help="Filter by connected account."
+    ),
+    webhook_subscription_id: str | None = typer.Option(
+        None, "--webhook-subscription-id", help="Mirror one webhook's captured matches."
+    ),
+) -> None:
+    return None
 
 
 def resolve_local_target(url: str) -> ResolvedLocalTarget:
