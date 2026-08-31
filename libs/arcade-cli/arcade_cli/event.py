@@ -30,6 +30,10 @@ class LocalDestinationError(ValueError):
     """The forwarding destination is not an explicit loopback URL."""
 
 
+class LocalReceiverRejected(RuntimeError):
+    """The local receiver permanently rejected a forwarded event."""
+
+
 @dataclass(frozen=True)
 class ResolvedLocalTarget:
     connect_url: str
@@ -128,7 +132,7 @@ def listen(
         ):
             listen_for_events(
                 feed_url,
-                get_auth_headers(),
+                get_auth_headers,
                 params=params,
                 forward_to=forward_to,
                 secret=secret,
@@ -153,7 +157,12 @@ def listen(
         )
     except KeyboardInterrupt:
         console.print("Stopped listening.", style="yellow")
-    except (EventFeedError, EventListenConfigError, LocalDestinationError) as exc:
+    except (
+        EventFeedError,
+        EventListenConfigError,
+        LocalDestinationError,
+        LocalReceiverRejected,
+    ) as exc:
         console.print(f"Cannot listen for events: {exc}", style="bold red", markup=False)
         raise typer.Exit(1) from exc
 
@@ -244,6 +253,11 @@ def forward_until_accepted(
             )
             if 200 <= response.status_code < 300:
                 return attempt
+            if response.status_code < 500 and response.status_code not in {408, 429}:
+                raise LocalReceiverRejected(
+                    f"event {event['id']} was rejected with HTTP {response.status_code}; "
+                    "check the receiver URL and signing secret"
+                )
             reason = f"receiver returned HTTP {response.status_code}"
         except httpx.RequestError as exc:
             reason = str(exc) or type(exc).__name__
@@ -256,7 +270,7 @@ def forward_until_accepted(
 
 def listen_for_events(
     feed_url: str,
-    headers: dict[str, str],
+    auth_headers: dict[str, str] | Callable[[], dict[str, str]],
     params: dict[str, str],
     forward_to: str,
     secret: str,
@@ -271,8 +285,9 @@ def listen_for_events(
     cursor = params.get("cursor", "latest")
     while True:
         request_params = {**params, "cursor": cursor}
+        request_headers = auth_headers() if callable(auth_headers) else auth_headers
         try:
-            response = get(feed_url, headers=headers, params=request_params, timeout=20.0)
+            response = get(feed_url, headers=request_headers, params=request_params, timeout=20.0)
         except httpx.RequestError as exc:
             on_retry(str(exc) or "Engine disconnected", 1.0)
             sleep(1.0)

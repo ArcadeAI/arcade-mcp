@@ -11,6 +11,7 @@ from arcade_cli.event import (
     EventListenConfigError,
     EventListenInterrupted,
     LocalDestinationError,
+    LocalReceiverRejected,
     _resolve_listen_context,
     app,
     build_forward_request,
@@ -102,7 +103,7 @@ def test_forward_until_accepted_retries_one_event_serially_with_a_stable_identit
         "time": "2026-08-29T21:00:00Z",
         "data": {"order_id": "order_1"},
     }
-    outcomes: list[Exception | int] = [httpx.ReadTimeout("ambiguous timeout"), 503, 204]
+    outcomes: list[Exception | int] = [httpx.ReadTimeout("ambiguous timeout"), 429, 503, 204]
     requests: list[tuple[str, bytes, dict[str, str], float, bool]] = []
 
     def post(url: str, **kwargs: object) -> httpx.Response:
@@ -132,9 +133,9 @@ def test_forward_until_accepted_retries_one_event_serially_with_a_stable_identit
         on_retry=lambda reason, delay: retries.append((reason, delay)),
     )
 
-    assert attempts == 3
-    assert delays == [1, 2]
-    assert len(retries) == 2
+    assert attempts == 4
+    assert delays == [1, 2, 4]
+    assert len(retries) == 3
     assert {request[2]["webhook-id"] for request in requests} == {"evt_retry"}
     assert len({request[1] for request in requests}) == 1
     assert all(request[3] == 20 for request in requests)
@@ -212,6 +213,49 @@ def test_listen_for_events_establishes_then_resumes_the_acknowledged_cursor_in_o
     assert requested_cursors == ["latest", "latest", "cursor-1"]
     assert forwarded == ["evt_1", "evt_2"]
     assert delays == [1, 1]
+
+
+def test_listen_for_events_refreshes_auth_headers_before_each_poll() -> None:
+    responses = iter([
+        httpx.Response(200, json={"items": [], "next_cursor": "cursor-1"}),
+        httpx.Response(200, json={"items": [], "next_cursor": "cursor-2"}),
+    ])
+    tokens = iter(["token-1", "token-2"])
+    requested_headers: list[dict[str, str]] = []
+
+    def auth_headers() -> dict[str, str]:
+        return {"Authorization": f"Bearer {next(tokens)}"}
+
+    def get(_url: str, **kwargs: object) -> httpx.Response:
+        requested_headers.append(kwargs["headers"])  # type: ignore[arg-type]
+        return next(responses)
+
+    class ProofComplete(Exception):
+        pass
+
+    def sleep(_delay: float) -> None:
+        if len(requested_headers) == 2:
+            raise ProofComplete
+
+    with pytest.raises(ProofComplete):
+        listen_for_events(
+            "https://engine.example.test/event-feed",
+            auth_headers,
+            {"cursor": "latest"},
+            "http://127.0.0.1:8788/events",
+            generate_listen_secret(),
+            get=get,
+            post=lambda _url, **_kwargs: httpx.Response(204),
+            sleep=sleep,
+            now=lambda: datetime.now(timezone.utc),
+            on_retry=lambda _reason, _delay: None,
+            on_forwarded=lambda _event, _attempts: None,
+        )
+
+    assert requested_headers == [
+        {"Authorization": "Bearer token-1"},
+        {"Authorization": "Bearer token-2"},
+    ]
 
 
 def test_event_listen_command_exposes_context_secret_and_server_filters() -> None:
@@ -299,31 +343,47 @@ def test_event_command_is_registered_on_the_arcade_cli() -> None:
 
 
 def test_redirect_is_reported_without_following_it() -> None:
-    class RetryObserved(Exception):
-        pass
-
     posts: list[str] = []
     retries: list[str] = []
+    delays: list[float] = []
 
     def post(url: str, **_kwargs: object) -> httpx.Response:
         posts.append(url)
         return httpx.Response(302, headers={"location": "https://example.com/events"})
 
-    with pytest.raises(RetryObserved):
+    with pytest.raises(LocalReceiverRejected, match="HTTP 302"):
         forward_until_accepted(
             {"id": "evt_redirect", "type": "event.test", "time": "now", "data": {}},
             "http://127.0.0.1:8788/events",
             generate_listen_secret(),
             post=post,
-            sleep=lambda _delay: (_ for _ in ()).throw(RetryObserved()),
+            sleep=delays.append,
             now=lambda: datetime.now(timezone.utc),
             on_retry=lambda reason, _delay: retries.append(reason),
         )
 
     assert posts == ["http://127.0.0.1:8788/events"]
-    assert retries == [
-        "event evt_redirect to http://127.0.0.1:8788/events: receiver returned HTTP 302"
-    ]
+    assert retries == []
+    assert delays == []
+
+
+def test_permanent_receiver_rejection_stops_without_blocking_forever() -> None:
+    retries: list[str] = []
+    delays: list[float] = []
+
+    with pytest.raises(LocalReceiverRejected, match="check the receiver URL and signing secret"):
+        forward_until_accepted(
+            {"id": "evt_rejected", "type": "event.test", "time": "now", "data": {}},
+            "http://127.0.0.1:8788/events",
+            generate_listen_secret(),
+            post=lambda _url, **_kwargs: httpx.Response(400),
+            sleep=delays.append,
+            now=lambda: datetime.now(timezone.utc),
+            on_retry=lambda reason, _delay: retries.append(reason),
+        )
+
+    assert delays == []
+    assert retries == []
 
 
 def test_localhost_is_resolved_again_and_rebinding_stops_before_the_second_post() -> None:
