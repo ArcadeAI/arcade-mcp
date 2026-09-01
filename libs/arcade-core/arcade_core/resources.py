@@ -10,8 +10,10 @@ from __future__ import annotations
 import base64
 import binascii
 import inspect
+import re
 from bisect import bisect_right, insort
 from dataclasses import dataclass
+from urllib.parse import quote
 
 from arcade_core.resource_schema import (
     BlobResourceContents,
@@ -22,6 +24,10 @@ from arcade_core.resource_schema import (
 DEFAULT_PAGE_SIZE = 250
 
 _CURSOR_PREFIX = "after:"
+
+#: The scheme a tool's user interface is addressed under. Hosts that render an
+#: interface require it and refuse anything else.
+UI_SCHEME = "ui"
 
 
 class InvalidCursorError(ValueError):
@@ -61,6 +67,79 @@ def decode_cursor(cursor: str) -> str:
     if not last_uri:
         raise InvalidCursorError(f"malformed cursor: {cursor!r}")
     return last_uri
+
+
+#: RFC 3986 scheme. Without this, ``scheme="ui://Slack/9.0.0"`` parses as the
+#: host ``Slack`` and one toolkit answers under another toolkit's authority.
+_SCHEME = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*\Z")
+
+#: RFC 3986 unreserved, plus the two sub-delims a real version string can carry:
+#: "+" for semver build metadata and PEP 440 local versions, "!" for a PEP 440
+#: epoch. Both are legal unencoded in an authority and a path segment.
+#:
+#: The toolkit and version are spliced in as the authority and the first path
+#: segment, so a "/" in a version makes it eat a path segment and two different
+#: declarations collide on one URI. That is what this refuses.
+_IDENTITY = re.compile(r"[A-Za-z0-9._~+!-]+\Z")
+
+
+class InvalidResourcePathError(ValueError):
+    """Raised when a declared path cannot be qualified into a URI."""
+
+
+def qualify(toolkit_name: str, toolkit_version: str, path: str, scheme: str = UI_SCHEME) -> str:
+    """Build the toolkit-qualified URI for a resource a toolkit declares.
+
+    ``ui://Gmail/8.1.0/draft-review.html``. The toolkit segment separates two
+    toolkits packed into one worker image; the version segment separates the
+    same toolkit installed at two versions across two workers, which is what
+    keeps a tool and its interface in agreement.
+
+    The scheme is carried through and never replaced. A host that renders a
+    tool's interface requires ``ui://`` and throws on anything else, so a
+    prefix-replacing qualifier breaks rendering outright.
+
+    A path is a filename, not a pre-encoded URI component, so each segment is
+    percent-encoded on the way in. ``a b.html`` and ``café.html`` become valid
+    URIs instead of ones a parser rewrites, and a literal ``%2e%2e`` becomes a
+    segment with that name instead of a traversal a decoder resolves later.
+
+    The scheme, the toolkit and the version are refused rather than encoded.
+    They are the URI's identity: encoding them would silently answer under a
+    name nobody asked for, where a path is just this resource's own.
+    """
+    scheme = scheme.rstrip(":/")
+    if not _SCHEME.match(scheme):
+        raise InvalidResourcePathError(f"not a URI scheme: {scheme!r}")
+    if not _IDENTITY.match(toolkit_name):
+        raise InvalidResourcePathError(f"not a usable toolkit name: {toolkit_name!r}")
+    if not _IDENTITY.match(toolkit_version):
+        raise InvalidResourcePathError(f"not a usable toolkit version: {toolkit_version!r}")
+
+    segments = [segment for segment in path.split("/") if segment]
+    if not segments:
+        raise InvalidResourcePathError(f"a resource needs a path: {path!r}")
+    if any(segment in (".", "..") for segment in segments):
+        raise InvalidResourcePathError(f"a resource path may not traverse: {path!r}")
+    if any(not char.isprintable() for char in path):
+        raise InvalidResourcePathError(
+            f"a resource path may not contain a control character: {path!r}"
+        )
+
+    encoded = "/".join(quote(segment, safe="") for segment in segments)
+    return f"{scheme}://{toolkit_name}/{toolkit_version}/{encoded}"
+
+
+@dataclass(frozen=True)
+class ResourceDeclaration:
+    """What a toolkit author writes. The URI is derived, never typed."""
+
+    path: str
+    name: str
+    scheme: str = UI_SCHEME
+    title: str | None = None
+    description: str | None = None
+    mime_type: str | None = None
 
 
 @dataclass(frozen=True)
@@ -141,6 +220,29 @@ class ResourceRegistry:
             insort(self._uris, resource.uri)
         self._resources[resource.uri] = registered
         return registered
+
+    def declare(
+        self,
+        declaration: ResourceDeclaration,
+        contents: str | bytes,
+        *,
+        toolkit_name: str,
+        toolkit_version: str,
+    ) -> RegisteredResource:
+        """Register a toolkit's declaration, qualifying its URI on the way in.
+
+        Qualification happens here because this is the only point where the
+        declaration and the toolkit's identity are both in scope.
+        """
+        uri = qualify(toolkit_name, toolkit_version, declaration.path, declaration.scheme)
+        resource = Resource(
+            uri=uri,
+            name=declaration.name,
+            title=declaration.title,
+            description=declaration.description,
+            mimeType=declaration.mime_type,
+        )
+        return self.add(resource, contents)
 
     def get(self, uri: str) -> RegisteredResource:
         try:
