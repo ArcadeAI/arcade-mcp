@@ -78,8 +78,10 @@ from arcade_mcp_server.types import (
     INTERNAL_ERROR,
     INVALID_PARAMS,
     INVALID_REQUEST,
+    LATEST_PROTOCOL_VERSION,
     METHOD_NOT_FOUND,
     RELATED_TASK_META_KEY,
+    SUPPORTED_PROTOCOL_VERSIONS,
     BlobResourceContents,
     CallToolRequest,
     CallToolResult,
@@ -87,6 +89,8 @@ from arcade_mcp_server.types import (
     CompleteRequest,
     CreateMessageRequest,
     CreateTaskResult,
+    DiscoverRequest,
+    DiscoverResult,
     ElicitRequest,
     GetPromptRequest,
     GetPromptResult,
@@ -563,6 +567,7 @@ class MCPServer:
         return {
             "ping": self._handle_ping,
             "initialize": self._handle_initialize,
+            "server/discover": self._handle_discover,
             "tools/list": self._handle_list_tools,
             "tools/call": self._handle_call_tool,
             "resources/list": self._handle_list_resources,
@@ -755,7 +760,7 @@ class MCPServer:
         if (
             session
             and session.initialization_state != InitializationState.INITIALIZED
-            and method not in ["initialize", "ping"]
+            and method not in ["initialize", "ping", "server/discover"]
         ):
             return JSONRPCError(
                 id=msg_id,
@@ -900,6 +905,7 @@ class MCPServer:
         message_types = {
             "ping": PingRequest,
             "initialize": InitializeRequest,
+            "server/discover": DiscoverRequest,
             "tools/list": ListToolsRequest,
             "tools/call": CallToolRequest,
             "resources/list": ListResourcesRequest,
@@ -989,6 +995,22 @@ class MCPServer:
             instructions=self.instructions,
         )
 
+        return JSONRPCResponse(id=message.id, result=result)
+
+    async def _handle_discover(
+        self,
+        message: DiscoverRequest,
+        session: ServerSession | None = None,
+    ) -> JSONRPCResponse[DiscoverResult]:
+        """Advertise the server's stable, handshake-free protocol surface."""
+        result = DiscoverResult(
+            supportedVersions=SUPPORTED_PROTOCOL_VERSIONS,
+            capabilities=ServerCapabilities(
+                **self._build_capabilities(LATEST_PROTOCOL_VERSION, stateless=True)
+            ),
+            instructions=self.instructions,
+            serverInfo=Implementation(**self._build_server_info(LATEST_PROTOCOL_VERSION)),
+        )
         return JSONRPCResponse(id=message.id, result=result)
 
     def _build_capabilities(

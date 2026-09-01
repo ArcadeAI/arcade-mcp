@@ -428,6 +428,21 @@ class TestMCPServer:
         assert "cannot be processed before the session is initialized" in response.error["message"]
 
     @pytest.mark.asyncio
+    async def test_discover_is_available_before_initialization(self, mcp_server, server_session):
+        response = await mcp_server.handle_message(
+            {"jsonrpc": "2.0", "id": 1, "method": "server/discover"},
+            session=server_session,
+        )
+
+        assert isinstance(response, JSONRPCResponse)
+        assert response.result.supportedVersions == ["2025-06-18", "2025-11-25"]
+        assert response.result.resultType == "complete"
+        assert response.result.ttlMs == 0
+        assert response.result.cacheScope == "public"
+        assert response.result.serverInfo.name == "Test Server"
+        assert server_session.initialization_state == InitializationState.NOT_INITIALIZED
+
+    @pytest.mark.asyncio
     async def test_notification_handling(self, mcp_server):
         """Test handling of notification messages."""
         session = Mock()

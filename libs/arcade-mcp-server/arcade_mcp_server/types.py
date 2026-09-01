@@ -222,6 +222,21 @@ class InitializeResult(Result):
     instructions: str | None = None
 
 
+class DiscoverRequest(JSONRPCRequest):
+    method: Literal["server/discover"] = Field(default="server/discover", frozen=True)
+    params: dict[str, Any] = Field(default_factory=dict)
+
+
+class DiscoverResult(Result):
+    supportedVersions: list[str]
+    capabilities: ServerCapabilities
+    resultType: Literal["complete"] = "complete"
+    ttlMs: int = 0
+    cacheScope: Literal["private", "public"] = "public"
+    instructions: str | None = None
+    serverInfo: Implementation | None = None
+
+
 class InitializedNotification(JSONRPCMessage, Notification):
     method: Literal["notifications/initialized"] = Field(
         default="notifications/initialized", frozen=True
