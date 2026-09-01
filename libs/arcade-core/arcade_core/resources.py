@@ -73,10 +73,14 @@ def decode_cursor(cursor: str) -> str:
 #: host ``Slack`` and one toolkit answers under another toolkit's authority.
 _SCHEME = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*\Z")
 
-#: RFC 3986 unreserved. The toolkit and version are spliced in as the authority
-#: and the first path segment, so a "/" in a version makes it eat a path
-#: segment and two different declarations collide on one URI.
-_IDENTITY = re.compile(r"[A-Za-z0-9._~-]+\Z")
+#: RFC 3986 unreserved, plus the two sub-delims a real version string can carry:
+#: "+" for semver build metadata and PEP 440 local versions, "!" for a PEP 440
+#: epoch. Both are legal unencoded in an authority and a path segment.
+#:
+#: The toolkit and version are spliced in as the authority and the first path
+#: segment, so a "/" in a version makes it eat a path segment and two different
+#: declarations collide on one URI. That is what this refuses.
+_IDENTITY = re.compile(r"[A-Za-z0-9._~+!-]+\Z")
 
 
 class InvalidResourcePathError(ValueError):
