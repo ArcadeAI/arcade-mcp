@@ -60,8 +60,8 @@ from arcade_core.utils import (
     is_strict_optional,
     is_string_literal,
     is_union,
+    normalize_toolkit_name,
     snake_to_pascal_case,
-    space_to_snake_case,
 )
 
 logger = logging.getLogger(__name__)
@@ -406,7 +406,7 @@ class ToolCatalog(BaseModel):
                     registered = self._resources.declare(
                         declaration,
                         func(),
-                        toolkit_name=toolkit.name,
+                        toolkit_name=normalize_toolkit_name(toolkit.name),
                         toolkit_version=toolkit_version,
                     )
                 except Exception as e:
@@ -548,7 +548,7 @@ class ToolCatalog(BaseModel):
         metadata_requirement = create_metadata_requirement(tool, auth_requirement)
 
         toolkit_definition = ToolkitDefinition(
-            name=snake_to_pascal_case(space_to_snake_case(toolkit_name)),
+            name=normalize_toolkit_name(toolkit_name),
             description=toolkit_desc,
             version=toolkit_version,
         )
