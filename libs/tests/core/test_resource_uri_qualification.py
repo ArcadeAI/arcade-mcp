@@ -144,6 +144,25 @@ def test_the_uris_identity_is_refused_rather_than_encoded(toolkit, version, sche
         qualify(toolkit, version, "a.html", scheme=scheme)
 
 
+@pytest.mark.parametrize(
+    "version",
+    [
+        pytest.param("1.0.0", id="release"),
+        pytest.param("1.0.0a1", id="PEP 440 alpha"),
+        pytest.param("1.0.0.post1", id="PEP 440 post"),
+        pytest.param("1.0.0.dev0", id="PEP 440 dev"),
+        pytest.param("1.0.0+build.5", id="semver build metadata"),
+        pytest.param("1.0.0+local_abc", id="PEP 440 local version"),
+        pytest.param("1.0.0-rc.1", id="semver prerelease"),
+        pytest.param("1!1.0.0", id="PEP 440 epoch"),
+    ],
+)
+def test_a_version_a_real_toolkit_ships_is_accepted(version):
+    """`ToolkitDefinition` takes all of these, so refusing one here would load a
+    toolkit's tools and drop its resources."""
+    assert qualify("Gmail", version, "a.html") == f"ui://Gmail/{version}/a.html"
+
+
 def test_a_version_cannot_eat_a_path_segment():
     """The collision the check above prevents, stated as the equality it used to satisfy."""
     with pytest.raises(InvalidResourcePathError):
