@@ -11,7 +11,7 @@ from arcade_core.errors import (
 )
 from arcade_core.schema import FullyQualifiedName, ToolContext
 from arcade_core.toolkit import Toolkit
-from arcade_tdk import tool
+from arcade_mcp_server import tool
 from pydantic import Field
 
 
