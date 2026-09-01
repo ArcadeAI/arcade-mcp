@@ -10,10 +10,12 @@ from __future__ import annotations
 import base64
 import binascii
 import inspect
+import re
 from bisect import bisect_right, insort
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, TypeVar
+from urllib.parse import quote
 
 from arcade_core.resource_schema import (
     BlobResourceContents,
@@ -69,6 +71,16 @@ def decode_cursor(cursor: str) -> str:
     return last_uri
 
 
+#: RFC 3986 scheme. Without this, ``scheme="ui://Slack/9.0.0"`` parses as the
+#: host ``Slack`` and one toolkit answers under another toolkit's authority.
+_SCHEME = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*\Z")
+
+#: RFC 3986 unreserved. The toolkit and version are spliced in as the authority
+#: and the first path segment, so a "/" in a version makes it eat a path
+#: segment and two different declarations collide on one URI.
+_IDENTITY = re.compile(r"[A-Za-z0-9._~-]+\Z")
+
+
 class InvalidResourcePathError(ValueError):
     """Raised when a declared path cannot be qualified into a URI."""
 
@@ -84,37 +96,36 @@ def qualify(toolkit_name: str, toolkit_version: str, path: str, scheme: str = UI
     The scheme is carried through and never replaced. A host that renders a
     tool's interface requires ``ui://`` and throws on anything else, so a
     prefix-replacing qualifier breaks rendering outright.
+
+    A path is a filename, not a pre-encoded URI component, so each segment is
+    percent-encoded on the way in. ``a b.html`` and ``café.html`` become valid
+    URIs instead of ones a parser rewrites, and a literal ``%2e%2e`` becomes a
+    segment with that name instead of a traversal a decoder resolves later.
+
+    The scheme, the toolkit and the version are refused rather than encoded.
+    They are the URI's identity: encoding them would silently answer under a
+    name nobody asked for, where a path is just this resource's own.
     """
     scheme = scheme.rstrip(":/")
-    if not scheme:
-        raise InvalidResourcePathError("a resource URI needs a scheme")
-    if not toolkit_name:
-        raise InvalidResourcePathError("a resource URI needs a toolkit name")
-    if not toolkit_version:
-        raise InvalidResourcePathError("a resource URI needs a toolkit version")
+    if not _SCHEME.match(scheme):
+        raise InvalidResourcePathError(f"not a URI scheme: {scheme!r}")
+    if not _IDENTITY.match(toolkit_name):
+        raise InvalidResourcePathError(f"not a usable toolkit name: {toolkit_name!r}")
+    if not _IDENTITY.match(toolkit_version):
+        raise InvalidResourcePathError(f"not a usable toolkit version: {toolkit_version!r}")
 
     segments = [segment for segment in path.split("/") if segment]
     if not segments:
         raise InvalidResourcePathError(f"a resource needs a path: {path!r}")
     if any(segment in (".", "..") for segment in segments):
         raise InvalidResourcePathError(f"a resource path may not traverse: {path!r}")
+    if any(not char.isprintable() for char in path):
+        raise InvalidResourcePathError(
+            f"a resource path may not contain a control character: {path!r}"
+        )
 
-    # A path may not carry a character that changes what the URI means or stops
-    # it being one. "?" opens a query and "#" opens a fragment, so either would
-    # leave the resource registered under a string whose path component is
-    # shorter than the author wrote; a control character makes the URI fail to
-    # parse at all. Both fail at the point of reading, far from the declaration.
-    for char in path:
-        if char in "?#":
-            raise InvalidResourcePathError(
-                f"a resource path may not contain {char!r}, which starts a new URI component: {path!r}"
-            )
-        if not char.isprintable():
-            raise InvalidResourcePathError(
-                f"a resource path may not contain a control character: {path!r}"
-            )
-
-    return f"{scheme}://{toolkit_name}/{toolkit_version}/{'/'.join(segments)}"
+    encoded = "/".join(quote(segment, safe="") for segment in segments)
+    return f"{scheme}://{toolkit_name}/{toolkit_version}/{encoded}"
 
 
 @dataclass(frozen=True)
