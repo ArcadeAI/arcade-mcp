@@ -102,11 +102,6 @@ class ResourceContents(BaseModel):
     mimeType: str | None = None
     meta: dict[str, Any] | None = Field(alias="_meta", default=None)
 
-    # extra="allow" matches Result and BaseMetadata above, and the reason is the
-    # same: a key this file has not modelled yet is carried rather than dropped,
-    # so the schema lagging the specification costs nothing. populate_by_name
-    # lets a caller pass ``meta=`` for the ``_meta`` field; without it, and with
-    # extra="allow", ``meta=`` is silently accepted as an extra field instead.
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
 
