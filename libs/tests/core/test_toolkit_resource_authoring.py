@@ -19,7 +19,7 @@ from arcade_core.toolkit import Toolkit
 TOOL_MODULE = '''
 from typing import Annotated
 
-from arcade_tdk import tool
+from arcade_mcp_server import tool
 
 
 @tool
@@ -34,7 +34,7 @@ def add_numbers(
 RESOURCE_MODULE = """
 from pathlib import Path
 
-from arcade_tdk import resource
+from arcade_mcp_server import resource
 
 
 @resource(path="dashboard.html", mime_type="text/html;profile=example")
@@ -46,7 +46,7 @@ def dashboard() -> str:
 # scan matches on the attribute name, so this reaches registration.
 # Module scope in the source, and never bound when the module is imported.
 GUARDED_MODULE = """
-from arcade_tdk import resource
+from arcade_mcp_server import resource
 
 if __name__ == "__main__":
 
@@ -75,7 +75,7 @@ def not_ours() -> str:
 # @resource under a decorator that replaces the function without copying its
 # attributes, so the declaration never reaches the module attribute.
 WRAPPED_MODULE = """
-from arcade_tdk import resource
+from arcade_mcp_server import resource
 
 
 def logged(fn):
@@ -94,7 +94,7 @@ def wrapped() -> str:
 # A synchronous function that hands back a coroutine. iscoroutinefunction says
 # no, so only the returned value gives it away.
 COROUTINE_MODULE = """
-from arcade_tdk import resource
+from arcade_mcp_server import resource
 
 
 async def _read() -> str:
@@ -108,7 +108,7 @@ def sneaky() -> str:
 
 # A second module declaring the same path, so both qualify to one URI.
 SECOND_UI_MODULE = """
-from arcade_tdk import resource
+from arcade_mcp_server import resource
 
 
 @resource(path="dashboard.html", mime_type="text/html;profile=example")
@@ -206,7 +206,7 @@ def test_a_declaration_in_init_registers_without_importing_it_twice(tmp_path, mo
     )
     (package / "__init__.py").write_text(
         textwrap.dedent("""
-            from arcade_tdk import resource
+            from arcade_mcp_server import resource
 
             RAN = []
             RAN.append(1)
@@ -246,7 +246,7 @@ def test_a_declaration_in_main_does_not_run_the_entrypoint(tmp_path, monkeypatch
     (package / "__init__.py").write_text("", encoding="utf-8")
     (package / "__main__.py").write_text(
         textwrap.dedent("""
-            from arcade_tdk import resource
+            from arcade_mcp_server import resource
 
             raise AssertionError("the entrypoint ran during catalog load")
 
@@ -410,12 +410,21 @@ def test_a_resource_returning_a_coroutine_is_reported(widgets_package):
 
 
 def test_the_decorator_is_found_through_its_module(widgets_package):
-    """@arcade_tdk.resource and an aliased import are the same declaration."""
+    """Every spelling that binds our decorator is the same declaration.
+
+    A toolkit author writes the first one. The rest are here because discovery
+    resolves the decorator against the module's imports, so each binding has to
+    be recognised or the declaration goes missing with nothing raised.
+    """
     import ast as _ast
 
     from arcade_core.parse import get_resources_from_ast
 
     for source in (
+        "from arcade_mcp_server import resource\n\n@resource(path='a.html')\ndef a(): ...",
+        "import arcade_mcp_server\n\n@arcade_mcp_server.resource(path='a.html')\ndef a(): ...",
+        # arcade_tdk re-exports it, and a toolkit written before the move may
+        # still reach for it directly.
         "import arcade_tdk\n\n@arcade_tdk.resource(path='a.html')\ndef a(): ...",
         "from arcade_tdk import resource as res\n\n@res(path='a.html')\ndef a(): ...",
         # The dotted binding `import arcade_core.resources` creates is a chain of
@@ -438,7 +447,7 @@ def test_only_module_level_declarations_are_discovered():
 
     from arcade_core.parse import get_resources_from_ast
 
-    header = "from arcade_tdk import resource\n\n"
+    header = "from arcade_mcp_server import resource\n\n"
     for source in (
         # A method is an attribute of the class, not of the module.
         "class Widgets:\n    @resource(path='a.html')\n    def a(self): ...",
@@ -457,7 +466,7 @@ def test_a_declaration_guarded_by_a_module_level_block_is_discovered():
 
     from arcade_core.parse import get_resources_from_ast
 
-    header = "from arcade_tdk import resource\n\n"
+    header = "from arcade_mcp_server import resource\n\n"
     for source in (
         "if True:\n    @resource(path='a.html')\n    def a(): ...",
         "if False:\n    pass\nelse:\n    @resource(path='a.html')\n    def a(): ...",
@@ -480,7 +489,7 @@ def test_a_name_written_in_two_branches_is_one_declaration():
 
     from arcade_core.parse import get_resources_from_ast
 
-    header = "from arcade_tdk import resource\n\n"
+    header = "from arcade_mcp_server import resource\n\n"
     for source in (
         "if True:\n    @resource(path='a.html')\n    def a(): ...\n"
         "else:\n    @resource(path='a.html')\n    def a(): ...",
@@ -497,7 +506,7 @@ def test_two_declarations_sharing_a_path_are_still_both_found():
     from arcade_core.parse import get_resources_from_ast
 
     source = (
-        "from arcade_tdk import resource\n\n"
+        "from arcade_mcp_server import resource\n\n"
         "@resource(path='a.html')\ndef a(): ...\n\n"
         "@resource(path='a.html')\ndef b(): ..."
     )

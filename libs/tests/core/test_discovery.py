@@ -16,7 +16,7 @@ def test_a_local_scan_warns_about_a_resource_it_cannot_register(tmp_path):
     both.write_text(
         textwrap.dedent("""
             from typing import Annotated
-            from arcade_tdk import resource, tool
+            from arcade_mcp_server import resource, tool
 
             @tool
             def add(a: Annotated[int, "a"]) -> Annotated[int, "b"]:
