@@ -5,7 +5,7 @@ from loguru import logger
 
 
 def test_a_local_scan_warns_about_a_resource_it_cannot_register(tmp_path):
-    """`from arcade_mcp_server import resource` imports and runs here, and registers nothing.
+    """The decorator imports and runs here, and registers nothing.
 
     A loose-file scan loads one file at a time and never builds a Toolkit, so
     the registry it would go into does not exist. Saying so is the difference
@@ -16,7 +16,8 @@ def test_a_local_scan_warns_about_a_resource_it_cannot_register(tmp_path):
     both.write_text(
         textwrap.dedent("""
             from typing import Annotated
-            from arcade_mcp_server import resource, tool
+            from arcade_core.resources import resource
+            from arcade_tdk import tool
 
             @tool
             def add(a: Annotated[int, "a"]) -> Annotated[int, "b"]:
