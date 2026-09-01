@@ -7,11 +7,14 @@ level rather than via full ASGI integration.
 """
 
 import json
+from contextlib import asynccontextmanager
 from unittest.mock import Mock
 
+import httpx
 import pytest
-
+from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.transports.http_session_manager import (
+    HTTPSessionManager,
     _create_transport_error_response,
     _replay_receive,
     _validate_accept_header,
@@ -20,7 +23,10 @@ from arcade_mcp_server.transports.http_session_manager import (
 )
 from arcade_mcp_server.transports.http_streamable import HTTPStreamableTransport
 from arcade_mcp_server.types import JSONRPCError
+from starlette.applications import Starlette
 from starlette.requests import Request
+from starlette.routing import Mount
+from starlette.types import Receive, Scope, Send
 
 
 def _make_request(headers: dict[str, str] | None = None, method: str = "POST") -> Request:
@@ -39,6 +45,21 @@ def _make_request(headers: dict[str, str] | None = None, method: str = "POST") -
     return Request(scope)
 
 
+@asynccontextmanager
+async def _http_client(mcp_server: MCPServer):
+    mcp_server.allowed_origins = ["*"]
+    manager = HTTPSessionManager(server=mcp_server, json_response=True)
+
+    async def mcp_endpoint(scope: Scope, receive: Receive, send: Send) -> None:
+        await manager.handle_request(scope, receive, send)
+
+    app = Starlette(routes=[Mount("/mcp", app=mcp_endpoint)])
+    async with manager.run():
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+            yield client
+
+
 class TestTransportErrorHelper:
     """Transport-level JSON-RPC error response helper."""
 
@@ -54,6 +75,29 @@ class TestTransportErrorHelper:
         resp = _create_transport_error_response(403, "Forbidden", code=-32001)
         body = json.loads(resp.body)
         assert body["error"]["code"] == -32001
+
+
+class TestHandshakeFreeDiscovery:
+    @pytest.mark.asyncio
+    async def test_discover_without_session_id_returns_metadata(
+        self, mcp_server: MCPServer
+    ) -> None:
+        async with _http_client(mcp_server) as client:
+            resp = await client.post(
+                "/mcp/",
+                headers={
+                    "Accept": "application/json, text/event-stream",
+                    "Content-Type": "application/json",
+                },
+                json={"jsonrpc": "2.0", "id": 1, "method": "server/discover"},
+            )
+        assert resp.status_code == 200, resp.text
+        body = resp.json()
+        assert body["result"]["supportedVersions"] == ["2025-06-18", "2025-11-25"]
+        assert body["result"]["resultType"] == "complete"
+        assert body["result"]["ttlMs"] == 0
+        assert body["result"]["cacheScope"] == "public"
+        assert resp.headers.get("Mcp-Session-Id")
 
 
 class TestOriginValidation:

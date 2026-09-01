@@ -454,12 +454,16 @@ class HTTPSessionManager:
 
         # --- Detect if this is an initialize request ---
         is_initialize = False
+        is_discovery_request = False
         body_bytes: bytes | None = None
         if request.method == "POST" and request_mcp_session_id is None:
             try:
                 body_bytes = await request.body()
                 raw = json.loads(body_bytes) if body_bytes else {}
                 is_initialize = isinstance(raw, dict) and raw.get("method") == "initialize"
+                is_discovery_request = (
+                    isinstance(raw, dict) and raw.get("method") == "server/discover"
+                )
             except Exception:  # noqa: S110
                 pass
 
@@ -566,7 +570,17 @@ class HTTPSessionManager:
 
                 # Handle the HTTP request (replay body so inner Request() can
                 # read it on ASGI hosts that do not buffer receive()).
-                await http_transport.handle_request(scope, inner_receive, send)
+                if is_discovery_request and body_bytes is not None:
+                    # Discovery bootstraps the stateful transport, so let its
+                    # normal session validation see the ID just allocated.
+                    discovery_scope = dict(scope)
+                    discovery_scope["headers"] = [
+                        *scope.get("headers", []),
+                        (MCP_SESSION_ID_HEADER.lower().encode(), new_session_id.encode()),
+                    ]
+                    await http_transport.handle_request(discovery_scope, inner_receive, send)
+                else:
+                    await http_transport.handle_request(scope, inner_receive, send)
         else:
             # Invalid session ID
             response = Response(
