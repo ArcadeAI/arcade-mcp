@@ -15,7 +15,7 @@ from typing import Any
 from loguru import logger
 
 from arcade_core.catalog import ToolCatalog
-from arcade_core.parse import get_tools_from_file
+from arcade_core.parse import get_resources_from_file, get_tools_from_file
 from arcade_core.toolkit import Toolkit, ToolkitLoadError
 
 DISCOVERY_PATTERNS = ["*.py", "tools/*.py", "arcade_tools/*.py", "tools/**/*.py"]
@@ -71,6 +71,19 @@ def analyze_files_for_tools(files: list[Path]) -> list[tuple[Path, list[str]]]:
             if names:
                 logger.info(f"Found {len(names)} tool(s) in {file_path.name}: {', '.join(names)}")
                 results.append((file_path, names))
+
+            # This scan loads one file at a time and never builds a Toolkit, so
+            # nothing it finds reaches the resource registry. Saying so is the
+            # difference between a decorator that is unsupported here and one
+            # that imports, runs, and silently registers nothing.
+            declared = get_resources_from_file(file_path)
+            if declared:
+                logger.warning(
+                    f"{file_path.name} declares {len(declared)} resource(s) "
+                    f"({', '.join(declared)}) that this scan does not register. "
+                    f"@resource is read from an installed toolkit; a loose file is "
+                    f"scanned for @tool only."
+                )
         except Exception:
             logger.exception(f"Could not parse {file_path}")
     return results
