@@ -3,6 +3,57 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Generic, Literal, TypeAlias, TypeVar
 
+from arcade_core.resource_schema import (
+    Annotations as Annotations,
+)
+from arcade_core.resource_schema import (
+    BaseMetadata as BaseMetadata,
+)
+from arcade_core.resource_schema import (
+    BlobResourceContents as BlobResourceContents,
+)
+from arcade_core.resource_schema import (
+    Cursor as Cursor,
+)
+from arcade_core.resource_schema import (
+    Icon as Icon,
+)
+from arcade_core.resource_schema import (
+    ListResourcesParams as ListResourcesParams,
+)
+from arcade_core.resource_schema import (
+    ListResourcesResult as ListResourcesResult,
+)
+from arcade_core.resource_schema import (
+    ListResourceTemplatesResult as ListResourceTemplatesResult,
+)
+from arcade_core.resource_schema import (
+    PaginatedResult as PaginatedResult,
+)
+from arcade_core.resource_schema import (
+    ReadResourceParams as ReadResourceParams,
+)
+from arcade_core.resource_schema import (
+    ReadResourceResult as ReadResourceResult,
+)
+from arcade_core.resource_schema import (
+    Resource as Resource,
+)
+from arcade_core.resource_schema import (
+    ResourceContents as ResourceContents,
+)
+from arcade_core.resource_schema import (
+    ResourceTemplate as ResourceTemplate,
+)
+from arcade_core.resource_schema import (
+    Result as Result,
+)
+from arcade_core.resource_schema import (
+    Role as Role,
+)
+from arcade_core.resource_schema import (
+    TextResourceContents as TextResourceContents,
+)
 from pydantic import BaseModel, ConfigDict, Field
 
 from arcade_mcp_server.resource_server.base import ResourceOwner
@@ -68,7 +119,6 @@ def version_has_feature(version: str, feature: str) -> bool:
 # -----------------------------------------------------------------------------
 
 ProgressToken = str | int
-Cursor = str
 RequestId = str | int
 AnyFunction: TypeAlias = Callable[..., Any]
 
@@ -88,12 +138,6 @@ class Request(BaseModel):
 class Notification(BaseModel):
     method: str
     params: Any = None
-
-    model_config = ConfigDict(extra="allow", populate_by_name=True)
-
-
-class Result(BaseModel):
-    meta: dict[str, Any] | None = Field(alias="_meta", default=None)
 
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
@@ -155,24 +199,6 @@ class SessionMessage:
 # -----------------------------------------------------------------------------
 # Initialization
 # -----------------------------------------------------------------------------
-
-
-class BaseMetadata(BaseModel):
-    name: str
-    title: str | None = None
-
-    model_config = ConfigDict(extra="allow")
-
-
-class Icon(BaseModel):
-    """Icon metadata (MCP 2025-11-25)."""
-
-    src: str
-    mimeType: str | None = None
-    sizes: list[str] | None = None
-    theme: Literal["light", "dark"] | None = None
-
-    model_config = ConfigDict(extra="allow")
 
 
 class Implementation(BaseMetadata):
@@ -284,46 +310,13 @@ class PaginatedRequest(JSONRPCRequest):
     params: dict[str, Any] | None = None
 
 
-class PaginatedResult(Result):
-    nextCursor: Cursor | None = None
-
-
-# -----------------------------------------------------------------------------
-# Annotations (used across resources, content, etc.)
-# -----------------------------------------------------------------------------
-
-Role = Literal["user", "assistant"]
-
-
-class Annotations(BaseModel):
-    audience: list[Role] | None = None
-    priority: float | None = None
-    lastModified: str | None = None
-
-    model_config = ConfigDict(extra="allow")
-
-
 # -----------------------------------------------------------------------------
 # Resources
 # -----------------------------------------------------------------------------
 
 
-class Resource(BaseMetadata):
-    uri: str
-    description: str | None = None
-    mimeType: str | None = None
-    annotations: Annotations | None = None
-    size: int | None = None
-    icons: list[Icon] | None = None
-    meta: dict[str, Any] | None = Field(alias="_meta", default=None)
-
-
 class ListResourcesRequest(PaginatedRequest):
     method: Literal["resources/list"] = Field(default="resources/list", frozen=True)
-
-
-class ListResourcesResult(PaginatedResult):
-    resources: list[Resource] = Field(default_factory=list)
 
 
 class ListResourceTemplatesRequest(PaginatedRequest):
@@ -332,44 +325,9 @@ class ListResourceTemplatesRequest(PaginatedRequest):
     )
 
 
-class ResourceTemplate(BaseMetadata):
-    uriTemplate: str
-    description: str | None = None
-    mimeType: str | None = None
-    annotations: Annotations | None = None
-    icons: list[Icon] | None = None
-    meta: dict[str, Any] | None = Field(alias="_meta", default=None)
-
-
-class ListResourceTemplatesResult(PaginatedResult):
-    resourceTemplates: list[ResourceTemplate] = Field(default_factory=list)
-
-
-class ReadResourceParams(BaseModel):
-    uri: str
-
-
 class ReadResourceRequest(JSONRPCRequest):
     method: Literal["resources/read"] = Field(default="resources/read", frozen=True)
     params: ReadResourceParams
-
-
-class ResourceContents(BaseModel):
-    uri: str
-    mimeType: str | None = None
-    meta: dict[str, Any] | None = Field(alias="_meta", default=None)
-
-
-class TextResourceContents(ResourceContents):
-    text: str
-
-
-class BlobResourceContents(ResourceContents):
-    blob: str
-
-
-class ReadResourceResult(Result):
-    contents: list[TextResourceContents | BlobResourceContents]
 
 
 class ResourceListChangedNotification(JSONRPCMessage, Notification):
