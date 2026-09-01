@@ -74,7 +74,10 @@ class ListResourcesParams(BaseModel):
 
 
 class ListResourcesResult(PaginatedResult):
-    resources: list[Resource] = Field(default_factory=list)
+    # Required, as the specification has it, so an empty page has to be sent as
+    # one. Defaulted, a payload whose key is absent or misspelled parses as a
+    # worker with no resources, and the caller cannot tell the two apart.
+    resources: list[Resource]
 
 
 class ResourceTemplate(BaseMetadata):
@@ -87,7 +90,7 @@ class ResourceTemplate(BaseMetadata):
 
 
 class ListResourceTemplatesResult(PaginatedResult):
-    resourceTemplates: list[ResourceTemplate] = Field(default_factory=list)
+    resourceTemplates: list[ResourceTemplate]
 
 
 class ReadResourceParams(BaseModel):
@@ -99,7 +102,12 @@ class ResourceContents(BaseModel):
     mimeType: str | None = None
     meta: dict[str, Any] | None = Field(alias="_meta", default=None)
 
-    model_config = ConfigDict(populate_by_name=True)
+    # extra="allow" matches Result and BaseMetadata above, and the reason is the
+    # same: a key this file has not modelled yet is carried rather than dropped,
+    # so the schema lagging the specification costs nothing. populate_by_name
+    # lets a caller pass ``meta=`` for the ``_meta`` field; without it, and with
+    # extra="allow", ``meta=`` is silently accepted as an extra field instead.
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
 
 class TextResourceContents(ResourceContents):
