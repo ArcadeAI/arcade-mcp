@@ -10,7 +10,7 @@ from __future__ import annotations
 import base64
 import binascii
 import inspect
-from bisect import insort
+from bisect import bisect_right, insort
 from dataclasses import dataclass
 
 from arcade_core.resource_schema import (
@@ -21,7 +21,7 @@ from arcade_core.resource_schema import (
 
 DEFAULT_PAGE_SIZE = 250
 
-_CURSOR_PREFIX = "offset:"
+_CURSOR_PREFIX = "after:"
 
 #: The scheme a tool's user interface is addressed under. Hosts that render an
 #: interface require it and refuse anything else.
@@ -36,13 +36,24 @@ class ResourceNotFoundError(KeyError):
     """Raised when no resource is registered at the requested URI."""
 
 
-def encode_cursor(offset: int) -> str:
-    """Cursors are opaque to callers, so the encoding can change freely."""
-    raw = f"{_CURSOR_PREFIX}{offset}".encode()
+def encode_cursor(last_uri: str) -> str:
+    """A cursor names the last URI served, not how many were served before it.
+
+    A worker runs as several processes and a page can be served by a different
+    one than issued the cursor. An index is only the same position in both when
+    both hold the same URIs, and they do not: a toolkit version lives in the
+    URI, so mid-rollout one replica holds ``ui://Math/1.1.0/x`` where another
+    holds ``ui://Math/1.0.0/x``. The same offset then skips, repeats, or ends
+    the listing early. A URI is the same position in any replica that has it,
+    and a resume point in any replica that does not.
+
+    Opaque to callers, so the encoding can still change freely.
+    """
+    raw = f"{_CURSOR_PREFIX}{last_uri}".encode()
     return base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
 
 
-def decode_cursor(cursor: str) -> int:
+def decode_cursor(cursor: str) -> str:
     padding = "=" * (-len(cursor) % 4)
     try:
         raw = base64.urlsafe_b64decode(cursor + padding).decode("utf-8")
@@ -50,13 +61,10 @@ def decode_cursor(cursor: str) -> int:
         raise InvalidCursorError(f"malformed cursor: {cursor!r}") from exc
     if not raw.startswith(_CURSOR_PREFIX):
         raise InvalidCursorError(f"malformed cursor: {cursor!r}")
-    try:
-        offset = int(raw[len(_CURSOR_PREFIX) :])
-    except ValueError as exc:
-        raise InvalidCursorError(f"malformed cursor: {cursor!r}") from exc
-    if offset < 0:
+    last_uri = raw[len(_CURSOR_PREFIX) :]
+    if not last_uri:
         raise InvalidCursorError(f"malformed cursor: {cursor!r}")
-    return offset
+    return last_uri
 
 
 class InvalidResourcePathError(ValueError):
@@ -237,10 +245,14 @@ class ResourceRegistry:
         Ordering is by URI so a cursor keeps its meaning when the next page is
         served by a different process. A worker can run as several processes
         behind one address, and none of them shares insertion order.
+
+        The cursor names a URI and the resume point is found with a binary
+        search, so a replica that does not hold that exact URI still resumes
+        after where it would sort rather than at some unrelated index.
         """
-        offset = decode_cursor(cursor) if cursor else 0
-        window = self._uris[offset : offset + self.page_size]
+        start = bisect_right(self._uris, decode_cursor(cursor)) if cursor else 0
+        end = start + self.page_size
+        window = self._uris[start:end]
         page = [self._resources[uri].resource for uri in window]
-        next_offset = offset + self.page_size
-        next_cursor = encode_cursor(next_offset) if next_offset < len(self._uris) else None
+        next_cursor = encode_cursor(window[-1]) if window and end < len(self._uris) else None
         return page, next_cursor
