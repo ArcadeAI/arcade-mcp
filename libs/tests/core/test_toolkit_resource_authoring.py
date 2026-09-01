@@ -195,6 +195,83 @@ def test_a_resource_uri_uses_the_same_toolkit_name_a_tool_does(two_word_package)
     assert catalog.resources.get(expected).resource.uri == expected
 
 
+def test_a_declaration_in_init_registers_without_importing_it_twice(tmp_path, monkeypatch):
+    """Importing `pkg.__init__` runs the package body again as a second module object."""
+    root = tmp_path / "initpkg"
+    package = root / "arcade_initpkg"
+    package.mkdir(parents=True)
+
+    (root / "pyproject.toml").write_text(
+        '[project]\nname = "arcade_initpkg"\nversion = "1.0.0"\n', encoding="utf-8"
+    )
+    (package / "__init__.py").write_text(
+        textwrap.dedent("""
+            from arcade_tdk import resource
+
+            RAN = []
+            RAN.append(1)
+
+            @resource(path="from-init.html", mime_type="text/html")
+            def from_init() -> str:
+                return "<html></html>"
+        """),
+        encoding="utf-8",
+    )
+    (package / "tools.py").write_text(textwrap.dedent(TOOL_MODULE), encoding="utf-8")
+    monkeypatch.syspath_prepend(str(root))
+    _forget("arcade_initpkg")
+
+    toolkit = Toolkit.from_directory(root)
+    assert "arcade_initpkg" in toolkit.resources
+    assert "arcade_initpkg.__init__" not in toolkit.resources
+
+    catalog = ToolCatalog()
+    catalog.add_toolkit(toolkit)
+
+    assert "arcade_initpkg.__init__" not in sys.modules
+    assert len(sys.modules["arcade_initpkg"].RAN) == 1, "the package body ran twice"
+    assert len(catalog.resources) == 1
+    _forget("arcade_initpkg")
+
+
+def test_a_declaration_in_main_does_not_run_the_entrypoint(tmp_path, monkeypatch, caplog):
+    """Importing `pkg.__main__` starts the toolkit's server while the catalog is loading."""
+    root = tmp_path / "mainpkg"
+    package = root / "arcade_mainpkg"
+    package.mkdir(parents=True)
+
+    (root / "pyproject.toml").write_text(
+        '[project]\nname = "arcade_mainpkg"\nversion = "1.0.0"\n', encoding="utf-8"
+    )
+    (package / "__init__.py").write_text("", encoding="utf-8")
+    (package / "__main__.py").write_text(
+        textwrap.dedent("""
+            from arcade_tdk import resource
+
+            raise AssertionError("the entrypoint ran during catalog load")
+
+            @resource(path="from-main.html", mime_type="text/html")
+            def from_main() -> str:
+                return "<html></html>"
+        """),
+        encoding="utf-8",
+    )
+    (package / "tools.py").write_text(textwrap.dedent(TOOL_MODULE), encoding="utf-8")
+    monkeypatch.syspath_prepend(str(root))
+    _forget("arcade_mainpkg")
+
+    toolkit = Toolkit.from_directory(root)
+    assert "arcade_mainpkg.__main__" not in toolkit.resources
+    assert "arcade_mainpkg.__main__" in caplog.text
+
+    catalog = ToolCatalog()
+    catalog.add_toolkit(toolkit)
+
+    assert "arcade_mainpkg.__main__" not in sys.modules
+    assert len(catalog) == 1, "the toolkit's tools still load"
+    _forget("arcade_mainpkg")
+
+
 def test_discovery_records_a_resource_module_that_declares_no_tools(widgets_package):
     toolkit = Toolkit.from_directory(widgets_package)
 
