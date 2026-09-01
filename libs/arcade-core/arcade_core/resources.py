@@ -168,8 +168,6 @@ def resource(
     The author gives a path relative to the toolkit. The full URI is derived at
     registration, where the toolkit's name and version are known::
 
-        from arcade_mcp_server import resource
-
         @resource(path="draft-review.html", mime_type="text/html")
         def draft_review() -> str:
             return (Path(__file__).parent / "draft-review.html").read_text()
