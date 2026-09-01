@@ -402,8 +402,33 @@ class ToolCatalog(BaseModel):
                         f"with functools.wraps."
                     ).with_context(toolkit.name)
 
+                owner = f"{module_name}.{resource_name}"
+
+                # Derived before declaring, because declare replaces whatever is
+                # already at a URI. Checked afterwards, the guard would raise
+                # over a resource it had just destroyed.
                 try:
-                    registered = self._resources.declare(
+                    uri = self._resources.uri_for(
+                        declaration,
+                        toolkit_name=normalize_toolkit_name(toolkit.name),
+                        toolkit_version=toolkit_version,
+                    )
+                except Exception as e:
+                    raise ToolkitLoadError(
+                        f"Could not build a URI for resource {resource_name} from "
+                        f"{module_name}. Reason: {e}"
+                    ).with_context(toolkit.name) from e
+
+                if uri in claimed:
+                    # Two resources sharing a path is an authoring mistake, and
+                    # this is the only point where both are in scope.
+                    raise ToolkitLoadError(
+                        f"{owner} and {claimed[uri]} both declare {uri}. Two resources "
+                        f"in one toolkit cannot share a path."
+                    ).with_context(toolkit.name)
+
+                try:
+                    self._resources.declare(
                         declaration,
                         func(),
                         toolkit_name=normalize_toolkit_name(toolkit.name),
@@ -415,17 +440,6 @@ class ToolCatalog(BaseModel):
                         f"Reason: {e}"
                     ).with_context(toolkit.name) from e
 
-                uri = registered.resource.uri
-                owner = f"{module_name}.{resource_name}"
-                if uri in claimed:
-                    # The registry replaces on a repeated URI, so without this the
-                    # earlier declaration is gone and the toolkit still loads. Two
-                    # resources sharing a path is an authoring mistake, and this is
-                    # the only point where both declarations are in scope.
-                    raise ToolkitLoadError(
-                        f"{owner} and {claimed[uri]} both declare {uri}. Two resources "
-                        f"in one toolkit cannot share a path."
-                    ).with_context(toolkit.name)
                 claimed[uri] = owner
 
     def __getitem__(self, name: FullyQualifiedName) -> MaterializedTool:

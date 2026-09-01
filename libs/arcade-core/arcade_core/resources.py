@@ -259,6 +259,22 @@ class ResourceRegistry:
         self._resources[resource.uri] = registered
         return registered
 
+    def uri_for(
+        self,
+        declaration: ResourceDeclaration,
+        *,
+        toolkit_name: str,
+        toolkit_version: str,
+    ) -> str:
+        """The URI a declaration would register under, without registering it.
+
+        declare replaces whatever is already at a URI, so a caller checking for
+        a conflict after declaring has already lost the resource it was
+        checking for. This lets the check run first, off the same derivation
+        declare itself uses.
+        """
+        return qualify(toolkit_name, toolkit_version, declaration.path, declaration.scheme)
+
     def declare(
         self,
         declaration: ResourceDeclaration,
@@ -272,7 +288,7 @@ class ResourceRegistry:
         Qualification happens here because this is the only point where the
         declaration and the toolkit's identity are both in scope.
         """
-        uri = qualify(toolkit_name, toolkit_version, declaration.path, declaration.scheme)
+        uri = self.uri_for(declaration, toolkit_name=toolkit_name, toolkit_version=toolkit_version)
         resource = Resource(
             uri=uri,
             name=declaration.name,
