@@ -563,3 +563,9 @@ def test_two_resources_sharing_a_path_fail_the_toolkit(widgets_package):
     assert "ui://Widgets/2.3.1/dashboard.html" in message
     assert "other_dashboard" in message
     assert "dashboard" in message
+
+    # The guard runs before declare, which replaces on a repeated URI. Run after,
+    # it would raise about a resource it had just overwritten, and any caller that
+    # caught this would be left holding the second one.
+    kept = catalog.resources.get("ui://Widgets/2.3.1/dashboard.html")
+    assert kept.resource.name == "dashboard", "the first declaration must survive the conflict"
