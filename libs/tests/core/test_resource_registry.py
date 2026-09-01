@@ -103,9 +103,63 @@ def test_the_last_page_reports_no_next_cursor():
 
 
 def test_cursors_round_trip_and_stay_opaque():
-    assert decode_cursor(encode_cursor(0)) == 0
-    assert decode_cursor(encode_cursor(4321)) == 4321
-    assert "4321" not in encode_cursor(4321)
+    uri = "ui://Gmail/8.1.0/draft-review.html"
+
+    assert decode_cursor(encode_cursor(uri)) == uri
+    assert uri not in encode_cursor(uri)
+
+
+def test_a_replica_resumes_a_page_it_did_not_issue():
+    """The rolling deploy this cursor exists for: two replicas, different catalogs.
+
+    A version lives in the URI, so mid-rollout the replica serving page two holds
+    a different set than the one that served page one. An index into either list
+    is a different position in the other.
+    """
+    old_replica = ResourceRegistry(page_size=2)
+    new_replica = ResourceRegistry(page_size=2)
+    shared = ["ui://A/1.0.0/a.html", "ui://B/1.0.0/b.html", "ui://C/1.0.0/c.html"]
+    for uri in shared:
+        old_replica.add(_resource(uri), "x")
+        new_replica.add(_resource(uri), "x")
+    # The rollout is halfway: this replica already carries the new Math build,
+    # and it sorts ahead of everything the other one holds.
+    new_replica.add(_resource("ui://AA/2.0.0/new.html"), "x")
+
+    first, cursor = old_replica.list()
+    assert [r.uri for r in first] == ["ui://A/1.0.0/a.html", "ui://B/1.0.0/b.html"]
+
+    second, _ = new_replica.list(cursor)
+
+    # An offset of 2 into the new replica would have started at "ui://B", serving
+    # it twice and never reaching "ui://C".
+    assert [r.uri for r in second] == ["ui://C/1.0.0/c.html"]
+
+
+def test_a_cursor_naming_a_uri_this_replica_lacks_still_resumes_after_it():
+    """A resume point, not a lookup: the anchor does not have to be present."""
+    registry = ResourceRegistry(page_size=10)
+    for uri in ("ui://A/1.0.0/a.html", "ui://C/1.0.0/c.html"):
+        registry.add(_resource(uri), "x")
+
+    page, _ = registry.list(encode_cursor("ui://B/1.0.0/gone.html"))
+
+    assert [r.uri for r in page] == ["ui://C/1.0.0/c.html"]
+
+
+def test_a_resource_added_before_the_cursor_does_not_shift_the_next_page():
+    """With an offset, inserting ahead of the cursor repeats an entry already served."""
+    registry = ResourceRegistry(page_size=2)
+    for uri in ("ui://B/1.0.0/b.html", "ui://C/1.0.0/c.html", "ui://D/1.0.0/d.html"):
+        registry.add(_resource(uri), "x")
+
+    first, cursor = registry.list()
+    assert [r.uri for r in first] == ["ui://B/1.0.0/b.html", "ui://C/1.0.0/c.html"]
+
+    registry.add(_resource("ui://A/1.0.0/a.html"), "x")
+    second, _ = registry.list(cursor)
+
+    assert [r.uri for r in second] == ["ui://D/1.0.0/d.html"]
 
 
 @pytest.mark.parametrize(
@@ -113,11 +167,9 @@ def test_cursors_round_trip_and_stay_opaque():
     [
         "not-base64!!",
         "",
-        "b2Zmc2V0Oi0x",  # offset:-1
-        "cGxhaW4=",  # plain
-        "b2Zmc2V0OmFiYw",  # offset:abc
-        "b2Zmc2V0OjEuNQ",  # offset:1.5
-        "b2Zmc2V0Og",  # offset:
+        "cGxhaW4",  # plain, no prefix
+        "b2Zmc2V0OjA",  # offset:0, the encoding this replaced
+        "YWZ0ZXI6",  # after:, naming nothing
     ],
 )
 def test_a_cursor_we_did_not_issue_is_rejected(bad):
