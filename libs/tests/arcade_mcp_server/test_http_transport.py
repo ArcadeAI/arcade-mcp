@@ -3,7 +3,8 @@
 Covers Origin validation, Accept header negotiation, the
 MCP-Protocol-Version header, CORS headers, the transport error helper,
 and session termination. These exercise the helpers at the function
-level rather than via full ASGI integration.
+level; the discovery regression also covers the stateful manager through a
+full ASGI request.
 """
 
 import json
