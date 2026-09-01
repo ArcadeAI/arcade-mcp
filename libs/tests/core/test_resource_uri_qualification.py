@@ -5,7 +5,7 @@ version segment separates the same toolkit installed at two versions across two
 workers, which is what keeps a tool and its interface in agreement.
 """
 
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse, urlunparse
 
 import pytest
 from arcade_core.resources import (
@@ -84,15 +84,13 @@ def test_a_declaration_with_no_scheme_left_is_rejected(scheme):
 @pytest.mark.parametrize(
     "path",
     [
-        pytest.param("report?v=2.html", id="? opens a query"),
-        pytest.param("report#top.html", id="# opens a fragment"),
         pytest.param("a\nb.html", id="a newline"),
         pytest.param("a\tb.html", id="a tab"),
         pytest.param("a\x00b.html", id="a NUL"),
     ],
 )
-def test_a_path_that_breaks_the_uri_is_rejected(path):
-    """These fail at the point of reading, a long way from the declaration."""
+def test_a_path_carrying_a_control_character_is_rejected(path):
+    """Encodable, but never meant. A control character in a filename is corruption."""
     with pytest.raises(InvalidResourcePathError):
         qualify("Gmail", "8.1.0", path)
 
@@ -101,14 +99,57 @@ def test_a_path_that_breaks_the_uri_is_rejected(path):
     "path",
     [
         pytest.param("café.html", id="non-ascii"),
-        pytest.param("a%20b.html", id="already percent-encoded"),
+        pytest.param("a b.html", id="a space"),
+        pytest.param("50%.html", id="a percent"),
+        pytest.param("report?v=2.html", id="a question mark"),
+        pytest.param("report#top.html", id="a hash"),
+        pytest.param("a%20b.html", id="something already percent-encoded"),
         pytest.param("a-b_c.d.html", id="punctuation a filename actually uses"),
         pytest.param("v2/report.html", id="a subdirectory"),
     ],
 )
-def test_a_path_a_toolkit_would_really_write_is_accepted(path):
-    """The check above must not become a reason to reject ordinary filenames."""
-    assert qualify("Gmail", "8.1.0", path).endswith(path)
+def test_a_path_survives_the_trip_as_the_author_wrote_it(path):
+    """The URI a parser hands back has to decode to the path that was declared.
+
+    Asserting the raw path is still a substring would pass on a URI no parser
+    accepts, which is how ``50%.html`` and ``a b.html`` got through before.
+    """
+    uri = qualify("Gmail", "8.1.0", path)
+    parsed = urlparse(uri)
+
+    assert uri == urlunparse(parsed), "a URI a parser rewrites is not the one we registered"
+    assert unquote(parsed.path) == f"/8.1.0/{path}"
+
+
+@pytest.mark.parametrize(
+    ("toolkit", "version", "scheme"),
+    [
+        pytest.param("Gmail", "8.1.0", "ui://Slack/9.0.0", id="a scheme carrying an authority"),
+        pytest.param("Gmail", "8.1.0", "1ui", id="a scheme not starting with a letter"),
+        pytest.param("Gmail", "8.1.0", "ht tp", id="a scheme with a space"),
+        pytest.param("My Toolkit", "8.1.0", "ui", id="a toolkit name with a space"),
+        pytest.param("Gmail?v2", "8.1.0", "ui", id="a toolkit name opening a query"),
+        pytest.param("Gmail", "8.1.0/x", "ui", id="a version eating a path segment"),
+    ],
+)
+def test_the_uris_identity_is_refused_rather_than_encoded(toolkit, version, scheme):
+    """Encoding these would answer under a name nobody asked for.
+
+    ``ui://Slack/9.0.0`` as a scheme parses with host ``Slack``, so a Gmail
+    declaration serves under another toolkit's authority. A "/" in the version
+    makes it eat a path segment, so ``("8.1.0/x", "a.html")`` and
+    ``("8.1.0", "x/a.html")`` collide on one URI.
+    """
+    with pytest.raises(InvalidResourcePathError):
+        qualify(toolkit, version, "a.html", scheme=scheme)
+
+
+def test_a_version_cannot_eat_a_path_segment():
+    """The collision the check above prevents, stated as the equality it used to satisfy."""
+    with pytest.raises(InvalidResourcePathError):
+        qualify("Gmail", "8.1.0/x", "a.html")
+
+    assert qualify("Gmail", "8.1.0", "x/a.html") == "ui://Gmail/8.1.0/x/a.html"
 
 
 @pytest.mark.parametrize("path", ["../secrets", "ui/../../etc/passwd", "./a.html"])
