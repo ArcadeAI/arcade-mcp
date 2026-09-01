@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Literal, Protocol
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_serializer
 
 from arcade_core.errors import ErrorKind
 from arcade_core.metadata import ToolMetadata
@@ -421,6 +421,9 @@ class ToolContext(BaseModel):
     user_id: str | None = None
     """The user ID for the tool invocation (if any)."""
 
+    protected_api_outcome: str | None = Field(default=None, exclude=True, repr=False)
+    """Private protected-API outcome recorded during this invocation."""
+
     model_config = {"arbitrary_types_allowed": True}
 
     def set_secret(self, key: str, value: str) -> None:
@@ -646,6 +649,9 @@ class ToolCallOutput(BaseModel):
     requires_authorization: ToolCallRequiresAuthorization | None = None
     """The authorization requirements for the tool invocation."""
 
+    protected_api_outcome: str | None = Field(default=None, exclude=True, repr=False)
+    """Private protected-API outcome for transport projection."""
+
     model_config = {
         "json_schema_extra": {
             "oneOf": [
@@ -671,3 +677,13 @@ class ToolCallResponse(BaseModel):
     """Whether the tool execution was successful."""
     output: ToolCallOutput | None = None
     """The output of the tool invocation."""
+    meta: dict[str, Any] | None = Field(default=None, alias="_meta")
+    """Private transport metadata for the Engine."""
+
+    @model_serializer(mode="wrap")
+    def _omit_empty_meta(self, handler: Any) -> dict[str, Any]:
+        result: dict[str, Any] = handler(self)
+        if self.meta is None:
+            result.pop("meta", None)
+            result.pop("_meta", None)
+        return result

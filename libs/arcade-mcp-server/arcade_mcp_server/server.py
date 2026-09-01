@@ -28,6 +28,7 @@ from arcade_core.errors import ErrorKind, ToolInputError
 from arcade_core.executor import ToolExecutor
 from arcade_core.log_extras import build_tool_error_log_extra, build_tool_error_span_attributes
 from arcade_core.network.org_transport import build_org_scoped_async_http_client
+from arcade_core.protected_api import build_protected_api_metadata
 from arcade_core.schema import ToolAuthorizationContext, ToolCallError, ToolContext
 from arcade_core.schema import ToolAuthRequirement as CoreToolAuthRequirement
 from arcadepy import ArcadeError, AsyncArcade
@@ -1574,6 +1575,7 @@ class MCPServer:
                     mctx.set_tool_context(saved_tool_context)
 
             # Convert result
+            protected_api_meta = build_protected_api_metadata(result.protected_api_outcome)
             if result.value is not None:
                 content = convert_to_mcp_content(result.value)
 
@@ -1587,6 +1589,7 @@ class MCPServer:
                         content=content,
                         structuredContent=structured_content,
                         isError=False,
+                        **({"_meta": protected_api_meta} if protected_api_meta else {}),
                     ),
                 )
             else:
@@ -1632,22 +1635,16 @@ class MCPServer:
                 # no structured error to surface. ``**{"_meta": ...}`` matches the
                 # alias convention used by CreateTaskResult above and works under
                 # ``Result.model_config.populate_by_name=True``.
-                error_meta: dict[str, Any] | None = (
-                    {"arcade": _build_arcade_error_meta(error)} if error is not None else None
-                )
-                call_tool_result = (
-                    CallToolResult(
-                        content=content,
-                        structuredContent=None,
-                        isError=True,
-                        **{"_meta": error_meta},
-                    )
-                    if error_meta is not None
-                    else CallToolResult(
-                        content=content,
-                        structuredContent=None,
-                        isError=True,
-                    )
+                response_meta: dict[str, Any] = {}
+                if error is not None:
+                    response_meta["arcade"] = _build_arcade_error_meta(error)
+                if protected_api_meta:
+                    response_meta.update(protected_api_meta)
+                call_tool_result = CallToolResult(
+                    content=content,
+                    structuredContent=None,
+                    isError=True,
+                    **({"_meta": response_meta} if response_meta else {}),
                 )
                 return JSONRPCResponse(id=message.id, result=call_tool_result)
         except NotFoundError:

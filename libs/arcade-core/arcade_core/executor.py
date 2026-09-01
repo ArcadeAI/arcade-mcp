@@ -44,6 +44,8 @@ class ToolExecutor:
                 )
             )
 
+        context.protected_api_outcome = None
+
         try:
             # serialize the input model
             inputs = await ToolExecutor._serialize_input(input_model, **kwargs)
@@ -64,12 +66,11 @@ class ToolExecutor:
             # serialize the output model
             output = await ToolExecutor._serialize_output(output_model, results)
 
-            # return the output
-            return output_factory.success(data=output, logs=tool_call_logs)
+            tool_output = output_factory.success(data=output, logs=tool_call_logs)
 
         except ToolRuntimeError as e:
             e.with_context(func.__name__)
-            return output_factory.fail(
+            tool_output = output_factory.fail(
                 message=e.message,
                 developer_message=e.developer_message,
                 stacktrace=e.stacktrace(),
@@ -83,11 +84,14 @@ class ToolExecutor:
 
         # if we get here we're in trouble
         except Exception as e:
-            return output_factory.fail(
+            tool_output = output_factory.fail(
                 message=f"Error in execution of '{func.__name__}'",
                 developer_message=str(e),
                 stacktrace=traceback.format_exc(),
             )
+
+        tool_output.protected_api_outcome = context.protected_api_outcome
+        return tool_output
 
     @staticmethod
     async def _serialize_input(input_model: type[BaseModel], **kwargs: Any) -> BaseModel:

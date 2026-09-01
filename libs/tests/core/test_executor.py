@@ -114,6 +114,13 @@ def dict_output_tool() -> Annotated[dict, "Returns a plain dict"]:
     return {"key": "value", "number": 42, "nested": {"inner": "data"}}
 
 
+@tool
+def protected_api_output_tool(context: ToolContext) -> Annotated[str, "Protected API output"]:
+    """Return a value with a private protected API outcome."""
+    context.protected_api_outcome = "accepted"
+    return "ok"
+
+
 # ---- Test Driver ----
 tools = [
     simple_tool,
@@ -129,6 +136,7 @@ tools = [
     typeddict_output_tool,
     list_typeddict_output_tool,
     dict_output_tool,
+    protected_api_output_tool,
 ]
 catalog = ToolCatalog()
 for tool_func in tools:
@@ -326,6 +334,24 @@ async def test_tool_executor(tool_func, inputs, expected_output):
     )
 
     check_output(output, expected_output)
+
+
+@pytest.mark.asyncio
+async def test_tool_executor_preserves_private_protected_api_outcome() -> None:
+    tool_definition = catalog.find_tool_by_func(protected_api_output_tool)
+    full_tool = catalog.get_tool(tool_definition.get_fully_qualified_name())
+
+    output = await ToolExecutor.run(
+        func=protected_api_output_tool,
+        definition=tool_definition,
+        input_model=full_tool.input_model,
+        output_model=full_tool.output_model,
+        context=ToolContext(),
+    )
+
+    assert output.value == "ok"
+    assert output.protected_api_outcome == "accepted"
+    assert "protected_api" not in output.model_dump_json()
 
 
 def check_output_error(output_error: ToolCallError, expected_error: ToolCallError):
