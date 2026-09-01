@@ -74,9 +74,6 @@ class ListResourcesParams(BaseModel):
 
 
 class ListResourcesResult(PaginatedResult):
-    # Required, as the specification has it, so an empty page has to be sent as
-    # one. Defaulted, a payload whose key is absent or misspelled parses as a
-    # worker with no resources, and the caller cannot tell the two apart.
     resources: list[Resource]
 
 
