@@ -84,11 +84,36 @@ def test_read_result_round_trips_a_mixed_contents_list():
     assert result.model_dump(by_alias=True, exclude_none=True) == payload
 
 
-def test_list_result_defaults_to_an_empty_page():
-    result = ListResourcesResult()
+def test_an_empty_page_has_to_be_sent_as_one():
+    """A defaulted `resources` makes a malformed payload read as a worker with none."""
+    explicit = ListResourcesResult(resources=[])
 
-    assert result.resources == []
-    assert result.model_dump(by_alias=True, exclude_none=True) == {"resources": []}
+    assert explicit.resources == []
+    assert explicit.model_dump(by_alias=True, exclude_none=True) == {"resources": []}
+
+    with pytest.raises(ValidationError):
+        ListResourcesResult.model_validate({})
+    with pytest.raises(ValidationError):
+        # The failure this guards: one transposed character, and an empty
+        # catalog is indistinguishable from a body nobody can read.
+        ListResourcesResult.model_validate({
+            "resourcs": [{"uri": "ui://A/1.0.0/a.html", "name": "a"}]
+        })
+
+
+def test_contents_carry_a_key_this_schema_has_not_modelled():
+    """Its siblings allow extra, and a resource body has the same reason to.
+
+    MCP and the Apps extension move on their own schedules. A key that arrives
+    before this file models it should reach whoever asked for the resource.
+    """
+    contents = TextResourceContents(uri="ui://A/1.0.0/a.html", text="x", futureKey="v")
+
+    assert contents.model_dump(by_alias=True, exclude_none=True) == {
+        "uri": "ui://A/1.0.0/a.html",
+        "text": "x",
+        "futureKey": "v",
+    }
 
 
 def test_list_params_accept_an_absent_cursor():
