@@ -147,10 +147,129 @@ def widgets_package(tmp_path, monkeypatch):
 
 
 def _forget_package():
-    for name in [
-        n for n in sys.modules if n == "arcade_widgets" or n.startswith("arcade_widgets.")
-    ]:
+    _forget("arcade_widgets")
+
+
+@pytest.fixture
+def two_word_package(tmp_path, monkeypatch):
+    """A toolkit whose name normalises to something other than itself.
+
+    `arcade_widgets` is one word, so it hides every difference between the raw
+    package name and the name a tool is published under.
+    """
+    root = tmp_path / "docs"
+    package = root / "arcade_google_docs"
+    package.mkdir(parents=True)
+
+    (root / "pyproject.toml").write_text(
+        '[project]\nname = "arcade_google_docs"\nversion = "8.1.0"\n', encoding="utf-8"
+    )
+    (package / "__init__.py").write_text("", encoding="utf-8")
+    (package / "tools.py").write_text(textwrap.dedent(TOOL_MODULE), encoding="utf-8")
+    (package / "ui.py").write_text(textwrap.dedent(RESOURCE_MODULE), encoding="utf-8")
+    (package / "dashboard.html").write_text("<!DOCTYPE html><p>hi</p>", encoding="utf-8")
+
+    monkeypatch.syspath_prepend(str(root))
+    _forget("arcade_google_docs")
+    yield root
+    _forget("arcade_google_docs")
+
+
+def _forget(package_name):
+    for name in [n for n in sys.modules if n == package_name or n.startswith(package_name + ".")]:
         del sys.modules[name]
+
+
+def test_a_resource_uri_uses_the_same_toolkit_name_a_tool_does(two_word_package):
+    """Registry lookup is exact, so one name spelled two ways is a 404."""
+    catalog = ToolCatalog()
+    catalog.add_toolkit(Toolkit.from_directory(two_word_package))
+
+    tool = next(iter(catalog))
+    expected = (
+        f"ui://{tool.definition.toolkit.name}/{tool.definition.toolkit.version}/dashboard.html"
+    )
+
+    # Derived from the tool rather than written out, so the two cannot drift
+    # apart without this failing.
+    assert catalog.resources.get(expected).resource.uri == expected
+
+
+def test_a_declaration_in_init_registers_without_importing_it_twice(tmp_path, monkeypatch):
+    """Importing `pkg.__init__` runs the package body again as a second module object."""
+    root = tmp_path / "initpkg"
+    package = root / "arcade_initpkg"
+    package.mkdir(parents=True)
+
+    (root / "pyproject.toml").write_text(
+        '[project]\nname = "arcade_initpkg"\nversion = "1.0.0"\n', encoding="utf-8"
+    )
+    (package / "__init__.py").write_text(
+        textwrap.dedent("""
+            from arcade_tdk import resource
+
+            RAN = []
+            RAN.append(1)
+
+            @resource(path="from-init.html", mime_type="text/html")
+            def from_init() -> str:
+                return "<html></html>"
+        """),
+        encoding="utf-8",
+    )
+    (package / "tools.py").write_text(textwrap.dedent(TOOL_MODULE), encoding="utf-8")
+    monkeypatch.syspath_prepend(str(root))
+    _forget("arcade_initpkg")
+
+    toolkit = Toolkit.from_directory(root)
+    assert "arcade_initpkg" in toolkit.resources
+    assert "arcade_initpkg.__init__" not in toolkit.resources
+
+    catalog = ToolCatalog()
+    catalog.add_toolkit(toolkit)
+
+    assert "arcade_initpkg.__init__" not in sys.modules
+    assert len(sys.modules["arcade_initpkg"].RAN) == 1, "the package body ran twice"
+    assert len(catalog.resources) == 1
+    _forget("arcade_initpkg")
+
+
+def test_a_declaration_in_main_does_not_run_the_entrypoint(tmp_path, monkeypatch, caplog):
+    """Importing `pkg.__main__` starts the toolkit's server while the catalog is loading."""
+    root = tmp_path / "mainpkg"
+    package = root / "arcade_mainpkg"
+    package.mkdir(parents=True)
+
+    (root / "pyproject.toml").write_text(
+        '[project]\nname = "arcade_mainpkg"\nversion = "1.0.0"\n', encoding="utf-8"
+    )
+    (package / "__init__.py").write_text("", encoding="utf-8")
+    (package / "__main__.py").write_text(
+        textwrap.dedent("""
+            from arcade_tdk import resource
+
+            raise AssertionError("the entrypoint ran during catalog load")
+
+            @resource(path="from-main.html", mime_type="text/html")
+            def from_main() -> str:
+                return "<html></html>"
+        """),
+        encoding="utf-8",
+    )
+    (package / "tools.py").write_text(textwrap.dedent(TOOL_MODULE), encoding="utf-8")
+    monkeypatch.syspath_prepend(str(root))
+    _forget("arcade_mainpkg")
+
+    toolkit = Toolkit.from_directory(root)
+    assert "arcade_mainpkg.__main__" not in toolkit.resources
+    assert "arcade_mainpkg.__main__" in caplog.text
+
+    catalog = ToolCatalog()
+    catalog.add_toolkit(toolkit)
+
+    assert "arcade_mainpkg.__main__" not in sys.modules
+    assert len(catalog) == 1, "the toolkit's tools still load"
+    _forget("arcade_mainpkg")
 
 
 def test_discovery_records_a_resource_module_that_declares_no_tools(widgets_package):
@@ -166,7 +285,7 @@ def test_a_declared_resource_is_registered_with_a_qualified_uri(widgets_package)
 
     catalog.add_toolkit(toolkit)
 
-    registered = catalog.resources.get("ui://widgets/2.3.1/dashboard.html")
+    registered = catalog.resources.get("ui://Widgets/2.3.1/dashboard.html")
     assert registered.resource.name == "dashboard"
     assert registered.resource.mimeType == "text/html;profile=example"
     assert registered.contents.text == "<!DOCTYPE html><p>hi</p>"
@@ -212,7 +331,7 @@ def test_the_version_registered_is_the_toolkit_version(widgets_package):
 
     catalog.add_toolkit(toolkit, version="9.9.9")
 
-    assert "ui://widgets/9.9.9/dashboard.html" in catalog.resources
+    assert "ui://Widgets/9.9.9/dashboard.html" in catalog.resources
 
 
 def test_the_decorator_leaves_the_function_callable():
@@ -292,8 +411,9 @@ def test_a_resource_returning_a_coroutine_is_reported(widgets_package):
 
 def test_the_decorator_is_found_through_its_module(widgets_package):
     """@arcade_tdk.resource and an aliased import are the same declaration."""
-    from arcade_core.parse import get_resources_from_ast
     import ast as _ast
+
+    from arcade_core.parse import get_resources_from_ast
 
     for source in (
         "import arcade_tdk\n\n@arcade_tdk.resource(path='a.html')\ndef a(): ...",
@@ -314,8 +434,9 @@ def test_the_decorator_is_found_through_its_module(widgets_package):
 
 def test_only_module_level_declarations_are_discovered():
     """Registration reaches a declaration with getattr on the module, and nothing else."""
-    from arcade_core.parse import get_resources_from_ast
     import ast as _ast
+
+    from arcade_core.parse import get_resources_from_ast
 
     header = "from arcade_tdk import resource\n\n"
     for source in (
@@ -332,8 +453,9 @@ def test_only_module_level_declarations_are_discovered():
 
 def test_a_declaration_guarded_by_a_module_level_block_is_discovered():
     """if, try and with keep module scope, so the name really can become an attribute."""
-    from arcade_core.parse import get_resources_from_ast
     import ast as _ast
+
+    from arcade_core.parse import get_resources_from_ast
 
     header = "from arcade_tdk import resource\n\n"
     for source in (
@@ -354,8 +476,9 @@ def test_a_declaration_guarded_by_a_module_level_block_is_discovered():
 
 def test_a_name_written_in_two_branches_is_one_declaration():
     """Only one arm binds at import, so counting both would fail a toolkit with no duplicate."""
-    from arcade_core.parse import get_resources_from_ast
     import ast as _ast
+
+    from arcade_core.parse import get_resources_from_ast
 
     header = "from arcade_tdk import resource\n\n"
     for source in (
@@ -369,8 +492,9 @@ def test_a_name_written_in_two_branches_is_one_declaration():
 
 def test_two_declarations_sharing_a_path_are_still_both_found():
     """Deduplication is by name, so it must not hide a real duplicate from the registry."""
-    from arcade_core.parse import get_resources_from_ast
     import ast as _ast
+
+    from arcade_core.parse import get_resources_from_ast
 
     source = (
         "from arcade_tdk import resource\n\n"
@@ -410,8 +534,9 @@ def test_a_disabled_toolkit_registers_no_resources(widgets_package, monkeypatch)
 
 def test_a_decorator_we_do_not_export_is_still_refused():
     """The import resolution buys precision, so it must not become a rubber stamp."""
-    from arcade_core.parse import get_resources_from_ast
     import ast as _ast
+
+    from arcade_core.parse import get_resources_from_ast
 
     for source in (
         # Ours is never imported, so a same-named decorator is not ours.
@@ -435,6 +560,6 @@ def test_two_resources_sharing_a_path_fail_the_toolkit(widgets_package):
         catalog.add_toolkit(toolkit)
 
     message = str(exc_info.value)
-    assert "ui://widgets/2.3.1/dashboard.html" in message
+    assert "ui://Widgets/2.3.1/dashboard.html" in message
     assert "other_dashboard" in message
     assert "dashboard" in message

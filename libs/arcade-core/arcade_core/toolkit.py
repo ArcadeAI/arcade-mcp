@@ -365,12 +365,40 @@ class Toolkit(BaseModel):
             tools[full_import_path] = get_tools_from_ast(tree)
             declared_resources = get_resources_from_ast(tree)
             if declared_resources:
-                resources[full_import_path] = declared_resources
+                resource_module = cls._resource_module_for(full_import_path)
+                if resource_module is None:
+                    logger.warning(
+                        f"{full_import_path} declares {len(declared_resources)} resource(s) and is "
+                        f"a package entrypoint. Registering them would run it at worker startup, so "
+                        f"they are skipped. Move them to another module."
+                    )
+                elif resource_module in resources:
+                    resources[resource_module].extend(declared_resources)
+                else:
+                    resources[resource_module] = declared_resources
 
         if not tools:
             raise ToolkitLoadError(f"No tools found in package {package_name}")
 
         return tools, resources
+
+    @staticmethod
+    def _resource_module_for(import_path: str) -> str | None:
+        """The module registration should import to reach a file's resources.
+
+        Registration imports these, which the tool path never did because those
+        keys are almost always empty. Importing ``pkg.__init__`` runs the package
+        body a second time as a separate module object, and importing
+        ``pkg.__main__`` runs the toolkit's entrypoint at worker startup.
+
+        Returns None for an entrypoint, which has no safe module to import.
+        """
+        package, _, leaf = import_path.rpartition(".")
+        if leaf == "__init__":
+            return package or import_path
+        if leaf == "__main__":
+            return None
+        return import_path
 
     @classmethod
     def validate_file(cls, file_path: str | Path) -> None:
