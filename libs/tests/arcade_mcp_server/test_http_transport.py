@@ -49,9 +49,7 @@ def _make_request(headers: dict[str, str] | None = None, method: str = "POST") -
 @asynccontextmanager
 async def _http_client(mcp_server: MCPServer, *, stateless: bool = False):
     mcp_server.allowed_origins = ["*"]
-    manager = HTTPSessionManager(
-        server=mcp_server, json_response=True, stateless=stateless
-    )
+    manager = HTTPSessionManager(server=mcp_server, json_response=True, stateless=stateless)
 
     async def mcp_endpoint(scope: Scope, receive: Receive, send: Send) -> None:
         await manager.handle_request(scope, receive, send)
@@ -125,6 +123,49 @@ class TestHandshakeFreeDiscovery:
             "2025-06-18",
             "2025-11-25",
         ]
+
+    @pytest.mark.asyncio
+    async def test_discover_reusing_session_id_with_unknown_protocol_version_returns_versions(
+        self, mcp_server: MCPServer
+    ) -> None:
+        """A discover retry that reuses the Mcp-Session-Id from the first
+        response is still version discovery: an unimplemented
+        MCP-Protocol-Version must reach the handler, not die at the
+        transport 400."""
+        async with _http_client(mcp_server) as client:
+            headers = {
+                "Accept": "application/json, text/event-stream",
+                "Content-Type": "application/json",
+                "MCP-Protocol-Version": "2026-07-28",
+            }
+            first = await client.post(
+                "/mcp/",
+                headers=headers,
+                json={"jsonrpc": "2.0", "id": 1, "method": "server/discover"},
+            )
+            assert first.status_code == 200, first.text
+            session_id = first.headers.get("Mcp-Session-Id")
+            assert session_id
+
+            retry = await client.post(
+                "/mcp/",
+                headers={**headers, "Mcp-Session-Id": session_id},
+                json={"jsonrpc": "2.0", "id": 2, "method": "server/discover"},
+            )
+            assert retry.status_code == 200, retry.text
+            assert retry.json()["result"]["supportedVersions"] == [
+                "2025-06-18",
+                "2025-11-25",
+            ]
+
+            # Ordinary methods on the same session keep the version check.
+            tools_list = await client.post(
+                "/mcp/",
+                headers={**headers, "Mcp-Session-Id": session_id},
+                json={"jsonrpc": "2.0", "id": 3, "method": "tools/list"},
+            )
+            assert tools_list.status_code == 400, tools_list.text
+            assert "Unsupported protocol version" in tools_list.text
 
     @pytest.mark.asyncio
     async def test_tools_list_with_unknown_protocol_version_still_rejected(
@@ -250,9 +291,7 @@ class TestMCPProtocolVersionHeader:
     def test_stateless_initialize_skips_header_requirement(self):
         """Stateless mode must also exempt initialize from the header check."""
         req = _make_request({})
-        error, _ = _validate_protocol_version_header(
-            req, is_stateless=True, is_initialize=True
-        )
+        error, _ = _validate_protocol_version_header(req, is_stateless=True, is_initialize=True)
         assert error is None
 
     def test_stateless_non_initialize_invalid_header_still_returns_400(self):

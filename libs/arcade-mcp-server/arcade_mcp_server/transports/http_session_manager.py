@@ -473,10 +473,13 @@ class HTTPSessionManager:
         request_mcp_session_id = request.headers.get(MCP_SESSION_ID_HEADER)
 
         # --- Detect if this is an initialize request ---
+        # Method detection runs on every POST, including ones that carry a
+        # session ID: a discover retry reusing the session allocated by the
+        # first probe is still version discovery and must keep the exemption.
         is_initialize = False
         is_discovery_request = False
         body_bytes: bytes | None = None
-        if request.method == "POST" and request_mcp_session_id is None:
+        if request.method == "POST":
             try:
                 body_bytes = await request.body()
                 raw = json.loads(body_bytes) if body_bytes else {}
