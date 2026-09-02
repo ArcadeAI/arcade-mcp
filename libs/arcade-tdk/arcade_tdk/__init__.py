@@ -1,4 +1,5 @@
 from arcade_core.catalog import ToolCatalog
+from arcade_core.resources import ResourceDeclaration, resource
 from arcade_core.schema import (
     ToolAuthorizationContext,
     ToolContext,
@@ -11,6 +12,7 @@ from arcade_core.toolkit import Toolkit
 from arcade_tdk.tool import tool
 
 __all__ = [
+    "ResourceDeclaration",
     "ToolAuthorizationContext",
     "ToolCatalog",
     "ToolContext",
@@ -18,5 +20,6 @@ __all__ = [
     "ToolMetadataKey",
     "ToolSecretItem",
     "Toolkit",
+    "resource",
     "tool",
 ]

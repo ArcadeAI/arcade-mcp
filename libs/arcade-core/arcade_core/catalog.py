@@ -35,7 +35,7 @@ from arcade_core.errors import (
     ToolOutputSchemaError,
 )
 from arcade_core.metadata import ToolMetadata
-from arcade_core.resources import ResourceRegistry
+from arcade_core.resources import RESOURCE_ATTRIBUTE, ResourceRegistry
 from arcade_core.schema import (
     TOOL_NAME_SEPARATOR,
     FullyQualifiedName,
@@ -60,8 +60,8 @@ from arcade_core.utils import (
     is_strict_optional,
     is_string_literal,
     is_union,
+    normalize_toolkit_name,
     snake_to_pascal_case,
-    space_to_snake_case,
 )
 
 logger = logging.getLogger(__name__)
@@ -352,6 +352,96 @@ class ToolCatalog(BaseModel):
                         f"Error encountered while adding tool {tool_name} from {module_name}. Reason: {e}"
                     ).with_context(tool_name)
 
+        self._add_toolkit_resources(toolkit, version)
+
+    def _add_toolkit_resources(self, toolkit: Toolkit, version: str | None = None) -> None:
+        """Register the resources a toolkit declares, qualifying each URI.
+
+        A resource that fails to register raises, the same as a tool that fails
+        to register. Both are toolkit primitives, and a toolkit that cannot
+        produce something it declares has not loaded.
+        """
+        if toolkit.name.lower() in self._disabled_toolkits:
+            # add_tool applies this per tool, on the normalised toolkit name.
+            # Resources arrive by a different path and would otherwise be
+            # published for a toolkit whose tools are hidden.
+            return
+
+        toolkit_version = version or toolkit.version
+        claimed: dict[str, str] = {}
+
+        for module_name, resource_names in (toolkit.resources or {}).items():
+            try:
+                module = import_module(module_name)
+            except Exception as e:
+                raise ToolkitLoadError(
+                    f"Could not import module {module_name}. Reason: {e}"
+                ).with_context(toolkit.name) from e
+
+            for resource_name in resource_names:
+                func = getattr(module, resource_name, None)
+                if func is None:
+                    # Discovery reads the source, so a declaration the module
+                    # guards behind something false at import time is found there
+                    # and absent here. Skipping is what stops one unreachable
+                    # declaration taking every tool in the toolkit offline.
+                    logger.warning(
+                        f"{module_name}.{resource_name} is declared with @resource but the module "
+                        f"does not define it. Skipping it."
+                    )
+                    continue
+
+                declaration = getattr(func, RESOURCE_ATTRIBUTE, None)
+                if declaration is None:
+                    # The attribute is here and the marker is not, so something
+                    # replaced the function after @resource ran.
+                    raise ToolkitLoadError(
+                        f"{module_name}.{resource_name} is declared with @resource but the "
+                        f"module attribute carries no declaration. A decorator above @resource is "
+                        f"replacing the function without copying its attributes; wrap it "
+                        f"with functools.wraps."
+                    ).with_context(toolkit.name)
+
+                owner = f"{module_name}.{resource_name}"
+
+                # Derived before declaring, because declare replaces whatever is
+                # already at a URI. Checked afterwards, the guard would raise
+                # over a resource it had just destroyed.
+                try:
+                    uri = self._resources.uri_for(
+                        declaration,
+                        toolkit_name=normalize_toolkit_name(toolkit.name),
+                        toolkit_version=toolkit_version,
+                    )
+                except Exception as e:
+                    raise ToolkitLoadError(
+                        f"Could not build a URI for resource {resource_name} from "
+                        f"{module_name}. Reason: {e}"
+                    ).with_context(toolkit.name) from e
+
+                if uri in claimed:
+                    # Two resources sharing a path is an authoring mistake, and
+                    # this is the only point where both are in scope.
+                    raise ToolkitLoadError(
+                        f"{owner} and {claimed[uri]} both declare {uri}. Two resources "
+                        f"in one toolkit cannot share a path."
+                    ).with_context(toolkit.name)
+
+                try:
+                    self._resources.declare(
+                        declaration,
+                        func(),
+                        toolkit_name=normalize_toolkit_name(toolkit.name),
+                        toolkit_version=toolkit_version,
+                    )
+                except Exception as e:
+                    raise ToolkitLoadError(
+                        f"Could not register resource {resource_name} from {module_name}. "
+                        f"Reason: {e}"
+                    ).with_context(toolkit.name) from e
+
+                claimed[uri] = owner
+
     def __getitem__(self, name: FullyQualifiedName) -> MaterializedTool:
         return self.get_tool(name)
 
@@ -472,7 +562,7 @@ class ToolCatalog(BaseModel):
         metadata_requirement = create_metadata_requirement(tool, auth_requirement)
 
         toolkit_definition = ToolkitDefinition(
-            name=snake_to_pascal_case(space_to_snake_case(toolkit_name)),
+            name=normalize_toolkit_name(toolkit_name),
             description=toolkit_desc,
             version=toolkit_version,
         )

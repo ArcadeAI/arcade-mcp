@@ -36,6 +36,16 @@ def space_to_snake_case(name: str) -> str:
     return name.replace(" ", "_")
 
 
+def normalize_toolkit_name(name: str) -> str:
+    """The toolkit name as everything downstream of a toolkit sees it.
+
+    Anything keyed on a toolkit derives its key from here. Two callers spelling
+    the transformation out for themselves is how a resource ends up registered
+    under one name and asked for under another.
+    """
+    return snake_to_pascal_case(space_to_snake_case(name))
+
+
 def snake_to_pascal_case(name: str) -> str:
     """
     Converts a snake_case name to PascalCase.

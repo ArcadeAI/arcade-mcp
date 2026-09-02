@@ -12,7 +12,9 @@ import binascii
 import inspect
 import re
 from bisect import bisect_right, insort
+from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Any, TypeVar
 from urllib.parse import quote
 
 from arcade_core.resource_schema import (
@@ -142,6 +144,66 @@ class ResourceDeclaration:
     mime_type: str | None = None
 
 
+#: Attribute the decorator leaves on a function so registration can find the
+#: declaration after discovery imports the module.
+RESOURCE_ATTRIBUTE = "__arcade_resource__"
+
+F = TypeVar("F", bound=Callable[..., Any])
+
+
+def resource(
+    path: str,
+    *,
+    name: str | None = None,
+    title: str | None = None,
+    description: str | None = None,
+    mime_type: str | None = None,
+    scheme: str = UI_SCHEME,
+) -> Callable[[F], F]:
+    """Declare a static resource a toolkit ships.
+
+    The decorated function returns the bytes. It is called once, when the
+    toolkit is registered, and never on a request.
+
+    The author gives a path relative to the toolkit. The full URI is derived at
+    registration, where the toolkit's name and version are known::
+
+        @resource(path="draft-review.html", mime_type="text/html")
+        def draft_review() -> str:
+            return (Path(__file__).parent / "draft-review.html").read_text()
+
+    The declaration is read when the toolkit is added to a catalog. Discovery
+    scans for the decorator at module scope, so a declaration inside a class
+    body or nested in another function is not found.
+    """
+
+    def decorator(func: F) -> F:
+        if inspect.iscoroutinefunction(func):
+            # Registration calls this once, synchronously, inside add_toolkit.
+            # Without this the coroutine reaches the contents model and surfaces
+            # as a pydantic type error about a coroutine object at worker boot.
+            raise TypeError(
+                f"@resource cannot decorate the async function {func.__name__!r}. "
+                "A resource is resolved once at registration on a synchronous "
+                "path, so its function must be synchronous."
+            )
+        setattr(
+            func,
+            RESOURCE_ATTRIBUTE,
+            ResourceDeclaration(
+                path=path,
+                name=name or func.__name__,
+                scheme=scheme,
+                title=title,
+                description=description,
+                mime_type=mime_type,
+            ),
+        )
+        return func
+
+    return decorator
+
+
 @dataclass(frozen=True)
 class RegisteredResource:
     """A listing entry and the bytes it resolves to."""
@@ -221,6 +283,22 @@ class ResourceRegistry:
         self._resources[resource.uri] = registered
         return registered
 
+    def uri_for(
+        self,
+        declaration: ResourceDeclaration,
+        *,
+        toolkit_name: str,
+        toolkit_version: str,
+    ) -> str:
+        """The URI a declaration would register under, without registering it.
+
+        declare replaces whatever is already at a URI, so a caller checking for
+        a conflict after declaring has already lost the resource it was
+        checking for. This lets the check run first, off the same derivation
+        declare itself uses.
+        """
+        return qualify(toolkit_name, toolkit_version, declaration.path, declaration.scheme)
+
     def declare(
         self,
         declaration: ResourceDeclaration,
@@ -234,7 +312,7 @@ class ResourceRegistry:
         Qualification happens here because this is the only point where the
         declaration and the toolkit's identity are both in scope.
         """
-        uri = qualify(toolkit_name, toolkit_version, declaration.path, declaration.scheme)
+        uri = self.uri_for(declaration, toolkit_name=toolkit_name, toolkit_version=toolkit_version)
         resource = Resource(
             uri=uri,
             name=declaration.name,

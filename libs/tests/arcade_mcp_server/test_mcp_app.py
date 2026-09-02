@@ -2,6 +2,7 @@
 
 import subprocess
 import sys
+from types import ModuleType
 from typing import Annotated
 from unittest.mock import Mock, patch
 
@@ -1245,3 +1246,97 @@ class TestMCPAppMetadata:
     def test_mcp_app_accepts_allowed_origins(self):
         app = MCPApp(name="TestApp", version="1.0.0", allowed_origins=["https://example.com"])
         assert app.allowed_origins == ["https://example.com"]
+
+
+class TestUnregisteredResourceDeclarations:
+    """@resource marks a function. Only adding a toolkit reads the mark."""
+
+    @staticmethod
+    def _module_holding_a_declaration(name: str):
+        from arcade_core.resources import resource
+
+        module = ModuleType(name)
+
+        @resource(path="ui.html")
+        def ui() -> str:
+            return "<html></html>"
+
+        module.ui = ui
+        return module
+
+    def test_an_app_built_from_tools_alone_warns_about_the_declaration(self):
+        """Without this the decorator imports, runs and registers nothing."""
+        module = self._module_holding_a_declaration("declaring_server")
+        sys.modules["declaring_server"] = module
+
+        app = MCPApp(name="TestApp", version="1.0.0")
+        app._defining_module = "declaring_server"
+
+        captured: list[str] = []
+        sink = loguru_logger.add(captured.append, level="WARNING", format="{message}")
+        try:
+            app._warn_unregistered_resource_declarations()
+        finally:
+            loguru_logger.remove(sink)
+            del sys.modules["declaring_server"]
+
+        assert "declares 1 resource(s) (ui)" in "".join(captured)
+
+    def test_a_registry_that_already_holds_resources_is_not_warned_about(self):
+        """A declaration that reached the registry is the working case.
+
+        The same module still carries the marked function, so this pins that the
+        warning reads the registry rather than the mark.
+        """
+        from arcade_core.resource_schema import Resource
+
+        module = self._module_holding_a_declaration("registered_server")
+        sys.modules["registered_server"] = module
+
+        app = MCPApp(name="TestApp", version="1.0.0")
+        app._defining_module = "registered_server"
+        app._catalog.resources.add(
+            Resource(uri="ui://Demo/1.0.0/ui.html", name="ui", mimeType="text/html"),
+            "<html></html>",
+        )
+
+        captured: list[str] = []
+        sink = loguru_logger.add(captured.append, level="WARNING", format="{message}")
+        try:
+            app._warn_unregistered_resource_declarations()
+        finally:
+            loguru_logger.remove(sink)
+            del sys.modules["registered_server"]
+
+        assert "does not register" not in "".join(captured)
+
+    def test_run_reports_the_declaration_before_starting(self):
+        """The check is worth nothing if run() stops calling it."""
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        @app.tool
+        def sample_tool(message: Annotated[str, "A message"]) -> str:
+            """A sample tool for testing."""
+            return f"Response: {message}"
+
+        with (
+            patch.object(app, "_warn_unregistered_resource_declarations") as mock_warn,
+            patch.object(app, "_run_with_reload"),
+            patch.object(app, "_create_and_run_server"),
+        ):
+            app.run(reload=False, transport="http", host="127.0.0.1", port=8000)
+
+        mock_warn.assert_called_once()
+
+    def test_an_app_with_no_declaration_says_nothing(self):
+        app = MCPApp(name="TestApp", version="1.0.0")
+        app._defining_module = "does_not_exist_anywhere"
+
+        captured: list[str] = []
+        sink = loguru_logger.add(captured.append, level="WARNING", format="{message}")
+        try:
+            app._warn_unregistered_resource_declarations()
+        finally:
+            loguru_logger.remove(sink)
+
+        assert captured == []
