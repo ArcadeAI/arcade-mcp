@@ -1,17 +1,39 @@
+from typing import Any, TypeVar
+
 from arcade_core.log_extras import build_tool_error_span_attributes
+from arcade_core.resource_schema import (
+    ListResourcesParams,
+    ListResourcesResult,
+    ReadResourceParams,
+    ReadResourceResult,
+)
+from arcade_core.resources import InvalidCursorError, ResourceNotFoundError
 from arcade_core.schema import (
     ToolCallRequest,
     ToolCallResponse,
 )
 from opentelemetry import trace
+from opentelemetry.trace import Status, StatusCode
+from pydantic import BaseModel, ValidationError
 
 from arcade_serve.core.common import (
     CatalogResponse,
     HealthCheckResponse,
+    InvalidRequestParamsError,
     RequestData,
     Router,
     WorkerComponent,
 )
+
+_P = TypeVar("_P", bound=BaseModel)
+
+
+def _caller_params(model: type[_P], body: Any) -> _P:
+    """Build an endpoint's params from the caller's body."""
+    try:
+        return model.model_validate(body or {})
+    except ValidationError as e:
+        raise InvalidRequestParamsError(f"{e.error_count()} error(s)") from e
 
 
 class CatalogComponent(WorkerComponent):
@@ -62,7 +84,7 @@ class CallToolComponent(WorkerComponent):
         tracer = trace.get_tracer(__name__)
         with tracer.start_as_current_span("CallTool") as current_span:
             call_tool_request_data = request.body_json
-            call_tool_request = ToolCallRequest.model_validate(call_tool_request_data)
+            call_tool_request = _caller_params(ToolCallRequest, call_tool_request_data)
 
             current_span.set_attribute("tool_name", str(call_tool_request.tool.name))
             current_span.set_attribute("toolkit_version", str(call_tool_request.tool.version))
@@ -99,3 +121,94 @@ class HealthCheckComponent(WorkerComponent):
         Handle the request to check the health of the worker.
         """
         return self.worker.health_check()
+
+
+class ListResourcesComponent(WorkerComponent):
+    def register(self, router: Router) -> None:
+        """
+        Register the resource listing route with the router.
+        """
+        router.add_route(
+            "resources/list",
+            self,
+            method="POST",
+            response_type=ListResourcesResult,
+            operation_id="list_resources",
+            description="List the resources this worker serves",
+            summary="List resources",
+            tags=["Arcade"],
+            # An absent optional field is omitted rather than sent as null,
+            # because a null is not the same thing as an unset one to a client
+            # reading this. FastAPI serializes every unset field as null without
+            # it.
+            response_model_exclude_none=True,
+        )
+
+    async def __call__(self, request: RequestData) -> ListResourcesResult:
+        """
+        Handle the request to list resources.
+        """
+        tracer = trace.get_tracer(__name__)
+        # A refused cursor is an answer this endpoint gives, so it must not
+        # land as a failed span.
+        with tracer.start_as_current_span(
+            "ListResources", record_exception=False, set_status_on_exception=False
+        ) as current_span:
+            try:
+                params = _caller_params(ListResourcesParams, request.body_json)
+                result = self.worker.list_resources(params.cursor)
+            except (InvalidCursorError, InvalidRequestParamsError):
+                current_span.set_attribute("outcome", "invalid_request")
+                raise
+            except Exception as e:
+                current_span.record_exception(e)
+                current_span.set_status(Status(StatusCode.ERROR))
+                raise
+            current_span.set_attribute("outcome", "success")
+            return result
+
+
+class ReadResourceComponent(WorkerComponent):
+    def register(self, router: Router) -> None:
+        """
+        Register the resource read route with the router.
+        """
+        router.add_route(
+            "resources/read",
+            self,
+            method="POST",
+            response_type=ReadResourceResult,
+            operation_id="read_resource",
+            description="Read a resource by URI",
+            summary="Read a resource",
+            tags=["Arcade"],
+            response_model_exclude_none=True,
+        )
+
+    async def __call__(self, request: RequestData) -> ReadResourceResult:
+        """
+        Handle the request to read a resource.
+        """
+        tracer = trace.get_tracer(__name__)
+        # A URI this worker does not serve is a routine answer. Left to the
+        # default, every render of a stale interface arrives as an error span
+        # carrying a stack trace.
+        with tracer.start_as_current_span(
+            "ReadResource", record_exception=False, set_status_on_exception=False
+        ) as current_span:
+            try:
+                params = _caller_params(ReadResourceParams, request.body_json)
+                current_span.set_attribute("resource_uri", params.uri)
+                result = self.worker.read_resource(params.uri)
+            except ResourceNotFoundError:
+                current_span.set_attribute("outcome", "not_found")
+                raise
+            except InvalidRequestParamsError:
+                current_span.set_attribute("outcome", "invalid_request")
+                raise
+            except Exception as e:
+                current_span.record_exception(e)
+                current_span.set_status(Status(StatusCode.ERROR))
+                raise
+            current_span.set_attribute("outcome", "success")
+            return result
