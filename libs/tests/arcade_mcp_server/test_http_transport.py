@@ -47,9 +47,11 @@ def _make_request(headers: dict[str, str] | None = None, method: str = "POST") -
 
 
 @asynccontextmanager
-async def _http_client(mcp_server: MCPServer):
+async def _http_client(mcp_server: MCPServer, *, stateless: bool = False):
     mcp_server.allowed_origins = ["*"]
-    manager = HTTPSessionManager(server=mcp_server, json_response=True)
+    manager = HTTPSessionManager(
+        server=mcp_server, json_response=True, stateless=stateless
+    )
 
     async def mcp_endpoint(scope: Scope, receive: Receive, send: Send) -> None:
         await manager.handle_request(scope, receive, send)
@@ -99,6 +101,49 @@ class TestHandshakeFreeDiscovery:
         assert body["result"]["ttlMs"] == 0
         assert body["result"]["cacheScope"] == "public"
         assert resp.headers.get("Mcp-Session-Id")
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("stateless", [False, True])
+    async def test_discover_with_unknown_protocol_version_returns_versions(
+        self, mcp_server: MCPServer, stateless: bool
+    ) -> None:
+        """A probe with an unimplemented MCP-Protocol-Version must still
+        receive supportedVersions -- rejecting it would defeat version
+        discovery for clients newer than the server."""
+        async with _http_client(mcp_server, stateless=stateless) as client:
+            resp = await client.post(
+                "/mcp/",
+                headers={
+                    "Accept": "application/json, text/event-stream",
+                    "Content-Type": "application/json",
+                    "MCP-Protocol-Version": "2026-07-28",
+                },
+                json={"jsonrpc": "2.0", "id": 1, "method": "server/discover"},
+            )
+        assert resp.status_code == 200, resp.text
+        assert resp.json()["result"]["supportedVersions"] == [
+            "2025-06-18",
+            "2025-11-25",
+        ]
+
+    @pytest.mark.asyncio
+    async def test_tools_list_with_unknown_protocol_version_still_rejected(
+        self, mcp_server: MCPServer
+    ) -> None:
+        """Ordinary methods keep the check: an unsupported version header
+        on tools/list still returns the transport 400."""
+        async with _http_client(mcp_server) as client:
+            resp = await client.post(
+                "/mcp/",
+                headers={
+                    "Accept": "application/json, text/event-stream",
+                    "Content-Type": "application/json",
+                    "MCP-Protocol-Version": "2026-07-28",
+                },
+                json={"jsonrpc": "2.0", "id": 1, "method": "tools/list"},
+            )
+        assert resp.status_code == 400, resp.text
+        assert "Unsupported protocol version" in resp.text
 
 
 class TestOriginValidation:

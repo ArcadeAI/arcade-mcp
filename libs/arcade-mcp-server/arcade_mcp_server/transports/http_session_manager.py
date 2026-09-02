@@ -139,6 +139,7 @@ def _validate_protocol_version_header(
     *,
     is_stateless: bool = False,
     is_initialize: bool = False,
+    is_discovery: bool = False,
 ) -> tuple[Response | None, str | None]:
     """Validate MCP-Protocol-Version header.
 
@@ -150,12 +151,22 @@ def _validate_protocol_version_header(
       in both stateful and stateless modes.
     - On non-initialize requests with no header, the server SHOULD
       assume protocol version ``2025-03-26`` for backwards compatibility.
+    - server/discover IS version discovery (it answers with
+      ``supportedVersions``), so it is likewise exempt: a client may
+      probe with any ``MCP-Protocol-Version``, including one the server
+      does not implement.
     """
     header_version = request.headers.get(MCP_PROTOCOL_VERSION_HEADER)
 
     # Initialize IS version negotiation: skip header validation in both modes.
     if is_initialize:
         return None, header_version
+
+    # Discovery IS version discovery: the response reports the implemented
+    # versions, so any header value must reach the handler. No version is
+    # returned -- a probe must not pin a negotiated version onto a session.
+    if is_discovery:
+        return None, None
 
     if is_stateless:
         if header_version is None:
@@ -334,12 +345,16 @@ class HTTPSessionManager:
 
         # --- Detect if this is an initialize request ---
         is_initialize = False
+        is_discovery_request = False
         body_bytes: bytes | None = None
         if request.method == "POST":
             try:
                 body_bytes = await request.body()
                 raw = json.loads(body_bytes) if body_bytes else {}
                 is_initialize = isinstance(raw, dict) and raw.get("method") == "initialize"
+                is_discovery_request = (
+                    isinstance(raw, dict) and raw.get("method") == "server/discover"
+                )
             except Exception:  # noqa: S110
                 pass
 
@@ -365,8 +380,13 @@ class HTTPSessionManager:
         # Initialize is exempt (it carries params.protocolVersion). For
         # other stateless requests without the header, the validator falls
         # back to 2025-03-26 per the spec's backwards-compatibility rule.
+        # Discovery is exempt as well: it answers with supportedVersions,
+        # so a probe may carry any protocol version.
         version_error, header_version = _validate_protocol_version_header(
-            request, is_stateless=True, is_initialize=is_initialize
+            request,
+            is_stateless=True,
+            is_initialize=is_initialize,
+            is_discovery=is_discovery_request,
         )
         if version_error is not None:
             await version_error(scope, receive, send)
@@ -494,7 +514,10 @@ class HTTPSessionManager:
             session = transport.session
 
         version_error, _ = _validate_protocol_version_header(
-            request, session=session, is_initialize=is_initialize
+            request,
+            session=session,
+            is_initialize=is_initialize,
+            is_discovery=is_discovery_request,
         )
         if version_error is not None:
             await version_error(scope, receive, send)
