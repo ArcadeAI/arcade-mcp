@@ -7,6 +7,7 @@ Provides a clean, minimal API for building MCP servers with lazy initialization.
 from __future__ import annotations
 
 import asyncio
+import inspect
 import os
 import re
 import subprocess
@@ -17,6 +18,7 @@ from typing import Any, Callable, Literal, ParamSpec, TypeVar, cast
 
 from arcade_core.catalog import MaterializedTool, ToolCatalog, ToolDefinitionError
 from arcade_core.metadata import ToolMetadata
+from arcade_core.resources import RESOURCE_ATTRIBUTE
 from arcade_core.subprocess_utils import (
     get_windows_no_window_creationflags,
     graceful_terminate_process,
@@ -156,6 +158,13 @@ class MCPApp:
         # Tool collection (build-time)
         self._catalog = ToolCatalog()
         self._toolkit_name = name
+
+        # Where a @resource declaration would be written, so run() has somewhere
+        # to look for one it never registered.
+        frame = inspect.currentframe()
+        self._defining_module = (
+            frame.f_back.f_globals.get("__name__") if frame and frame.f_back else None
+        )
 
         # Resource collection (build-time)
         self._initial_resources: list[
@@ -516,6 +525,39 @@ class MCPApp:
             return decorator(func)
         return decorator
 
+    def _warn_unregistered_resource_declarations(self) -> None:
+        """Report @resource declarations this app never registered.
+
+        @resource marks a function, and the mark is read when a toolkit is added
+        to the catalog. An app assembled from @app.tool alone never gets there,
+        so without this the decorator imports, runs and registers nothing.
+        """
+        if len(self._catalog.resources) > 0:
+            return
+
+        module_name = self._defining_module
+        if not module_name:
+            return
+        module = sys.modules.get(module_name)
+        if module is None:
+            return
+
+        declared = [
+            name
+            for name, value in vars(module).items()
+            if getattr(value, RESOURCE_ATTRIBUTE, None) is not None
+        ]
+        if not declared:
+            return
+
+        where = Path(getattr(module, "__file__", None) or module_name).name
+        logger.warning(
+            f"{where} declares {len(declared)} resource(s) "
+            f"({', '.join(declared)}) that this app does not register. "
+            f"@resource is read when a toolkit is added to the catalog. Use "
+            f"app.add_tools_from_module(...), or @app.resource to register one directly."
+        )
+
     def run(
         self,
         host: str = "127.0.0.1",
@@ -529,6 +571,8 @@ class MCPApp:
                 "No tools or resources added. Use @app.tool, app.add_tool(), @app.resource, or app.add_resource()."
             )
             sys.exit(1)
+
+        self._warn_unregistered_resource_declarations()
 
         host, port, transport, reload = MCPApp._get_configuration_overrides(
             host, port, transport, reload
