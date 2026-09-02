@@ -1,3 +1,5 @@
+from typing import Any, TypeVar
+
 from arcade_core.log_extras import build_tool_error_span_attributes
 from arcade_core.resource_schema import (
     ListResourcesParams,
@@ -5,19 +7,33 @@ from arcade_core.resource_schema import (
     ReadResourceParams,
     ReadResourceResult,
 )
+from arcade_core.resources import InvalidCursorError, ResourceNotFoundError
 from arcade_core.schema import (
     ToolCallRequest,
     ToolCallResponse,
 )
 from opentelemetry import trace
+from opentelemetry.trace import Status, StatusCode
+from pydantic import BaseModel, ValidationError
 
 from arcade_serve.core.common import (
     CatalogResponse,
     HealthCheckResponse,
+    InvalidRequestParamsError,
     RequestData,
     Router,
     WorkerComponent,
 )
+
+_P = TypeVar("_P", bound=BaseModel)
+
+
+def _caller_params(model: type[_P], body: Any) -> _P:
+    """Build an endpoint's params from the caller's body."""
+    try:
+        return model.model_validate(body or {})
+    except ValidationError as e:
+        raise InvalidRequestParamsError(f"{e.error_count()} error(s)") from e
 
 
 class CatalogComponent(WorkerComponent):
@@ -68,7 +84,7 @@ class CallToolComponent(WorkerComponent):
         tracer = trace.get_tracer(__name__)
         with tracer.start_as_current_span("CallTool") as current_span:
             call_tool_request_data = request.body_json
-            call_tool_request = ToolCallRequest.model_validate(call_tool_request_data)
+            call_tool_request = _caller_params(ToolCallRequest, call_tool_request_data)
 
             current_span.set_attribute("tool_name", str(call_tool_request.tool.name))
             current_span.set_attribute("toolkit_version", str(call_tool_request.tool.version))
@@ -133,9 +149,23 @@ class ListResourcesComponent(WorkerComponent):
         Handle the request to list resources.
         """
         tracer = trace.get_tracer(__name__)
-        with tracer.start_as_current_span("ListResources"):
-            params = ListResourcesParams.model_validate(request.body_json or {})
-            return self.worker.list_resources(params.cursor)
+        # A refused cursor is an answer this endpoint gives, so it must not
+        # land as a failed span.
+        with tracer.start_as_current_span(
+            "ListResources", record_exception=False, set_status_on_exception=False
+        ) as current_span:
+            try:
+                params = _caller_params(ListResourcesParams, request.body_json)
+                result = self.worker.list_resources(params.cursor)
+            except (InvalidCursorError, InvalidRequestParamsError):
+                current_span.set_attribute("outcome", "invalid_request")
+                raise
+            except Exception as e:
+                current_span.record_exception(e)
+                current_span.set_status(Status(StatusCode.ERROR))
+                raise
+            current_span.set_attribute("outcome", "success")
+            return result
 
 
 class ReadResourceComponent(WorkerComponent):
@@ -160,7 +190,25 @@ class ReadResourceComponent(WorkerComponent):
         Handle the request to read a resource.
         """
         tracer = trace.get_tracer(__name__)
-        with tracer.start_as_current_span("ReadResource") as current_span:
-            params = ReadResourceParams.model_validate(request.body_json or {})
-            current_span.set_attribute("resource_uri", params.uri)
-            return self.worker.read_resource(params.uri)
+        # A URI this worker does not serve is a routine answer. Left to the
+        # default, every render of a stale interface arrives as an error span
+        # carrying a stack trace.
+        with tracer.start_as_current_span(
+            "ReadResource", record_exception=False, set_status_on_exception=False
+        ) as current_span:
+            try:
+                params = _caller_params(ReadResourceParams, request.body_json)
+                current_span.set_attribute("resource_uri", params.uri)
+                result = self.worker.read_resource(params.uri)
+            except ResourceNotFoundError:
+                current_span.set_attribute("outcome", "not_found")
+                raise
+            except InvalidRequestParamsError:
+                current_span.set_attribute("outcome", "invalid_request")
+                raise
+            except Exception as e:
+                current_span.record_exception(e)
+                current_span.set_status(Status(StatusCode.ERROR))
+                raise
+            current_span.set_attribute("outcome", "success")
+            return result

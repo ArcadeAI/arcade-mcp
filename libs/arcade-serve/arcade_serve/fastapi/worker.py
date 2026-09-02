@@ -14,7 +14,12 @@ from arcade_serve.core.base import (
     BaseWorker,
     Router,
 )
-from arcade_serve.core.common import RequestData, ResponseData, WorkerComponent
+from arcade_serve.core.common import (
+    InvalidRequestParamsError,
+    RequestData,
+    ResponseData,
+    WorkerComponent,
+)
 from arcade_serve.fastapi.auth import validate_engine_request
 from arcade_serve.utils import is_async_callable
 
@@ -123,7 +128,7 @@ class FastAPIRouter(Router):
                     method=request.method,
                     body_json=body_json,
                 )
-            except (json.JSONDecodeError, ValidationError):
+            except (json.JSONDecodeError, UnicodeDecodeError, ValidationError):
                 # A body that is not a JSON object is the caller's mistake. Parsed
                 # outside this block it escapes as an unhandled 500, which tells the
                 # caller the worker broke rather than that the request was malformed.
@@ -142,10 +147,8 @@ class FastAPIRouter(Router):
                 return _error_response(404, RESOURCE_NOT_FOUND, f"Resource not found: {e.args[0]}")
             except InvalidCursorError:
                 return _error_response(400, INVALID_PARAMS, "Invalid cursor")
-            except ValidationError as e:
-                return _error_response(
-                    400, INVALID_PARAMS, f"Invalid params: {e.error_count()} error(s)"
-                )
+            except InvalidRequestParamsError as e:
+                return _error_response(400, INVALID_PARAMS, f"Invalid params: {e}")
 
         return wrapped_handler
 

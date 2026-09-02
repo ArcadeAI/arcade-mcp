@@ -16,6 +16,7 @@ from arcade_serve.fastapi.worker import FastAPIWorker
 from arcade_tdk import ToolContext, tool
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from opentelemetry.trace import StatusCode
 
 UI_MIME = "text/html;profile=example"
 DRAFT_URI = "ui://Gmail/8.1.0/draft-review.html"
@@ -129,6 +130,7 @@ def test_a_falsy_non_object_body_is_rejected(serving, body):
 
     assert response.status_code == 400
 
+
 # --- a worker with nothing to serve ---
 
 
@@ -219,3 +221,104 @@ def test_a_cursor_walks_to_the_second_page():
     assert len(second["resources"]) == 1
     assert first["resources"][0]["uri"] != second["resources"][0]["uri"]
     assert "nextCursor" not in second
+
+
+# --- the worker's own faults stay the worker's own faults ---
+
+
+def test_a_body_that_is_not_utf8_is_rejected_as_malformed(serving):
+    """Undecodable bytes never reach json's own error, so the tuple must name them."""
+    response = serving.post(
+        "/worker/resources/read",
+        content=b'{"uri": "\xff\xfe"}',
+        headers={"Content-Type": "application/json"},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["code"] == -32602
+
+
+def test_a_model_the_worker_fails_to_build_is_a_500_not_a_400():
+    """The caller sent a valid read. Blaming it for the worker's own model is a lie."""
+    app = FastAPI()
+    worker = _worker(app, with_resources=True)
+
+    def raise_from_inside(uri: str):
+        Resource.model_validate({})
+
+    worker.read_resource = raise_from_inside
+
+    response = TestClient(app, raise_server_exceptions=False).post(
+        "/worker/resources/read", json={"uri": DRAFT_URI}
+    )
+
+    assert response.status_code == 500
+
+
+# --- spans ---
+
+
+@pytest.fixture
+def spans(monkeypatch):
+    """Collect the spans the two components open, without touching the global provider."""
+    from arcade_serve.core import components
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+    from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
+
+    exporter = InMemorySpanExporter()
+    provider = TracerProvider()
+    provider.add_span_processor(SimpleSpanProcessor(exporter))
+    monkeypatch.setattr(
+        components.trace, "get_tracer", lambda *a, **kw: provider.get_tracer(__name__)
+    )
+    return exporter
+
+
+def _only_span(spans):
+    finished = spans.get_finished_spans()
+    assert len(finished) == 1
+    return finished[0]
+
+
+def test_an_unknown_uri_does_not_land_as_a_failed_span(serving, spans):
+    """Rendering a stale interface is routine. It must not page anyone."""
+    serving.post("/worker/resources/read", json={"uri": "ui://Gmail/8.1.0/nope.html"})
+
+    span = _only_span(spans)
+    assert span.status.status_code != StatusCode.ERROR
+    assert span.events == ()
+    assert span.attributes["outcome"] == "not_found"
+
+
+def test_a_refused_cursor_does_not_land_as_a_failed_span(serving, spans):
+    serving.post("/worker/resources/list", json={"cursor": "not-a-cursor"})
+
+    span = _only_span(spans)
+    assert span.status.status_code != StatusCode.ERROR
+    assert span.attributes["outcome"] == "invalid_request"
+
+
+def test_a_served_read_is_marked_a_success(serving, spans):
+    serving.post("/worker/resources/read", json={"uri": DRAFT_URI})
+
+    assert _only_span(spans).attributes["outcome"] == "success"
+
+
+def test_an_unexpected_failure_still_lands_as_a_failed_span(spans):
+    """Suppression covers the answers this endpoint gives, and nothing else."""
+    app = FastAPI()
+    worker = _worker(app, with_resources=True)
+
+    def blow_up(uri: str):
+        raise RuntimeError("disk gone")
+
+    worker.read_resource = blow_up
+
+    TestClient(app, raise_server_exceptions=False).post(
+        "/worker/resources/read", json={"uri": DRAFT_URI}
+    )
+
+    span = _only_span(spans)
+    assert span.status.status_code == StatusCode.ERROR
+    assert [e.name for e in span.events] == ["exception"]
