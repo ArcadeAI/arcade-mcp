@@ -1,13 +1,20 @@
 from abc import ABC, abstractmethod
 from typing import Any, Callable
 
+from arcade_core.resource_schema import ListResourcesResult, ReadResourceResult
 from arcade_core.schema import ToolCallRequest, ToolCallResponse, ToolDefinition
 from pydantic import BaseModel
 
 CatalogResponse = list[ToolDefinition]
 HealthCheckResponse = dict[str, str]
 JSONResponse = dict[str, Any]
-ResponseData = CatalogResponse | ToolCallResponse | HealthCheckResponse
+ResponseData = (
+    CatalogResponse
+    | ToolCallResponse
+    | HealthCheckResponse
+    | ListResourcesResult
+    | ReadResourceResult
+)
 
 
 class RequestData(BaseModel):
@@ -86,6 +93,23 @@ class Worker(ABC):
         Perform a health check of the worker
         """
         pass
+
+    def list_resources(self, cursor: str | None = None) -> ListResourcesResult:
+        """
+        List one page of the resources this worker serves.
+
+        Concrete rather than abstract, so a Worker written against an earlier
+        release keeps working and simply serves nothing.
+        """
+        # Explicit, because an empty page is an answer this worker is giving
+        # rather than a field it forgot to fill in.
+        return ListResourcesResult(resources=[])
+
+    def read_resource(self, uri: str) -> ReadResourceResult:
+        """
+        Read the resource at the given URI.
+        """
+        raise KeyError(uri)
 
 
 class WorkerComponent(ABC):

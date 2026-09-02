@@ -7,6 +7,7 @@ from typing import Any, Callable, ClassVar
 from arcade_core.catalog import ToolCatalog, Toolkit
 from arcade_core.executor import ToolExecutor
 from arcade_core.log_extras import build_tool_error_log_extra, build_tool_error_span_attributes
+from arcade_core.resource_schema import ListResourcesResult, ReadResourceResult
 from arcade_core.schema import (
     ToolCallRequest,
     ToolCallResponse,
@@ -200,6 +201,19 @@ class BaseWorker(Worker):
         Provide a health check that serves as a heartbeat of worker health.
         """
         return {"status": "ok", "tool_count": str(len(self.catalog))}
+
+    def list_resources(self, cursor: str | None = None) -> ListResourcesResult:
+        """
+        List one page of the resources the installed toolkits declared.
+        """
+        resources, next_cursor = self.catalog.resources.list(cursor)
+        return ListResourcesResult(resources=resources, nextCursor=next_cursor)
+
+    def read_resource(self, uri: str) -> ReadResourceResult:
+        """
+        Read a resource by URI. Raises ResourceNotFoundError when there is none.
+        """
+        return ReadResourceResult(contents=[self.catalog.resources.get(uri).contents])
 
     def register_routes(self, router: Router) -> None:
         """

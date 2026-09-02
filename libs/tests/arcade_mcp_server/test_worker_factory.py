@@ -99,3 +99,49 @@ class TestFactoryLoggingConfiguration:
             assert "This debug message should appear" in log_output
         finally:
             logger.remove(handler_id)
+
+
+class TestFactoryResourceCountLog:
+    """The startup line that says how many resources were discovered.
+
+    All of the resource plumbing can be correct and a deployment still serve an
+    empty catalog because no toolkit declared anything. This line is how that is
+    noticed, so it is worth holding in place.
+    """
+
+    def test_factory_logs_the_resource_count(self, monkeypatch):
+        import contextlib
+        from typing import Annotated
+
+        from arcade_core.catalog import ToolCatalog
+        from arcade_core.resource_schema import Resource
+        from arcade_mcp_server import worker as worker_module
+        from arcade_tdk import ToolContext, tool
+
+        @tool()
+        def a_tool(context: ToolContext, x: Annotated[int, "x"]) -> Annotated[str, "out"]:
+            """A fixture tool, so the factory gets past its zero-tools guard."""
+            return str(x)
+
+        catalog = ToolCatalog()
+        catalog.add_tool(a_tool, "fixture_kit")
+        catalog.resources.add(
+            Resource(uri="ui://k/1.0.0/a.html", name="a", mimeType="text/html"), "<html>"
+        )
+        monkeypatch.setattr(worker_module, "discover_tools", lambda **kwargs: catalog)
+        # setup_logging() opens with logger.remove(), which would drop the sink below.
+        monkeypatch.setattr(worker_module, "setup_logging", lambda **kwargs: None)
+        os.environ["ARCADE_MCP_OTEL_ENABLE"] = "false"
+
+        output = StringIO()
+        handler_id = logger.add(output, format="{message}", level="INFO")
+        try:
+            try:
+                worker_module.create_arcade_mcp_factory()
+            except Exception:
+                # The factory keeps building an app after logging; the line is the subject.
+                pass
+            assert "Total resources loaded: 1" in output.getvalue()
+        finally:
+            with contextlib.suppress(ValueError):
+                logger.remove(handler_id)
