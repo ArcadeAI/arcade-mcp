@@ -172,8 +172,9 @@ def resource(
         def draft_review() -> str:
             return (Path(__file__).parent / "draft-review.html").read_text()
 
-    Discovery finds these the same way it finds tools, by scanning for the
-    decorator, so a declaration is picked up wherever in the package it lives.
+    The declaration is read when the toolkit is added to a catalog. Discovery
+    scans for the decorator at module scope, so a declaration inside a class
+    body or nested in another function is not found.
     """
 
     def decorator(func: F) -> F:
