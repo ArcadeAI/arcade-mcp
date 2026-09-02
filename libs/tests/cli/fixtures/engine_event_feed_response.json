@@ -1,0 +1,18 @@
+{
+  "items": [
+    {
+      "event": {
+        "id": "evt_contract",
+        "type": "gmail.message.received",
+        "source_type": "trigger_instance",
+        "source_id": "trigger_contract",
+        "time": "2026-08-29T21:00:00Z",
+        "data": {
+          "subject": "CUSTOMER renewal"
+        }
+      },
+      "cursor": "opaque-item-cursor"
+    }
+  ],
+  "next_cursor": "opaque-next-cursor"
+}

@@ -29,6 +29,8 @@ dependencies = [
     "tqdm==4.67.1",
     "click>=8.3.3,<8.4.0",
     "python-dateutil>=2.8.2",
+    "httpx>=0.28.0,<0.29.0",
+    "standardwebhooks==1.1.0",
     "packaging>=23.0",
     "platformdirs>=4.3.6; platform_system == 'Windows'",
 ]
@@ -159,7 +161,7 @@ select = ["E", "F", "I", "N", "UP", "RUF"]
 extend-select = ["PLW1514"]
 preview = true
 explicit-preview-rules = true
-ignore = ["E501", "S105"]
+ignore = ["E501"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
