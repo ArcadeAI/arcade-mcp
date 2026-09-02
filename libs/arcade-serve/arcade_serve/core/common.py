@@ -17,6 +17,15 @@ ResponseData = (
 )
 
 
+class InvalidRequestParamsError(ValueError):
+    """The caller's body does not match the params this endpoint declares.
+
+    Distinct from ValidationError so that a model failing to build deeper inside
+    a handler, which is the worker's own fault, is never reported to the caller
+    as a bad request.
+    """
+
+
 class RequestData(BaseModel):
     """
     The raw data for a request to a worker.
