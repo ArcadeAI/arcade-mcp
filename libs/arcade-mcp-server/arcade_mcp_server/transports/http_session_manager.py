@@ -111,12 +111,23 @@ def _validate_origin(request: Request, allowed_origins: list[str] | None) -> Res
     return None
 
 
+_CORS_HEADERS_SET_HERE = frozenset({
+    b"access-control-allow-origin",
+    b"access-control-expose-headers",
+    b"vary",
+})
+
+
 def _with_cors_headers(send: Send, origin: str) -> Send:
     """Wrap an ASGI send so the response start carries the CORS headers for ``origin``."""
 
     async def send_with_cors(message: Message) -> None:
         if message["type"] == "http.response.start":
-            headers = list(message.get("headers", []))
+            headers = [
+                (name, value)
+                for name, value in message.get("headers", [])
+                if name.lower() not in _CORS_HEADERS_SET_HERE
+            ]
             headers.append((b"access-control-allow-origin", origin.encode("latin-1")))
             headers.append((
                 b"access-control-expose-headers",

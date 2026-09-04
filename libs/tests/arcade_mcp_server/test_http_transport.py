@@ -316,3 +316,24 @@ class TestCorsHeadersOnResponses:
         assert headers[b"access-control-expose-headers"] == b"Mcp-Session-Id, MCP-Protocol-Version"
         assert headers[b"vary"] == b"Origin"
         assert sent[1] == {"type": "http.response.body", "body": b"{}"}
+
+    @pytest.mark.asyncio
+    async def test_a_preflight_that_already_answered_gets_one_origin_value(self):
+        sent: list[dict] = []
+
+        async def send(message):
+            sent.append(message)
+
+        wrapped = _with_cors_headers(send, "https://example.com")
+        await wrapped({
+            "type": "http.response.start",
+            "status": 204,
+            "headers": [
+                (b"access-control-allow-origin", b"*"),
+                (b"access-control-max-age", b"86400"),
+            ],
+        })
+
+        values = [v for k, v in sent[0]["headers"] if k == b"access-control-allow-origin"]
+        assert values == [b"https://example.com"]
+        assert (b"access-control-max-age", b"86400") in sent[0]["headers"]
