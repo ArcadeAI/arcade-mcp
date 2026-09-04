@@ -16,6 +16,7 @@ from arcade_mcp_server.transports.http_session_manager import (
     _replay_receive,
     _validate_accept_header,
     _validate_origin,
+    _with_cors_headers,
     _validate_protocol_version_header,
 )
 from arcade_mcp_server.transports.http_streamable import HTTPStreamableTransport
@@ -289,3 +290,29 @@ class TestParseErrorNullId:
         # Should parse successfully or use None for id
         if isinstance(result, JSONRPCError):
             assert result.id is None or isinstance(result.id, (str, int))
+
+
+class TestCorsHeadersOnResponses:
+    """An allowed Origin is echoed on the response itself, not only on the preflight."""
+
+    @pytest.mark.asyncio
+    async def test_response_start_carries_the_origin(self):
+        sent: list[dict] = []
+
+        async def send(message):
+            sent.append(message)
+
+        wrapped = _with_cors_headers(send, "https://example.com")
+        await wrapped({
+            "type": "http.response.start",
+            "status": 200,
+            "headers": [(b"content-type", b"application/json")],
+        })
+        await wrapped({"type": "http.response.body", "body": b"{}"})
+
+        headers = dict(sent[0]["headers"])
+        assert headers[b"content-type"] == b"application/json"
+        assert headers[b"access-control-allow-origin"] == b"https://example.com"
+        assert headers[b"access-control-expose-headers"] == b"Mcp-Session-Id, MCP-Protocol-Version"
+        assert headers[b"vary"] == b"Origin"
+        assert sent[1] == {"type": "http.response.body", "body": b"{}"}
