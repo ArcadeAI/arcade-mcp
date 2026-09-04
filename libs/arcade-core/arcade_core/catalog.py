@@ -605,12 +605,10 @@ class ToolCatalog(BaseModel):
                 )
             tool_metadata.validate_for_tool()
 
+        meta = None
         ui_path = getattr(tool, "__tool_ui__", None)
-        meta = (
-            ui_pointer(_ui_uri(raw_tool_name, ui_path, toolkit_definition))
-            if ui_path is not None
-            else None
-        )
+        if ui_path is not None:
+            meta = ui_pointer(_ui_uri(raw_tool_name, ui_path, toolkit_definition))
 
         return ToolDefinition(
             name=tool_name,
