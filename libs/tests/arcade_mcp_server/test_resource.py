@@ -705,3 +705,54 @@ class TestMultipleMatchPolicy:
 
         assert result[0].text == "weather-london"
         assert "matched" not in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_load_from_catalog_serves_a_declared_document():
+    from arcade_core.catalog import ToolCatalog
+    from arcade_core.resources import ResourceDeclaration
+
+    catalog = ToolCatalog()
+    catalog.resources.declare(
+        ResourceDeclaration(
+            path="dashboard.html", name="dashboard", mime_type="text/html;profile=example"
+        ),
+        "<!DOCTYPE html><p>hi</p>",
+        toolkit_name="Kit",
+        toolkit_version="1.0.0",
+    )
+    manager = ResourceManager()
+    await manager.start()
+
+    await manager.load_from_catalog(catalog)
+
+    listed = await manager.list_resources()
+    assert [r.uri for r in listed] == ["ui://Kit/1.0.0/dashboard.html"]
+    assert listed[0].mimeType == "text/html;profile=example"
+    contents = await manager.read_resource("ui://Kit/1.0.0/dashboard.html")
+    assert isinstance(contents[0], TextResourceContents)
+    assert contents[0].text == "<!DOCTYPE html><p>hi</p>"
+    assert contents[0].mimeType == "text/html;profile=example"
+
+
+@pytest.mark.asyncio
+async def test_load_from_catalog_serves_a_declared_blob():
+    from arcade_core.catalog import ToolCatalog
+    from arcade_core.resources import ResourceDeclaration
+
+    catalog = ToolCatalog()
+    catalog.resources.declare(
+        ResourceDeclaration(path="icon.png", name="icon", mime_type="image/png"),
+        b"\x89PNG\r\n",
+        toolkit_name="Kit",
+        toolkit_version="1.0.0",
+    )
+    manager = ResourceManager()
+    await manager.start()
+
+    await manager.load_from_catalog(catalog)
+
+    contents = await manager.read_resource("ui://Kit/1.0.0/icon.png")
+    assert isinstance(contents[0], BlobResourceContents)
+    assert base64.b64decode(contents[0].blob) == b"\x89PNG\r\n"
+    assert contents[0].mimeType == "image/png"

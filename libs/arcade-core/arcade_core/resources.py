@@ -12,7 +12,7 @@ import binascii
 import inspect
 import re
 from bisect import bisect_right, insort
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from typing import Any, TypeVar
 from urllib.parse import quote
@@ -258,6 +258,10 @@ class ResourceRegistry:
 
     def __contains__(self, uri: object) -> bool:
         return uri in self._resources
+
+    def __iter__(self) -> Iterator[RegisteredResource]:
+        """Every registered resource, in URI order."""
+        return (self._resources[uri] for uri in self._uris)
 
     def add(self, resource: Resource, contents: str | bytes) -> RegisteredResource:
         """Register a resource at its own URI, replacing any resource already there.
