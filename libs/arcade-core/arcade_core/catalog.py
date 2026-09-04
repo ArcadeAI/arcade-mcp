@@ -40,6 +40,7 @@ from arcade_core.resources import (
     InvalidResourcePathError,
     ResourceRegistry,
     qualify,
+    read_declared_file,
     ui_pointer,
     ui_resource_uri,
 )
@@ -437,7 +438,7 @@ class ToolCatalog(BaseModel):
                 try:
                     self._resources.declare(
                         declaration,
-                        func(),
+                        read_declared_file(declaration) if declaration.file else func(),
                         toolkit_name=normalize_toolkit_name(toolkit.name),
                         toolkit_version=toolkit_version,
                     )

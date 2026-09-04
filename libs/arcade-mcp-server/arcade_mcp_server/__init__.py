@@ -10,7 +10,7 @@ This package provides:
 - Context system for tool execution with MCP methods
 """
 
-from arcade_core.resources import ResourceDeclaration, resource
+from arcade_core.resources import UI_DOCUMENT_MIME_TYPE, ResourceDeclaration, resource
 
 from arcade_mcp_server.context import Context
 from arcade_mcp_server.decorators import tool
@@ -78,6 +78,7 @@ __all__ = [
     "UntitledMultiSelectEnumSchema",
     "UntitledSingleSelectEnumSchema",
     "create_arcade_mcp",
+    "UI_DOCUMENT_MIME_TYPE",
     "resource",
     "run_arcade_mcp",
     "tool",

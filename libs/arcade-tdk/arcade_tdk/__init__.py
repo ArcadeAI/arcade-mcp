@@ -1,5 +1,5 @@
 from arcade_core.catalog import ToolCatalog
-from arcade_core.resources import ResourceDeclaration, resource
+from arcade_core.resources import UI_DOCUMENT_MIME_TYPE, ResourceDeclaration, resource
 from arcade_core.schema import (
     ToolAuthorizationContext,
     ToolContext,
@@ -20,6 +20,7 @@ __all__ = [
     "ToolMetadataKey",
     "ToolSecretItem",
     "Toolkit",
+    "UI_DOCUMENT_MIME_TYPE",
     "resource",
     "tool",
 ]

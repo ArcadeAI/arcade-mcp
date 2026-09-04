@@ -11,9 +11,11 @@ import base64
 import binascii
 import inspect
 import re
+import sys
 from bisect import bisect_right, insort
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, TypeVar
 from urllib.parse import quote
 
@@ -30,6 +32,10 @@ _CURSOR_PREFIX = "after:"
 #: The scheme a tool's user interface is addressed under. Hosts that render an
 #: interface require it and refuse anything else.
 UI_SCHEME = "ui"
+
+#: The media type a host requires of a document it renders as a tool's user
+#: interface. Compared byte for byte, so the spacing and casing are part of it.
+UI_DOCUMENT_MIME_TYPE = "text/html;profile=mcp-app"
 
 
 def ui_pointer(uri: str) -> dict[str, Any]:
@@ -154,6 +160,26 @@ class ResourceDeclaration:
     title: str | None = None
     description: str | None = None
     mime_type: str | None = None
+    #: A file beside the declaring module whose contents the resource serves.
+    file: Path | None = None
+
+
+def read_declared_file(declaration: ResourceDeclaration) -> str | bytes:
+    """The contents of a declaration's file, as text when its media type is text."""
+    if declaration.file is None:
+        raise ValueError(f"resource {declaration.name!r} declares no file")
+    if (declaration.mime_type or "").startswith("text/"):
+        return declaration.file.read_text(encoding="utf-8")
+    return declaration.file.read_bytes()
+
+
+def _beside(func: Callable[..., Any], file: str) -> Path:
+    """The file's location, resolved against the module that declares the resource."""
+    module = sys.modules.get(func.__module__)
+    module_file = getattr(module, "__file__", None) or inspect.getsourcefile(func)
+    if module_file is None:
+        raise TypeError(f"@resource(file={file!r}) needs a module with a file to resolve against")
+    return Path(module_file).parent / file
 
 
 #: Attribute the decorator leaves on a function so registration can find the
@@ -164,8 +190,9 @@ F = TypeVar("F", bound=Callable[..., Any])
 
 
 def resource(
-    path: str,
+    path: str | None = None,
     *,
+    file: str | None = None,
     name: str | None = None,
     title: str | None = None,
     description: str | None = None,
@@ -174,18 +201,24 @@ def resource(
 ) -> Callable[[F], F]:
     """Declare a static resource a toolkit ships.
 
-    The decorated function returns the bytes. It is called once, when the
-    toolkit is registered, and never on a request.
+    The simplest declaration names a file beside the declaring module. It is
+    read once, when the toolkit is registered, and the resource takes the
+    file's name as its path::
 
-    The author gives a path relative to the toolkit. The full URI is derived at
-    registration, where the toolkit's name and version are known::
+        @resource(file="draft-review.html", mime_type=UI_DOCUMENT_MIME_TYPE)
+        def draft_review() -> None: ...
+
+    A function body can produce the contents instead, as text or bytes. It is
+    called once at registration and never on a request::
 
         @resource(path="draft-review.html", mime_type="text/html")
         def draft_review() -> str:
-            return (Path(__file__).parent / "draft-review.html").read_text()
+            return render("draft-review.html")
 
-    A tool names its interface by the same path, and the same derivation
-    gives both the same URI::
+    The path is relative to the toolkit. The full URI is derived at
+    registration, where the toolkit's name and version are known. A tool names
+    its interface by the same path, and the same derivation gives both the
+    same URI::
 
         @tool(ui="draft-review.html")
         def draft_email(...) -> ...: ...
@@ -194,6 +227,12 @@ def resource(
     scans for the decorator at module scope, so a declaration inside a class
     body or nested in another function is not found.
     """
+
+    if path is None:
+        if file is None:
+            raise TypeError("@resource needs a path or a file")
+        path = Path(file).name
+    resource_path = path
 
     def decorator(func: F) -> F:
         if inspect.iscoroutinefunction(func):
@@ -209,12 +248,13 @@ def resource(
             func,
             RESOURCE_ATTRIBUTE,
             ResourceDeclaration(
-                path=path,
+                path=resource_path,
                 name=name or func.__name__,
                 scheme=scheme,
                 title=title,
                 description=description,
                 mime_type=mime_type,
+                file=_beside(func, file) if file is not None else None,
             ),
         )
         return func
