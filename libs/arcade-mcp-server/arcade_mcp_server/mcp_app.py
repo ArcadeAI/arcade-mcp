@@ -18,7 +18,7 @@ from typing import Any, Callable, Literal, ParamSpec, TypeVar, cast
 
 from arcade_core.catalog import MaterializedTool, ToolCatalog, ToolDefinitionError
 from arcade_core.metadata import ToolMetadata
-from arcade_core.resources import RESOURCE_ATTRIBUTE
+from arcade_core.resources import ResourceDeclaration
 from arcade_core.subprocess_utils import (
     get_windows_no_window_creationflags,
     graceful_terminate_process,
@@ -313,6 +313,7 @@ class MCPApp:
         adapters: list[ErrorAdapter] | None = None,
         metadata: ToolMetadata | None = None,
         meta: dict[str, Any] | None = None,
+        ui: ResourceDeclaration | None = None,
         execution: ToolExecution | None = None,
     ) -> Callable[P, T]:
         """Add a tool for build-time materialization (pre-server).
@@ -337,6 +338,7 @@ class MCPApp:
                 requires_metadata=requires_metadata,
                 adapters=adapters,
                 metadata=metadata,
+                ui=ui,
                 execution=execution,
             )
         elif execution is not None:
@@ -345,6 +347,8 @@ class MCPApp:
             # decorated callable (`MCPServer._handle_call_tool` and
             # `convert.create_mcp_tool` both `getattr(..., "__tool_execution__")`).
             func.__tool_execution__ = execution  # type: ignore[attr-defined]
+        if ui is not None and getattr(func, "__tool_ui__", None) is not ui:
+            func.__tool_ui__ = ui  # type: ignore[union-attr]
         try:
             self._catalog.add_tool(
                 func,
@@ -498,6 +502,7 @@ class MCPApp:
         adapters: list[ErrorAdapter] | None = None,
         metadata: ToolMetadata | None = None,
         meta: dict[str, Any] | None = None,
+        ui: ResourceDeclaration | None = None,
         execution: ToolExecution | None = None,
     ) -> Callable[[Callable[P, T]], Callable[P, T]] | Callable[P, T]:
         """Decorator for adding tools with optional parameters.
@@ -517,6 +522,7 @@ class MCPApp:
                 requires_metadata=requires_metadata,
                 adapters=adapters,
                 metadata=metadata,
+                ui=ui,
                 meta=meta,
                 execution=execution,
             )
@@ -543,9 +549,7 @@ class MCPApp:
             return
 
         declared = [
-            name
-            for name, value in vars(module).items()
-            if getattr(value, RESOURCE_ATTRIBUTE, None) is not None
+            name for name, value in vars(module).items() if isinstance(value, ResourceDeclaration)
         ]
         if not declared:
             return

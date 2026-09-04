@@ -9,9 +9,15 @@ from arcade_core.metadata import (
     ServiceDomain,
     ToolMetadata,
 )
+from arcade_core.resources import resource
 from arcade_mcp_server.managers.tool import ToolManager
 from arcade_tdk import tool
 from arcade_tdk.auth import OAuth2
+
+
+@resource(path="dashboard.html")
+def dashboard() -> str:
+    return "<!DOCTYPE html><p>dashboard</p>"
 
 
 class TestToolMetadataSerialization:
@@ -374,7 +380,7 @@ class TestToolMetadataSerialization:
     def test_meta_includes_ui_resource_uri(self, tool_manager: ToolManager):
         """_meta.ui.resourceUri should point at the tool's user interface."""
 
-        @tool(desc="Tool with a user interface", ui="dashboard.html")
+        @tool(desc="Tool with a user interface", ui=dashboard)
         def show_dashboard() -> str:
             """Show the dashboard."""
             return "shown"
@@ -390,7 +396,7 @@ class TestToolMetadataSerialization:
 
         @tool(
             desc="Tool with a user interface and behavior metadata",
-            ui="dashboard.html",
+            ui=dashboard,
             metadata=ToolMetadata(
                 behavior=Behavior(
                     read_only=True,

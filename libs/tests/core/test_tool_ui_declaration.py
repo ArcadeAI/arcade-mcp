@@ -1,8 +1,8 @@
-"""A tool names its user interface by path, and the catalog derives the URI.
+"""A tool passes the declaration of its user interface, and the catalog does the rest.
 
-The tool and the resource it names are qualified by one derivation, so the two
-agree without the author ever writing a URI. A tool naming a path nothing in its
-toolkit declares fails the load, as every other authoring mistake does.
+The tool and its interface are qualified by one derivation, so they agree without
+the author ever writing a URI. Registering the tool registers the interface, so a
+tool can only point at something the catalog serves.
 """
 
 import sys
@@ -11,23 +11,48 @@ import textwrap
 import pytest
 from arcade_core.catalog import ToolCatalog
 from arcade_core.errors import ToolDefinitionError, ToolkitLoadError
-from arcade_core.resources import ui_pointer, ui_resource_uri
+from arcade_core.resources import UI_DOCUMENT_MIME_TYPE, resource, ui_pointer
 from arcade_core.toolkit import Toolkit
 from arcade_tdk import tool
+
+UI_MODULE = '''
+from arcade_core.resources import resource
+
+
+@resource(file="dashboard.html")
+def dashboard() -> None:
+    """The numbers and their sum."""
+
+
+@resource(path="report.html", mime_type="text/html")
+def report() -> str:
+    return "<!DOCTYPE html><p>report</p>"
+'''
 
 TOOLS_MODULE = '''
 from typing import Annotated
 
 from arcade_tdk import tool
 
+from arcade_widgets.ui import dashboard
 
-@tool(ui="dashboard.html")
+
+@tool(ui=dashboard)
 def add_numbers(
     a: Annotated[int, "The first number"],
     b: Annotated[int, "The second number"],
 ) -> Annotated[int, "The sum"]:
     """Add two numbers."""
     return a + b
+
+
+@tool(ui=dashboard)
+def multiply_numbers(
+    a: Annotated[int, "The first number"],
+    b: Annotated[int, "The second number"],
+) -> Annotated[int, "The product"]:
+    """Multiply two numbers."""
+    return a * b
 
 
 @tool
@@ -39,29 +64,25 @@ def subtract_numbers(
     return a - b
 '''
 
-UI_MODULE = """
+WRONG_TYPE_UI_MODULE = '''
 from arcade_core.resources import resource
 
 
-@resource(path="dashboard.html", mime_type="text/html;profile=example")
-def dashboard() -> str:
-    return "<!DOCTYPE html><p>hi</p>"
+@resource(file="dashboard.html", mime_type="text/html")
+def dashboard() -> None:
+    """Declared as plain HTML, which a host will not render as an interface."""
+'''
+
+SECOND_UI_MODULE = """
+from arcade_core.resources import resource
+
+
+@resource(path="dashboard.html", mime_type="text/html")
+def other_dashboard() -> str:
+    return "<!DOCTYPE html><p>other</p>"
 """
 
-DANGLING_TOOLS_MODULE = '''
-from typing import Annotated
-
-from arcade_tdk import tool
-
-
-@tool(ui="missing.html")
-def add_numbers(
-    a: Annotated[int, "The first number"],
-    b: Annotated[int, "The second number"],
-) -> Annotated[int, "The sum"]:
-    """Add two numbers."""
-    return a + b
-'''
+DASHBOARD_HTML = "<!DOCTYPE html><p>hi</p>"
 
 
 def _forget(package_name):
@@ -72,9 +93,9 @@ def _forget(package_name):
 @pytest.fixture
 def build_toolkit(tmp_path, monkeypatch):
     """Write a toolkit to disk and load it the way installed-toolkit discovery does."""
-    built = []
+    name = "arcade_widgets"
 
-    def build(name, version, tools_source, ui_source=None):
+    def build(version="2.3.1", tools_source=TOOLS_MODULE, ui_source=UI_MODULE, extra=None):
         root = tmp_path / name
         package = root / name
         package.mkdir(parents=True)
@@ -82,86 +103,133 @@ def build_toolkit(tmp_path, monkeypatch):
             f'[project]\nname = "{name}"\nversion = "{version}"\n', encoding="utf-8"
         )
         (package / "__init__.py").write_text("", encoding="utf-8")
+        (package / "ui.py").write_text(textwrap.dedent(ui_source), encoding="utf-8")
+        (package / "dashboard.html").write_text(DASHBOARD_HTML, encoding="utf-8")
         (package / "tools.py").write_text(textwrap.dedent(tools_source), encoding="utf-8")
-        if ui_source is not None:
-            (package / "ui.py").write_text(textwrap.dedent(ui_source), encoding="utf-8")
+        for filename, source in (extra or {}).items():
+            (package / filename).write_text(textwrap.dedent(source), encoding="utf-8")
         monkeypatch.syspath_prepend(str(root))
         _forget(name)
-        built.append(name)
         return Toolkit.from_directory(root)
 
     yield build
-    for name in built:
-        _forget(name)
+    _forget(name)
 
 
 def _by_name(catalog):
     return {materialized.definition.name: materialized.definition for materialized in catalog}
 
 
-def test_the_tool_and_its_resource_derive_the_same_uri(build_toolkit):
-    catalog = ToolCatalog()
-    catalog.add_toolkit(build_toolkit("arcade_widgets", "2.3.1", TOOLS_MODULE, UI_MODULE))
-
-    add = _by_name(catalog)["AddNumbers"]
+def _uri(definition, path):
     # Built from the tool's own toolkit fields rather than written out, so the
     # two derivations cannot drift apart without this failing.
-    expected = f"ui://{add.toolkit.name}/{add.toolkit.version}/dashboard.html"
+    return f"ui://{definition.toolkit.name}/{definition.toolkit.version}/{path}"
 
-    assert ui_resource_uri(add.meta) == expected
-    assert catalog.resources.get(expected).resource.uri == expected
+
+def test_the_tool_and_its_interface_share_one_uri(build_toolkit):
+    catalog = ToolCatalog()
+    catalog.add_toolkit(build_toolkit())
+
+    add = _by_name(catalog)["AddNumbers"]
+    uri = _uri(add, "dashboard.html")
+
+    assert add.meta == ui_pointer(uri)
+    assert catalog.resources.get(uri).contents.text == DASHBOARD_HTML
+
+
+def test_an_interface_needs_no_media_type_from_its_author(build_toolkit):
+    catalog = ToolCatalog()
+    catalog.add_toolkit(build_toolkit())
+
+    add = _by_name(catalog)["AddNumbers"]
+    registered = catalog.resources.get(_uri(add, "dashboard.html")).resource
+
+    assert registered.mimeType == UI_DOCUMENT_MIME_TYPE
+    assert registered.description == "The numbers and their sum."
+
+
+def test_two_tools_sharing_an_interface_register_it_once(build_toolkit):
+    catalog = ToolCatalog()
+    catalog.add_toolkit(build_toolkit())
+
+    definitions = _by_name(catalog)
+
+    assert definitions["AddNumbers"].meta == definitions["MultiplyNumbers"].meta
+    assert [registered.resource.name for registered in catalog.resources] == ["dashboard", "report"]
 
 
 def test_a_tool_that_names_no_interface_carries_no_pointer(build_toolkit):
     catalog = ToolCatalog()
-    catalog.add_toolkit(build_toolkit("arcade_widgets", "2.3.1", TOOLS_MODULE, UI_MODULE))
+    catalog.add_toolkit(build_toolkit())
 
     assert _by_name(catalog)["SubtractNumbers"].meta is None
 
 
 def test_the_pointer_serializes_under_the_underscore_key(build_toolkit):
     catalog = ToolCatalog()
-    catalog.add_toolkit(build_toolkit("arcade_widgets", "2.3.1", TOOLS_MODULE, UI_MODULE))
+    catalog.add_toolkit(build_toolkit())
 
     add = _by_name(catalog)["AddNumbers"]
     dumped = add.model_dump(by_alias=True, exclude_none=True)
 
-    assert dumped["_meta"] == ui_pointer(ui_resource_uri(add.meta))
+    assert dumped["_meta"] == {"ui": {"resourceUri": _uri(add, "dashboard.html")}}
     assert "meta" not in dumped
 
 
-def test_a_path_no_resource_declares_fails_the_toolkit(build_toolkit):
-    toolkit = build_toolkit("arcade_widgets", "2.3.1", DANGLING_TOOLS_MODULE, UI_MODULE)
+def test_an_interface_declared_with_another_media_type_fails_the_load(build_toolkit):
+    toolkit = build_toolkit(ui_source=WRONG_TYPE_UI_MODULE)
 
-    with pytest.raises(ToolkitLoadError, match=r"AddNumbers.*missing\.html") as raised:
+    with pytest.raises(ToolDefinitionError, match="text/html;profile=mcp-app"):
         ToolCatalog().add_toolkit(toolkit)
 
-    assert "@resource" in str(raised.value)
 
+def test_a_second_declaration_of_the_same_path_fails_the_load(build_toolkit):
+    toolkit = build_toolkit(extra={"more_ui.py": SECOND_UI_MODULE})
 
-def test_a_toolkit_with_no_resources_fails_the_same_way(build_toolkit):
-    toolkit = build_toolkit("arcade_widgets", "2.3.1", DANGLING_TOOLS_MODULE)
-
-    with pytest.raises(ToolkitLoadError, match=r"missing\.html"):
+    with pytest.raises(ToolkitLoadError, match="both declare"):
         ToolCatalog().add_toolkit(toolkit)
+
+
+def test_registering_a_tool_alone_registers_its_interface():
+    @resource(path="dashboard.html")
+    def dashboard() -> str:
+        return DASHBOARD_HTML
+
+    @tool(ui=dashboard)
+    def show() -> str:
+        """Show a dashboard."""
+        return ""
+
+    catalog = ToolCatalog()
+    catalog.add_tool(show, "widgets", toolkit_version="1.0.0")
+
+    registered = catalog.resources.get("ui://Widgets/1.0.0/dashboard.html")
+
+    assert registered.resource.mimeType == UI_DOCUMENT_MIME_TYPE
+    assert registered.contents.text == DASHBOARD_HTML
 
 
 def test_the_uri_is_qualified_by_the_normalized_toolkit_name_and_version():
-    @tool(ui="ui/dashboard.html")
+    @resource(path="ui/dashboard.html")
+    def dashboard() -> str:
+        return DASHBOARD_HTML
+
+    @tool(ui=dashboard)
     def show() -> str:
         """Show a dashboard."""
         return ""
 
     definition = ToolCatalog.create_tool_definition(show, "arcade_google_docs", "8.1.0")
 
-    assert (
-        ui_resource_uri(definition.meta)
-        == f"ui://{definition.toolkit.name}/8.1.0/ui/dashboard.html"
-    )
+    assert definition.meta == ui_pointer(f"ui://{definition.toolkit.name}/8.1.0/ui/dashboard.html")
 
 
 def test_a_toolkit_without_a_version_cannot_name_an_interface():
-    @tool(ui="dashboard.html")
+    @resource(path="dashboard.html")
+    def dashboard() -> str:
+        return DASHBOARD_HTML
+
+    @tool(ui=dashboard)
     def show() -> str:
         """Show a dashboard."""
         return ""
@@ -171,18 +239,14 @@ def test_a_toolkit_without_a_version_cannot_name_an_interface():
 
 
 def test_a_traversing_path_is_refused_when_the_tool_is_defined():
-    @tool(ui="../secret.html")
+    @resource(path="../secret.html")
+    def secret() -> str:
+        return ""
+
+    @tool(ui=secret)
     def show() -> str:
         """Show a dashboard."""
         return ""
 
     with pytest.raises(ToolDefinitionError, match="traverse"):
         ToolCatalog.create_tool_definition(show, "widgets", "1.0.0")
-
-
-def test_ui_resource_uri_reads_only_a_well_formed_pointer():
-    assert ui_resource_uri(None) is None
-    assert ui_resource_uri({}) is None
-    assert ui_resource_uri({"ui": "not an object"}) is None
-    assert ui_resource_uri({"ui": {"resourceUri": 7}}) is None
-    assert ui_resource_uri(ui_pointer("ui://Kit/1.0.0/a.html")) == "ui://Kit/1.0.0/a.html"

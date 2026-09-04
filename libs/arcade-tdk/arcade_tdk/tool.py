@@ -4,6 +4,7 @@ import logging
 from typing import Any, Callable, TypeVar
 
 from arcade_core.metadata import ToolMetadata
+from arcade_core.resources import ResourceDeclaration
 
 from arcade_tdk.auth import ToolAuthorization
 from arcade_tdk.error_adapters import ErrorAdapter
@@ -139,18 +140,24 @@ def tool(
     requires_metadata: list[str] | None = None,
     adapters: list[ErrorAdapter] | None = None,
     metadata: ToolMetadata | None = None,
-    ui: str | None = None,
+    ui: ResourceDeclaration | None = None,
 ) -> Callable:
     """Mark a function as a tool.
 
-    ``ui`` names the tool's user interface: the path of a resource this same
-    toolkit declares with ``@resource``. It is resolved to that resource's full
-    URI when the toolkit is registered, so the two cannot drift apart.
+    ``ui`` is the resource a host renders as this tool's user interface: import
+    the declaration ``@resource`` returns and pass it. The resource is registered
+    with the tool, and both are qualified into one URI at that point.
     """
 
     def decorator(func: Callable) -> Callable:
         func_name = str(getattr(func, "__name__", None))
         tool_name = name or snake_to_pascal_case(func_name)
+
+        if ui is not None and not isinstance(ui, ResourceDeclaration):
+            raise TypeError(
+                f"Tool '{tool_name}': ui expects the declaration @resource returns, "
+                f"got {type(ui).__name__}."
+            )
 
         func.__tool_name__ = tool_name  # type: ignore[attr-defined]
         func.__tool_description__ = desc or inspect.cleandoc(func.__doc__ or "")  # type: ignore[attr-defined]

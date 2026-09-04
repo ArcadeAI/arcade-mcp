@@ -14,9 +14,9 @@ import re
 import sys
 from bisect import bisect_right, insort
 from collections.abc import Callable, Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field, replace
 from pathlib import Path
-from typing import Any, TypeVar
+from typing import Any
 from urllib.parse import quote
 
 from arcade_core.resource_schema import (
@@ -41,13 +41,6 @@ UI_DOCUMENT_MIME_TYPE = "text/html;profile=mcp-app"
 def ui_pointer(uri: str) -> dict[str, Any]:
     """The out-of-band entry on a tool that names its user interface."""
     return {"ui": {"resourceUri": uri}}
-
-
-def ui_resource_uri(meta: dict[str, Any] | None) -> str | None:
-    """The interface a tool's out-of-band data names, or None when it names none."""
-    ui = (meta or {}).get("ui")
-    uri = ui.get("resourceUri") if isinstance(ui, dict) else None
-    return uri if isinstance(uri, str) else None
 
 
 class InvalidCursorError(ValueError):
@@ -152,7 +145,12 @@ def qualify(toolkit_name: str, toolkit_version: str, path: str, scheme: str = UI
 
 @dataclass(frozen=True)
 class ResourceDeclaration:
-    """What a toolkit author writes. The URI is derived, never typed."""
+    """What a toolkit author writes. The URI is derived, never typed.
+
+    ``@resource`` returns one of these in place of the function it decorates, so
+    the name a module binds is the declaration itself, ready to be imported and
+    passed to a tool as its ``ui``.
+    """
 
     path: str
     name: str
@@ -162,15 +160,45 @@ class ResourceDeclaration:
     mime_type: str | None = None
     #: A file beside the declaring module whose contents the resource serves.
     file: Path | None = None
+    #: Produces the contents when no file is declared. Called once, at registration.
+    func: Callable[[], Any] | None = field(default=None, compare=False, repr=False)
+
+    def __call__(self) -> Any:
+        """Run the declaring function, so a toolkit's own tests can call it directly."""
+        if self.func is None:
+            raise TypeError(f"resource {self.name!r} has no function to call")
+        return self.func()
 
 
-def read_declared_file(declaration: ResourceDeclaration) -> str | bytes:
-    """The contents of a declaration's file, as text when its media type is text."""
-    if declaration.file is None:
-        raise ValueError(f"resource {declaration.name!r} declares no file")
-    if (declaration.mime_type or "").startswith("text/"):
-        return declaration.file.read_text(encoding="utf-8")
-    return declaration.file.read_bytes()
+def declared_contents(declaration: ResourceDeclaration) -> Any:
+    """Resolve a declaration's contents once: its file's, or what its function returns."""
+    if declaration.file is not None:
+        if (declaration.mime_type or "").startswith("text/"):
+            return declaration.file.read_text(encoding="utf-8")
+        return declaration.file.read_bytes()
+    return declaration()
+
+
+def as_interface(declaration: ResourceDeclaration) -> ResourceDeclaration:
+    """The declaration as a host needs it to render a tool's user interface.
+
+    A host renders only ``ui://`` documents of exactly one media type. A
+    declaration that leaves the media type unset gets it here. One that names
+    another cannot be rendered, and saying so at load beats a blank panel.
+    """
+    if declaration.scheme != UI_SCHEME:
+        raise ValueError(
+            f"resource {declaration.name!r} is declared under the {declaration.scheme!r} scheme, "
+            f"and a user interface must be declared under {UI_SCHEME!r}"
+        )
+    if declaration.mime_type is None:
+        return replace(declaration, mime_type=UI_DOCUMENT_MIME_TYPE)
+    if declaration.mime_type != UI_DOCUMENT_MIME_TYPE:
+        raise ValueError(
+            f"resource {declaration.name!r} is declared as {declaration.mime_type!r}, and a host "
+            f"renders a user interface only as {UI_DOCUMENT_MIME_TYPE!r}. Leave mime_type unset."
+        )
+    return declaration
 
 
 def _beside(func: Callable[..., Any], file: str) -> Path:
@@ -182,13 +210,6 @@ def _beside(func: Callable[..., Any], file: str) -> Path:
     return Path(module_file).parent / file
 
 
-#: Attribute the decorator leaves on a function so registration can find the
-#: declaration after discovery imports the module.
-RESOURCE_ATTRIBUTE = "__arcade_resource__"
-
-F = TypeVar("F", bound=Callable[..., Any])
-
-
 def resource(
     path: str | None = None,
     *,
@@ -198,34 +219,34 @@ def resource(
     description: str | None = None,
     mime_type: str | None = None,
     scheme: str = UI_SCHEME,
-) -> Callable[[F], F]:
+) -> Callable[[Callable[..., Any]], ResourceDeclaration]:
     """Declare a static resource a toolkit ships.
 
-    The simplest declaration names a file beside the declaring module. It is
-    read once, when the toolkit is registered, and the resource takes the
-    file's name as its path::
+    The decorated name becomes the declaration. The simplest one names a file
+    beside the declaring module; it is read once, when the toolkit is
+    registered, and the resource takes the file's name as its path. A tool
+    imports the declaration and passes it as its ``ui``, and the two are
+    qualified into one URI at registration::
 
-        @resource(file="draft-review.html", mime_type=UI_DOCUMENT_MIME_TYPE)
+        @resource(file="draft-review.html")
         def draft_review() -> None: ...
 
+        @tool(ui=draft_review)
+        def draft_email(...) -> ...: ...
+
     A function body can produce the contents instead, as text or bytes. It is
-    called once at registration and never on a request::
+    called once at registration and never on a request, and the declaration
+    stays callable so the toolkit's own tests can run it::
 
         @resource(path="draft-review.html", mime_type="text/html")
         def draft_review() -> str:
             return render("draft-review.html")
 
-    The path is relative to the toolkit. The full URI is derived at
-    registration, where the toolkit's name and version are known. A tool names
-    its interface by the same path, and the same derivation gives both the
-    same URI::
-
-        @tool(ui="draft-review.html")
-        def draft_email(...) -> ...: ...
-
-    The declaration is read when the toolkit is added to a catalog. Discovery
-    scans for the decorator at module scope, so a declaration inside a class
-    body or nested in another function is not found.
+    The docstring is the description unless one is given. A declaration a
+    tool passes as its ``ui`` is registered with that tool and needs no media
+    type. Any other declaration is found by scanning for the decorator at
+    module scope, so one inside a class body or nested in another function is
+    not found.
     """
 
     if path is None:
@@ -234,7 +255,7 @@ def resource(
         path = Path(file).name
     resource_path = path
 
-    def decorator(func: F) -> F:
+    def decorator(func: Callable[..., Any]) -> ResourceDeclaration:
         if inspect.iscoroutinefunction(func):
             # Registration calls this once, synchronously, inside add_toolkit.
             # Without this the coroutine reaches the contents model and surfaces
@@ -244,20 +265,16 @@ def resource(
                 "A resource is resolved once at registration on a synchronous "
                 "path, so its function must be synchronous."
             )
-        setattr(
-            func,
-            RESOURCE_ATTRIBUTE,
-            ResourceDeclaration(
-                path=resource_path,
-                name=name or func.__name__,
-                scheme=scheme,
-                title=title,
-                description=description,
-                mime_type=mime_type,
-                file=_beside(func, file) if file is not None else None,
-            ),
+        return ResourceDeclaration(
+            path=resource_path,
+            name=name or func.__name__,
+            scheme=scheme,
+            title=title,
+            description=description or inspect.getdoc(func),
+            mime_type=mime_type,
+            file=_beside(func, file) if file is not None else None,
+            func=func,
         )
-        return func
 
     return decorator
 

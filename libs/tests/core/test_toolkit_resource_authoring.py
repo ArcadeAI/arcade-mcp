@@ -13,7 +13,7 @@ import textwrap
 import pytest
 from arcade_core.catalog import ToolCatalog
 from arcade_core.errors import ToolkitLoadError
-from arcade_core.resources import RESOURCE_ATTRIBUTE, ResourceDeclaration, resource
+from arcade_core.resources import ResourceDeclaration, resource
 from arcade_core.toolkit import Toolkit
 
 TOOL_MODULE = '''
@@ -342,7 +342,7 @@ def test_the_decorator_leaves_the_function_callable():
         return "hello"
 
     assert body() == "hello"
-    assert isinstance(getattr(body, RESOURCE_ATTRIBUTE), ResourceDeclaration)
+    assert isinstance(body, ResourceDeclaration)
 
 
 def test_the_declaration_name_defaults_to_the_function_name():
@@ -350,7 +350,7 @@ def test_the_declaration_name_defaults_to_the_function_name():
     def draft_review() -> str:
         return "x"
 
-    assert getattr(draft_review, RESOURCE_ATTRIBUTE).name == "draft_review"
+    assert draft_review.name == "draft_review"
 
 
 def test_the_decorator_refuses_an_async_function():
@@ -381,7 +381,7 @@ def test_a_lookalike_decorator_is_never_recorded_by_discovery(widgets_package):
 
 
 def test_a_declaration_lost_to_a_wrapper_is_reported(widgets_package):
-    """The scan knows this one is ours, so a missing marker is diagnosable."""
+    """The scan knows this one is ours, so a replaced declaration is diagnosable."""
     (widgets_package / "arcade_widgets" / "wrapped.py").write_text(
         textwrap.dedent(WRAPPED_MODULE), encoding="utf-8"
     )
@@ -391,8 +391,8 @@ def test_a_declaration_lost_to_a_wrapper_is_reported(widgets_package):
     with pytest.raises(ToolkitLoadError) as exc_info:
         catalog.add_toolkit(toolkit)
 
-    assert "functools.wraps" in str(exc_info.value)
-    assert "wrapped" in str(exc_info.value)
+    assert "declaration" in str(exc_info.value)
+    assert "arcade_widgets.wrapped" in str(exc_info.value)
 
 
 def test_a_resource_returning_a_coroutine_is_reported(widgets_package):
