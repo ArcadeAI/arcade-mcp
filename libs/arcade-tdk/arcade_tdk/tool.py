@@ -139,7 +139,15 @@ def tool(
     requires_metadata: list[str] | None = None,
     adapters: list[ErrorAdapter] | None = None,
     metadata: ToolMetadata | None = None,
+    ui: str | None = None,
 ) -> Callable:
+    """Mark a function as a tool.
+
+    ``ui`` names the tool's user interface: the path of a resource this same
+    toolkit declares with ``@resource``. It is resolved to that resource's full
+    URI when the toolkit is registered, so the two cannot drift apart.
+    """
+
     def decorator(func: Callable) -> Callable:
         func_name = str(getattr(func, "__name__", None))
         tool_name = name or snake_to_pascal_case(func_name)
@@ -150,6 +158,7 @@ def tool(
         func.__tool_requires_secrets__ = requires_secrets  # type: ignore[attr-defined]
         func.__tool_requires_metadata__ = requires_metadata  # type: ignore[attr-defined]
         func.__tool_metadata__ = metadata  # type: ignore[attr-defined]
+        func.__tool_ui__ = ui  # type: ignore[attr-defined]
 
         adapter_chain = _build_adapter_chain(adapters, requires_auth)
 

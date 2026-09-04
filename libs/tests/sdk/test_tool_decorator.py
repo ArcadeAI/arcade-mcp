@@ -278,3 +278,21 @@ class TestArcadeTdkToolHasNoMCPSpecificKwargs:
         assert "mcp" not in doc
         assert "tasksupport" not in doc
         assert "arcade_mcp_server" not in doc
+
+
+def test_ui_is_recorded_on_the_function():
+    @tool(ui="dashboard.html")
+    def with_ui() -> str:
+        """A tool with an interface."""
+        return ""
+
+    assert with_ui.__tool_ui__ == "dashboard.html"
+
+
+def test_ui_defaults_to_none():
+    @tool
+    def without_ui() -> str:
+        """A tool with no interface."""
+        return ""
+
+    assert without_ui.__tool_ui__ is None

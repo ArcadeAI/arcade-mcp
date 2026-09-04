@@ -32,6 +32,18 @@ _CURSOR_PREFIX = "after:"
 UI_SCHEME = "ui"
 
 
+def ui_pointer(uri: str) -> dict[str, Any]:
+    """The out-of-band entry on a tool that names its user interface."""
+    return {"ui": {"resourceUri": uri}}
+
+
+def ui_resource_uri(meta: dict[str, Any] | None) -> str | None:
+    """The interface a tool's out-of-band data names, or None when it names none."""
+    ui = (meta or {}).get("ui")
+    uri = ui.get("resourceUri") if isinstance(ui, dict) else None
+    return uri if isinstance(uri, str) else None
+
+
 class InvalidCursorError(ValueError):
     """Raised when a caller sends a cursor this registry did not issue."""
 
@@ -171,6 +183,12 @@ def resource(
         @resource(path="draft-review.html", mime_type="text/html")
         def draft_review() -> str:
             return (Path(__file__).parent / "draft-review.html").read_text()
+
+    A tool names its interface by the same path, and the same derivation
+    gives both the same URI::
+
+        @tool(ui="draft-review.html")
+        def draft_email(...) -> ...: ...
 
     The declaration is read when the toolkit is added to a catalog. Discovery
     scans for the decorator at module scope, so a declaration inside a class

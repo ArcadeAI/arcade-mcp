@@ -35,7 +35,14 @@ from arcade_core.errors import (
     ToolOutputSchemaError,
 )
 from arcade_core.metadata import ToolMetadata
-from arcade_core.resources import RESOURCE_ATTRIBUTE, ResourceRegistry
+from arcade_core.resources import (
+    RESOURCE_ATTRIBUTE,
+    InvalidResourcePathError,
+    ResourceRegistry,
+    qualify,
+    ui_pointer,
+    ui_resource_uri,
+)
 from arcade_core.schema import (
     TOOL_NAME_SEPARATOR,
     FullyQualifiedName,
@@ -442,6 +449,24 @@ class ToolCatalog(BaseModel):
 
                 claimed[uri] = owner
 
+        # A tool may name only an interface this toolkit serves. Both sides are
+        # registered by this point, so this is the first place the check can run.
+        normalized_name = normalize_toolkit_name(toolkit.name)
+        for materialized in self._tools.values():
+            definition = materialized.definition
+            if (definition.toolkit.name, definition.toolkit.version) != (
+                normalized_name,
+                toolkit_version,
+            ):
+                continue
+            pointed = ui_resource_uri(definition.meta)
+            if pointed is not None and pointed not in self._resources:
+                raise ToolkitLoadError(
+                    f"{definition.fully_qualified_name} names its interface at {pointed}, but "
+                    f"no resource in this toolkit is registered there. Declare it with "
+                    f"@resource using the same path."
+                ).with_context(toolkit.name)
+
     def __getitem__(self, name: FullyQualifiedName) -> MaterializedTool:
         return self.get_tool(name)
 
@@ -580,6 +605,13 @@ class ToolCatalog(BaseModel):
                 )
             tool_metadata.validate_for_tool()
 
+        ui_path = getattr(tool, "__tool_ui__", None)
+        meta = (
+            ui_pointer(_ui_uri(raw_tool_name, ui_path, toolkit_definition))
+            if ui_path is not None
+            else None
+        )
+
         return ToolDefinition(
             name=tool_name,
             fully_qualified_name=str(fully_qualified_name),
@@ -594,7 +626,24 @@ class ToolCatalog(BaseModel):
             ),
             deprecation_message=deprecation_message,
             metadata=tool_metadata,
+            _meta=meta,
         )
+
+
+def _ui_uri(tool_name: str, path: str, toolkit: ToolkitDefinition) -> str:
+    """Qualify the path a tool names, exactly as the resource at that path is."""
+    if toolkit.version is None:
+        raise ToolDefinitionError(
+            f"Tool '{tool_name}' names its interface at {path!r}, but the toolkit has no "
+            f"version, so no URI can be derived for it."
+        )
+    try:
+        return qualify(toolkit.name, toolkit.version, path)
+    except InvalidResourcePathError as e:
+        raise ToolDefinitionError(
+            f"Tool '{tool_name}' names its interface at {path!r}, which is not a usable "
+            f"resource path. Reason: {e}"
+        ) from e
 
 
 def create_input_definition(func: Callable) -> ToolInput:
