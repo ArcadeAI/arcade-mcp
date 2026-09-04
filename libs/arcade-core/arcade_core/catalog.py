@@ -39,8 +39,6 @@ from arcade_core.resources import (
     InvalidResourcePathError,
     ResourceDeclaration,
     ResourceRegistry,
-    as_interface,
-    declared_contents,
     qualify,
     ui_pointer,
 )
@@ -172,10 +170,6 @@ class ToolCatalog(BaseModel):
     # worker surface. They are a separate collection with separate types; the
     # catalog is the carrier, not the owner.
     _resources: ResourceRegistry = PrivateAttr(default_factory=ResourceRegistry)
-    # URI to the declaration registered there and what registered it, so a second
-    # declaration of one path is refused and the same declaration reached twice,
-    # from two tools or from the module scan after a tool, is not.
-    _declared: dict[str, tuple[ResourceDeclaration, str]] = PrivateAttr(default_factory=dict)
 
     def __init__(self, **data) -> None:  # type: ignore[no-untyped-def]
         super().__init__(**data)
@@ -281,22 +275,19 @@ class ToolCatalog(BaseModel):
             logger.info(f"Server '{toolkit_name!s}' is disabled and will not be cataloged.")
             return
 
-        interface = getattr(tool_func, "__tool_ui__", None)
-        if interface is not None:
+        ui = getattr(tool_func, "__tool_ui__", None)
+        if ui is not None:
             try:
-                self._register_resource(
-                    interface,
-                    str(fully_qualified_name),
+                self._resources.declare(
+                    ui,
                     toolkit_name=definition.toolkit.name,
                     toolkit_version=definition.toolkit.version,
-                    as_tool_interface=True,
+                    as_interface=True,
                 )
-            except ToolkitLoadError:
-                raise
             except Exception as e:
                 raise ToolDefinitionError(
-                    f"Tool '{definition.name}' names {interface.name!r} as its user interface, "
-                    f"which could not be registered. Reason: {e}"
+                    f"Tool '{definition.name}' names {ui.name!r} as its user interface, which "
+                    f"could not be registered. Reason: {e}"
                 ) from e
 
         self._tools[fully_qualified_name] = MaterializedTool(
@@ -430,66 +421,15 @@ class ToolCatalog(BaseModel):
                         f"declaration. A decorator above @resource is replacing it."
                     ).with_context(toolkit.name)
 
-                owner = f"{module_name}.{resource_name}"
                 try:
-                    self._register_resource(
-                        declaration,
-                        owner,
-                        toolkit_name=toolkit_name,
-                        toolkit_version=toolkit_version,
+                    self._resources.declare(
+                        declaration, toolkit_name=toolkit_name, toolkit_version=toolkit_version
                     )
-                except ToolkitLoadError as e:
-                    raise e.with_context(toolkit.name) from e
                 except Exception as e:
                     raise ToolkitLoadError(
                         f"Could not register resource {resource_name} from {module_name}. "
                         f"Reason: {e}"
                     ).with_context(toolkit.name) from e
-
-    def _register_resource(
-        self,
-        declaration: ResourceDeclaration,
-        owner: str,
-        *,
-        toolkit_name: str,
-        toolkit_version: str | None,
-        as_tool_interface: bool = False,
-    ) -> None:
-        """Register one declaration under the toolkit's URI, once.
-
-        The URI is derived before anything is declared, because declare replaces
-        whatever is already at a URI and a check run afterwards would raise over
-        a resource it had just destroyed.
-        """
-        if toolkit_version is None:
-            raise ToolkitLoadError(
-                f"{owner} declares resource {declaration.name!r}, but the toolkit has no "
-                f"version, so no URI can be derived for it."
-            )
-
-        registered = as_interface(declaration) if as_tool_interface else declaration
-        uri = self._resources.uri_for(
-            registered, toolkit_name=toolkit_name, toolkit_version=toolkit_version
-        )
-
-        already = self._declared.get(uri)
-        if already is not None:
-            if already[0] == declaration:
-                return
-            # Two resources sharing a path is an authoring mistake, and this is
-            # the only point where both are in scope.
-            raise ToolkitLoadError(
-                f"{owner} and {already[1]} both declare {uri}. Two resources in one toolkit "
-                f"cannot share a path."
-            )
-
-        self._resources.declare(
-            registered,
-            declared_contents(registered),
-            toolkit_name=toolkit_name,
-            toolkit_version=toolkit_version,
-        )
-        self._declared[uri] = (declaration, owner)
 
     def __getitem__(self, name: FullyQualifiedName) -> MaterializedTool:
         return self.get_tool(name)
@@ -630,14 +570,14 @@ class ToolCatalog(BaseModel):
             tool_metadata.validate_for_tool()
 
         meta = None
-        interface = getattr(tool, "__tool_ui__", None)
-        if interface is not None:
-            if not isinstance(interface, ResourceDeclaration):
+        ui = getattr(tool, "__tool_ui__", None)
+        if ui is not None:
+            if not isinstance(ui, ResourceDeclaration):
                 raise ToolDefinitionError(
-                    f"Tool '{raw_tool_name}' passes a {type(interface).__name__} as its ui. Pass "
-                    f"the declaration @resource returns."
+                    f"Tool '{raw_tool_name}' passes a {type(ui).__name__} as its ui. Pass the "
+                    f"declaration @resource returns."
                 )
-            meta = ui_pointer(_interface_uri(raw_tool_name, interface, toolkit_definition))
+            meta = ui_pointer(_interface_uri(raw_tool_name, ui, toolkit_definition))
 
         return ToolDefinition(
             name=tool_name,

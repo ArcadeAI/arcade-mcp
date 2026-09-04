@@ -602,10 +602,7 @@ class MCPServer:
         await self._check_and_warn_missing_secrets()
 
         await self._resource_manager.start()
-        try:
-            await self._resource_manager.load_from_catalog(self._initial_catalog)
-        except Exception:
-            logger.exception("Failed to load resources from initial catalog")
+        await self._resource_manager.load_from_catalog(self._initial_catalog)
         for item, handler in self._initial_resources:
             if isinstance(item, ResourceTemplate):
                 if handler is not None:

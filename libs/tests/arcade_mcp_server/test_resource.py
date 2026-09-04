@@ -715,9 +715,11 @@ async def test_load_from_catalog_serves_a_declared_document():
     catalog = ToolCatalog()
     catalog.resources.declare(
         ResourceDeclaration(
-            path="dashboard.html", name="dashboard", mime_type="text/html;profile=example"
+            path="dashboard.html",
+            name="dashboard",
+            mime_type="text/html;profile=example",
+            func=lambda: "<!DOCTYPE html><p>hi</p>",
         ),
-        "<!DOCTYPE html><p>hi</p>",
         toolkit_name="Kit",
         toolkit_version="1.0.0",
     )
@@ -742,8 +744,9 @@ async def test_load_from_catalog_serves_a_declared_blob():
 
     catalog = ToolCatalog()
     catalog.resources.declare(
-        ResourceDeclaration(path="icon.png", name="icon", mime_type="image/png"),
-        b"\x89PNG\r\n",
+        ResourceDeclaration(
+            path="icon.png", name="icon", mime_type="image/png", func=lambda: b"\x89PNG\r\n"
+        ),
         toolkit_name="Kit",
         toolkit_version="1.0.0",
     )

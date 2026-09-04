@@ -111,10 +111,11 @@ def _validate_origin(request: Request, allowed_origins: list[str] | None) -> Res
     return None
 
 
+# A response may carry only one allow-origin value, so anything an earlier layer
+# set is replaced rather than joined. Vary may repeat, so it is only added.
 _CORS_HEADERS_SET_HERE = frozenset({
     b"access-control-allow-origin",
     b"access-control-expose-headers",
-    b"vary",
 })
 
 

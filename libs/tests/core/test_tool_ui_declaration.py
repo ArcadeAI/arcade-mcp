@@ -82,6 +82,20 @@ def other_dashboard() -> str:
     return "<!DOCTYPE html><p>other</p>"
 """
 
+TWIN_UI_MODULE = """
+from arcade_core.resources import resource
+
+
+@resource(path="dashboard.html", name="dashboard", mime_type="text/html")
+def first() -> str:
+    return "<!DOCTYPE html><p>first</p>"
+
+
+@resource(path="dashboard.html", name="dashboard", mime_type="text/html")
+def second() -> str:
+    return "<!DOCTYPE html><p>second</p>"
+"""
+
 DASHBOARD_HTML = "<!DOCTYPE html><p>hi</p>"
 
 
@@ -185,6 +199,14 @@ def test_an_interface_declared_with_another_media_type_fails_the_load(build_tool
 
 def test_a_second_declaration_of_the_same_path_fails_the_load(build_toolkit):
     toolkit = build_toolkit(extra={"more_ui.py": SECOND_UI_MODULE})
+
+    with pytest.raises(ToolkitLoadError, match="both declare"):
+        ToolCatalog().add_toolkit(toolkit)
+
+
+def test_two_declarations_that_read_alike_are_still_two(build_toolkit):
+    """Only the declaration object itself counts as already registered, never a lookalike."""
+    toolkit = build_toolkit(extra={"twins.py": TWIN_UI_MODULE})
 
     with pytest.raises(ToolkitLoadError, match="both declare"):
         ToolCatalog().add_toolkit(toolkit)
