@@ -11,10 +11,12 @@ import base64
 import binascii
 import inspect
 import re
+import sys
 from bisect import bisect_right, insort
-from collections.abc import Callable
-from dataclasses import dataclass
-from typing import Any, TypeVar
+from collections.abc import Callable, Iterator
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
 from urllib.parse import quote
 
 from arcade_core.resource_schema import (
@@ -30,6 +32,15 @@ _CURSOR_PREFIX = "after:"
 #: The scheme a tool's user interface is addressed under. Hosts that render an
 #: interface require it and refuse anything else.
 UI_SCHEME = "ui"
+
+#: The media type a host requires of a document it renders as a tool's user
+#: interface. Compared byte for byte, so the spacing and casing are part of it.
+UI_DOCUMENT_MIME_TYPE = "text/html;profile=mcp-app"
+
+
+def ui_pointer(uri: str) -> dict[str, Any]:
+    """The out-of-band entry on a tool that names its user interface."""
+    return {"ui": {"resourceUri": uri}}
 
 
 class InvalidCursorError(ValueError):
@@ -134,7 +145,12 @@ def qualify(toolkit_name: str, toolkit_version: str, path: str, scheme: str = UI
 
 @dataclass(frozen=True)
 class ResourceDeclaration:
-    """What a toolkit author writes. The URI is derived, never typed."""
+    """What a toolkit author writes. The URI is derived, never typed.
+
+    ``@resource`` returns one of these in place of the function it decorates, so
+    the name a module binds is the declaration itself, ready to be imported and
+    passed to a tool as its ``ui``.
+    """
 
     path: str
     name: str
@@ -142,42 +158,103 @@ class ResourceDeclaration:
     title: str | None = None
     description: str | None = None
     mime_type: str | None = None
+    #: A file beside the declaring module whose contents the resource serves.
+    file: Path | None = None
+    #: Produces the contents when no file is declared. Called once, at registration.
+    func: Callable[[], Any] | None = field(default=None, compare=False, repr=False)
+
+    def __call__(self) -> Any:
+        """Run the declaring function, so a toolkit's own tests can call it directly."""
+        if self.func is None:
+            raise TypeError(f"resource {self.name!r} has no function to call")
+        return self.func()
 
 
-#: Attribute the decorator leaves on a function so registration can find the
-#: declaration after discovery imports the module.
-RESOURCE_ATTRIBUTE = "__arcade_resource__"
+def _contents(declaration: ResourceDeclaration, mime_type: str | None) -> Any:
+    """A declaration's contents: its file's, read as text for a text media type, or its function's."""
+    if declaration.file is not None:
+        if (mime_type or "").startswith("text/"):
+            return declaration.file.read_text(encoding="utf-8")
+        return declaration.file.read_bytes()
+    return declaration()
 
-F = TypeVar("F", bound=Callable[..., Any])
+
+def _interface_mime_type(declaration: ResourceDeclaration) -> str:
+    """The media type a declaration is served under when a tool names it as its interface.
+
+    A host renders only ``ui://`` documents of exactly one media type. A
+    declaration that leaves the media type unset gets it. One that names another
+    cannot be rendered, and saying so at load beats a blank panel.
+    """
+    if declaration.scheme != UI_SCHEME:
+        raise ValueError(
+            f"resource {declaration.name!r} is declared under the {declaration.scheme!r} scheme, "
+            f"and a user interface must be declared under {UI_SCHEME!r}"
+        )
+    if declaration.mime_type not in (None, UI_DOCUMENT_MIME_TYPE):
+        raise ValueError(
+            f"resource {declaration.name!r} is declared as {declaration.mime_type!r}, and a host "
+            f"renders a user interface only as {UI_DOCUMENT_MIME_TYPE!r}. Leave mime_type unset."
+        )
+    return UI_DOCUMENT_MIME_TYPE
+
+
+def _beside(func: Callable[..., Any], file: str) -> Path:
+    """The file's location, resolved against the module that declares the resource."""
+    module = sys.modules.get(func.__module__)
+    module_file = getattr(module, "__file__", None) or inspect.getsourcefile(func)
+    if module_file is None:
+        raise TypeError(f"@resource(file={file!r}) needs a module with a file to resolve against")
+    return Path(module_file).parent / file
 
 
 def resource(
-    path: str,
+    path: str | None = None,
     *,
+    file: str | None = None,
     name: str | None = None,
     title: str | None = None,
     description: str | None = None,
     mime_type: str | None = None,
     scheme: str = UI_SCHEME,
-) -> Callable[[F], F]:
+) -> Callable[[Callable[..., Any]], ResourceDeclaration]:
     """Declare a static resource a toolkit ships.
 
-    The decorated function returns the bytes. It is called once, when the
-    toolkit is registered, and never on a request.
+    The decorated name becomes the declaration. The simplest one names a file
+    beside the declaring module; it is read once, when the toolkit is
+    registered, and the resource takes the file's name as its path. A tool
+    imports the declaration and passes it as its ``ui``, and the two are
+    qualified into one URI at registration::
 
-    The author gives a path relative to the toolkit. The full URI is derived at
-    registration, where the toolkit's name and version are known::
+        @resource(file="draft-review.html")
+        def draft_review() -> None: ...
+
+        @tool(ui=draft_review)
+        def draft_email(...) -> ...: ...
+
+    A function body can produce the contents instead, as text or bytes. It is
+    called once at registration and never on a request, and the declaration
+    stays callable so the toolkit's own tests can run it::
 
         @resource(path="draft-review.html", mime_type="text/html")
         def draft_review() -> str:
-            return (Path(__file__).parent / "draft-review.html").read_text()
+            return render("draft-review.html")
 
-    The declaration is read when the toolkit is added to a catalog. Discovery
-    scans for the decorator at module scope, so a declaration inside a class
-    body or nested in another function is not found.
+    The docstring is the description unless one is given. A declaration a
+    tool passes as its ``ui`` is registered with that tool, on every path a
+    tool is registered, and needs no media type. Any other declaration is
+    registered when its toolkit is loaded, found by scanning for the decorator
+    at module scope, so one inside a class body or nested in another function
+    is not found.
     """
 
-    def decorator(func: F) -> F:
+    if path is None:
+        if file is None:
+            raise TypeError("@resource needs a path or a file")
+        path = Path(file).name
+    resource_path = path
+
+    def decorator(func: Callable[..., Any]) -> ResourceDeclaration:
         if inspect.iscoroutinefunction(func):
             # Registration calls this once, synchronously, inside add_toolkit.
             # Without this the coroutine reaches the contents model and surfaces
@@ -187,29 +264,27 @@ def resource(
                 "A resource is resolved once at registration on a synchronous "
                 "path, so its function must be synchronous."
             )
-        setattr(
-            func,
-            RESOURCE_ATTRIBUTE,
-            ResourceDeclaration(
-                path=path,
-                name=name or func.__name__,
-                scheme=scheme,
-                title=title,
-                description=description,
-                mime_type=mime_type,
-            ),
+        return ResourceDeclaration(
+            path=resource_path,
+            name=name or func.__name__,
+            scheme=scheme,
+            title=title,
+            description=description or inspect.getdoc(func),
+            mime_type=mime_type,
+            file=_beside(func, file) if file is not None else None,
+            func=func,
         )
-        return func
 
     return decorator
 
 
 @dataclass(frozen=True)
 class RegisteredResource:
-    """A listing entry and the bytes it resolves to."""
+    """A listing entry, the bytes it resolves to, and the declaration it came from."""
 
     resource: Resource
     contents: TextResourceContents | BlobResourceContents
+    declaration: ResourceDeclaration | None = None
 
 
 class ResourceRegistry:
@@ -241,8 +316,21 @@ class ResourceRegistry:
     def __contains__(self, uri: object) -> bool:
         return uri in self._resources
 
+    def __iter__(self) -> Iterator[RegisteredResource]:
+        """Every registered resource, in URI order."""
+        return (self._resources[uri] for uri in self._uris)
+
     def add(self, resource: Resource, contents: str | bytes) -> RegisteredResource:
-        """Register a resource at its own URI, replacing any resource already there.
+        """Register a resource at its own URI, replacing any resource already there."""
+        return self._store(resource, contents, declaration=None)
+
+    def _store(
+        self,
+        resource: Resource,
+        contents: str | bytes,
+        declaration: ResourceDeclaration | None,
+    ) -> RegisteredResource:
+        """Hold the resource and its resolved body at the resource's URI.
 
         Text and binary are kept apart by type rather than by emptiness, so a
         zero-length document and a zero-length blob stay distinguishable all the
@@ -277,7 +365,7 @@ class ResourceRegistry:
                 text=contents,
             )
 
-        registered = RegisteredResource(resource=resource, contents=body)
+        registered = RegisteredResource(resource=resource, contents=body, declaration=declaration)
         if resource.uri not in self._resources:
             insort(self._uris, resource.uri)
         self._resources[resource.uri] = registered
@@ -302,25 +390,46 @@ class ResourceRegistry:
     def declare(
         self,
         declaration: ResourceDeclaration,
-        contents: str | bytes,
         *,
         toolkit_name: str,
-        toolkit_version: str,
+        toolkit_version: str | None,
+        as_interface: bool = False,
     ) -> RegisteredResource:
-        """Register a toolkit's declaration, qualifying its URI on the way in.
+        """Resolve a declaration's contents and register it under the toolkit's URI.
 
         Qualification happens here because this is the only point where the
-        declaration and the toolkit's identity are both in scope.
+        declaration and the toolkit's identity are both in scope. The same
+        declaration reached twice, from two tools or from a tool and then the
+        module scan, is registered once. A different declaration at the same URI
+        raises, because two resources in one toolkit cannot share a path and this
+        is the only point where both are in scope. A declaration a tool names as
+        its interface is served under the media type a host requires.
         """
+        if toolkit_version is None:
+            raise ValueError(
+                f"resource {declaration.name!r} cannot be registered: the toolkit has no "
+                f"version, so no URI can be derived for it"
+            )
         uri = self.uri_for(declaration, toolkit_name=toolkit_name, toolkit_version=toolkit_version)
+
+        existing = self._resources.get(uri)
+        if existing is not None:
+            if existing.declaration is declaration:
+                return existing
+            raise ValueError(
+                f"{declaration.name!r} and {existing.resource.name!r} both declare {uri}. Two "
+                f"resources in one toolkit cannot share a path."
+            )
+
+        mime_type = _interface_mime_type(declaration) if as_interface else declaration.mime_type
         resource = Resource(
             uri=uri,
             name=declaration.name,
             title=declaration.title,
             description=declaration.description,
-            mimeType=declaration.mime_type,
+            mimeType=mime_type,
         )
-        return self.add(resource, contents)
+        return self._store(resource, _contents(declaration, mime_type), declaration=declaration)
 
     def get(self, uri: str) -> RegisteredResource:
         try:

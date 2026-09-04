@@ -35,7 +35,13 @@ from arcade_core.errors import (
     ToolOutputSchemaError,
 )
 from arcade_core.metadata import ToolMetadata
-from arcade_core.resources import RESOURCE_ATTRIBUTE, ResourceRegistry
+from arcade_core.resources import (
+    InvalidResourcePathError,
+    ResourceDeclaration,
+    ResourceRegistry,
+    qualify,
+    ui_pointer,
+)
 from arcade_core.schema import (
     TOOL_NAME_SEPARATOR,
     FullyQualifiedName,
@@ -269,6 +275,21 @@ class ToolCatalog(BaseModel):
             logger.info(f"Server '{toolkit_name!s}' is disabled and will not be cataloged.")
             return
 
+        ui = getattr(tool_func, "__tool_ui__", None)
+        if ui is not None:
+            try:
+                self._resources.declare(
+                    ui,
+                    toolkit_name=definition.toolkit.name,
+                    toolkit_version=definition.toolkit.version,
+                    as_interface=True,
+                )
+            except Exception as e:
+                raise ToolDefinitionError(
+                    f"Tool '{definition.name}' names {ui.name!r} as its user interface, which "
+                    f"could not be registered. Reason: {e}"
+                ) from e
+
         self._tools[fully_qualified_name] = MaterializedTool(
             definition=definition,
             tool=tool_func,
@@ -367,8 +388,8 @@ class ToolCatalog(BaseModel):
             # published for a toolkit whose tools are hidden.
             return
 
+        toolkit_name = normalize_toolkit_name(toolkit.name)
         toolkit_version = version or toolkit.version
-        claimed: dict[str, str] = {}
 
         for module_name, resource_names in (toolkit.resources or {}).items():
             try:
@@ -379,8 +400,8 @@ class ToolCatalog(BaseModel):
                 ).with_context(toolkit.name) from e
 
             for resource_name in resource_names:
-                func = getattr(module, resource_name, None)
-                if func is None:
+                declaration = getattr(module, resource_name, None)
+                if declaration is None:
                     # Discovery reads the source, so a declaration the module
                     # guards behind something false at import time is found there
                     # and absent here. Skipping is what stops one unreachable
@@ -391,56 +412,24 @@ class ToolCatalog(BaseModel):
                     )
                     continue
 
-                declaration = getattr(func, RESOURCE_ATTRIBUTE, None)
-                if declaration is None:
-                    # The attribute is here and the marker is not, so something
-                    # replaced the function after @resource ran.
+                if not isinstance(declaration, ResourceDeclaration):
+                    # Discovery saw the decorator in the source, so something above
+                    # @resource replaced what it returned.
                     raise ToolkitLoadError(
                         f"{module_name}.{resource_name} is declared with @resource but the "
-                        f"module attribute carries no declaration. A decorator above @resource is "
-                        f"replacing the function without copying its attributes; wrap it "
-                        f"with functools.wraps."
-                    ).with_context(toolkit.name)
-
-                owner = f"{module_name}.{resource_name}"
-
-                # Derived before declaring, because declare replaces whatever is
-                # already at a URI. Checked afterwards, the guard would raise
-                # over a resource it had just destroyed.
-                try:
-                    uri = self._resources.uri_for(
-                        declaration,
-                        toolkit_name=normalize_toolkit_name(toolkit.name),
-                        toolkit_version=toolkit_version,
-                    )
-                except Exception as e:
-                    raise ToolkitLoadError(
-                        f"Could not build a URI for resource {resource_name} from "
-                        f"{module_name}. Reason: {e}"
-                    ).with_context(toolkit.name) from e
-
-                if uri in claimed:
-                    # Two resources sharing a path is an authoring mistake, and
-                    # this is the only point where both are in scope.
-                    raise ToolkitLoadError(
-                        f"{owner} and {claimed[uri]} both declare {uri}. Two resources "
-                        f"in one toolkit cannot share a path."
+                        f"module attribute is a {type(declaration).__name__}, not the "
+                        f"declaration. A decorator above @resource is replacing it."
                     ).with_context(toolkit.name)
 
                 try:
                     self._resources.declare(
-                        declaration,
-                        func(),
-                        toolkit_name=normalize_toolkit_name(toolkit.name),
-                        toolkit_version=toolkit_version,
+                        declaration, toolkit_name=toolkit_name, toolkit_version=toolkit_version
                     )
                 except Exception as e:
                     raise ToolkitLoadError(
                         f"Could not register resource {resource_name} from {module_name}. "
                         f"Reason: {e}"
                     ).with_context(toolkit.name) from e
-
-                claimed[uri] = owner
 
     def __getitem__(self, name: FullyQualifiedName) -> MaterializedTool:
         return self.get_tool(name)
@@ -580,6 +569,16 @@ class ToolCatalog(BaseModel):
                 )
             tool_metadata.validate_for_tool()
 
+        meta = None
+        ui = getattr(tool, "__tool_ui__", None)
+        if ui is not None:
+            if not isinstance(ui, ResourceDeclaration):
+                raise ToolDefinitionError(
+                    f"Tool '{raw_tool_name}' passes a {type(ui).__name__} as its ui. Pass the "
+                    f"declaration @resource returns."
+                )
+            meta = ui_pointer(_interface_uri(raw_tool_name, ui, toolkit_definition))
+
         return ToolDefinition(
             name=tool_name,
             fully_qualified_name=str(fully_qualified_name),
@@ -594,7 +593,26 @@ class ToolCatalog(BaseModel):
             ),
             deprecation_message=deprecation_message,
             metadata=tool_metadata,
+            _meta=meta,
         )
+
+
+def _interface_uri(
+    tool_name: str, declaration: ResourceDeclaration, toolkit: ToolkitDefinition
+) -> str:
+    """Qualify the declaration a tool names, exactly as its registration does."""
+    if toolkit.version is None:
+        raise ToolDefinitionError(
+            f"Tool '{tool_name}' names {declaration.name!r} as its user interface, but the "
+            f"toolkit has no version, so no URI can be derived for it."
+        )
+    try:
+        return qualify(toolkit.name, toolkit.version, declaration.path, declaration.scheme)
+    except InvalidResourcePathError as e:
+        raise ToolDefinitionError(
+            f"Tool '{tool_name}' names {declaration.name!r} as its user interface, but its "
+            f"path {declaration.path!r} is not usable. Reason: {e}"
+        ) from e
 
 
 def create_input_definition(func: Callable) -> ToolInput:

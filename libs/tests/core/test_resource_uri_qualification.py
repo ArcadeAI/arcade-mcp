@@ -183,11 +183,10 @@ def test_declaring_through_the_registry_qualifies_the_uri():
         path="draft-review.html",
         name="Draft review",
         mime_type="text/html;profile=example",
+        func=lambda: "<!DOCTYPE html>",
     )
 
-    registered = registry.declare(
-        declaration, "<!DOCTYPE html>", toolkit_name="Gmail", toolkit_version="8.1.0"
-    )
+    registered = registry.declare(declaration, toolkit_name="Gmail", toolkit_version="8.1.0")
 
     assert registered.resource.uri == "ui://Gmail/8.1.0/draft-review.html"
     assert registry.get("ui://Gmail/8.1.0/draft-review.html").contents.text == "<!DOCTYPE html>"
@@ -197,8 +196,7 @@ def test_the_contents_uri_matches_the_qualified_listing_uri():
     """A read that echoes a different URI than the listing breaks host-side caching."""
     registry = ResourceRegistry()
     registered = registry.declare(
-        ResourceDeclaration(path="a.html", name="a"),
-        "x",
+        ResourceDeclaration(path="a.html", name="a", func=lambda: "x"),
         toolkit_name="Gmail",
         toolkit_version="8.1.0",
     )

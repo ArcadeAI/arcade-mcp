@@ -92,9 +92,10 @@ def create_mcp_tool(materialized_tool: MaterializedTool) -> MCPTool:
         raw_execution if isinstance(raw_execution, ToolExecution) else None
     )
 
-    # Build _meta.arcade structure
+    meta: dict[str, Any] = dict(definition.meta or {})
     arcade_meta = _build_arcade_meta(definition)
-    meta = {"arcade": arcade_meta} if arcade_meta else None
+    if arcade_meta:
+        meta["arcade"] = arcade_meta
 
     return MCPTool(
         name=name,
@@ -104,7 +105,7 @@ def create_mcp_tool(materialized_tool: MaterializedTool) -> MCPTool:
         outputSchema=output_schema if output_schema else None,
         annotations=annotations,
         execution=mcp_execution,
-        _meta=meta,
+        _meta=meta or None,
     )
 
 

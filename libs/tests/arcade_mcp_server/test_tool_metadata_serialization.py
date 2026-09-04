@@ -9,9 +9,15 @@ from arcade_core.metadata import (
     ServiceDomain,
     ToolMetadata,
 )
+from arcade_core.resources import resource
 from arcade_mcp_server.managers.tool import ToolManager
 from arcade_tdk import tool
 from arcade_tdk.auth import OAuth2
+
+
+@resource(path="dashboard.html")
+def dashboard() -> str:
+    return "<!DOCTYPE html><p>dashboard</p>"
 
 
 class TestToolMetadataSerialization:
@@ -370,3 +376,57 @@ class TestToolMetadataSerialization:
         assert metadata["behavior"]["destructive"] is False
         assert metadata["behavior"]["open_world"] is True
         assert metadata["extras"] == {"idp": "google"}
+
+    def test_meta_includes_ui_resource_uri(self, tool_manager: ToolManager):
+        """_meta.ui.resourceUri should point at the tool's user interface."""
+
+        @tool(desc="Tool with a user interface", ui=dashboard)
+        def show_dashboard() -> str:
+            """Show the dashboard."""
+            return "shown"
+
+        materialized = self._create_materialized_tool(show_dashboard)
+        dto = tool_manager._to_dto(materialized)
+
+        assert dto.meta is not None
+        assert dto.meta["ui"]["resourceUri"] == "ui://Test/1.0.0/dashboard.html"
+
+    def test_meta_ui_and_arcade_coexist(self, tool_manager: ToolManager):
+        """_meta should carry both the ui pointer and the arcade namespace."""
+
+        @tool(
+            desc="Tool with a user interface and behavior metadata",
+            ui=dashboard,
+            metadata=ToolMetadata(
+                behavior=Behavior(
+                    read_only=True,
+                    destructive=False,
+                    idempotent=True,
+                    open_world=False,
+                ),
+            ),
+        )
+        def show_dashboard() -> str:
+            """Show the dashboard."""
+            return "shown"
+
+        materialized = self._create_materialized_tool(show_dashboard)
+        dto = tool_manager._to_dto(materialized)
+
+        assert dto.meta is not None
+        assert dto.meta["ui"]["resourceUri"] == "ui://Test/1.0.0/dashboard.html"
+        assert dto.meta["arcade"]["metadata"]["behavior"]["read_only"] is True
+        assert dto.meta["arcade"]["metadata"]["behavior"]["idempotent"] is True
+
+    def test_meta_is_none_without_ui_or_arcade_metadata(self, tool_manager: ToolManager):
+        """_meta should be None when a tool has neither a ui pointer nor Arcade metadata."""
+
+        @tool(desc="Plain tool")
+        def plain_tool() -> str:
+            """Plain tool."""
+            return "plain"
+
+        materialized = self._create_materialized_tool(plain_tool)
+        dto = tool_manager._to_dto(materialized)
+
+        assert dto.meta is None

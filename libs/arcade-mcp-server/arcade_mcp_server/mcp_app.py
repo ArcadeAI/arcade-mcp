@@ -18,7 +18,7 @@ from typing import Any, Callable, Literal, ParamSpec, TypeVar, cast
 
 from arcade_core.catalog import MaterializedTool, ToolCatalog, ToolDefinitionError
 from arcade_core.metadata import ToolMetadata
-from arcade_core.resources import RESOURCE_ATTRIBUTE
+from arcade_core.resources import ResourceDeclaration
 from arcade_core.subprocess_utils import (
     get_windows_no_window_creationflags,
     graceful_terminate_process,
@@ -313,6 +313,7 @@ class MCPApp:
         adapters: list[ErrorAdapter] | None = None,
         metadata: ToolMetadata | None = None,
         meta: dict[str, Any] | None = None,
+        ui: ResourceDeclaration | None = None,
         execution: ToolExecution | None = None,
     ) -> Callable[P, T]:
         """Add a tool for build-time materialization (pre-server).
@@ -337,14 +338,17 @@ class MCPApp:
                 requires_metadata=requires_metadata,
                 adapters=adapters,
                 metadata=metadata,
+                ui=ui,
                 execution=execution,
             )
-        elif execution is not None:
-            # Pre-decorated tool with an explicit ``execution=`` at registration
-            # time: write the dunder directly. The catalog reads it off the
-            # decorated callable (`MCPServer._handle_call_tool` and
-            # `convert.create_mcp_tool` both `getattr(..., "__tool_execution__")`).
-            func.__tool_execution__ = execution  # type: ignore[attr-defined]
+        else:
+            # A pre-decorated tool with ``execution=`` or ``ui=`` given here as
+            # well: write the dunders directly. The catalog reads both off the
+            # decorated callable.
+            if execution is not None:
+                func.__tool_execution__ = execution  # type: ignore[attr-defined]
+            if ui is not None:
+                func.__tool_ui__ = ui  # type: ignore[attr-defined]
         try:
             self._catalog.add_tool(
                 func,
@@ -498,6 +502,7 @@ class MCPApp:
         adapters: list[ErrorAdapter] | None = None,
         metadata: ToolMetadata | None = None,
         meta: dict[str, Any] | None = None,
+        ui: ResourceDeclaration | None = None,
         execution: ToolExecution | None = None,
     ) -> Callable[[Callable[P, T]], Callable[P, T]] | Callable[P, T]:
         """Decorator for adding tools with optional parameters.
@@ -517,6 +522,7 @@ class MCPApp:
                 requires_metadata=requires_metadata,
                 adapters=adapters,
                 metadata=metadata,
+                ui=ui,
                 meta=meta,
                 execution=execution,
             )
@@ -528,9 +534,10 @@ class MCPApp:
     def _warn_unregistered_resource_declarations(self) -> None:
         """Report @resource declarations this app never registered.
 
-        @resource marks a function, and the mark is read when a toolkit is added
-        to the catalog. An app assembled from @app.tool alone never gets there,
-        so without this the decorator imports, runs and registers nothing.
+        A declaration is registered when a toolkit is added to the catalog or
+        when a tool names it as its ``ui``. An app assembled from @app.tool
+        alone, with declarations no tool names, never gets there, so without
+        this the decorator imports, runs and registers nothing.
         """
         if len(self._catalog.resources) > 0:
             return
@@ -543,9 +550,7 @@ class MCPApp:
             return
 
         declared = [
-            name
-            for name, value in vars(module).items()
-            if getattr(value, RESOURCE_ATTRIBUTE, None) is not None
+            name for name, value in vars(module).items() if isinstance(value, ResourceDeclaration)
         ]
         if not declared:
             return
@@ -554,8 +559,9 @@ class MCPApp:
         logger.warning(
             f"{where} declares {len(declared)} resource(s) "
             f"({', '.join(declared)}) that this app does not register. "
-            f"@resource is read when a toolkit is added to the catalog. Use "
-            f"app.add_tools_from_module(...), or @app.resource to register one directly."
+            f"A declaration is registered when a toolkit is added to the catalog or when a "
+            f"tool names it as its ui. Pass it to a tool as ui=, use "
+            f"app.add_tools_from_module(...), or use @app.resource to register one directly."
         )
 
     def run(
