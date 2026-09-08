@@ -36,6 +36,13 @@ def space_to_snake_case(name: str) -> str:
     return name.replace(" ", "_")
 
 
+def strip_arcade_prefix(name: str) -> str:
+    """A distribution named ``arcade_math`` ships the toolkit ``math``."""
+    if name.startswith("arcade_"):
+        return name[len("arcade_") :]
+    return name
+
+
 def normalize_toolkit_name(name: str) -> str:
     """The toolkit name as everything downstream of a toolkit sees it.
 

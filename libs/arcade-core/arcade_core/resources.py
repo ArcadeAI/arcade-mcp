@@ -15,6 +15,8 @@ import sys
 from bisect import bisect_right, insort
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
+from functools import cache
+from importlib.metadata import PackageNotFoundError, metadata
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote
@@ -24,6 +26,7 @@ from arcade_core.resource_schema import (
     Resource,
     TextResourceContents,
 )
+from arcade_core.utils import normalize_toolkit_name, strip_arcade_prefix
 
 DEFAULT_PAGE_SIZE = 250
 
@@ -197,6 +200,64 @@ def _interface_mime_type(declaration: ResourceDeclaration) -> str:
             f"renders a user interface only as {UI_DOCUMENT_MIME_TYPE!r}. Leave mime_type unset."
         )
     return UI_DOCUMENT_MIME_TYPE
+
+
+@cache
+def _distribution_identity(package: str) -> tuple[str, str] | None:
+    """The toolkit name and version of the installed distribution shipping ``package``.
+
+    ``metadata`` rather than ``packages_distributions``: the latter reports
+    nothing for a package installed from source in a workspace, which is how
+    every toolkit under development is installed.
+    """
+    try:
+        found = metadata(package)
+    except PackageNotFoundError:
+        # Loose files on the path rather than an installed distribution, so
+        # there is no version to qualify with.
+        return None
+    name, version = found["Name"], found["Version"]
+    if not name or not version:
+        return None
+    return normalize_toolkit_name(strip_arcade_prefix(name.replace("-", "_"))), version
+
+
+def _origin(declaration: ResourceDeclaration) -> tuple[str, str] | None:
+    """The toolkit that ships a declaration, as opposed to whoever serves it."""
+    func = declaration.func
+    module = getattr(func, "__module__", None) if func is not None else None
+    if not module:
+        return None
+    return _distribution_identity(module.split(".")[0])
+
+
+def _declared_at(declaration: ResourceDeclaration | None) -> str:
+    """Where a declaration was written, for an error a reader has to act on."""
+    if declaration is None:
+        return "an unknown resource"
+    func = declaration.func
+    module = getattr(func, "__module__", None) if func is not None else None
+    return f"{module}.{declaration.name}" if module else repr(declaration.name)
+
+
+def interface_uri(
+    declaration: ResourceDeclaration,
+    *,
+    toolkit_name: str,
+    toolkit_version: str,
+) -> str:
+    """The URI a declaration is served under.
+
+    A document belongs to the package that ships it, not to the server that
+    happens to serve it. One server can compose tools from several installed
+    toolkits, and each toolkit names its own documents without seeing the
+    others, so qualifying by the composing server puts authors who cannot see
+    each other in one collision domain. The toolkit passed in is the fallback,
+    for a declaration whose package is not an installed distribution.
+    """
+    origin = _origin(declaration)
+    name, version = origin if origin is not None else (toolkit_name, toolkit_version)
+    return qualify(name, version, declaration.path, declaration.scheme)
 
 
 def _beside(func: Callable[..., Any], file: str) -> Path:
@@ -410,15 +471,15 @@ class ResourceRegistry:
                 f"resource {declaration.name!r} cannot be registered: the toolkit has no "
                 f"version, so no URI can be derived for it"
             )
-        uri = self.uri_for(declaration, toolkit_name=toolkit_name, toolkit_version=toolkit_version)
+        uri = interface_uri(declaration, toolkit_name=toolkit_name, toolkit_version=toolkit_version)
 
         existing = self._resources.get(uri)
         if existing is not None:
             if existing.declaration is declaration:
                 return existing
             raise ValueError(
-                f"{declaration.name!r} and {existing.resource.name!r} both declare {uri}. Two "
-                f"resources in one toolkit cannot share a path."
+                f"{_declared_at(declaration)} and {_declared_at(existing.declaration)} both "
+                f"declare {uri}. Two resources in one toolkit cannot share a path."
             )
 
         mime_type = _interface_mime_type(declaration) if as_interface else declaration.mime_type

@@ -13,6 +13,7 @@ from pydantic import BaseModel, ConfigDict, field_validator
 
 from arcade_core.errors import ToolkitLoadError
 from arcade_core.parse import get_resources_from_ast, get_tools_from_ast, load_ast_tree
+from arcade_core.utils import strip_arcade_prefix
 
 logger = logging.getLogger(__name__)
 
@@ -56,9 +57,7 @@ class Toolkit(BaseModel):
         """
         Strip the 'arcade_' prefix from the name if it exists.
         """
-        if value.startswith("arcade_"):
-            return value[len("arcade_") :]
-        return value
+        return strip_arcade_prefix(value)
 
     @classmethod
     def from_module(cls, module: types.ModuleType) -> "Toolkit":

@@ -39,7 +39,7 @@ from arcade_core.resources import (
     InvalidResourcePathError,
     ResourceDeclaration,
     ResourceRegistry,
-    qualify,
+    interface_uri,
     ui_pointer,
 )
 from arcade_core.schema import (
@@ -600,14 +600,16 @@ class ToolCatalog(BaseModel):
 def _interface_uri(
     tool_name: str, declaration: ResourceDeclaration, toolkit: ToolkitDefinition
 ) -> str:
-    """Qualify the declaration a tool names, exactly as its registration does."""
+    """Qualify the declaration a tool names, through the derivation registration uses."""
     if toolkit.version is None:
         raise ToolDefinitionError(
             f"Tool '{tool_name}' names {declaration.name!r} as its user interface, but the "
             f"toolkit has no version, so no URI can be derived for it."
         )
     try:
-        return qualify(toolkit.name, toolkit.version, declaration.path, declaration.scheme)
+        return interface_uri(
+            declaration, toolkit_name=toolkit.name, toolkit_version=toolkit.version
+        )
     except InvalidResourcePathError as e:
         raise ToolDefinitionError(
             f"Tool '{tool_name}' names {declaration.name!r} as its user interface, but its "
