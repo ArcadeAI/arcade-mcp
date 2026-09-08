@@ -47,6 +47,22 @@ def serving():
 
 
 @pytest.fixture
+def serving_with_meta():
+    """A worker whose document declares its own rendering contract."""
+    app = FastAPI()
+    worker = FastAPIWorker(app=app, disable_auth=True)
+    worker.register_tool(sample_tool, toolkit_name="fixture_kit")
+    worker.catalog.resources.add(
+        Resource(uri=DRAFT_URI, name="Draft review", mimeType=UI_MIME),
+        DRAFT_BODY,
+        contents_meta={"ui": {"prefersBorder": False}},
+    )
+    registered = worker.catalog.resources.get(DRAFT_URI)
+    registered.resource.meta = {"ui": {"prefersBorder": False}}
+    return TestClient(app)
+
+
+@pytest.fixture
 def empty():
     """A worker on this release that simply has no resources to serve."""
     app = FastAPI()
@@ -83,6 +99,24 @@ def test_read_returns_a_result_object(serving):
     assert response.json() == {
         "contents": [{"uri": DRAFT_URI, "mimeType": UI_MIME, "text": DRAFT_BODY}]
     }
+
+
+def test_the_read_carries_a_resources_own_meta(serving_with_meta):
+    """A host reads a document's rendering contract off this response.
+
+    Asserted on the wire under the underscore key, because a host looks for
+    ``_meta`` and a Python-side ``meta`` would parse as a different field.
+    """
+    body = serving_with_meta.post("/worker/resources/read", json={"uri": DRAFT_URI}).text
+
+    assert '"_meta":{"ui":{"prefersBorder":false}}' in body
+    assert '"meta"' not in body.replace('"_meta"', "")
+
+
+def test_the_listing_carries_it_too(serving_with_meta):
+    listed = serving_with_meta.post("/worker/resources/list", json={}).json()
+
+    assert listed["resources"][0]["_meta"] == {"ui": {"prefersBorder": False}}
 
 
 def test_absent_optional_fields_are_omitted_rather_than_null(serving):

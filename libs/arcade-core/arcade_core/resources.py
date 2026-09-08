@@ -165,6 +165,10 @@ class ResourceDeclaration:
     file: Path | None = None
     #: Produces the contents when no file is declared. Called once, at registration.
     func: Callable[[], Any] | None = field(default=None, compare=False, repr=False)
+    #: Out-of-band data for the resource, carried through untouched. A host reads a
+    #: document's rendering contract from the read response, so registration puts
+    #: this on the contents as well as on the listing entry.
+    meta: dict[str, Any] | None = None
 
     def __call__(self) -> Any:
         """Run the declaring function, so a toolkit's own tests can call it directly."""
@@ -277,6 +281,7 @@ def resource(
     title: str | None = None,
     description: str | None = None,
     mime_type: str | None = None,
+    meta: dict[str, Any] | None = None,
     scheme: str = UI_SCHEME,
 ) -> Callable[[Callable[..., Any]], ResourceDeclaration]:
     """Declare a static resource a toolkit ships.
@@ -300,6 +305,12 @@ def resource(
         @resource(path="draft-review.html", mime_type="text/html")
         def draft_review() -> str:
             return render("draft-review.html")
+
+    ``meta`` is out-of-band data for the resource, carried through untouched.
+    For a document a host renders, this is where ``ui.csp``, ``ui.permissions``
+    and ``ui.prefersBorder`` go. Registration puts it on the read response as
+    well as on the listing entry, because a host reads the rendering contract
+    from the read.
 
     The docstring is the description unless one is given. A declaration a
     tool passes as its ``ui`` is registered with that tool, on every path a
@@ -332,6 +343,7 @@ def resource(
             title=title,
             description=description or inspect.getdoc(func),
             mime_type=mime_type,
+            meta=meta,
             file=_beside(func, file) if file is not None else None,
             func=func,
         )
@@ -381,15 +393,27 @@ class ResourceRegistry:
         """Every registered resource, in URI order."""
         return (self._resources[uri] for uri in self._uris)
 
-    def add(self, resource: Resource, contents: str | bytes) -> RegisteredResource:
-        """Register a resource at its own URI, replacing any resource already there."""
-        return self._store(resource, contents, declaration=None)
+    def add(
+        self,
+        resource: Resource,
+        contents: str | bytes,
+        contents_meta: dict[str, Any] | None = None,
+    ) -> RegisteredResource:
+        """Register a resource at its own URI, replacing any resource already there.
+
+        ``contents_meta`` fills the read response's own ``_meta``, which is a
+        different slot from the listing entry's ``resource.meta`` and is where a
+        host reads a document's rendering contract. This level fills exactly the
+        slot it is given.
+        """
+        return self._store(resource, contents, declaration=None, contents_meta=contents_meta)
 
     def _store(
         self,
         resource: Resource,
         contents: str | bytes,
         declaration: ResourceDeclaration | None,
+        contents_meta: dict[str, Any] | None = None,
     ) -> RegisteredResource:
         """Hold the resource and its resolved body at the resource's URI.
 
@@ -418,12 +442,14 @@ class ResourceRegistry:
                 uri=resource.uri,
                 mimeType=resource.mimeType,
                 blob=base64.b64encode(contents).decode("ascii"),
+                _meta=contents_meta,
             )
         else:
             body = TextResourceContents(
                 uri=resource.uri,
                 mimeType=resource.mimeType,
                 text=contents,
+                _meta=contents_meta,
             )
 
         registered = RegisteredResource(resource=resource, contents=body, declaration=declaration)
@@ -489,8 +515,14 @@ class ResourceRegistry:
             title=declaration.title,
             description=declaration.description,
             mimeType=mime_type,
+            _meta=declaration.meta,
         )
-        return self._store(resource, _contents(declaration, mime_type), declaration=declaration)
+        return self._store(
+            resource,
+            _contents(declaration, mime_type),
+            declaration=declaration,
+            contents_meta=declaration.meta,
+        )
 
     def get(self, uri: str) -> RegisteredResource:
         try:

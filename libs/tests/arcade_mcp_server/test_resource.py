@@ -12,6 +12,7 @@ from arcade_mcp_server.managers.resource import (
     _is_template_uri,
     _template_to_regex,
     _template_to_sample_uri,
+    make_static_handler,
 )
 from arcade_mcp_server.types import (
     BlobResourceContents,
@@ -759,3 +760,87 @@ async def test_load_from_catalog_serves_a_declared_blob():
     assert isinstance(contents[0], BlobResourceContents)
     assert base64.b64decode(contents[0].blob) == b"\x89PNG\r\n"
     assert contents[0].mimeType == "image/png"
+
+
+UI_META = {"ui": {"permissions": {"clipboardWrite": {}}, "prefersBorder": False}}
+
+
+@pytest.mark.asyncio
+async def test_a_registered_resources_meta_reaches_the_read():
+    """A host reads a document's rendering contract off this response."""
+    manager = ResourceManager()
+    await manager.start()
+    await manager.add_resource(
+        Resource(
+            uri="ui://Kit/1.0.0/panel.html",
+            name="panel",
+            mimeType="text/html;profile=mcp-app",
+            _meta=UI_META,
+        ),
+        handler=make_static_handler("<!DOCTYPE html><p>panel</p>"),
+    )
+
+    contents = await manager.read_resource("ui://Kit/1.0.0/panel.html")
+
+    assert contents[0].meta == UI_META
+
+
+@pytest.mark.asyncio
+async def test_load_from_catalog_keeps_a_declarations_meta():
+    from arcade_core.catalog import ToolCatalog
+    from arcade_core.resources import ResourceDeclaration
+
+    catalog = ToolCatalog()
+    catalog.resources.declare(
+        ResourceDeclaration(
+            path="panel.html",
+            name="panel",
+            mime_type="text/html;profile=example",
+            meta=UI_META,
+            func=lambda: "<!DOCTYPE html><p>panel</p>",
+        ),
+        toolkit_name="Kit",
+        toolkit_version="1.0.0",
+    )
+    manager = ResourceManager()
+    await manager.start()
+
+    await manager.load_from_catalog(catalog)
+
+    contents = await manager.read_resource("ui://Kit/1.0.0/panel.html")
+    assert contents[0].meta == UI_META
+
+
+@pytest.mark.asyncio
+async def test_a_handler_that_builds_its_own_contents_keeps_their_meta():
+    """Such a handler owns the whole object, so nothing is overwritten for it."""
+    handler_meta = {"ui": {"domain": "handler.example.com"}}
+    manager = ResourceManager()
+    await manager.start()
+    await manager.add_resource(
+        Resource(uri="ui://Kit/1.0.0/own.html", name="own", mimeType="text/html", _meta=UI_META),
+        handler=lambda uri: [
+            TextResourceContents(
+                uri=uri, mimeType="text/html", text="<p>own</p>", _meta=handler_meta
+            )
+        ],
+    )
+
+    contents = await manager.read_resource("ui://Kit/1.0.0/own.html")
+
+    assert contents[0].meta == handler_meta
+
+
+@pytest.mark.asyncio
+async def test_a_resource_without_meta_still_reads_clean():
+    manager = ResourceManager()
+    await manager.start()
+    await manager.add_resource(
+        Resource(uri="ui://Kit/1.0.0/plain.html", name="plain", mimeType="text/html"),
+        handler=make_static_handler("<p>plain</p>"),
+    )
+
+    contents = await manager.read_resource("ui://Kit/1.0.0/plain.html")
+
+    assert contents[0].meta is None
+    assert "_meta" not in contents[0].model_dump(by_alias=True, exclude_none=True)
