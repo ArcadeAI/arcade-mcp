@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Literal, Protocol
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from arcade_core.errors import ErrorKind
 from arcade_core.metadata import ToolMetadata
@@ -339,6 +339,13 @@ class ToolDefinition(BaseModel):
 
     metadata: ToolMetadata | None = None
     """Metadata about the tool"""
+
+    meta: dict[str, Any] | None = Field(default=None, alias="_meta")
+    """Out-of-band data attached to the tool, carried through untouched."""
+
+    # Without this a ``meta=`` keyword is silently ignored, and a dump-then-validate
+    # round trip drops the field with no error.
+    model_config = ConfigDict(populate_by_name=True)
 
     def get_fully_qualified_name(self) -> FullyQualifiedName:
         return FullyQualifiedName(self.name, self.toolkit.name, self.toolkit.version)

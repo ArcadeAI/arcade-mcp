@@ -13,6 +13,9 @@ import re
 from pathlib import Path
 from typing import Any, Callable, Literal
 
+from arcade_core.catalog import ToolCatalog
+from arcade_core.resource_schema import TextResourceContents as CatalogTextContents
+
 from arcade_mcp_server.exceptions import NotFoundError, ResourceError
 from arcade_mcp_server.managers.base import ComponentManager
 from arcade_mcp_server.types import (
@@ -78,6 +81,15 @@ def make_text_handler(text: str) -> Callable[[str], str]:
     return handler
 
 
+def make_static_handler(body: str | bytes) -> Callable[[str], str | bytes]:
+    """Create a handler that returns a body resolved ahead of time."""
+
+    def handler(_uri: str) -> str | bytes:
+        return body
+
+    return handler
+
+
 def make_file_handler(path: str | Path) -> Callable[[str], str | bytes]:
     """Create a handler that reads a file, returning text or bytes."""
     file_path = Path(path)
@@ -110,6 +122,20 @@ class ResourceManager(ComponentManager[str, Resource]):
         self._template_patterns: dict[str, re.Pattern[str]] = {}
         self.duplicate_policy: DuplicatePolicy = duplicate_policy
         self.multiple_match_policy: MultipleMatchPolicy = multiple_match_policy
+
+    async def load_from_catalog(self, catalog: ToolCatalog) -> None:
+        """Serve every resource the catalog's toolkits declared."""
+        for registered in catalog.resources:
+            resource = Resource.model_validate(
+                registered.resource.model_dump(by_alias=True, exclude_none=True)
+            )
+            contents = registered.contents
+            body: str | bytes = (
+                contents.text
+                if isinstance(contents, CatalogTextContents)
+                else base64.b64decode(contents.blob)
+            )
+            await self.add_resource(resource, handler=make_static_handler(body))
 
     async def list_resources(self) -> list[Resource]:
         return await self.registry.list()

@@ -12,6 +12,7 @@ from __future__ import annotations
 from typing import Callable
 
 from arcade_core.metadata import ToolMetadata
+from arcade_core.resources import ResourceDeclaration
 from arcade_tdk import tool as _arcade_tdk_tool
 from arcade_tdk.auth import ToolAuthorization
 from arcade_tdk.error_adapters import ErrorAdapter
@@ -32,6 +33,7 @@ def tool(
     requires_metadata: list[str] | None = None,
     adapters: list[ErrorAdapter] | None = None,
     metadata: ToolMetadata | None = None,
+    ui: ResourceDeclaration | None = None,
     execution: ToolExecution | None = None,
 ) -> Callable:
     """MCP-aware ``@tool`` decorator.
@@ -54,6 +56,7 @@ def tool(
             requires_metadata=requires_metadata,
             adapters=adapters,
             metadata=metadata,
+            ui=ui,
         )
         # Write on the error-handler-wrapped callable arcade-tdk returns.
         # Both read sites (``server.py`` for taskSupport policy and

@@ -15,7 +15,7 @@ import anyio
 from anyio.abc import TaskStatus
 from starlette.requests import Request
 from starlette.responses import Response
-from starlette.types import Receive, Scope, Send
+from starlette.types import Message, Receive, Scope, Send
 
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.session import InitializationState, ServerSession
@@ -109,6 +109,36 @@ def _validate_origin(request: Request, allowed_origins: list[str] | None) -> Res
         )
 
     return None
+
+
+# A response may carry only one allow-origin value, so anything an earlier layer
+# set is replaced rather than joined. Vary may repeat, so it is only added.
+_CORS_HEADERS_SET_HERE = frozenset({
+    b"access-control-allow-origin",
+    b"access-control-expose-headers",
+})
+
+
+def _with_cors_headers(send: Send, origin: str) -> Send:
+    """Wrap an ASGI send so the response start carries the CORS headers for ``origin``."""
+
+    async def send_with_cors(message: Message) -> None:
+        if message["type"] == "http.response.start":
+            headers = [
+                (name, value)
+                for name, value in message.get("headers", [])
+                if name.lower() not in _CORS_HEADERS_SET_HERE
+            ]
+            headers.append((b"access-control-allow-origin", origin.encode("latin-1")))
+            headers.append((
+                b"access-control-expose-headers",
+                b"Mcp-Session-Id, MCP-Protocol-Version",
+            ))
+            headers.append((b"vary", b"Origin"))
+            message = {**message, "headers": headers}
+        await send(message)
+
+    return send_with_cors
 
 
 def _validate_accept_header(request: Request) -> Response | None:
@@ -295,6 +325,13 @@ class HTTPSessionManager:
         if origin_error is not None:
             await origin_error(scope, receive, send)
             return
+
+        # A browser only lets the page read a cross-origin response that names
+        # its origin, so an allowed Origin is echoed on every response, not
+        # only on the preflight.
+        origin = request.headers.get("origin")
+        if origin is not None:
+            send = _with_cors_headers(send, origin)
 
         # --- Handle OPTIONS (CORS preflight) ---
         if request.method == "OPTIONS":

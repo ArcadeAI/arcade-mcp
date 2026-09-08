@@ -3,6 +3,7 @@ import inspect
 
 import pytest
 from arcade_core.auth import AuthProviderType, Google, Microsoft, MicrosoftPowerBI
+from arcade_core.resources import resource
 from arcade_tdk import tool
 from arcade_tdk.auth import OAuth2, PagerDuty
 
@@ -278,3 +279,34 @@ class TestArcadeTdkToolHasNoMCPSpecificKwargs:
         assert "mcp" not in doc
         assert "tasksupport" not in doc
         assert "arcade_mcp_server" not in doc
+
+
+def test_ui_is_recorded_on_the_function():
+    @resource(path="dashboard.html")
+    def dashboard() -> str:
+        return ""
+
+    @tool(ui=dashboard)
+    def with_ui() -> str:
+        """A tool with an interface."""
+        return ""
+
+    assert with_ui.__tool_ui__ is dashboard
+
+
+def test_ui_refuses_anything_but_a_declaration():
+    with pytest.raises(TypeError, match="@resource"):
+
+        @tool(ui="dashboard.html")
+        def with_path() -> str:
+            """A tool with a path where its interface should be."""
+            return ""
+
+
+def test_ui_defaults_to_none():
+    @tool
+    def without_ui() -> str:
+        """A tool with no interface."""
+        return ""
+
+    assert without_ui.__tool_ui__ is None
