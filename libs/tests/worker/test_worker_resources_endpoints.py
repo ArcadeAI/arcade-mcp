@@ -12,6 +12,7 @@ from typing import Annotated
 
 import pytest
 from arcade_core.resource_schema import Resource
+from arcade_core.resources import ResourceDeclaration
 from arcade_serve.fastapi.worker import FastAPIWorker
 from arcade_tdk import ToolContext, tool
 from fastapi import FastAPI
@@ -52,13 +53,17 @@ def serving_with_meta():
     app = FastAPI()
     worker = FastAPIWorker(app=app, disable_auth=True)
     worker.register_tool(sample_tool, toolkit_name="fixture_kit")
-    worker.catalog.resources.add(
-        Resource(uri=DRAFT_URI, name="Draft review", mimeType=UI_MIME),
-        DRAFT_BODY,
-        contents_meta={"ui": {"prefersBorder": False}},
+    worker.catalog.resources.declare(
+        ResourceDeclaration(
+            path="draft-review.html",
+            name="Draft review",
+            mime_type=UI_MIME,
+            meta={"ui": {"prefersBorder": False}},
+            func=lambda: DRAFT_BODY,
+        ),
+        toolkit_name="Gmail",
+        toolkit_version="8.1.0",
     )
-    registered = worker.catalog.resources.get(DRAFT_URI)
-    registered.resource.meta = {"ui": {"prefersBorder": False}}
     return TestClient(app)
 
 
@@ -107,10 +112,10 @@ def test_the_read_carries_a_resources_own_meta(serving_with_meta):
     Asserted on the wire under the underscore key, because a host looks for
     ``_meta`` and a Python-side ``meta`` would parse as a different field.
     """
-    body = serving_with_meta.post("/worker/resources/read", json={"uri": DRAFT_URI}).text
+    response = serving_with_meta.post("/worker/resources/read", json={"uri": DRAFT_URI})
 
-    assert '"_meta":{"ui":{"prefersBorder":false}}' in body
-    assert '"meta"' not in body.replace('"_meta"', "")
+    assert response.json()["contents"][0]["_meta"] == {"ui": {"prefersBorder": False}}
+    assert '"meta"' not in response.text.replace('"_meta"', ""), "the alias must be on the wire"
 
 
 def test_the_listing_carries_it_too(serving_with_meta):

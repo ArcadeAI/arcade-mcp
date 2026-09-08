@@ -75,24 +75,32 @@ def test_the_object_is_carried_verbatim():
     assert registered.resource.meta == later
 
 
-def test_add_fills_exactly_the_slot_it_is_given():
-    """The low-level path fills one slot at a time; fanning out belongs to declare."""
+def test_a_listing_meta_handed_to_add_does_not_leak_onto_the_contents():
+    """The two are different slots, so nothing is copied between them.
+
+    ``declare`` is the only thing that fills both, and it does so from one
+    declared value rather than by copying one slot into the other.
+    """
     registry = ResourceRegistry()
 
-    listing_only = registry.add(
+    registered = registry.add(
         Resource(uri="ui://Kit/1.0.0/a.html", name="a", mimeType="text/html", _meta=UI_META),
         "<p>a</p>",
     )
-    assert listing_only.resource.meta == UI_META
-    assert listing_only.contents.meta is None, "a listing _meta must not leak onto the contents"
 
-    contents_only = registry.add(
-        Resource(uri="ui://Kit/1.0.0/b.html", name="b", mimeType="text/html"),
-        "<p>b</p>",
-        contents_meta=UI_META,
-    )
-    assert contents_only.contents.meta == UI_META
-    assert contents_only.resource.meta is None, "a contents _meta must not leak onto the listing"
+    assert registered.resource.meta == UI_META
+    assert registered.contents.meta is None
+
+
+def test_a_declaration_stays_hashable_when_it_carries_meta():
+    """The class is frozen, so a compared dict field would make it unhashable."""
+
+    @resource(path="panel.html", meta=UI_META)
+    def panel() -> str:
+        return "x"
+
+    assert hash(panel) == hash(panel)
+    assert panel in {panel}
 
 
 @pytest.mark.parametrize("body", ["<p>text</p>", b"\x00\x01"])

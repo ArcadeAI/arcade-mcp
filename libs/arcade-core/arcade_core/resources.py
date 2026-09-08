@@ -167,8 +167,9 @@ class ResourceDeclaration:
     func: Callable[[], Any] | None = field(default=None, compare=False, repr=False)
     #: Out-of-band data for the resource, carried through untouched. A host reads a
     #: document's rendering contract from the read response, so registration puts
-    #: this on the contents as well as on the listing entry.
-    meta: dict[str, Any] | None = None
+    #: this on the contents as well as on the listing entry. Out of the comparison
+    #: because a dict is unhashable and this class is frozen.
+    meta: dict[str, Any] | None = field(default=None, compare=False)
 
     def __call__(self) -> Any:
         """Run the declaring function, so a toolkit's own tests can call it directly."""
@@ -393,20 +394,14 @@ class ResourceRegistry:
         """Every registered resource, in URI order."""
         return (self._resources[uri] for uri in self._uris)
 
-    def add(
-        self,
-        resource: Resource,
-        contents: str | bytes,
-        contents_meta: dict[str, Any] | None = None,
-    ) -> RegisteredResource:
+    def add(self, resource: Resource, contents: str | bytes) -> RegisteredResource:
         """Register a resource at its own URI, replacing any resource already there.
 
-        ``contents_meta`` fills the read response's own ``_meta``, which is a
-        different slot from the listing entry's ``resource.meta`` and is where a
-        host reads a document's rendering contract. This level fills exactly the
-        slot it is given.
+        A resource's own ``_meta`` reaches the read response through ``declare``,
+        which fills both slots from one declared value. Setting only the read
+        slot would be a state no other transport can represent.
         """
-        return self._store(resource, contents, declaration=None, contents_meta=contents_meta)
+        return self._store(resource, contents, declaration=None)
 
     def _store(
         self,

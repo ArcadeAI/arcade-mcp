@@ -191,11 +191,13 @@ class ResourceManager(ComponentManager[str, Resource]):
             return self._coerce_result(uri, template.mimeType, result, template.meta)
 
         try:
-            _ = await self.registry.get(uri)
+            placeholder = await self.registry.get(uri)
         except KeyError as _e:
             raise NotFoundError(f"Resource '{uri}' not found")
 
-        return [TextResourceContents(uri=uri, text="")]  # static placeholder
+        # Registered with no handler, so there is no body to serve. The rendering
+        # contract still belongs to the resource and still travels.
+        return [TextResourceContents(uri=uri, text="", _meta=placeholder.meta)]
 
     @staticmethod
     def _coerce_result(

@@ -832,6 +832,39 @@ async def test_a_handler_that_builds_its_own_contents_keeps_their_meta():
 
 
 @pytest.mark.asyncio
+async def test_the_read_puts_meta_on_the_wire_under_the_underscore_key():
+    """A client looks for ``_meta``; a Python-side ``meta`` would be a different field."""
+    manager = ResourceManager()
+    await manager.start()
+    await manager.add_resource(
+        Resource(uri="ui://Kit/1.0.0/wire.html", name="wire", mimeType="text/html", _meta=UI_META),
+        handler=make_static_handler("<p>wire</p>"),
+    )
+
+    contents = await manager.read_resource("ui://Kit/1.0.0/wire.html")
+    dumped = contents[0].model_dump(by_alias=True, exclude_none=True)
+
+    assert dumped["_meta"] == UI_META
+    assert "meta" not in dumped
+
+
+@pytest.mark.asyncio
+async def test_a_handler_less_resource_still_carries_its_meta():
+    """There is no body to serve, and the rendering contract still belongs to it."""
+    manager = ResourceManager()
+    await manager.start()
+    await manager.add_resource(
+        Resource(uri="ui://Kit/1.0.0/none.html", name="none", mimeType="text/html", _meta=UI_META),
+        handler=None,
+    )
+
+    contents = await manager.read_resource("ui://Kit/1.0.0/none.html")
+
+    assert contents[0].meta == UI_META
+    assert contents[0].text == ""
+
+
+@pytest.mark.asyncio
 async def test_a_resource_without_meta_still_reads_clean():
     manager = ResourceManager()
     await manager.start()
