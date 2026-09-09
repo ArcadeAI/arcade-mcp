@@ -2498,7 +2498,7 @@ def _enable_tasks(session):
         "tools": {"listChanged": True},
         "logging": {},
         "prompts": {"listChanged": True},
-        "resources": {"subscribe": True, "listChanged": True},
+        "resources": {"listChanged": True},
         "tasks": {
             "list": {},
             "cancel": {},
@@ -3835,7 +3835,7 @@ class TestCapabilityFallback:
             "tools": {"listChanged": True},
             "logging": {},
             "prompts": {"listChanged": True},
-            "resources": {"subscribe": True, "listChanged": True},
+            "resources": {"listChanged": True},
         }
         message = {
             "jsonrpc": "2.0",
@@ -3871,7 +3871,7 @@ class TestCapabilityFallback:
             "tools": {"listChanged": True},
             "logging": {},
             "prompts": {"listChanged": True},
-            "resources": {"subscribe": True, "listChanged": True},
+            "resources": {"listChanged": True},
         }
         message = {
             "jsonrpc": "2.0",

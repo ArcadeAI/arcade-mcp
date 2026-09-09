@@ -1007,7 +1007,7 @@ class MCPServer:
             "tools": {"listChanged": True},
             "logging": {},
             "prompts": {"listChanged": True},
-            "resources": {"subscribe": True, "listChanged": True},
+            "resources": {"listChanged": True},
         }
 
         # Add middleware-contributed capabilities
