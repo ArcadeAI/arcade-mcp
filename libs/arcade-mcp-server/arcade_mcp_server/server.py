@@ -1003,10 +1003,6 @@ class MCPServer:
         Returns a dict suitable for both ServerCapabilities construction and
         storage on ``session._negotiated_capabilities`` for per-request dispatch.
         """
-        # Every entry here is a promise a client may act on, so each one needs
-        # something behind it: a registered handler, or a notification this
-        # server actually emits. ``resources.subscribe`` claims support for
-        # ``resources/subscribe``, which has no handler, so it is not claimed.
         caps: dict[str, Any] = {
             "tools": {"listChanged": True},
             "logging": {},
