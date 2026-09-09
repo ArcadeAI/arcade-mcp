@@ -12,6 +12,7 @@ from typing import Annotated
 
 import pytest
 from arcade_core.resource_schema import Resource
+from arcade_core.resources import ResourceDeclaration
 from arcade_serve.fastapi.worker import FastAPIWorker
 from arcade_tdk import ToolContext, tool
 from fastapi import FastAPI
@@ -43,6 +44,26 @@ def _worker(app: FastAPI, *, with_resources: bool) -> FastAPIWorker:
 def serving():
     app = FastAPI()
     _worker(app, with_resources=True)
+    return TestClient(app)
+
+
+@pytest.fixture
+def serving_with_meta():
+    """A worker whose document declares its own rendering contract."""
+    app = FastAPI()
+    worker = FastAPIWorker(app=app, disable_auth=True)
+    worker.register_tool(sample_tool, toolkit_name="fixture_kit")
+    worker.catalog.resources.declare(
+        ResourceDeclaration(
+            path="draft-review.html",
+            name="Draft review",
+            mime_type=UI_MIME,
+            meta={"ui": {"prefersBorder": False}},
+            func=lambda: DRAFT_BODY,
+        ),
+        toolkit_name="Gmail",
+        toolkit_version="8.1.0",
+    )
     return TestClient(app)
 
 
@@ -83,6 +104,24 @@ def test_read_returns_a_result_object(serving):
     assert response.json() == {
         "contents": [{"uri": DRAFT_URI, "mimeType": UI_MIME, "text": DRAFT_BODY}]
     }
+
+
+def test_the_read_carries_a_resources_own_meta(serving_with_meta):
+    """A host reads a document's rendering contract off this response.
+
+    Asserted on the wire under the underscore key, because a host looks for
+    ``_meta`` and a Python-side ``meta`` would parse as a different field.
+    """
+    response = serving_with_meta.post("/worker/resources/read", json={"uri": DRAFT_URI})
+
+    assert response.json()["contents"][0]["_meta"] == {"ui": {"prefersBorder": False}}
+    assert '"meta"' not in response.text.replace('"_meta"', ""), "the alias must be on the wire"
+
+
+def test_the_listing_carries_it_too(serving_with_meta):
+    listed = serving_with_meta.post("/worker/resources/list", json={}).json()
+
+    assert listed["resources"][0]["_meta"] == {"ui": {"prefersBorder": False}}
 
 
 def test_absent_optional_fields_are_omitted_rather_than_null(serving):
