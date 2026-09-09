@@ -2101,6 +2101,44 @@ class TestServerInitialResources:
             await server.stop()
 
 
+class TestAdvertisedResourceCapabilities:
+    """Every resources capability the server advertises has to be backed."""
+
+    @pytest.mark.asyncio
+    async def test_initialize_does_not_claim_resource_subscriptions(
+        self, mcp_server, server_session
+    ):
+        """resources/subscribe has no handler, so subscribe is not advertised."""
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2025-11-25",
+                "capabilities": {},
+                "clientInfo": {"name": "test", "version": "1.0.0"},
+            },
+        }
+        response = await mcp_server.handle_message(message, session=server_session)
+        resources_cap = response.result.capabilities.model_dump(exclude_none=True)["resources"]
+        assert "subscribe" not in resources_cap
+        assert resources_cap["listChanged"] is True
+
+    @pytest.mark.asyncio
+    async def test_subscribe_is_method_not_found(self, mcp_server, initialized_server_session):
+        """The advertisement and the dispatch table agree: no subscriptions."""
+        initialized_server_session.negotiated_version = "2025-11-25"
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "resources/subscribe",
+            "params": {"uri": "ui://app/index.html"},
+        }
+        response = await mcp_server.handle_message(message, initialized_server_session)
+        assert isinstance(response, JSONRPCError)
+        assert response.error["code"] == -32601
+
+
 class TestVersionNegotiationInInitialize:
     """Test version negotiation during initialize handshake."""
 
@@ -2498,7 +2536,7 @@ def _enable_tasks(session):
         "tools": {"listChanged": True},
         "logging": {},
         "prompts": {"listChanged": True},
-        "resources": {"subscribe": True, "listChanged": True},
+        "resources": {"listChanged": True},
         "tasks": {
             "list": {},
             "cancel": {},
@@ -3835,7 +3873,7 @@ class TestCapabilityFallback:
             "tools": {"listChanged": True},
             "logging": {},
             "prompts": {"listChanged": True},
-            "resources": {"subscribe": True, "listChanged": True},
+            "resources": {"listChanged": True},
         }
         message = {
             "jsonrpc": "2.0",
@@ -3871,7 +3909,7 @@ class TestCapabilityFallback:
             "tools": {"listChanged": True},
             "logging": {},
             "prompts": {"listChanged": True},
-            "resources": {"subscribe": True, "listChanged": True},
+            "resources": {"listChanged": True},
         }
         message = {
             "jsonrpc": "2.0",
