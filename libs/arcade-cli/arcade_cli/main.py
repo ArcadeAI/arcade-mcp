@@ -24,6 +24,7 @@ from arcade_cli.authn import (
 )
 from arcade_cli.console import console
 from arcade_cli.evals_runner import run_capture, run_evaluations
+from arcade_cli.event import app as event_app
 from arcade_cli.org import app as org_app
 from arcade_cli.project import app as project_app
 from arcade_cli.secret import app as secret_app
@@ -215,6 +216,13 @@ cli.add_typer(
     name="project",
     help="Manage projects (list, set active)",
     rich_help_panel="User",
+)
+
+cli.add_typer(
+    event_app,
+    name="event",
+    help="Listen for Arcade events during local development",
+    rich_help_panel="Build",
 )
 
 
