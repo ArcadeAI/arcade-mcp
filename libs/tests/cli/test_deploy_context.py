@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from arcade_cli.context import ARCADE_API_KEY_ENV, ARCADE_URL_ENV
@@ -46,9 +46,32 @@ class TestCiDeploy:
         os.environ[ARCADE_API_KEY_ENV] = "ci-key"
         monkeypatch.chdir(project_dir)
 
+        requested_urls: list[str] = []
+
+        def fake_client(*args, **kwargs):
+            client = MagicMock()
+
+            def _get(url, *a, **kw):
+                requested_urls.append(url)
+                resp = MagicMock()
+                resp.status_code = 404
+                return resp
+
+            def _post(url, *a, **kw):
+                requested_urls.append(url)
+                resp = MagicMock()
+                resp.status_code = 200
+                resp.json.return_value = {}
+                resp.raise_for_status.return_value = None
+                return resp
+
+            client.get.side_effect = _get
+            client.post.side_effect = _post
+            client.close.return_value = None
+            return client
+
         with (
-            patch("arcade_cli.deploy.server_already_exists", return_value=False) as mock_exists,
-            patch("arcade_cli.deploy.deploy_server_to_engine") as mock_deploy,
+            patch("arcade_cli.deploy.httpx.Client", side_effect=fake_client),
             patch(
                 "arcade_cli.deploy._monitor_deployment_with_logs",
                 new=AsyncMock(return_value=("running", [])),
@@ -67,10 +90,8 @@ class TestCiDeploy:
                 debug=False,
             )
 
-        mock_exists.assert_called_once()
-        assert mock_exists.call_args.args[0] == "https://engine.acme.internal"
-        mock_deploy.assert_called_once()
-        assert mock_deploy.call_args.args[0] == "https://engine.acme.internal"
+        assert "https://engine.acme.internal/v1/workers/srv" in requested_urls
+        assert "https://engine.acme.internal/v1/deployments" in requested_urls
 
     def test_ci_auth_headers_use_api_key(self, work_dir: Path):
         os.environ[ARCADE_URL_ENV] = "https://engine.acme.internal"
@@ -79,3 +100,24 @@ class TestCiDeploy:
         from arcade_cli.utils import get_auth_headers
 
         assert get_auth_headers() == {"Authorization": "Bearer ci-key"}
+
+
+class TestApiKeyScopedUrl:
+    def test_ci_mode_builds_non_scoped_urls_without_config(self, work_dir: Path):
+        os.environ[ARCADE_URL_ENV] = "https://engine.acme.internal"
+        os.environ[ARCADE_API_KEY_ENV] = "ci-key"
+
+        from arcade_cli.utils import get_org_scoped_url
+
+        assert (
+            get_org_scoped_url("https://engine.acme.internal", "/deployments")
+            == "https://engine.acme.internal/v1/deployments"
+        )
+        assert (
+            get_org_scoped_url("https://engine.acme.internal", "/workers/srv")
+            == "https://engine.acme.internal/v1/workers/srv"
+        )
+        assert (
+            get_org_scoped_url("https://engine.acme.internal", "/secrets/KEY")
+            == "https://engine.acme.internal/v1/admin/secrets/KEY"
+        )

@@ -742,6 +742,11 @@ def get_org_scoped_url(base_url: str, path: str) -> str:
         get_org_scoped_url("https://api.arcade.dev", "/secrets/MY_KEY")
         # Returns: "https://api.arcade.dev/v1/orgs/ORG_ID/projects/PROJECT_ID/secrets/MY_KEY"
     """
+    from arcade_cli.context import resolve_ci_context
+
+    if resolve_ci_context() is not None:
+        return build_api_key_scoped_url(base_url, path)
+
     config = validate_and_get_config()
 
     if not config.context:
@@ -752,6 +757,12 @@ def get_org_scoped_url(base_url: str, path: str) -> str:
     project_id = config.context.project_id
 
     return f"{base_url}/v1/orgs/{org_id}/projects/{project_id}{path}"
+
+
+def build_api_key_scoped_url(base_url: str, path: str) -> str:
+    if path == "/secrets" or path.startswith("/secrets/"):
+        return f"{base_url}/v1/admin{path}"
+    return f"{base_url}/v1{path}"
 
 
 def get_arcade_client(base_url: str) -> Arcade:
