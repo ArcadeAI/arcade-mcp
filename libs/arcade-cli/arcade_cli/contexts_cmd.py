@@ -1,0 +1,99 @@
+from __future__ import annotations
+
+import typer
+from arcade_core.config_model import Config, NamedContext
+from rich.table import Table
+
+from arcade_cli.console import console
+from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
+from arcade_cli.utils import handle_cli_error
+
+app = TrackedTyper(
+    cls=TrackedTyperGroup,
+    add_completion=False,
+    no_args_is_help=True,
+    pretty_exceptions_enable=False,
+    pretty_exceptions_show_locals=False,
+    pretty_exceptions_short=True,
+)
+
+
+def _load_config() -> Config:
+    try:
+        return Config.load_from_file()
+    except FileNotFoundError:
+        handle_cli_error("Not logged in. Run 'arcade login' to create a context.")
+        raise AssertionError("unreachable")
+    except ValueError as e:
+        handle_cli_error(str(e))
+        raise AssertionError("unreachable")
+
+
+@app.command("list", help="List saved contexts")
+def context_list() -> None:
+    config = _load_config()
+    names = config.list_context_names()
+
+    if not names:
+        console.print("No contexts saved. Run 'arcade login' to create one.", style="yellow")
+        return
+
+    table = Table(title="Contexts")
+    table.add_column("Name", style="cyan")
+    table.add_column("Kind", style="green")
+    table.add_column("Engine", style="dim")
+    table.add_column("Active", style="bold yellow")
+
+    contexts = config.contexts or {}
+    for name in names:
+        ctx = contexts[name]
+        is_active = "✓" if name == config.active_context else ""
+        table.add_row(name, ctx.kind, ctx.engine_url or "-", is_active)
+
+    console.print(table)
+    console.print("\nUse 'arcade context use <name>' to switch contexts.\n", style="dim")
+
+
+@app.command("use", help="Switch the active context")
+def context_use(
+    name: str = typer.Argument(..., help="Name of the context to activate"),
+) -> None:
+    config = _load_config()
+
+    try:
+        config.use_context(name)
+    except ValueError as e:
+        handle_cli_error(str(e))
+        return
+
+    config.save_to_file()
+    console.print(f"✓ Switched to context: {name}", style="bold green")
+
+
+@app.command("show", help="Show the active context or a named context")
+def context_show(
+    name: str | None = typer.Argument(None, help="Name of the context to show"),
+) -> None:
+    config = _load_config()
+
+    target_name = name or config.active_context
+    contexts = config.contexts or {}
+
+    if not target_name or target_name not in contexts:
+        available = ", ".join(config.list_context_names()) or "none"
+        handle_cli_error(f"Context '{target_name}' not found. Available contexts: {available}.")
+        return
+
+    ctx: NamedContext = contexts[target_name]
+    is_active = target_name == config.active_context
+
+    console.print(f"Context: {target_name}{' (active)' if is_active else ''}", style="bold cyan")
+    console.print(f"  Kind: {ctx.kind}")
+    console.print(f"  Engine: {ctx.engine_url or '-'}")
+    console.print(f"  Coordinator: {ctx.coordinator_url or '-'}")
+    console.print(f"  Dashboard: {ctx.dashboard_url or '-'}")
+    if ctx.user and ctx.user.email:
+        console.print(f"  User: {ctx.user.email}")
+    if ctx.context:
+        console.print(f"  Organization: {ctx.context.org_name}")
+        console.print(f"  Project: {ctx.context.project_name}")

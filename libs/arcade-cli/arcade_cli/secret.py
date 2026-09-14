@@ -1,14 +1,13 @@
 import httpx
 import typer
-from arcade_core.constants import PROD_ENGINE_HOST
 from rich.table import Table
 
 from arcade_cli.console import console
 from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
-    compute_base_url,
     get_auth_headers,
     get_org_scoped_url,
+    resolve_engine_base_url,
 )
 
 app = TrackedTyper(
@@ -20,20 +19,16 @@ app = TrackedTyper(
     pretty_exceptions_short=True,
 )
 
-state = {
-    "engine_url": compute_base_url(
-        host=PROD_ENGINE_HOST, port=None, force_tls=False, force_no_tls=False
-    )
-}
+state: dict[str, str] = {"engine_url": ""}
 
 
 @app.callback()
 def main(
     host: str = typer.Option(
-        PROD_ENGINE_HOST,
+        None,
         "--host",
         "-h",
-        help="The Arcade Engine host.",
+        help="The Arcade Engine host. Defaults to the active context's engine.",
     ),
     port: int = typer.Option(
         None,
@@ -52,18 +47,7 @@ def main(
         help="Whether to disable TLS for the connection to the Arcade Engine.",
     ),
 ) -> None:
-    """
-    Manage tool secrets in Arcade Cloud.
-
-    Usage:
-        arcade secret set KEY1=value1 KEY2="value 2"
-        arcade secret set --from-env
-        arcade secret set -from-env --env-file /path/to/.env
-        arcade secret list
-        arcade secret unset KEY1 KEY2 KEY3
-    """
-    engine_url = compute_base_url(force_tls, force_no_tls, host, port)
-    state["engine_url"] = engine_url
+    state["engine_url"] = resolve_engine_base_url(host, port, force_tls, force_no_tls)
 
 
 @app.command("set", help="Set tool secret(s) using KEY=VALUE pairs or from .env file")
