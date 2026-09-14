@@ -117,6 +117,47 @@ class TestNamedContexts:
         assert set(Config.load_from_file().list_context_names()) == {"a", "b"}
 
 
+class TestSaveCredentialsPreservesContexts:
+    def _whoami(self):
+        from arcade_cli.authn import OrgInfo, ProjectInfo, WhoAmIResponse
+
+        return WhoAmIResponse(
+            account_id="acct-1",
+            email="user@acme.internal",
+            organizations=[OrgInfo(org_id="o", name="Org", is_default=True)],
+            projects=[ProjectInfo(project_id="p", name="tools", is_default=True)],
+        )
+
+    def _tokens(self):
+        from arcade_core.auth_tokens import TokenResponse
+
+        return TokenResponse(
+            access_token="a", refresh_token="r", expires_in=3600, token_type="Bearer"
+        )
+
+    def test_login_adds_context_without_dropping_existing(self, work_dir: Path):
+        from arcade_cli.authn import save_credentials_from_whoami
+
+        seed = Config()
+        seed.contexts = {"cloud": NamedContext(kind="cloud", engine_url="https://api.arcade.dev")}
+        seed._apply_named_context("cloud", seed.contexts["cloud"])
+        seed.save_to_file()
+
+        save_credentials_from_whoami(
+            self._tokens(),
+            self._whoami(),
+            "https://coord.acme.internal",
+            context_name="onprem",
+            engine_url="https://engine.acme.internal",
+            kind="self_hosted",
+        )
+
+        reloaded = Config.load_from_file()
+        assert set(reloaded.list_context_names()) == {"cloud", "onprem"}
+        assert reloaded.active_context == "onprem"
+        assert reloaded.user is not None and reloaded.user.account_id == "acct-1"
+
+
 class TestCloudHostDetection:
     @pytest.mark.parametrize(
         "host,expected",

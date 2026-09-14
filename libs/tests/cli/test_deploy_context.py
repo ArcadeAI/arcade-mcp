@@ -102,6 +102,62 @@ class TestCiDeploy:
         assert get_auth_headers() == {"Authorization": "Bearer ci-key"}
 
 
+class TestDeployTerminalStatus:
+    def _run(self, project_dir: Path, monkeypatch: pytest.MonkeyPatch, final_status: str):
+        os.environ[ARCADE_URL_ENV] = "https://engine.acme.internal"
+        os.environ[ARCADE_API_KEY_ENV] = "ci-key"
+        monkeypatch.chdir(project_dir)
+
+        with (
+            patch("arcade_cli.deploy.server_already_exists", return_value=False),
+            patch("arcade_cli.deploy.deploy_server_to_engine"),
+            patch(
+                "arcade_cli.deploy._monitor_deployment_with_logs",
+                new=AsyncMock(return_value=(final_status, ["a log line"])),
+            ),
+        ):
+            deploy_server_logic(
+                entrypoint="server.py",
+                skip_validate=True,
+                server_name="srv",
+                server_version="1.0.0",
+                secrets="skip",
+                host=None,
+                port=None,
+                force_tls=False,
+                force_no_tls=False,
+                debug=False,
+            )
+
+    def test_failed_status_exits_nonzero(
+        self, project_dir: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        with pytest.raises(ValueError, match="failed"):
+            self._run(project_dir, monkeypatch, "failed")
+
+    def test_degraded_status_reports_previous_release(
+        self, project_dir: Path, monkeypatch: pytest.MonkeyPatch, capsys
+    ):
+        with pytest.raises(ValueError, match="degraded"):
+            self._run(project_dir, monkeypatch, "degraded")
+
+        assert "previous release is still serving" in capsys.readouterr().out
+
+
+class TestUpdateRolloutWait:
+    @pytest.mark.parametrize("status", ["pending", "unknown", "running"])
+    def test_stale_or_pending_status_keeps_waiting(self, status):
+        from arcade_cli.deploy import _update_rollout_left_pending
+
+        assert _update_rollout_left_pending(status) is False
+
+    @pytest.mark.parametrize("status", ["updating", "failed", "degraded"])
+    def test_rollout_or_terminal_status_ends_wait(self, status):
+        from arcade_cli.deploy import _update_rollout_left_pending
+
+        assert _update_rollout_left_pending(status) is True
+
+
 class TestApiKeyScopedUrl:
     def test_ci_mode_builds_non_scoped_urls_without_config(self, work_dir: Path):
         os.environ[ARCADE_URL_ENV] = "https://engine.acme.internal"

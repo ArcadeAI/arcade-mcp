@@ -5,6 +5,7 @@ import logging
 import os
 import random
 import subprocess
+import sys
 import tarfile
 import time
 from collections import deque
@@ -25,7 +26,6 @@ from rich.live import Live
 from rich.prompt import Confirm
 from rich.spinner import Spinner
 from rich.text import Text
-from typing_extensions import Literal
 
 from arcade_cli.configure import find_python_interpreter
 from arcade_cli.console import console
@@ -107,6 +107,10 @@ class UpdateDeploymentRequest(BaseModel):
 # Deployment Status Functions
 
 
+def _update_rollout_left_pending(status: str) -> bool:
+    return status in {"updating", "failed", "degraded"}
+
+
 def _get_deployment_status(engine_url: str, server_name: str) -> str:
     """
     Get the status of a deployment.
@@ -138,7 +142,7 @@ async def _poll_deployment_status(
         try:
             status = _get_deployment_status(engine_url, server_name)
             state["status"] = status
-            if status in ["running", "failed"]:
+            if status in ["running", "failed", "degraded"]:
                 break
         except Exception as e:
             if debug:
@@ -186,7 +190,7 @@ async def _monitor_deployment_with_logs(
     server_name: str,
     debug: bool = False,
     is_update: bool = False,
-) -> tuple[Literal["running", "failed"], list[str]]:
+) -> tuple[str, list[str]]:
     """
     Monitor deployment with live status and streaming logs display.
 
@@ -216,7 +220,7 @@ async def _monitor_deployment_with_logs(
 
     # Don't stream logs until the deployment is 'updating' or 'failed' otherwise we will get logs from the previous deployment
     if is_update:
-        while state["status"] not in ["updating", "failed"]:
+        while not _update_rollout_left_pending(state["status"]):
             await asyncio.sleep(1)
 
     # Start log streaming task
@@ -287,7 +291,7 @@ async def _monitor_deployment_with_logs(
 
     all_logs = list(log_deque)
 
-    return cast(Literal["running", "failed"], state["status"]), all_logs
+    return state["status"], all_logs
 
 
 # Create Deployment Functions
@@ -977,12 +981,19 @@ def deploy_server_logic(
 
     if final_status == "running":
         console.print("\n✓ Deployment successful! Server is running.", style="bold green")
-    elif final_status == "failed":
+    elif final_status == "degraded":
+        console.print(
+            "\n✗ Deployment degraded. The previous release is still serving.", style="bold red"
+        )
+    else:
         console.print("\n✗ Deployment failed. Check logs for details.", style="bold red")
 
-    # Offer to view full deployment logs
-    if all_logs and Confirm.ask("\nView full deployment logs?", default=False):  # type: ignore[arg-type]
+    interactive = sys.stdin.isatty() and sys.stdout.isatty()
+    if all_logs and interactive and Confirm.ask("\nView full deployment logs?", default=False):
         with console.pager(styles=True):
             console.print("[bold]Full Deployment Logs[/bold]\n", style="cyan")
             for i, log_line in enumerate(all_logs, 1):
                 console.print(f"{i:4d} | {log_line}", style="dim")
+
+    if final_status != "running":
+        raise ValueError(f"Deployment for '{server_name}' ended in status '{final_status}'.")

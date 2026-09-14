@@ -519,7 +519,7 @@ def save_credentials_from_whoami(
 
     try:
         config = Config.load_from_file()
-    except (FileNotFoundError, ValueError):
+    except FileNotFoundError:
         config = Config()
 
     if config.contexts is None:
