@@ -2,9 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-SUPPORTED_HINT = (
-    "arcade deploy supports Arcade MCP (Framework) Python servers built with MCPApp."
-)
+SUPPORTED_HINT = "arcade deploy supports Arcade MCP (Framework) Python servers built with MCPApp."
 
 _FASTMCP_MARKERS = ("mcp.server.fastmcp", "import fastmcp", "from fastmcp", "FastMCP(")
 _ARCADE_MCP_MARKERS = ("MCPApp", "arcade_mcp_server", "arcade_mcp")
