@@ -230,6 +230,25 @@ class TestDiscovery:
         ):
             fetch_discovery("https://engine.acme.internal")
 
+    def test_server_error_raises_discovery_error(self):
+        with (
+            patch("arcade_cli.context.httpx.get", return_value=self._response(503)),
+            pytest.raises(DiscoveryError, match="failed with HTTP 503"),
+        ):
+            fetch_discovery("https://engine.acme.internal")
+
+    def test_bare_host_gets_https_scheme(self):
+        captured: dict = {}
+
+        def _fake_get(url, *args, **kwargs):
+            captured["url"] = url
+            return self._response(200, {"engine": "https://engine.acme.internal"})
+
+        with patch("arcade_cli.context.httpx.get", side_effect=_fake_get):
+            fetch_discovery("engine.acme.internal")
+
+        assert captured["url"] == "https://engine.acme.internal/.well-known/arcade"
+
     def test_invalid_json_raises_predates(self):
         bad = httpx.Response(
             200,
@@ -296,6 +315,9 @@ class TestNoCloudGuard:
         _save_self_hosted_context()
 
         guard_no_cloud("https://engine.acme.internal/v1/deployments")
+
+    def test_guard_is_noop_without_active_context(self, work_dir: Path):
+        guard_no_cloud("https://api.arcade.dev/v1/deployments")
 
     def test_guard_allows_cloud_under_cloud_context(self, work_dir: Path):
         config = Config()
