@@ -31,7 +31,14 @@ from arcade_core.auth_tokens import (
     fetch_cli_config,
     get_valid_access_token,
 )
-from arcade_core.config_model import AuthConfig, Config, ContextConfig, UserConfig
+from arcade_core.config_model import (
+    AuthConfig,
+    Config,
+    ContextConfig,
+    ContextKind,
+    NamedContext,
+    UserConfig,
+)
 from arcade_core.constants import ARCADE_CONFIG_PATH, CREDENTIALS_FILE_PATH
 from arcade_core.subprocess_utils import build_windows_hidden_startupinfo
 from authlib.integrations.httpx_client import OAuth2Client
@@ -475,18 +482,11 @@ def save_credentials_from_whoami(
     tokens: TokenResponse,
     whoami: WhoAmIResponse,
     coordinator_url: str,
+    context_name: str = "default",
+    engine_url: str | None = None,
+    dashboard_url: str | None = None,
+    kind: ContextKind = "cloud",
 ) -> None:
-    """
-    Save OAuth credentials to the config file using WhoAmI response.
-
-    Picks the org/project marked as default, or falls back to the first one
-    in the list if none are marked as default.
-
-    Args:
-        tokens: OAuth tokens
-        whoami: Response from /whoami endpoint with user and orgs/projects
-    """
-    # Ensure config directory exists
     os.makedirs(ARCADE_CONFIG_PATH, exist_ok=True)
 
     expires_at = datetime.now() + timedelta(seconds=tokens.expires_in)
@@ -503,16 +503,29 @@ def save_credentials_from_whoami(
             project_name=selected_project.name,
         )
 
-    config = Config(
+    named = NamedContext(
+        kind=kind,
+        engine_url=engine_url,
         coordinator_url=coordinator_url,
+        dashboard_url=dashboard_url,
         auth=AuthConfig(
             access_token=tokens.access_token,
             refresh_token=tokens.refresh_token,
             expires_at=expires_at,
         ),
-        user=UserConfig(email=whoami.email),
+        user=UserConfig(email=whoami.email, account_id=whoami.account_id),
         context=context,
     )
+
+    try:
+        config = Config.load_from_file()
+    except (FileNotFoundError, ValueError):
+        config = Config()
+
+    if config.contexts is None:
+        config.contexts = {}
+    config.contexts[context_name] = named
+    config._apply_named_context(context_name, named)
 
     config.save_to_file()
 
@@ -830,24 +843,21 @@ def check_existing_login(suppress_message: bool = False) -> bool:
         return False
 
     try:
-        with open(CREDENTIALS_FILE_PATH, encoding="utf-8") as f:
-            config_data: dict[str, Any] = yaml.safe_load(f)
+        config = Config.load_from_file()
 
-        cloud_config = config_data.get("cloud", {}) if isinstance(config_data, dict) else {}
-
-        auth = cloud_config.get("auth", {})
-        if auth.get("access_token"):
-            email = cloud_config.get("user", {}).get("email", "unknown")
-            context = cloud_config.get("context", {})
-            org_name = context.get("org_name", "unknown")
-            project_name = context.get("project_name", "unknown")
+        if config.auth and config.auth.access_token:
+            email = config.user.email if config.user else "unknown"
+            org_name = config.context.org_name if config.context else "unknown"
+            project_name = config.context.project_name if config.context else "unknown"
 
             if not suppress_message:
                 console.print(f"You're already logged in as {email}.", style="bold green")
                 console.print(f"Active: {org_name} / {project_name}", style="dim")
             return True
 
-    except yaml.YAMLError:
+    except FileNotFoundError:
+        return False
+    except ValueError:
         console.print(
             f"Error: Invalid configuration file at {CREDENTIALS_FILE_PATH}", style="bold red"
         )

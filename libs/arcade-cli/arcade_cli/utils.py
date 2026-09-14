@@ -576,6 +576,51 @@ def compute_base_url(
         return f"{protocol}://{encoded_host}"
 
 
+def resolve_engine_base_url(
+    host: str | None,
+    port: int | None,
+    force_tls: bool,
+    force_no_tls: bool,
+    default_port: int | None = 9099,
+) -> str:
+    from arcade_core.constants import PROD_ENGINE_HOST
+
+    from arcade_cli.context import guard_no_cloud, try_resolve_active_context
+
+    if host is None:
+        ctx = try_resolve_active_context()
+        if ctx is not None and ctx.engine_url:
+            guard_no_cloud(ctx.engine_url)
+            return ctx.engine_url
+        host = PROD_ENGINE_HOST
+
+    url = compute_base_url(force_tls, force_no_tls, host, port, default_port)
+    guard_no_cloud(url)
+    return url
+
+
+def resolve_coordinator_base_url(
+    host: str | None,
+    port: int | None,
+    force_tls: bool,
+    force_no_tls: bool,
+) -> str:
+    from arcade_core.constants import PROD_COORDINATOR_HOST
+
+    from arcade_cli.context import guard_no_cloud, try_resolve_active_context
+
+    if host is None:
+        ctx = try_resolve_active_context()
+        if ctx is not None and ctx.coordinator_url:
+            guard_no_cloud(ctx.coordinator_url)
+            return ctx.coordinator_url
+        host = PROD_COORDINATOR_HOST
+
+    url = compute_base_url(force_tls, force_no_tls, host, port, default_port=None)
+    guard_no_cloud(url)
+    return url
+
+
 def get_tools_from_engine(
     host: str,
     port: int | None = None,
@@ -657,6 +702,11 @@ def get_auth_headers(coordinator_url: str | None = None) -> dict[str, str]:
     from arcade_core.constants import PROD_COORDINATOR_HOST
 
     from arcade_cli.authn import get_valid_access_token
+    from arcade_cli.context import try_resolve_active_context
+
+    ci_context = try_resolve_active_context()
+    if ci_context is not None and ci_context.is_ci and ci_context.api_key:
+        return {"Authorization": f"Bearer {ci_context.api_key}"}
 
     config = validate_and_get_config()
     resolved_coordinator_url = (
