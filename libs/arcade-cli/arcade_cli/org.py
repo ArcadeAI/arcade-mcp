@@ -1,5 +1,4 @@
 import typer
-from arcade_core.constants import PROD_COORDINATOR_HOST
 
 from arcade_cli.authn import (
     fetch_organizations,
@@ -9,8 +8,8 @@ from arcade_cli.authn import (
 from arcade_cli.console import console
 from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
-    compute_base_url,
     handle_cli_error,
+    resolve_coordinator_base_url,
 )
 
 app = TrackedTyper(
@@ -22,21 +21,13 @@ app = TrackedTyper(
     pretty_exceptions_short=True,
 )
 
-state = {
-    "coordinator_url": compute_base_url(
-        force_tls=False,
-        force_no_tls=False,
-        host=PROD_COORDINATOR_HOST,
-        port=None,
-        default_port=None,
-    )
-}
+state: dict[str, str] = {"coordinator_url": ""}
 
 
 @app.callback()
 def main(
     host: str = typer.Option(
-        PROD_COORDINATOR_HOST,
+        None,
         "--host",
         "-h",
         help="The Arcade Coordinator host.",
@@ -59,8 +50,7 @@ def main(
     ),
 ) -> None:
     """Configure Coordinator connection options for organization commands."""
-    coordinator_url = compute_base_url(force_tls, force_no_tls, host, port, default_port=None)
-    state["coordinator_url"] = coordinator_url
+    state["coordinator_url"] = resolve_coordinator_base_url(host, port, force_tls, force_no_tls)
 
 
 @app.command("list", help="List organizations you belong to")

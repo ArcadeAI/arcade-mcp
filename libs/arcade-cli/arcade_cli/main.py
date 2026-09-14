@@ -23,6 +23,7 @@ from arcade_cli.authn import (
     save_credentials_from_whoami,
 )
 from arcade_cli.console import console
+from arcade_cli.contexts_cmd import app as context_app
 from arcade_cli.evals_runner import run_capture, run_evaluations
 from arcade_cli.org import app as org_app
 from arcade_cli.project import app as project_app
@@ -79,6 +80,18 @@ cli.add_typer(
 
 @cli.command(help="Log in to Arcade", rich_help_panel="User")
 def login(
+    url: Optional[str] = typer.Option(
+        None,
+        "--url",
+        help="Installation URL to log in to. The CLI fetches its discovery document and saves "
+        "a named context. Defaults to the ARCADE_URL environment variable.",
+    ),
+    context_name: Optional[str] = typer.Option(
+        None,
+        "--context",
+        "--context-name",
+        help="Name to save the context under (defaults to the installation host).",
+    ),
     host: str = typer.Option(
         PROD_COORDINATOR_HOST,
         "-h",
@@ -101,6 +114,14 @@ def login(
     """
     Logs the user into Arcade using OAuth.
     """
+    from arcade_cli.context import ARCADE_URL_ENV
+
+    resolved_url = url or os.environ.get(ARCADE_URL_ENV)
+
+    if resolved_url:
+        _login_with_url(resolved_url, context_name, timeout, debug)
+        return
+
     if check_existing_login():
         console.print("\nTo log out and delete your locally-stored credentials, use ", end="")
         console.print("arcade logout", style="bold green", end="")
@@ -116,10 +137,8 @@ def login(
             callback_timeout_seconds=timeout,
         )
 
-        # Save credentials
         save_credentials_from_whoami(result.tokens, result.whoami, coordinator_url)
 
-        # Success message
         console.print(f"\n✅ Logged in as {result.email}.", style="bold green")
         if result.selected_org and result.selected_project:
             console.print(
@@ -128,6 +147,89 @@ def login(
             )
         console.print(
             "Run 'arcade org list' or 'arcade project list' to see available options.",
+            style="dim",
+        )
+
+    except OAuthLoginError as e:
+        if debug:
+            console.print(f"Debug: {e.__cause__}", style="dim")
+        handle_cli_error(str(e), should_exit=True)
+    except KeyboardInterrupt:
+        console.print("\nLogin cancelled.", style="yellow")
+    except Exception as e:
+        handle_cli_error("Login failed", e, debug)
+
+
+def _login_with_url(
+    install_url: str,
+    context_name: Optional[str],
+    timeout: int,
+    debug: bool,
+) -> None:
+    from arcade_cli.context import (
+        DiscoveryError,
+        fetch_discovery,
+        kind_for_urls,
+    )
+    from arcade_cli.context import _hostname as discovery_hostname
+
+    try:
+        discovery = fetch_discovery(install_url)
+    except DiscoveryError as e:
+        handle_cli_error(str(e), should_exit=True)
+        return
+
+    if not discovery.deployments.enabled:
+        reason = discovery.deployments.reason or "deployments are not enabled on this installation"
+        handle_cli_error(
+            f"This installation is not accepting deployments: {reason}.",
+            should_exit=True,
+        )
+        return
+
+    coordinator_url = discovery.coordinator
+    if not coordinator_url:
+        handle_cli_error(
+            "The discovery document did not include a coordinator URL, so the CLI cannot sign "
+            "you in.",
+            should_exit=True,
+        )
+        return
+
+    kind = kind_for_urls(discovery.engine, discovery.coordinator)
+    resolved_name = (
+        context_name or discovery_hostname(discovery.engine or install_url) or "installation"
+    )
+
+    try:
+        result = perform_oauth_login(
+            coordinator_url,
+            on_status=lambda msg: console.print(msg, style="dim"),
+            callback_timeout_seconds=timeout,
+        )
+
+        save_credentials_from_whoami(
+            result.tokens,
+            result.whoami,
+            coordinator_url,
+            context_name=resolved_name,
+            engine_url=discovery.engine or None,
+            dashboard_url=discovery.dashboard or None,
+            kind=kind,
+        )
+
+        console.print(
+            f"\n✅ Logged in as {result.email} on context '{resolved_name}' ({kind}).",
+            style="bold green",
+        )
+        if result.selected_org and result.selected_project:
+            console.print(
+                f"\nActive project: {result.selected_org.name} / {result.selected_project.name}",
+                style="dim",
+            )
+        console.print(
+            "Run 'arcade context list' to see all contexts and 'arcade context use <name>' to "
+            "switch.",
             style="dim",
         )
 
@@ -192,6 +294,9 @@ def whoami(
     email = config.user.email if config.user else "unknown"
     console.print(f"Logged in as: {email}", style="bold green")
 
+    if config.active_context:
+        console.print(f"\nActive context: {config.active_context} ({config.kind})", style="bold")
+
     if config.context:
         console.print(f"\nActive organization: {config.context.org_name}", style="bold")
         console.print(f"   ID: {config.context.org_id}", style="dim")
@@ -214,6 +319,13 @@ cli.add_typer(
     project_app,
     name="project",
     help="Manage projects (list, set active)",
+    rich_help_panel="User",
+)
+
+cli.add_typer(
+    context_app,
+    name="context",
+    help="Manage installation contexts (list, use, show)",
     rich_help_panel="User",
 )
 
@@ -946,11 +1058,11 @@ def deploy(
         rich_help_panel="Advanced",
         click_type=click.Choice(["auto", "all", "skip"], case_sensitive=False),
     ),
-    host: str = typer.Option(
-        PROD_ENGINE_HOST,
+    host: Optional[str] = typer.Option(
+        None,
         "--host",
         "-h",
-        help="The Arcade Engine host to deploy to",
+        help="The Arcade Engine host to deploy to. Defaults to the active context's engine.",
         hidden=True,
     ),
     port: Optional[int] = typer.Option(
@@ -1127,8 +1239,14 @@ def main_callback(
         connect.__name__,
         update.__name__,
         upgrade.__name__,
+        "context",
     }
     if ctx.invoked_subcommand in public_commands:
+        return
+
+    from arcade_cli.context import resolve_ci_context
+
+    if resolve_ci_context() is not None:
         return
 
     if _credentials_file_contains_legacy():

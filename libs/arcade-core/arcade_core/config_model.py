@@ -3,10 +3,12 @@ import os
 import subprocess
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, ValidationError
+
+ContextKind = Literal["cloud", "self_hosted"]
 
 logger = logging.getLogger(__name__)
 
@@ -90,6 +92,8 @@ class UserConfig(BaseConfig):
     User email.
     """
 
+    account_id: str | None = None
+
 
 class ContextConfig(BaseConfig):
     """
@@ -114,6 +118,20 @@ class ContextConfig(BaseConfig):
     """
 
 
+class NamedContext(BaseConfig):
+    kind: ContextKind = "cloud"
+
+    engine_url: str | None = None
+    coordinator_url: str | None = None
+    dashboard_url: str | None = None
+
+    auth: AuthConfig | None = None
+    api_key: str | None = None
+
+    user: UserConfig | None = None
+    context: ContextConfig | None = None
+
+
 class Config(BaseConfig):
     """
     Configuration for Arcade CLI.
@@ -123,6 +141,14 @@ class Config(BaseConfig):
     """
     Base URL of the Arcade Coordinator used for authentication flows.
     """
+
+    engine_url: str | None = None
+
+    dashboard_url: str | None = None
+
+    kind: ContextKind = "cloud"
+
+    api_key: str | None = None
 
     auth: AuthConfig | None = None
     """
@@ -141,8 +167,44 @@ class Config(BaseConfig):
     Arcade user configuration.
     """
 
+    contexts: dict[str, NamedContext] | None = None
+
+    active_context: str | None = None
+
     def __init__(self, **data: Any):
         super().__init__(**data)
+
+    def _to_named_context(self) -> NamedContext:
+        return NamedContext(
+            kind=self.kind,
+            engine_url=self.engine_url,
+            coordinator_url=self.coordinator_url,
+            dashboard_url=self.dashboard_url,
+            auth=self.auth,
+            api_key=self.api_key,
+            user=self.user,
+            context=self.context,
+        )
+
+    def _apply_named_context(self, name: str, ctx: NamedContext) -> None:
+        self.active_context = name
+        self.kind = ctx.kind
+        self.engine_url = ctx.engine_url
+        self.coordinator_url = ctx.coordinator_url
+        self.dashboard_url = ctx.dashboard_url
+        self.auth = ctx.auth
+        self.api_key = ctx.api_key
+        self.user = ctx.user
+        self.context = ctx.context
+
+    def use_context(self, name: str) -> None:
+        if not self.contexts or name not in self.contexts:
+            available = ", ".join(sorted(self.contexts)) if self.contexts else "none"
+            raise ValueError(f"Context '{name}' not found. Available contexts: {available}.")
+        self._apply_named_context(name, self.contexts[name])
+
+    def list_context_names(self) -> list[str]:
+        return sorted(self.contexts) if self.contexts else []
 
     def is_authenticated(self) -> bool:
         """
@@ -246,8 +308,10 @@ class Config(BaseConfig):
                 "Run `arcade logout`, then `arcade login` to start from a clean slate."
             )
 
+        cloud = config_data["cloud"]
+
         try:
-            return cls(**config_data["cloud"])
+            built = cls(**cloud)
         except ValidationError as e:
             # Get only the errors with {type:missing} and combine them
             # into a nicely-formatted string message.
@@ -269,6 +333,19 @@ class Config(BaseConfig):
 
             raise ValueError(pretty_str) from e
 
+        if isinstance(cloud, dict) and "contexts" in cloud:
+            names = list(built.contexts) if built.contexts else []
+            active = built.active_context if built.active_context in names else None
+            if active is None and names:
+                active = names[0]
+            if active is not None and built.contexts is not None:
+                built._apply_named_context(active, built.contexts[active])
+            return built
+
+        built.contexts = {"default": built._to_named_context()}
+        built.active_context = "default"
+        return built
+
     def save_to_file(self) -> None:
         """
         Save the configuration to the YAML file in the configuration directory.
@@ -278,8 +355,20 @@ class Config(BaseConfig):
         Config.ensure_config_dir_exists()
         config_file_path = Config.get_config_file_path()
 
-        # Convert to dict, excluding None values for cleaner output
-        data = {"cloud": self.model_dump(exclude_none=True, mode="json")}
+        if not self.contexts:
+            self.contexts = {"default": self._to_named_context()}
+            self.active_context = "default"
+        elif self.active_context and self.active_context in self.contexts:
+            self.contexts[self.active_context] = self._to_named_context()
+
+        cloud = {
+            "active_context": self.active_context,
+            "contexts": {
+                name: ctx.model_dump(exclude_none=True, mode="json")
+                for name, ctx in self.contexts.items()
+            },
+        }
+        data = {"cloud": cloud}
         config_file_path.write_text(yaml.dump(data, default_flow_style=False), encoding="utf-8")
 
         # Restrict the credentials file so only the current user can read it.
