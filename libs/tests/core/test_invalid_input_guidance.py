@@ -37,8 +37,17 @@ def tags_tool(
     return ",".join(tags)
 
 
+@tool
+def renamed_param_tool(
+    py_param: Annotated[int, "wire_name", "A number the caller passes"],
+) -> Annotated[str, "output"]:
+    """Tool whose parameter is renamed for the wire."""
+    return str(py_param)
+
+
 catalog.add_tool(weather_tool, "GuidanceToolkit")
 catalog.add_tool(tags_tool, "GuidanceToolkit")
+catalog.add_tool(renamed_param_tool, "GuidanceToolkit")
 
 
 async def _run(func, **kwargs):
@@ -216,9 +225,8 @@ class TestModelLevelValidationErrors:
         """Model-level validators report an empty ``loc``. That maps onto no
         single parameter, so it must be skipped when collecting rejected field
         names instead of indexing off the end."""
-        from pydantic import BaseModel, model_validator
-
         from arcade_core.errors import ToolInputError
+        from pydantic import BaseModel, model_validator
 
         class _WholeModelRejects(BaseModel):
             value: str = "ok"
@@ -234,3 +242,63 @@ class TestModelLevelValidationErrors:
         assert "Invalid input:" in message
         # No parameter could be named, so no Expected block is appended.
         assert "Expected:" not in message
+
+
+class TestRenamedParameters:
+    """A two-string ``Annotated[T, "wire_name", "description"]`` renames the
+    parameter for the wire, so ``InputParameter.name`` and the Pydantic field
+    name diverge. Validation errors report the Pydantic (Python) name, so a
+    lookup keyed only on the declared name silently skipped these parameters
+    and dropped the guidance entirely."""
+
+    @pytest.mark.asyncio
+    async def test_missing_renamed_required_field_still_gets_guidance(self):
+        output = await _run(renamed_param_tool)
+
+        assert output.error is not None
+        msg = output.error.message
+        assert "Expected:" in msg
+        # The caller knows this parameter by its wire name, so that is what the
+        # guidance must show.
+        assert "wire_name" in msg
+        assert "A number the caller passes" in msg
+
+    @pytest.mark.asyncio
+    async def test_wrong_type_on_renamed_field_still_gets_guidance(self):
+        output = await _run(renamed_param_tool, py_param="not-an-int")
+
+        assert output.error is not None
+        msg = output.error.message
+        assert "Expected:" in msg
+        assert "wire_name" in msg
+        assert "integer" in msg
+
+    @pytest.mark.asyncio
+    async def test_parameter_rejected_under_both_names_is_described_once(self):
+        """Calling with the wire name yields two errors for one parameter
+        ("py_param: Field required" and "wire_name: Extra inputs are not
+        permitted"). It must still be described a single time."""
+        output = await _run(renamed_param_tool, wire_name="not-an-int")
+
+        assert output.error is not None
+        expected_block = output.error.message.split("Expected:", 1)[1]
+        assert expected_block.count("wire_name (") == 1
+
+    def test_helper_resolves_both_names(self):
+        definition = catalog.find_tool_by_func(renamed_param_tool)
+        materialized = catalog.get_tool(definition.get_fully_qualified_name())
+
+        by_python_name = _expected_shape_guidance(
+            definition, ["py_param"], materialized.input_model
+        )
+        by_wire_name = _expected_shape_guidance(definition, ["wire_name"], materialized.input_model)
+
+        assert "wire_name" in by_python_name
+        assert "wire_name" in by_wire_name
+
+    def test_helper_without_input_model_still_resolves_declared_names(self):
+        """``input_model`` is optional enrichment; the declared-name lookup must
+        keep working when it is absent."""
+        definition = catalog.find_tool_by_func(renamed_param_tool)
+
+        assert "wire_name" in _expected_shape_guidance(definition, ["wire_name"])

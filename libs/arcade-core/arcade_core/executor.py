@@ -31,6 +31,7 @@ def _render_declared_type(value_schema: Any) -> str:
 def _expected_shape_guidance(
     definition: ToolDefinition | None,
     rejected_fields: list[str],
+    input_model: type[BaseModel] | None = None,
 ) -> str:
     """Describe the declared shape of the parameters that were rejected.
 
@@ -40,6 +41,15 @@ def _expected_shape_guidance(
     caller already received the full schema from ``tools/list``, so echoing all
     of it on every failure is noise that buries the actionable part.
 
+    ``rejected_fields`` holds Pydantic field names, which are the *Python*
+    parameter names. A two-string ``Annotated[T, "wire_name", "description"]``
+    renames the parameter for the wire, so ``InputParameter.name`` is not always
+    the Pydantic field name and a name-only lookup would silently miss every
+    renamed parameter. ``input_model`` supplies the Pydantic side so both names
+    resolve. ``create_input_definition`` and ``create_func_models`` walk the same
+    ``inspect.signature`` in the same order and skip ``ToolContext`` the same
+    way, so the two sequences line up positionally.
+
     Returns an empty string when there is nothing useful to add, so callers can
     append unconditionally.
     """
@@ -47,17 +57,35 @@ def _expected_shape_guidance(
         return ""
 
     try:
-        parameters = {param.name: param for param in definition.input.parameters}
+        declared = list(definition.input.parameters)
     except AttributeError:
         return ""
 
+    # Wire names first; Python field names only fill gaps, so a parameter whose
+    # wire name collides with another's Python name is never shadowed.
+    parameters = {param.name: param for param in declared}
+    if input_model is not None:
+        try:
+            field_names = list(input_model.model_fields)
+        except AttributeError:
+            field_names = []
+        for field_name, declared_param in zip(field_names, declared):
+            parameters.setdefault(field_name, declared_param)
+
     lines: list[str] = []
+    described: set[int] = set()
     for name in rejected_fields:
         param = parameters.get(name)
         if param is None:
             # A rejected key with no declared parameter (e.g. an unexpected
             # extra argument) has no shape to describe.
             continue
+        if id(param) in described:
+            # One renamed parameter can be rejected under both of its names at
+            # once ("py_param: Field required; wire_name: Extra inputs are not
+            # permitted"). Describe it once.
+            continue
+        described.add(id(param))
         qualifier = "required" if param.required else "optional"
         line = f"  - {param.name} ({_render_declared_type(param.value_schema)}, {qualifier})"
         if param.description:
@@ -196,7 +224,7 @@ class ToolExecutor:
                     rejected_fields.append(field)
 
             message = f"Invalid input: {summary}"
-            guidance = _expected_shape_guidance(definition, rejected_fields)
+            guidance = _expected_shape_guidance(definition, rejected_fields, input_model)
             if guidance:
                 message = f"{message}\n\n{guidance}"
 
