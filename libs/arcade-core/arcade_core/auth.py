@@ -60,6 +60,15 @@ class Attio(OAuth2):
         super().__init__(id=id, scopes=scopes)
 
 
+class Calendly(OAuth2):
+    """Marks a tool as requiring Calendly authorization."""
+
+    provider_id: str = "calendly"
+
+    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
+        super().__init__(id=id, scopes=scopes)
+
+
 class ClickUp(OAuth2):
     """Marks a tool as requiring ClickUp authorization."""
 
