@@ -430,9 +430,7 @@ class TestLoginGuardIsPerContext:
         _write_credentials(
             work_dir, {"active_context": "acme", "contexts": {"acme": self._signed_in()}}
         )
-        return patch(
-            "arcade_cli.authn.CREDENTIALS_FILE_PATH", str(work_dir / "credentials.yaml")
-        )
+        return patch("arcade_cli.authn.CREDENTIALS_FILE_PATH", str(work_dir / "credentials.yaml"))
 
     def test_a_context_that_was_never_saved_is_not_signed_in(self, work_dir: Path):
         from arcade_cli.authn import check_existing_login
@@ -456,9 +454,7 @@ class TestLoginGuardIsPerContext:
         from arcade_cli.authn import check_existing_login
 
         _write_credentials(work_dir, _legacy_cloud())
-        with patch(
-            "arcade_cli.authn.CREDENTIALS_FILE_PATH", str(work_dir / "credentials.yaml")
-        ):
+        with patch("arcade_cli.authn.CREDENTIALS_FILE_PATH", str(work_dir / "credentials.yaml")):
             assert check_existing_login(suppress_message=True, context_name="default") is True
 
     def test_a_cloud_login_beside_a_self_hosted_one_is_still_redundant(self, work_dir: Path):
@@ -483,9 +479,7 @@ class TestLoginGuardIsPerContext:
                 },
             },
         )
-        with patch(
-            "arcade_cli.authn.CREDENTIALS_FILE_PATH", str(work_dir / "credentials.yaml")
-        ):
+        with patch("arcade_cli.authn.CREDENTIALS_FILE_PATH", str(work_dir / "credentials.yaml")):
             assert check_existing_login(suppress_message=True, context_name="default") is True
 
     def test_a_context_that_is_not_active_is_not_called_active(self, work_dir: Path, capsys):
@@ -498,23 +492,24 @@ class TestLoginGuardIsPerContext:
                 "contexts": {"acme": self._signed_in(), "default": self._cloud()},
             },
         )
-        with patch(
-            "arcade_cli.authn.CREDENTIALS_FILE_PATH", str(work_dir / "credentials.yaml")
-        ):
+        with patch("arcade_cli.authn.CREDENTIALS_FILE_PATH", str(work_dir / "credentials.yaml")):
             assert check_existing_login(context_name="default") is True
 
         printed = capsys.readouterr().out
         assert "Active:" not in printed
         assert "default" in printed
         assert "acme" in printed
+        assert "context use" in printed
+        assert "logout" not in printed
 
     def test_the_active_context_still_reads_the_way_it_did(self, work_dir: Path, capsys):
         from arcade_cli.authn import check_existing_login
 
         _write_credentials(work_dir, _legacy_cloud())
-        with patch(
-            "arcade_cli.authn.CREDENTIALS_FILE_PATH", str(work_dir / "credentials.yaml")
-        ):
+        with patch("arcade_cli.authn.CREDENTIALS_FILE_PATH", str(work_dir / "credentials.yaml")):
             assert check_existing_login(context_name="default") is True
 
-        assert "Active:" in capsys.readouterr().out
+        printed = capsys.readouterr().out
+        assert "Active:" in printed
+        assert "logout" in printed
+        assert "context use" not in printed

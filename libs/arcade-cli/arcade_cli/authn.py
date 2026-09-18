@@ -859,6 +859,11 @@ def check_existing_login(
             if not suppress_message and checked_the_active_context:
                 console.print(f"You're already logged in as {email}.", style="bold green")
                 console.print(f"Active: {org_name} / {project_name}", style="dim")
+                console.print(
+                    "\nTo log out and delete your locally-stored credentials, use ", end=""
+                )
+                console.print("arcade logout", style="bold green", end="")
+                console.print(".\n")
             elif not suppress_message:
                 console.print(
                     f"You're already logged in to context '{context_name}' as {email}.",
@@ -868,6 +873,9 @@ def check_existing_login(
                 console.print(
                     f"The active context is still '{config.active_context}'.", style="dim"
                 )
+                console.print("\nTo make it the active context, use ", end="")
+                console.print(f"arcade context use {context_name}", style="bold green", end="")
+                console.print(".\n")
             return True
 
     except FileNotFoundError:

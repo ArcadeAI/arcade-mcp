@@ -125,11 +125,6 @@ def login(
     target_context = context_name or "default"
 
     if check_existing_login(context_name=target_context):
-        console.print("\nTo make it the active context, use ", end="")
-        console.print(f"arcade context use {target_context}", style="bold green", end="")
-        console.print(". To delete every saved context, use ", end="")
-        console.print("arcade logout", style="bold green", end="")
-        console.print(".\n")
         return
 
     coordinator_url = build_coordinator_url(host, port)
