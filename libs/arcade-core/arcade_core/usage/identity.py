@@ -16,6 +16,7 @@ import httpx
 import portalocker
 import yaml
 
+from arcade_core.auth_tokens import coordinator_api
 from arcade_core.constants import ARCADE_CONFIG_PATH, CREDENTIALS_FILE_PATH
 from arcade_core.usage.constants import (
     KEY_ANON_ID,
@@ -148,8 +149,8 @@ class UsageIdentity:
 
             # Determine coordinator/authority URL for auth calls
             coordinator_url = cloud_config.get("coordinator_url") or "https://cloud.arcade.dev"
-            whoami_url = f"{coordinator_url}/api/v1/auth/whoami"
-            validate_url = f"{coordinator_url}/api/v1/auth/validate"
+            whoami_url = f"{coordinator_api(coordinator_url)}/auth/whoami"
+            validate_url = f"{coordinator_api(coordinator_url)}/auth/validate"
 
             # OAuth credentials: use access_token to call /whoami
             auth_config = cloud_config.get("auth", {}) if isinstance(cloud_config, dict) else {}

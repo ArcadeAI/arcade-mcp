@@ -28,6 +28,7 @@ import yaml
 from arcade_core.auth_tokens import (
     CLIConfig,
     TokenResponse,
+    coordinator_api,
     fetch_cli_config,
     get_valid_access_token,
 )
@@ -249,7 +250,7 @@ def fetch_whoami(coordinator_url: str, access_token: str) -> WhoAmIResponse:
     Returns:
         WhoAmIResponse with account info and all orgs/projects
     """
-    url = f"{coordinator_url}/api/v1/auth/whoami"
+    url = f"{coordinator_api(coordinator_url)}/auth/whoami"
     response = httpx.get(
         url,
         headers={"Authorization": f"Bearer {access_token}"},
@@ -272,7 +273,7 @@ def fetch_organizations(coordinator_url: str) -> list[OrgInfo]:
     Returns:
         List of organizations
     """
-    url = f"{coordinator_url}/api/v1/orgs"
+    url = f"{coordinator_api(coordinator_url)}/orgs"
     access_token = get_valid_access_token(coordinator_url)
     response = httpx.get(
         url,
@@ -297,7 +298,7 @@ def fetch_projects(coordinator_url: str, org_id: str) -> list[ProjectInfo]:
     Returns:
         List of projects
     """
-    url = f"{coordinator_url}/api/v1/orgs/{org_id}/projects"
+    url = f"{coordinator_api(coordinator_url)}/orgs/{org_id}/projects"
     access_token = get_valid_access_token(coordinator_url)
     response = httpx.get(
         url,
