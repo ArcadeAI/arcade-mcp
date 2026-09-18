@@ -261,6 +261,44 @@ class TestDiscovery:
         ):
             fetch_discovery("https://engine.acme.internal")
 
+    def test_addresses_nested_under_urls_are_read(self):
+        body = {
+            "urls": {
+                "engine": "https://engine.acme.internal",
+                "coordinator": "https://coord.acme.internal",
+                "dashboard": "https://dash.acme.internal",
+            },
+            "version": "1.2.3",
+        }
+        with patch("arcade_cli.context.httpx.get", return_value=self._response(200, body)):
+            doc = fetch_discovery("https://engine.acme.internal")
+
+        assert doc.engine == "https://engine.acme.internal"
+        assert doc.coordinator == "https://coord.acme.internal"
+        assert doc.dashboard == "https://dash.acme.internal"
+
+    def test_top_level_addresses_win_over_nested_ones(self):
+        body = {
+            "engine": "https://engine.acme.internal",
+            "coordinator": "https://coord.acme.internal",
+            "urls": {
+                "engine": "https://stale.acme.internal",
+                "coordinator": "https://stale-coord.acme.internal",
+            },
+        }
+        with patch("arcade_cli.context.httpx.get", return_value=self._response(200, body)):
+            doc = fetch_discovery("https://engine.acme.internal")
+
+        assert doc.engine == "https://engine.acme.internal"
+        assert doc.coordinator == "https://coord.acme.internal"
+
+    def test_an_unusable_urls_field_is_ignored(self):
+        body = {"engine": "https://engine.acme.internal", "urls": "not an object"}
+        with patch("arcade_cli.context.httpx.get", return_value=self._response(200, body)):
+            doc = fetch_discovery("https://engine.acme.internal")
+
+        assert doc.engine == "https://engine.acme.internal"
+
 
 class TestCIContext:
     def test_ci_context_from_env(self, work_dir: Path):

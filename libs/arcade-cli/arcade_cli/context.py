@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from typing import Any
 from urllib.parse import urlparse
 
 import httpx
 from arcade_core.config_model import Config, ContextKind
 from arcade_core.constants import PROD_COORDINATOR_HOST, PROD_ENGINE_HOST
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 DISCOVERY_PATH = "/.well-known/arcade"
 
@@ -38,6 +39,20 @@ class DiscoveryDocument(BaseModel):
     dashboard: str = ""
     version: str = ""
     deployments: DeploymentsDiscovery = DeploymentsDiscovery()
+
+    @model_validator(mode="before")
+    @classmethod
+    def _accept_nested_urls(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+        nested = data.get("urls")
+        if not isinstance(nested, dict):
+            return data
+        merged = dict(data)
+        for field in ("engine", "coordinator", "dashboard"):
+            if not merged.get(field) and nested.get(field):
+                merged[field] = nested[field]
+        return merged
 
 
 def _normalize_install_url(install_url: str) -> str:
