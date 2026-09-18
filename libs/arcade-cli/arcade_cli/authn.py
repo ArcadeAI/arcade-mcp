@@ -852,9 +852,22 @@ def check_existing_login(
             org_name = context.org_name if context else "unknown"
             project_name = context.project_name if context else "unknown"
 
-            if not suppress_message:
+            checked_the_active_context = (
+                context_name is None or context_name == config.active_context
+            )
+
+            if not suppress_message and checked_the_active_context:
                 console.print(f"You're already logged in as {email}.", style="bold green")
                 console.print(f"Active: {org_name} / {project_name}", style="dim")
+            elif not suppress_message:
+                console.print(
+                    f"You're already logged in to context '{context_name}' as {email}.",
+                    style="bold green",
+                )
+                console.print(f"{org_name} / {project_name}", style="dim")
+                console.print(
+                    f"The active context is still '{config.active_context}'.", style="dim"
+                )
             return True
 
     except FileNotFoundError:

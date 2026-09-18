@@ -408,6 +408,24 @@ class TestLoginGuardIsPerContext:
             "user": {"email": "someone@acme.dev"},
         }
 
+    def _cloud(self) -> dict:
+        return {
+            "kind": "cloud",
+            "coordinator_url": "https://cloud.arcade.dev",
+            "auth": {
+                "access_token": "tok",
+                "refresh_token": "ref",
+                "expires_at": "2030-01-01T00:00:00",
+            },
+            "user": {"email": "user@example.com"},
+            "context": {
+                "org_id": "org",
+                "org_name": "Org",
+                "project_id": "proj",
+                "project_name": "Proj",
+            },
+        }
+
     def _seed(self, work_dir: Path):
         _write_credentials(
             work_dir, {"active_context": "acme", "contexts": {"acme": self._signed_in()}}
@@ -469,3 +487,34 @@ class TestLoginGuardIsPerContext:
             "arcade_cli.authn.CREDENTIALS_FILE_PATH", str(work_dir / "credentials.yaml")
         ):
             assert check_existing_login(suppress_message=True, context_name="default") is True
+
+    def test_a_context_that_is_not_active_is_not_called_active(self, work_dir: Path, capsys):
+        from arcade_cli.authn import check_existing_login
+
+        _write_credentials(
+            work_dir,
+            {
+                "active_context": "acme",
+                "contexts": {"acme": self._signed_in(), "default": self._cloud()},
+            },
+        )
+        with patch(
+            "arcade_cli.authn.CREDENTIALS_FILE_PATH", str(work_dir / "credentials.yaml")
+        ):
+            assert check_existing_login(context_name="default") is True
+
+        printed = capsys.readouterr().out
+        assert "Active:" not in printed
+        assert "default" in printed
+        assert "acme" in printed
+
+    def test_the_active_context_still_reads_the_way_it_did(self, work_dir: Path, capsys):
+        from arcade_cli.authn import check_existing_login
+
+        _write_credentials(work_dir, _legacy_cloud())
+        with patch(
+            "arcade_cli.authn.CREDENTIALS_FILE_PATH", str(work_dir / "credentials.yaml")
+        ):
+            assert check_existing_login(context_name="default") is True
+
+        assert "Active:" in capsys.readouterr().out

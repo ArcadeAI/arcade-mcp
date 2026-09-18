@@ -125,7 +125,9 @@ def login(
     target_context = context_name or "default"
 
     if check_existing_login(context_name=target_context):
-        console.print("\nTo log out and delete your locally-stored credentials, use ", end="")
+        console.print("\nTo make it the active context, use ", end="")
+        console.print(f"arcade context use {target_context}", style="bold green", end="")
+        console.print(". To delete every saved context, use ", end="")
         console.print("arcade logout", style="bold green", end="")
         console.print(".\n")
         return
