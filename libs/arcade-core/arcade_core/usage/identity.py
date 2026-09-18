@@ -26,6 +26,19 @@ from arcade_core.usage.constants import (
 )
 
 
+def _active_context_credentials(cloud: dict[str, Any]) -> dict[str, Any]:
+    if not isinstance(cloud, dict):
+        return {}
+    contexts = cloud.get("contexts")
+    if not isinstance(contexts, dict):
+        return cloud
+    active = cloud.get("active_context")
+    chosen = contexts.get(active) if isinstance(active, str) else None
+    if not isinstance(chosen, dict) and len(contexts) == 1:
+        chosen = next(iter(contexts.values()))
+    return chosen if isinstance(chosen, dict) else cloud
+
+
 class UsageIdentity:
     """Manages user identity for PostHog analytics tracking."""
 
@@ -145,7 +158,8 @@ class UsageIdentity:
             with open(CREDENTIALS_FILE_PATH, encoding="utf-8") as f:
                 config = yaml.safe_load(f) or {}
 
-            cloud_config = config.get("cloud", {}) if isinstance(config, dict) else {}
+            cloud = config.get("cloud", {}) if isinstance(config, dict) else {}
+            cloud_config = _active_context_credentials(cloud)
 
             # Determine coordinator/authority URL for auth calls
             coordinator_url = cloud_config.get("coordinator_url") or "https://cloud.arcade.dev"
