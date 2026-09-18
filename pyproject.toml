@@ -1,6 +1,6 @@
 [project]
 name = "arcade-mcp"
-version = "1.15.2"
+version = "1.16.0"
 description = "Arcade.dev - Tool Calling platform for Agents"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -20,7 +20,7 @@ requires-python = ">=3.10"
 dependencies = [
     # CLI dependencies
     "arcade-mcp-server>=1.23.0,<2.0.0",
-    "arcade-core>=4.9.0,<5.0.0",
+    "arcade-core>=4.19.0,<5.0.0",
     "typer>=0.16.0,<0.17.0",
     "rich>=14.0.0,<15.0.0",
     "Jinja2==3.1.6",

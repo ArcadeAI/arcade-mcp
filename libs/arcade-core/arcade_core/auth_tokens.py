@@ -30,9 +30,24 @@ class TokenResponse(BaseModel):
     token_type: str
 
 
+API_PATH = "api/v1"
+
+
+def coordinator_origin(coordinator_url: str) -> str:
+    trimmed = coordinator_url.rstrip("/")
+    suffix = f"/{API_PATH}"
+    if trimmed.endswith(suffix):
+        return trimmed[: -len(suffix)]
+    return trimmed
+
+
+def coordinator_api(coordinator_url: str) -> str:
+    return f"{coordinator_origin(coordinator_url)}/{API_PATH}"
+
+
 def fetch_cli_config(coordinator_url: str) -> CLIConfig:
     """Fetch OAuth configuration from the Coordinator."""
-    url = f"{coordinator_url}/api/v1/auth/cli_config"
+    url = f"{coordinator_api(coordinator_url)}/auth/cli_config"
     response = httpx.get(url, timeout=30)
     response.raise_for_status()
     return CLIConfig.model_validate(response.json())
