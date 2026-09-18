@@ -1020,6 +1020,14 @@ def deploy(
         "-e",
         help="Relative path to the Python file that runs the MCPApp instance (relative to project root). This file must execute the `run()` method on your `MCPApp` instance when invoked directly.",
     ),
+    provider: str | None = typer.Option(
+        None,
+        "--provider",
+        help="Deployment provider to run this server on. Omitted sends it to the "
+        "installation's default. Only installations that run more than one "
+        "provider accept it.",
+        rich_help_panel="Advanced",
+    ),
     skip_validate: bool = typer.Option(
         False,
         "--skip-validate",
@@ -1120,6 +1128,7 @@ def deploy(
             force_tls=force_tls,
             force_no_tls=force_no_tls,
             debug=debug,
+            provider=provider,
         )
     except Exception as e:
         handle_cli_error("Failed to deploy server", e, debug)

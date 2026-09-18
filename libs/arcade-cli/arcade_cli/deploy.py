@@ -10,7 +10,7 @@ import tarfile
 import time
 from collections import deque
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 
 import httpx
 from arcade_core.subprocess_utils import (
@@ -95,6 +95,11 @@ class CreateDeploymentRequest(BaseModel):
     name: str
     description: str
     toolkits: DeploymentToolkits
+    provider: str | None = None
+
+    def model_dump(self, **kwargs: Any) -> dict:
+        kwargs.setdefault("exclude_none", True)
+        return super().model_dump(**kwargs)
 
 
 class UpdateDeploymentRequest(BaseModel):
@@ -824,6 +829,7 @@ def deploy_server_logic(
     force_tls: bool,
     force_no_tls: bool,
     debug: bool,
+    provider: str | None = None,
 ) -> None:
     """
     Main logic for deploying an MCP server to Arcade Engine.
@@ -969,6 +975,7 @@ def deploy_server_logic(
                 name=server_name,
                 description="MCP Server deployed via CLI",
                 toolkits=deployment_toolkits,
+                provider=provider,
             )
             deploy_server_to_engine(engine_url, create_request.model_dump(), debug)
     except Exception as e:
