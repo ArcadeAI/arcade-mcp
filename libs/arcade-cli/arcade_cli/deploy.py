@@ -30,6 +30,7 @@ from rich.text import Text
 from arcade_cli.configure import find_python_interpreter
 from arcade_cli.console import console
 from arcade_cli.context import resolve_active_context
+from arcade_cli.deploy_checks import detect_unsupported_input
 from arcade_cli.secret import load_env_file
 from arcade_cli.utils import (
     get_auth_headers,
@@ -349,6 +350,13 @@ def update_deployment(
     except httpx.ConnectError as e:
         raise ValueError(f"Failed to connect to Arcade Engine at {engine_url}: {e}") from e
     except httpx.HTTPStatusError as e:
+        if e.response.status_code == 403:
+            raise ValueError(
+                f"Redeploy of '{server_name}' is forbidden: the server is owned by another "
+                "account. You can only redeploy servers your account owns; the running release is "
+                "unchanged."
+            ) from e
+
         error_detail = ""
         try:
             error_json = e.response.json()
@@ -755,6 +763,12 @@ def upsert_secrets_to_engine(
             response.raise_for_status()
             console.print(f"✓ Secret '{secret_key}' uploaded", style="green")
         except httpx.HTTPStatusError as e:
+            if e.response.status_code == 403:
+                client.close()
+                raise ValueError(
+                    f"Setting secret '{secret_key}' is forbidden: it is owned by another account."
+                ) from e
+
             error_msg = f"Failed to upload secret '{secret_key}': HTTP {e.response.status_code}"
             if debug:
                 console.print(f"❌ {error_msg}: {e.response.text}", style="red")
@@ -765,6 +779,38 @@ def upsert_secrets_to_engine(
             console.print(f"❌ {error_msg}", style="red")
 
     client.close()
+
+
+def _fetch_secret_owners(engine_url: str) -> dict[str, str | None]:
+    url = get_org_scoped_url(engine_url, "/secrets")
+    client = httpx.Client(headers=get_auth_headers(), timeout=30)
+    try:
+        response = client.get(url)
+        response.raise_for_status()
+        items = response.json().get("items", [])
+    finally:
+        client.close()
+
+    return {item["key"]: item.get("owner_account_id") for item in items if item.get("key")}
+
+
+def preflight_secret_ownership(
+    engine_url: str,
+    declared_keys: set[str],
+    account_id: str | None,
+) -> None:
+    if not declared_keys or not account_id:
+        return
+
+    owners = _fetch_secret_owners(engine_url)
+    foreign = sorted(key for key in declared_keys if owners.get(key) and owners[key] != account_id)
+
+    if foreign:
+        raise ValueError(
+            f"Secret key(s) {', '.join(foreign)} are owned by another account and cannot be "
+            "overwritten. Nothing was uploaded. Rename the secret(s) your server declares, or ask "
+            "the owner to update them."
+        )
 
 
 def deploy_server_to_engine(
@@ -804,6 +850,12 @@ def deploy_server_to_engine(
     except httpx.ConnectError as e:
         raise ValueError(f"Failed to connect to Arcade Engine at {engine_url}: {e}") from e
     except httpx.HTTPStatusError as e:
+        if e.response.status_code == 403:
+            raise ValueError(
+                "Deploying to this project is forbidden: your account does not have permission to "
+                "create a server here."
+            ) from e
+
         error_detail = ""
         try:
             error_json = e.response.json()
@@ -850,18 +902,25 @@ def deploy_server_logic(
     # Step 1: Validate user is logged in
     console.print("\nValidating user is logged in...", style="dim")
     active = resolve_active_context()
+    account_id: str | None = None
     if active.is_ci:
         user_email = "CI"
         console.print("✓ Using ARCADE_URL and ARCADE_API_KEY from the environment", style="green")
     else:
         config = validate_and_get_config()
         user_email = (config.user.email if config.user else None) or "User"
+        account_id = config.user.account_id if config.user else None
         console.print(f"✓ {user_email} is logged in", style="green")
     engine_url = resolve_engine_base_url(host, port, force_tls, force_no_tls)
 
     # Step 2: Validate necessary files exist in the correct location
-    console.print("\nValidating pyproject.toml exists in current directory...", style="dim")
     current_dir = Path.cwd()
+
+    unsupported_reason = detect_unsupported_input(current_dir, entrypoint)
+    if unsupported_reason is not None:
+        raise ValueError(unsupported_reason)
+
+    console.print("\nValidating pyproject.toml exists in current directory...", style="dim")
     pyproject_path = current_dir / "pyproject.toml"
 
     if not pyproject_path.exists():
@@ -924,21 +983,27 @@ def deploy_server_logic(
     if secrets == "skip":
         console.print("\n[!] Skipping secret upload (--secrets skip)", style="yellow")
     elif secrets == "all" and env_path is not None:
-        console.print("\nUploading ALL secrets from .env file...", style="dim")
         secrets_to_upsert = set(load_env_file(str(env_path)).keys())
+    elif secrets == "auto":
+        secrets_to_upsert = set(required_secrets_from_validation)
+
+    preflight_secret_ownership(engine_url, secrets_to_upsert, account_id)
+
+    if secrets == "all" and env_path is not None:
         if secrets_to_upsert:
-            console.print(f"✓ Found {len(secrets_to_upsert)} secret(s) in .env file", style="green")
+            console.print(
+                f"\nUploading {len(secrets_to_upsert)} secret(s) from .env file...", style="dim"
+            )
             upsert_secrets_to_engine(engine_url, secrets_to_upsert, debug)
         else:
             console.print("[!] No secrets found in .env file", style="yellow")
     elif secrets == "auto":
-        # Only upload required secrets discovered during validation
-        if required_secrets_from_validation:
+        if secrets_to_upsert:
             console.print(
-                f"\nUploading {len(required_secrets_from_validation)} required secret(s) to Arcade...",
+                f"\nUploading {len(secrets_to_upsert)} required secret(s) to Arcade...",
                 style="dim",
             )
-            upsert_secrets_to_engine(engine_url, required_secrets_from_validation, debug)
+            upsert_secrets_to_engine(engine_url, secrets_to_upsert, debug)
         else:
             console.print("\n✓ No required secrets found", style="green")
 
