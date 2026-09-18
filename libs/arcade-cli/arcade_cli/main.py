@@ -1230,6 +1230,10 @@ def main_callback(
         help="Print version and exit.",
     ),
 ) -> None:
+    from arcade_cli.context import pin_ci_environment
+
+    pin_ci_environment()
+
     # Background update check + notification (skip for update/upgrade/mcp to avoid
     # corrupting MCP stdio protocol with non-JSON output)
     if ctx.invoked_subcommand not in {update.__name__, upgrade.__name__, mcp.__name__}:

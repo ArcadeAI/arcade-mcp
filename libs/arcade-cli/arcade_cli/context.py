@@ -131,9 +131,26 @@ class ResolvedContext:
         return self.kind == "self_hosted"
 
 
+_pinned_ci_environment: dict[str, str | None] | None = None
+
+
+def pin_ci_environment() -> None:
+    global _pinned_ci_environment
+    _pinned_ci_environment = {
+        ARCADE_URL_ENV: os.environ.get(ARCADE_URL_ENV),
+        ARCADE_API_KEY_ENV: os.environ.get(ARCADE_API_KEY_ENV),
+    }
+
+
+def _ci_environment_value(name: str) -> str | None:
+    if _pinned_ci_environment is not None:
+        return _pinned_ci_environment.get(name)
+    return os.environ.get(name)
+
+
 def resolve_ci_context() -> ResolvedContext | None:
-    url = os.environ.get(ARCADE_URL_ENV)
-    api_key = os.environ.get(ARCADE_API_KEY_ENV)
+    url = _ci_environment_value(ARCADE_URL_ENV)
+    api_key = _ci_environment_value(ARCADE_API_KEY_ENV)
     if not url or not api_key:
         return None
 
