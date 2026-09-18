@@ -830,26 +830,27 @@ def _credentials_file_contains_legacy() -> bool:
         return False
 
 
-def check_existing_login(suppress_message: bool = False) -> bool:
-    """
-    Check if the user is already logged in.
-
-    Args:
-        suppress_message: If True, suppress the logged in message.
-
-    Returns:
-        True if the user is already logged in, False otherwise.
-    """
+def check_existing_login(
+    suppress_message: bool = False,
+    context_name: str | None = None,
+) -> bool:
     if not os.path.exists(CREDENTIALS_FILE_PATH):
         return False
 
     try:
         config = Config.load_from_file()
+        auth, user, context = config.auth, config.user, config.context
 
-        if config.auth and config.auth.access_token:
-            email = config.user.email if config.user else "unknown"
-            org_name = config.context.org_name if config.context else "unknown"
-            project_name = config.context.project_name if config.context else "unknown"
+        if context_name is not None:
+            named = (config.contexts or {}).get(context_name)
+            if named is None:
+                return False
+            auth, user, context = named.auth, named.user, named.context
+
+        if auth and auth.access_token:
+            email = user.email if user else "unknown"
+            org_name = context.org_name if context else "unknown"
+            project_name = context.project_name if context else "unknown"
 
             if not suppress_message:
                 console.print(f"You're already logged in as {email}.", style="bold green")

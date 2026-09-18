@@ -122,7 +122,9 @@ def login(
         _login_with_url(resolved_url, context_name, timeout, debug)
         return
 
-    if check_existing_login():
+    target_context = context_name or "default"
+
+    if check_existing_login(context_name=target_context):
         console.print("\nTo log out and delete your locally-stored credentials, use ", end="")
         console.print("arcade logout", style="bold green", end="")
         console.print(".\n")
@@ -137,7 +139,9 @@ def login(
             callback_timeout_seconds=timeout,
         )
 
-        save_credentials_from_whoami(result.tokens, result.whoami, coordinator_url)
+        save_credentials_from_whoami(
+            result.tokens, result.whoami, coordinator_url, context_name=target_context
+        )
 
         console.print(f"\n✅ Logged in as {result.email}.", style="bold green")
         if result.selected_org and result.selected_project:

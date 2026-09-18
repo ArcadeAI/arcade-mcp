@@ -393,3 +393,43 @@ class TestEngineUrlResolution:
 
         with pytest.raises(NoCloudGuardError):
             resolve_engine_base_url("api.arcade.dev", None, False, False)
+
+
+class TestLoginGuardIsPerContext:
+    def _signed_in(self) -> dict:
+        return {
+            "kind": "self_hosted",
+            "coordinator_url": "https://cloud.acme.internal",
+            "auth": {
+                "access_token": "tok",
+                "refresh_token": "ref",
+                "expires_at": "2030-01-01T00:00:00",
+            },
+            "user": {"email": "someone@acme.dev"},
+        }
+
+    def _seed(self, work_dir: Path):
+        _write_credentials(
+            work_dir, {"active_context": "acme", "contexts": {"acme": self._signed_in()}}
+        )
+        return patch(
+            "arcade_cli.authn.CREDENTIALS_FILE_PATH", str(work_dir / "credentials.yaml")
+        )
+
+    def test_a_context_that_was_never_saved_is_not_signed_in(self, work_dir: Path):
+        from arcade_cli.authn import check_existing_login
+
+        with self._seed(work_dir):
+            assert check_existing_login(suppress_message=True, context_name="default") is False
+
+    def test_the_named_context_is_the_one_checked(self, work_dir: Path):
+        from arcade_cli.authn import check_existing_login
+
+        with self._seed(work_dir):
+            assert check_existing_login(suppress_message=True, context_name="acme") is True
+
+    def test_without_a_name_the_active_context_is_checked(self, work_dir: Path):
+        from arcade_cli.authn import check_existing_login
+
+        with self._seed(work_dir):
+            assert check_existing_login(suppress_message=True) is True
