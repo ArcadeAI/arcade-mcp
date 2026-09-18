@@ -433,3 +433,39 @@ class TestLoginGuardIsPerContext:
 
         with self._seed(work_dir):
             assert check_existing_login(suppress_message=True) is True
+
+    def test_a_cloud_only_login_is_still_recognised(self, work_dir: Path):
+        from arcade_cli.authn import check_existing_login
+
+        _write_credentials(work_dir, _legacy_cloud())
+        with patch(
+            "arcade_cli.authn.CREDENTIALS_FILE_PATH", str(work_dir / "credentials.yaml")
+        ):
+            assert check_existing_login(suppress_message=True, context_name="default") is True
+
+    def test_a_cloud_login_beside_a_self_hosted_one_is_still_redundant(self, work_dir: Path):
+        from arcade_cli.authn import check_existing_login
+
+        _write_credentials(
+            work_dir,
+            {
+                "active_context": "acme",
+                "contexts": {
+                    "acme": self._signed_in(),
+                    "default": {
+                        "kind": "cloud",
+                        "coordinator_url": "https://cloud.arcade.dev",
+                        "auth": {
+                            "access_token": "tok",
+                            "refresh_token": "ref",
+                            "expires_at": "2030-01-01T00:00:00",
+                        },
+                        "user": {"email": "user@example.com"},
+                    },
+                },
+            },
+        )
+        with patch(
+            "arcade_cli.authn.CREDENTIALS_FILE_PATH", str(work_dir / "credentials.yaml")
+        ):
+            assert check_existing_login(suppress_message=True, context_name="default") is True
