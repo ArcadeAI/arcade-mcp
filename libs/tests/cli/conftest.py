@@ -1,9 +1,9 @@
 import pytest
-from arcade_cli import context as context_module
+from arcade_cli import _startup_environment
 
 
 @pytest.fixture(autouse=True)
-def ci_environment_unpinned():
-    context_module._pinned_ci_environment = None
+def startup_environment_forgotten():
+    _startup_environment.forget()
     yield
-    context_module._pinned_ci_environment = None
+    _startup_environment.forget()
