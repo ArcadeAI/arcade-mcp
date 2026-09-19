@@ -86,6 +86,31 @@ def secured():
 # --- the wire shape ---
 
 
+def test_continuing_on_a_different_catalog_returns_an_error_not_a_mixed_list():
+    clients = []
+    for names in [("a", "b", "c", "d"), ("aa", "b", "d", "e")]:
+        app = FastAPI()
+        worker = _worker(app, with_resources=False)
+        worker.catalog.resources.page_size = 2
+        for name in names:
+            worker.catalog.resources.add(
+                Resource(uri=f"ui://Math/1.0.0/{name}.html", name=name), "x"
+            )
+        clients.append(TestClient(app))
+
+    first = clients[0].post("/worker/resources/list", json={})
+    assert first.status_code == 200
+    assert [resource["name"] for resource in first.json()["resources"]] == ["a", "b"]
+
+    continuation = clients[1].post(
+        "/worker/resources/list", json={"cursor": first.json()["nextCursor"]}
+    )
+
+    assert continuation.status_code == 400
+    assert continuation.json()["code"] == -32602
+    assert "resources" not in continuation.json()
+
+
 def test_list_returns_a_result_object(serving):
     response = serving.post("/worker/resources/list", json={})
 
