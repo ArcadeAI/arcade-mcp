@@ -1,4 +1,4 @@
-"""Local TOO-2045 fixture: real worker handlers behind one URL per scenario.
+"""Local resource pagination fixture: real worker handlers behind one URL per scenario.
 
 Run with ``uv run uvicorn scripts.diagnose_resource_pagination:app --host 127.0.0.1
 --port 58145``. The dispatcher deterministically changes replica on continuation;
@@ -11,7 +11,7 @@ from arcade_core.resource_schema import Resource
 from arcade_serve.fastapi.worker import FastAPIWorker
 from fastapi import FastAPI, Request, Response
 
-WORKER_SECRET = "too-2045-synthetic-worker-secret"  # noqa: S105 — local test fixture only
+WORKER_SECRET = "resource-pagination-test-secret"  # noqa: S105 — local test fixture only
 
 
 def replica(uris: list[str], page_size: int) -> FastAPI:
