@@ -104,51 +104,44 @@ def test_the_last_page_reports_no_next_cursor():
 
 def test_cursors_round_trip_and_stay_opaque():
     uri = "ui://Gmail/8.1.0/draft-review.html"
+    digest = "a" * 64
 
-    assert decode_cursor(encode_cursor(uri)) == uri
-    assert uri not in encode_cursor(uri)
+    assert decode_cursor(encode_cursor(uri, digest)) == (uri, digest)
+    assert uri not in encode_cursor(uri, digest)
 
 
 def test_a_replica_resumes_a_page_it_did_not_issue():
-    """The rolling deploy this cursor exists for: two replicas, different catalogs.
-
-    A version lives in the URI, so mid-rollout the replica serving page two holds
-    a different set than the one that served page one. An index into either list
-    is a different position in the other.
-    """
+    """Replicas with the same catalog can register it in different orders."""
     old_replica = ResourceRegistry(page_size=2)
     new_replica = ResourceRegistry(page_size=2)
     shared = ["ui://A/1.0.0/a.html", "ui://B/1.0.0/b.html", "ui://C/1.0.0/c.html"]
     for uri in shared:
         old_replica.add(_resource(uri), "x")
+    for uri in reversed(shared):
         new_replica.add(_resource(uri), "x")
-    # The rollout is halfway: this replica already carries the new Math build,
-    # and it sorts ahead of everything the other one holds.
-    new_replica.add(_resource("ui://AA/2.0.0/new.html"), "x")
 
     first, cursor = old_replica.list()
     assert [r.uri for r in first] == ["ui://A/1.0.0/a.html", "ui://B/1.0.0/b.html"]
 
-    second, _ = new_replica.list(cursor)
+    second, last_cursor = new_replica.list(cursor)
 
-    # An offset of 2 into the new replica would have started at "ui://B", serving
-    # it twice and never reaching "ui://C".
     assert [r.uri for r in second] == ["ui://C/1.0.0/c.html"]
+    assert last_cursor is None
 
 
-def test_a_cursor_naming_a_uri_this_replica_lacks_still_resumes_after_it():
-    """A resume point, not a lookup: the anchor does not have to be present."""
-    registry = ResourceRegistry(page_size=10)
+def test_a_cursor_naming_an_unregistered_uri_is_rejected():
+    registry = ResourceRegistry(page_size=1)
     for uri in ("ui://A/1.0.0/a.html", "ui://C/1.0.0/c.html"):
         registry.add(_resource(uri), "x")
 
-    page, _ = registry.list(encode_cursor("ui://B/1.0.0/gone.html"))
+    _, cursor = registry.list()
+    _, digest = decode_cursor(cursor)
 
-    assert [r.uri for r in page] == ["ui://C/1.0.0/c.html"]
+    with pytest.raises(InvalidCursorError, match="registered resource"):
+        registry.list(encode_cursor("ui://B/1.0.0/gone.html", digest))
 
 
-def test_a_resource_added_before_the_cursor_does_not_shift_the_next_page():
-    """With an offset, inserting ahead of the cursor repeats an entry already served."""
+def test_a_changed_catalog_requires_a_fresh_listing():
     registry = ResourceRegistry(page_size=2)
     for uri in ("ui://B/1.0.0/b.html", "ui://C/1.0.0/c.html", "ui://D/1.0.0/d.html"):
         registry.add(_resource(uri), "x")
@@ -157,9 +150,85 @@ def test_a_resource_added_before_the_cursor_does_not_shift_the_next_page():
     assert [r.uri for r in first] == ["ui://B/1.0.0/b.html", "ui://C/1.0.0/c.html"]
 
     registry.add(_resource("ui://A/1.0.0/a.html"), "x")
-    second, _ = registry.list(cursor)
+    with pytest.raises(InvalidCursorError, match="catalog changed"):
+        registry.list(cursor)
 
-    assert [r.uri for r in second] == ["ui://D/1.0.0/d.html"]
+    first, cursor = registry.list()
+    second, cursor = registry.list(cursor)
+    assert [r.uri for r in first + second] == [
+        f"ui://{name}/1.0.0/{name.lower()}.html" for name in "ABCD"
+    ]
+    assert cursor is None
+
+
+@pytest.mark.parametrize(
+    "other_uris",
+    [
+        [],
+        ["ui://Math/1.0.0/a.html", "ui://Math/1.0.0/b.html"],
+        ["ui://Math/2.0.0/b.html"],
+    ],
+)
+def test_a_different_replica_cannot_silently_finish_a_partial_catalog(other_uris):
+    first_replica = ResourceRegistry(page_size=1)
+    for uri in ["ui://Math/2.0.0/a.html", "ui://Math/2.0.0/b.html"]:
+        first_replica.add(_resource(uri), "x")
+    other_replica = ResourceRegistry(page_size=1)
+    for uri in other_uris:
+        other_replica.add(_resource(uri), "x")
+
+    _, cursor = first_replica.list()
+
+    with pytest.raises(InvalidCursorError, match="catalog changed"):
+        other_replica.list(cursor)
+
+
+@pytest.mark.parametrize("change", ["description", "nested metadata", "extra field"])
+def test_changing_a_listing_descriptor_invalidates_the_cursor(change):
+    registry = ResourceRegistry(page_size=1)
+    for uri in ["ui://a", "ui://b"]:
+        registry.add(Resource(uri=uri, name=uri, _meta={"ui": {"prefersBorder": False}}), "x")
+    _, cursor = registry.list()
+
+    descriptor = registry.get("ui://a").resource
+    if change == "description":
+        descriptor.description = "A changed description"
+    elif change == "nested metadata":
+        descriptor.meta["ui"]["prefersBorder"] = True
+    else:
+        descriptor.model_extra["example.com/extension"] = {"revision": 2}
+
+    with pytest.raises(InvalidCursorError, match="catalog changed"):
+        registry.list(cursor)
+
+
+def test_metadata_key_order_and_page_size_do_not_change_catalog_identity():
+    first_replica = ResourceRegistry(page_size=1)
+    other_replica = ResourceRegistry(page_size=2)
+    for uri in ["ui://a", "ui://b", "ui://c"]:
+        first_replica.add(Resource(uri=uri, name=uri, _meta={"a": {"x": 1, "y": 2}, "b": 3}), "x")
+    for uri in ["ui://c", "ui://b", "ui://a"]:
+        other_replica.add(Resource(uri=uri, name=uri, _meta={"b": 3, "a": {"y": 2, "x": 1}}), "x")
+
+    _, cursor = first_replica.list()
+    second, cursor = other_replica.list(cursor)
+
+    assert [resource.uri for resource in second] == ["ui://b", "ui://c"]
+    assert cursor is None
+
+
+def test_changing_only_resource_contents_does_not_invalidate_a_listing():
+    registry = ResourceRegistry(page_size=1)
+    for uri in ["ui://a", "ui://b"]:
+        registry.add(_resource(uri), "original")
+    _, cursor = registry.list()
+    registry.add(_resource("ui://b"), "replacement")
+
+    second, cursor = registry.list(cursor)
+
+    assert [resource.uri for resource in second] == ["ui://b"]
+    assert registry.get("ui://b").contents.text == "replacement"
+    assert cursor is None
 
 
 @pytest.mark.parametrize(
@@ -170,6 +239,9 @@ def test_a_resource_added_before_the_cursor_does_not_shift_the_next_page():
         "cGxhaW4",  # plain, no prefix
         "b2Zmc2V0OjA",  # offset:0, the encoding this replaced
         "YWZ0ZXI6",  # after:, naming nothing
+        base64.urlsafe_b64encode(b"after:ui://A/1.0.0/a.html").decode(),
+        base64.urlsafe_b64encode(b"catalog:invalid:ui://a").decode(),
+        base64.urlsafe_b64encode(b"catalog:" + b"a" * 64 + b":").decode(),
     ],
 )
 def test_a_cursor_we_did_not_issue_is_rejected(bad):
