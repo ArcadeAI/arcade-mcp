@@ -559,3 +559,35 @@ def test_zero_field_pydantic_model_value_schema_has_empty_properties():
     vs = _first_param_value_schema(run_empty_model)
     assert vs.properties == {}
     assert vs.required_keys == []
+
+
+class AccountPayload(BaseModel):
+    connected_account: str
+    note: str = "ok"
+
+
+class AccountResult(BaseModel):
+    connected_account: str
+
+
+@tool(desc="A function with a nested connected_account field")
+def func_nested_connected_account(payload: Annotated[AccountPayload, "Account payload"]) -> str:
+    return payload.connected_account
+
+
+@tool(desc="A function whose output model includes connected_account")
+def func_output_connected_account() -> AccountResult:
+    return AccountResult(connected_account="acct")
+
+
+def test_nested_connected_account_field_is_allowed():
+    vs = _first_param_value_schema(func_nested_connected_account)
+    assert vs.properties is not None
+    assert "connected_account" in vs.properties
+
+
+def test_output_connected_account_field_is_allowed():
+    tool_def = ToolCatalog.create_tool_definition(func_output_connected_account, "1.0")
+    assert tool_def.output.value_schema is not None
+    assert tool_def.output.value_schema.properties is not None
+    assert "connected_account" in tool_def.output.value_schema.properties

@@ -7,7 +7,7 @@ from arcade_core.discovery import (
     discover_tools,
     load_module_from_path,
 )
-from arcade_core.errors import ToolDefinitionError
+from arcade_core.errors import ToolDefinitionError, ToolInputSchemaError
 from loguru import logger
 
 BROKEN_APP_TOOL = textwrap.dedent(
@@ -21,6 +21,21 @@ BROKEN_APP_TOOL = textwrap.dedent(
         return "example"
     """
 )
+
+RESERVED_APP_TOOL = textwrap.dedent(
+    """
+    from typing import Annotated
+    from arcade_mcp_server import MCPApp
+
+    app = MCPApp(name="Reserved")
+
+    @app.tool
+    def reserved(connected_account: Annotated[str, "The account to use"]) -> str:
+        \"\"\"A tool that collides with the reserved name.\"\"\"
+        return connected_account
+    """
+)
+
 
 VALID_APP_TOOL = textwrap.dedent(
     """
@@ -112,4 +127,40 @@ def test_collection_and_discover_tools_propagate_definition_error(tmp_path, monk
 
     monkeypatch.chdir(tmp_path)
     with pytest.raises(ToolDefinitionError, match="broken"):
+        discover_tools()
+
+
+def test_load_module_from_path_preserves_reserved_argument_error(tmp_path):
+    tool_file = tmp_path / "reserved.py"
+    tool_file.write_text(RESERVED_APP_TOOL, encoding="utf-8")
+
+    captured: list[str] = []
+    sink = logger.add(captured.append, level="ERROR", format="{message}")
+    try:
+        with pytest.raises(ToolInputSchemaError, match="connected_account") as exc_info:
+            load_module_from_path(tool_file)
+    finally:
+        logger.remove(sink)
+
+    message = str(exc_info.value)
+    assert "Arcade Engine" in message
+    assert "Rename" in message
+    assert "reserved" in message
+    assert any(str(tool_file) in log_message for log_message in captured)
+
+
+def test_collection_and_discover_tools_propagate_reserved_argument_error(tmp_path, monkeypatch):
+    valid_file = tmp_path / "valid.py"
+    valid_file.write_text(VALID_APP_TOOL, encoding="utf-8")
+    reserved_file = tmp_path / "reserved.py"
+    reserved_file.write_text(RESERVED_APP_TOOL, encoding="utf-8")
+
+    files_with_tools = analyze_files_for_tools([valid_file, reserved_file])
+    with pytest.raises(ToolInputSchemaError, match="connected_account") as exc_info:
+        collect_tools_from_modules(files_with_tools)
+
+    assert "Arcade Engine" in str(exc_info.value)
+
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(ToolInputSchemaError, match="connected_account"):
         discover_tools()

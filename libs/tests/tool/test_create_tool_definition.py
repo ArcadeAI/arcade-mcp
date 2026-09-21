@@ -1033,3 +1033,35 @@ def test_toolkit_info_is_set_correctly(toolkit_name, toolkit_version, toolkit_de
     assert tool_def.toolkit.name == snake_to_pascal_case(toolkit_name)
     assert tool_def.toolkit.description == toolkit_desc
     assert tool_def.toolkit.version == toolkit_version
+
+
+@tool(desc="A function that aliases a reserved Python name to a permitted exposed name")
+def func_permitted_reserved_python_name(
+    connected_account: Annotated[str, "account_reference", "Tool-owned value"],
+):
+    pass
+
+
+def test_permitted_alias_uses_exposed_name_not_python_name():
+    tool_def = ToolCatalog.create_tool_definition(
+        func_permitted_reserved_python_name, "test_toolkit", "1.0.0"
+    )
+
+    assert [parameter.name for parameter in tool_def.input.parameters] == ["account_reference"]
+
+
+@tool(desc="A function whose injected context uses a reserved Python name")
+def func_context_named_connected_account(
+    connected_account: ToolContext,
+    param1: Annotated[str, "First param"],
+):
+    pass
+
+
+def test_context_parameter_named_connected_account_is_not_exposed():
+    tool_def = ToolCatalog.create_tool_definition(
+        func_context_named_connected_account, "test_toolkit", "1.0.0"
+    )
+
+    assert tool_def.input.tool_context_parameter_name == "connected_account"
+    assert [parameter.name for parameter in tool_def.input.parameters] == ["param1"]

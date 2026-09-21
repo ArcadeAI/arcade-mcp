@@ -617,6 +617,15 @@ def _interface_uri(
         ) from e
 
 
+RESERVED_TOOL_ARGUMENT_NAMES: frozenset[str] = frozenset({"connected_account"})
+"""Top-level exposed tool argument names reserved for Arcade Engine use.
+
+Conflicting definitions fail during input-definition construction. Tool authors
+must rename the exposed input and update callers; nested and output fields are
+unaffected.
+"""
+
+
 def create_input_definition(func: Callable) -> ToolInput:
     """
     Create an input model for a function based on its parameters.
@@ -637,6 +646,12 @@ def create_input_definition(func: Callable) -> ToolInput:
             continue  # No further processing of this param (don't add it to the list of inputs)
 
         tool_field_info = extract_field_info(param)
+
+        if tool_field_info.name in RESERVED_TOOL_ARGUMENT_NAMES:
+            raise ToolInputSchemaError(
+                f"Tool argument '{tool_field_info.name}' is reserved for Arcade Engine use. "
+                "Rename the exposed argument in the function signature or its Annotated name metadata."
+            )
 
         # If the field has an explicit default in the signature, it is not required.
         # If the annotation is Optional[...], it is not required.

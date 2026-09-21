@@ -1,8 +1,9 @@
 from typing import Annotated
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
-from arcade_core.errors import ErrorKind, ToolDefinitionError
+from arcade_core.errors import ErrorKind, ToolDefinitionError, ToolInputSchemaError
+from arcade_core.toolkit import Toolkit
 from arcade_core.schema import (
     ToolCallError,
     ToolCallOutput,
@@ -127,6 +128,46 @@ def test_register_tool(base_worker_no_auth):
     tool_def = base_worker_no_auth.get_catalog()[0]
     assert tool_def.name == "SampleTool"
     assert tool_def.toolkit.name == "TestKit"
+
+
+@tool()
+def reserved_account_tool(connected_account: Annotated[str, "The account to use"]) -> str:
+    """A tool that collides with the reserved name."""
+    return connected_account
+
+
+def test_register_tool_rejects_reserved_argument_name(base_worker_no_auth):
+    with pytest.raises(ToolInputSchemaError) as exc_info:
+        base_worker_no_auth.register_tool(reserved_account_tool, toolkit_name="test_kit")
+
+    message = str(exc_info.value)
+    assert "connected_account" in message
+    assert "Arcade Engine" in message
+    assert "Rename" in message
+    assert len(base_worker_no_auth.catalog) == 0
+
+
+def test_register_toolkit_rejects_reserved_argument_name(base_worker_no_auth):
+    toolkit = Toolkit(
+        name="test_kit",
+        description="A test toolkit",
+        version="1.0.0",
+        package_name="test_kit",
+    )
+    toolkit.tools = {"tests.worker.test_worker_base": ["reserved_account_tool"]}
+
+    import sys
+
+    with patch("arcade_core.catalog.import_module", return_value=sys.modules[__name__]):
+        with pytest.raises(ToolInputSchemaError) as exc_info:
+            base_worker_no_auth.register_toolkit(toolkit)
+
+    message = str(exc_info.value)
+    assert "connected_account" in message
+    assert "Arcade Engine" in message
+    assert "Rename" in message
+    assert "reserved_account_tool" in message
+    assert len(base_worker_no_auth.catalog) == 0
 
 
 def test_get_catalog(base_worker_no_auth):
