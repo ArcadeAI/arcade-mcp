@@ -172,7 +172,7 @@ This means:
 
 Pre-built OAuth2 providers in `arcade_tdk.auth` (re-exported from `arcade_core.auth`):
 
-Asana, Atlassian, Attio, ClickUp, Discord, Dropbox, Figma, GitHub, Google, Hubspot, Linear, LinkedIn, Microsoft, Notion, OAuth2 (generic), PagerDuty, Reddit, Slack, Spotify, Twitch, X, Zoom
+Asana, Atlassian, Attio, Calendly, ClickUp, Discord, Dropbox, Figma, GitHub, Google, Hubspot, Linear, LinkedIn, Microsoft, MicrosoftPowerBI, Notion, OAuth2 (generic), PagerDuty, Reddit, Slack, Spotify, Twitch, X, Zoom
 
 Usage: `@tool(requires_auth=GitHub(scopes=["repo"]))`. For unlisted services, use `OAuth2(...)` directly with custom provider ID and scopes. Each provider includes an error adapter that maps provider-specific HTTP errors to `ToolRuntimeError` subclasses.
 

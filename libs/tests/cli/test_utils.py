@@ -1,5 +1,14 @@
+import textwrap
+from unittest.mock import patch
+
 import pytest
-from arcade_cli.utils import Provider, compute_base_url, resolve_provider_api_key
+from arcade_cli.utils import (
+    Provider,
+    compute_base_url,
+    create_cli_catalog_local,
+    resolve_provider_api_key,
+)
+from arcade_core.errors import ToolDefinitionError, ToolInputSchemaError
 
 DEFAULT_CLOUD_HOST = "cloud.arcade.dev"
 DEFAULT_ENGINE_HOST = "api.arcade.dev"
@@ -206,3 +215,152 @@ def test_resolve_provider_api_key(monkeypatch):
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     resolved_api_key = resolve_provider_api_key(Provider.OPENAI, None)
     assert resolved_api_key is None
+
+
+def _write_local_project(tmp_path, source: str, filename: str = "tools.py") -> None:
+    (tmp_path / "pyproject.toml").write_text("", encoding="utf-8")
+    (tmp_path / filename).write_text(textwrap.dedent(source), encoding="utf-8")
+
+
+def test_create_cli_catalog_local_plain_tool_missing_docstring(tmp_path, monkeypatch):
+    _write_local_project(
+        tmp_path,
+        """
+        from arcade_tdk import tool
+
+        @tool
+        def broken() -> str:
+            return "example"
+        """,
+    )
+    monkeypatch.chdir(tmp_path)
+
+    with patch("arcade_cli.utils._discover_installed_toolkits") as mock_fallback:
+        with pytest.raises(ToolDefinitionError, match="(?i)broken"):
+            create_cli_catalog_local()
+        mock_fallback.assert_not_called()
+
+
+def test_create_cli_catalog_local_app_tool_missing_docstring(tmp_path, monkeypatch):
+    _write_local_project(
+        tmp_path,
+        """
+        from arcade_mcp_server import MCPApp
+
+        app = MCPApp(name="Test")
+
+        @app.tool
+        def broken() -> str:
+            return "example"
+        """,
+    )
+    monkeypatch.chdir(tmp_path)
+
+    with patch("arcade_cli.utils._discover_installed_toolkits") as mock_fallback:
+        with pytest.raises(ToolDefinitionError, match="broken"):
+            create_cli_catalog_local()
+        mock_fallback.assert_not_called()
+
+
+def test_create_cli_catalog_local_mixed_valid_and_invalid_tools(tmp_path, monkeypatch):
+    (tmp_path / "pyproject.toml").write_text("", encoding="utf-8")
+    (tmp_path / "valid.py").write_text(
+        textwrap.dedent(
+            """
+            from arcade_tdk import tool
+
+            @tool
+            def ok() -> str:
+                \"\"\"A valid tool.\"\"\"
+                return "ok"
+            """
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "broken.py").write_text(
+        textwrap.dedent(
+            """
+            from arcade_mcp_server import MCPApp
+
+            app = MCPApp(name="Test")
+
+            @app.tool
+            def broken() -> str:
+                return "example"
+            """
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    with patch("arcade_cli.utils._discover_installed_toolkits") as mock_fallback:
+        with pytest.raises(ToolDefinitionError, match="broken"):
+            create_cli_catalog_local()
+        mock_fallback.assert_not_called()
+
+
+def test_create_cli_catalog_local_preserves_tool_input_schema_error(tmp_path, monkeypatch):
+    _write_local_project(
+        tmp_path,
+        """
+        from arcade_tdk import tool
+
+        @tool
+        def broken(param1: str) -> str:
+            \"\"\"Has a docstring.\"\"\"
+            return "example"
+        """,
+    )
+    monkeypatch.chdir(tmp_path)
+
+    with patch("arcade_cli.utils._discover_installed_toolkits") as mock_fallback:
+        with pytest.raises(ToolInputSchemaError, match="param1") as exc_info:
+            create_cli_catalog_local()
+        assert "missing a description" in str(exc_info.value)
+        mock_fallback.assert_not_called()
+
+
+def test_create_cli_catalog_local_valid_discovery(tmp_path, monkeypatch):
+    _write_local_project(
+        tmp_path,
+        """
+        from arcade_tdk import tool
+
+        @tool
+        def ok() -> str:
+            \"\"\"A valid tool.\"\"\"
+            return "ok"
+        """,
+    )
+    monkeypatch.chdir(tmp_path)
+
+    with patch("arcade_cli.utils._discover_installed_toolkits") as mock_fallback:
+        catalog = create_cli_catalog_local()
+        mock_fallback.assert_not_called()
+
+    assert [tool.definition.name for tool in catalog] == ["Ok"]
+
+
+def test_create_cli_catalog_local_falls_back_when_no_local_tools(tmp_path, monkeypatch):
+    (tmp_path / "pyproject.toml").write_text("", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+
+    with patch(
+        "arcade_cli.utils._discover_installed_toolkits", return_value="fallback"
+    ) as mock_fallback:
+        result = create_cli_catalog_local()
+
+    mock_fallback.assert_called_once()
+    assert result == "fallback"
+
+
+def test_create_cli_catalog_local_falls_back_when_pyproject_absent(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+
+    with patch(
+        "arcade_cli.utils._discover_installed_toolkits", return_value="fallback"
+    ) as mock_fallback:
+        result = create_cli_catalog_local()
+
+    mock_fallback.assert_called_once()
+    assert result == "fallback"

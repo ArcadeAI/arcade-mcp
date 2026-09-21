@@ -57,9 +57,9 @@ async def list_my_repos(context: Context) -> list[str]:
 
 When the tool is invoked through Arcade Cloud, the user is presented with a URL to complete the OAuth challenge in their browser. On success, the token is injected into `context` for that call. Subsequent calls reuse and refresh the token automatically.
 
-22 helper classes ship with the framework for popular providers:
+23 helper classes ship with the framework for popular providers:
 
-`Asana`, `Atlassian`, `Attio`, `ClickUp`, `Discord`, `Dropbox`, `Figma`, `GitHub`, `Google`, `Hubspot`, `Linear`, `LinkedIn`, `Microsoft`, `Notion`, `PagerDuty`, `Reddit`, `Slack`, `Spotify`, `Twitch`, `X`, `Zoom`.
+`Asana`, `Atlassian`, `Attio`, `Calendly`, `ClickUp`, `Discord`, `Dropbox`, `Figma`, `GitHub`, `Google`, `Hubspot`, `Linear`, `LinkedIn`, `Microsoft`, `MicrosoftPowerBI`, `Notion`, `PagerDuty`, `Reddit`, `Slack`, `Spotify`, `Twitch`, `X`, `Zoom`.
 
 For any other OAuth API, use the generic `OAuth2(...)` class and register your OAuth app in the Arcade Dashboard.
 
