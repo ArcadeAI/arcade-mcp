@@ -23,7 +23,7 @@ from arcade_core.discovery import (
     collect_tools_from_modules,
     find_candidate_tool_files,
 )
-from arcade_core.errors import ToolkitLoadError
+from arcade_core.errors import ToolDefinitionError, ToolkitLoadError
 from arcade_core.network.org_transport import build_org_scoped_http_client
 from arcade_core.schema import ToolDefinition
 from arcade_mcp_server.settings import find_env_file
@@ -471,6 +471,8 @@ def create_cli_catalog_local() -> ToolCatalog:
             if module.__name__ not in sys.modules:
                 sys.modules[module.__name__] = module
             catalog.add_tool(tool_func, toolkit, module)
+    except ToolDefinitionError:
+        raise
     except Exception as e:
         console.log(
             f"Local file discovery failed: {e}; falling back to installed toolkits",
