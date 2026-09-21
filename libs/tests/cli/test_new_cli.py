@@ -1,9 +1,50 @@
+from collections.abc import Callable
 from io import StringIO
 from pathlib import Path
 
 import pytest
+import toml
 from arcade_cli.new import create_new_toolkit, create_new_toolkit_minimal
+from packaging.requirements import Requirement
+from packaging.version import Version
 from rich.console import Console
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+
+
+def _get_requirement(dependencies: list[str], package_name: str) -> Requirement:
+    for dep in dependencies:
+        req = Requirement(dep)
+        if req.name == package_name:
+            return req
+    raise AssertionError(f"Missing dependency for {package_name!r}")
+
+
+def _assert_generated_runtime_and_dev_compatible(pyproject_path: Path) -> None:
+    """Generated runtime server pins must be installable with the generated arcade-mcp extra."""
+    generated = toml.load(pyproject_path)
+    root = toml.load(REPO_ROOT / "pyproject.toml")
+    server = toml.load(REPO_ROOT / "libs/arcade-mcp-server/pyproject.toml")
+
+    server_req = _get_requirement(generated["project"]["dependencies"], "arcade-mcp-server")
+    mcp_req = _get_requirement(generated["project"]["optional-dependencies"]["dev"], "arcade-mcp")
+    root_server_req = _get_requirement(root["project"]["dependencies"], "arcade-mcp-server")
+
+    mcp_version = Version(root["project"]["version"])
+    server_version = Version(server["project"]["version"])
+
+    assert mcp_version in mcp_req.specifier, (
+        "Generated arcade-mcp extra must include the current CLI version "
+        f"{mcp_version}; got {mcp_req.specifier!s}"
+    )
+    assert server_version in server_req.specifier, (
+        "Generated arcade-mcp-server pin must include the current server version "
+        f"{server_version}; got {server_req.specifier!s}"
+    )
+    assert server_version in root_server_req.specifier, (
+        "Current arcade-mcp requires arcade-mcp-server "
+        f"{root_server_req.specifier!s}, which must include {server_version}"
+    )
 
 
 def test_create_new_toolkit_prints_next_steps(tmp_path: Path) -> None:
@@ -60,6 +101,22 @@ def test_create_new_toolkit_full_template_matches_monorepo(tmp_path: Path) -> No
     # Makefile should not have pre-commit install
     makefile = (toolkit_dir / "Makefile").read_text()
     assert "pre-commit install" not in makefile
+
+
+@pytest.mark.parametrize(
+    ("create_fn", "toolkit_name"),
+    [
+        (create_new_toolkit, "full_deps"),
+        (create_new_toolkit_minimal, "min_deps"),
+    ],
+)
+def test_generated_runtime_and_dev_dependencies_are_compatible(
+    tmp_path: Path, create_fn: Callable[[str, str], None], toolkit_name: str
+) -> None:
+    output_dir = tmp_path / "generated"
+    output_dir.mkdir()
+    create_fn(str(output_dir), toolkit_name)
+    _assert_generated_runtime_and_dev_compatible(output_dir / toolkit_name / "pyproject.toml")
 
 
 def test_create_new_toolkit_minimal_with_spaces(tmp_path: Path) -> None:

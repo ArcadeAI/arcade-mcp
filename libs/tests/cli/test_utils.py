@@ -320,6 +320,29 @@ def test_create_cli_catalog_local_preserves_tool_input_schema_error(tmp_path, mo
         mock_fallback.assert_not_called()
 
 
+def test_create_cli_catalog_local_preserves_reserved_argument_error(tmp_path, monkeypatch):
+    _write_local_project(
+        tmp_path,
+        """
+        from typing import Annotated
+        from arcade_tdk import tool
+
+        @tool
+        def reserved(connected_account: Annotated[str, "The account to use"]) -> str:
+            \"\"\"A tool that collides with the reserved name.\"\"\"
+            return connected_account
+        """,
+    )
+    monkeypatch.chdir(tmp_path)
+
+    with patch("arcade_cli.utils._discover_installed_toolkits") as mock_fallback:
+        with pytest.raises(ToolInputSchemaError, match="connected_account") as exc_info:
+            create_cli_catalog_local()
+        assert "Arcade Engine" in str(exc_info.value)
+        assert "Rename" in str(exc_info.value)
+        mock_fallback.assert_not_called()
+
+
 def test_create_cli_catalog_local_valid_discovery(tmp_path, monkeypatch):
     _write_local_project(
         tmp_path,

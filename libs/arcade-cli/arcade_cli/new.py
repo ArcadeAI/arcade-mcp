@@ -15,11 +15,11 @@ try:
     ARCADE_MCP_MAX_VERSION = str(int(ARCADE_MCP_MIN_VERSION.split(".")[0]) + 1) + ".0.0"
 except Exception as e:
     console.print(f"[red]Failed to get arcade-mcp version: {e}[/red]")
-    ARCADE_MCP_MIN_VERSION = "1.10.0"  # Default version if unable to fetch
-    ARCADE_MCP_MAX_VERSION = "2.0.0"
+    ARCADE_MCP_MIN_VERSION = "2.0.0"  # Default version if unable to fetch
+    ARCADE_MCP_MAX_VERSION = "3.0.0"
 
-ARCADE_MCP_SERVER_MIN_VERSION = "1.17.0"
-ARCADE_MCP_SERVER_MAX_VERSION = "2.0.0"
+ARCADE_MCP_SERVER_MIN_VERSION = "2.0.0"
+ARCADE_MCP_SERVER_MAX_VERSION = "3.0.0"
 
 
 def render_template(env: Environment, template_string: str, context: dict) -> str:

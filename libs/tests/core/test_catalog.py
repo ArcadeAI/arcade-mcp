@@ -2,17 +2,29 @@ from typing import Annotated, Union
 from unittest.mock import MagicMock, patch
 
 import pytest
-from arcade_core.catalog import ToolCatalog
+from arcade_core.catalog import ToolCatalog, create_func_models, create_input_definition
 from arcade_core.errors import (
     ToolDefinitionError,
     ToolInputSchemaError,
     ToolkitLoadError,
     ToolOutputSchemaError,
 )
-from arcade_core.schema import FullyQualifiedName, ToolContext
+from arcade_core.schema import (
+    FullyQualifiedName,
+    InputParameter,
+    ToolContext,
+    ToolDefinition,
+    ToolInput,
+    ToolkitDefinition,
+    ToolOutput,
+    ToolRequirements,
+    ValueSchema,
+)
 from arcade_core.toolkit import Toolkit
+from arcade_mcp_server.context import Context
 from arcade_tdk import tool
-from pydantic import Field
+from arcade_tdk.auth import GitHub
+from pydantic import BaseModel, Field
 
 
 @tool
@@ -515,3 +527,300 @@ def test_add_toolkit_with_duplicate_tool():
         assert "Tool 'ValidTool' in server 'test_toolkit' already exists in the catalog." in str(
             exc_info.value
         )
+
+
+def _assert_reserved_argument_error(exc: BaseException) -> None:
+    message = str(exc)
+    assert "connected_account" in message
+    assert "Arcade Engine" in message
+    assert "Rename" in message
+
+
+@tool
+def tool_required_reserved_name(connected_account: Annotated[str, "The account to use"]) -> str:
+    """A tool whose exposed input uses the reserved name."""
+    return connected_account
+
+
+@tool
+def tool_optional_reserved_name(
+    connected_account: Annotated[str | None, "The account to use"] = None,
+) -> str:
+    """A tool whose optional reserved input defaults to None."""
+    return connected_account or ""
+
+
+@tool
+def tool_defaulted_reserved_name(
+    connected_account: Annotated[str, "The account to use"] = "acct",
+) -> str:
+    """A tool whose reserved input has a non-None default."""
+    return connected_account
+
+
+@tool
+def tool_alias_reserved_name(
+    value: Annotated[str, "connected_account", "Tool-owned value"],
+) -> str:
+    """A tool whose Annotated alias exposes the reserved name."""
+    return value
+
+
+@tool
+def tool_reserved_name_after_valid(
+    input_text: Annotated[str, "The text to process"],
+    connected_account: Annotated[str, "The account to use"],
+) -> str:
+    """A tool that places the reserved name after a valid input."""
+    return f"{input_text}:{connected_account}"
+
+
+@tool(requires_auth=GitHub())
+def tool_auth_reserved_name(connected_account: Annotated[str, "The account to use"]) -> str:
+    """An authorized tool whose exposed input uses the reserved name."""
+    return connected_account
+
+
+@tool
+def tool_permitted_alias(
+    connected_account: Annotated[str, "account_reference", "Tool-owned value"],
+) -> str:
+    """A tool that renames the reserved Python identifier to a permitted exposed name."""
+    return connected_account
+
+
+@tool
+def tool_near_match_connected_account_title(
+    Connected_account: Annotated[str, "Near-match title-case name"],
+) -> str:
+    """A tool whose exposed name differs only by case."""
+    return Connected_account
+
+
+@tool
+def tool_near_match_connected_accounts(
+    connected_accounts: Annotated[str, "Near-match plural name"],
+) -> str:
+    """A tool whose exposed name is a near match, not the reserved name."""
+    return connected_accounts
+
+
+@tool
+def tool_near_match_connected_account_id(
+    connected_account_id: Annotated[str, "Near-match suffixed name"],
+) -> str:
+    """A tool whose exposed name is a related but unreserved identifier."""
+    return connected_account_id
+
+
+@tool
+def tool_context_named_reserved(
+    connected_account: ToolContext,
+    input_text: Annotated[str, "The text to process"],
+) -> str:
+    """A tool whose injected ToolContext parameter uses the reserved Python name."""
+    return input_text
+
+
+@tool
+def tool_mcp_context_named_reserved(
+    connected_account: Context,
+    input_text: Annotated[str, "The text to process"],
+) -> str:
+    """A tool whose injected Context parameter uses the reserved Python name."""
+    return input_text
+
+
+class AccountPayload(BaseModel):
+    connected_account: str
+    note: str = "ok"
+
+
+@tool
+def tool_nested_reserved_field(payload: Annotated[AccountPayload, "Account payload"]) -> str:
+    """A tool with a nested model field named connected_account."""
+    return payload.connected_account
+
+
+class AccountResult(BaseModel):
+    connected_account: str
+
+
+@tool
+def tool_output_reserved_field() -> AccountResult:
+    """A tool whose output model includes connected_account."""
+    return AccountResult(connected_account="acct")
+
+
+@pytest.mark.parametrize(
+    "func",
+    [
+        tool_required_reserved_name,
+        tool_optional_reserved_name,
+        tool_defaulted_reserved_name,
+        tool_alias_reserved_name,
+        tool_reserved_name_after_valid,
+    ],
+)
+def test_create_input_definition_rejects_reserved_exposed_name(func):
+    with pytest.raises(ToolInputSchemaError) as exc_info:
+        create_input_definition(func)
+
+    _assert_reserved_argument_error(exc_info.value)
+
+
+@pytest.mark.parametrize(
+    "func",
+    [
+        tool_required_reserved_name,
+        tool_auth_reserved_name,
+    ],
+)
+def test_create_tool_definition_rejects_reserved_exposed_name(func):
+    with pytest.raises(ToolInputSchemaError) as exc_info:
+        ToolCatalog.create_tool_definition(func, "test_toolkit", "1.0.0")
+
+    _assert_reserved_argument_error(exc_info.value)
+    assert "in definition of tool" not in str(exc_info.value)
+
+
+def test_create_tool_definition_reserved_error_is_unwrapped():
+    with pytest.raises(ToolInputSchemaError) as exc_info:
+        ToolCatalog.create_tool_definition(tool_required_reserved_name, "test_toolkit")
+
+    _assert_reserved_argument_error(exc_info.value)
+    assert "in definition of tool" not in str(exc_info.value)
+
+
+def test_add_tool_rejects_reserved_name_and_does_not_insert():
+    catalog = ToolCatalog()
+
+    with pytest.raises(ToolInputSchemaError) as exc_info:
+        catalog.add_tool(tool_required_reserved_name, "test_toolkit")
+
+    _assert_reserved_argument_error(exc_info.value)
+    assert catalog.get_tool_count() == 0
+
+
+def test_add_toolkit_rejects_reserved_name_and_does_not_insert():
+    catalog = ToolCatalog()
+    test_toolkit = Toolkit(
+        name="test_toolkit",
+        description="A test toolkit",
+        version="1.0.0",
+        package_name="test_toolkit",
+    )
+    test_toolkit.tools = {"tests.core.test_catalog": ["tool_required_reserved_name"]}
+
+    import sys
+
+    with patch("arcade_core.catalog.import_module", return_value=sys.modules[__name__]):
+        with pytest.raises(ToolInputSchemaError) as exc_info:
+            catalog.add_toolkit(test_toolkit)
+
+    _assert_reserved_argument_error(exc_info.value)
+    assert "tool_required_reserved_name" in str(exc_info.value)
+    assert catalog.get_tool_count() == 0
+
+
+def test_permitted_alias_emits_account_reference():
+    definition = ToolCatalog.create_tool_definition(tool_permitted_alias, "test_toolkit", "1.0.0")
+
+    assert [parameter.name for parameter in definition.input.parameters] == ["account_reference"]
+    assert definition.input.parameters[0].required is True
+
+
+@pytest.mark.parametrize(
+    "func, expected_name",
+    [
+        (tool_near_match_connected_account_title, "Connected_account"),
+        (tool_near_match_connected_accounts, "connected_accounts"),
+        (tool_near_match_connected_account_id, "connected_account_id"),
+    ],
+)
+def test_near_match_exposed_names_are_accepted(func, expected_name: str):
+    definition = ToolCatalog.create_tool_definition(func, "test_toolkit", "1.0.0")
+    assert [parameter.name for parameter in definition.input.parameters] == [expected_name]
+
+
+def test_nested_connected_account_field_is_preserved():
+    definition = ToolCatalog.create_tool_definition(
+        tool_nested_reserved_field, "test_toolkit", "1.0.0"
+    )
+
+    payload_schema = definition.input.parameters[0].value_schema
+    assert payload_schema.properties is not None
+    assert "connected_account" in payload_schema.properties
+
+
+def test_output_connected_account_field_is_preserved():
+    definition = ToolCatalog.create_tool_definition(
+        tool_output_reserved_field, "test_toolkit", "1.0.0"
+    )
+
+    assert definition.output.value_schema is not None
+    assert definition.output.value_schema.properties is not None
+    assert "connected_account" in definition.output.value_schema.properties
+
+
+@pytest.mark.parametrize(
+    "func, context_name",
+    [
+        (tool_context_named_reserved, "connected_account"),
+        (tool_mcp_context_named_reserved, "connected_account"),
+    ],
+)
+def test_injected_context_named_connected_account_is_not_an_exposed_input(func, context_name):
+    definition = ToolCatalog.create_tool_definition(func, "test_toolkit", "1.0.0")
+
+    assert definition.input.tool_context_parameter_name == context_name
+    assert [parameter.name for parameter in definition.input.parameters] == ["input_text"]
+
+
+def test_valid_tool_still_registers_with_original_input_metadata():
+    catalog = ToolCatalog()
+    catalog.add_tool(valid_tool, "sample_toolkit")
+
+    materialized = catalog.get_tool(FullyQualifiedName("ValidTool", "SampleToolkit", None))
+    parameters = materialized.definition.input.parameters
+    assert [parameter.name for parameter in parameters] == ["input_text"]
+    assert parameters[0].description == "The text to process"
+    assert parameters[0].required is True
+    assert catalog.get_tool_count() == 1
+
+
+def test_create_func_models_does_not_apply_reserved_name_guard():
+    input_model, _output_model = create_func_models(tool_required_reserved_name)
+
+    assert "connected_account" in input_model.model_fields
+
+
+def test_raw_tool_definition_deserializes_connected_account_input():
+    payload = {
+        "name": "Sample",
+        "fully_qualified_name": "Test.Sample",
+        "description": "A sample",
+        "toolkit": {"name": "Test", "version": "1.0.0"},
+        "input": {
+            "parameters": [
+                {
+                    "name": "connected_account",
+                    "required": True,
+                    "description": "An account id",
+                    "value_schema": {"val_type": "string"},
+                }
+            ]
+        },
+        "output": {},
+        "requirements": {},
+    }
+
+    definition = ToolDefinition.model_validate(payload)
+
+    assert definition.input.parameters[0].name == "connected_account"
+    assert isinstance(definition.toolkit, ToolkitDefinition)
+    assert isinstance(definition.input, ToolInput)
+    assert isinstance(definition.output, ToolOutput)
+    assert isinstance(definition.requirements, ToolRequirements)
+    assert isinstance(definition.input.parameters[0], InputParameter)
+    assert definition.input.parameters[0].value_schema == ValueSchema(val_type="string")

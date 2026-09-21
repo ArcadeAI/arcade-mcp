@@ -104,6 +104,18 @@ def func_with_metadata_and_auth_dependency():
     pass
 
 
+@tool(desc="A function whose exposed input uses a reserved Engine argument name")
+def func_with_reserved_argument_name(connected_account: Annotated[str, "The account to use"]):
+    pass
+
+
+@tool(desc="A function whose Annotated alias exposes a reserved Engine argument name")
+def func_with_reserved_argument_alias(
+    value: Annotated[str, "connected_account", "Tool-owned value"],
+):
+    pass
+
+
 @pytest.mark.parametrize(
     "func_under_test, exception_type",
     [
@@ -187,8 +199,28 @@ def func_with_metadata_and_auth_dependency():
             ToolDefinitionError,
             id=func_with_union_return_type_2.__name__,
         ),
+        pytest.param(
+            func_with_reserved_argument_name,
+            ToolInputSchemaError,
+            id=func_with_reserved_argument_name.__name__,
+        ),
+        pytest.param(
+            func_with_reserved_argument_alias,
+            ToolInputSchemaError,
+            id=func_with_reserved_argument_alias.__name__,
+        ),
     ],
 )
 def test_missing_info_raises_error(func_under_test, exception_type):
     with pytest.raises(exception_type):
         ToolCatalog.create_tool_definition(func_under_test, "1.0")
+
+
+def test_reserved_argument_name_error_identifies_exposed_name():
+    with pytest.raises(ToolInputSchemaError) as exc_info:
+        ToolCatalog.create_tool_definition(func_with_reserved_argument_name, "1.0")
+
+    message = str(exc_info.value)
+    assert "connected_account" in message
+    assert "Arcade Engine" in message
+    assert "Rename" in message

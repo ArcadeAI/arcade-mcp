@@ -8,6 +8,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 from arcade_core.catalog import MaterializedTool, ToolDefinitionError
+from arcade_core.errors import ToolInputSchemaError
 from arcade_mcp_server import tool
 from arcade_mcp_server.mcp_app import MCPApp
 from arcade_mcp_server.server import MCPServer
@@ -1340,3 +1341,43 @@ class TestUnregisteredResourceDeclarations:
             loguru_logger.remove(sink)
 
         assert captured == []
+
+
+class TestMCPAppReservedArgumentNames:
+    """Reserved exposed input names fail at MCPApp registration."""
+
+    def test_tool_decorator_rejects_reserved_argument_name(self):
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        with pytest.raises(ToolInputSchemaError) as exc_info:
+
+            @app.tool
+            def reserved(connected_account: Annotated[str, "The account to use"]) -> str:
+                """A tool that collides with the reserved name."""
+                return connected_account
+
+        message = str(exc_info.value)
+        assert "reserved" in message
+        assert "connected_account" in message
+        assert "Arcade Engine" in message
+        assert "Rename" in message
+        assert len(app._catalog) == 0
+
+    def test_add_tool_rejects_reserved_argument_alias(self):
+        app = MCPApp(name="TestApp", version="1.0.0")
+
+        def reserved_alias(
+            value: Annotated[str, "connected_account", "Tool-owned value"],
+        ) -> str:
+            """A tool whose alias collides with the reserved name."""
+            return value
+
+        with pytest.raises(ToolInputSchemaError) as exc_info:
+            app.add_tool(reserved_alias)
+
+        message = str(exc_info.value)
+        assert "reserved_alias" in message
+        assert "connected_account" in message
+        assert "Arcade Engine" in message
+        assert "Rename" in message
+        assert len(app._catalog) == 0

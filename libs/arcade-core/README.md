@@ -38,6 +38,50 @@ catalog = ToolCatalog()
 toolkit = Toolkit.from_module(arcade_math)
 ```
 
+## Reserved tool argument names
+
+The top-level exposed input name `connected_account` is reserved for Arcade Engine use. A tool-owned argument with that exposed name would collide with the value the Engine injects for multi-account providers.
+
+Conflicting definitions now fail during definition building or registration with an actionable `ToolInputSchemaError`. Tool authors must rename the exposed input and update callers that send that input. Renaming only the Python parameter while keeping an `Annotated` alias of `connected_account` does not resolve the conflict.
+
+Nested data fields and output fields may still use this name. This reservation does not add account-selection functionality.
+
+### Migration
+
+Before — a tool-owned `connected_account` input:
+
+```python
+from typing import Annotated
+
+from arcade_tdk import tool
+
+
+@tool
+def lookup_inbox(connected_account: Annotated[str, "Account to look up"]) -> str:
+    """Look up an inbox by account."""
+    return connected_account
+```
+
+Callers send `{"connected_account": "..."}`.
+
+After — rename the exposed input and update the function body and caller payloads:
+
+```python
+from typing import Annotated
+
+from arcade_tdk import tool
+
+
+@tool
+def lookup_inbox(account_reference: Annotated[str, "Account to look up"]) -> str:
+    """Look up an inbox by account."""
+    return account_reference
+```
+
+Callers send `{"account_reference": "..."}`.
+
+The reserved name is the **exposed** input name: the Python parameter name, or the first string in `Annotated[type, "name", "description"]` when an alias is used. Changing only the Python identifier while aliasing `connected_account` still fails.
+
 ## License
 
 MIT License - see LICENSE file for details.
