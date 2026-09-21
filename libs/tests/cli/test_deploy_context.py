@@ -99,7 +99,7 @@ class TestCiDeploy:
 
         from arcade_cli.utils import get_auth_headers
 
-        assert get_auth_headers() == {"Authorization": "Bearer ci-key"}
+        assert get_auth_headers()["Authorization"] == "Bearer ci-key"
 
 
 class TestDeployTerminalStatus:

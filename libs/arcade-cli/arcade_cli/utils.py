@@ -706,7 +706,7 @@ def get_auth_headers(coordinator_url: str | None = None) -> dict[str, str]:
 
     ci_context = try_resolve_active_context()
     if ci_context is not None and ci_context.is_ci and ci_context.api_key:
-        return {"Authorization": f"Bearer {ci_context.api_key}"}
+        return {"Authorization": f"Bearer {ci_context.api_key}", **cli_version_headers()}
 
     config = validate_and_get_config()
     resolved_coordinator_url = (
@@ -721,7 +721,25 @@ def get_auth_headers(coordinator_url: str | None = None) -> dict[str, str]:
         handle_cli_error(str(e))
         raise AssertionError("unreachable")  # handle_cli_error raises CLIError
 
-    return {"Authorization": f"Bearer {access_token}"}
+    return {"Authorization": f"Bearer {access_token}", **cli_version_headers()}
+
+
+def cli_version_headers() -> dict[str, str]:
+    """Say which CLI sent the request, so the server can answer it differently.
+
+    Deployment status is the case in hand. A CLI older than 1.16 treats an
+    unrecognised terminal status as success and exits 0, so an installation
+    reporting one has to be able to tell those clients apart from the ones that
+    handle it. Whether any given installation reports it depends on the
+    deployment provider it runs, which the CLI cannot know.
+    """
+    from importlib import metadata
+
+    try:
+        version = metadata.version("arcade-mcp")
+    except Exception:
+        version = "unknown"
+    return {"User-Agent": f"arcade-cli/{version}", "X-Arcade-CLI-Version": version}
 
 
 def get_org_scoped_url(base_url: str, path: str) -> str:
