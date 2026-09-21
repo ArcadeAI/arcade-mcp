@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import typer
 
 from arcade_cli.authn import (
@@ -26,7 +28,7 @@ state: dict[str, str] = {"coordinator_url": ""}
 
 @app.callback()
 def main(
-    host: str = typer.Option(
+    host: str | None = typer.Option(
         None,
         "--host",
         "-h",

@@ -361,6 +361,15 @@ class Config(BaseConfig):
             self.active_context = "default"
         elif self.active_context and self.active_context in self.contexts:
             self.contexts[self.active_context] = self._to_named_context()
+        else:
+            # The active name is unset, or names a context the map no longer
+            # holds, so the flat fields have nowhere to be written back to.
+            # Adopt the name instead of dropping them: a token refreshed in
+            # memory would otherwise reach the file through the flat keys and
+            # then be ignored by the next load, which prefers the map.
+            name = self.active_context or "default"
+            self.active_context = name
+            self.contexts[name] = self._to_named_context()
 
         active = self._to_named_context()
         cloud = {

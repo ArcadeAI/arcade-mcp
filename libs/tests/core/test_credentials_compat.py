@@ -111,3 +111,45 @@ class TestOneConfigDirectory:
     def test_the_work_dir_is_the_config_directory(self, tmp_path, monkeypatch):
         monkeypatch.setenv("ARCADE_WORK_DIR", str(tmp_path))
         assert Config.get_config_dir_path() == tmp_path.resolve()
+
+
+class TestTheActiveContextIsAlwaysWritten:
+    """A save has to land somewhere the next load will look.
+
+    ``load_from_file`` prefers the contexts map, so state written only to the
+    flat keys is read back as whatever the map happens to hold instead.
+    """
+
+    def _orphaned(self, token: str) -> Config:
+        config = Config(contexts={"acme": _named()}, active_context="deleted-context")
+        fresh = _named()
+        fresh.auth.access_token = token
+        config._apply_named_context("default", fresh)
+        config.active_context = "deleted-context"
+        return config
+
+    def test_a_refreshed_token_survives_the_round_trip(self, config_home):
+        self._orphaned("refreshed").save_to_file()
+
+        assert Config.load_from_file().auth.access_token == "refreshed"
+
+    def test_the_active_name_is_kept_rather_than_replaced(self, config_home):
+        self._orphaned("refreshed").save_to_file()
+
+        cloud = yaml.safe_load(config_home.read_text())["cloud"]
+        assert cloud["active_context"] == "deleted-context"
+        assert cloud["contexts"]["deleted-context"]["auth"]["access_token"] == "refreshed"
+
+    def test_the_other_contexts_are_left_alone(self, config_home):
+        self._orphaned("refreshed").save_to_file()
+
+        assert "acme" in yaml.safe_load(config_home.read_text())["cloud"]["contexts"]
+
+    def test_an_unset_active_name_falls_back_to_default(self, config_home):
+        config = Config(contexts={"acme": _named()}, active_context=None)
+        config._apply_named_context("default", _named())
+        config.active_context = None
+
+        config.save_to_file()
+
+        assert Config.load_from_file().active_context == "default"
