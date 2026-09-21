@@ -8,7 +8,7 @@ from typing import Any, Optional
 
 import click
 import typer
-from arcade_core.constants import CREDENTIALS_FILE_PATH, PROD_COORDINATOR_HOST
+from arcade_core.constants import CREDENTIALS_FILE_PATH, LOCALHOST, PROD_COORDINATOR_HOST
 from arcade_core.subprocess_utils import get_windows_no_window_creationflags
 from arcadepy import Arcade
 
@@ -81,6 +81,7 @@ cli.add_typer(
 
 @cli.command(help="Log in to Arcade", rich_help_panel="User")
 def login(
+    ctx: typer.Context,
     url: Optional[str] = typer.Option(
         None,
         "--url",
@@ -97,7 +98,9 @@ def login(
         PROD_COORDINATOR_HOST,
         "-h",
         "--host",
-        help="The Arcade Coordinator host to log in to.",
+        help="Legacy. The Arcade Coordinator host to log in to. Prefer --url, which "
+        "discovers the installation's engine and dashboard too. Still the way to reach "
+        "a local coordinator that serves no discovery document.",
     ),
     port: Optional[int] = typer.Option(
         None,
@@ -122,6 +125,9 @@ def login(
     # the CLI loads the project's env file, so a repo that sets ARCADE_URL for
     # its server would otherwise divert a plain Cloud login to discovery.
     resolved_url = url or _startup_environment.value(ARCADE_URL_ENV)
+
+    if resolved_url is None:
+        _warn_if_host_supersedes_url(ctx, host)
 
     if resolved_url:
         _login_with_url(resolved_url, context_name, timeout, debug)
@@ -255,6 +261,32 @@ def _login_with_url(
         console.print("\nLogin cancelled.", style="yellow")
     except Exception as e:
         handle_cli_error("Login failed", e, debug)
+
+
+def _warn_if_host_supersedes_url(ctx: typer.Context, host: str) -> None:
+    """Point a --host login at --url, which saves a usable context.
+
+    --host names a coordinator and nothing else, so the context it saves has no
+    engine and no dashboard, and commands that need those fall back to Cloud.
+    --url reads the installation's discovery document and records all three.
+
+    Left alone: the default, which is Cloud and correct, and a local
+    coordinator, which serves no discovery document for --url to read.
+    """
+    if ctx.get_parameter_source("host") != click.core.ParameterSource.COMMANDLINE:
+        return
+    if _is_local_host(host):
+        return
+
+    console.print(
+        f"[yellow]--host is legacy. 'arcade login --url https://{host}' reads the "
+        "installation's discovery document and saves its engine and dashboard too; "
+        "--host records only the coordinator.[/yellow]"
+    )
+
+
+def _is_local_host(host: str) -> bool:
+    return host.split(":", 1)[0].lower() in {LOCALHOST, "127.0.0.1", "::1", "0.0.0.0"}  # noqa: S104
 
 
 @cli.command(help="Log out of Arcade", rich_help_panel="User")

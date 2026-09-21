@@ -225,3 +225,54 @@ class TestDashboardWithoutAnEngine:
 
         dashboard(host=None, port=None, local=False, force_tls=False, force_no_tls=False, debug=False)
         assert opened["url"] == "https://dash.acme.internal"
+
+
+class TestHostIsDeprecatedInFavourOfUrl:
+    """--host records only a coordinator; --url records the whole installation.
+
+    The warning fires on an explicit non-local --host. It stays quiet for the
+    default, which is Cloud and correct, and for a local coordinator, which
+    serves no discovery document for --url to read.
+    """
+
+    def _warn(self, source_is_commandline: bool, host: str) -> str:
+        import click
+        from rich.console import Console
+
+        from arcade_cli import main as cli_main
+
+        class Ctx:
+            def get_parameter_source(self, _name):
+                return (
+                    click.core.ParameterSource.COMMANDLINE
+                    if source_is_commandline
+                    else click.core.ParameterSource.DEFAULT
+                )
+
+        recorder = Console(record=True, width=200)
+        original = cli_main.console
+        cli_main.console = recorder
+        try:
+            cli_main._warn_if_host_supersedes_url(Ctx(), host)
+        finally:
+            cli_main.console = original
+        return recorder.export_text()
+
+    def test_an_explicit_remote_host_is_warned_about(self):
+        assert "--host is legacy" in self._warn(True, "cloud.acme.internal")
+
+    def test_the_warning_names_the_url_command_to_use(self):
+        assert "arcade login --url https://cloud.acme.internal" in self._warn(
+            True, "cloud.acme.internal"
+        )
+
+    def test_the_cloud_default_is_not_warned_about(self):
+        from arcade_core.constants import PROD_COORDINATOR_HOST
+
+        assert self._warn(False, PROD_COORDINATOR_HOST).strip() == ""
+
+    def test_a_local_coordinator_is_not_warned_about(self):
+        assert self._warn(True, "localhost").strip() == ""
+
+    def test_a_local_coordinator_with_a_port_is_not_warned_about(self):
+        assert self._warn(True, "127.0.0.1:8000").strip() == ""
