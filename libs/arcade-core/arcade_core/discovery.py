@@ -15,6 +15,7 @@ from typing import Any
 from loguru import logger
 
 from arcade_core.catalog import ToolCatalog
+from arcade_core.errors import ToolDefinitionError
 from arcade_core.parse import get_resources_from_file, get_tools_from_file
 from arcade_core.toolkit import Toolkit, ToolkitLoadError
 
@@ -112,6 +113,9 @@ def load_module_from_path(file_path: Path) -> ModuleType:
         module = importlib.util.module_from_spec(spec)
         try:
             spec.loader.exec_module(module)
+        except ToolDefinitionError:
+            logger.error(f"Invalid tool definition in {file_path}")
+            raise
         except Exception:
             logger.exception(f"Failed to load {file_path}")
             raise ToolkitLoadError(f"Failed to load {file_path}")
