@@ -291,11 +291,17 @@ def _value_schema_to_json_schema(value_schema: Any) -> dict[str, Any]:
         return _apply_nullable(schema, value_schema)
 
     schema = {"type": _map_type_to_json_schema_type(val_type)}
-    if getattr(value_schema, "enum", None):
+    # On an array, ValueSchema.enum is an allow-list for the elements, not for the
+    # array itself. Emitting it at the array level asserts that the whole array
+    # equals one of the values, which no array ever satisfies.
+    is_array = val_type == "array"
+    if getattr(value_schema, "enum", None) and not is_array:
         schema["enum"] = list(value_schema.enum)
-    if val_type == "array" and getattr(value_schema, "inner_val_type", None):
+    if is_array and getattr(value_schema, "inner_val_type", None):
         inner_type = value_schema.inner_val_type
         items_schema: dict[str, Any] = {"type": _map_type_to_json_schema_type(inner_type)}
+        if getattr(value_schema, "enum", None):
+            items_schema["enum"] = list(value_schema.enum)
         if inner_type == "json" and getattr(value_schema, "inner_properties", None) is not None:
             items_schema["properties"] = {}
             for prop_name, prop_schema in value_schema.inner_properties.items():

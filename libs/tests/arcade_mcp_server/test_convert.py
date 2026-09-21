@@ -2,7 +2,8 @@
 
 import base64
 import json
-from typing import Annotated
+from enum import Enum
+from typing import Annotated, Literal, TypedDict
 
 import pytest
 from arcade_core.catalog import MaterializedTool, ToolCatalog, ToolMeta, create_func_models
@@ -616,6 +617,104 @@ class TestCreateMCPTool:
         assert schema is not None
         assert schema["type"] == "object"
         assert schema["properties"]["result"]["enum"] == ["a", "b", "c"]
+
+    def test_output_schema_array_enum_lands_on_items(self):
+        """An array's enum constrains its elements, so it belongs on items."""
+        mcp_tool = self._make_tool_with_output(
+            ValueSchema(val_type="array", inner_val_type="string", enum=["a", "b"])
+        )
+        schema = mcp_tool.outputSchema
+
+        assert schema is not None
+        result_prop = schema["properties"]["result"]
+        assert result_prop["type"] == "array"
+        assert result_prop["items"] == {"type": "string", "enum": ["a", "b"]}
+        assert "enum" not in result_prop
+
+    def test_input_schema_array_enum_lands_on_items(self):
+        """An array parameter's enum belongs on items, same as for output."""
+        mcp_tool = self._make_tool_with_param(
+            ValueSchema(val_type="array", inner_val_type="string", enum=["a", "b"])
+        )
+        param_schema = mcp_tool.inputSchema["properties"]["param"]
+
+        assert param_schema["type"] == "array"
+        assert param_schema["items"]["enum"] == ["a", "b"]
+        assert "enum" not in param_schema
+
+    def test_output_schema_nullable_array_enum_keeps_elements_non_null(self):
+        """A nullable array may be null; its allowed elements are unchanged."""
+        mcp_tool = self._make_tool_with_output(
+            ValueSchema(val_type="array", inner_val_type="string", enum=["a", "b"], nullable=True)
+        )
+        result_prop = mcp_tool.outputSchema["properties"]["result"]
+
+        assert result_prop["type"] == ["array", "null"]
+        assert result_prop["items"]["enum"] == ["a", "b"]
+
+    def _mcp_tool_from_func(self, func):
+        """Helper to materialize a real @tool function through ToolCatalog."""
+        tool_def = ToolCatalog().create_tool_definition(
+            func, toolkit_name="test", toolkit_version="1.0"
+        )
+        input_model, output_model = create_func_models(func)
+        mat_tool = MaterializedTool(
+            tool=func,
+            definition=tool_def,
+            meta=ToolMeta(module=func.__module__, toolkit="test"),
+            input_model=input_model,
+            output_model=output_model,
+        )
+        return create_mcp_tool(mat_tool)
+
+    def test_output_schema_list_of_literal_constrains_elements(self):
+        """A list[Literal] return type must publish a schema its own values satisfy."""
+
+        @tool
+        def f() -> Annotated[list[Literal["is_read", "flag_status"]], "changed"]:
+            """Test tool."""
+            return ["is_read"]
+
+        result_prop = self._mcp_tool_from_func(f).outputSchema["properties"]["result"]
+
+        assert result_prop["type"] == "array"
+        assert result_prop["items"] == {"type": "string", "enum": ["is_read", "flag_status"]}
+        assert "enum" not in result_prop
+
+    def test_output_schema_list_of_enum_constrains_elements(self):
+        """A list[Enum] return type reaches the same path as list[Literal]."""
+
+        class ChangedField(str, Enum):
+            IS_READ = "is_read"
+            FLAG_STATUS = "flag_status"
+
+        @tool
+        def f() -> Annotated[list[ChangedField], "changed"]:
+            """Test tool."""
+            return [ChangedField.IS_READ]
+
+        result_prop = self._mcp_tool_from_func(f).outputSchema["properties"]["result"]
+
+        assert result_prop["type"] == "array"
+        assert result_prop["items"] == {"type": "string", "enum": ["is_read", "flag_status"]}
+        assert "enum" not in result_prop
+
+    def test_output_schema_nested_list_of_literal_constrains_elements(self):
+        """A list[Literal] field of an object output recurses through the same fix."""
+
+        class Result(TypedDict):
+            changed: list[Literal["is_read", "flag_status"]]
+
+        @tool
+        def f() -> Annotated[Result, "result"]:
+            """Test tool."""
+            return {"changed": ["is_read"]}
+
+        changed = self._mcp_tool_from_func(f).outputSchema["properties"]["changed"]
+
+        assert changed["type"] == "array"
+        assert changed["items"] == {"type": "string", "enum": ["is_read", "flag_status"]}
+        assert "enum" not in changed
 
     def test_output_schema_json_type_not_wrapped(self):
         """Object (json) output types are already type 'object', not wrapped."""
