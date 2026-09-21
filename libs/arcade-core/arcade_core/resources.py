@@ -9,7 +9,9 @@ from __future__ import annotations
 
 import base64
 import binascii
+import hashlib
 import inspect
+import json
 import re
 import sys
 from bisect import bisect_right, insort
@@ -30,7 +32,7 @@ from arcade_core.utils import normalize_toolkit_name, strip_arcade_prefix
 
 DEFAULT_PAGE_SIZE = 250
 
-_CURSOR_PREFIX = "after:"
+_CURSOR_PREFIX = "catalog:"
 
 #: The scheme a tool's user interface is addressed under. Hosts that render an
 #: interface require it and refuse anything else.
@@ -54,35 +56,24 @@ class ResourceNotFoundError(KeyError):
     """Raised when no resource is registered at the requested URI."""
 
 
-def encode_cursor(last_uri: str) -> str:
-    """A cursor names the last URI served, not how many were served before it.
-
-    A worker runs as several processes and a page can be served by a different
-    one than issued the cursor. An index is only the same position in both when
-    both hold the same URIs, and they do not: a toolkit version lives in the
-    URI, so mid-rollout one replica holds ``ui://Math/1.1.0/x`` where another
-    holds ``ui://Math/1.0.0/x``. The same offset then skips, repeats, or ends
-    the listing early. A URI is the same position in any replica that has it,
-    and a resume point in any replica that does not.
-
-    Opaque to callers, so the encoding can still change freely.
-    """
-    raw = f"{_CURSOR_PREFIX}{last_uri}".encode()
+def encode_cursor(last_uri: str, catalog_digest: str) -> str:
+    """Bind an opaque resume point to the listing descriptors that issued it."""
+    raw = f"{_CURSOR_PREFIX}{catalog_digest}:{last_uri}".encode()
     return base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
 
 
-def decode_cursor(cursor: str) -> str:
+def decode_cursor(cursor: str) -> tuple[str, str]:
     padding = "=" * (-len(cursor) % 4)
     try:
-        raw = base64.urlsafe_b64decode(cursor + padding).decode("utf-8")
+        raw = base64.b64decode(cursor + padding, altchars=b"-_", validate=True).decode("utf-8")
     except (binascii.Error, UnicodeDecodeError, ValueError) as exc:
         raise InvalidCursorError(f"malformed cursor: {cursor!r}") from exc
     if not raw.startswith(_CURSOR_PREFIX):
         raise InvalidCursorError(f"malformed cursor: {cursor!r}")
-    last_uri = raw[len(_CURSOR_PREFIX) :]
-    if not last_uri:
+    catalog_digest, _, last_uri = raw[len(_CURSOR_PREFIX) :].partition(":")
+    if not re.fullmatch(r"[0-9a-f]{64}", catalog_digest) or not last_uri:
         raise InvalidCursorError(f"malformed cursor: {cursor!r}")
-    return last_uri
+    return last_uri, catalog_digest
 
 
 #: RFC 3986 scheme. Without this, ``scheme="ui://Slack/9.0.0"`` parses as the
@@ -528,21 +519,40 @@ class ResourceRegistry:
     def list(self, cursor: str | None = None) -> tuple[list[Resource], str | None]:
         """Return one page of resources and the cursor for the next, if any.
 
-        A worker registers once at startup and lists on every request, so the
-        ordering cost sits on the write. ``add`` keeps ``_uris`` sorted and this
-        is a slice.
-
-        Ordering is by URI so a cursor keeps its meaning when the next page is
-        served by a different process. A worker can run as several processes
-        behind one address, and none of them shares insertion order.
-
-        The cursor names a URI and the resume point is found with a binary
-        search, so a replica that does not hold that exact URI still resumes
-        after where it would sort rather than at some unrelated index.
+        Equivalent catalogs can continue across replicas regardless of insertion
+        order. Changed listing descriptors invalidate the cursor: callers must
+        discard their partial list and start again, not combine different catalogs.
+        This does not snapshot resource bodies. Older, URI-only cursors are refused.
         """
-        start = bisect_right(self._uris, decode_cursor(cursor)) if cursor else 0
+        catalog_digest = ""
+        if cursor or len(self._uris) > self.page_size:
+            # Resource models are mutable, including nested metadata. Recompute
+            # from the published descriptors rather than caching stale identity.
+            digest = hashlib.sha256()
+            for uri in self._uris:
+                descriptor = self._resources[uri].resource.model_dump(
+                    mode="json", by_alias=True, exclude_none=True
+                )
+                digest.update(
+                    json.dumps(descriptor, sort_keys=True, separators=(",", ":")).encode()
+                )
+                digest.update(b"\n")
+            catalog_digest = digest.hexdigest()
+
+        start = 0
+        if cursor:
+            last_uri, expected_digest = decode_cursor(cursor)
+            if expected_digest != catalog_digest:
+                raise InvalidCursorError(
+                    "resource catalog changed; restart listing without a cursor"
+                )
+            if last_uri not in self._resources:
+                raise InvalidCursorError("cursor does not name a registered resource")
+            start = bisect_right(self._uris, last_uri)
         end = start + self.page_size
         window = self._uris[start:end]
         page = [self._resources[uri].resource for uri in window]
-        next_cursor = encode_cursor(window[-1]) if window and end < len(self._uris) else None
+        next_cursor = (
+            encode_cursor(window[-1], catalog_digest) if window and end < len(self._uris) else None
+        )
         return page, next_cursor
