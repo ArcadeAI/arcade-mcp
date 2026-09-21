@@ -98,9 +98,8 @@ def login(
         PROD_COORDINATOR_HOST,
         "-h",
         "--host",
-        help="Legacy. The Arcade Coordinator host to log in to. Prefer --url, which "
-        "discovers the installation's engine and dashboard too. Still the way to reach "
-        "a local coordinator that serves no discovery document.",
+        help="Legacy, use --url instead. Still the way to reach a local coordinator, "
+        "which serves no discovery document.",
     ),
     port: Optional[int] = typer.Option(
         None,
@@ -278,11 +277,7 @@ def _warn_if_host_supersedes_url(ctx: typer.Context, host: str) -> None:
     if _is_local_host(host):
         return
 
-    console.print(
-        f"[yellow]--host is legacy. 'arcade login --url https://{host}' reads the "
-        "installation's discovery document and saves its engine and dashboard too; "
-        "--host records only the coordinator.[/yellow]"
-    )
+    console.print("[yellow]--host is legacy, use --url instead.[/yellow]")
 
 
 def _is_local_host(host: str) -> bool:
