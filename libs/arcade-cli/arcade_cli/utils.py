@@ -622,13 +622,13 @@ def resolve_coordinator_base_url(
 
 
 def get_tools_from_engine(
-    host: str,
+    host: str | None = None,
     port: int | None = None,
     force_tls: bool = False,
     force_no_tls: bool = False,
     toolkit: str | None = None,
 ) -> list[ToolDefinition]:
-    base_url = compute_base_url(force_tls, force_no_tls, host, port)
+    base_url = resolve_engine_base_url(host, port, force_tls, force_no_tls)
     client = get_arcade_client(base_url)
 
     tools = []

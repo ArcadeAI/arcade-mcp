@@ -8,7 +8,7 @@ from typing import Any, Optional
 
 import click
 import typer
-from arcade_core.constants import CREDENTIALS_FILE_PATH, PROD_COORDINATOR_HOST, PROD_ENGINE_HOST
+from arcade_core.constants import CREDENTIALS_FILE_PATH, PROD_COORDINATOR_HOST
 from arcade_core.subprocess_utils import get_windows_no_window_creationflags
 from arcadepy import Arcade
 
@@ -23,6 +23,7 @@ from arcade_cli.authn import (
     save_credentials_from_whoami,
 )
 from arcade_cli.console import console
+from arcade_cli.context import kind_for_urls, try_resolve_active_context
 from arcade_cli.contexts_cmd import app as context_app
 from arcade_cli.evals_runner import run_capture, run_evaluations
 from arcade_cli.org import app as org_app
@@ -35,7 +36,6 @@ from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
     ModelSpec,
     Provider,
-    compute_base_url,
     expand_provider_configs,
     get_default_model,
     get_eval_files,
@@ -45,6 +45,7 @@ from arcade_cli.utils import (
     parse_output_paths,
     parse_provider_spec,
     require_dependency,
+    resolve_engine_base_url,
     resolve_provider_api_keys,
     version_callback,
 )
@@ -137,7 +138,15 @@ def login(
         )
 
         save_credentials_from_whoami(
-            result.tokens, result.whoami, coordinator_url, context_name=target_context
+            result.tokens,
+            result.whoami,
+            coordinator_url,
+            context_name=target_context,
+            # Infer rather than assume. With no --host this is the Cloud
+            # coordinator and still resolves to "cloud"; with one it decides by
+            # the host actually reached, so a self-hosted login is not labelled
+            # Cloud and left unguarded.
+            kind=kind_for_urls(coordinator_url),
         )
 
         console.print(f"\n✅ Logged in as {result.email}.", style="bold green")
@@ -476,11 +485,12 @@ def show(
     tool: Optional[str] = typer.Option(
         None, "-t", "--tool", help="The specific tool to show details for"
     ),
-    host: str = typer.Option(
-        PROD_ENGINE_HOST,
+    host: Optional[str] = typer.Option(
+        None,
         "-h",
         "--host",
-        help="The Arcade Engine address to show the tools/servers of.",
+        help="The Arcade Engine address to show the tools/servers of. Defaults to the "
+        "active context's engine.",
     ),
     local: bool = typer.Option(
         False,
@@ -1161,11 +1171,12 @@ def upgrade(
 
 @cli.command(help="Open the Arcade Dashboard in a web browser", rich_help_panel="User")
 def dashboard(
-    host: str = typer.Option(
-        PROD_ENGINE_HOST,
+    host: Optional[str] = typer.Option(
+        None,
         "-h",
         "--host",
-        help="The Arcade Engine host that serves the dashboard.",
+        help="The Arcade Engine host that serves the dashboard. Defaults to the active "
+        "context's dashboard, or its engine.",
     ),
     port: Optional[int] = typer.Option(
         None,
@@ -1199,9 +1210,20 @@ def dashboard(
         if local:
             host = "localhost"
 
-        # Construct base URL (for both health check and dashboard)
-        base_url = compute_base_url(force_tls, force_no_tls, host, port)
-        dashboard_url = f"{base_url}/dashboard"
+        # A context saved from a discovery document names its own dashboard,
+        # which need not live under the engine. Prefer it when the user has not
+        # named a host themselves.
+        context_dashboard = None
+        if host is None:
+            active = try_resolve_active_context()
+            context_dashboard = active.dashboard_url if active else None
+
+        if context_dashboard:
+            base_url = context_dashboard.rstrip("/")
+            dashboard_url = base_url
+        else:
+            base_url = resolve_engine_base_url(host, port, force_tls, force_no_tls)
+            dashboard_url = f"{base_url}/dashboard"
 
         # Try to hit /health endpoint on engine and warn if it is down
         with Arcade(api_key="", base_url=base_url) as client:

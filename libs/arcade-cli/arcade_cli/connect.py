@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import Any, cast
 
 import httpx
-from arcade_core.constants import PROD_COORDINATOR_HOST, PROD_ENGINE_HOST
 
 from arcade_cli.console import console
 
@@ -199,8 +198,9 @@ def ensure_login(coordinator_url: str | None = None) -> str:
         perform_oauth_login,
         save_credentials_from_whoami,
     )
+    from arcade_cli.utils import resolve_coordinator_base_url
 
-    resolved_url = coordinator_url or f"https://{PROD_COORDINATOR_HOST}"
+    resolved_url = coordinator_url or resolve_coordinator_base_url(None, None, False, False)
 
     if check_existing_login(suppress_message=True):
         return get_valid_access_token(resolved_url)
@@ -243,9 +243,9 @@ def fetch_available_toolkits(
 
     from arcadepy import NOT_GIVEN, APIConnectionError
 
-    from arcade_cli.utils import compute_base_url, get_arcade_client
+    from arcade_cli.utils import get_arcade_client, resolve_engine_base_url
 
-    url = base_url or compute_base_url(False, False, PROD_ENGINE_HOST, None, default_port=None)
+    url = base_url or resolve_engine_base_url(None, None, False, False, default_port=None)
     if debug:
         console.print(f"  [dim]Connecting to Arcade Engine at {url}[/dim]")
     client = get_arcade_client(url)
@@ -297,9 +297,9 @@ def list_gateways(
     Returns a list of gateway dicts (each with ``id``, ``slug``, ``name``,
     ``tool_filter``, etc.).
     """
-    from arcade_cli.utils import compute_base_url, get_org_project_context
+    from arcade_cli.utils import get_org_project_context, resolve_engine_base_url
 
-    url = base_url or compute_base_url(False, False, PROD_ENGINE_HOST, None, default_port=None)
+    url = base_url or resolve_engine_base_url(None, None, False, False, default_port=None)
     org_id, project_id = get_org_project_context()
 
     endpoint = f"{url}/v1/orgs/{org_id}/projects/{project_id}/gateways"
@@ -367,9 +367,9 @@ def create_gateway(
 
     Returns the gateway response dict (with ``slug``, ``id``, ``name``, etc.).
     """
-    from arcade_cli.utils import compute_base_url, get_org_project_context
+    from arcade_cli.utils import get_org_project_context, resolve_engine_base_url
 
-    url = base_url or compute_base_url(False, False, PROD_ENGINE_HOST, None, default_port=None)
+    url = base_url or resolve_engine_base_url(None, None, False, False, default_port=None)
     org_id, project_id = get_org_project_context()
 
     endpoint = f"{url}/v1/orgs/{org_id}/projects/{project_id}/gateways"
@@ -721,9 +721,9 @@ def _configure_gateway(
     Defaults to *slug* if not provided.
     """
     from arcade_cli.configure import configure_client_gateway
-    from arcade_cli.utils import compute_base_url
+    from arcade_cli.utils import resolve_engine_base_url
 
-    api_base = compute_base_url(False, False, PROD_ENGINE_HOST, None, default_port=None)
+    api_base = resolve_engine_base_url(None, None, False, False, default_port=None)
     gateway_url = f"{api_base}/mcp/{slug}"
     server_name = name or slug
 
