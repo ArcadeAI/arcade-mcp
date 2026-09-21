@@ -281,7 +281,16 @@ def _warn_if_host_supersedes_url(ctx: typer.Context, host: str) -> None:
 
 
 def _is_local_host(host: str) -> bool:
-    return host.split(":", 1)[0].lower() in {LOCALHOST, "127.0.0.1", "::1", "0.0.0.0"}  # noqa: S104
+    candidate = host.strip().lower()
+    if candidate.startswith("["):
+        # [::1] or [::1]:8000 -- the brackets are what separate an IPv6 address
+        # from its port.
+        candidate = candidate[1:].partition("]")[0]
+    elif candidate.count(":") == 1:
+        # host:port. A bare IPv6 address has more than one colon and no port,
+        # so splitting on the first colon would destroy it.
+        candidate = candidate.partition(":")[0]
+    return candidate in {LOCALHOST, "127.0.0.1", "::1", "0.0.0.0"}  # noqa: S104
 
 
 @cli.command(help="Log out of Arcade", rich_help_panel="User")

@@ -274,3 +274,18 @@ class TestHostIsDeprecatedInFavourOfUrl:
 
     def test_a_local_coordinator_with_a_port_is_not_warned_about(self):
         assert self._warn(True, "127.0.0.1:8000").strip() == ""
+
+    @pytest.mark.parametrize(
+        "host",
+        ["localhost", "localhost:8000", "127.0.0.1", "127.0.0.1:8000", "0.0.0.0", "::1",
+         "[::1]", "[::1]:8000"],
+    )
+    def test_every_local_form_is_quiet(self, host):
+        assert self._warn(True, host).strip() == ""
+
+    @pytest.mark.parametrize(
+        "host",
+        ["cloud.acme.internal", "cloud.acme.internal:8443", "2001:db8::1", "[2001:db8::1]:8443"],
+    )
+    def test_every_remote_form_is_warned_about(self, host):
+        assert "--host is legacy" in self._warn(True, host)
