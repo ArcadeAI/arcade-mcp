@@ -1218,20 +1218,34 @@ def dashboard(
         # which need not live under the engine. Prefer it when the user has not
         # named a host themselves.
         context_dashboard = None
+        context_engine = None
         if host is None:
             active = try_resolve_active_context()
-            context_dashboard = active.dashboard_url if active else None
+            if active is not None:
+                context_dashboard = active.dashboard_url
+                context_engine = active.engine_url
 
-        # The health check always speaks to the engine. A discovered dashboard
-        # can live on its own host, which serves no engine health endpoint.
-        base_url = resolve_engine_base_url(host, port, force_tls, force_no_tls)
-        dashboard_url = (
-            context_dashboard.rstrip("/") if context_dashboard else f"{base_url}/dashboard"
-        )
+        if context_dashboard and not context_engine:
+            # A discovery document names a coordinator and may name a dashboard
+            # without naming an engine. There is nothing to health-check, and
+            # resolving one would fall back to the Cloud engine, which is both
+            # wrong for this installation and refused by the guard. Open the
+            # dashboard we were given.
+            base_url = None
+            dashboard_url = context_dashboard.rstrip("/")
+        else:
+            # The health check always speaks to the engine. A discovered
+            # dashboard can live on its own host, which serves no engine health
+            # endpoint.
+            base_url = resolve_engine_base_url(host, port, force_tls, force_no_tls)
+            dashboard_url = (
+                context_dashboard.rstrip("/") if context_dashboard else f"{base_url}/dashboard"
+            )
 
         # Try to hit /health endpoint on engine and warn if it is down
-        with Arcade(api_key="", base_url=base_url) as client:
-            log_engine_health(client)
+        if base_url is not None:
+            with Arcade(api_key="", base_url=base_url) as client:
+                log_engine_health(client)
 
         # Open the dashboard in a browser
         console.print(f"Opening Arcade Dashboard at {dashboard_url}")

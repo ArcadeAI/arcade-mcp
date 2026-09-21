@@ -164,3 +164,64 @@ class TestLoginReadsThePinnedEnvironment:
         monkeypatch.setenv("ARCADE_URL", "https://someone-elses-installation.example")
 
         assert _startup_environment.value("ARCADE_URL") is None
+
+
+class TestDashboardWithoutAnEngine:
+    """A discovery document need not name an engine.
+
+    Only the coordinator is required at login, so a context can carry a
+    dashboard URL and no engine. Resolving an engine there would fall back to
+    Arcade Cloud, which the guard refuses -- taking the dashboard down with it.
+    """
+
+    @pytest.fixture
+    def dashboard_only(self, tmp_path, monkeypatch):
+        import yaml
+
+        doc = {
+            "cloud": {
+                "active_context": "acme",
+                "contexts": {
+                    "acme": {
+                        "kind": "self_hosted",
+                        "coordinator_url": "https://cloud.acme.internal",
+                        "dashboard_url": "https://dash.acme.internal",
+                        "auth": {
+                            "access_token": "tok",
+                            "refresh_token": "r",
+                            "expires_at": "2099-01-01T00:00:00",
+                        },
+                    }
+                },
+            }
+        }
+        (tmp_path / "credentials.yaml").write_text(yaml.dump(doc))
+        monkeypatch.setenv("ARCADE_WORK_DIR", str(tmp_path))
+        monkeypatch.setattr(
+            "arcade_core.config_model.Config.get_config_file_path",
+            classmethod(lambda cls: tmp_path / "credentials.yaml"),
+        )
+        monkeypatch.delenv("ARCADE_URL", raising=False)
+        monkeypatch.delenv("ARCADE_API_KEY", raising=False)
+
+    def test_the_context_really_has_no_engine(self, dashboard_only):
+        from arcade_cli.context import resolve_active_context
+
+        ctx = resolve_active_context()
+        assert ctx.dashboard_url == "https://dash.acme.internal"
+        assert ctx.engine_url is None
+
+    def test_resolving_an_engine_there_would_be_refused(self, dashboard_only):
+        from arcade_cli.context import NoCloudGuardError
+        from arcade_cli.utils import resolve_engine_base_url
+
+        with pytest.raises(NoCloudGuardError):
+            resolve_engine_base_url(None, None, False, False)
+
+    def test_the_dashboard_still_opens(self, dashboard_only, monkeypatch):
+        opened = {}
+        monkeypatch.setattr("arcade_cli.main._open_browser", lambda u: opened.setdefault("url", u) or True)
+        from arcade_cli.main import dashboard
+
+        dashboard(host=None, port=None, local=False, force_tls=False, force_no_tls=False, debug=False)
+        assert opened["url"] == "https://dash.acme.internal"
