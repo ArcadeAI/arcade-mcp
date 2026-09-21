@@ -115,9 +115,13 @@ def login(
     """
     Logs the user into Arcade using OAuth.
     """
+    from arcade_cli import _startup_environment
     from arcade_cli.context import ARCADE_URL_ENV
 
-    resolved_url = url or os.environ.get(ARCADE_URL_ENV)
+    # The snapshot taken at package import, not the live environment: importing
+    # the CLI loads the project's env file, so a repo that sets ARCADE_URL for
+    # its server would otherwise divert a plain Cloud login to discovery.
+    resolved_url = url or _startup_environment.value(ARCADE_URL_ENV)
 
     if resolved_url:
         _login_with_url(resolved_url, context_name, timeout, debug)
@@ -1218,12 +1222,12 @@ def dashboard(
             active = try_resolve_active_context()
             context_dashboard = active.dashboard_url if active else None
 
-        if context_dashboard:
-            base_url = context_dashboard.rstrip("/")
-            dashboard_url = base_url
-        else:
-            base_url = resolve_engine_base_url(host, port, force_tls, force_no_tls)
-            dashboard_url = f"{base_url}/dashboard"
+        # The health check always speaks to the engine. A discovered dashboard
+        # can live on its own host, which serves no engine health endpoint.
+        base_url = resolve_engine_base_url(host, port, force_tls, force_no_tls)
+        dashboard_url = (
+            context_dashboard.rstrip("/") if context_dashboard else f"{base_url}/dashboard"
+        )
 
         # Try to hit /health endpoint on engine and warn if it is down
         with Arcade(api_key="", base_url=base_url) as client:

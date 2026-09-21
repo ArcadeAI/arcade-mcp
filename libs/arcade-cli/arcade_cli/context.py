@@ -58,7 +58,9 @@ class DiscoveryDocument(BaseModel):
 
 def _normalize_install_url(install_url: str) -> str:
     url = install_url.strip()
-    if not urlparse(url).scheme:
+    # urlparse reads "engine.internal:8443" as scheme "engine.internal", so a
+    # host and port would be left without one and called as a bare string.
+    if "://" not in url:
         url = f"https://{url}"
     return url.rstrip("/")
 

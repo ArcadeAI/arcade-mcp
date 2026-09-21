@@ -113,3 +113,54 @@ class TestKindIsInferredNotAssumed:
         from arcade_core.constants import PROD_COORDINATOR_HOST
 
         assert kind_for_urls(f"https://{PROD_COORDINATOR_HOST}") == "cloud"
+
+
+class TestInstallUrlNormalisation:
+    """A host and port is not a scheme.
+
+    ``urlparse`` reads "engine.internal:8443" as scheme "engine.internal", so a
+    check on its ``scheme`` leaves such a value bare and it is later called as
+    though it were a URL.
+    """
+
+    def test_a_host_and_port_gains_a_scheme(self):
+        from arcade_cli.context import _normalize_install_url
+
+        assert _normalize_install_url("engine.internal:8443") == "https://engine.internal:8443"
+
+    def test_a_localhost_port_gains_a_scheme(self):
+        from arcade_cli.context import _normalize_install_url
+
+        assert _normalize_install_url("localhost:9099") == "https://localhost:9099"
+
+    def test_an_explicit_scheme_is_left_alone(self):
+        from arcade_cli.context import _normalize_install_url
+
+        assert _normalize_install_url("http://engine.internal:8443") == (
+            "http://engine.internal:8443"
+        )
+
+    def test_a_bare_host_still_gains_one(self):
+        from arcade_cli.context import _normalize_install_url
+
+        assert _normalize_install_url("engine.internal") == "https://engine.internal"
+
+
+class TestLoginReadsThePinnedEnvironment:
+    """Importing the CLI loads a project env file before any command body runs.
+
+    A repo that sets ARCADE_URL for its own server would otherwise divert a
+    plain Cloud login onto the discovery path.
+    """
+
+    def test_login_uses_the_startup_snapshot_not_the_live_value(self, monkeypatch):
+        from arcade_cli import _startup_environment
+
+        monkeypatch.delenv("ARCADE_URL", raising=False)
+        _startup_environment.forget()
+        _startup_environment.capture()
+
+        # What a project .env does part-way through the process.
+        monkeypatch.setenv("ARCADE_URL", "https://someone-elses-installation.example")
+
+        assert _startup_environment.value("ARCADE_URL") is None
