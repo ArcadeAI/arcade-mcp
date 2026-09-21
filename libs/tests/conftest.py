@@ -4,6 +4,15 @@ This conftest.py is at the root of the tests directory and applies to all test m
 """
 
 import os
+import tempfile
+
+# Point the config directory at a throwaway path before anything imports
+# arcade_core. ARCADE_CONFIG_PATH is bound at import, so a fixture cannot
+# redirect it later -- a test that reaches for the constant would write to the
+# developer's real credentials file. Covers every way the suite is started,
+# including the single-test command in CLAUDE.md, not just `make test`.
+_test_config_dir = tempfile.TemporaryDirectory(prefix="arcade-test-config-")
+os.environ.setdefault("ARCADE_WORK_DIR", _test_config_dir.name)
 
 import pytest
 

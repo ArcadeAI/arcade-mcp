@@ -68,9 +68,22 @@ class TestConfigMigration:
         Config.load_from_file().save_to_file()
 
         raw = yaml.safe_load((work_dir / "credentials.yaml").read_text())
-        assert set(raw["cloud"].keys()) == {"active_context", "contexts"}
         assert raw["cloud"]["active_context"] == "default"
         assert "default" in raw["cloud"]["contexts"]
+
+    def test_migrated_file_still_reads_to_an_older_core(self, work_dir: Path):
+        # The active context is written in the flat shape as well. An
+        # arcade-core that predates named contexts ignores the keys it does not
+        # know and still finds its credentials, so downgrading does not present
+        # the user as logged out.
+        _write_credentials(work_dir, _legacy_cloud())
+
+        Config.load_from_file().save_to_file()
+
+        cloud = yaml.safe_load((work_dir / "credentials.yaml").read_text())["cloud"]
+        assert cloud["auth"]["access_token"] == _legacy_cloud()["auth"]["access_token"]
+        assert cloud["user"]["email"] == _legacy_cloud()["user"]["email"]
+        assert cloud["context"]["org_id"] == _legacy_cloud()["context"]["org_id"]
 
     def test_round_trip_preserves_auth(self, work_dir: Path):
         _write_credentials(work_dir, _legacy_cloud())

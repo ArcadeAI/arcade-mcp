@@ -178,7 +178,24 @@ def try_resolve_active_context() -> ResolvedContext | None:
 
 
 def guard_no_cloud(url: str) -> None:
-    ctx = try_resolve_active_context()
+    try:
+        ctx: ResolvedContext | None = resolve_active_context()
+    except FileNotFoundError:
+        # No credentials at all. Nothing has claimed to be self-hosted, so there
+        # is nothing to protect -- a first `arcade login` has to be able to run.
+        ctx = None
+    except Exception as e:
+        # A context file exists but could not be read. Whether it named a
+        # self-hosted installation is exactly what we cannot tell, so refuse the
+        # Cloud host rather than silently dropping the protection.
+        if is_cloud_host(_hostname(url)):
+            raise NoCloudGuardError(
+                f"Refusing to contact the Arcade Cloud host '{_hostname(url)}' because the "
+                f"active context could not be read: {e} Fix the credentials file, or run "
+                "'arcade logout' and log in again, to make the target explicit."
+            ) from e
+        return
+
     if ctx is None or not ctx.is_self_hosted:
         return
     if is_cloud_host(_hostname(url)):

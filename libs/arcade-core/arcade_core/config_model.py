@@ -8,6 +8,8 @@ from typing import Any, Literal
 import yaml
 from pydantic import BaseModel, ConfigDict, ValidationError
 
+from arcade_core.constants import arcade_config_path
+
 ContextKind = Literal["cloud", "self_hosted"]
 
 logger = logging.getLogger(__name__)
@@ -253,8 +255,7 @@ class Config(BaseConfig):
         """
         Get the path to the Arcade configuration directory.
         """
-        config_path = os.getenv("ARCADE_WORK_DIR") or Path.home() / ".arcade"
-        return Path(config_path).resolve()
+        return Path(arcade_config_path()).resolve()
 
     @classmethod
     def get_config_file_path(cls) -> Path:
@@ -361,12 +362,19 @@ class Config(BaseConfig):
         elif self.active_context and self.active_context in self.contexts:
             self.contexts[self.active_context] = self._to_named_context()
 
+        active = self._to_named_context()
         cloud = {
             "active_context": self.active_context,
             "contexts": {
                 name: ctx.model_dump(exclude_none=True, mode="json")
                 for name, ctx in self.contexts.items()
             },
+            # The active context is also written in the pre-contexts flat shape.
+            # ``load_from_file`` prefers ``contexts`` when present and overwrites
+            # these, so new readers are unaffected; older arcade-core, which
+            # ignores unknown keys, still finds the credentials it expects
+            # instead of reading the file as logged out.
+            **active.model_dump(exclude_none=True, mode="json"),
         }
         data = {"cloud": cloud}
         config_file_path.write_text(yaml.dump(data, default_flow_style=False), encoding="utf-8")

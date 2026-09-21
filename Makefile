@@ -32,7 +32,7 @@ check-libs: ## Run code quality tools for each lib package
 .PHONY: test
 test: install ## Test the code with pytest
 	@echo "🚀 Testing libs: Running pytest"
-	@ARCADE_WORK_DIR=$$(mktemp -d) uv run pytest -W ignore -v libs/tests --cov=libs --cov-config=pyproject.toml --cov-report=xml
+	@uv run pytest -W ignore -v libs/tests --cov=libs --cov-config=pyproject.toml --cov-report=xml
 
 .PHONY: test-libs
 test-libs: ## Test each lib package individually
