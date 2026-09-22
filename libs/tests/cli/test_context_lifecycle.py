@@ -560,3 +560,23 @@ class TestASelectionNeverWritesToTheWrongContext:
         assert saved["contexts"]["onprem"]["auth"]["access_token"] == "ONPREM-NEW"
         assert saved["contexts"]["cloud1"]["auth"]["access_token"] == "CLOUD"
         assert saved["active_context"] == "cloud1"
+
+    def test_logout_under_a_selection_ends_the_selected_session(self, two, monkeypatch):
+        """Not the saved default, which the invocation did not ask about.
+
+        Fixed incidentally when active_context became the name of the context
+        the loaded fields came from. Pinned here because nothing else states
+        it, and an earlier arrangement got this exactly backwards.
+        """
+        from arcade_cli.context import override_context
+        from arcade_cli.main import logout
+
+        # logout checks the path constant before loading; point both at the
+        # same file or it decides nobody is logged in.
+        monkeypatch.setattr("arcade_cli.main.CREDENTIALS_FILE_PATH", str(two))
+        override_context("onprem")
+        logout(all_contexts=False, debug=False)
+
+        saved = self._saved(two)
+        assert sorted(saved["contexts"]) == ["cloud1"]
+        assert saved["active_context"] == "cloud1"
