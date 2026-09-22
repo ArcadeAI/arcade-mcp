@@ -205,6 +205,36 @@ class Config(BaseConfig):
             raise ValueError(f"Context '{name}' not found. Available contexts: {available}.")
         self._apply_named_context(name, self.contexts[name])
 
+    def remove_context(self, name: str) -> bool:
+        """Drop a saved context. Returns whether anything remains after it.
+
+        Removing the active one leaves the config pointing at another context
+        when there is one, so the next command has somewhere to go rather than
+        resolving against a name that is no longer there.
+        """
+        if not self.contexts or name not in self.contexts:
+            available = ", ".join(sorted(self.contexts)) if self.contexts else "none"
+            raise ValueError(f"Context '{name}' not found. Available contexts: {available}.")
+
+        del self.contexts[name]
+        if self.active_context != name:
+            return True
+
+        remaining = sorted(self.contexts)
+        if remaining:
+            self._apply_named_context(remaining[0], self.contexts[remaining[0]])
+            return True
+
+        self.active_context = None
+        self.auth = None
+        self.user = None
+        self.context = None
+        self.api_key = None
+        self.engine_url = None
+        self.coordinator_url = None
+        self.dashboard_url = None
+        return False
+
     def list_context_names(self) -> list[str]:
         return sorted(self.contexts) if self.contexts else []
 

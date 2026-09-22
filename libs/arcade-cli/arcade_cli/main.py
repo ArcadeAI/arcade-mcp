@@ -295,18 +295,30 @@ def _is_local_host(host: str) -> bool:
 
 @cli.command(help="Log out of Arcade", rich_help_panel="User")
 def logout(
+    all_contexts: bool = typer.Option(
+        False,
+        "--all",
+        help="Log out of every saved context and delete the credentials file.",
+    ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
     Logs the user out of Arcade.
+
+    login signs in to one installation, so logout signs out of one: the active
+    context. --all is how you discard every saved context at once, which is
+    what this command used to do unconditionally.
     """
     try:
-        # If the credentials file exists, delete it
-        if os.path.exists(CREDENTIALS_FILE_PATH):
-            os.remove(CREDENTIALS_FILE_PATH)
-            console.print("You're now logged out.", style="bold")
-        else:
+        if not os.path.exists(CREDENTIALS_FILE_PATH):
             console.print("You're not logged in.", style="bold red")
+            return
+
+        if not all_contexts and _logout_active_context(debug):
+            return
+
+        os.remove(CREDENTIALS_FILE_PATH)
+        console.print("You're now logged out.", style="bold")
     except PermissionError:
         # On Windows, the file may be locked by another process.
         handle_cli_error(
@@ -316,6 +328,41 @@ def logout(
         )
     except Exception as e:
         handle_cli_error("Logout failed", e, debug)
+
+
+def _logout_active_context(debug: bool) -> bool:
+    """Remove the active context. Returns False when the whole file should go.
+
+    A credentials file with no contexts left is not worth keeping, and a file
+    this CLI cannot read is not worth editing -- both fall back to deleting it,
+    which is what --all does explicitly.
+    """
+    from arcade_core.config_model import Config
+
+    try:
+        config = Config.load_from_file()
+    except Exception as e:
+        if debug:
+            console.print(f"Debug: could not read contexts, removing the file: {e}", style="dim")
+        return False
+
+    name = config.active_context
+    if name is None or not config.contexts:
+        return False
+
+    try:
+        anything_left = config.remove_context(name)
+    except ValueError:
+        return False
+
+    if not anything_left:
+        return False
+
+    config.save_to_file()
+    console.print(f"Logged out of context '{name}'.", style="bold")
+    console.print(f"Active context is now '{config.active_context}'.", style="dim")
+    console.print("Use 'arcade logout --all' to log out of every context.", style="dim")
+    return True
 
 
 @cli.command(help="Show current login status and active context", rich_help_panel="User")
@@ -1297,6 +1344,12 @@ def dashboard(
 @cli.callback()
 def main_callback(
     ctx: typer.Context,
+    context_name: Optional[str] = typer.Option(
+        None,
+        "--context",
+        help="Run against this saved context instead of the active one. "
+        "Also reads the ARCADE_CONTEXT environment variable.",
+    ),
     _: Optional[bool] = typer.Option(
         None,
         "-v",
@@ -1306,6 +1359,12 @@ def main_callback(
         help="Print version and exit.",
     ),
 ) -> None:
+    # Applies to whichever subcommand follows, so a script can target one
+    # installation without switching the active context for everything else.
+    from arcade_cli.context import override_context
+
+    override_context(context_name)
+
     # Background update check + notification (skip for update/upgrade/mcp to avoid
     # corrupting MCP stdio protocol with non-JSON output)
     if ctx.invoked_subcommand not in {update.__name__, upgrade.__name__, mcp.__name__}:

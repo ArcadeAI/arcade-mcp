@@ -2,6 +2,7 @@ import os
 
 ARCADE_URL_ENV = "ARCADE_URL"
 ARCADE_API_KEY_ENV = "ARCADE_API_KEY"
+ARCADE_CONTEXT_ENV = "ARCADE_CONTEXT"
 
 _captured: dict[str, str | None] | None = None
 
@@ -12,6 +13,7 @@ def capture() -> None:
         _captured = {
             ARCADE_URL_ENV: os.environ.get(ARCADE_URL_ENV),
             ARCADE_API_KEY_ENV: os.environ.get(ARCADE_API_KEY_ENV),
+            ARCADE_CONTEXT_ENV: os.environ.get(ARCADE_CONTEXT_ENV),
         }
 
 

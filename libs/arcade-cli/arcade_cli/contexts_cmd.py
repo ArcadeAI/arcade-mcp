@@ -4,6 +4,7 @@ import typer
 from arcade_core.config_model import Config, NamedContext
 from rich.table import Table
 
+from arcade_cli.authn import DEFAULT_OAUTH_TIMEOUT_SECONDS
 from arcade_cli.console import console
 from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import handle_cli_error
@@ -104,3 +105,51 @@ def context_show(
     if ctx.context:
         console.print(f"  Organization: {ctx.context.org_name}")
         console.print(f"  Project: {ctx.context.project_name}")
+
+
+@app.command("delete", help="Delete a saved context")
+def context_delete(
+    name: str = typer.Argument(..., help="Name of the context to delete"),
+) -> None:
+    config = _load_config()
+
+    try:
+        anything_left = config.remove_context(name)
+    except ValueError as e:
+        handle_cli_error(str(e))
+        return
+
+    config.save_to_file()
+    console.print(f"✓ Deleted context: {name}", style="bold green")
+    if anything_left:
+        console.print(f"Active context is now '{config.active_context}'.", style="dim")
+    else:
+        console.print(
+            "That was the last context. Run 'arcade login' to sign in again.", style="dim"
+        )
+
+
+@app.command("add", help="Log in to an installation and save it as a context")
+def context_add(
+    url: str = typer.Argument(..., help="Installation URL to log in to"),
+    name: str | None = typer.Option(
+        None,
+        "--context",
+        "--context-name",
+        help="Name to save the context under (defaults to the installation host).",
+    ),
+    timeout: int = typer.Option(
+        DEFAULT_OAUTH_TIMEOUT_SECONDS,
+        "--timeout",
+        help="Seconds to wait for the local login callback.",
+    ),
+    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
+) -> None:
+    """Reach a new installation from the same noun that lists and switches them.
+
+    This is 'arcade login --url' under another name, so that a context has one
+    place to be added, switched, inspected and removed.
+    """
+    from arcade_cli.main import _login_with_url
+
+    _login_with_url(url, name, timeout, debug)

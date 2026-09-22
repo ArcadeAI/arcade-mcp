@@ -15,6 +15,11 @@ DISCOVERY_PATH = "/.well-known/arcade"
 
 ARCADE_URL_ENV = "ARCADE_URL"
 ARCADE_API_KEY_ENV = "ARCADE_API_KEY"
+ARCADE_CONTEXT_ENV = "ARCADE_CONTEXT"
+
+# Set by a --context flag for the length of one command. Takes precedence over
+# ARCADE_CONTEXT, which in turn takes precedence over the saved active context.
+_context_override: str | None = None
 
 
 class DiscoveryError(Exception):
@@ -152,12 +157,32 @@ def resolve_ci_context() -> ResolvedContext | None:
     )
 
 
+def override_context(name: str | None) -> None:
+    """Choose the context for this invocation, ahead of the saved active one."""
+    global _context_override
+    _context_override = name
+
+
+def selected_context_name() -> str | None:
+    """The context a flag or the environment asked for, if either did."""
+    from arcade_cli import _startup_environment
+
+    return _context_override or _startup_environment.value(ARCADE_CONTEXT_ENV)
+
+
 def resolve_active_context() -> ResolvedContext:
     ci = resolve_ci_context()
     if ci is not None:
         return ci
 
     config = Config.load_from_file()
+
+    selected = selected_context_name()
+    if selected is not None:
+        # An explicit choice that does not exist is a mistake worth reporting,
+        # not something to silently paper over with the active context.
+        config.use_context(selected)
+
     name = config.active_context or "default"
     return ResolvedContext(
         name=name,
