@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 import yaml
-from pydantic import BaseModel, ConfigDict, ValidationError
+from pydantic import BaseModel, ConfigDict, PrivateAttr, ValidationError
 
 from arcade_core.constants import arcade_config_path
 
@@ -194,6 +194,12 @@ class Config(BaseConfig):
 
     active_context: str | None = None
 
+    # A context chosen for this invocation only. The flat fields below hold its
+    # values, but active_context keeps whatever the file said, so a save -- a
+    # token refresh, most often -- writes back into the chosen context without
+    # making it the saved default.
+    _ephemeral_context: str | None = PrivateAttr(default=None)
+
     def __init__(self, **data: Any):
         super().__init__(**data)
 
@@ -227,10 +233,23 @@ class Config(BaseConfig):
         self._apply_named_context(name, self.contexts[name])
 
     def _apply_selected_context(self) -> None:
-        """Honour a context chosen for this invocation. Unknown names raise."""
+        """Honour a context chosen for this invocation. Unknown names raise.
+
+        Deliberately not use_context: that records a new saved default, and a
+        choice made for one command must not outlive it.
+        """
         chosen = selected_context()
-        if chosen is not None:
-            self.use_context(chosen)
+        if chosen is None:
+            return
+
+        if not self.contexts or chosen not in self.contexts:
+            available = ", ".join(sorted(self.contexts)) if self.contexts else "none"
+            raise ValueError(f"Context '{chosen}' not found. Available contexts: {available}.")
+
+        saved_active = self.active_context
+        self._apply_named_context(chosen, self.contexts[chosen])
+        self.active_context = saved_active
+        self._ephemeral_context = chosen
 
     def remove_context(self, name: str) -> bool:
         """Drop a saved context. Returns whether anything remains after it.
@@ -420,11 +439,16 @@ class Config(BaseConfig):
         Config.ensure_config_dir_exists()
         config_file_path = Config.get_config_file_path()
 
+        # The flat fields belong to whichever context was chosen for this
+        # invocation, falling back to the saved active one. A token refreshed
+        # under --context belongs to that context, not to the saved default.
+        target = self._ephemeral_context or self.active_context
+
         if not self.contexts:
             self.contexts = {"default": self._to_named_context()}
             self.active_context = "default"
-        elif self.active_context and self.active_context in self.contexts:
-            self.contexts[self.active_context] = self._to_named_context()
+        elif target and target in self.contexts:
+            self.contexts[target] = self._to_named_context()
         else:
             # The active name is unset, or names a context the map no longer
             # holds, so the flat fields have nowhere to be written back to.

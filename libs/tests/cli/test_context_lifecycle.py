@@ -298,3 +298,93 @@ class TestTheSelectedContextSuppliesCredentialsToo:
 
     def test_a_plain_load_sees_the_selection(self, two_installations):
         assert Config.load_from_file().auth.access_token == "ONPREM-TOKEN"
+
+
+class TestTheSelectionLastsOneInvocation:
+    """--context targets an installation without adopting it.
+
+    The flat fields hold the chosen context, so a save -- a token refresh,
+    most often -- has to write back into that context while leaving the saved
+    default alone. Copying the choice into active_context would make one
+    command's target everything's target from then on.
+    """
+
+    @pytest.fixture
+    def saved_on_cloud(self, tmp_path, monkeypatch):
+        def ctx(token, kind, engine):
+            return {
+                "kind": kind,
+                "engine_url": engine,
+                "auth": {
+                    "access_token": token,
+                    "refresh_token": "r",
+                    "expires_at": "2099-01-01T00:00:00",
+                },
+                "user": {"email": "me@example.com"},
+            }
+
+        path = tmp_path / "credentials.yaml"
+        path.write_text(
+            yaml.dump(
+                {
+                    "cloud": {
+                        "active_context": "cloud1",
+                        "contexts": {
+                            "cloud1": ctx("CLOUD", "cloud", "https://api.arcade.dev"),
+                            "onprem": ctx("ONPREM", "self_hosted", "https://api.acme.internal"),
+                        },
+                    }
+                }
+            )
+        )
+        monkeypatch.setattr(Config, "get_config_file_path", classmethod(lambda cls: path))
+        monkeypatch.setattr(Config, "ensure_config_dir_exists", staticmethod(lambda: None))
+        return path
+
+    def _saved(self, path):
+        return yaml.safe_load(path.read_text())["cloud"]
+
+    def test_a_save_does_not_adopt_the_chosen_context(self, saved_on_cloud):
+        from arcade_core.config_model import select_context
+
+        select_context("onprem")
+        Config.load_from_file().save_to_file()
+
+        assert self._saved(saved_on_cloud)["active_context"] == "cloud1"
+
+    def test_a_refreshed_token_lands_in_the_chosen_context(self, saved_on_cloud):
+        from arcade_core.config_model import select_context
+
+        select_context("onprem")
+        config = Config.load_from_file()
+        config.auth.access_token = "ONPREM-REFRESHED"
+        config.save_to_file()
+
+        saved = self._saved(saved_on_cloud)
+        assert saved["contexts"]["onprem"]["auth"]["access_token"] == "ONPREM-REFRESHED"
+
+    def test_a_refreshed_token_does_not_land_in_the_saved_default(self, saved_on_cloud):
+        from arcade_core.config_model import select_context
+
+        select_context("onprem")
+        config = Config.load_from_file()
+        config.auth.access_token = "ONPREM-REFRESHED"
+        config.save_to_file()
+
+        assert self._saved(saved_on_cloud)["contexts"]["cloud1"]["auth"]["access_token"] == "CLOUD"
+
+    def test_without_a_selection_a_save_still_updates_the_active_context(self, saved_on_cloud):
+        config = Config.load_from_file()
+        config.auth.access_token = "CLOUD-REFRESHED"
+        config.save_to_file()
+
+        saved = self._saved(saved_on_cloud)
+        assert saved["active_context"] == "cloud1"
+        assert saved["contexts"]["cloud1"]["auth"]["access_token"] == "CLOUD-REFRESHED"
+
+    def test_context_set_still_changes_the_saved_default(self, saved_on_cloud):
+        config = Config.load_from_file()
+        config.use_context("onprem")
+        config.save_to_file()
+
+        assert self._saved(saved_on_cloud)["active_context"] == "onprem"
