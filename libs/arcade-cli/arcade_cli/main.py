@@ -422,7 +422,7 @@ cli.add_typer(
 cli.add_typer(
     context_app,
     name="context",
-    help="Manage installation contexts (list, set, show)",
+    help="Manage installation contexts",
     rich_help_panel="User",
 )
 

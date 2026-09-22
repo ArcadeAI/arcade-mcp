@@ -28,7 +28,7 @@ def main(
         None,
         "--host",
         "-h",
-        help="The Arcade Coordinator host.",
+        help="The Arcade Coordinator host. Defaults to the active context's coordinator.",
     ),
     port: int = typer.Option(
         None,
