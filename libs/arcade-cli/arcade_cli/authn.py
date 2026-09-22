@@ -874,7 +874,7 @@ def check_existing_login(
                     f"The active context is still '{config.active_context}'.", style="dim"
                 )
                 console.print("\nTo make it the active context, use ", end="")
-                console.print(f"arcade context use {context_name}", style="bold green", end="")
+                console.print(f"arcade context set {context_name}", style="bold green", end="")
                 console.print(".\n")
             return True
 

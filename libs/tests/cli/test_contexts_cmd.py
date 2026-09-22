@@ -105,3 +105,49 @@ class TestContextCommands:
         assert "dev@acme.internal" in result.output
         assert "Acme" in result.output
         assert "tools" in result.output
+
+
+class TestSetIsTheCommandName:
+    """org and project both use `set`; context followed them.
+
+    `use` stays as a hidden alias so anything already written against it keeps
+    working, but it is out of --help so the pattern reads consistently.
+    """
+
+    def test_set_switches_the_active_context(self, tmp_path, monkeypatch):
+        import yaml
+        from arcade_core.config_model import Config
+
+        from arcade_cli.contexts_cmd import context_set
+
+        path = tmp_path / "credentials.yaml"
+        path.write_text(
+            yaml.dump(
+                {
+                    "cloud": {
+                        "active_context": "one",
+                        "contexts": {"one": {"kind": "cloud"}, "two": {"kind": "self_hosted"}},
+                    }
+                }
+            )
+        )
+        monkeypatch.setattr(Config, "get_config_file_path", classmethod(lambda cls: path))
+        monkeypatch.setattr(Config, "ensure_config_dir_exists", staticmethod(lambda: None))
+
+        context_set("two")
+
+        assert yaml.safe_load(path.read_text())["cloud"]["active_context"] == "two"
+
+    def test_use_is_still_accepted(self):
+        from arcade_cli.contexts_cmd import app
+
+        names = {c.name for c in app.registered_commands}
+        assert "set" in names
+        assert "use" in names
+
+    def test_use_is_hidden_and_set_is_not(self):
+        from arcade_cli.contexts_cmd import app
+
+        by_name = {c.name: c for c in app.registered_commands}
+        assert by_name["use"].hidden is True
+        assert not by_name["set"].hidden

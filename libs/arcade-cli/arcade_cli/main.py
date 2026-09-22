@@ -247,7 +247,7 @@ def _login_with_url(
                 style="dim",
             )
         console.print(
-            "Run 'arcade context list' to see all contexts and 'arcade context use <name>' to "
+            "Run 'arcade context list' to see all contexts and 'arcade context set <name>' to "
             "switch.",
             style="dim",
         )
@@ -375,7 +375,7 @@ cli.add_typer(
 cli.add_typer(
     context_app,
     name="context",
-    help="Manage installation contexts (list, use, show)",
+    help="Manage installation contexts (list, set, show)",
     rich_help_panel="User",
 )
 

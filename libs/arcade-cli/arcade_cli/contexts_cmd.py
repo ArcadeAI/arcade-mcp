@@ -51,11 +51,11 @@ def context_list() -> None:
         table.add_row(name, ctx.kind, ctx.engine_url or "-", is_active)
 
     console.print(table)
-    console.print("\nUse 'arcade context use <name>' to switch contexts.\n", style="dim")
+    console.print("\nUse 'arcade context set <name>' to switch contexts.\n", style="dim")
 
 
-@app.command("use", help="Switch the active context")
-def context_use(
+@app.command("set", help="Set the active context")
+def context_set(
     name: str = typer.Argument(..., help="Name of the context to activate"),
 ) -> None:
     config = _load_config()
@@ -68,6 +68,13 @@ def context_use(
 
     config.save_to_file()
     console.print(f"✓ Switched to context: {name}", style="bold green")
+
+
+@app.command("use", hidden=True, help="Deprecated alias for 'set'")
+def context_use(
+    name: str = typer.Argument(..., help="Name of the context to activate"),
+) -> None:
+    context_set(name)
 
 
 @app.command("show", help="Show the active context or a named context")

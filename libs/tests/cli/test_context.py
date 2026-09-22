@@ -512,7 +512,7 @@ class TestLoginGuardIsPerContext:
         assert "Active:" not in printed
         assert "default" in printed
         assert "acme" in printed
-        assert "context use" in printed
+        assert "context set" in printed
         assert "logout" not in printed
 
     def test_the_active_context_still_reads_the_way_it_did(self, work_dir: Path, capsys):
@@ -525,4 +525,4 @@ class TestLoginGuardIsPerContext:
         printed = capsys.readouterr().out
         assert "Active:" in printed
         assert "logout" in printed
-        assert "context use" not in printed
+        assert "context set" not in printed

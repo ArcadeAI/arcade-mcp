@@ -204,6 +204,6 @@ def guard_no_cloud(url: str) -> None:
         raise NoCloudGuardError(
             f"Refusing to contact the Arcade Cloud host '{_hostname(url)}' while the "
             f"self-hosted context '{ctx.name}' is active. Artifacts and requests stay inside "
-            "your environment. Switch contexts with 'arcade context use <name>' if you meant "
+            "your environment. Switch contexts with 'arcade context set <name>' if you meant "
             "to target Arcade Cloud."
         )
