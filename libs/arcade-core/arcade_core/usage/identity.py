@@ -16,6 +16,7 @@ import httpx
 import portalocker
 import yaml
 
+from arcade_core.auth_tokens import coordinator_api
 from arcade_core.constants import ARCADE_CONFIG_PATH, CREDENTIALS_FILE_PATH
 from arcade_core.usage.constants import (
     KEY_ANON_ID,
@@ -23,6 +24,19 @@ from arcade_core.usage.constants import (
     TIMEOUT_ARCADE_API,
     USAGE_FILE_NAME,
 )
+
+
+def _active_context_credentials(cloud: dict[str, Any]) -> dict[str, Any]:
+    if not isinstance(cloud, dict):
+        return {}
+    contexts = cloud.get("contexts")
+    if not isinstance(contexts, dict):
+        return cloud
+    active = cloud.get("active_context")
+    chosen = contexts.get(active) if isinstance(active, str) else None
+    if not isinstance(chosen, dict) and len(contexts) == 1:
+        chosen = next(iter(contexts.values()))
+    return chosen if isinstance(chosen, dict) else cloud
 
 
 class UsageIdentity:
@@ -144,12 +158,13 @@ class UsageIdentity:
             with open(CREDENTIALS_FILE_PATH, encoding="utf-8") as f:
                 config = yaml.safe_load(f) or {}
 
-            cloud_config = config.get("cloud", {}) if isinstance(config, dict) else {}
+            cloud = config.get("cloud", {}) if isinstance(config, dict) else {}
+            cloud_config = _active_context_credentials(cloud)
 
             # Determine coordinator/authority URL for auth calls
             coordinator_url = cloud_config.get("coordinator_url") or "https://cloud.arcade.dev"
-            whoami_url = f"{coordinator_url}/api/v1/auth/whoami"
-            validate_url = f"{coordinator_url}/api/v1/auth/validate"
+            whoami_url = f"{coordinator_api(coordinator_url)}/auth/whoami"
+            validate_url = f"{coordinator_api(coordinator_url)}/auth/validate"
 
             # OAuth credentials: use access_token to call /whoami
             auth_config = cloud_config.get("auth", {}) if isinstance(cloud_config, dict) else {}

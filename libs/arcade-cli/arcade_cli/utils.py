@@ -578,14 +578,59 @@ def compute_base_url(
         return f"{protocol}://{encoded_host}"
 
 
+def resolve_engine_base_url(
+    host: str | None,
+    port: int | None,
+    force_tls: bool,
+    force_no_tls: bool,
+    default_port: int | None = 9099,
+) -> str:
+    from arcade_core.constants import PROD_ENGINE_HOST
+
+    from arcade_cli.context import guard_no_cloud, try_resolve_active_context
+
+    if host is None:
+        ctx = try_resolve_active_context()
+        if ctx is not None and ctx.engine_url:
+            guard_no_cloud(ctx.engine_url)
+            return ctx.engine_url
+        host = PROD_ENGINE_HOST
+
+    url = compute_base_url(force_tls, force_no_tls, host, port, default_port)
+    guard_no_cloud(url)
+    return url
+
+
+def resolve_coordinator_base_url(
+    host: str | None,
+    port: int | None,
+    force_tls: bool,
+    force_no_tls: bool,
+) -> str:
+    from arcade_core.constants import PROD_COORDINATOR_HOST
+
+    from arcade_cli.context import guard_no_cloud, try_resolve_active_context
+
+    if host is None:
+        ctx = try_resolve_active_context()
+        if ctx is not None and ctx.coordinator_url:
+            guard_no_cloud(ctx.coordinator_url)
+            return ctx.coordinator_url
+        host = PROD_COORDINATOR_HOST
+
+    url = compute_base_url(force_tls, force_no_tls, host, port, default_port=None)
+    guard_no_cloud(url)
+    return url
+
+
 def get_tools_from_engine(
-    host: str,
+    host: str | None = None,
     port: int | None = None,
     force_tls: bool = False,
     force_no_tls: bool = False,
     toolkit: str | None = None,
 ) -> list[ToolDefinition]:
-    base_url = compute_base_url(force_tls, force_no_tls, host, port)
+    base_url = resolve_engine_base_url(host, port, force_tls, force_no_tls)
     client = get_arcade_client(base_url)
 
     tools = []
@@ -614,7 +659,11 @@ def validate_and_get_config(
     Validates the configuration, user, and returns the Config object.
     """
     try:
-        from arcade_core.config import config
+        # Loaded now rather than taken from the import-time singleton, which is
+        # built before a --context flag has been parsed.
+        from arcade_core.config_model import Config
+
+        config = Config.load_from_file()
     except Exception as e:
         handle_cli_error("Not logged in", e, debug=False)
 
@@ -659,6 +708,11 @@ def get_auth_headers(coordinator_url: str | None = None) -> dict[str, str]:
     from arcade_core.constants import PROD_COORDINATOR_HOST
 
     from arcade_cli.authn import get_valid_access_token
+    from arcade_cli.context import try_resolve_active_context
+
+    ci_context = try_resolve_active_context()
+    if ci_context is not None and ci_context.is_ci and ci_context.api_key:
+        return {"Authorization": f"Bearer {ci_context.api_key}", **cli_version_headers()}
 
     config = validate_and_get_config()
     resolved_coordinator_url = (
@@ -673,7 +727,25 @@ def get_auth_headers(coordinator_url: str | None = None) -> dict[str, str]:
         handle_cli_error(str(e))
         raise AssertionError("unreachable")  # handle_cli_error raises CLIError
 
-    return {"Authorization": f"Bearer {access_token}"}
+    return {"Authorization": f"Bearer {access_token}", **cli_version_headers()}
+
+
+def cli_version_headers() -> dict[str, str]:
+    """Say which CLI sent the request, so the server can answer it differently.
+
+    Deployment status is the case in hand. A CLI older than 1.16 treats an
+    unrecognised terminal status as success and exits 0, so an installation
+    reporting one has to be able to tell those clients apart from the ones that
+    handle it. Whether any given installation reports it depends on the
+    deployment provider it runs, which the CLI cannot know.
+    """
+    from importlib import metadata
+
+    try:
+        version = metadata.version("arcade-mcp")
+    except Exception:
+        version = "unknown"
+    return {"User-Agent": f"arcade-cli/{version}", "X-Arcade-CLI-Version": version}
 
 
 def get_org_scoped_url(base_url: str, path: str) -> str:
@@ -694,6 +766,11 @@ def get_org_scoped_url(base_url: str, path: str) -> str:
         get_org_scoped_url("https://api.arcade.dev", "/secrets/MY_KEY")
         # Returns: "https://api.arcade.dev/v1/orgs/ORG_ID/projects/PROJECT_ID/secrets/MY_KEY"
     """
+    from arcade_cli.context import resolve_ci_context
+
+    if resolve_ci_context() is not None:
+        return build_api_key_scoped_url(base_url, path)
+
     config = validate_and_get_config()
 
     if not config.context:
@@ -704,6 +781,12 @@ def get_org_scoped_url(base_url: str, path: str) -> str:
     project_id = config.context.project_id
 
     return f"{base_url}/v1/orgs/{org_id}/projects/{project_id}{path}"
+
+
+def build_api_key_scoped_url(base_url: str, path: str) -> str:
+    if path == "/secrets" or path.startswith("/secrets/"):
+        return f"{base_url}/v1/admin{path}"
+    return f"{base_url}/v1{path}"
 
 
 def get_arcade_client(base_url: str) -> Arcade:

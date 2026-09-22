@@ -15,7 +15,7 @@ from arcade_cli.utils import (
 def show_logic(
     toolkit: Optional[str],
     tool: Optional[str],
-    host: str,
+    host: Optional[str],
     local: bool,
     port: Optional[int],
     force_tls: bool,

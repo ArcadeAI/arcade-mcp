@@ -3,10 +3,42 @@ import os
 import subprocess
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import yaml
-from pydantic import BaseModel, ConfigDict, ValidationError
+from pydantic import BaseModel, ConfigDict, PrivateAttr, ValidationError
+
+from arcade_core.constants import arcade_config_path
+
+ContextKind = Literal["cloud", "self_hosted"]
+
+ARCADE_CONTEXT_ENV = "ARCADE_CONTEXT"
+
+# Which saved context load_from_file should activate, when it should not be the
+# one recorded in the file. Everything a command does -- the engine and
+# coordinator it reaches, the token it presents, the org and project it scopes
+# to -- comes out of the loaded Config, so the choice has to be made here. Made
+# anywhere else, a command reaches one installation holding another's
+# credentials.
+_selected_context: str | None = None
+
+# Read once, at import. Loading a project's env file part-way through a command
+# must not change which installation's credentials that command is already
+# using -- the engine would already have been resolved from one context while
+# the token came from another. ARCADE_WORK_DIR is read once for the same
+# reason; the CLI pins this value too and pushes it in through select_context.
+_env_context: str | None = os.getenv(ARCADE_CONTEXT_ENV) or None
+
+
+def select_context(name: str | None) -> None:
+    """Activate this saved context on load, ahead of the file's own choice."""
+    global _selected_context
+    _selected_context = name
+
+
+def selected_context() -> str | None:
+    return _selected_context or _env_context
+
 
 logger = logging.getLogger(__name__)
 
@@ -90,6 +122,8 @@ class UserConfig(BaseConfig):
     User email.
     """
 
+    account_id: str | None = None
+
 
 class ContextConfig(BaseConfig):
     """
@@ -114,6 +148,20 @@ class ContextConfig(BaseConfig):
     """
 
 
+class NamedContext(BaseConfig):
+    kind: ContextKind = "cloud"
+
+    engine_url: str | None = None
+    coordinator_url: str | None = None
+    dashboard_url: str | None = None
+
+    auth: AuthConfig | None = None
+    api_key: str | None = None
+
+    user: UserConfig | None = None
+    context: ContextConfig | None = None
+
+
 class Config(BaseConfig):
     """
     Configuration for Arcade CLI.
@@ -123,6 +171,14 @@ class Config(BaseConfig):
     """
     Base URL of the Arcade Coordinator used for authentication flows.
     """
+
+    engine_url: str | None = None
+
+    dashboard_url: str | None = None
+
+    kind: ContextKind = "cloud"
+
+    api_key: str | None = None
 
     auth: AuthConfig | None = None
     """
@@ -141,8 +197,113 @@ class Config(BaseConfig):
     Arcade user configuration.
     """
 
+    contexts: dict[str, NamedContext] | None = None
+
+    active_context: str | None = None
+
+    # When a context was chosen for this invocation, the name the file should
+    # keep as its default. active_context always names the context the flat
+    # fields belong to, so a save writes them back where they came from; this
+    # only affects which name is recorded as the default.
+    #
+    # Held this way round deliberately. A write target that goes stale corrupts
+    # whichever context it still points at; a default that goes stale merely
+    # records the wrong one, which is visible and repairable.
+    _saved_active_context: str | None = PrivateAttr(default=None)
+
     def __init__(self, **data: Any):
         super().__init__(**data)
+
+    def _to_named_context(self) -> NamedContext:
+        return NamedContext(
+            kind=self.kind,
+            engine_url=self.engine_url,
+            coordinator_url=self.coordinator_url,
+            dashboard_url=self.dashboard_url,
+            auth=self.auth,
+            api_key=self.api_key,
+            user=self.user,
+            context=self.context,
+        )
+
+    def _apply_named_context(self, name: str, ctx: NamedContext) -> None:
+        # Deliberately moving to a context cancels a one-command selection:
+        # whoever called this wants the move recorded.
+        self._saved_active_context = None
+        self.active_context = name
+        self.kind = ctx.kind
+        self.engine_url = ctx.engine_url
+        self.coordinator_url = ctx.coordinator_url
+        self.dashboard_url = ctx.dashboard_url
+        self.auth = ctx.auth
+        self.api_key = ctx.api_key
+        self.user = ctx.user
+        self.context = ctx.context
+
+    def use_context(self, name: str) -> None:
+        if not self.contexts or name not in self.contexts:
+            available = ", ".join(sorted(self.contexts)) if self.contexts else "none"
+            raise ValueError(f"Context '{name}' not found. Available contexts: {available}.")
+        self._apply_named_context(name, self.contexts[name])
+
+    def _apply_selected_context(self) -> None:
+        """Honour a context chosen for this invocation. Unknown names raise.
+
+        Deliberately not use_context: that records a new saved default, and a
+        choice made for one command must not outlive it.
+        """
+        chosen = selected_context()
+        if chosen is None:
+            return
+
+        if not self.contexts or chosen not in self.contexts:
+            available = ", ".join(sorted(self.contexts)) if self.contexts else "none"
+            raise ValueError(f"Context '{chosen}' not found. Available contexts: {available}.")
+
+        saved_active = self.active_context
+        self._apply_named_context(chosen, self.contexts[chosen])
+        self._saved_active_context = saved_active
+
+    def remove_context(self, name: str) -> bool:
+        """Drop a saved context. Returns whether anything remains after it.
+
+        Removing the active one leaves the config pointing at another context
+        when there is one, so the next command has somewhere to go rather than
+        resolving against a name that is no longer there.
+        """
+        if not self.contexts or name not in self.contexts:
+            available = ", ".join(sorted(self.contexts)) if self.contexts else "none"
+            raise ValueError(f"Context '{name}' not found. Available contexts: {available}.")
+
+        del self.contexts[name]
+        if self._saved_active_context == name:
+            # The default this save would have restored is gone.
+            self._saved_active_context = None
+        if self.active_context != name:
+            return True
+
+        remaining = sorted(self.contexts)
+        if remaining:
+            self._apply_named_context(remaining[0], self.contexts[remaining[0]])
+            return True
+
+        # save_to_file rebuilds a "default" context from the flat fields when
+        # the map is empty, so anything left here comes back as a context the
+        # caller was told no longer exists. kind included: it has no None to
+        # fall back to, and a stale self_hosted would arm the no-Cloud guard.
+        self.active_context = None
+        self.auth = None
+        self.user = None
+        self.context = None
+        self.api_key = None
+        self.engine_url = None
+        self.coordinator_url = None
+        self.dashboard_url = None
+        self.kind = "cloud"
+        return False
+
+    def list_context_names(self) -> list[str]:
+        return sorted(self.contexts) if self.contexts else []
 
     def is_authenticated(self) -> bool:
         """
@@ -191,8 +352,7 @@ class Config(BaseConfig):
         """
         Get the path to the Arcade configuration directory.
         """
-        config_path = os.getenv("ARCADE_WORK_DIR") or Path.home() / ".arcade"
-        return Path(config_path).resolve()
+        return Path(arcade_config_path()).resolve()
 
     @classmethod
     def get_config_file_path(cls) -> Path:
@@ -246,8 +406,10 @@ class Config(BaseConfig):
                 "Run `arcade logout`, then `arcade login` to start from a clean slate."
             )
 
+        cloud = config_data["cloud"]
+
         try:
-            return cls(**config_data["cloud"])
+            built = cls(**cloud)
         except ValidationError as e:
             # Get only the errors with {type:missing} and combine them
             # into a nicely-formatted string message.
@@ -269,6 +431,21 @@ class Config(BaseConfig):
 
             raise ValueError(pretty_str) from e
 
+        if isinstance(cloud, dict) and "contexts" in cloud:
+            names = list(built.contexts) if built.contexts else []
+            active = built.active_context if built.active_context in names else None
+            if active is None and names:
+                active = names[0]
+            if active is not None and built.contexts is not None:
+                built._apply_named_context(active, built.contexts[active])
+            built._apply_selected_context()
+            return built
+
+        built.contexts = {"default": built._to_named_context()}
+        built.active_context = "default"
+        built._apply_selected_context()
+        return built
+
     def save_to_file(self) -> None:
         """
         Save the configuration to the YAML file in the configuration directory.
@@ -278,8 +455,41 @@ class Config(BaseConfig):
         Config.ensure_config_dir_exists()
         config_file_path = Config.get_config_file_path()
 
-        # Convert to dict, excluding None values for cleaner output
-        data = {"cloud": self.model_dump(exclude_none=True, mode="json")}
+        # active_context names the context the flat fields belong to, so they
+        # are written back where they came from.
+        target = self.active_context
+
+        if not self.contexts:
+            self.contexts = {"default": self._to_named_context()}
+            self.active_context = "default"
+        elif target and target in self.contexts:
+            self.contexts[target] = self._to_named_context()
+        else:
+            # The active name is unset, or names a context the map no longer
+            # holds, so the flat fields have nowhere to be written back to.
+            # Adopt the name instead of dropping them: a token refreshed in
+            # memory would otherwise reach the file through the flat keys and
+            # then be ignored by the next load, which prefers the map.
+            name = self.active_context or "default"
+            self.active_context = name
+            self.contexts[name] = self._to_named_context()
+
+        active = self._to_named_context()
+        cloud = {
+            # A context chosen for one command does not become the default.
+            "active_context": self._saved_active_context or self.active_context,
+            "contexts": {
+                name: ctx.model_dump(exclude_none=True, mode="json")
+                for name, ctx in self.contexts.items()
+            },
+            # The active context is also written in the pre-contexts flat shape.
+            # ``load_from_file`` prefers ``contexts`` when present and overwrites
+            # these, so new readers are unaffected; older arcade-core, which
+            # ignores unknown keys, still finds the credentials it expects
+            # instead of reading the file as logged out.
+            **active.model_dump(exclude_none=True, mode="json"),
+        }
+        data = {"cloud": cloud}
         config_file_path.write_text(yaml.dump(data, default_flow_style=False), encoding="utf-8")
 
         # Restrict the credentials file so only the current user can read it.

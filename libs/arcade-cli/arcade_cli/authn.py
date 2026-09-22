@@ -28,10 +28,18 @@ import yaml
 from arcade_core.auth_tokens import (
     CLIConfig,
     TokenResponse,
+    coordinator_api,
     fetch_cli_config,
     get_valid_access_token,
 )
-from arcade_core.config_model import AuthConfig, Config, ContextConfig, UserConfig
+from arcade_core.config_model import (
+    AuthConfig,
+    Config,
+    ContextConfig,
+    ContextKind,
+    NamedContext,
+    UserConfig,
+)
 from arcade_core.constants import ARCADE_CONFIG_PATH, CREDENTIALS_FILE_PATH
 from arcade_core.subprocess_utils import build_windows_hidden_startupinfo
 from authlib.integrations.httpx_client import OAuth2Client
@@ -242,7 +250,7 @@ def fetch_whoami(coordinator_url: str, access_token: str) -> WhoAmIResponse:
     Returns:
         WhoAmIResponse with account info and all orgs/projects
     """
-    url = f"{coordinator_url}/api/v1/auth/whoami"
+    url = f"{coordinator_api(coordinator_url)}/auth/whoami"
     response = httpx.get(
         url,
         headers={"Authorization": f"Bearer {access_token}"},
@@ -265,7 +273,7 @@ def fetch_organizations(coordinator_url: str) -> list[OrgInfo]:
     Returns:
         List of organizations
     """
-    url = f"{coordinator_url}/api/v1/orgs"
+    url = f"{coordinator_api(coordinator_url)}/orgs"
     access_token = get_valid_access_token(coordinator_url)
     response = httpx.get(
         url,
@@ -290,7 +298,7 @@ def fetch_projects(coordinator_url: str, org_id: str) -> list[ProjectInfo]:
     Returns:
         List of projects
     """
-    url = f"{coordinator_url}/api/v1/orgs/{org_id}/projects"
+    url = f"{coordinator_api(coordinator_url)}/orgs/{org_id}/projects"
     access_token = get_valid_access_token(coordinator_url)
     response = httpx.get(
         url,
@@ -475,18 +483,11 @@ def save_credentials_from_whoami(
     tokens: TokenResponse,
     whoami: WhoAmIResponse,
     coordinator_url: str,
+    context_name: str = "default",
+    engine_url: str | None = None,
+    dashboard_url: str | None = None,
+    kind: ContextKind = "cloud",
 ) -> None:
-    """
-    Save OAuth credentials to the config file using WhoAmI response.
-
-    Picks the org/project marked as default, or falls back to the first one
-    in the list if none are marked as default.
-
-    Args:
-        tokens: OAuth tokens
-        whoami: Response from /whoami endpoint with user and orgs/projects
-    """
-    # Ensure config directory exists
     os.makedirs(ARCADE_CONFIG_PATH, exist_ok=True)
 
     expires_at = datetime.now() + timedelta(seconds=tokens.expires_in)
@@ -503,16 +504,29 @@ def save_credentials_from_whoami(
             project_name=selected_project.name,
         )
 
-    config = Config(
+    named = NamedContext(
+        kind=kind,
+        engine_url=engine_url,
         coordinator_url=coordinator_url,
+        dashboard_url=dashboard_url,
         auth=AuthConfig(
             access_token=tokens.access_token,
             refresh_token=tokens.refresh_token,
             expires_at=expires_at,
         ),
-        user=UserConfig(email=whoami.email),
+        user=UserConfig(email=whoami.email, account_id=whoami.account_id),
         context=context,
     )
+
+    try:
+        config = Config.load_from_file()
+    except FileNotFoundError:
+        config = Config()
+
+    if config.contexts is None:
+        config.contexts = {}
+    config.contexts[context_name] = named
+    config._apply_named_context(context_name, named)
 
     config.save_to_file()
 
@@ -816,38 +830,57 @@ def _credentials_file_contains_legacy() -> bool:
         return False
 
 
-def check_existing_login(suppress_message: bool = False) -> bool:
-    """
-    Check if the user is already logged in.
-
-    Args:
-        suppress_message: If True, suppress the logged in message.
-
-    Returns:
-        True if the user is already logged in, False otherwise.
-    """
+def check_existing_login(
+    suppress_message: bool = False,
+    context_name: str | None = None,
+) -> bool:
     if not os.path.exists(CREDENTIALS_FILE_PATH):
         return False
 
     try:
-        with open(CREDENTIALS_FILE_PATH, encoding="utf-8") as f:
-            config_data: dict[str, Any] = yaml.safe_load(f)
+        config = Config.load_from_file()
+        auth, user, context = config.auth, config.user, config.context
 
-        cloud_config = config_data.get("cloud", {}) if isinstance(config_data, dict) else {}
+        if context_name is not None:
+            named = (config.contexts or {}).get(context_name)
+            if named is None:
+                return False
+            auth, user, context = named.auth, named.user, named.context
 
-        auth = cloud_config.get("auth", {})
-        if auth.get("access_token"):
-            email = cloud_config.get("user", {}).get("email", "unknown")
-            context = cloud_config.get("context", {})
-            org_name = context.get("org_name", "unknown")
-            project_name = context.get("project_name", "unknown")
+        if auth and auth.access_token:
+            email = user.email if user else "unknown"
+            org_name = context.org_name if context else "unknown"
+            project_name = context.project_name if context else "unknown"
 
-            if not suppress_message:
+            checked_the_active_context = (
+                context_name is None or context_name == config.active_context
+            )
+
+            if not suppress_message and checked_the_active_context:
                 console.print(f"You're already logged in as {email}.", style="bold green")
                 console.print(f"Active: {org_name} / {project_name}", style="dim")
+                console.print(
+                    "\nTo log out and delete your locally-stored credentials, use ", end=""
+                )
+                console.print("arcade logout", style="bold green", end="")
+                console.print(".\n")
+            elif not suppress_message:
+                console.print(
+                    f"You're already logged in to context '{context_name}' as {email}.",
+                    style="bold green",
+                )
+                console.print(f"{org_name} / {project_name}", style="dim")
+                console.print(
+                    f"The active context is still '{config.active_context}'.", style="dim"
+                )
+                console.print("\nTo make it the active context, use ", end="")
+                console.print(f"arcade context set {context_name}", style="bold green", end="")
+                console.print(".\n")
             return True
 
-    except yaml.YAMLError:
+    except FileNotFoundError:
+        return False
+    except ValueError:
         console.print(
             f"Error: Invalid configuration file at {CREDENTIALS_FILE_PATH}", style="bold red"
         )

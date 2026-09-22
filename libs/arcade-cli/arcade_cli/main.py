@@ -8,7 +8,7 @@ from typing import Any, Optional
 
 import click
 import typer
-from arcade_core.constants import CREDENTIALS_FILE_PATH, PROD_COORDINATOR_HOST, PROD_ENGINE_HOST
+from arcade_core.constants import CREDENTIALS_FILE_PATH, LOCALHOST, PROD_COORDINATOR_HOST
 from arcade_core.subprocess_utils import get_windows_no_window_creationflags
 from arcadepy import Arcade
 
@@ -23,6 +23,8 @@ from arcade_cli.authn import (
     save_credentials_from_whoami,
 )
 from arcade_cli.console import console
+from arcade_cli.context import kind_for_urls, try_resolve_active_context
+from arcade_cli.contexts_cmd import app as context_app
 from arcade_cli.evals_runner import run_capture, run_evaluations
 from arcade_cli.org import app as org_app
 from arcade_cli.project import app as project_app
@@ -34,7 +36,6 @@ from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
     ModelSpec,
     Provider,
-    compute_base_url,
     expand_provider_configs,
     get_default_model,
     get_eval_files,
@@ -44,6 +45,7 @@ from arcade_cli.utils import (
     parse_output_paths,
     parse_provider_spec,
     require_dependency,
+    resolve_engine_base_url,
     resolve_provider_api_keys,
     version_callback,
 )
@@ -79,11 +81,25 @@ cli.add_typer(
 
 @cli.command(help="Log in to Arcade", rich_help_panel="User")
 def login(
+    ctx: typer.Context,
+    url: Optional[str] = typer.Option(
+        None,
+        "--url",
+        help="Installation URL to log in to. The CLI fetches its discovery document and saves "
+        "a named context. Defaults to the ARCADE_URL environment variable.",
+    ),
+    context_name: Optional[str] = typer.Option(
+        None,
+        "--context",
+        "--context-name",
+        help="Name to save the context under (defaults to the installation host).",
+    ),
     host: str = typer.Option(
         PROD_COORDINATOR_HOST,
         "-h",
         "--host",
-        help="The Arcade Coordinator host to log in to.",
+        help="Legacy, use --url instead. Still the way to reach a local coordinator, "
+        "which serves no discovery document.",
     ),
     port: Optional[int] = typer.Option(
         None,
@@ -101,10 +117,24 @@ def login(
     """
     Logs the user into Arcade using OAuth.
     """
-    if check_existing_login():
-        console.print("\nTo log out and delete your locally-stored credentials, use ", end="")
-        console.print("arcade logout", style="bold green", end="")
-        console.print(".\n")
+    from arcade_cli import _startup_environment
+    from arcade_cli.context import ARCADE_URL_ENV
+
+    # The snapshot taken at package import, not the live environment: importing
+    # the CLI loads the project's env file, so a repo that sets ARCADE_URL for
+    # its server would otherwise divert a plain Cloud login to discovery.
+    resolved_url = url or _startup_environment.value(ARCADE_URL_ENV)
+
+    if resolved_url is None:
+        _warn_if_host_supersedes_url(ctx, host)
+
+    if resolved_url:
+        _login_with_url(resolved_url, context_name, timeout, debug)
+        return
+
+    target_context = context_name or "default"
+
+    if check_existing_login(context_name=target_context):
         return
 
     coordinator_url = build_coordinator_url(host, port)
@@ -116,10 +146,18 @@ def login(
             callback_timeout_seconds=timeout,
         )
 
-        # Save credentials
-        save_credentials_from_whoami(result.tokens, result.whoami, coordinator_url)
+        save_credentials_from_whoami(
+            result.tokens,
+            result.whoami,
+            coordinator_url,
+            context_name=target_context,
+            # Infer rather than assume. With no --host this is the Cloud
+            # coordinator and still resolves to "cloud"; with one it decides by
+            # the host actually reached, so a self-hosted login is not labelled
+            # Cloud and left unguarded.
+            kind=kind_for_urls(coordinator_url),
+        )
 
-        # Success message
         console.print(f"\n✅ Logged in as {result.email}.", style="bold green")
         if result.selected_org and result.selected_project:
             console.print(
@@ -141,20 +179,146 @@ def login(
         handle_cli_error("Login failed", e, debug)
 
 
+def _login_with_url(
+    install_url: str,
+    context_name: Optional[str],
+    timeout: int,
+    debug: bool,
+) -> None:
+    from arcade_cli.context import (
+        DiscoveryError,
+        fetch_discovery,
+        kind_for_urls,
+    )
+    from arcade_cli.context import _hostname as discovery_hostname
+
+    try:
+        discovery = fetch_discovery(install_url)
+    except DiscoveryError as e:
+        handle_cli_error(str(e), should_exit=True)
+        return
+
+    if not discovery.deployments.enabled:
+        reason = discovery.deployments.reason or "deployments are not enabled on this installation"
+        handle_cli_error(
+            f"This installation is not accepting deployments: {reason}.",
+            should_exit=True,
+        )
+        return
+
+    coordinator_url = discovery.coordinator
+    if not coordinator_url:
+        handle_cli_error(
+            "The discovery document did not include a coordinator URL, so the CLI cannot sign "
+            "you in.",
+            should_exit=True,
+        )
+        return
+
+    kind = kind_for_urls(discovery.engine, discovery.coordinator)
+    resolved_name = (
+        context_name or discovery_hostname(discovery.engine or install_url) or "installation"
+    )
+
+    try:
+        result = perform_oauth_login(
+            coordinator_url,
+            on_status=lambda msg: console.print(msg, style="dim"),
+            callback_timeout_seconds=timeout,
+        )
+
+        save_credentials_from_whoami(
+            result.tokens,
+            result.whoami,
+            coordinator_url,
+            context_name=resolved_name,
+            engine_url=discovery.engine or None,
+            dashboard_url=discovery.dashboard or None,
+            kind=kind,
+        )
+
+        console.print(
+            f"\n✅ Logged in as {result.email} on context '{resolved_name}' ({kind}).",
+            style="bold green",
+        )
+        if result.selected_org and result.selected_project:
+            console.print(
+                f"\nActive project: {result.selected_org.name} / {result.selected_project.name}",
+                style="dim",
+            )
+        console.print(
+            "Run 'arcade context list' to see all contexts and 'arcade context set <name>' to "
+            "switch.",
+            style="dim",
+        )
+
+    except OAuthLoginError as e:
+        if debug:
+            console.print(f"Debug: {e.__cause__}", style="dim")
+        handle_cli_error(str(e), should_exit=True)
+    except KeyboardInterrupt:
+        console.print("\nLogin cancelled.", style="yellow")
+    except Exception as e:
+        handle_cli_error("Login failed", e, debug)
+
+
+def _warn_if_host_supersedes_url(ctx: typer.Context, host: str) -> None:
+    """Point a --host login at --url, which saves a usable context.
+
+    --host names a coordinator and nothing else, so the context it saves has no
+    engine and no dashboard, and commands that need those fall back to Cloud.
+    --url reads the installation's discovery document and records all three.
+
+    Left alone: the default, which is Cloud and correct, and a local
+    coordinator, which serves no discovery document for --url to read.
+    """
+    if ctx.get_parameter_source("host") != click.core.ParameterSource.COMMANDLINE:
+        return
+    if _is_local_host(host):
+        return
+
+    console.print("[yellow]--host is legacy, use --url instead.[/yellow]")
+
+
+def _is_local_host(host: str) -> bool:
+    candidate = host.strip().lower()
+    if candidate.startswith("["):
+        # [::1] or [::1]:8000 -- the brackets are what separate an IPv6 address
+        # from its port.
+        candidate = candidate[1:].partition("]")[0]
+    elif candidate.count(":") == 1:
+        # host:port. A bare IPv6 address has more than one colon and no port,
+        # so splitting on the first colon would destroy it.
+        candidate = candidate.partition(":")[0]
+    return candidate in {LOCALHOST, "127.0.0.1", "::1", "0.0.0.0"}  # noqa: S104
+
+
 @cli.command(help="Log out of Arcade", rich_help_panel="User")
 def logout(
+    all_contexts: bool = typer.Option(
+        False,
+        "--all",
+        help="Log out of every saved context and delete the credentials file.",
+    ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
     Logs the user out of Arcade.
+
+    login signs in to one installation, so logout signs out of one: the active
+    context. --all is how you discard every saved context at once, which is
+    what this command used to do unconditionally.
     """
     try:
-        # If the credentials file exists, delete it
-        if os.path.exists(CREDENTIALS_FILE_PATH):
-            os.remove(CREDENTIALS_FILE_PATH)
-            console.print("You're now logged out.", style="bold")
-        else:
+        if not os.path.exists(CREDENTIALS_FILE_PATH):
             console.print("You're not logged in.", style="bold red")
+            return
+
+        if not all_contexts and _logout_active_context(debug):
+            return
+
+        os.remove(CREDENTIALS_FILE_PATH)
+        console.print("You're now logged out.", style="bold")
     except PermissionError:
         # On Windows, the file may be locked by another process.
         handle_cli_error(
@@ -164,6 +328,41 @@ def logout(
         )
     except Exception as e:
         handle_cli_error("Logout failed", e, debug)
+
+
+def _logout_active_context(debug: bool) -> bool:
+    """Remove the active context. Returns False when the whole file should go.
+
+    A credentials file with no contexts left is not worth keeping, and a file
+    this CLI cannot read is not worth editing -- both fall back to deleting it,
+    which is what --all does explicitly.
+    """
+    from arcade_core.config_model import Config
+
+    try:
+        config = Config.load_from_file()
+    except Exception as e:
+        if debug:
+            console.print(f"Debug: could not read contexts, removing the file: {e}", style="dim")
+        return False
+
+    name = config.active_context
+    if name is None or not config.contexts:
+        return False
+
+    try:
+        anything_left = config.remove_context(name)
+    except ValueError:
+        return False
+
+    if not anything_left:
+        return False
+
+    config.save_to_file()
+    console.print(f"Logged out of context '{name}'.", style="bold")
+    console.print(f"Active context is now '{config.active_context}'.", style="dim")
+    console.print("Use 'arcade logout --all' to log out of every context.", style="dim")
+    return True
 
 
 @cli.command(help="Show current login status and active context", rich_help_panel="User")
@@ -192,6 +391,9 @@ def whoami(
     email = config.user.email if config.user else "unknown"
     console.print(f"Logged in as: {email}", style="bold green")
 
+    if config.active_context:
+        console.print(f"\nActive context: {config.active_context} ({config.kind})", style="bold")
+
     if config.context:
         console.print(f"\nActive organization: {config.context.org_name}", style="bold")
         console.print(f"   ID: {config.context.org_id}", style="dim")
@@ -214,6 +416,13 @@ cli.add_typer(
     project_app,
     name="project",
     help="Manage projects (list, set active)",
+    rich_help_panel="User",
+)
+
+cli.add_typer(
+    context_app,
+    name="context",
+    help="Manage installation contexts (list, set, show)",
     rich_help_panel="User",
 )
 
@@ -363,11 +572,12 @@ def show(
     tool: Optional[str] = typer.Option(
         None, "-t", "--tool", help="The specific tool to show details for"
     ),
-    host: str = typer.Option(
-        PROD_ENGINE_HOST,
+    host: Optional[str] = typer.Option(
+        None,
         "-h",
         "--host",
-        help="The Arcade Engine address to show the tools/servers of.",
+        help="The Arcade Engine address to show the tools/servers of. Defaults to the "
+        "active context's engine.",
     ),
     local: bool = typer.Option(
         False,
@@ -908,6 +1118,14 @@ def deploy(
         "-e",
         help="Relative path to the Python file that runs the MCPApp instance (relative to project root). This file must execute the `run()` method on your `MCPApp` instance when invoked directly.",
     ),
+    provider: str | None = typer.Option(
+        None,
+        "--provider",
+        help="Deployment provider to run this server on. Omitted sends it to the "
+        "installation's default. Only installations that run more than one "
+        "provider accept it.",
+        rich_help_panel="Advanced",
+    ),
     skip_validate: bool = typer.Option(
         False,
         "--skip-validate",
@@ -946,11 +1164,11 @@ def deploy(
         rich_help_panel="Advanced",
         click_type=click.Choice(["auto", "all", "skip"], case_sensitive=False),
     ),
-    host: str = typer.Option(
-        PROD_ENGINE_HOST,
+    host: Optional[str] = typer.Option(
+        None,
         "--host",
         "-h",
-        help="The Arcade Engine host to deploy to",
+        help="The Arcade Engine host to deploy to. Defaults to the active context's engine.",
         hidden=True,
     ),
     port: Optional[int] = typer.Option(
@@ -1008,6 +1226,7 @@ def deploy(
             force_tls=force_tls,
             force_no_tls=force_no_tls,
             debug=debug,
+            provider=provider,
         )
     except Exception as e:
         handle_cli_error("Failed to deploy server", e, debug)
@@ -1039,11 +1258,12 @@ def upgrade(
 
 @cli.command(help="Open the Arcade Dashboard in a web browser", rich_help_panel="User")
 def dashboard(
-    host: str = typer.Option(
-        PROD_ENGINE_HOST,
+    host: Optional[str] = typer.Option(
+        None,
         "-h",
         "--host",
-        help="The Arcade Engine host that serves the dashboard.",
+        help="The Arcade Engine host that serves the dashboard. Defaults to the active "
+        "context's dashboard, or its engine.",
     ),
     port: Optional[int] = typer.Option(
         None,
@@ -1077,13 +1297,38 @@ def dashboard(
         if local:
             host = "localhost"
 
-        # Construct base URL (for both health check and dashboard)
-        base_url = compute_base_url(force_tls, force_no_tls, host, port)
-        dashboard_url = f"{base_url}/dashboard"
+        # A context saved from a discovery document names its own dashboard,
+        # which need not live under the engine. Prefer it when the user has not
+        # named a host themselves.
+        context_dashboard = None
+        context_engine = None
+        if host is None:
+            active = try_resolve_active_context()
+            if active is not None:
+                context_dashboard = active.dashboard_url
+                context_engine = active.engine_url
+
+        if context_dashboard and not context_engine:
+            # A discovery document names a coordinator and may name a dashboard
+            # without naming an engine. There is nothing to health-check, and
+            # resolving one would fall back to the Cloud engine, which is both
+            # wrong for this installation and refused by the guard. Open the
+            # dashboard we were given.
+            base_url = None
+            dashboard_url = context_dashboard.rstrip("/")
+        else:
+            # The health check always speaks to the engine. A discovered
+            # dashboard can live on its own host, which serves no engine health
+            # endpoint.
+            base_url = resolve_engine_base_url(host, port, force_tls, force_no_tls)
+            dashboard_url = (
+                context_dashboard.rstrip("/") if context_dashboard else f"{base_url}/dashboard"
+            )
 
         # Try to hit /health endpoint on engine and warn if it is down
-        with Arcade(api_key="", base_url=base_url) as client:
-            log_engine_health(client)
+        if base_url is not None:
+            with Arcade(api_key="", base_url=base_url) as client:
+                log_engine_health(client)
 
         # Open the dashboard in a browser
         console.print(f"Opening Arcade Dashboard at {dashboard_url}")
@@ -1099,6 +1344,12 @@ def dashboard(
 @cli.callback()
 def main_callback(
     ctx: typer.Context,
+    context_name: Optional[str] = typer.Option(
+        None,
+        "--context",
+        help="Run against this saved context instead of the active one. "
+        "Also reads the ARCADE_CONTEXT environment variable.",
+    ),
     _: Optional[bool] = typer.Option(
         None,
         "-v",
@@ -1108,6 +1359,12 @@ def main_callback(
         help="Print version and exit.",
     ),
 ) -> None:
+    # Applies to whichever subcommand follows, so a script can target one
+    # installation without switching the active context for everything else.
+    from arcade_cli.context import override_context
+
+    override_context(context_name)
+
     # Background update check + notification (skip for update/upgrade/mcp to avoid
     # corrupting MCP stdio protocol with non-JSON output)
     if ctx.invoked_subcommand not in {update.__name__, upgrade.__name__, mcp.__name__}:
@@ -1127,8 +1384,14 @@ def main_callback(
         connect.__name__,
         update.__name__,
         upgrade.__name__,
+        "context",
     }
     if ctx.invoked_subcommand in public_commands:
+        return
+
+    from arcade_cli.context import resolve_ci_context
+
+    if resolve_ci_context() is not None:
         return
 
     if _credentials_file_contains_legacy():
