@@ -158,15 +158,22 @@ def resolve_ci_context() -> ResolvedContext | None:
 
 
 def override_context(name: str | None) -> None:
-    """Choose the context for this invocation, ahead of the saved active one."""
+    """Choose the context for this invocation, ahead of the saved active one.
+
+    Pushed into arcade-core so that every Config load honours it, not just the
+    URL resolvers: the auth token, the org and project scoping and the token
+    refresh all come from a Config loaded elsewhere.
+    """
+    from arcade_core.config_model import select_context
+
     global _context_override
     _context_override = name
+    # The snapshot, so a project env file loaded mid-command cannot change it.
+    select_context(name or _startup_environment.value(ARCADE_CONTEXT_ENV))
 
 
 def selected_context_name() -> str | None:
     """The context a flag or the environment asked for, if either did."""
-    from arcade_cli import _startup_environment
-
     return _context_override or _startup_environment.value(ARCADE_CONTEXT_ENV)
 
 
@@ -175,14 +182,9 @@ def resolve_active_context() -> ResolvedContext:
     if ci is not None:
         return ci
 
+    # load_from_file applies the selection itself, so this sees the same
+    # context every other caller does.
     config = Config.load_from_file()
-
-    selected = selected_context_name()
-    if selected is not None:
-        # An explicit choice that does not exist is a mistake worth reporting,
-        # not something to silently paper over with the active context.
-        config.use_context(selected)
-
     name = config.active_context or "default"
     return ResolvedContext(
         name=name,

@@ -659,7 +659,11 @@ def validate_and_get_config(
     Validates the configuration, user, and returns the Config object.
     """
     try:
-        from arcade_core.config import config
+        # Loaded now rather than taken from the import-time singleton, which is
+        # built before a --context flag has been parsed.
+        from arcade_core.config_model import Config
+
+        config = Config.load_from_file()
     except Exception as e:
         handle_cli_error("Not logged in", e, debug=False)
 

@@ -207,3 +207,94 @@ class TestTheLastContextLeavesNothingBehind:
         cloud = yaml.safe_load(one_self_hosted.read_text())["cloud"]
         revived = cloud.get("contexts", {}).get("default")
         assert revived is None or revived.get("kind") == "cloud"
+
+
+class TestTheSelectedContextSuppliesCredentialsToo:
+    """Choosing a context has to move everything, not just the URLs.
+
+    The engine and coordinator come from the URL resolvers, but the bearer
+    token, the org and project scoping and the token refresh all come from a
+    Config loaded elsewhere. Move only the URLs and a command reaches one
+    installation holding another installation's credentials.
+    """
+
+    @pytest.fixture
+    def two_installations(self, tmp_path, monkeypatch):
+        def ctx(token, org, kind, engine, coordinator):
+            return {
+                "kind": kind,
+                "engine_url": engine,
+                "coordinator_url": coordinator,
+                "auth": {
+                    "access_token": token,
+                    "refresh_token": "r",
+                    "expires_at": "2099-01-01T00:00:00",
+                },
+                "user": {"email": "me@example.com"},
+                "context": {
+                    "org_id": org,
+                    "org_name": "O",
+                    "project_id": f"{org}-PROJ",
+                    "project_name": "P",
+                },
+            }
+
+        path = tmp_path / "credentials.yaml"
+        path.write_text(
+            yaml.dump(
+                {
+                    "cloud": {
+                        "active_context": "cloud1",
+                        "contexts": {
+                            "cloud1": ctx(
+                                "CLOUD-TOKEN", "CLOUD-ORG", "cloud",
+                                "https://api.arcade.dev", "https://cloud.arcade.dev",
+                            ),
+                            "onprem": ctx(
+                                "ONPREM-TOKEN", "ONPREM-ORG", "self_hosted",
+                                "https://api.acme.internal", "https://cloud.acme.internal",
+                            ),
+                        },
+                    }
+                }
+            )
+        )
+        monkeypatch.setattr(Config, "get_config_file_path", classmethod(lambda cls: path))
+        monkeypatch.setattr(Config, "ensure_config_dir_exists", staticmethod(lambda: None))
+        monkeypatch.delenv("ARCADE_URL", raising=False)
+        monkeypatch.delenv("ARCADE_API_KEY", raising=False)
+        monkeypatch.delenv("ARCADE_CONTEXT", raising=False)
+
+        from arcade_cli.context import override_context
+
+        override_context("onprem")
+        yield
+        override_context(None)
+
+    def test_the_engine_follows_the_selection(self, two_installations):
+        from arcade_cli.utils import resolve_engine_base_url
+
+        assert resolve_engine_base_url(None, None, False, False) == "https://api.acme.internal"
+
+    def test_the_token_follows_the_selection(self, two_installations):
+        from arcade_cli.utils import validate_and_get_config
+
+        assert validate_and_get_config().auth.access_token == "ONPREM-TOKEN"
+
+    def test_the_org_and_project_scoping_follows_the_selection(self, two_installations):
+        from arcade_cli.utils import get_org_scoped_url
+
+        url = get_org_scoped_url("https://api.acme.internal", "/secrets")
+        assert "ONPREM-ORG" in url
+        assert "CLOUD-ORG" not in url
+
+    def test_the_coordinator_follows_the_selection(self, two_installations):
+        from arcade_cli.utils import resolve_coordinator_base_url
+
+        assert (
+            resolve_coordinator_base_url(None, None, False, False)
+            == "https://cloud.acme.internal"
+        )
+
+    def test_a_plain_load_sees_the_selection(self, two_installations):
+        assert Config.load_from_file().auth.access_token == "ONPREM-TOKEN"

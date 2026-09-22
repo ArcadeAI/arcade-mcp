@@ -12,6 +12,27 @@ from arcade_core.constants import arcade_config_path
 
 ContextKind = Literal["cloud", "self_hosted"]
 
+ARCADE_CONTEXT_ENV = "ARCADE_CONTEXT"
+
+# Which saved context load_from_file should activate, when it should not be the
+# one recorded in the file. Everything a command does -- the engine and
+# coordinator it reaches, the token it presents, the org and project it scopes
+# to -- comes out of the loaded Config, so the choice has to be made here. Made
+# anywhere else, a command reaches one installation holding another's
+# credentials.
+_selected_context: str | None = None
+
+
+def select_context(name: str | None) -> None:
+    """Activate this saved context on load, ahead of the file's own choice."""
+    global _selected_context
+    _selected_context = name
+
+
+def selected_context() -> str | None:
+    return _selected_context or os.getenv(ARCADE_CONTEXT_ENV) or None
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -205,6 +226,12 @@ class Config(BaseConfig):
             raise ValueError(f"Context '{name}' not found. Available contexts: {available}.")
         self._apply_named_context(name, self.contexts[name])
 
+    def _apply_selected_context(self) -> None:
+        """Honour a context chosen for this invocation. Unknown names raise."""
+        chosen = selected_context()
+        if chosen is not None:
+            self.use_context(chosen)
+
     def remove_context(self, name: str) -> bool:
         """Drop a saved context. Returns whether anything remains after it.
 
@@ -376,10 +403,12 @@ class Config(BaseConfig):
                 active = names[0]
             if active is not None and built.contexts is not None:
                 built._apply_named_context(active, built.contexts[active])
+            built._apply_selected_context()
             return built
 
         built.contexts = {"default": built._to_named_context()}
         built.active_context = "default"
+        built._apply_selected_context()
         return built
 
     def save_to_file(self) -> None:
