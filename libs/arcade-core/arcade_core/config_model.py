@@ -225,6 +225,10 @@ class Config(BaseConfig):
             self._apply_named_context(remaining[0], self.contexts[remaining[0]])
             return True
 
+        # save_to_file rebuilds a "default" context from the flat fields when
+        # the map is empty, so anything left here comes back as a context the
+        # caller was told no longer exists. kind included: it has no None to
+        # fall back to, and a stale self_hosted would arm the no-Cloud guard.
         self.active_context = None
         self.auth = None
         self.user = None
@@ -233,6 +237,7 @@ class Config(BaseConfig):
         self.engine_url = None
         self.coordinator_url = None
         self.dashboard_url = None
+        self.kind = "cloud"
         return False
 
     def list_context_names(self) -> list[str]:

@@ -119,14 +119,20 @@ def context_delete(
         handle_cli_error(str(e))
         return
 
-    config.save_to_file()
-    console.print(f"✓ Deleted context: {name}", style="bold green")
     if anything_left:
+        config.save_to_file()
+        console.print(f"✓ Deleted context: {name}", style="bold green")
         console.print(f"Active context is now '{config.active_context}'.", style="dim")
-    else:
-        console.print(
-            "That was the last context. Run 'arcade login' to sign in again.", style="dim"
-        )
+        return
+
+    # Saving an empty map would write a "default" context straight back, so
+    # the last context takes the credentials file with it -- the same thing
+    # 'arcade logout' does when it removes the only context.
+    path = Config.get_config_file_path()
+    if path.exists():
+        path.unlink()
+    console.print(f"✓ Deleted context: {name}", style="bold green")
+    console.print("That was the last context. Run 'arcade login' to sign in again.", style="dim")
 
 
 @app.command("add", help="Log in to an installation and save it as a context")

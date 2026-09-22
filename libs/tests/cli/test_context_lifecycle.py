@@ -148,3 +148,62 @@ class TestContextSelection:
                 resolve_active_context()
         finally:
             override_context(None)
+
+
+class TestTheLastContextLeavesNothingBehind:
+    """save_to_file rebuilds a `default` context from the flat fields when the
+    map is empty. Deleting the last context therefore has to take the file with
+    it, or the CLI reports nothing remains while a context it invented sits on
+    disk -- self_hosted, credential-less, and enough to arm the no-Cloud guard.
+    """
+
+    @pytest.fixture
+    def one_self_hosted(self, tmp_path, monkeypatch):
+        path = tmp_path / "credentials.yaml"
+        monkeypatch.setattr(Config, "get_config_file_path", classmethod(lambda cls: path))
+        monkeypatch.setattr(Config, "ensure_config_dir_exists", staticmethod(lambda: None))
+        config = Config(
+            contexts={
+                "acme": NamedContext(kind="self_hosted", engine_url="https://api.acme.internal")
+            },
+            active_context="acme",
+        )
+        config._apply_named_context("acme", config.contexts["acme"])
+        config.save_to_file()
+        return path
+
+    def test_deleting_the_last_context_removes_the_file(self, one_self_hosted):
+        from arcade_cli.contexts_cmd import context_delete
+
+        context_delete("acme")
+
+        assert not one_self_hosted.exists()
+
+    def test_no_context_is_invented_in_its_place(self, one_self_hosted):
+        from arcade_cli.contexts_cmd import context_delete
+
+        context_delete("acme")
+
+        assert not one_self_hosted.exists()
+        with pytest.raises(FileNotFoundError):
+            Config.load_from_file()
+
+    def test_remove_context_clears_the_kind_it_cannot_default(self):
+        config = Config(
+            contexts={"acme": NamedContext(kind="self_hosted")}, active_context="acme"
+        )
+        config.kind = "self_hosted"
+
+        assert config.remove_context("acme") is False
+        assert config.kind == "cloud", "a stale self_hosted would arm the guard"
+
+    def test_a_save_after_the_last_removal_cannot_revive_it(self, one_self_hosted):
+        import yaml
+
+        config = Config.load_from_file()
+        config.remove_context("acme")
+        config.save_to_file()
+
+        cloud = yaml.safe_load(one_self_hosted.read_text())["cloud"]
+        revived = cloud.get("contexts", {}).get("default")
+        assert revived is None or revived.get("kind") == "cloud"
