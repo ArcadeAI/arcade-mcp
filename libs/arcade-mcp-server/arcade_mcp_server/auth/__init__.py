@@ -1,4 +1,5 @@
 from arcade_core.auth import (
+    Airtable,
     Asana,
     Atlassian,
     Attio,
@@ -27,6 +28,7 @@ from arcade_core.auth import (
 )
 
 __all__ = [
+    "Airtable",
     "Asana",
     "Atlassian",
     "Attio",

@@ -2,7 +2,14 @@ import asyncio
 import inspect
 
 import pytest
-from arcade_core.auth import AuthProviderType, Calendly, Google, Microsoft, MicrosoftPowerBI
+from arcade_core.auth import (
+    Airtable,
+    AuthProviderType,
+    Calendly,
+    Google,
+    Microsoft,
+    MicrosoftPowerBI,
+)
 from arcade_core.resources import resource
 from arcade_tdk import tool
 from arcade_tdk.auth import OAuth2, PagerDuty
@@ -46,6 +53,7 @@ async def test_async_function():
             "my_example_provider123",
         ),
         (Google, {"scopes": ["test_scope", "another.scope"]}, "google", None),
+        (Airtable, {"scopes": ["test_scope", "another.scope"]}, "airtable", None),
         (
             Google,
             {"id": "my_google_provider123", "scopes": ["test_scope", "another.scope"]},
@@ -108,6 +116,20 @@ def test_microsoft_powerbi_provider_defaults():
     assert auth.provider_type == AuthProviderType.oauth2
     # Subclasses Microsoft so it inherits the Microsoft Graph error adapter mapping.
     assert isinstance(auth, Microsoft)
+
+
+def test_airtable_provider_defaults_and_reexports():
+    from arcade_mcp_server.auth import Airtable as AirtableFromServer
+    from arcade_tdk.auth import Airtable as AirtableFromTdk
+
+    auth = Airtable()
+
+    assert auth.provider_id == "airtable"
+    assert auth.id is None
+    assert auth.scopes is None
+    assert auth.provider_type == AuthProviderType.oauth2
+    assert AirtableFromServer is Airtable
+    assert AirtableFromTdk is Airtable
 
 
 def test_microsoft_powerbi_importable_from_mcp_server_auth():
