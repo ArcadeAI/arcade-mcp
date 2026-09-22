@@ -33,6 +33,15 @@ class OAuth2(ToolAuthorization):
         super().__init__(id=id, scopes=scopes, provider_type=AuthProviderType.oauth2)
 
 
+class Airtable(OAuth2):
+    """Marks a tool as requiring Airtable authorization."""
+
+    provider_id: str = "airtable"
+
+    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
+        super().__init__(id=id, scopes=scopes)
+
+
 class Asana(OAuth2):
     """Marks a tool as requiring Asana authorization."""
 
