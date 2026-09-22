@@ -114,9 +114,12 @@ class TestContextSelection:
         from arcade_cli import _startup_environment
         from arcade_cli.utils import resolve_engine_base_url
 
+        from arcade_cli.context import override_context
+
         monkeypatch.setenv("ARCADE_CONTEXT", "cloud1")
         _startup_environment.forget()
         _startup_environment.capture()
+        override_context(None)  # what main_callback does with no --context
 
         assert resolve_engine_base_url(None, None, False, False) == "https://api.arcade.dev"
 
@@ -388,3 +391,81 @@ class TestTheSelectionLastsOneInvocation:
         config.save_to_file()
 
         assert self._saved(saved_on_cloud)["active_context"] == "onprem"
+
+
+class TestAProjectEnvFileCannotRetargetMidCommand:
+    """Importing the CLI loads a project's env file.
+
+    A command resolves its engine early and loads credentials later. If the
+    context could change in between, the engine would come from one
+    installation and the token from another -- which is the failure mode the
+    startup snapshot exists to prevent, and ARCADE_CONTEXT is a third variable
+    that needed it.
+    """
+
+    def test_setting_the_variable_after_start_changes_nothing(self, tmp_path, monkeypatch):
+        import arcade_core.config_model as config_model
+        from arcade_cli.context import override_context
+
+        def ctx(token, engine):
+            return {
+                "kind": "cloud",
+                "engine_url": engine,
+                "auth": {
+                    "access_token": token,
+                    "refresh_token": "r",
+                    "expires_at": "2099-01-01T00:00:00",
+                },
+                "user": {"email": "me@example.com"},
+            }
+
+        path = tmp_path / "credentials.yaml"
+        path.write_text(
+            yaml.dump(
+                {
+                    "cloud": {
+                        "active_context": "cloud1",
+                        "contexts": {
+                            "cloud1": ctx("CLOUD", "https://api.arcade.dev"),
+                            "onprem": ctx("ONPREM", "https://api.acme.internal"),
+                        },
+                    }
+                }
+            )
+        )
+        monkeypatch.setattr(Config, "get_config_file_path", classmethod(lambda cls: path))
+        monkeypatch.setattr(Config, "ensure_config_dir_exists", staticmethod(lambda: None))
+        monkeypatch.delenv("ARCADE_CONTEXT", raising=False)
+        monkeypatch.setattr(config_model, "_env_context", None)
+        override_context(None)
+
+        # The env file lands here, after the command has already started.
+        monkeypatch.setenv("ARCADE_CONTEXT", "onprem")
+
+        assert Config.load_from_file().auth.access_token == "CLOUD"
+
+    def test_the_variable_is_honoured_when_set_before_start(self, tmp_path, monkeypatch):
+        import arcade_core.config_model as config_model
+
+        path = tmp_path / "credentials.yaml"
+        path.write_text(
+            yaml.dump(
+                {
+                    "cloud": {
+                        "active_context": "cloud1",
+                        "contexts": {
+                            "cloud1": {"kind": "cloud", "engine_url": "https://api.arcade.dev"},
+                            "onprem": {
+                                "kind": "self_hosted",
+                                "engine_url": "https://api.acme.internal",
+                            },
+                        },
+                    }
+                }
+            )
+        )
+        monkeypatch.setattr(Config, "get_config_file_path", classmethod(lambda cls: path))
+        monkeypatch.setattr(Config, "ensure_config_dir_exists", staticmethod(lambda: None))
+        monkeypatch.setattr(config_model, "_env_context", "onprem")
+
+        assert Config.load_from_file().engine_url == "https://api.acme.internal"

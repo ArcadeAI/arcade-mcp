@@ -22,6 +22,13 @@ ARCADE_CONTEXT_ENV = "ARCADE_CONTEXT"
 # credentials.
 _selected_context: str | None = None
 
+# Read once, at import. Loading a project's env file part-way through a command
+# must not change which installation's credentials that command is already
+# using -- the engine would already have been resolved from one context while
+# the token came from another. ARCADE_WORK_DIR is read once for the same
+# reason; the CLI pins this value too and pushes it in through select_context.
+_env_context: str | None = os.getenv(ARCADE_CONTEXT_ENV) or None
+
 
 def select_context(name: str | None) -> None:
     """Activate this saved context on load, ahead of the file's own choice."""
@@ -30,7 +37,7 @@ def select_context(name: str | None) -> None:
 
 
 def selected_context() -> str | None:
-    return _selected_context or os.getenv(ARCADE_CONTEXT_ENV) or None
+    return _selected_context or _env_context
 
 
 logger = logging.getLogger(__name__)
