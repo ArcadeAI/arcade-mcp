@@ -469,3 +469,94 @@ class TestAProjectEnvFileCannotRetargetMidCommand:
         monkeypatch.setattr(config_model, "_env_context", "onprem")
 
         assert Config.load_from_file().engine_url == "https://api.acme.internal"
+
+
+class TestASelectionNeverWritesToTheWrongContext:
+    """active_context names the context the flat fields belong to.
+
+    An earlier design tracked the write target separately from active_context.
+    Anything that legitimately moved the active context -- context set, login,
+    deleting a context -- left that target pointing at the previous one, and
+    the next save wrote one context's credentials into another. Keeping a
+    single notion of "where these fields came from" removes the class.
+    """
+
+    @pytest.fixture
+    def two(self, tmp_path, monkeypatch):
+        def ctx(token, engine):
+            return {
+                "kind": "cloud",
+                "engine_url": engine,
+                "auth": {
+                    "access_token": token,
+                    "refresh_token": "r",
+                    "expires_at": "2099-01-01T00:00:00",
+                },
+                "user": {"email": "me@example.com"},
+            }
+
+        path = tmp_path / "credentials.yaml"
+        self._doc = {
+            "cloud": {
+                "active_context": "cloud1",
+                "contexts": {
+                    "cloud1": ctx("CLOUD", "https://api.arcade.dev"),
+                    "onprem": ctx("ONPREM", "https://api.acme.internal"),
+                },
+            }
+        }
+        path.write_text(yaml.dump(self._doc))
+        monkeypatch.setattr(Config, "get_config_file_path", classmethod(lambda cls: path))
+        monkeypatch.setattr(Config, "ensure_config_dir_exists", staticmethod(lambda: None))
+        return path
+
+    def _saved(self, path):
+        return yaml.safe_load(path.read_text())["cloud"]
+
+    def test_context_set_under_a_selection_leaves_the_selected_one_intact(self, two):
+        from arcade_core.config_model import select_context
+
+        select_context("onprem")
+        config = Config.load_from_file()
+        config.use_context("cloud1")
+        config.save_to_file()
+
+        saved = self._saved(two)
+        assert saved["contexts"]["onprem"]["auth"]["access_token"] == "ONPREM"
+        assert saved["active_context"] == "cloud1", "an explicit set is a real switch"
+
+    def test_login_under_a_selection_writes_to_the_context_it_named(self, two):
+        from arcade_core.config_model import NamedContext, select_context
+
+        select_context("onprem")
+        config = Config.load_from_file()
+        fresh = NamedContext(kind="cloud", engine_url="https://api.arcade.dev")
+        config._apply_named_context("cloud1", fresh)
+        config.save_to_file()
+
+        assert self._saved(two)["contexts"]["onprem"]["auth"]["access_token"] == "ONPREM"
+
+    def test_deleting_the_selected_context_does_not_resurrect_it_as_default(self, two):
+        from arcade_core.config_model import select_context
+
+        select_context("onprem")
+        config = Config.load_from_file()
+        config.remove_context("onprem")
+        config.save_to_file()
+
+        saved = self._saved(two)
+        assert "onprem" not in saved["contexts"]
+        assert saved["active_context"] == "cloud1"
+
+    def test_a_refresh_under_a_selection_still_lands_correctly(self, two):
+        from arcade_core.config_model import select_context
+
+        select_context("onprem")
+        config = Config.load_from_file()
+        config.auth.access_token = "ONPREM-NEW"
+        config.save_to_file()
+
+        saved = self._saved(two)
+        assert saved["contexts"]["onprem"]["auth"]["access_token"] == "ONPREM-NEW"
+        assert saved["contexts"]["cloud1"]["auth"]["access_token"] == "CLOUD"
+        assert saved["active_context"] == "cloud1"

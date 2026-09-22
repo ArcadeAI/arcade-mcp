@@ -201,11 +201,15 @@ class Config(BaseConfig):
 
     active_context: str | None = None
 
-    # A context chosen for this invocation only. The flat fields below hold its
-    # values, but active_context keeps whatever the file said, so a save -- a
-    # token refresh, most often -- writes back into the chosen context without
-    # making it the saved default.
-    _ephemeral_context: str | None = PrivateAttr(default=None)
+    # When a context was chosen for this invocation, the name the file should
+    # keep as its default. active_context always names the context the flat
+    # fields belong to, so a save writes them back where they came from; this
+    # only affects which name is recorded as the default.
+    #
+    # Held this way round deliberately. A write target that goes stale corrupts
+    # whichever context it still points at; a default that goes stale merely
+    # records the wrong one, which is visible and repairable.
+    _saved_active_context: str | None = PrivateAttr(default=None)
 
     def __init__(self, **data: Any):
         super().__init__(**data)
@@ -223,6 +227,9 @@ class Config(BaseConfig):
         )
 
     def _apply_named_context(self, name: str, ctx: NamedContext) -> None:
+        # Deliberately moving to a context cancels a one-command selection:
+        # whoever called this wants the move recorded.
+        self._saved_active_context = None
         self.active_context = name
         self.kind = ctx.kind
         self.engine_url = ctx.engine_url
@@ -255,8 +262,7 @@ class Config(BaseConfig):
 
         saved_active = self.active_context
         self._apply_named_context(chosen, self.contexts[chosen])
-        self.active_context = saved_active
-        self._ephemeral_context = chosen
+        self._saved_active_context = saved_active
 
     def remove_context(self, name: str) -> bool:
         """Drop a saved context. Returns whether anything remains after it.
@@ -270,6 +276,9 @@ class Config(BaseConfig):
             raise ValueError(f"Context '{name}' not found. Available contexts: {available}.")
 
         del self.contexts[name]
+        if self._saved_active_context == name:
+            # The default this save would have restored is gone.
+            self._saved_active_context = None
         if self.active_context != name:
             return True
 
@@ -446,10 +455,9 @@ class Config(BaseConfig):
         Config.ensure_config_dir_exists()
         config_file_path = Config.get_config_file_path()
 
-        # The flat fields belong to whichever context was chosen for this
-        # invocation, falling back to the saved active one. A token refreshed
-        # under --context belongs to that context, not to the saved default.
-        target = self._ephemeral_context or self.active_context
+        # active_context names the context the flat fields belong to, so they
+        # are written back where they came from.
+        target = self.active_context
 
         if not self.contexts:
             self.contexts = {"default": self._to_named_context()}
@@ -468,7 +476,8 @@ class Config(BaseConfig):
 
         active = self._to_named_context()
         cloud = {
-            "active_context": self.active_context,
+            # A context chosen for one command does not become the default.
+            "active_context": self._saved_active_context or self.active_context,
             "contexts": {
                 name: ctx.model_dump(exclude_none=True, mode="json")
                 for name, ctx in self.contexts.items()
