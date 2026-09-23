@@ -1894,9 +1894,11 @@ class TestMissingSecretsWarnings:
                 )
 
                 warning = matching_warnings[0]
-                # Check format: "⚠ Tool 'name' declares secret(s) 'KEY' which are not set"
+                # Same actionable shape as the runtime missing-secret error.
+                assert "✗ Missing secret: FORMAT_TEST_KEY" in warning
                 assert "Tool 'format_test_tool'" in warning
-                assert "not set" in warning
+                assert "not configured" in warning
+                assert "To fix" in warning
 
                 await server.stop()
         finally:
