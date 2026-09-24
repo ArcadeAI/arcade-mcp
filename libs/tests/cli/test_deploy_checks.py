@@ -50,6 +50,17 @@ class TestUnsupportedFramework:
         assert "FastMCP" in message
         assert "Arcade MCP" in message
 
+    def test_arcade_marker_in_comment_or_string_does_not_hide_fastmcp(self, tmp_path: Path):
+        _pyproject(tmp_path)
+        (tmp_path / "server.py").write_text(
+            "# migrated from arcade_mcp\nNOTE = 'MCPApp'\n" + FASTMCP_SERVER
+        )
+
+        message = detect_unsupported_input(tmp_path, "server.py")
+
+        assert message is not None
+        assert "FastMCP" in message
+
     def test_typescript_sdk_server_is_rejected(self, tmp_path: Path):
         (tmp_path / "package.json").write_text('{"dependencies": {"@modelcontextprotocol/sdk": "1"}}')
         (tmp_path / "index.ts").write_text("// server")
