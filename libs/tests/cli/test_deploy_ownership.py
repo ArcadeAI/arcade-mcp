@@ -102,6 +102,33 @@ class TestFetchSecretOwners:
 
         assert owners == {"OWNED": "me", "FOREIGN": "other", "UNOWNED": None}
 
+    def test_reads_every_page(self):
+        from arcade_cli.deploy import _fetch_secret_owners
+
+        pages = {
+            0: {"items": [{"key": "FIRST", "owner_account_id": "me"}], "total_count": 2},
+            1: {"items": [{"key": "LATER", "owner_account_id": "other"}], "total_count": 2},
+        }
+
+        def _get(url, params):
+            response = MagicMock()
+            response.raise_for_status.return_value = None
+            response.json.return_value = pages[params["offset"]]
+            return response
+
+        client = MagicMock()
+        client.get.side_effect = _get
+        client.close.return_value = None
+
+        with (
+            patch("arcade_cli.deploy.httpx.Client", return_value=client),
+            patch("arcade_cli.deploy.get_auth_headers", return_value={}),
+            patch("arcade_cli.deploy.get_org_scoped_url", return_value="https://engine/secrets"),
+        ):
+            owners = _fetch_secret_owners("https://engine.acme.internal")
+
+        assert owners == {"FIRST": "me", "LATER": "other"}
+
 
 class TestForbiddenMapping:
     def test_update_deployment_403_is_forbidden(self):
