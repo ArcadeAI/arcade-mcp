@@ -283,3 +283,58 @@ class TestDeployRejectsBeforeUpload:
         mock_upsert.assert_called_once()
         assert mock_upsert.call_args.args[1] == {"EXPENSE_API_TOKEN", "EXPENSE_REGION"}
         mock_deploy.assert_called_once()
+
+    def test_foreign_secret_without_local_value_is_not_blocking(
+        self, project_dir: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        os.environ.pop("ARCADE_URL", None)
+        os.environ.pop("ARCADE_API_KEY", None)
+        monkeypatch.delenv("SHARED_TOKEN", raising=False)
+
+        from arcade_core.config_model import Config, NamedContext
+
+        seed = Config()
+        seed.contexts = {
+            "onprem": NamedContext(kind="self_hosted", engine_url="https://engine.acme.internal")
+        }
+        seed._apply_named_context("onprem", seed.contexts["onprem"])
+        seed.save_to_file()
+
+        monkeypatch.chdir(project_dir)
+
+        config = MagicMock()
+        config.user.email = "user@acme.internal"
+        config.user.account_id = "me"
+
+        with (
+            patch("arcade_cli.deploy.validate_and_get_config", return_value=config),
+            patch(
+                "arcade_cli.deploy.verify_server_and_get_metadata",
+                return_value=("expense", "1.0.0", {"SHARED_TOKEN"}),
+            ),
+            patch(
+                "arcade_cli.deploy._fetch_secret_owners",
+                return_value={"SHARED_TOKEN": "other-acct"},
+            ),
+            patch("arcade_cli.deploy.upsert_secrets_to_engine"),
+            patch("arcade_cli.deploy.server_already_exists", return_value=False),
+            patch("arcade_cli.deploy.deploy_server_to_engine") as mock_deploy,
+            patch(
+                "arcade_cli.deploy._monitor_deployment_with_logs",
+                new=AsyncMock(return_value=("running", [])),
+            ),
+        ):
+            deploy_server_logic(
+                entrypoint="server.py",
+                skip_validate=False,
+                server_name=None,
+                server_version=None,
+                secrets="auto",
+                host=None,
+                port=None,
+                force_tls=False,
+                force_no_tls=False,
+                debug=False,
+            )
+
+        mock_deploy.assert_called_once()
