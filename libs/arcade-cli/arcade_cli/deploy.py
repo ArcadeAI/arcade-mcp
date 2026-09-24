@@ -784,10 +784,16 @@ def upsert_secrets_to_engine(
 def _fetch_secret_owners(engine_url: str) -> dict[str, str | None]:
     url = get_org_scoped_url(engine_url, "/secrets")
     client = httpx.Client(headers=get_auth_headers(), timeout=30)
+    items: list[dict] = []
     try:
-        response = client.get(url)
-        response.raise_for_status()
-        items = response.json().get("items", [])
+        while True:
+            response = client.get(url, params={"limit": 1000, "offset": len(items)})
+            response.raise_for_status()
+            page = response.json()
+            page_items = page.get("items", [])
+            items.extend(page_items)
+            if not page_items or len(items) >= page.get("total_count", 0):
+                break
     finally:
         client.close()
 
