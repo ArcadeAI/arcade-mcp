@@ -987,7 +987,9 @@ def deploy_server_logic(
     elif secrets == "auto":
         secrets_to_upsert = set(required_secrets_from_validation)
 
-    preflight_secret_ownership(engine_url, secrets_to_upsert, account_id)
+    preflight_secret_ownership(
+        engine_url, {key for key in secrets_to_upsert if os.getenv(key)}, account_id
+    )
 
     if secrets == "all" and env_path is not None:
         if secrets_to_upsert:
