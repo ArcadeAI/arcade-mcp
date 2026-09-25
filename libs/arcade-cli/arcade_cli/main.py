@@ -1256,6 +1256,16 @@ def upgrade(
     update(debug=debug)
 
 
+def _active_dashboard_path() -> str:
+    """Dashboard path for the active org and project, or "" when none is selected."""
+    from arcade_core.config_model import Config
+
+    context = Config.load_from_file().context
+    if not context:
+        return ""
+    return f"/orgs/{context.org_id}/projects/{context.project_id}"
+
+
 @cli.command(help="Open the Arcade Dashboard in a web browser", rich_help_panel="User")
 def dashboard(
     host: Optional[str] = typer.Option(
@@ -1302,11 +1312,14 @@ def dashboard(
         # named a host themselves.
         context_dashboard = None
         context_engine = None
+        org_project_path = ""
         if host is None:
             active = try_resolve_active_context()
             if active is not None:
                 context_dashboard = active.dashboard_url
                 context_engine = active.engine_url
+                if not active.is_ci:
+                    org_project_path = _active_dashboard_path()
 
         if context_dashboard and not context_engine:
             # A discovery document names a coordinator and may name a dashboard
@@ -1315,7 +1328,7 @@ def dashboard(
             # wrong for this installation and refused by the guard. Open the
             # dashboard we were given.
             base_url = None
-            dashboard_url = context_dashboard.rstrip("/")
+            dashboard_url = context_dashboard.rstrip("/") + org_project_path
         else:
             # The health check always speaks to the engine. A discovered
             # dashboard can live on its own host, which serves no engine health
@@ -1323,7 +1336,7 @@ def dashboard(
             base_url = resolve_engine_base_url(host, port, force_tls, force_no_tls)
             dashboard_url = (
                 context_dashboard.rstrip("/") if context_dashboard else f"{base_url}/dashboard"
-            )
+            ) + org_project_path
 
         # Try to hit /health endpoint on engine and warn if it is down
         if base_url is not None:
