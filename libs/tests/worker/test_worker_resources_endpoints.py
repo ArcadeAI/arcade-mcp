@@ -8,6 +8,7 @@ decodes the bytes and a host that renders an interface compares some of them
 with string equality.
 """
 
+from types import SimpleNamespace
 from typing import Annotated
 
 import pytest
@@ -309,7 +310,9 @@ def spans(monkeypatch):
     provider = TracerProvider()
     provider.add_span_processor(SimpleSpanProcessor(exporter))
     monkeypatch.setattr(
-        components.trace, "get_tracer", lambda *a, **kw: provider.get_tracer(__name__)
+        components,
+        "trace",
+        SimpleNamespace(get_tracer=lambda *a, **kw: provider.get_tracer(__name__)),
     )
     return exporter
 

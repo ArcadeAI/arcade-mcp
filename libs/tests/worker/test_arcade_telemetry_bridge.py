@@ -249,3 +249,29 @@ def test_otel_handler_uses_builtin_when_arcade_telemetry_absent(
     assert handler._meter_provider is not None
     assert handler._logger_provider is not None
     assert handler._arcade_telemetry_handle is None
+
+
+def test_create_arcade_mcp_starts_with_otlp_endpoint_and_noop_providers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from opentelemetry import _logs, metrics, trace
+    from opentelemetry._logs import NoOpLoggerProvider
+    from opentelemetry.metrics import NoOpMeterProvider
+    from opentelemetry.trace import NoOpTracerProvider
+
+    monkeypatch.setattr(trace, "_TRACER_PROVIDER", NoOpTracerProvider())
+    monkeypatch.setattr(metrics._internal, "_METER_PROVIDER", NoOpMeterProvider())
+    monkeypatch.setattr(_logs._internal, "_LOGGER_PROVIDER", NoOpLoggerProvider())
+    monkeypatch.setenv("MCP_SERVER_NAME", "test-mcp")
+    monkeypatch.setenv("MCP_SERVER_VERSION", "0.1.0")
+    monkeypatch.setenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://127.0.0.1:4318")
+
+    from arcade_core import ToolCatalog
+    from arcade_mcp_server.settings import MCPSettings
+    from arcade_mcp_server.worker import create_arcade_mcp
+    from fastapi.testclient import TestClient
+
+    app = create_arcade_mcp(ToolCatalog(), mcp_settings=MCPSettings.from_env())
+
+    with TestClient(app):
+        pass

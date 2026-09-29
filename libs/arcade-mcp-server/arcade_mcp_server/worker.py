@@ -196,6 +196,7 @@ def create_arcade_mcp(
         docs_url="/docs" if not mcp_settings.arcade.auth_disabled else None,
         redoc_url="/redoc" if not mcp_settings.arcade.auth_disabled else None,
         lifespan=lifespan,
+        telemetry={"auto_configure": False},
     )
     otel_handler.instrument_app(app)
 
