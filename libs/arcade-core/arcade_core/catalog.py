@@ -27,6 +27,7 @@ from typing import (
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, create_model, model_serializer
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
+from typing_extensions import NotRequired, Required
 
 from arcade_core.annotations import Inferrable
 from arcade_core.auth import OAuth2, ToolAuthorization
@@ -1007,6 +1008,20 @@ def _field_docstrings(cls: type) -> dict[str, str]:
     return docstrings
 
 
+def _typeddict_field_types(typeddict_class: type) -> dict[str, Any]:
+    """Return each TypedDict field's type without a Required or NotRequired qualifier.
+
+    The qualifiers only decide whether a key is required, which the class already
+    records in ``__required_keys__``.
+    """
+    field_types: dict[str, Any] = {}
+    for name, field_type in get_type_hints(typeddict_class, include_extras=True).items():
+        while get_origin(field_type) in (Required, NotRequired):
+            field_type = get_args(field_type)[0]
+        field_types[name] = field_type
+    return field_types
+
+
 def extract_properties(
     type_to_check: type,
 ) -> tuple[dict[str, WireTypeInfo] | None, list[str] | None]:
@@ -1052,8 +1067,7 @@ def extract_properties(
 
     # Handle TypedDict
     elif is_typeddict(type_to_check):
-        # Get type hints for the TypedDict
-        type_hints = get_type_hints(type_to_check, include_extras=True)
+        type_hints = _typeddict_field_types(type_to_check)
 
         # Try to extract field descriptions from the class source
         field_descriptions = _extract_typeddict_field_descriptions(type_to_check)
@@ -1493,8 +1507,7 @@ def create_model_from_typeddict(
     preserve the pass-through behavior for tools whose return dicts contain
     extra keys from upstream APIs.
     """
-    # Get type hints for the TypedDict
-    type_hints = get_type_hints(typeddict_class, include_extras=True)
+    type_hints = _typeddict_field_types(typeddict_class)
 
     # Build field definitions for the Pydantic model
     field_definitions: dict[str, Any] = {}
