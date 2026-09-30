@@ -1,8 +1,10 @@
+import ast
 import asyncio
 import inspect
 import logging
 import os
 import re
+import textwrap
 import typing
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
@@ -956,31 +958,53 @@ def get_wire_type_info(_type: type) -> WireTypeInfo:
 
 def _extract_typeddict_field_descriptions(typeddict_class: type) -> dict[str, str]:
     """
-    Extract field descriptions from TypedDict docstrings.
+    Extract field descriptions from the docstrings written under TypedDict fields.
 
-    TypedDict classes typically have field descriptions as docstrings after each field.
-    This function attempts to parse the source code to extract these descriptions.
+    A field keeps the docstring of the class that declares it, so fields inherited from
+    a base TypedDict are described too. A subclass that redeclares a field overrides it.
     """
-    descriptions = {}
-
-    try:
-        source = inspect.getsource(typeddict_class)
-        # Simple regex to match field: type pattern followed by a docstring
-        # This is a simplified approach - a full AST parser would be more robust
-        import re
-
-        # Pattern to match field definition followed by docstring
-        pattern = r'(\w+):\s*[^"\n]+\n\s*"""([^"]+)"""'
-        matches = re.findall(pattern, source)
-
-        for field_name, description in matches:
-            descriptions[field_name] = description.strip()
-
-    except (OSError, TypeError):
-        # If we can't get the source, return empty descriptions
-        pass
-
+    descriptions: dict[str, str] = {}
+    for cls in _typeddict_lineage(typeddict_class):
+        descriptions.update(_field_docstrings(cls))
     return descriptions
+
+
+def _typeddict_lineage(typeddict_class: type) -> list[type]:
+    """Return a TypedDict and every TypedDict it inherits from, bases first.
+
+    TypedDict classes subclass ``dict`` directly, so their TypedDict bases are only
+    recorded in ``__orig_bases__``.
+    """
+    lineage: list[type] = []
+    for base in getattr(typeddict_class, "__orig_bases__", ()):
+        if is_typeddict(base):
+            lineage.extend(cls for cls in _typeddict_lineage(base) if cls not in lineage)
+    lineage.append(typeddict_class)
+    return lineage
+
+
+def _field_docstrings(cls: type) -> dict[str, str]:
+    """Map each field declared in the class body to the string literal directly under it."""
+    try:
+        class_def = ast.parse(textwrap.dedent(inspect.getsource(cls))).body[0]
+    except (OSError, TypeError, SyntaxError):
+        return {}
+    if not isinstance(class_def, ast.ClassDef):
+        return {}
+
+    docstrings: dict[str, str] = {}
+    for statement, following in zip(class_def.body, class_def.body[1:]):
+        if (
+            isinstance(statement, ast.AnnAssign)
+            and isinstance(statement.target, ast.Name)
+            and isinstance(following, ast.Expr)
+            and isinstance(following.value, ast.Constant)
+            and isinstance(following.value.value, str)
+        ):
+            docstring = inspect.cleandoc(following.value.value)
+            if docstring:
+                docstrings[statement.target.id] = docstring
+    return docstrings
 
 
 def extract_properties(
