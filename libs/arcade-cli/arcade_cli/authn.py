@@ -42,11 +42,13 @@ from arcade_core.config_model import (
 )
 from arcade_core.constants import ARCADE_CONFIG_PATH, CREDENTIALS_FILE_PATH
 from arcade_core.subprocess_utils import build_windows_hidden_startupinfo
+from authlib.integrations.base_client import OAuthError
 from authlib.integrations.httpx_client import OAuth2Client
 from jinja2 import Environment, FileSystemLoader
 from pydantic import AliasChoices, BaseModel, Field
 
 from arcade_cli.console import console
+from arcade_cli.strong_authentication import STRONG_AUTHENTICATION_REQUIRED
 
 logger = logging.getLogger(__name__)
 
@@ -148,14 +150,38 @@ def exchange_code_for_tokens(
 
     Returns:
         TokenResponse with access and refresh tokens
+
+    Raises:
+        OAuthLoginError: If the token endpoint refuses the exchange
     """
-    token = client.fetch_token(
-        client.session.metadata["token_endpoint"],
-        grant_type="authorization_code",
-        code=code,
-        redirect_uri=redirect_uri,
-        code_verifier=code_verifier,
-    )
+    # authlib reports a token error's code and description but drops its
+    # error_uri, so the response is read for it on the way through.
+    error_uri: str | None = None
+
+    def remember_error_uri(response: Any) -> Any:
+        nonlocal error_uri
+        try:
+            body = response.json()
+        except ValueError:
+            return response
+        if isinstance(body, dict) and isinstance(body.get("error_uri"), str):
+            error_uri = body["error_uri"]
+        return response
+
+    client.register_compliance_hook("access_token_response", remember_error_uri)
+    try:
+        token = client.fetch_token(
+            client.session.metadata["token_endpoint"],
+            grant_type="authorization_code",
+            code=code,
+            redirect_uri=redirect_uri,
+            code_verifier=code_verifier,
+        )
+    except OAuthError as e:
+        message = f"Login failed: {e.description or e.error}"
+        if error_uri:
+            message += f"\nLearn more: {error_uri}"
+        raise OAuthLoginError(message) from e
 
     return TokenResponse(
         access_token=token["access_token"],
@@ -217,6 +243,12 @@ def select_default_project(projects: list[ProjectInfo]) -> ProjectInfo | None:
     return projects[0]
 
 
+class WhoAmIMfaInfo(BaseModel):
+    """Where the sign-in stands against its organization's strong-authentication requirement."""
+
+    status: str
+
+
 class WhoAmIResponse(BaseModel):
     """Response from Coordinator /whoami endpoint."""
 
@@ -224,6 +256,13 @@ class WhoAmIResponse(BaseModel):
     email: str
     organizations: list[OrgInfo] = []
     projects: list[ProjectInfo] = []
+    # Absent when no requirement covers the account.
+    mfa: WhoAmIMfaInfo | None = None
+
+    @property
+    def requires_strong_authentication(self) -> bool:
+        """Whether Arcade will refuse this sign-in for not using strong authentication."""
+        return self.mfa is not None and self.mfa.status == "unmet"
 
     def get_selected_org(self) -> OrgInfo | None:
         """Get the org to use: default if available, otherwise first in list."""
@@ -800,6 +839,9 @@ def perform_oauth_login(
     # Step 7: Fetch user info
     whoami = fetch_whoami(coordinator_url, tokens.access_token)
 
+    if whoami.requires_strong_authentication:
+        raise OAuthLoginError(f"Login failed: {STRONG_AUTHENTICATION_REQUIRED}")
+
     # Validate org/project exist
     if not whoami.get_selected_org():
         raise OAuthLoginError(
@@ -815,6 +857,18 @@ def perform_oauth_login(
         )
 
     return OAuthLoginResult(tokens=tokens, whoami=whoami)
+
+
+def forget_sign_in() -> None:
+    """Drop the active context's tokens, keeping the rest of the context."""
+    try:
+        config = Config.load_from_file()
+    except FileNotFoundError:
+        return
+    if config.auth is None:
+        return
+    config.auth = None
+    config.save_to_file()
 
 
 def _credentials_file_contains_legacy() -> bool:
