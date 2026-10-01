@@ -1,22 +1,22 @@
 specVersion: "0.1"
 
-description: Requires uv. Mirrors the test, CLI no-auth integration, and installation jobs in .github/workflows/, on the local platform and default Python only. The runner executes in a clean worktree at the candidate commit, so each command creates its own virtual environment.
+description: Requires uv. Mirrors the test, CLI no-auth integration, and installation jobs in .github/workflows/, on the local platform and Python 3.11 only, the CI default. The runner executes in a clean worktree at the candidate commit, so each command creates its own virtual environment.
 
 items:
   - id: libs
     kind: command
     gate: beforePR
-    exec: ["uv", "run", "--extra", "all", "--extra", "dev", "pytest", "-W", "ignore", "libs/tests"]
+    exec: ["uv", "run", "--python", "3.11", "--extra", "all", "--extra", "dev", "pytest", "-W", "ignore", "libs/tests"]
     timeoutSeconds: 1500
 
   - id: cli-no-auth
     kind: command
     gate: beforePR
-    exec: ["uv", "run", "--extra", "all", "--extra", "dev", "python", "tests/integration/no_auth_cli_smoke.py"]
+    exec: ["uv", "run", "--python", "3.11", "--extra", "all", "--extra", "dev", "python", "tests/integration/no_auth_cli_smoke.py"]
     timeoutSeconds: 900
 
   - id: install
     kind: command
     gate: beforePR
-    exec: ["uv", "run", "--extra", "all", "--extra", "dev", "pytest", "tests/install/", "--tb=short"]
+    exec: ["uv", "run", "--python", "3.11", "--extra", "all", "--extra", "dev", "pytest", "tests/install/", "--tb=short"]
     timeoutSeconds: 900

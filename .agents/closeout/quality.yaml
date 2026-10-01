@@ -1,10 +1,10 @@
 specVersion: "0.1"
 
-description: Requires uv and make. Mirrors the quality job in .github/workflows/main.yml, which runs make check after uv sync --extra all --extra dev. The runner executes in a clean worktree at the candidate commit, so the first run creates the virtual environment and the pre-commit hook cache.
+description: Requires uv and make. Mirrors the quality job in .github/workflows/main.yml, which runs make check on Python 3.11 after uv sync --extra all --extra dev. The runner executes in a clean worktree at the candidate commit, so the first run creates the virtual environment and the pre-commit hook cache.
 
 items:
   - id: check
     kind: command
     gate: beforePR
-    exec: ["uv", "run", "--extra", "all", "--extra", "dev", "make", "check"]
+    exec: ["uv", "run", "--python", "3.11", "--extra", "all", "--extra", "dev", "make", "check"]
     timeoutSeconds: 900
