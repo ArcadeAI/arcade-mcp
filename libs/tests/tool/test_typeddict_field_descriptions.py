@@ -90,11 +90,11 @@ def func_returns_event() -> Annotated[Event, "The event"]:
     return Event(event_id="event-1")
 
 
-def test_inherited_output_field_keeps_its_docstring():
+def test_output_schema_describes_only_fields_its_own_class_declares():
     tool_def = ToolCatalog.create_tool_definition(func_returns_event, "1.0")
 
     assert _descriptions(tool_def.output.value_schema) == {
-        "location": "Where the event takes place, when it has a location.",
+        "location": None,
         "event_id": "The event's unique identifier.",
     }
 

@@ -690,7 +690,7 @@ def create_output_definition(func: Callable) -> ToolOutput:
     if is_optional:
         return_type = next(arg for arg in get_args(return_type) if arg is not type(None))
 
-    wire_type_info = get_wire_type_info(return_type)
+    wire_type_info = get_wire_type_info(return_type, for_output=True)
 
     available_modes = ["value", "error"]
 
@@ -887,9 +887,12 @@ def extract_field_info(param: inspect.Parameter) -> ToolParamInfo:
     return ToolParamInfo.from_param_info(param_info, wire_type_info, is_inferrable)
 
 
-def get_wire_type_info(_type: type) -> WireTypeInfo:
+def get_wire_type_info(_type: type, *, for_output: bool = False) -> WireTypeInfo:
     """
     Get the wire type information for a given type.
+
+    ``for_output`` marks a tool's return type, whose TypedDict field descriptions are read
+    by ``_output_field_descriptions``.
     """
 
     # Is this a list type?
@@ -902,7 +905,7 @@ def get_wire_type_info(_type: type) -> WireTypeInfo:
         inner_type = get_args(_type)[0]
 
         # Recursively get wire type info for inner type
-        inner_info = get_wire_type_info(inner_type)
+        inner_info = get_wire_type_info(inner_type, for_output=for_output)
         inner_wire_type = cast(InnerWireType, inner_info.wire_type)
 
         # If inner type has a known object shape (possibly empty), propagate it. A known-empty
@@ -943,7 +946,7 @@ def get_wire_type_info(_type: type) -> WireTypeInfo:
     properties = None
     required_keys = None
     if wire_type == "json" and not is_list:
-        properties, required_keys = extract_properties(type_to_check)
+        properties, required_keys = extract_properties(type_to_check, for_output=for_output)
 
     return WireTypeInfo(
         wire_type,
@@ -967,6 +970,24 @@ def _extract_typeddict_field_descriptions(typeddict_class: type) -> dict[str, st
     for cls in _typeddict_lineage(typeddict_class):
         descriptions.update(_field_docstrings(cls))
     return descriptions
+
+
+def _output_field_descriptions(typeddict_class: type) -> dict[str, str]:
+    """Extract field descriptions for a return type with a pattern match over the class source.
+
+    The match sees only the fields the class itself declares, and it skips a docstring that
+    contains a double quote or sits under a ``Literal`` field. Return types use it in place of
+    ``_extract_typeddict_field_descriptions`` because every described field lengthens the
+    ``outputSchema`` an MCP client receives in ``tools/list``.
+    """
+    try:
+        source = inspect.getsource(typeddict_class)
+    except (OSError, TypeError):
+        return {}
+    return {
+        field_name: description.strip()
+        for field_name, description in re.findall(r'(\w+):\s*[^"\n]+\n\s*"""([^"]+)"""', source)
+    }
 
 
 def _typeddict_lineage(typeddict_class: type) -> list[type]:
@@ -1009,6 +1030,8 @@ def _field_docstrings(cls: type) -> dict[str, str]:
 
 def extract_properties(
     type_to_check: type,
+    *,
+    for_output: bool = False,
 ) -> tuple[dict[str, WireTypeInfo] | None, list[str] | None]:
     """
     Extract properties from TypedDict, Pydantic models, or other structured types.
@@ -1039,7 +1062,7 @@ def extract_properties(
 
             # Get wire type info recursively
             # field_type cannot be None here due to the check above
-            wire_info = get_wire_type_info(field_type)
+            wire_info = get_wire_type_info(field_type, for_output=for_output)
             if is_nullable:
                 wire_info.nullable = True
             properties[field_name] = wire_info
@@ -1056,7 +1079,11 @@ def extract_properties(
         type_hints = get_type_hints(type_to_check, include_extras=True)
 
         # Try to extract field descriptions from the class source
-        field_descriptions = _extract_typeddict_field_descriptions(type_to_check)
+        field_descriptions = (
+            _output_field_descriptions(type_to_check)
+            if for_output
+            else _extract_typeddict_field_descriptions(type_to_check)
+        )
 
         for field_name, field_type in type_hints.items():
             # Handle Optional types (Union[T, None])
@@ -1064,7 +1091,7 @@ def extract_properties(
             if is_nullable:
                 # Extract the non-None type from Optional
                 field_type = next(arg for arg in get_args(field_type) if arg is not type(None))
-            wire_info = get_wire_type_info(field_type)
+            wire_info = get_wire_type_info(field_type, for_output=for_output)
             if is_nullable:
                 wire_info.nullable = True
 
