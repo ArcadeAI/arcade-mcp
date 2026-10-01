@@ -1,5 +1,6 @@
 """TypedDict fields marked Required or NotRequired load, with the requiredness they declare."""
 
+import typing
 from typing import Annotated
 
 import pytest
@@ -53,9 +54,29 @@ def func_returns_event_without_location() -> Annotated[EventResult, "The event"]
     return EventResult(event_id="event-1")
 
 
+class StdlibAttachment(typing.TypedDict):
+    source: str
+    filename: NotRequired[str]
+
+
+class StdlibFilter(typing.TypedDict, total=False):
+    key: Required[str]
+    value: str
+
+
+@tool
+def func_takes_stdlib_typeddicts(
+    attachment: Annotated[StdlibAttachment, "The file to attach"],
+    filter: Annotated[StdlibFilter, "The filter to apply"],
+) -> str:
+    """Attach a file that matches a filter."""
+    return "attached"
+
+
 catalog = ToolCatalog()
 catalog.add_tool(func_takes_qualified_typeddicts, "QualifierToolkit")
 catalog.add_tool(func_returns_event_without_location, "QualifierToolkit")
+catalog.add_tool(func_takes_stdlib_typeddicts, "QualifierToolkit")
 
 
 def _materialized(fn) -> MaterializedTool:
@@ -117,6 +138,26 @@ def test_required_key_left_out_of_the_input_is_refused(arguments):
 
     with pytest.raises(ValidationError):
         input_model.model_validate(arguments)
+
+
+def test_stdlib_typeddict_gets_the_requiredness_its_qualifiers_declare():
+    """typing.TypedDict on Python 3.10 leaves both qualifiers out of __required_keys__."""
+    tool_def = ToolCatalog.create_tool_definition(func_takes_stdlib_typeddicts, "1.0")
+    attachment, filter_ = (param.value_schema for param in tool_def.input.parameters)
+
+    assert attachment.required_keys == ["source"]
+    assert filter_.required_keys == ["key"]
+
+    input_model = _materialized(func_takes_stdlib_typeddicts).input_model
+    input_model.model_validate({
+        "attachment": {"source": "file:///tmp/report.pdf"},
+        "filter": {"key": "status"},
+    })
+    with pytest.raises(ValidationError):
+        input_model.model_validate({
+            "attachment": {"source": "file:///tmp/report.pdf"},
+            "filter": {"value": "open"},
+        })
 
 
 def test_output_with_not_required_field_left_out_validates():
