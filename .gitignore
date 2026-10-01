@@ -187,3 +187,5 @@ libs/arcade-mcp-server/site/*
 # Ignore any directory named `monorepo` at any depth
 monorepo/
 **/monorepo/
+
+.closeout/
