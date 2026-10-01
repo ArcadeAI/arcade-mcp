@@ -1,3 +1,4 @@
+import asyncio
 import os
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -13,9 +14,13 @@ from arcade_cli.authn import (
     OAuthLoginError,
     WhoAmIResponse,
     exchange_code_for_tokens,
+    forget_sign_in,
     perform_oauth_login,
 )
 from arcade_cli.connect import list_gateways
+from arcade_cli.deploy import upsert_secrets_to_engine
+from arcade_cli.secret import list_secrets, set_secret, unset_secret
+from arcade_cli.server import _display_deployment_logs, _stream_deployment_logs
 from arcade_cli.strong_authentication import (
     STRONG_AUTHENTICATION_REQUIRED,
     InsufficientUserAuthentication,
@@ -262,3 +267,120 @@ class TestLoggingIn:
             perform_oauth_login("https://cloud.arcade.dev")
 
         assert STRONG_AUTHENTICATION_REQUIRED in str(refused.value)
+
+
+def _status_error() -> httpx.HTTPStatusError:
+    return httpx.HTTPStatusError("401", request=REQUEST, response=_refusal())
+
+
+class _RefusingLogStream:
+    async def __aenter__(self) -> "_RefusingLogStream":
+        return self
+
+    async def __aexit__(self, *exc: object) -> None:
+        return None
+
+    def raise_for_status(self) -> None:
+        _refusal().raise_for_status()
+
+    def stream(self, *args: object, **kwargs: object) -> "_RefusingLogStream":
+        return self
+
+
+class TestEveryCommandReportsTheRefusal:
+    def test_secret_set(self, signed_in: Path, output: StringIO) -> None:
+        with (
+            patch("arcade_cli.secret._upsert_secret", side_effect=_status_error()),
+            pytest.raises(CLIError),
+        ):
+            set_secret(key_value_pairs=["KEY=value"], from_env=False, env_file=".env")
+
+        assert DESCRIPTION in output.getvalue()
+        assert Config.load_from_file().auth is None
+
+    def test_secret_list(self, signed_in: Path, output: StringIO) -> None:
+        with (
+            patch("arcade_cli.secret.get_org_scoped_url", return_value=str(REQUEST.url)),
+            patch("arcade_cli.secret.get_auth_headers", return_value={}),
+            patch("arcade_cli.secret.httpx.get", return_value=_refusal()),
+            pytest.raises(CLIError),
+        ):
+            list_secrets()
+
+        assert DESCRIPTION in output.getvalue()
+        assert Config.load_from_file().auth is None
+
+    def test_secret_unset(self, signed_in: Path, output: StringIO) -> None:
+        with (
+            patch("arcade_cli.secret._get_secrets", return_value=[{"key": "KEY", "id": "1"}]),
+            patch("arcade_cli.secret._delete_secret", side_effect=_status_error()),
+            pytest.raises(CLIError),
+        ):
+            unset_secret(keys=["KEY"])
+
+        assert DESCRIPTION in output.getvalue()
+        assert Config.load_from_file().auth is None
+
+    def test_server_logs(self, signed_in: Path, output: StringIO) -> None:
+        with patch("arcade_cli.server.httpx.Client") as client, pytest.raises(CLIError):
+            client.return_value.__enter__.return_value.get.return_value = _refusal()
+            _display_deployment_logs(
+                str(REQUEST.url), {}, datetime.now(), datetime.now(), debug=False
+            )
+
+        assert DESCRIPTION in output.getvalue()
+        assert Config.load_from_file().auth is None
+
+    def test_streamed_server_logs(self, signed_in: Path, output: StringIO) -> None:
+        with (
+            patch("arcade_cli.server.httpx.AsyncClient", return_value=_RefusingLogStream()),
+            pytest.raises(CLIError),
+        ):
+            asyncio.run(
+                _stream_deployment_logs(
+                    str(REQUEST.url), {}, datetime.now(), datetime.now(), debug=False
+                )
+            )
+
+        assert DESCRIPTION in output.getvalue()
+        assert Config.load_from_file().auth is None
+
+    def test_deploy_secret_upload(self, signed_in: Path, output: StringIO) -> None:
+        os.environ["DEPLOY_SECRET"] = "value"
+        with (
+            patch("arcade_cli.deploy.get_auth_headers", return_value={}),
+            patch("arcade_cli.deploy.get_org_scoped_url", return_value=str(REQUEST.url)),
+            patch("arcade_cli.deploy.httpx.Client") as client,
+            pytest.raises(CLIError),
+        ):
+            client.return_value.put.return_value = _refusal()
+            upsert_secrets_to_engine("https://api.arcade.dev", {"DEPLOY_SECRET"})
+
+        assert DESCRIPTION in output.getvalue()
+        assert Config.load_from_file().auth is None
+
+
+class TestForgettingTheSignIn:
+    def test_without_a_credentials_file_does_nothing(self, tmp_path: Path) -> None:
+        os.environ["ARCADE_WORK_DIR"] = str(tmp_path)
+        forget_sign_in()
+        assert list(tmp_path.iterdir()) == []
+
+    def test_a_logged_out_context_is_left_alone(self, signed_in: Path) -> None:
+        forget_sign_in()
+        credentials = next(signed_in.glob("*.yaml"))
+        written = credentials.stat().st_mtime_ns
+
+        forget_sign_in()
+
+        assert credentials.stat().st_mtime_ns == written
+
+
+class TestLoggingInWithoutADescription:
+    def test_a_refusal_without_a_description_shows_its_code(self) -> None:
+        client = _oauth_client({"error": "invalid_grant"})
+
+        with pytest.raises(OAuthLoginError) as refused:
+            exchange_code_for_tokens(client, "code", "http://127.0.0.1:9905/callback", "verifier")
+
+        assert str(refused.value) == "Login failed: invalid_grant"

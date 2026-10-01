@@ -36,6 +36,12 @@ def _refused(status: int, body: dict | None = None) -> httpx.HTTPStatusError:
     return httpx.HTTPStatusError(str(status), request=request, response=response)
 
 
+def _refused_with_text(status: int, text: str) -> httpx.HTTPStatusError:
+    request = httpx.Request("POST", TOKEN_ENDPOINT)
+    response = httpx.Response(status, text=text, request=request)
+    return httpx.HTTPStatusError(str(status), request=request, response=response)
+
+
 def _refresh_failing_with(error: httpx.HTTPError):
     return (
         patch("arcade_core.auth_tokens.fetch_cli_config", return_value=CLI_CONFIG),
@@ -59,6 +65,8 @@ def test_a_refused_refresh_token_shows_why_and_is_forgotten(expired_sign_in: Pat
     [
         _refused(503, {"error": "server_error"}),
         _refused(400, {"error": "invalid_request"}),
+        _refused_with_text(502, "<html>Bad gateway</html>"),
+        _refused_with_text(400, '["not", "an", "object"]'),
         httpx.ConnectError("unreachable"),
     ],
 )
