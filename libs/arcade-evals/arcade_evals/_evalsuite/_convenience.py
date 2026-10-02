@@ -10,6 +10,7 @@ It is intentionally not exported from `arcade_evals.__init__`.
 
 from __future__ import annotations
 
+import os
 import warnings
 from typing import TYPE_CHECKING, Any, Callable
 
@@ -195,9 +196,16 @@ class _EvalSuiteConvenienceMixin:
         """
         registry = self._get_registry(track)
 
+        effective_api_key = arcade_api_key or os.environ.get("ARCADE_API_KEY")
+        if not effective_api_key:
+            raise ValueError(
+                "An Arcade API key is required to connect to an Arcade MCP gateway. "
+                "Pass `arcade_api_key` or set the ARCADE_API_KEY environment variable."
+            )
+
         tools = await load_arcade_mcp_gateway_async(
             gateway_slug,
-            arcade_api_key=arcade_api_key,
+            arcade_api_key=effective_api_key,
             arcade_user_id=arcade_user_id,
             base_url=base_url,  # Let loader handle default/env var
             timeout=timeout,
