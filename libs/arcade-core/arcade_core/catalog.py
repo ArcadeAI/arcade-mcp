@@ -1,8 +1,10 @@
+import ast
 import asyncio
 import inspect
 import logging
 import os
 import re
+import textwrap
 import typing
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
@@ -25,6 +27,7 @@ from typing import (
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, create_model, model_serializer
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
+from typing_extensions import NotRequired, Required
 
 from arcade_core.annotations import Inferrable
 from arcade_core.auth import OAuth2, ToolAuthorization
@@ -956,31 +959,74 @@ def get_wire_type_info(_type: type) -> WireTypeInfo:
 
 def _extract_typeddict_field_descriptions(typeddict_class: type) -> dict[str, str]:
     """
-    Extract field descriptions from TypedDict docstrings.
+    Extract field descriptions from the docstrings written under TypedDict fields.
 
-    TypedDict classes typically have field descriptions as docstrings after each field.
-    This function attempts to parse the source code to extract these descriptions.
+    A field keeps the docstring of the class that declares it, so fields inherited from
+    a base TypedDict are described too. A subclass that redeclares a field overrides it.
     """
-    descriptions = {}
-
-    try:
-        source = inspect.getsource(typeddict_class)
-        # Simple regex to match field: type pattern followed by a docstring
-        # This is a simplified approach - a full AST parser would be more robust
-        import re
-
-        # Pattern to match field definition followed by docstring
-        pattern = r'(\w+):\s*[^"\n]+\n\s*"""([^"]+)"""'
-        matches = re.findall(pattern, source)
-
-        for field_name, description in matches:
-            descriptions[field_name] = description.strip()
-
-    except (OSError, TypeError):
-        # If we can't get the source, return empty descriptions
-        pass
-
+    descriptions: dict[str, str] = {}
+    for cls in _typeddict_lineage(typeddict_class):
+        descriptions.update(_field_docstrings(cls))
     return descriptions
+
+
+def _typeddict_lineage(typeddict_class: type) -> list[type]:
+    """Return a TypedDict and every TypedDict it inherits from, bases first.
+
+    TypedDict classes subclass ``dict`` directly, so their TypedDict bases are only
+    recorded in ``__orig_bases__``.
+    """
+    lineage: list[type] = []
+    for base in getattr(typeddict_class, "__orig_bases__", ()):
+        if is_typeddict(base):
+            lineage.extend(cls for cls in _typeddict_lineage(base) if cls not in lineage)
+    lineage.append(typeddict_class)
+    return lineage
+
+
+def _field_docstrings(cls: type) -> dict[str, str]:
+    """Map each field declared in the class body to the string literal directly under it."""
+    try:
+        class_def = ast.parse(textwrap.dedent(inspect.getsource(cls))).body[0]
+    except (OSError, TypeError, SyntaxError):
+        return {}
+    if not isinstance(class_def, ast.ClassDef):
+        return {}
+
+    docstrings: dict[str, str] = {}
+    for statement, following in zip(class_def.body, class_def.body[1:]):
+        if (
+            isinstance(statement, ast.AnnAssign)
+            and isinstance(statement.target, ast.Name)
+            and isinstance(following, ast.Expr)
+            and isinstance(following.value, ast.Constant)
+            and isinstance(following.value.value, str)
+        ):
+            docstring = inspect.cleandoc(following.value.value)
+            if docstring:
+                docstrings[statement.target.id] = docstring
+    return docstrings
+
+
+def _typeddict_fields(typeddict_class: type) -> tuple[dict[str, Any], set[str]]:
+    """Return each TypedDict field's type without a Required or NotRequired qualifier, and the
+    keys the class requires.
+
+    A field's qualifier overrides the class's totality. ``typing.TypedDict`` on Python 3.10
+    predates the qualifiers and builds ``__required_keys__`` from totality alone, so the
+    qualifier is applied here rather than read from that set.
+    """
+    field_types: dict[str, Any] = {}
+    required_keys = set(getattr(typeddict_class, "__required_keys__", ()))
+    for name, field_type in get_type_hints(typeddict_class, include_extras=True).items():
+        if get_origin(field_type) is Required:
+            required_keys.add(name)
+        elif get_origin(field_type) is NotRequired:
+            required_keys.discard(name)
+        while get_origin(field_type) in (Required, NotRequired):
+            field_type = get_args(field_type)[0]
+        field_types[name] = field_type
+    return field_types, required_keys
 
 
 def extract_properties(
@@ -1028,8 +1074,7 @@ def extract_properties(
 
     # Handle TypedDict
     elif is_typeddict(type_to_check):
-        # Get type hints for the TypedDict
-        type_hints = get_type_hints(type_to_check, include_extras=True)
+        type_hints, required_keys = _typeddict_fields(type_to_check)
 
         # Try to extract field descriptions from the class source
         field_descriptions = _extract_typeddict_field_descriptions(type_to_check)
@@ -1050,8 +1095,7 @@ def extract_properties(
 
             properties[field_name] = wire_info
 
-        required_keys = sorted(getattr(type_to_check, "__required_keys__", frozenset()))
-        return (properties, required_keys)
+        return (properties, sorted(required_keys))
 
     # Handle regular dict with type annotations (e.g., dict[str, Any])
     elif get_origin(type_to_check) is dict:
@@ -1469,14 +1513,13 @@ def create_model_from_typeddict(
     preserve the pass-through behavior for tools whose return dicts contain
     extra keys from upstream APIs.
     """
-    # Get type hints for the TypedDict
-    type_hints = get_type_hints(typeddict_class, include_extras=True)
+    type_hints, required_keys = _typeddict_fields(typeddict_class)
 
     # Build field definitions for the Pydantic model
     field_definitions: dict[str, Any] = {}
     for field_name, field_type in type_hints.items():
         # Check if field is required
-        is_required = field_name in getattr(typeddict_class, "__required_keys__", set())
+        is_required = field_name in required_keys
 
         # Unwrap Optional[T] (i.e. T | None) so we can detect nested TypedDicts
         is_optional_type = is_strict_optional(field_type)
