@@ -32,6 +32,7 @@ from arcade_cli.console import console
 from arcade_cli.context import resolve_active_context
 from arcade_cli.secret import load_env_file
 from arcade_cli.utils import (
+    exit_if_strong_authentication_required,
     get_auth_headers,
     get_org_scoped_url,
     resolve_engine_base_url,
@@ -755,6 +756,7 @@ def upsert_secrets_to_engine(
             response.raise_for_status()
             console.print(f"✓ Secret '{secret_key}' uploaded", style="green")
         except httpx.HTTPStatusError as e:
+            exit_if_strong_authentication_required(e)
             error_msg = f"Failed to upload secret '{secret_key}': HTTP {e.response.status_code}"
             if debug:
                 console.print(f"❌ {error_msg}: {e.response.text}", style="red")
