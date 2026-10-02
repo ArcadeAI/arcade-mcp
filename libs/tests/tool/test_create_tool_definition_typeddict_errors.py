@@ -4,23 +4,14 @@ import pytest
 from arcade_core.catalog import ToolCatalog
 from arcade_core.errors import ToolDefinitionError
 from arcade_tdk import tool
-from typing_extensions import NotRequired, TypedDict
+from typing_extensions import TypedDict
 
 
-class ProductWithNotRequired(TypedDict):
-    """Product with optional field using NotRequired."""
+class Product(TypedDict):
+    """Product with a name and price."""
 
     name: str
     price: float
-    description: NotRequired[str]  # NotRequired in TypedDict field is not supported
-
-
-@tool
-def func_takes_typeddict_with_notrequired(
-    product: Annotated[ProductWithNotRequired, "Product information"],
-) -> Annotated[str, "Product summary"]:
-    """Process a product with NotRequired field."""
-    return f"Product: {product['name']}"
 
 
 class ProductWithUnionField(TypedDict):
@@ -41,7 +32,7 @@ def func_takes_typeddict_with_union_field(
 
 @tool
 def func_takes_optional_typeddict_non_strict(
-    config: ProductWithNotRequired | None = None,
+    config: Product | None = None,
 ) -> Annotated[str, "Configuration status"]:
     """Process optional TypedDict with non-strict syntax."""
     return "processed" if config else "no config"
@@ -50,11 +41,6 @@ def func_takes_optional_typeddict_non_strict(
 @pytest.mark.parametrize(
     "func_under_test, exception_type",
     [
-        pytest.param(
-            func_takes_typeddict_with_notrequired,
-            ToolDefinitionError,
-            id="typeddict_with_notrequired",
-        ),
         pytest.param(
             func_takes_typeddict_with_union_field,
             ToolDefinitionError,

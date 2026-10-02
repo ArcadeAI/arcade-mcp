@@ -27,6 +27,7 @@ from typing import (
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, create_model, model_serializer
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
+from typing_extensions import NotRequired, Required
 
 from arcade_core.annotations import Inferrable
 from arcade_core.auth import OAuth2, ToolAuthorization
@@ -1007,6 +1008,27 @@ def _field_docstrings(cls: type) -> dict[str, str]:
     return docstrings
 
 
+def _typeddict_fields(typeddict_class: type) -> tuple[dict[str, Any], set[str]]:
+    """Return each TypedDict field's type without a Required or NotRequired qualifier, and the
+    keys the class requires.
+
+    A field's qualifier overrides the class's totality. ``typing.TypedDict`` on Python 3.10
+    predates the qualifiers and builds ``__required_keys__`` from totality alone, so the
+    qualifier is applied here rather than read from that set.
+    """
+    field_types: dict[str, Any] = {}
+    required_keys = set(getattr(typeddict_class, "__required_keys__", ()))
+    for name, field_type in get_type_hints(typeddict_class, include_extras=True).items():
+        if get_origin(field_type) is Required:
+            required_keys.add(name)
+        elif get_origin(field_type) is NotRequired:
+            required_keys.discard(name)
+        while get_origin(field_type) in (Required, NotRequired):
+            field_type = get_args(field_type)[0]
+        field_types[name] = field_type
+    return field_types, required_keys
+
+
 def extract_properties(
     type_to_check: type,
 ) -> tuple[dict[str, WireTypeInfo] | None, list[str] | None]:
@@ -1052,8 +1074,7 @@ def extract_properties(
 
     # Handle TypedDict
     elif is_typeddict(type_to_check):
-        # Get type hints for the TypedDict
-        type_hints = get_type_hints(type_to_check, include_extras=True)
+        type_hints, required_keys = _typeddict_fields(type_to_check)
 
         # Try to extract field descriptions from the class source
         field_descriptions = _extract_typeddict_field_descriptions(type_to_check)
@@ -1074,8 +1095,7 @@ def extract_properties(
 
             properties[field_name] = wire_info
 
-        required_keys = sorted(getattr(type_to_check, "__required_keys__", frozenset()))
-        return (properties, required_keys)
+        return (properties, sorted(required_keys))
 
     # Handle regular dict with type annotations (e.g., dict[str, Any])
     elif get_origin(type_to_check) is dict:
@@ -1493,14 +1513,13 @@ def create_model_from_typeddict(
     preserve the pass-through behavior for tools whose return dicts contain
     extra keys from upstream APIs.
     """
-    # Get type hints for the TypedDict
-    type_hints = get_type_hints(typeddict_class, include_extras=True)
+    type_hints, required_keys = _typeddict_fields(typeddict_class)
 
     # Build field definitions for the Pydantic model
     field_definitions: dict[str, Any] = {}
     for field_name, field_type in type_hints.items():
         # Check if field is required
-        is_required = field_name in getattr(typeddict_class, "__required_keys__", set())
+        is_required = field_name in required_keys
 
         # Unwrap Optional[T] (i.e. T | None) so we can detect nested TypedDicts
         is_optional_type = is_strict_optional(field_type)
