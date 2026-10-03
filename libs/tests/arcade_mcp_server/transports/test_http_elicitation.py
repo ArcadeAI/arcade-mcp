@@ -50,10 +50,10 @@ def elicitation_client():
         }
 
     @asynccontextmanager
-    async def open_client():
+    async def open_client(json_response=True):
         server = MCPServer(catalog=application._catalog, auth_disabled=True)
         await server.start()
-        manager = HTTPSessionManager(server=server, json_response=True, stateless=False)
+        manager = HTTPSessionManager(server=server, json_response=json_response, stateless=False)
 
         async def endpoint(scope: Scope, receive: Receive, send: Send) -> None:
             await manager.handle_request(scope, receive, send)
@@ -263,3 +263,32 @@ async def test_undeclared_mode_returns_standard_capability_error(
         assert body["error"]["data"]["requiredCapabilities"]["elicitation"] == {mode: {}}
         assert "result" not in body
         assert invocations == [mode]
+
+
+@pytest.mark.asyncio
+async def test_missing_capability_error_has_http_400_in_sse_mode(elicitation_client):
+    async with elicitation_client(json_response=False) as (client, invocations):
+        response = await client.post(
+            "/mcp/",
+            headers=HEADERS,
+            json={
+                "jsonrpc": "2.0",
+                "id": 42,
+                "method": "tools/call",
+                "params": {
+                    "name": "Inputs_Ask",
+                    "arguments": {"mode": "url"},
+                    "_meta": {
+                        "io.modelcontextprotocol/protocolVersion": VERSION,
+                        "io.modelcontextprotocol/clientCapabilities": {},
+                    },
+                },
+            },
+        )
+        assert response.status_code == 400, "SSE missing-mode error committed HTTP 200"
+        body = response.json()
+        assert body["id"] == 42
+        assert body["error"]["code"] == -32021
+        assert body["error"]["data"]["requiredCapabilities"] == {"elicitation": {"url": {}}}
+        assert "result" not in body
+        assert invocations == ["url"]
