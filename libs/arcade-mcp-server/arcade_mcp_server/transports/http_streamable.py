@@ -565,7 +565,8 @@ class HTTPStreamableTransport:
                 if (
                     first_event is not None
                     and isinstance(first_event.message, JSONRPCError)
-                    and first_event.message.error.get("code") in {INSUFFICIENT_SCOPE_ERROR_CODE, -32021}
+                    and first_event.message.error.get("code")
+                    in {INSUFFICIENT_SCOPE_ERROR_CODE, -32021}
                 ):
                     # Return protocol/auth errors before SSE commits its HTTP 200 headers.
                     await self._clean_up_memory_streams(request_id)
