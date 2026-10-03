@@ -1,3 +1,4 @@
+import hmac
 import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Annotated, Any
@@ -38,6 +39,16 @@ async def request_input(
     return response.model_dump(exclude_none=True)
 
 
+@tool
+async def request_twice(context: ToolContext) -> Annotated[list[dict[str, Any]], "Both responses"]:
+    """Ask for a form, then request a separate external approval."""
+    first = await context.ui.elicit("First", schema={"type": "object", "properties": {}})
+    second = await context.ui.elicit(
+        "Second", mode="url", url="https://example.com/approval", elicitation_id="second"
+    )
+    return [first.model_dump(exclude_none=True), second.model_dump(exclude_none=True)]
+
+
 @pytest.fixture
 def worker_client():
     invocations.clear()
@@ -45,6 +56,7 @@ def worker_client():
     worker = FastAPIWorker(app=app, secret=secrets.token_urlsafe(32))
     worker.register_tool(request_input, toolkit_name="Elicitation")
     worker.register_tool(request_input, toolkit_name="Other")
+    worker.register_tool(request_twice, toolkit_name="Elicitation")
     app.state.worker = worker
     token = jwt.encode({"aud": "worker", "ver": "1"}, worker.secret, algorithm="HS256")
     with TestClient(app) as client:
@@ -110,7 +122,9 @@ def test_worker_rejects_invalid_continuation_before_tool_execution(worker_client
     elif mutation == "tampered":
         state = "invalid." + state
     else:
-        secret = worker_client.app.state.worker.secret
+        secret = hmac.digest(
+            worker_client.app.state.worker.secret.encode(), b"arcade-elicitation-state-v1", "sha256"
+        )
         claims = jwt.decode(state, secret, algorithms=["HS256"], audience="elicitation")
         if mutation == "audience":
             claims["aud"] = "worker"
@@ -174,3 +188,125 @@ def test_completed_input_does_not_require_a_fresh_capability(worker_client):
     })
     completed = worker_client.post("/worker/tools/invoke", json=request)
     assert completed.json()["output"]["value"] == answer
+
+
+@pytest.mark.parametrize("declare_url", [True, False])
+def test_worker_replays_prior_inputs_and_checks_current_capabilities(worker_client, declare_url):
+    request = {
+        "tool": {"toolkit": "Elicitation", "name": "RequestTwice"},
+        "context": {"user_id": "alice"},
+        "protocol": {"version": "2026-07-28", "capabilities": {"elicitation": {"form": {}}}},
+    }
+    first = worker_client.post("/worker/tools/invoke", json=request).json()["output"]["external"]
+    key1 = next(iter(first["inputRequests"]))
+    answer1 = {"action": "accept", "content": {"original": "first"}, "x-first": True}
+    request["protocol"].update({
+        "capabilities": {"elicitation": {"url": {}}} if declare_url else {},
+        "requestState": first["requestState"],
+        "inputResponses": {key1: answer1},
+    })
+    output = worker_client.post("/worker/tools/invoke", json=request).json()["output"]
+    if not declare_url:
+        assert output["error"] is not None
+        assert output.get("external") is None
+        return
+    second = output["external"]
+    key2, prompt = next(iter(second["inputRequests"].items()))
+    assert (key1, key2) == ("1", "2")
+    assert prompt["params"]["mode"] == "url"
+    assert prompt["params"]["message"] == "Second"
+    answer2 = {"action": "cancel", "x-second": "preserve"}
+    request["protocol"].update({
+        "capabilities": {},
+        "requestState": second["requestState"],
+        "inputResponses": {key2: answer2},
+    })
+    final = worker_client.post("/worker/tools/invoke", json=request)
+    assert final.json()["success"] is True, final.json()
+    assert final.json()["output"]["value"] == [answer1, answer2]
+
+
+@tool
+async def ordinary() -> Annotated[str, "The ordinary tool result"]:
+    """Return without asking the client for input."""
+    return "ordinary result"
+
+
+def test_weak_auth_secret_cannot_issue_state_but_ordinary_calls_work():
+    app = FastAPI()
+    worker = FastAPIWorker(app=app, secret=secrets.token_urlsafe(4))
+    worker.register_tool(request_input, toolkit_name="Elicitation")
+    worker.register_tool(ordinary, toolkit_name="Elicitation")
+    token = jwt.encode({"aud": "worker", "ver": "1"}, worker.secret, algorithm="HS256")
+    request = {
+        "tool": {"toolkit": "Elicitation", "name": "Ordinary"},
+        "protocol": {"version": "2026-07-28", "capabilities": {"elicitation": {"form": {}}}},
+    }
+    with TestClient(app) as client:
+        client.headers["Authorization"] = f"Bearer {token}"
+        result = client.post("/worker/tools/invoke", json=request)
+        assert result.json()["output"]["value"] == "ordinary result", result.json()
+        request["tool"]["name"] = "RequestInput"
+        request["inputs"] = {"mode": "form"}
+        blocked = client.post("/worker/tools/invoke", json=request)
+        assert blocked.json()["output"].get("external") is None, blocked.json()
+        assert blocked.json()["output"]["error"] is not None
+
+
+def test_continuation_uses_a_different_key_from_worker_auth(worker_client):
+    request = {
+        "tool": {"toolkit": "Elicitation", "name": "RequestInput"},
+        "inputs": {"mode": "form"},
+        "context": {"user_id": "alice"},
+        "protocol": {"version": "2026-07-28", "capabilities": {"elicitation": {"form": {}}}},
+    }
+    first = worker_client.post("/worker/tools/invoke", json=request).json()["output"]["external"]
+    with pytest.raises(jwt.InvalidSignatureError):
+        jwt.decode(
+            first["requestState"],
+            worker_client.app.state.worker.secret,
+            algorithms=["HS256"],
+            audience="elicitation",
+        )
+
+
+def test_new_round_has_a_fresh_fifteen_minute_lifetime(worker_client, monkeypatch):
+    import arcade_core.elicitation as runtime
+
+    clock = {"now": datetime.now(timezone.utc)}
+
+    class ControlledDatetime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return clock["now"]
+
+    monkeypatch.setattr(jwt.api_jwt, "datetime", ControlledDatetime)
+    monkeypatch.setattr(runtime.time, "time", lambda: clock["now"].timestamp())
+    request = {
+        "tool": {"toolkit": "Elicitation", "name": "RequestTwice"},
+        "context": {"user_id": "alice"},
+        "protocol": {"version": "2026-07-28", "capabilities": {"elicitation": {"form": {}}}},
+    }
+    first = worker_client.post("/worker/tools/invoke", json=request).json()["output"]["external"]
+    key1 = next(iter(first["inputRequests"]))
+    answer1 = {"action": "accept", "content": {"label": "first"}}
+    clock["now"] += timedelta(minutes=6)
+    request["protocol"].update({
+        "capabilities": {"elicitation": {"url": {}}},
+        "requestState": first["requestState"],
+        "inputResponses": {key1: answer1},
+    })
+    next_round = worker_client.post("/worker/tools/invoke", json=request)
+    assert next_round.status_code == 200, next_round.json()
+    second = next_round.json()["output"]["external"]
+    key2 = next(iter(second["inputRequests"]))
+    answer2 = {"action": "accept"}
+    clock["now"] += timedelta(minutes=10)
+    request["protocol"].update({
+        "capabilities": {},
+        "requestState": second["requestState"],
+        "inputResponses": {key2: answer2},
+    })
+    final = worker_client.post("/worker/tools/invoke", json=request)
+    assert final.status_code == 200, final.json()
+    assert final.json()["output"]["value"] == [answer1, answer2]

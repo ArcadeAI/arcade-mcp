@@ -1,6 +1,7 @@
 """Invocation-local input requests with signed, replayable continuation state."""
 
 import hashlib
+import hmac
 import json
 import math
 import time
@@ -46,7 +47,7 @@ class Elicitation:
             try:
                 state = jwt.decode(
                     protocol.request_state,
-                    secret,
+                    self._state_key(),
                     algorithms=["HS256"],
                     audience="elicitation",
                     options={"require": ["aud", "exp", "ver", "binding", "responses", "pending"]},
@@ -60,6 +61,12 @@ class Elicitation:
             if pending in protocol.input_responses:
                 self.responses[pending] = protocol.input_responses[pending]
 
+    def _state_key(self) -> bytes:
+        material = self.secret.encode()
+        if len(material) < 32:
+            raise ValueError("Elicitation requires a worker secret of at least 32 bytes")
+        return hmac.digest(material, b"arcade-elicitation-state-v1", "sha256")
+
     async def elicit(
         self,
         message: str,
@@ -67,8 +74,14 @@ class Elicitation:
         mode: str | None = None,
         url: str | None = None,
         elicitation_id: str | None = None,
-        timeout: float = 300.0,
+        timeout: float = 900.0,
     ) -> ElicitationResponse:
+        """Request input using this invocation's current caller declaration.
+
+        Timeout bounds each emitted continuation's lifetime, capped at fifteen
+        minutes. Re-emitting an unanswered request starts a fresh lifetime;
+        this is not an overall deadline for the tool's multi-round flow.
+        """
         effective_mode = "form" if mode is None else mode
         self.index += 1
         key = str(self.index)
@@ -107,7 +120,7 @@ class Elicitation:
                 "responses": self.responses,
                 "pending": key,
             },
-            self.secret,
+            self._state_key(),
             algorithm="HS256",
         )
         raise InputRequired({
