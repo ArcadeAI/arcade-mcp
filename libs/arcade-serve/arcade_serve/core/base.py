@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Any, Callable, ClassVar
 
 from arcade_core.catalog import ToolCatalog, Toolkit
-from arcade_core.elicitation import Elicitation, InputRequired
+from arcade_core.elicitation import Elicitation, InputRequired, MissingClientCapabilities
 from arcade_core.executor import ToolExecutor
 from arcade_core.log_extras import build_tool_error_log_extra, build_tool_error_span_attributes
 from arcade_core.resource_schema import ListResourcesResult, ReadResourceResult
@@ -172,6 +172,8 @@ class BaseWorker(Worker):
                     context=tool_request.context,
                     **tool_request.inputs or {},
                 )
+            except MissingClientCapabilities as missing:
+                output = ToolCallOutput(protocol_error=missing.error)
             except InputRequired as pending:
                 output = ToolCallOutput(external=pending.result)
             finally:
@@ -204,6 +206,11 @@ class BaseWorker(Worker):
             )
             if output.error.stacktrace:
                 logger.debug(f"{execution_id} | Tool traceback: {output.error.stacktrace}")
+        elif output.protocol_error:
+            logger.info(
+                f"{execution_id} | Tool {tool_fqname.name} "
+                f"version {tool_fqname.toolkit_version} requires client capabilities"
+            )
         else:
             # Match the failure-path identifiers for log correlation.
             logger.info(
@@ -218,7 +225,7 @@ class BaseWorker(Worker):
             execution_id=execution_id,
             duration=duration_ms,
             finished_at=datetime.now().isoformat(),
-            success=not output.error,
+            success=not (output.error or output.protocol_error),
             output=output,
         )
 

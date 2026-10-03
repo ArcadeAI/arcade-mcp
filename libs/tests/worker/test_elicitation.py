@@ -207,7 +207,8 @@ def test_worker_replays_prior_inputs_and_checks_current_capabilities(worker_clie
     })
     output = worker_client.post("/worker/tools/invoke", json=request).json()["output"]
     if not declare_url:
-        assert output["error"] is not None
+        assert output["protocol_error"]["code"] == -32021
+        assert output["protocol_error"]["data"]["requiredCapabilities"] == {"elicitation": {"url": {}}}
         assert output.get("external") is None
         return
     second = output["external"]
@@ -310,3 +311,23 @@ def test_new_round_has_a_fresh_fifteen_minute_lifetime(worker_client, monkeypatc
     final = worker_client.post("/worker/tools/invoke", json=request)
     assert final.status_code == 200, final.json()
     assert final.json()["output"]["value"] == [answer1, answer2]
+
+
+@pytest.mark.parametrize("mode", ["form", "url"])
+def test_worker_missing_mode_is_a_protocol_error(worker_client, mode):
+    response = worker_client.post("/worker/tools/invoke", json={
+        "tool": {"toolkit": "Elicitation", "name": "RequestInput"},
+        "inputs": {"mode": mode},
+        "context": {"user_id": "alice"},
+        "protocol": {"version": "2026-07-28", "capabilities": {}},
+    })
+    assert response.status_code == 200
+    body = response.json()
+    error = body["output"].get("protocol_error")
+    assert error is not None, "worker does not preserve the missing-mode protocol error"
+    assert error["code"] == -32021
+    assert error["data"]["requiredCapabilities"]["elicitation"] == {mode: {}}
+    assert body["success"] is False
+    assert body["output"].get("external") is None
+    assert body["output"].get("value") is None
+    assert invocations == [mode]

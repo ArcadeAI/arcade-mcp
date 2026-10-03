@@ -27,6 +27,18 @@ class InputRequired(BaseException):
         super().__init__("Input required")
 
 
+class MissingClientCapabilities(BaseException):
+    """Return the missing mode to the invocation owner, outside tool error adapters."""
+
+    def __init__(self, mode: str) -> None:
+        self.error: dict[str, Any] = {
+            "code": -32021,
+            "message": f"Client did not declare elicitation {mode} support",
+            "data": {"requiredCapabilities": {"elicitation": {mode: {}}}},
+        }
+        super().__init__(self.error["message"])
+
+
 class Elicitation:
     """Replay earlier inputs, then yield at the next unanswered input request.
 
@@ -88,11 +100,14 @@ class Elicitation:
         if key in self.responses:
             return ElicitationResponse.model_validate(self.responses[key])
 
+        if effective_mode not in {"form", "url"}:
+            raise ValueError(f"Unsupported elicitation mode: {effective_mode}")
+
         capability = self.protocol.capabilities.get("elicitation")
         if not isinstance(capability, dict) or (
             effective_mode not in capability and not (effective_mode == "form" and not capability)
         ):
-            raise ValueError(f"Client did not declare elicitation {effective_mode} support")
+            raise MissingClientCapabilities(effective_mode)
         if not math.isfinite(timeout) or timeout <= 0:
             raise ValueError("Elicitation timeout must be a finite positive number")
 

@@ -671,9 +671,13 @@ class ToolCallOutput(BaseModel):
     external: dict[str, Any] | None = None
     """A transport result, including keyed input requests and opaque continuation state."""
 
+    protocol_error: dict[str, Any] | None = None
+    """A modern MCP protocol failure, kept separate from completed tool errors."""
+
     model_config = {
         "json_schema_extra": {
             "oneOf": [
+                {"required": ["protocol_error"]},
                 {"required": ["value"]},
                 {"required": ["error"]},
                 {"required": ["requires_authorization"]},

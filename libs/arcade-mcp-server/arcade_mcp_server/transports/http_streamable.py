@@ -269,6 +269,9 @@ class HTTPStreamableTransport:
         if response_message is None:
             body = None
         elif isinstance(response_message, JSONRPCError):
+            # Stateless elicitation failures are protocol errors, not completed tool results.
+            if response_message.error.get("code") == -32021:
+                status_code = HTTPStatus.BAD_REQUEST
             # Check for _transport metadata
             transport_meta = self._extract_and_strip_transport_metadata(response_message)
             if transport_meta is not None:

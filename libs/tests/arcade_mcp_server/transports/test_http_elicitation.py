@@ -219,3 +219,47 @@ async def test_continuation_state_rejects_forgery(elicitation_client, mutation):
         assert rejected.get("error", {}).get("code") == -32602, rejected
         assert "elicitation state" in rejected["error"]["message"].lower(), rejected
         assert invocations == ["url"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "mode,capabilities",
+    [
+        ("form", {}),
+        ("url", {}),
+        ("form", {"elicitation": {"url": {}}}),
+        ("url", {"elicitation": {"form": {}}}),
+        ("url", {"elicitation": {}}),
+    ],
+)
+async def test_undeclared_mode_returns_standard_capability_error(
+    elicitation_client, mode, capabilities
+):
+    async with elicitation_client() as (client, invocations):
+        response = await client.post(
+            "/mcp/",
+            headers=HEADERS,
+            json={
+                "jsonrpc": "2.0",
+                "id": 42,
+                "method": "tools/call",
+                "params": {
+                    "name": "Inputs_Ask",
+                    "arguments": {"mode": mode},
+                    "_meta": {
+                        "io.modelcontextprotocol/protocolVersion": VERSION,
+                        "io.modelcontextprotocol/clientCapabilities": capabilities,
+                        "io.modelcontextprotocol/clientInfo": {"name": "proof", "version": "1"},
+                    },
+                },
+            },
+        )
+        body = response.json()
+        assert body.get("error", {}).get("code") == -32021, (
+            f"authoring runtime did not return the standard missing-mode error: {body}"
+        )
+        assert response.status_code == 400
+        assert body["id"] == 42
+        assert body["error"]["data"]["requiredCapabilities"]["elicitation"] == {mode: {}}
+        assert "result" not in body
+        assert invocations == [mode]

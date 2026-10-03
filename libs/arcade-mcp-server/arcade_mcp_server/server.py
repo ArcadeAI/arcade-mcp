@@ -25,7 +25,7 @@ from urllib.parse import quote, urlparse, urlunparse
 from arcade_core.auth_tokens import get_valid_access_token
 from arcade_core.catalog import MaterializedTool, ToolCatalog
 from arcade_core.constants import PROD_COORDINATOR_HOST, PROD_ENGINE_HOST
-from arcade_core.elicitation import Elicitation, InputRequired
+from arcade_core.elicitation import Elicitation, InputRequired, MissingClientCapabilities
 from arcade_core.errors import ErrorKind, ToolInputError
 from arcade_core.executor import ToolExecutor
 from arcade_core.log_extras import build_tool_error_log_extra, build_tool_error_span_attributes
@@ -1659,6 +1659,10 @@ class MCPServer:
                     context=mctx if mctx is not None else tool_context,
                     **input_params,
                 )
+            except MissingClientCapabilities as missing:
+                if not owns_elicitation:
+                    raise
+                return JSONRPCError(id=message.id, error=missing.error)
             except InputRequired as pending:
                 # Nested tool calls share the outer replay sequence and must
                 # unwind to its owner rather than return a prompt to tool code.
