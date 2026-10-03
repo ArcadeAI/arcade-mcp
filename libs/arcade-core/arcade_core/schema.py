@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Literal, Protocol
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 
 from arcade_core.errors import ErrorKind
 from arcade_core.metadata import ToolMetadata
@@ -416,6 +416,8 @@ class ToolContext(BaseModel):
     `arcade_mcp_server.Context` to access namespaced runtime APIs directly.
     """
 
+    _request_ui: Any = PrivateAttr(default=None)
+
     authorization: ToolAuthorizationContext | None = None
     """The authorization context for the tool invocation that requires authorization."""
 
@@ -524,7 +526,9 @@ class ToolContext(BaseModel):
 
     @property
     def ui(self) -> Any:
-        """UI/elicitation is not available in deployed environments."""
+        """Expose input requests when the invocation has a supporting transport."""
+        if self._request_ui is not None:
+            return self._request_ui
         raise RuntimeError("The ui feature is not supported for Arcade managed servers (non-local)")
 
     @property
@@ -549,6 +553,16 @@ class ToolContext(BaseModel):
         )
 
 
+class ToolCallProtocol(BaseModel):
+    """Internal transport declaration; absent on ordinary worker invocations."""
+
+    version: str
+    capabilities: dict[str, Any] = Field(default_factory=dict)
+    input_responses: dict[str, Any] = Field(default_factory=dict, alias="inputResponses")
+    request_state: str = Field(default="", alias="requestState")
+    model_config = ConfigDict(populate_by_name=True)
+
+
 class ToolCallRequest(BaseModel):
     """The request to call (invoke) a tool."""
 
@@ -564,6 +578,8 @@ class ToolCallRequest(BaseModel):
     """The inputs for the tool."""
     context: ToolContext = Field(default_factory=ToolContext)
     """The context for the tool invocation."""
+    protocol: ToolCallProtocol | None = None
+    """Internal declaration supplied by the Engine's MCP adapter."""
 
 
 class ToolCallLog(BaseModel):
@@ -652,6 +668,8 @@ class ToolCallOutput(BaseModel):
     """The error that occurred during the tool invocation."""
     requires_authorization: ToolCallRequiresAuthorization | None = None
     """The authorization requirements for the tool invocation."""
+    external: dict[str, Any] | None = None
+    """A transport result, including keyed input requests and opaque continuation state."""
 
     model_config = {
         "json_schema_extra": {
@@ -660,6 +678,7 @@ class ToolCallOutput(BaseModel):
                 {"required": ["error"]},
                 {"required": ["requires_authorization"]},
                 {"required": ["artifact"]},
+                {"required": ["external"]},
             ]
         }
     }
