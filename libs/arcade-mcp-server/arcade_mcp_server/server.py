@@ -80,6 +80,8 @@ from arcade_mcp_server.types import (
     INVALID_REQUEST,
     METHOD_NOT_FOUND,
     RELATED_TASK_META_KEY,
+    STATELESS_PROTOCOL_VERSION,
+    SUPPORTED_HTTP_PROTOCOL_VERSIONS,
     BlobResourceContents,
     CallToolRequest,
     CallToolResult,
@@ -562,6 +564,7 @@ class MCPServer:
         """Register method handlers."""
         return {
             "ping": self._handle_ping,
+            "server/discover": self._handle_discover,
             "initialize": self._handle_initialize,
             "tools/list": self._handle_list_tools,
             "tools/call": self._handle_call_tool,
@@ -775,6 +778,15 @@ class MCPServer:
             )
 
         # Find handler
+        if (
+            session is not None
+            and session.negotiated_version == STATELESS_PROTOCOL_VERSION
+            and method not in {"server/discover", "tools/list", "tools/call", "ping"}
+        ):
+            return JSONRPCError(
+                id=msg_id,
+                error={"code": METHOD_NOT_FOUND, "message": "Method not found"},
+            )
         handler = self._handlers.get(method)
         if not handler:
             return JSONRPCError(
@@ -865,6 +877,15 @@ class MCPServer:
 
                 result = await self._apply_middleware(middleware_context, final_handler)
 
+                if (
+                    session is not None
+                    and session.negotiated_version == STATELESS_PROTOCOL_VERSION
+                    and method == "tools/call"
+                    and isinstance(result, JSONRPCResponse)
+                    and isinstance(result.result, CallToolResult)
+                ):
+                    result.result.resultType = result.result.resultType or "complete"
+
                 from typing import cast
 
                 return cast(MCPMessage | None, result)
@@ -952,6 +973,26 @@ class MCPServer:
         return await chain(context)
 
     # Handler methods
+    async def _handle_discover(
+        self,
+        message: dict[str, Any],
+        session: ServerSession | None = None,
+    ) -> JSONRPCResponse[Any] | JSONRPCError:
+        if session is None or session.negotiated_version != STATELESS_PROTOCOL_VERSION:
+            return JSONRPCError(
+                id=message.get("id"),
+                error={"code": METHOD_NOT_FOUND, "message": "Method not found"},
+            )
+        return JSONRPCResponse(
+            id=message["id"],
+            result={
+                "supportedVersions": list(reversed(SUPPORTED_HTTP_PROTOCOL_VERSIONS)),
+                "capabilities": self._build_capabilities(
+                    STATELESS_PROTOCOL_VERSION, stateless=True
+                ),
+            },
+        )
+
     async def _handle_ping(
         self,
         message: PingRequest,
@@ -1003,6 +1044,8 @@ class MCPServer:
         Returns a dict suitable for both ServerCapabilities construction and
         storage on ``session._negotiated_capabilities`` for per-request dispatch.
         """
+        if version == STATELESS_PROTOCOL_VERSION:
+            return {"tools": {}}
         caps: dict[str, Any] = {
             "tools": {"listChanged": True},
             "logging": {},
@@ -1630,9 +1673,8 @@ class MCPServer:
                 # ``errorKind`` / ``canRetry`` / ``retryAfterMs`` without parsing the
                 # text content. Only emitted when a ``ToolCallError`` is in scope;
                 # the legacy fallback path (``content = "Error calling tool"``) has
-                # no structured error to surface. ``**{"_meta": ...}`` matches the
-                # alias convention used by CreateTaskResult above and works under
-                # ``Result.model_config.populate_by_name=True``.
+                # no structured error to surface. The explicit wire alias
+                # avoids treating a metadata dict as another result field.
                 error_meta: dict[str, Any] | None = (
                     {"arcade": _build_arcade_error_meta(error)} if error is not None else None
                 )
@@ -1641,7 +1683,7 @@ class MCPServer:
                         content=content,
                         structuredContent=None,
                         isError=True,
-                        **{"_meta": error_meta},
+                        _meta=error_meta,
                     )
                     if error_meta is not None
                     else CallToolResult(
