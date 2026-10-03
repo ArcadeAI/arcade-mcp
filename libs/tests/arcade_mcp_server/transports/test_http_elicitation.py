@@ -23,13 +23,18 @@ def elicitation_client():
 
     @application.tool
     async def ask(
-        context: Context, mode: Annotated[str, "form or url"]
+        context: Context,
+        mode: Annotated[str, "form or url"],
+        elicitation_id: Annotated[str | None, "Optional legacy identifier"] = "approval",
     ) -> Annotated[dict[str, Any], "The submitted answer"]:
         """Request a single answer."""
         invocations.append(mode)
         if mode == "url":
             response = await context.ui.elicit(
-                "Approve", mode="url", url="https://example.com/approval", elicitation_id="approval"
+                "Approve",
+                mode="url",
+                url="https://example.com/approval",
+                elicitation_id=elicitation_id,
             )
         else:
             response = await context.ui.elicit(
@@ -98,11 +103,13 @@ async def call(client, name="Inputs_Ask", arguments=None, capabilities=None, **c
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("mode", ["form", "url"])
+@pytest.mark.parametrize(
+    "mode,identifier", [("form", "approval"), ("url", "approval"), ("url", None)]
+)
 @pytest.mark.parametrize("action", ["accept", "decline", "cancel"])
-async def test_prompt_and_response_without_session(elicitation_client, mode, action):
+async def test_prompt_and_response_without_session(elicitation_client, mode, identifier, action):
     async with elicitation_client() as (client, invocations):
-        args = {"mode": mode}
+        args = {"mode": mode, "elicitation_id": identifier}
         first = await call(client, arguments=args, capabilities={"elicitation": {mode: {}}})
         result = first["result"]
         assert result["resultType"] == "input_required", (
@@ -117,7 +124,10 @@ async def test_prompt_and_response_without_session(elicitation_client, mode, act
             }
         else:
             assert request["params"]["url"] == "https://example.com/approval"
-            assert request["params"]["elicitationId"] == "approval"
+            if identifier is None:
+                assert "elicitationId" not in request["params"]
+            else:
+                assert request["params"]["elicitationId"] == identifier
         answer = {"action": action, "x-response": {"ordered": [2, 1]}}
         if mode == "form":
             answer["content"] = {"value": "answer", "x-value": 42}

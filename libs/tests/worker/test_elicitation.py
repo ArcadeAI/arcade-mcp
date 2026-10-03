@@ -18,6 +18,7 @@ invocations = []
 async def request_input(
     context: ToolContext,
     mode: Annotated[str, "form or url"],
+    elicitation_id: Annotated[str | None, "Optional legacy identifier"] = "approval",
     timeout: Annotated[float, "The user response deadline in seconds"] = 300.0,
 ) -> Annotated[dict[str, Any], "The exact client response"]:
     """Request one input before returning its response."""
@@ -27,7 +28,7 @@ async def request_input(
             "Approve",
             mode="url",
             url="https://example.com/approval",
-            elicitation_id="approval",
+            elicitation_id=elicitation_id,
             timeout=timeout,
         )
     else:
@@ -64,13 +65,15 @@ def worker_client():
         yield client
 
 
-@pytest.mark.parametrize("mode", ["form", "url"])
+@pytest.mark.parametrize(
+    "mode,identifier", [("form", "approval"), ("url", "approval"), ("url", None)]
+)
 @pytest.mark.parametrize("action", ["accept", "decline", "cancel"])
-def test_worker_elicitation_round_trip(worker_client, mode, action):
+def test_worker_elicitation_round_trip(worker_client, mode, identifier, action):
     request = {
         "execution_id": "elicitation",
         "tool": {"toolkit": "Elicitation", "name": "RequestInput"},
-        "inputs": {"mode": mode},
+        "inputs": {"mode": mode, "elicitation_id": identifier},
         "context": {"user_id": "alice"},
         "protocol": {
             "version": "2026-07-28",
@@ -86,6 +89,12 @@ def test_worker_elicitation_round_trip(worker_client, mode, action):
     key, prompt = next(iter(result["inputRequests"].items()))
     assert prompt["method"] == "elicitation/create"
     assert prompt["params"]["message"] == ("Approve" if mode == "url" else "Confirm")
+    if mode == "url":
+        assert prompt["params"]["url"] == "https://example.com/approval"
+        if identifier is None:
+            assert "elicitationId" not in prompt["params"]
+        else:
+            assert prompt["params"]["elicitationId"] == identifier
     response = {"action": action, "x-response": "preserve"}
     if mode == "form":
         response["content"] = {"label": "unchanged"}
@@ -208,7 +217,9 @@ def test_worker_replays_prior_inputs_and_checks_current_capabilities(worker_clie
     output = worker_client.post("/worker/tools/invoke", json=request).json()["output"]
     if not declare_url:
         assert output["protocol_error"]["code"] == -32021
-        assert output["protocol_error"]["data"]["requiredCapabilities"] == {"elicitation": {"url": {}}}
+        assert output["protocol_error"]["data"]["requiredCapabilities"] == {
+            "elicitation": {"url": {}}
+        }
         assert output.get("external") is None
         return
     second = output["external"]
@@ -315,12 +326,15 @@ def test_new_round_has_a_fresh_fifteen_minute_lifetime(worker_client, monkeypatc
 
 @pytest.mark.parametrize("mode", ["form", "url"])
 def test_worker_missing_mode_is_a_protocol_error(worker_client, mode):
-    response = worker_client.post("/worker/tools/invoke", json={
-        "tool": {"toolkit": "Elicitation", "name": "RequestInput"},
-        "inputs": {"mode": mode},
-        "context": {"user_id": "alice"},
-        "protocol": {"version": "2026-07-28", "capabilities": {}},
-    })
+    response = worker_client.post(
+        "/worker/tools/invoke",
+        json={
+            "tool": {"toolkit": "Elicitation", "name": "RequestInput"},
+            "inputs": {"mode": mode},
+            "context": {"user_id": "alice"},
+            "protocol": {"version": "2026-07-28", "capabilities": {}},
+        },
+    )
     assert response.status_code == 200
     body = response.json()
     error = body["output"].get("protocol_error")

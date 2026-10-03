@@ -121,9 +121,11 @@ class Elicitation:
                 schema if schema is not None else {"type": "object", "properties": {}}
             )
         elif effective_mode == "url":
-            if schema is not None or not url or not elicitation_id:
-                raise ValueError("URL mode requires url and elicitation_id, without schema")
-            params.update(url=url, elicitationId=elicitation_id)
+            if schema is not None or not url:
+                raise ValueError("URL mode requires url, without schema")
+            params["url"] = url
+            if elicitation_id is not None:
+                params["elicitationId"] = elicitation_id
         else:
             raise ValueError(f"Unsupported elicitation mode: {effective_mode}")
         token = jwt.encode(
