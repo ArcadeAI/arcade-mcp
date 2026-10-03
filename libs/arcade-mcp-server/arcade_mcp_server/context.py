@@ -33,6 +33,7 @@ from contextvars import ContextVar, Token
 from typing import Any, cast
 
 from arcade_core.context import ModelContext as ModelContextProtocol
+from arcade_core.elicitation import Elicitation
 from arcade_core.schema import (
     ToolContext,
 )
@@ -272,7 +273,7 @@ class Context(ToolContext):
         return self._sampling
 
     @property
-    def ui(self) -> UI:
+    def ui(self) -> UI | Elicitation:
         """User interaction (elicitation) capabilities.
 
         Provides methods for interacting with the user, such as eliciting input.
@@ -285,6 +286,8 @@ class Context(ToolContext):
             )
             ```
         """
+        if isinstance(self._request_ui, Elicitation):
+            return self._request_ui
         return self._ui
 
     @property

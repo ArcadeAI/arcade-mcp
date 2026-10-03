@@ -18,17 +18,24 @@ import asyncio
 import contextlib
 import logging
 import os
+import secrets
 from typing import Any, Callable, ClassVar, cast
 from urllib.parse import quote, urlparse, urlunparse
 
 from arcade_core.auth_tokens import get_valid_access_token
 from arcade_core.catalog import MaterializedTool, ToolCatalog
 from arcade_core.constants import PROD_COORDINATOR_HOST, PROD_ENGINE_HOST
+from arcade_core.elicitation import Elicitation, InputRequired
 from arcade_core.errors import ErrorKind, ToolInputError
 from arcade_core.executor import ToolExecutor
 from arcade_core.log_extras import build_tool_error_log_extra, build_tool_error_span_attributes
 from arcade_core.network.org_transport import build_org_scoped_async_http_client
-from arcade_core.schema import ToolAuthorizationContext, ToolCallError, ToolContext
+from arcade_core.schema import (
+    ToolAuthorizationContext,
+    ToolCallError,
+    ToolCallProtocol,
+    ToolContext,
+)
 from arcade_core.schema import ToolAuthRequirement as CoreToolAuthRequirement
 from arcadepy import ArcadeError, AsyncArcade
 from arcadepy.types.auth_authorize_params import AuthRequirement, AuthRequirementOauth2
@@ -312,6 +319,7 @@ class MCPServer:
 
         # Settings (load first so we can use values from it)
         self.settings = settings or MCPSettings.from_env()
+        self._elicitation_secret = self.settings.arcade.server_secret or secrets.token_urlsafe(32)
 
         # Server info
         self.name = name if name else self.settings.server.name
@@ -1238,6 +1246,11 @@ class MCPServer:
             logger.debug(f"Context user_id set from credentials file: {config_user_id}")
             return config_user_id
 
+        # Modern HTTP requests have no stable session identity. Authenticated
+        # and configured identities above remain available across retries.
+        if session is not None and session.negotiated_version == STATELESS_PROTOCOL_VERSION:
+            return None
+
         # Fourth priority: use session ID if no other user_id is available
         if env in ("development", "dev", "local"):
             logger.debug(f"Context user_id set from session (dev env={env})")
@@ -1590,6 +1603,39 @@ class MCPServer:
             # Attach tool_context to current model context for this request
             mctx = get_current_model_context()
             saved_tool_context: ToolContext | None = None
+            invocation_context = mctx if mctx is not None else tool_context
+            saved_ui = invocation_context._request_ui
+            owns_elicitation = (
+                session is not None
+                and session.negotiated_version == STATELESS_PROTOCOL_VERSION
+                and saved_ui is None
+            )
+            request_ui = saved_ui
+            if owns_elicitation:
+                meta = get_request_meta()
+                declaration = vars(meta) if meta is not None else {}
+                try:
+                    request_ui = Elicitation(
+                        ToolCallProtocol(
+                            version=STATELESS_PROTOCOL_VERSION,
+                            capabilities=declaration.get(
+                                "io.modelcontextprotocol/clientCapabilities", {}
+                            ),
+                            inputResponses=raw_params.get("inputResponses", {}),
+                            requestState=raw_params.get("requestState", ""),
+                        ),
+                        self._elicitation_secret,
+                        {
+                            "tool": str(tool.definition.get_fully_qualified_name()),
+                            "inputs": input_params,
+                            "user": tool_context.user_id,
+                        },
+                    )
+                except ValueError as continuation_error:
+                    return JSONRPCError(
+                        id=message.id,
+                        error={"code": INVALID_PARAMS, "message": str(continuation_error)},
+                    )
 
             if mctx is not None:
                 # Save the current tool context so we can restore it after the call
@@ -1603,6 +1649,7 @@ class MCPServer:
                 mctx.set_tool_context(tool_context)
 
             try:
+                invocation_context._request_ui = request_ui
                 # Execute tool
                 result = await ToolExecutor.run(
                     func=tool.tool,
@@ -1612,7 +1659,14 @@ class MCPServer:
                     context=mctx if mctx is not None else tool_context,
                     **input_params,
                 )
+            except InputRequired as pending:
+                # Nested tool calls share the outer replay sequence and must
+                # unwind to its owner rather than return a prompt to tool code.
+                if not owns_elicitation:
+                    raise
+                return JSONRPCResponse(id=message.id, result=CallToolResult(**pending.result))
             finally:
+                invocation_context._request_ui = saved_ui
                 # Restore the original tool context to prevent context leakage to parent tools in the case of tool chaining.
                 if mctx is not None and saved_tool_context is not None:
                     mctx.set_tool_context(saved_tool_context)
