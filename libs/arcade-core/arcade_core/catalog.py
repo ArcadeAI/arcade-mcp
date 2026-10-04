@@ -26,6 +26,12 @@ from typing import (
 
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, create_model, model_serializer
 from pydantic.fields import FieldInfo
+from pydantic.functional_validators import (
+    AfterValidator,
+    BeforeValidator,
+    PlainValidator,
+    WrapValidator,
+)
 from pydantic_core import PydanticUndefined
 from typing_extensions import NotRequired, Required
 
@@ -1260,6 +1266,12 @@ def _wrap_typeddicts_as_models(field_type: Any, model_name_prefix: str) -> Any:
     extract_*_param_info before this helper runs; the caller in
     create_func_models re-wraps with Optional[...] when is_optional is true.
     """
+    if field_type is int:
+        return Annotated[int, Field(strict=True)]
+    if get_origin(field_type) is Annotated:
+        inner, *metadata = get_args(field_type)
+        wrapped = _wrap_typeddicts_as_models(inner, model_name_prefix)
+        return Annotated[(wrapped, *metadata)]
     if is_typeddict(field_type):
         return create_model_from_typeddict(
             field_type, f"{model_name_prefix}_{field_type.__name__}", strict=True
@@ -1318,6 +1330,17 @@ def create_func_models(func: Callable) -> tuple[type[BaseModel], type[BaseModel]
         field_type = _wrap_typeddicts_as_models(
             tool_field_info.field_type, f"{model_prefix}_{name}"
         )
+
+        validation_metadata = []
+        for item in getattr(param.annotation, "__metadata__", ()):
+            if isinstance(item, FieldInfo):
+                # Keep constraints without changing the published argument name
+                # or excluding the argument from executor dispatch.
+                validation_metadata.extend(item.metadata)
+            elif isinstance(item, (AfterValidator, BeforeValidator, PlainValidator, WrapValidator)):
+                validation_metadata.append(item)
+        if validation_metadata:
+            field_type = Annotated[(field_type, *validation_metadata)]
 
         # extract_*_param_info unwraps Optional[T] to T before this point, so
         # re-wrap when the original annotation permitted None — otherwise the
