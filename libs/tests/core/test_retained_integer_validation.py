@@ -107,3 +107,49 @@ def test_input_serializers_do_not_change_dispatched_integer(serializer_kind):
         )
     )
     assert result.error is None and result.value == "int"
+
+
+def test_declared_semantic_validator_survives_catalog_and_executor():
+    import asyncio
+
+    from arcade_core.catalog import ToolCatalog
+    from arcade_core.executor import ToolExecutor
+    from arcade_core.schema import ToolContext
+    from arcade_tdk import tool
+    from pydantic import AfterValidator
+
+    def require_odd(value):
+        if value % 2 == 0:
+            raise ValueError("Count must be odd")
+        return value
+
+    @tool
+    def odd_count(value: Annotated[int, AfterValidator(require_odd), "Odd count"]) -> int:
+        """Accept only odd integer counts."""
+        return value
+
+    catalog = ToolCatalog()
+    catalog.add_tool(odd_count, "Probe")
+    entry = catalog.get_tool_by_name("Probe_OddCount", separator="_")
+    rejected = asyncio.run(
+        ToolExecutor.run(
+            entry.tool,
+            entry.definition,
+            entry.input_model,
+            entry.output_model,
+            ToolContext(),
+            value=2,
+        )
+    )
+    assert rejected.error is not None
+    accepted = asyncio.run(
+        ToolExecutor.run(
+            entry.tool,
+            entry.definition,
+            entry.input_model,
+            entry.output_model,
+            ToolContext(),
+            value=3,
+        )
+    )
+    assert accepted.error is None and accepted.value == 3

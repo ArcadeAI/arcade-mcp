@@ -1268,10 +1268,6 @@ def _wrap_typeddicts_as_models(field_type: Any, model_name_prefix: str) -> Any:
     """
     if field_type is int:
         return Annotated[int, Field(strict=True)]
-    if get_origin(field_type) is Annotated:
-        inner, *metadata = get_args(field_type)
-        wrapped = _wrap_typeddicts_as_models(inner, model_name_prefix)
-        return Annotated[(wrapped, *metadata)]
     if is_typeddict(field_type):
         return create_model_from_typeddict(
             field_type, f"{model_name_prefix}_{field_type.__name__}", strict=True
@@ -1340,7 +1336,8 @@ def create_func_models(func: Callable) -> tuple[type[BaseModel], type[BaseModel]
             elif isinstance(item, (AfterValidator, BeforeValidator, PlainValidator, WrapValidator)):
                 validation_metadata.append(item)
         if validation_metadata:
-            field_type = Annotated[(field_type, *validation_metadata)]
+            annotation_args = (field_type, *validation_metadata)
+            field_type = Annotated[annotation_args]
 
         # extract_*_param_info unwraps Optional[T] to T before this point, so
         # re-wrap when the original annotation permitted None — otherwise the
