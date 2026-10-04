@@ -1336,7 +1336,7 @@ def create_func_models(func: Callable) -> tuple[type[BaseModel], type[BaseModel]
             elif isinstance(item, (AfterValidator, BeforeValidator, PlainValidator, WrapValidator)):
                 validation_metadata.append(item)
         if validation_metadata:
-            field_type = Annotated[(field_type, *validation_metadata)]
+            field_type = Annotated[(field_type,) + tuple(validation_metadata)]
 
         # extract_*_param_info unwraps Optional[T] to T before this point, so
         # re-wrap when the original annotation permitted None — otherwise the
