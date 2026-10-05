@@ -118,7 +118,7 @@ class ToolExecutor:
             raise ToolInputError(
                 message=f"Invalid input: {summary}",
                 developer_message=f"Pydantic validation failed: {developer_summary}",
-            ) from e
+            ) from None
 
         return inputs
 
