@@ -1,11 +1,548 @@
 <!doctype html>
 <html lang="en">
-  <head><meta charset="utf-8"><title>Greeting editor</title></head>
-  <body>
-    <h1>Greeting editor</h1>
-    <label>Name <input id="name" value="Ada"></label>
-    <button id="preview" disabled>Preview greeting</button>
-    <button id="uppercase" disabled>Uppercase greeting</button>
-    <output id="result">Waiting for the greeting…</output>
-  </body>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Greeting editor</title>
+        <style>
+            :root {
+                color-scheme: light dark;
+                font:
+                    16px system-ui,
+                    sans-serif;
+            }
+            body {
+                margin: 0;
+                padding: 24px;
+            }
+            main {
+                max-width: 560px;
+                margin: auto;
+            }
+            h1 {
+                margin-top: 0;
+                font-size: 24px;
+            }
+            label {
+                display: block;
+                margin-bottom: 6px;
+            }
+            input,
+            button {
+                font: inherit;
+                border: 1px solid #8888;
+                border-radius: 8px;
+                padding: 10px 14px;
+            }
+            input {
+                box-sizing: border-box;
+                width: 100%;
+                margin-bottom: 16px;
+            }
+            button {
+                cursor: pointer;
+            }
+            button:disabled {
+                opacity: 0.5;
+                cursor: default;
+            }
+            .actions {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            output {
+                display: block;
+                padding: 16px 0;
+                font-weight: 600;
+                overflow-wrap: anywhere;
+            }
+            #status {
+                font-size: 14px;
+            }
+            #authorization {
+                margin: 16px 0;
+                padding: 16px;
+                border: 1px solid #8888;
+                border-radius: 8px;
+            }
+            #auth-url {
+                display: block;
+                overflow-wrap: anywhere;
+                margin: 12px 0;
+            }
+            [hidden] {
+                display: none !important;
+            }
+        </style>
+    </head>
+    <body>
+        <main>
+            <h1>Greeting editor</h1>
+            <section id="authorization" hidden aria-live="polite">
+                <strong>Authorization required</strong>
+                <p>
+                    Your edits are kept. Authorize the tool, then retry the
+                    action.
+                </p>
+                <button id="authorize" type="button">Authorize tool</button>
+                <a
+                    id="auth-url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    hidden
+                ></a>
+                <button id="retry-action" type="button">Retry action</button>
+                <p>Finishing authorization does not run the tool.</p>
+            </section>
+            <section id="editor">
+                <label for="name">Name</label>
+                <input id="name" value="Ada" disabled />
+                <div class="actions">
+                    <button id="preview" type="button" disabled>
+                        Preview greeting
+                    </button>
+                    <button id="uppercase" type="button" disabled>
+                        Uppercase greeting
+                    </button>
+                    <button id="profile" type="button" disabled>
+                        Add Google profile
+                    </button>
+                </div>
+                <output id="result" aria-live="polite"
+                    >Waiting for the greeting…</output
+                >
+            </section>
+            <p id="status" role="status">
+                Checking which tools this gateway exposes…
+            </p>
+            <button id="refresh" type="button" disabled>
+                Check tools again
+            </button>
+        </main>
+        <script type="module">
+            const element = (id) => document.getElementById(id)
+            const requested = {
+                preview: "AppTools.PreviewGreeting",
+                uppercase: "AppTools.UppercaseGreeting",
+                profile: "AppTools.GoogleProfile",
+            }
+            let hostCapabilities = {}
+            let available = new Map()
+            let discovery = "pending"
+            let busy = false
+            let edited = false
+            let retryAction
+            let authUrl
+            let nextId = 1
+            let stopped = false
+            let checking
+            const pending = new Map()
+            let sizeObserver
+
+            // Sandboxed Apps can have an opaque origin. Accept only the parent host;
+            // correlate responses to requests rather than trusting arbitrary messages.
+            function request(method, params) {
+                if (stopped)
+                    return Promise.reject(new Error("The App has closed."))
+                const id = nextId++
+                return new Promise((resolve, reject) => {
+                    const timer = setTimeout(() => {
+                        pending.delete(id)
+                        reject(
+                            new Error(
+                                "The host did not respond. Try checking tools again."
+                            )
+                        )
+                    }, 15000)
+                    pending.set(id, { resolve, reject, timer })
+                    window.parent.postMessage(
+                        { jsonrpc: "2.0", id, method, params },
+                        "*"
+                    )
+                })
+            }
+
+            function notify(method, params = {}) {
+                window.parent.postMessage(
+                    { jsonrpc: "2.0", method, params },
+                    "*"
+                )
+            }
+
+            function controls() {
+                element("name").disabled = discovery !== "ready" || busy
+                for (const [id, tool] of Object.entries(requested)) {
+                    element(id).hidden =
+                        discovery === "ready" && !available.has(tool)
+                    element(id).disabled = discovery !== "ready" || busy
+                }
+                element("refresh").disabled = discovery === "pending" || busy
+                element("retry-action").disabled = busy || discovery !== "ready"
+            }
+
+            function callName(tool) {
+                return Object.values(requested).find(
+                    (name) =>
+                        name.replaceAll(".", "_").toLowerCase() ===
+                        tool.name?.toLowerCase()
+                )
+            }
+
+            async function nativeTools() {
+                const found = new Map()
+                const cursors = new Set()
+                let cursor
+                let recommendations = false
+                for (let page = 0; page < 100; page++) {
+                    const result = await request(
+                        "tools/list",
+                        cursor ? { cursor } : {}
+                    )
+                    if (!Array.isArray(result.tools))
+                        throw new Error(
+                            "The host returned an invalid tool list."
+                        )
+                    for (const tool of result.tools) {
+                        if (
+                            ["Arcade_SelectTools", "Arcade_UseTool"].includes(
+                                tool.name
+                            )
+                        )
+                            recommendations = true
+                        const key = callName(tool)
+                        const visibility = tool._meta?.ui?.visibility
+                        if (
+                            visibility &&
+                            (!Array.isArray(visibility) ||
+                                !visibility.includes("app"))
+                        )
+                            continue
+                        if (key) {
+                            if (found.has(key))
+                                throw new Error(
+                                    "The host returned an ambiguous tool name."
+                                )
+                            found.set(key, tool.name)
+                        }
+                    }
+                    if (!result.nextCursor) return { found, recommendations }
+                    if (
+                        typeof result.nextCursor !== "string" ||
+                        cursors.has(result.nextCursor)
+                    )
+                        break
+                    cursors.add(result.nextCursor)
+                    cursor = result.nextCursor
+                }
+                throw new Error("The host did not return a complete tool list.")
+            }
+
+            async function fallbackTools() {
+                if (!hostCapabilities.serverResources)
+                    throw new Error("The host cannot check tool availability.")
+                // TODO: https://linear.app/arcadedev/issue/TOO-2155 — remove this fallback
+                // when the MCP Apps tools/list extension is supported throughout the path.
+                const uri = new URL("arcade://gateway/tool-availability/v1")
+                for (const tool of Object.values(requested))
+                    uri.searchParams.append("tool", tool)
+                // This nonce prevents host resource caching; it grants no access.
+                const bytes = crypto.getRandomValues(new Uint8Array(16))
+                bytes[6] = (bytes[6] & 15) | 64
+                bytes[8] = (bytes[8] & 63) | 128
+                const hex = [...bytes]
+                    .map((byte) => byte.toString(16).padStart(2, "0"))
+                    .join("")
+                uri.searchParams.set(
+                    "request",
+                    `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
+                )
+                const result = await request("resources/read", {
+                    uri: uri.href,
+                })
+                const contents = result.contents
+                if (
+                    contents?.length !== 1 ||
+                    contents[0].uri !== uri.href ||
+                    contents[0].mimeType !== "application/json"
+                ) {
+                    throw new Error(
+                        "The gateway returned an invalid availability response."
+                    )
+                }
+                const data = JSON.parse(contents[0].text)
+                if (data.version !== 1 || !Array.isArray(data.tools))
+                    throw new Error("Unknown availability response.")
+                const found = new Map()
+                for (const tool of data.tools) {
+                    if (
+                        !Object.values(requested).includes(tool.tool) ||
+                        typeof tool.name !== "string" ||
+                        !tool.name ||
+                        found.has(tool.tool)
+                    ) {
+                        throw new Error("Invalid available tool name.")
+                    }
+                    found.set(tool.tool, tool.name)
+                }
+                return found
+            }
+
+            function checkTools() {
+                if (checking) return checking
+                checking = (async () => {
+                    discovery = "pending"
+                    controls()
+                    element("status").textContent =
+                        "Checking which tools this gateway exposes…"
+                    try {
+                        if (!hostCapabilities.serverTools)
+                            throw new Error(
+                                "The host does not support App tool calls."
+                            )
+                        let native
+                        try {
+                            native = await nativeTools()
+                        } catch (error) {
+                            if (error.code !== -32601) throw error
+                        }
+                        available = native?.found ?? new Map()
+                        if (!native || native.recommendations) {
+                            const fallback = await fallbackTools()
+                            for (const [tool, name] of fallback)
+                                if (!available.has(tool))
+                                    available.set(tool, name)
+                        }
+                        discovery = "ready"
+                        element("status").textContent =
+                            "Only tools available to you in this gateway have buttons. Availability does not mean authorization."
+                    } catch (error) {
+                        discovery = "unknown"
+                        element("status").textContent =
+                            `Could not check tools. ${error.message}`
+                    } finally {
+                        controls()
+                    }
+                })().finally(() => {
+                    checking = undefined
+                })
+                return checking
+            }
+
+            function authorizationUrl(value) {
+                const candidates = [
+                    value?.authorization_url,
+                    value?.authorizationUrl,
+                ]
+                if (value?.code === -32042)
+                    candidates.push(
+                        ...(value.data?.elicitations ?? []).map(
+                            (item) => item.url
+                        )
+                    )
+                for (const candidate of candidates) {
+                    if (typeof candidate !== "string") continue
+                    try {
+                        const url = new URL(candidate)
+                        if (
+                            ["https:", "http:"].includes(url.protocol) &&
+                            !url.username &&
+                            !url.password
+                        )
+                            return url.href
+                    } catch {
+                        /* A non-URL error is not an authorization prompt. */
+                    }
+                }
+            }
+
+            function readResult(result) {
+                if (result.structuredContent) return result.structuredContent
+                const text = (result.content ?? [])
+                    .filter((item) => item.type === "text")
+                    .map((item) => item.text)
+                    .join("\n")
+                try {
+                    return JSON.parse(text)
+                } catch {
+                    return text
+                }
+            }
+
+            function showAuthorization(url, action, initial = false) {
+                authUrl = url
+                retryAction = action
+                element("authorization").hidden = false
+                element("editor").hidden = initial
+                element("authorize").hidden = !hostCapabilities.openLinks
+                element("auth-url").hidden = !!hostCapabilities.openLinks
+                element("auth-url").href = url
+                element("auth-url").textContent = url
+                element("retry-action").hidden = !action
+                element("status").textContent = action
+                    ? "Authorize, then choose Retry action. Your inputs have not changed."
+                    : "Authorize, then ask the host to retry the original tool call."
+            }
+
+            async function runAction(action) {
+                if (busy) return
+                busy = true
+                controls()
+                try {
+                    await checkTools()
+                    if (discovery !== "ready") return
+                    const name = available.get(action.tool)
+                    if (!name)
+                        throw new Error(
+                            "The tool is no longer available in this gateway."
+                        )
+                    // The host applies the connected user's ordinary access, consent,
+                    // secrets and execution checks. The App gains no permission.
+                    const result = await request("tools/call", {
+                        name,
+                        arguments: action.arguments,
+                    })
+                    const output = readResult(result)
+                    const url = authorizationUrl(output)
+                    if (url && result.isError) {
+                        showAuthorization(url, action)
+                        return
+                    }
+                    if (result.isError)
+                        throw new Error(
+                            typeof output === "string"
+                                ? output
+                                : "The tool could not run."
+                        )
+                    element("authorization").hidden = true
+                    element("editor").hidden = false
+                    retryAction = undefined
+                    element("result").textContent =
+                        typeof output === "string"
+                            ? output
+                            : JSON.stringify(output)
+                } catch (error) {
+                    const url = authorizationUrl(error)
+                    if (url) showAuthorization(url, action)
+                    else
+                        element("status").textContent =
+                            error.message ||
+                            "The tool could not run. Your inputs are kept."
+                } finally {
+                    busy = false
+                    controls()
+                }
+            }
+
+            window.addEventListener("message", (event) => {
+                if (
+                    event.source !== window.parent ||
+                    event.data?.jsonrpc !== "2.0"
+                )
+                    return
+                const message = event.data
+                if (message.id !== undefined && !message.method) {
+                    const waiting = pending.get(message.id)
+                    if (!waiting) return
+                    pending.delete(message.id)
+                    clearTimeout(waiting.timer)
+                    if (message.error)
+                        waiting.reject(
+                            Object.assign(
+                                new Error(message.error.message),
+                                message.error
+                            )
+                        )
+                    else waiting.resolve(message.result ?? {})
+                } else if (
+                    message.method === "ui/notifications/tool-input" &&
+                    !edited
+                ) {
+                    if (typeof message.params?.arguments?.name === "string")
+                        element("name").value = message.params.arguments.name
+                } else if (message.method === "ui/notifications/tool-result") {
+                    const result = message.params
+                    const output = readResult(result)
+                    const url = authorizationUrl(output)
+                    if (url && result.isError)
+                        showAuthorization(url, undefined, true)
+                    else if (!result.isError) {
+                        element("authorization").hidden = true
+                        element("editor").hidden = false
+                        element("result").textContent =
+                            typeof output === "string"
+                                ? output
+                                : JSON.stringify(output)
+                    }
+                } else if (
+                    message.method === "notifications/tools/list_changed"
+                ) {
+                    void checkTools()
+                } else if (
+                    ["ping", "ui/resource-teardown"].includes(message.method) &&
+                    message.id !== undefined
+                ) {
+                    window.parent.postMessage(
+                        { jsonrpc: "2.0", id: message.id, result: {} },
+                        "*"
+                    )
+                    if (message.method === "ui/resource-teardown") {
+                        stopped = true
+                        sizeObserver?.disconnect()
+                        for (const waiting of pending.values()) {
+                            clearTimeout(waiting.timer)
+                            waiting.reject(new Error("The App has closed."))
+                        }
+                        pending.clear()
+                    }
+                }
+            })
+
+            element("name").addEventListener("input", () => {
+                edited = true
+            })
+            for (const [id, tool] of Object.entries(requested)) {
+                element(id).addEventListener("click", () =>
+                    runAction({
+                        tool,
+                        arguments: { name: element("name").value },
+                    })
+                )
+            }
+            element("refresh").addEventListener("click", checkTools)
+            element("retry-action").addEventListener(
+                "click",
+                () => retryAction && runAction(retryAction)
+            )
+            element("authorize").addEventListener("click", async () => {
+                try {
+                    await request("ui/open-link", { url: authUrl })
+                } catch {
+                    element("auth-url").hidden = false
+                }
+            })
+
+            try {
+                const result = await request("ui/initialize", {
+                    protocolVersion: "2026-01-26",
+                    appInfo: { name: "Greeting editor", version: "0.1.0" },
+                    appCapabilities: {},
+                })
+                hostCapabilities = result.hostCapabilities ?? {}
+                notify("ui/notifications/initialized")
+                sizeObserver = new ResizeObserver(() =>
+                    notify("ui/notifications/size-changed", {
+                        height: document.documentElement.scrollHeight,
+                        width: document.documentElement.scrollWidth,
+                    })
+                )
+                sizeObserver.observe(document.body)
+                await checkTools()
+            } catch (error) {
+                discovery = "unknown"
+                element("status").textContent = error.message
+                controls()
+            }
+        </script>
+    </body>
 </html>

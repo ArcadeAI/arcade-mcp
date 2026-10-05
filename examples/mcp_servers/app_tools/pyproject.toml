@@ -1,5 +1,5 @@
 [project]
-name = "app-tools"
+name = "app_tools"
 version = "0.1.0"
 description = "An MCP App that calls the same tool and other tools through a gateway"
 requires-python = ">=3.10"

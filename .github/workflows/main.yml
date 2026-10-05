@@ -8,6 +8,23 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
+  mcp-app-example:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: libs/tests/mcp_apps/package-lock.json
+      - name: Install App test dependencies
+        run: npm --prefix libs/tests/mcp_apps ci
+      - name: Install Chromium
+        run: npm --prefix libs/tests/mcp_apps exec -- playwright install --with-deps chromium
+      - name: Test the shipped App in an iframe
+        run: npm --prefix libs/tests/mcp_apps test
+
   quality:
     runs-on: ubuntu-latest
     steps:
