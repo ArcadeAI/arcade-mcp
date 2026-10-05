@@ -1,0 +1,80 @@
+{
+  "instructions": "Run each scenario independently with the current SKILL.md. Give the evaluator only the skill and scenario, hiding expectations and previous results. This is an offline simulation: no live service calls or git mutations. Assess the concrete next actions and authored PR body against expectations; do not grade exact prose. Report observations and unavailable evidence truthfully. Compare against the previous skill when changing behavior.",
+  "cases": [
+    {
+      "id": 1,
+      "scenario": "User: \"Make PR 12 ready. I exercised the changed export flow in staging and am happy to ship after review.\"\nRepo Sample/export, base main, head fix/export, SHA e555. Draft. Ticket EXP-12 verified. Regression test fails before and passes after. Local and CI tests/lint pass at e555; fresh independent review on e555 has no findings. Author's staging run verified the exact behavior. No unresolved comments. Configured hosted reviewer runs only on ready_for_review and subsequent pushes to ready PRs. Repository policy allows Ready after author preparation and CI; hosted review and approvals block merge. No deployment authorization.",
+      "expectations": [
+        "Reuse existing author, test, and independent-review evidence.",
+        "Promote when the repository pre-Ready gates pass and the user requested Ready.",
+        "Inspect the hosted review after promotion; do not claim review, merge, or deployment completed."
+      ]
+    },
+    {
+      "id": 2,
+      "scenario": "User: \"Please open a PR for the worker change. Use Prod Full Suite for GitHub, not gh.\"\nRepo Sample/mono, branch fix/tool-error, head f666, main base refreshed, clean working tree, no matching PR. Ticket TOOL-3 verified; intended behavior: a missing calendar event returns a useful refusal. All relevant tests, live sandbox exercise, and independent review passed at f666. Available GitHub tools: ListPullRequests only. Local git commands available. No browser session or other GitHub mutation capability is available in this fixture. User has not authorized a substitute for Prod Full Suite.",
+      "expectations": [
+        "Honor Prod Full Suite selection without substituting gh or inventing an operation.",
+        "Prepare a concise description from actual evidence.",
+        "Report the missing PR-creation operation and do not claim a PR was opened."
+      ]
+    },
+    {
+      "id": 3,
+      "scenario": "User: \"Make the PR description concise and accurate.\"\nRepo Sample/mono, Ready PR 14, SHA g777; ticket API-6 verified. Expected behavior: expired credentials cannot execute tools. Current BDD run: zero scenarios selected by a misspelled tag, exit 0. Unit tests: 12 pass. Local flow: signed-out request rejected; credential expiry not exercised. Prior description: \"All behavioral tests pass. Fully validated.\" No engineer experience statement in session. Body includes an automation-managed block: <!-- REVIEW_STATUS -->Reviewed SHA g777; status pending<!-- /REVIEW_STATUS -->. Template: Linear ticket line; ## What/why; ## Codebase changes; optional ## Additional notes.",
+      "expectations": [
+        "Use the repository headings and keep the authored description concise.",
+        "Report zero BDD scenarios as unverified despite exit zero; do not claim all behavior tests passed.",
+        "Preserve the automation-managed block and existing Ready state.",
+        "Flag the credential-expiry verification gap without inventing engineer experience."
+      ]
+    },
+    {
+      "id": 4,
+      "scenario": "User: \"Finish preparing the PR for this coordinator authorization fix. I already reviewed the staging evidence you showed me and approve the behavior.\"\nRepo Sample/mono, Ready PR 15, base release/2.0, head h888, clean working tree, correct verified issue AUTH-7. Full final diff inspected. Applicable unit/behavior tests and staging API exercise pass at h888. Fresh independent review at h888 found no issues. CI reports SUCCESS for a GitHub-generated merge commit m999 associated with current PR head h888. All comments/threads retrieved, no blockers. AutoApprove reports neutral, tier HUMAN_ONLY, no approving review posted. Existing PR description correctly covers final behavior, approach and verification, except Additional notes is empty. Repository policy requires human approval for this tier before merging. User requests PR preparation only, no reviewer assignment or merge.",
+      "expectations": [
+        "Preserve the release base and existing Ready state.",
+        "Accept passing merge-commit CI explicitly associated with the current PR head.",
+        "Reuse the engineer vetting and independent review without repeating checks or asking for another sign-off.",
+        "Distinguish HUMAN_ONLY/neutral from an approving review, and do not merge or deploy."
+      ]
+    },
+    {
+      "id": 5,
+      "scenario": "# User request\nOpen a draft PR for this wording fix. Keep my local experiment out of it.\n\n# Repository snapshot\nRepo ExampleOrg/widget, default branch develop. Remote origin points to that repo.\nCurrent branch codex/docs-help, upstream origin/codex/docs-help, base origin/develop refreshed.\nOpen PR #71: head codex/docs-help, base develop, Draft, head SHA a111, body:\nLinear ticket: DOC-19\n## What/why\nHelp says \"Destnation\".\n## Codebase changes\nFix the typo.\n\nVerified Linear DOC-19: Correct typo in export help, status In Progress.\nWorking tree:\n M docs/export.md\n M experiments/cache.py\nDiff docs/export.md: \"Destnation\" -> \"Destination\".\nDiff experiments/cache.py: cache TTL 5 -> 60 (author's unrelated experiment).\nNo commits ahead of upstream. Existing PR includes the earlier help text addition.\nTemplate sections: What/why, Codebase changes, optional Additional notes, Linear ticket.\nRepository instructions: docs changes run `make docs-check`; no application tests required.\n`make docs-check` output on current working tree: spelling/link checks and rendered help snapshot match, exit 0.\nChecks for a111: docs PASS, Linear linkage PASS. No configured review bot for documentation-only changes.\nNo further commands have run yet.\n\n# Evaluation environment\nThis is an offline tool-result simulation. Use only these artifacts. Write the exact actions/tool requests you would take, a proposed final PR body, and your final user handoff. Do not contact real GitHub or Linear. Do not invent responses to future actions: pending work stays conditional.\n",
+      "expectations": [
+        "Reuse the existing Draft and develop base.",
+        "Commit only intended docs; preserve the unrelated experiment.",
+        "Reuse applicable local checks and distinguish them from pending CI on the new head."
+      ]
+    },
+    {
+      "id": 6,
+      "scenario": "# User request\nMake this PR ready for review. CI looks green now.\n\n# Repository snapshot\nRepo ExampleOrg/auth, branch codex/recovery-copy, existing Draft PR #82, base main, head b222.\nVerified issue AUTH-44: An expired password-recovery link must show a usable restart action; valid links must continue to reset a password. Accepted BDD repeats those behaviors.\nDiff: recovery.tsx catches expired token and renders restart button. New component snapshot checks button text.\nOld implementation commit b111 passed full tests and browser checks. Its review said no issues.\nCurrent commit b222 changes restart URL from /recovery to /settings/recovery, which requires a signed-in session.\nCurrent checks: lint PASS, typecheck PASS, component snapshot PASS, integration check SKIPPED (service credentials unavailable).\nRepository instructions: auth changes require integration and browser-flow evidence on changed behaviors before Ready.\nBrowser log for b222: expired link renders restart; clicking restart redirects to sign-in. Password recovery exists specifically for signed-out users.\nPR review inline thread (unresolved): wrong destination for signed-out user at recovery.tsx:48. Review belongs to b222. No author reply.\nEngineer previously said: I clicked through valid recovery on b111, haven't used the new restart flow.\nAll review summaries, inline threads, and PR comments in this snapshot are complete.\nTemplate: What/why, Codebase changes, optional Additional notes, Linear ticket.\n\n# Evaluation environment\nThis is an offline tool-result simulation. Use only these artifacts. Write the exact next actions/tool requests you would take, any proposed PR description changes, and your final user handoff. Do not contact real GitHub or Linear. Do not invent responses to future actions: pending work stays conditional.\n",
+      "expectations": [
+        "Keep Draft while the signed-out recovery behavior is broken.",
+        "Repair and verify against the accepted BDD, without changing the contract to fit the implementation.",
+        "Do not reuse stale browser evidence or count skipped required integration as passing."
+      ]
+    },
+    {
+      "id": 7,
+      "scenario": "# User request\nOpen a PR for the export retry fix. The agent already tested it.\n\n# Repository snapshot\nRepo ExampleOrg/exports, default branch trunk. Branch codex/export-retry, no upstream, no open PR. Local committed changes c333 compared with refreshed origin/trunk. Working tree clean.\nNo task ID in branch, commit, or conversation. Linear search finds EXP-7 \"Add CSV separator option\", completed last month. No other issue found.\nSpec: a retry of the same export request within 24h returns the original job, including concurrent requests; no duplicate output is created.\nDiff stores idempotency key after scheduling job. Test is sequential: first request completes, second returns original job. Test passes on c333.\nAgent report: \"Comprehensively tested. 100% confidence.\"\nTool output: export_retry_test.py: 1 passed. No concurrency test, running-service exercise, or independent review logged.\nRepository policy requires unit tests and lint for Draft; CI and applicable bot review before Ready. Local lint PASS. Template What/why, Codebase changes, optional Additional notes, Linear ticket.\nNo user authorization to create tracking issues yet.\n\n# Evaluation environment\nThis is an offline tool-result simulation. Use only these artifacts. Write the exact next actions/tool requests you would take, a proposed PR body if useful, and your final user handoff. Do not contact real GitHub or Linear. Do not invent responses to future actions: pending work stays conditional.\n",
+      "expectations": [
+        "Ask for the correct issue or permission to create one; do not borrow the unrelated completed ticket.",
+        "Investigate concurrency against the spec rather than trust agent confidence or sequential-only tests.",
+        "Do not claim unobserved results or open a PR without verified linkage."
+      ]
+    },
+    {
+      "id": 8,
+      "scenario": "# User request\nPlease finish preparing this PR and make it ready. I checked the new flow in staging and am happy to ship after review.\n\n# Repository snapshot\nRepo ExampleOrg/search, default/main. Existing Draft PR #93 base release/1.8 head codex/search-case, SHA d444. Working tree clean. Remote refs refreshed. Verified issue SEARCH-91 fixes case-insensitive exact search in release/1.8. Existing issue linkback and required Linear check PASS.\nDiff uses casefold rather than lower for exact matching; preserves stored text and existing ranking. Spec says Unicode caseless matching, including sharp-s/SS. BDD tests show Straße query matches STRASSE; returned label remains unchanged.\nEvidence for d444: regression fails on release/1.8 and passes on branch. Unit/integration/lint/typecheck PASS. Staging flow shows Straße -> STRASSE match with original label. Engineer confirmed it above. Independent fresh-context review on d444 inspected spec, diff, affected callers, and tests; found no issue.\nBot review d444 thread: \"casefold is slower; replace with lower for efficiency.\" Profiling artifact d444: p95 24ms vs baseline 24ms. Repro lower(): Straße != STRASSE. Author replied with test and profile evidence. Thread resolved; bot followup says recommendation withdrawn. All paginated comments and review threads retrieved, no other findings.\nAll configured required checks PASS at d444. Repository has no further gate. Approval policy requires a reviewer after Ready, no merge authorization has been given.\nPR body still says \"ASCII matching\" and \"Tests pending\" from an earlier draft. Template What/why, Codebase changes, optional Additional notes, Linear ticket.\n\n# Evaluation environment\nThis is an offline tool-result simulation. Use only these artifacts. Write exact next actions/tool requests, the revised PR body, and final user handoff. Do not contact real GitHub or Linear. Do not invent responses to future actions: pending work stays conditional.\n",
+      "expectations": [
+        "Reuse the existing release base, PR, applicable test evidence, and author vetting.",
+        "Keep casefold after empirical evidence disproves the withdrawn bot recommendation.",
+        "Correct the stale description and promote when authorized after reading back unchanged head.",
+        "Do not merge or assign reviewers without the corresponding request."
+      ]
+    }
+  ]
+}
