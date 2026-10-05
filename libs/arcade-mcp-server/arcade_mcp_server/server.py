@@ -18,17 +18,24 @@ import asyncio
 import contextlib
 import logging
 import os
+import secrets
 from typing import Any, Callable, ClassVar, cast
 from urllib.parse import quote, urlparse, urlunparse
 
 from arcade_core.auth_tokens import get_valid_access_token
 from arcade_core.catalog import MaterializedTool, ToolCatalog
 from arcade_core.constants import PROD_COORDINATOR_HOST, PROD_ENGINE_HOST
+from arcade_core.elicitation import Elicitation, InputRequired, MissingClientCapabilities
 from arcade_core.errors import ErrorKind, ToolInputError
 from arcade_core.executor import ToolExecutor
 from arcade_core.log_extras import build_tool_error_log_extra, build_tool_error_span_attributes
 from arcade_core.network.org_transport import build_org_scoped_async_http_client
-from arcade_core.schema import ToolAuthorizationContext, ToolCallError, ToolContext
+from arcade_core.schema import (
+    ToolAuthorizationContext,
+    ToolCallError,
+    ToolCallProtocol,
+    ToolContext,
+)
 from arcade_core.schema import ToolAuthRequirement as CoreToolAuthRequirement
 from arcadepy import ArcadeError, AsyncArcade
 from arcadepy.types.auth_authorize_params import AuthRequirement, AuthRequirementOauth2
@@ -80,6 +87,8 @@ from arcade_mcp_server.types import (
     INVALID_REQUEST,
     METHOD_NOT_FOUND,
     RELATED_TASK_META_KEY,
+    STATELESS_PROTOCOL_VERSION,
+    SUPPORTED_HTTP_PROTOCOL_VERSIONS,
     BlobResourceContents,
     CallToolRequest,
     CallToolResult,
@@ -310,6 +319,7 @@ class MCPServer:
 
         # Settings (load first so we can use values from it)
         self.settings = settings or MCPSettings.from_env()
+        self._elicitation_secret = self.settings.arcade.server_secret or secrets.token_urlsafe(32)
 
         # Server info
         self.name = name if name else self.settings.server.name
@@ -562,6 +572,7 @@ class MCPServer:
         """Register method handlers."""
         return {
             "ping": self._handle_ping,
+            "server/discover": self._handle_discover,
             "initialize": self._handle_initialize,
             "tools/list": self._handle_list_tools,
             "tools/call": self._handle_call_tool,
@@ -775,6 +786,15 @@ class MCPServer:
             )
 
         # Find handler
+        if (
+            session is not None
+            and session.negotiated_version == STATELESS_PROTOCOL_VERSION
+            and method not in {"server/discover", "tools/list", "tools/call", "ping"}
+        ):
+            return JSONRPCError(
+                id=msg_id,
+                error={"code": METHOD_NOT_FOUND, "message": "Method not found"},
+            )
         handler = self._handlers.get(method)
         if not handler:
             return JSONRPCError(
@@ -865,6 +885,15 @@ class MCPServer:
 
                 result = await self._apply_middleware(middleware_context, final_handler)
 
+                if (
+                    session is not None
+                    and session.negotiated_version == STATELESS_PROTOCOL_VERSION
+                    and method == "tools/call"
+                    and isinstance(result, JSONRPCResponse)
+                    and isinstance(result.result, CallToolResult)
+                ):
+                    result.result.resultType = result.result.resultType or "complete"
+
                 from typing import cast
 
                 return cast(MCPMessage | None, result)
@@ -952,6 +981,26 @@ class MCPServer:
         return await chain(context)
 
     # Handler methods
+    async def _handle_discover(
+        self,
+        message: dict[str, Any],
+        session: ServerSession | None = None,
+    ) -> JSONRPCResponse[Any] | JSONRPCError:
+        if session is None or session.negotiated_version != STATELESS_PROTOCOL_VERSION:
+            return JSONRPCError(
+                id=message.get("id"),
+                error={"code": METHOD_NOT_FOUND, "message": "Method not found"},
+            )
+        return JSONRPCResponse(
+            id=message["id"],
+            result={
+                "supportedVersions": list(reversed(SUPPORTED_HTTP_PROTOCOL_VERSIONS)),
+                "capabilities": self._build_capabilities(
+                    STATELESS_PROTOCOL_VERSION, stateless=True
+                ),
+            },
+        )
+
     async def _handle_ping(
         self,
         message: PingRequest,
@@ -1003,6 +1052,8 @@ class MCPServer:
         Returns a dict suitable for both ServerCapabilities construction and
         storage on ``session._negotiated_capabilities`` for per-request dispatch.
         """
+        if version == STATELESS_PROTOCOL_VERSION:
+            return {"tools": {}}
         caps: dict[str, Any] = {
             "tools": {"listChanged": True},
             "logging": {},
@@ -1194,6 +1245,11 @@ class MCPServer:
         if config_user_id:
             logger.debug(f"Context user_id set from credentials file: {config_user_id}")
             return config_user_id
+
+        # Modern HTTP requests have no stable session identity. Authenticated
+        # and configured identities above remain available across retries.
+        if session is not None and session.negotiated_version == STATELESS_PROTOCOL_VERSION:
+            return None
 
         # Fourth priority: use session ID if no other user_id is available
         if env in ("development", "dev", "local"):
@@ -1547,6 +1603,39 @@ class MCPServer:
             # Attach tool_context to current model context for this request
             mctx = get_current_model_context()
             saved_tool_context: ToolContext | None = None
+            invocation_context = mctx if mctx is not None else tool_context
+            saved_ui = invocation_context._request_ui
+            owns_elicitation = (
+                session is not None
+                and session.negotiated_version == STATELESS_PROTOCOL_VERSION
+                and saved_ui is None
+            )
+            request_ui = saved_ui
+            if owns_elicitation:
+                meta = get_request_meta()
+                declaration = vars(meta) if meta is not None else {}
+                try:
+                    request_ui = Elicitation(
+                        ToolCallProtocol(
+                            version=STATELESS_PROTOCOL_VERSION,
+                            capabilities=declaration.get(
+                                "io.modelcontextprotocol/clientCapabilities", {}
+                            ),
+                            inputResponses=raw_params.get("inputResponses", {}),
+                            requestState=raw_params.get("requestState", ""),
+                        ),
+                        self._elicitation_secret,
+                        {
+                            "tool": str(tool.definition.get_fully_qualified_name()),
+                            "inputs": input_params,
+                            "user": tool_context.user_id,
+                        },
+                    )
+                except ValueError as continuation_error:
+                    return JSONRPCError(
+                        id=message.id,
+                        error={"code": INVALID_PARAMS, "message": str(continuation_error)},
+                    )
 
             if mctx is not None:
                 # Save the current tool context so we can restore it after the call
@@ -1560,6 +1649,7 @@ class MCPServer:
                 mctx.set_tool_context(tool_context)
 
             try:
+                invocation_context._request_ui = request_ui
                 # Execute tool
                 result = await ToolExecutor.run(
                     func=tool.tool,
@@ -1569,7 +1659,18 @@ class MCPServer:
                     context=mctx if mctx is not None else tool_context,
                     **input_params,
                 )
+            except MissingClientCapabilities as missing:
+                if not owns_elicitation:
+                    raise
+                return JSONRPCError(id=message.id, error=missing.error)
+            except InputRequired as pending:
+                # Nested tool calls share the outer replay sequence and must
+                # unwind to its owner rather than return a prompt to tool code.
+                if not owns_elicitation:
+                    raise
+                return JSONRPCResponse(id=message.id, result=CallToolResult(**pending.result))
             finally:
+                invocation_context._request_ui = saved_ui
                 # Restore the original tool context to prevent context leakage to parent tools in the case of tool chaining.
                 if mctx is not None and saved_tool_context is not None:
                     mctx.set_tool_context(saved_tool_context)
@@ -1630,9 +1731,8 @@ class MCPServer:
                 # ``errorKind`` / ``canRetry`` / ``retryAfterMs`` without parsing the
                 # text content. Only emitted when a ``ToolCallError`` is in scope;
                 # the legacy fallback path (``content = "Error calling tool"``) has
-                # no structured error to surface. ``**{"_meta": ...}`` matches the
-                # alias convention used by CreateTaskResult above and works under
-                # ``Result.model_config.populate_by_name=True``.
+                # no structured error to surface. The explicit wire alias
+                # avoids treating a metadata dict as another result field.
                 error_meta: dict[str, Any] | None = (
                     {"arcade": _build_arcade_error_meta(error)} if error is not None else None
                 )
@@ -1641,7 +1741,7 @@ class MCPServer:
                         content=content,
                         structuredContent=None,
                         isError=True,
-                        **{"_meta": error_meta},
+                        _meta=error_meta,
                     )
                     if error_meta is not None
                     else CallToolResult(

@@ -66,6 +66,13 @@ JSONRPC_VERSION: Literal["2.0"] = "2.0"
 
 SUPPORTED_PROTOCOL_VERSIONS: list[str] = ["2025-06-18", "2025-11-25"]
 LATEST_PROTOCOL_VERSION: str = "2025-11-25"
+# Modern HTTP traffic has no initialized session. Keep legacy negotiation's
+# version set independent so stdio/sessionful clients retain their contract.
+STATELESS_PROTOCOL_VERSION: str = "2026-07-28"
+SUPPORTED_HTTP_PROTOCOL_VERSIONS: list[str] = [
+    *SUPPORTED_PROTOCOL_VERSIONS,
+    STATELESS_PROTOCOL_VERSION,
+]
 
 # MCP 2025-11-25 ``_meta`` key for correlating an outbound progress
 # notification, sampling request, elicitation request, or task-result
@@ -78,6 +85,7 @@ RELATED_TASK_META_KEY: str = "io.modelcontextprotocol/related-task"
 # Non-date identifiers like "DRAFT-2025-v3" exist in spec artifacts and would break
 # lexical comparison. This is also how we add future versions cleanly — just add an entry.
 VERSION_FEATURES: dict[str, set[str]] = {
+    STATELESS_PROTOCOL_VERSION: {"base", "tools"},
     "2025-06-18": {"base", "sampling", "elicitation_form", "resources", "prompts", "tools"},
     "2025-11-25": {
         "base",
@@ -544,6 +552,7 @@ class CallToolResult(Result):
     structuredContent: dict[str, Any] | None = None
 
     isError: bool | None = None
+    resultType: Literal["complete", "input_required"] | None = None
 
 
 # -----------------------------------------------------------------------------
