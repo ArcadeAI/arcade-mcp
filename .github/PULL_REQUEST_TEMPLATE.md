@@ -13,9 +13,9 @@ when empty.
 -->
 
 <!--
-Write the bare issue reference after the word: a Linear ID (team key, dash,
-number, e.g. PLT-123) or a GitHub issue (#123). No brackets, no placeholder
-text. The word before the ID is what Linear/GitHub acts on: `Closes` when
+Write the bare issue reference after the word: a GitHub issue (#123) or, for
+Arcade staff, a Linear ID (e.g. PLT-123). No brackets, no placeholder
+text. The word before the ID is what GitHub/Linear acts on: `Closes` when
 merging this PR completes the issue, `Part of` when the PR is only one piece
 of it (the issue is linked and its status left alone). Replace `Closes` with
 `Part of` as needed. If no issue exists yet, file one first. Do not write
