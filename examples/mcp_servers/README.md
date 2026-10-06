@@ -32,3 +32,4 @@ uv run python src/<name>/server.py http    # HTTP+SSE transport
 | [`local_filesystem/`](local_filesystem/) | A toolkit that reads and writes real local filesystem state |
 | [`telemetry_passback/`](telemetry_passback/) | Emitting OpenTelemetry spans from a tool body |
 | [`server_with_evaluations/`](server_with_evaluations/) | Tool catalog shipped alongside an `arcade_evals` test suite |
+| [`darkmoon/`](darkmoon/) | Drive a self-hosted Darkmoon autonomous AI pentest instance: start runs, poll status, read campaigns and findings (Dashboard API is Pro) |
