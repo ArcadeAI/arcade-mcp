@@ -119,6 +119,9 @@ For this gateway, the wire request is:
 The result is `HELLO, GRACE!`. The same request with the discovered
 `AppTools_PreviewGreeting` name resubmits to the original tool. Always call the
 exact name returned by discovery, not a name guessed from a resource URI.
+This example matches tool identities using the gateway's `Toolkit_Tool` naming.
+An App for a server with different tool names must match that server's published
+names instead; MCP does not prescribe Arcade's naming format.
 
 ## Check tool availability before editing
 
