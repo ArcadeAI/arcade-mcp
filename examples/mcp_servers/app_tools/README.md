@@ -221,27 +221,11 @@ means an empty resource list, and an unknown resource read means
 resource-not-found. Other upstream failures remain failures. This compatibility
 does not permit an old outer managed runtime; complete the runtime cutover first.
 
-## Test
-
-From the `arcade-mcp` repository root:
-
-```sh
-uv sync --extra dev
-uv run pytest libs/tests/worker/test_app_tools_example.py
-npm --prefix libs/tests/mcp_apps ci
-npm --prefix libs/tests/mcp_apps exec -- playwright install chromium
-npm --prefix libs/tests/mcp_apps test
-```
-
-The Python tests use real toolkit discovery and worker list/read endpoints. The
-browser tests render the shipped HTML in an iframe with a test host. They check
-same-tool and cross-tool requests, absent tools, pagination, visibility, discovery
-failure, and authorization with an explicit retry. They do not prove live Google
-consent or compatibility with a real host.
+## Verify a deployment
 
 Before marking a deployment verified, connect an unmodified MCP Apps host to the
 deployed server's gateway. Check the full-tool and missing-uppercase gateways;
 check a new end-user's Google authorization without revoking another user's
 consent. Test the stateless and stateful gateway routes separately. Confirm that
 `resources/read` returns the HTML and the HTTPS resource's `_meta.webUrl`. Record
-real-host results separately from the browser fixture results.
+real-host results separately from any simulated-host checks.
