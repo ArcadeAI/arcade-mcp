@@ -39,7 +39,8 @@ def test_https_resource_keeps_its_separate_web_address(example_worker):
     response = example_worker.post("/worker/resources/read", json={"uri": guide["uri"]})
     assert response.status_code == 200
     content = response.json()["contents"][0]
-    assert content["uri"] == "https://AppTools/0.1.0/author-guide"
+    version = Toolkit.from_directory(EXAMPLE).version
+    assert content["uri"] == f"https://AppTools/{version}/author-guide"
     assert content["_meta"]["webUrl"] == "https://modelcontextprotocol.io/extensions/apps/overview"
     assert content["_meta"]["webUrl"] in content["text"]
 

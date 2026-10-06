@@ -32,7 +32,12 @@ uv run arcade deploy -e src/app_tools/server.py
 Use the CLI's login command for the intended environment and project before
 deploying. Before deploying a changed release, bump `project.version` in
 `pyproject.toml` and run `uv sync --extra dev` again. The entrypoint reads that
-installed package version; do not maintain a separate server version.
+installed package version; do not maintain a separate server version. When
+changing the HTML App, also update its `appInfo.version` in `editor.html`.
+
+The current managed deployment path has one toolkit, one active version, and
+one replica. This example uses that path; it does not require multiple toolkits
+or replicas.
 
 In the Dashboard, create a gateway and select the three tools. Connect an MCP
 Apps host to the gateway, then call `AppTools_PreviewGreeting` with `name: "Ada"`.
@@ -63,7 +68,7 @@ def preview_greeting(name: Annotated[str, "The name to greet"]) -> str:
     return f"Hello, {name}!"
 ```
 
-The framework publishes `ui://AppTools/0.1.0/editor.html` with MIME type
+The framework publishes `ui://AppTools/0.1.3/editor.html` with MIME type
 `text/html;profile=mcp-app`. The gateway presents a globally unique resource URI
 that includes the registered server's identity. The host reads the exact URI in
 the tool's `_meta.ui.resourceUri`. Do not construct or decode that gateway URI
@@ -91,7 +96,9 @@ const result = await request("tools/call", {
 
 `request` is the small JSON-RPC/postMessage helper in this file. It initializes
 the MCP Apps connection, accepts messages only from the parent, correlates
-responses, and times out requests. It is not a server-side tool call. With the
+responses, and times out discovery requests. Tool calls can remain pending while
+the host handles URL elicitation; the App does not abandon the response after
+15 seconds. It is not a server-side tool call. With the
 [official MCP Apps SDK](https://modelcontextprotocol.github.io/ext-apps/api/classes/app.App.html),
 the equivalent call is `app.callServerTool({ name, arguments })`.
 
@@ -189,7 +196,7 @@ This example has no secret-requiring tool.
 
 ## HTTP(S) resources and release changes
 
-The server also publishes `https://AppTools/0.1.0/author-guide`. This is an MCP
+The server also publishes `https://AppTools/0.1.3/author-guide`. This is an MCP
 resource identifier: the client retrieves the content with `resources/read`.
 The identifier does not create a web endpoint. The gateway wraps the identifier
 in a `resource://<server-key>/<encoded-original-uri>` routing address.
@@ -204,6 +211,12 @@ gateway address and serves the current published content. After a resource is
 removed, its old address returns resource-not-found. A new toolkit package
 version produces a different original URI in this framework; use the new
 tool-linked URI instead of assuming an old UI address refers to the new release.
+
+An older Python toolkit can publish no resources. The qualified managed runtime
+handles that case: an initial upstream resource-list response of HTTP 404 or 405
+means an empty resource list, and an unknown resource read means
+resource-not-found. Other upstream failures remain failures. This compatibility
+does not permit an old outer managed runtime; complete the runtime cutover first.
 
 ## Test
 

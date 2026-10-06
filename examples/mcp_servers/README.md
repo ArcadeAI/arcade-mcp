@@ -21,7 +21,7 @@ uv run python src/<name>/server.py http    # HTTP+SSE transport
 | [`enum_elicitation/`](enum_elicitation/) | All five enum schema variants for elicitation (single/multi-select, titled/untitled, legacy) |
 | [`url_elicitation/`](url_elicitation/) | Out-of-band user verification via URL-mode elicitation |
 | [`resources/`](resources/) | MCP resources and resource templates via `@app.resource` |
-| [`app_tools/`](app_tools/) | A deployable MCP App that calls the original tool, calls another gateway tool, and handles authorization |
+| [`app_tools/`](app_tools/) | A deployable MCP App that calls the original tool, calls another tool in the same gateway, and handles authorization |
 | [`tool_chaining/`](tool_chaining/) | Tools calling other tools via `context.tools.call_raw(...)` |
 | [`tool_metadata/`](tool_metadata/) | Behavior hints and extras via `@app.tool(metadata=ToolMetadata(...))` |
 | [`tools_with_output_schema/`](tools_with_output_schema/) | Declaring `outputSchema` via typed return annotations |

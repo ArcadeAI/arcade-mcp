@@ -130,6 +130,7 @@
             let hostCapabilities = {}
             let available = new Map()
             let discovery = "pending"
+            let confirmedAvailability = false
             let busy = false
             let edited = false
             let retryAction
@@ -147,14 +148,18 @@
                     return Promise.reject(new Error("The App has closed."))
                 const id = nextId++
                 return new Promise((resolve, reject) => {
-                    const timer = setTimeout(() => {
-                        pending.delete(id)
-                        reject(
-                            new Error(
-                                "The host did not respond. Try checking tools again."
-                            )
-                        )
-                    }, 15000)
+                    // The host may keep tools/call open during URL elicitation.
+                    const timer =
+                        method === "tools/call"
+                            ? undefined
+                            : setTimeout(() => {
+                                  pending.delete(id)
+                                  reject(
+                                      new Error(
+                                          "The host did not respond. Try checking tools again."
+                                      )
+                                  )
+                              }, 15000)
                     pending.set(id, { resolve, reject, timer })
                     window.parent.postMessage(
                         { jsonrpc: "2.0", id, method, params },
@@ -174,7 +179,9 @@
                 element("name").disabled = discovery !== "ready" || busy
                 for (const [id, tool] of Object.entries(requested)) {
                     element(id).hidden =
-                        discovery === "ready" && !available.has(tool)
+                        confirmedAvailability &&
+                        discovery !== "unknown" &&
+                        !available.has(tool)
                     element(id).disabled = discovery !== "ready" || busy
                 }
                 element("refresh").disabled = discovery === "pending" || busy
@@ -306,13 +313,14 @@
                         } catch (error) {
                             if (error.code !== -32601) throw error
                         }
-                        available = native?.found ?? new Map()
+                        const found = native?.found ?? new Map()
                         if (!native || native.recommendations) {
                             const fallback = await fallbackTools()
                             for (const [tool, name] of fallback)
-                                if (!available.has(tool))
-                                    available.set(tool, name)
+                                if (!found.has(tool)) found.set(tool, name)
                         }
+                        available = found
+                        confirmedAvailability = true
                         discovery = "ready"
                         element("status").textContent =
                             "Only tools available to you in this gateway have buttons. Availability does not mean authorization."
@@ -357,7 +365,12 @@
             }
 
             function readResult(result) {
-                if (result.structuredContent) return result.structuredContent
+                if (result.structuredContent) {
+                    // This server's string outputs use MCP's { result: value } wrapper.
+                    return typeof result.structuredContent.result === "string"
+                        ? result.structuredContent.result
+                        : result.structuredContent
+                }
                 const text = (result.content ?? [])
                     .filter((item) => item.type === "text")
                     .map((item) => item.text)
@@ -473,6 +486,11 @@
                             typeof output === "string"
                                 ? output
                                 : JSON.stringify(output)
+                    } else {
+                        element("result").textContent =
+                            typeof output === "string"
+                                ? output
+                                : "The tool could not run."
                     }
                 } else if (
                     message.method === "notifications/tools/list_changed"
@@ -525,7 +543,7 @@
             try {
                 const result = await request("ui/initialize", {
                     protocolVersion: "2026-01-26",
-                    appInfo: { name: "Greeting editor", version: "0.1.0" },
+                    appInfo: { name: "Greeting editor", version: "0.1.3" },
                     appCapabilities: {},
                 })
                 hostCapabilities = result.hostCapabilities ?? {}

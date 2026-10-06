@@ -206,7 +206,10 @@ test("the uppercase button calls another tool in the same gateway with the edite
             .locator("#result")
             .filter({ hasText: "HELLO, GRACE!" })
             .waitFor()
-        assert.equal(await app.locator("#result").textContent(), "HELLO, GRACE!")
+        assert.equal(
+            await app.locator("#result").textContent(),
+            "HELLO, GRACE!"
+        )
         const call = await page.evaluate(() =>
             window.calls.find(({ method }) => method === "tools/call")
         )
@@ -307,7 +310,9 @@ test("a tool call can stay pending while the host handles authorization", async 
         assert.equal(await app.locator("#name").inputValue(), "Grace")
         assert.equal(
             await page.evaluate(
-                () => window.calls.filter(({ method }) => method === "tools/call").length
+                () =>
+                    window.calls.filter(({ method }) => method === "tools/call")
+                        .length
             ),
             1
         )
@@ -323,7 +328,12 @@ test("an initial tool failure replaces the waiting placeholder with the error", 
         await page.evaluate(() =>
             window.notify("ui/notifications/tool-result", {
                 isError: true,
-                content: [{ type: "text", text: "The profile service is unavailable." }],
+                content: [
+                    {
+                        type: "text",
+                        text: "The profile service is unavailable.",
+                    },
+                ],
             })
         )
         await app
@@ -344,9 +354,15 @@ test("initial authorization shows only the common prompt, then accepts the host'
         await page.evaluate(() =>
             window.notify("ui/notifications/tool-result", {
                 isError: true,
-                content: [{ type: "text", text: JSON.stringify({
-                    authorization_url: "https://accounts.example.com/authorize",
-                }) }],
+                content: [
+                    {
+                        type: "text",
+                        text: JSON.stringify({
+                            authorization_url:
+                                "https://accounts.example.com/authorize",
+                        }),
+                    },
+                ],
             })
         )
         await app.locator("#authorization").waitFor()
@@ -355,7 +371,9 @@ test("initial authorization shows only the common prompt, then accepts the host'
         await app.locator("#authorize").click()
         await page.waitForFunction(() => window.opened.length === 1)
         assert.equal(
-            await page.evaluate(() => window.calls.some(({ method }) => method === "tools/call")),
+            await page.evaluate(() =>
+                window.calls.some(({ method }) => method === "tools/call")
+            ),
             false
         )
         await page.evaluate(() =>
@@ -364,7 +382,10 @@ test("initial authorization shows only the common prompt, then accepts the host'
             })
         )
         await app.locator("#editor").waitFor()
-        assert.equal(await app.locator("#result").textContent(), "Hello, Grace!")
+        assert.equal(
+            await app.locator("#result").textContent(),
+            "Hello, Grace!"
+        )
         assert.equal(await app.locator("#name").inputValue(), "Grace")
     } finally {
         await browser.close()
