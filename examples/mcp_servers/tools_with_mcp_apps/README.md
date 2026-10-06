@@ -254,15 +254,17 @@ gateway in `resources/list`; do not substitute the published identifier.
 
 The resource preserves a separate public browser URL in `_meta.webUrl` and in
 the text: `https://modelcontextprotocol.io/extensions/apps/overview`. `webUrl` is
-author-supplied metadata, not a standard MCP field or a browser-navigation promise
-from the host. Do not replace a genuine browser URL with the gateway address.
+optional author-supplied metadata, not a standard MCP field. The guide link is
+readable in the resource text without this metadata. Neither the worker nor the
+gateway requires `webUrl`. Do not replace a genuine browser URL with the gateway
+address.
 
 Use a non-web scheme for generated resource identifiers. An `https://` resource
 should identify content the client can fetch directly from the web, as described
 in the [MCP resource specification](https://modelcontextprotocol.io/specification/2025-11-25/server/resources#common-uri-schemes).
-The gateway still supports HTTP(S) resource identifiers and keeps the original
-identifier readable in the description. The HTTP(S) scheme alone does not prove
-that the identifier is a public web page.
+When a server publishes a genuine HTTP(S) resource URI, the gateway keeps the
+original web URL in the description. The server does not need to repeat the
+URL in `webUrl`. The generated guide identifier above is not a web URL.
 
 For the same registered server and exact original URI, a restart keeps the same
 gateway address and serves the current published content. After a resource is
