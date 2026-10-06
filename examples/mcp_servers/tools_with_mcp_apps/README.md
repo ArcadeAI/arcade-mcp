@@ -1,7 +1,12 @@
-# Write a server with tools that have MCP Apps
+# Write a server with resources and MCP Apps
 
-This server publishes a greeting editor. The editor can call the original tool
-again or call a different tool in the same gateway.
+This is the resource and MCP App authoring example for `arcade-mcp-server`.
+It uses `resource` and `tool` from the public `arcade_mcp_server` package.
+The same declarations publish resources through native MCP and the worker
+endpoints used by `arcade deploy` and gateways.
+
+The server publishes an HTML greeting editor and a plain-text guide. The editor
+can call the original tool again or call a different tool in the same gateway.
 
 | Tool                                 | App action                                       | Authorization        |
 | ------------------------------------ | ------------------------------------------------ | -------------------- |
@@ -52,12 +57,41 @@ Engine image or configured runner image tag alone does not prove that existing
 deployed servers have updated. See the platform's deployments guidance for
 rollout and rollback checks.
 
-## Declare the tool's UI
+## Declare resources and attach a tool's UI
 
-`src/tools_with_mcp_apps/ui.py` declares the HTML file, and `tools.py` attaches the resource
-to the tool:
+Use the standalone `@resource` decorator for each resource. Keep the resource
+declarations in the package imported by `app.add_tools_from_module(...)`, as
+shown in `server.py` and `tools.py`. This lets managed worker discovery find the
+same resources as native MCP.
+
+For a plain-text resource, return the published text:
 
 ```python
+from arcade_mcp_server import resource
+
+
+@resource(
+    path="author-guide",
+    scheme="https",
+    mime_type="text/plain",
+    meta={"webUrl": "https://modelcontextprotocol.io/extensions/apps/overview"},
+)
+def author_guide() -> str:
+    """Read the public MCP Apps authoring guide."""
+    return "MCP Apps guide: https://modelcontextprotocol.io/extensions/apps/overview"
+```
+
+For an MCP App, declare the bundled HTML file with the same decorator and attach
+the declaration with `@tool(ui=...)`. `src/tools_with_mcp_apps/ui.py` declares
+`editor.html`; `tools.py` imports the declaration and attaches the declaration to
+the tool. The combined declaration is:
+
+```python
+from typing import Annotated
+
+from arcade_mcp_server import resource, tool
+
+
 @resource(file="editor.html", title="Greeting editor")
 def editor() -> None:
     """Edit a greeting and call tools through the connected MCP host."""
@@ -68,6 +102,15 @@ def preview_greeting(name: Annotated[str, "The name to greet"]) -> str:
     """Show a greeting editor."""
     return f"Hello, {name}!"
 ```
+
+Keep `editor.html` next to the module containing the resource declaration and
+include the HTML file in the package. Both resources are available through
+`POST /worker/resources/list` and `POST /worker/resources/read`. The worker's
+`GET /worker/tools` response includes the tool's UI resource URI. Do not set
+`_meta.ui.resourceUri` by hand; `@tool(ui=editor)` creates the link.
+
+This example uses only published resource declarations. It does not demonstrate
+resource templates or native-only resource registration APIs.
 
 The framework publishes `ui://ToolsWithMcpApps/0.1.3/editor.html` with MIME type
 `text/html;profile=mcp-app`. The gateway presents a globally unique resource URI
