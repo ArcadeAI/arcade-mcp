@@ -178,6 +178,19 @@ def test_the_document_carries_the_shipping_toolkit_not_the_server(build_package)
     assert _pointed(definition) == "ui://Alpha/2.0.0/panel.html"
 
 
+def test_an_installed_document_does_not_need_the_composing_server_version(build_package):
+    build_package("arcade_alpha", version="2.0.0")
+
+    catalog = ToolCatalog()
+    catalog.add_tool(_tool("arcade_alpha"), "Combined", toolkit_version=None)
+
+    definition = next(iter(catalog)).definition
+    assert _pointed(definition) == "ui://Alpha/2.0.0/panel.html"
+    assert [registered.resource.uri for registered in catalog.resources] == [
+        "ui://Alpha/2.0.0/panel.html"
+    ]
+
+
 def test_two_declarations_at_one_path_in_one_package_still_collide(build_package):
     root = build_package("arcade_alpha", version="2.0.0", ui_source=TWO_AT_ONE_PATH)
     (root / "arcade_alpha" / "tools.py").unlink()

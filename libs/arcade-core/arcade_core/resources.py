@@ -253,7 +253,7 @@ def interface_uri(
     declaration: ResourceDeclaration,
     *,
     toolkit_name: str,
-    toolkit_version: str,
+    toolkit_version: str | None,
 ) -> str:
     """The URI a declaration is served under.
 
@@ -269,6 +269,11 @@ def interface_uri(
         toolkit_name=toolkit_name,
         toolkit_version=toolkit_version,
     )
+    if version is None:
+        raise ValueError(
+            f"resource {declaration.name!r} cannot be registered: the toolkit has no "
+            f"version, so no URI can be derived for it"
+        )
     return qualify(name, version, declaration.path, declaration.scheme)
 
 
@@ -276,8 +281,8 @@ def _interface_identity(
     declaration: ResourceDeclaration,
     *,
     toolkit_name: str,
-    toolkit_version: str,
-) -> tuple[str, str]:
+    toolkit_version: str | None,
+) -> tuple[str, str | None]:
     return _origin(declaration) or (toolkit_name, toolkit_version)
 
 
@@ -481,7 +486,7 @@ class ResourceRegistry:
         declaration: ResourceDeclaration,
         *,
         toolkit_name: str,
-        toolkit_version: str,
+        toolkit_version: str | None,
     ) -> str:
         """The URI a declaration would register under, without registering it.
 
@@ -514,16 +519,16 @@ class ResourceRegistry:
         is the only point where both are in scope. A declaration a tool names as
         its interface is served under the media type a host requires.
         """
-        if toolkit_version is None:
-            raise ValueError(
-                f"resource {declaration.name!r} cannot be registered: the toolkit has no "
-                f"version, so no URI can be derived for it"
-            )
         resource_toolkit_name, resource_toolkit_version = _interface_identity(
             declaration,
             toolkit_name=toolkit_name,
             toolkit_version=toolkit_version,
         )
+        if resource_toolkit_version is None:
+            raise ValueError(
+                f"resource {declaration.name!r} cannot be registered: the toolkit has no "
+                f"version, so no URI can be derived for it"
+            )
         uri = qualify(
             resource_toolkit_name,
             resource_toolkit_version,
