@@ -40,6 +40,10 @@ UI_SCHEME = "ui"
 #: interface. Compared byte for byte, so the spacing and casing are part of it.
 UI_DOCUMENT_MIME_TYPE = "text/html;profile=mcp-app"
 
+#: Private Worker metadata that carries the toolkit identity to Arcade's
+#: aggregate gateway presentation. Direct MCP keeps the authored descriptor.
+TOOLKIT_PROVENANCE_META_KEY = "arcade.dev/toolkit"
+
 
 def ui_pointer(uri: str) -> dict[str, Any]:
     """The out-of-band entry on a tool that names its user interface."""
@@ -260,9 +264,21 @@ def interface_uri(
     each other in one collision domain. The toolkit passed in is the fallback,
     for a declaration whose package is not an installed distribution.
     """
-    origin = _origin(declaration)
-    name, version = origin if origin is not None else (toolkit_name, toolkit_version)
+    name, version = _interface_identity(
+        declaration,
+        toolkit_name=toolkit_name,
+        toolkit_version=toolkit_version,
+    )
     return qualify(name, version, declaration.path, declaration.scheme)
+
+
+def _interface_identity(
+    declaration: ResourceDeclaration,
+    *,
+    toolkit_name: str,
+    toolkit_version: str,
+) -> tuple[str, str]:
+    return _origin(declaration) or (toolkit_name, toolkit_version)
 
 
 def _beside(func: Callable[..., Any], file: str) -> Path:
@@ -359,6 +375,7 @@ class RegisteredResource:
     resource: Resource
     contents: TextResourceContents | BlobResourceContents
     declaration: ResourceDeclaration | None = None
+    toolkit_name: str | None = None
 
 
 class ResourceRegistry:
@@ -409,6 +426,7 @@ class ResourceRegistry:
         contents: str | bytes,
         declaration: ResourceDeclaration | None,
         contents_meta: dict[str, Any] | None = None,
+        toolkit_name: str | None = None,
     ) -> RegisteredResource:
         """Hold the resource and its resolved body at the resource's URI.
 
@@ -447,7 +465,12 @@ class ResourceRegistry:
                 _meta=contents_meta,
             )
 
-        registered = RegisteredResource(resource=resource, contents=body, declaration=declaration)
+        registered = RegisteredResource(
+            resource=resource,
+            contents=body,
+            declaration=declaration,
+            toolkit_name=toolkit_name,
+        )
         if resource.uri not in self._resources:
             insort(self._uris, resource.uri)
         self._resources[resource.uri] = registered
@@ -467,7 +490,11 @@ class ResourceRegistry:
         checking for. This lets the check run first, off the same derivation
         declare itself uses.
         """
-        return qualify(toolkit_name, toolkit_version, declaration.path, declaration.scheme)
+        return interface_uri(
+            declaration,
+            toolkit_name=toolkit_name,
+            toolkit_version=toolkit_version,
+        )
 
     def declare(
         self,
@@ -492,7 +519,17 @@ class ResourceRegistry:
                 f"resource {declaration.name!r} cannot be registered: the toolkit has no "
                 f"version, so no URI can be derived for it"
             )
-        uri = interface_uri(declaration, toolkit_name=toolkit_name, toolkit_version=toolkit_version)
+        resource_toolkit_name, resource_toolkit_version = _interface_identity(
+            declaration,
+            toolkit_name=toolkit_name,
+            toolkit_version=toolkit_version,
+        )
+        uri = qualify(
+            resource_toolkit_name,
+            resource_toolkit_version,
+            declaration.path,
+            declaration.scheme,
+        )
 
         existing = self._resources.get(uri)
         if existing is not None:
@@ -517,6 +554,7 @@ class ResourceRegistry:
             _contents(declaration, mime_type),
             declaration=declaration,
             contents_meta=declaration.meta,
+            toolkit_name=resource_toolkit_name,
         )
 
     def get(self, uri: str) -> RegisteredResource:

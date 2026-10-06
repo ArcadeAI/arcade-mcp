@@ -8,6 +8,7 @@ from arcade_core.catalog import ToolCatalog, Toolkit
 from arcade_core.executor import ToolExecutor
 from arcade_core.log_extras import build_tool_error_log_extra, build_tool_error_span_attributes
 from arcade_core.resource_schema import ListResourcesResult, ReadResourceResult
+from arcade_core.resources import TOOLKIT_PROVENANCE_META_KEY
 from arcade_core.schema import (
     ToolCallRequest,
     ToolCallResponse,
@@ -211,13 +212,29 @@ class BaseWorker(Worker):
         List one page of the resources the installed toolkits declared.
         """
         resources, next_cursor = self.catalog.resources.list(cursor)
-        return ListResourcesResult(resources=resources, nextCursor=next_cursor)
+        worker_resources = []
+        for resource in resources:
+            toolkit_name = self.catalog.resources.get(resource.uri).toolkit_name
+            if toolkit_name is None:
+                meta = None if resource.meta is None else dict(resource.meta)
+                if meta is not None:
+                    meta.pop(TOOLKIT_PROVENANCE_META_KEY, None)
+            else:
+                meta = dict(resource.meta or {})
+                meta[TOOLKIT_PROVENANCE_META_KEY] = {"name": toolkit_name}
+            worker_resources.append(resource.model_copy(update={"meta": meta}))
+
+        return ListResourcesResult(resources=worker_resources, nextCursor=next_cursor)
 
     def read_resource(self, uri: str) -> ReadResourceResult:
         """
         Read a resource by URI. Raises ResourceNotFoundError when there is none.
         """
-        return ReadResourceResult(contents=[self.catalog.resources.get(uri).contents])
+        contents = self.catalog.resources.get(uri).contents
+        meta = None if contents.meta is None else dict(contents.meta)
+        if meta is not None:
+            meta.pop(TOOLKIT_PROVENANCE_META_KEY, None)
+        return ReadResourceResult(contents=[contents.model_copy(update={"meta": meta})])
 
     def register_routes(self, router: Router) -> None:
         """

@@ -739,6 +739,40 @@ async def test_load_from_catalog_serves_a_declared_document():
 
 
 @pytest.mark.asyncio
+async def test_direct_mcp_keeps_a_declared_resources_authored_metadata():
+    from arcade_core.catalog import ToolCatalog
+    from arcade_core.resources import ResourceDeclaration
+
+    catalog = ToolCatalog()
+    catalog.resources.declare(
+        ResourceDeclaration(
+            path="preferences",
+            name="preferences",
+            title="Account settings",
+            meta={
+                "author": {"color": "blue"},
+                "arcade.dev/toolkit": {"name": "authored"},
+            },
+            func=lambda: "settings",
+        ),
+        toolkit_name="Gmail",
+        toolkit_version="1.0.0",
+    )
+    manager = ResourceManager()
+    await manager.start()
+
+    await manager.load_from_catalog(catalog)
+
+    listed = (await manager.list_resources())[0]
+    assert listed.name == "preferences"
+    assert listed.title == "Account settings"
+    assert listed.meta == {
+        "author": {"color": "blue"},
+        "arcade.dev/toolkit": {"name": "authored"},
+    }
+
+
+@pytest.mark.asyncio
 async def test_load_from_catalog_serves_a_declared_blob():
     from arcade_core.catalog import ToolCatalog
     from arcade_core.resources import ResourceDeclaration

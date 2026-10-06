@@ -7,7 +7,7 @@ anything the worker serves has to arrive on it.
 import pytest
 from arcade_core.catalog import ToolCatalog
 from arcade_core.resource_schema import Resource, TextResourceContents
-from arcade_core.resources import ResourceNotFoundError
+from arcade_core.resources import ResourceDeclaration, ResourceNotFoundError
 from arcade_serve.core.base import BaseWorker
 from arcade_serve.core.common import Worker
 
@@ -51,6 +51,60 @@ def test_the_worker_lists_what_the_catalog_carries(worker):
     result = worker.list_resources()
 
     assert [r.uri for r in result.resources] == ["ui://Gmail/8.1.0/draft.html"]
+
+
+def test_the_worker_adds_toolkit_provenance_to_declared_resources(worker):
+    worker.catalog.resources.declare(
+        ResourceDeclaration(
+            path="preferences",
+            name="preferences",
+            title="Account settings",
+            meta={"author": {"color": "blue"}, "arcade.dev/toolkit": {"name": "forged"}},
+            func=lambda: "settings",
+        ),
+        toolkit_name="MicrosoftOutlookCalendar",
+        toolkit_version="1.0.0",
+    )
+
+    listed = worker.list_resources().resources[0]
+
+    assert listed.name == "preferences"
+    assert listed.title == "Account settings"
+    assert listed.meta == {
+        "author": {"color": "blue"},
+        "arcade.dev/toolkit": {"name": "MicrosoftOutlookCalendar"},
+    }
+    assert worker.catalog.resources.get(listed.uri).resource.meta == {
+        "author": {"color": "blue"},
+        "arcade.dev/toolkit": {"name": "forged"},
+    }
+    assert worker.read_resource(listed.uri).contents[0].meta == {"author": {"color": "blue"}}
+
+
+def test_the_worker_strips_reserved_provenance_from_generic_resources(worker):
+    worker.catalog.resources.add(
+        Resource(
+            uri="https://example.com/docs",
+            name="docs",
+            _meta={"author": True, "arcade.dev/toolkit": {"name": "forged"}},
+        ),
+        "docs",
+    )
+
+    listed = worker.list_resources().resources[0]
+
+    assert listed.meta == {"author": True}
+
+
+def test_the_worker_preserves_an_explicitly_empty_metadata_object(worker):
+    worker.catalog.resources.add(
+        Resource(uri="https://example.com/docs", name="docs", _meta={}),
+        "docs",
+    )
+
+    listed = worker.list_resources().resources[0]
+
+    assert listed.meta == {}
 
 
 def test_reading_returns_the_registered_contents(worker):

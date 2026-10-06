@@ -115,6 +115,10 @@ def _tool(package):
     return importlib.import_module(f"{package}.tools").show_panel
 
 
+def _resource(package):
+    return importlib.import_module(f"{package}.ui").show_panel_ui
+
+
 def _compose(catalog, *packages):
     """Add tools to one catalog under one server identity, as MCPApp does."""
     for package in packages:
@@ -133,6 +137,7 @@ def test_two_toolkits_sharing_a_document_path_do_not_collide(build_package):
         "ui://Alpha/2.0.0/panel.html",
         "ui://Beta/3.1.0/panel.html",
     ]
+    assert [registered.toolkit_name for registered in catalog.resources] == ["Alpha", "Beta"]
 
 
 def test_each_pointer_names_the_uri_its_document_registered_under(build_package):
@@ -147,6 +152,19 @@ def test_each_pointer_names_the_uri_its_document_registered_under(build_package)
         pointed = _pointed(materialized.definition)
         assert pointed in catalog.resources
         assert catalog.resources.get(pointed).resource.uri == pointed
+
+    for package, expected in [
+        ("arcade_alpha", "ui://Alpha/2.0.0/panel.html"),
+        ("arcade_beta", "ui://Beta/3.1.0/panel.html"),
+    ]:
+        assert (
+            catalog.resources.uri_for(
+                _resource(package),
+                toolkit_name="Combined",
+                toolkit_version="1.0.0",
+            )
+            == expected
+        )
 
 
 def test_the_document_carries_the_shipping_toolkit_not_the_server(build_package):
