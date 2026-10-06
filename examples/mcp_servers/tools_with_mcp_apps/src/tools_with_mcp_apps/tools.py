@@ -1,11 +1,10 @@
 from typing import Annotated
 
 import httpx
-from arcade_mcp_server import tool
-from arcade_tdk import ToolContext
-from arcade_tdk.auth import Google
+from arcade_mcp_server import Context, tool
+from arcade_mcp_server.auth import Google
 
-from app_tools.ui import editor
+from tools_with_mcp_apps.ui import editor
 
 
 @tool(ui=editor)
@@ -24,7 +23,7 @@ def uppercase_greeting(
 
 @tool(requires_auth=Google(scopes=["https://www.googleapis.com/auth/userinfo.profile"]))
 async def google_profile(
-    context: ToolContext,
+    context: Context,
     name: Annotated[str, "The name to greet"],
 ) -> Annotated[str, "A greeting with the authorized Google account's display name"]:
     """Read the user's Google profile and add the account name to the greeting."""

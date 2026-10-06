@@ -1,13 +1,13 @@
-# Call tools from an MCP App
+# Write a server with tools that have MCP Apps
 
 This server publishes a greeting editor. The editor can call the original tool
 again or call a different tool in the same gateway.
 
 | Tool                         | App action                                       | Authorization        |
 | ---------------------------- | ------------------------------------------------ | -------------------- |
-| `AppTools.PreviewGreeting`   | Show the editor; preview an edited name          | None                 |
-| `AppTools.UppercaseGreeting` | Uppercase the greeting from the editor           | None                 |
-| `AppTools.GoogleProfile`     | Add the authorized Google account's display name | Google profile scope |
+| `ToolsWithMcpApps.PreviewGreeting`   | Show the editor; preview an edited name          | None                 |
+| `ToolsWithMcpApps.UppercaseGreeting` | Uppercase the greeting from the editor           | None                 |
+| `ToolsWithMcpApps.GoogleProfile`     | Add the authorized Google account's display name | Google profile scope |
 
 The first two tools work without Google setup. The third tool is an optional,
 read-only example of authorization during an App interaction. It does not send
@@ -19,14 +19,14 @@ From this directory:
 
 ```sh
 uv sync --extra dev
-uv run python src/app_tools/server.py
+uv run python src/tools_with_mcp_apps/server.py
 ```
 
 The default transport is stdio. To publish the server through an Arcade gateway:
 
 ```sh
 uv run arcade login
-uv run arcade deploy -e src/app_tools/server.py
+uv run arcade deploy -e src/tools_with_mcp_apps/server.py
 ```
 
 Use the CLI's login command for the intended environment and project before
@@ -40,9 +40,9 @@ one replica. This example uses that path; it does not require multiple toolkits
 or replicas.
 
 In the Dashboard, create a gateway and select the three tools. Connect an MCP
-Apps host to the gateway, then call `AppTools_PreviewGreeting` with `name: "Ada"`.
+Apps host to the gateway, then call `ToolsWithMcpApps_PreviewGreeting` with `name: "Ada"`.
 Choose **Uppercase greeting** to call another tool. Create a second gateway
-without `AppTools.UppercaseGreeting` to check that the uppercase button is absent.
+without `ToolsWithMcpApps.UppercaseGreeting` to check that the uppercase button is absent.
 No resource picker or separate resource permission is required.
 
 Managed resources must be enabled by the deployment operator, with a
@@ -53,7 +53,7 @@ rollout and rollback checks.
 
 ## Declare the tool's UI
 
-`src/app_tools/ui.py` declares the HTML file, and `tools.py` attaches the resource
+`src/tools_with_mcp_apps/ui.py` declares the HTML file, and `tools.py` attaches the resource
 to the tool:
 
 ```python
@@ -68,7 +68,7 @@ def preview_greeting(name: Annotated[str, "The name to greet"]) -> str:
     return f"Hello, {name}!"
 ```
 
-The framework publishes `ui://AppTools/0.1.3/editor.html` with MIME type
+The framework publishes `ui://ToolsWithMcpApps/0.1.3/editor.html` with MIME type
 `text/html;profile=mcp-app`. The gateway presents a globally unique resource URI
 that includes the registered server's identity. The host reads the exact URI in
 the tool's `_meta.ui.resourceUri`. Do not construct or decode that gateway URI
@@ -86,8 +86,8 @@ connection; the iframe does not fetch the Engine API or hold an API key.
 The central call in `editor.html` is:
 
 ```javascript
-// `available` maps AppTools.UppercaseGreeting to the exact returned MCP name.
-const name = available.get("AppTools.UppercaseGreeting")
+// `available` maps ToolsWithMcpApps.UppercaseGreeting to the exact returned MCP name.
+const name = available.get("ToolsWithMcpApps.UppercaseGreeting")
 const result = await request("tools/call", {
     name,
     arguments: { name: document.getElementById("name").value },
@@ -110,14 +110,14 @@ For this gateway, the wire request is:
     "id": 4,
     "method": "tools/call",
     "params": {
-        "name": "AppTools_UppercaseGreeting",
+        "name": "ToolsWithMcpApps_UppercaseGreeting",
         "arguments": { "name": "Grace" }
     }
 }
 ```
 
 The result is `HELLO, GRACE!`. The same request with the discovered
-`AppTools_PreviewGreeting` name resubmits to the original tool. Always call the
+`ToolsWithMcpApps_PreviewGreeting` name resubmits to the original tool. Always call the
 exact name returned by discovery, not a name guessed from a resource URI.
 This example matches tool identities using the gateway's `Toolkit_Tool` naming.
 An App for a server with different tool names must match that server's published
@@ -140,7 +140,7 @@ recommendation tools rather than a complete callable-tool list, the editor uses
 Arcade's existing temporary availability resource:
 
 ```text
-arcade://gateway/tool-availability/v1?tool=AppTools.PreviewGreeting&tool=AppTools.UppercaseGreeting&tool=AppTools.GoogleProfile&request=<fresh-uuid>
+arcade://gateway/tool-availability/v1?tool=ToolsWithMcpApps.PreviewGreeting&tool=ToolsWithMcpApps.UppercaseGreeting&tool=ToolsWithMcpApps.GoogleProfile&request=<fresh-uuid>
 ```
 
 The App asks the host to `resources/read` that URI. The request is not a read of
@@ -152,12 +152,12 @@ response contains one `application/json` resource whose text has this shape:
     "version": 1,
     "tools": [
         {
-            "tool": "AppTools.PreviewGreeting",
-            "name": "AppTools_PreviewGreeting"
+            "tool": "ToolsWithMcpApps.PreviewGreeting",
+            "name": "ToolsWithMcpApps_PreviewGreeting"
         },
         {
-            "tool": "AppTools.UppercaseGreeting",
-            "name": "AppTools_UppercaseGreeting"
+            "tool": "ToolsWithMcpApps.UppercaseGreeting",
+            "name": "ToolsWithMcpApps_UppercaseGreeting"
         }
     ]
 }
@@ -199,7 +199,7 @@ This example has no secret-requiring tool.
 
 ## HTTP(S) resources and release changes
 
-The server also publishes `https://AppTools/0.1.3/author-guide`. This is an MCP
+The server also publishes `https://ToolsWithMcpApps/0.1.3/author-guide`. This is an MCP
 resource identifier: the client retrieves the content with `resources/read`.
 The identifier does not create a web endpoint. The gateway wraps the identifier
 in a `resource://<server-key>/<encoded-original-uri>` routing address.
