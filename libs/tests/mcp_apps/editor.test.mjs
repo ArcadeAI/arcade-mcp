@@ -145,6 +145,12 @@ async function openApp(options = {}) {
                     } else {
                         const greeting = `Hello, ${params.arguments.name}!`
                         result = {
+                            structuredContent: {
+                                result:
+                                    params.name === "AppTools_UppercaseGreeting"
+                                        ? greeting.toUpperCase()
+                                        : greeting,
+                            },
                             content: [
                                 {
                                     type: "text",
@@ -163,8 +169,17 @@ async function openApp(options = {}) {
                     result = {}
                 } else if (method === "ui/update-model-context") result = {}
                 else error = { code: -32601, message: "Method not found" }
-                if (options.discoveryDelay && method === "tools/list") {
+                if (
+                    (options.discoveryDelay || window.delayDiscovery) &&
+                    method === "tools/list"
+                ) {
                     window.releaseDiscovery = () =>
+                        frame.contentWindow.postMessage(
+                            { jsonrpc: "2.0", id, result, error },
+                            "*"
+                        )
+                } else if (options.callDelay && method === "tools/call") {
+                    window.releaseToolCall = () =>
                         frame.contentWindow.postMessage(
                             { jsonrpc: "2.0", id, result, error },
                             "*"
@@ -182,7 +197,7 @@ async function openApp(options = {}) {
     return { browser, page, app: page.frameLocator("iframe") }
 }
 
-test("the uppercase button calls another gateway tool with the edited name", async () => {
+test("the uppercase button calls another tool in the same gateway with the edited name", async () => {
     const { browser, page, app } = await openApp()
     try {
         await app.locator("#name").fill("Grace")
@@ -191,6 +206,7 @@ test("the uppercase button calls another gateway tool with the edited name", asy
             .locator("#result")
             .filter({ hasText: "HELLO, GRACE!" })
             .waitFor()
+        assert.equal(await app.locator("#result").textContent(), "HELLO, GRACE!")
         const call = await page.evaluate(() =>
             window.calls.find(({ method }) => method === "tools/call")
         )
@@ -212,6 +228,7 @@ test("the preview button calls the original tool again", async () => {
             .locator("#result")
             .filter({ hasText: "Hello, Lin!" })
             .waitFor()
+        assert.equal(await app.locator("#result").textContent(), "Hello, Lin!")
         const calls = await page.evaluate(() =>
             window.calls.filter(({ method }) => method === "tools/call")
         )
@@ -246,6 +263,109 @@ test("pending discovery prevents editing or invoking an unverified action", asyn
         assert.equal(await app.locator("#uppercase").isEnabled(), false)
         await page.evaluate(() => window.releaseDiscovery())
         await app.locator("#name").fill("Grace")
+    } finally {
+        await browser.close()
+    }
+})
+
+test("a confirmed missing button stays hidden during a discovery recheck", async () => {
+    const { browser, page, app } = await openApp({
+        tools: ["AppTools_PreviewGreeting"],
+    })
+    try {
+        await app.locator("#name").fill("Lin")
+        assert.equal(await app.locator("#uppercase").isVisible(), false)
+        await page.evaluate(() => {
+            window.delayDiscovery = true
+        })
+        await app.locator("#refresh").click()
+        await page.waitForFunction(() => !!window.releaseDiscovery)
+        assert.equal(await app.locator("#uppercase").isVisible(), false)
+        assert.equal(await app.locator("#name").isEnabled(), false)
+        await page.evaluate(() => window.releaseDiscovery())
+        await app.locator("#name").fill("Grace")
+        assert.equal(await app.locator("#uppercase").isVisible(), false)
+    } finally {
+        await browser.close()
+    }
+})
+
+test("a tool call can stay pending while the host handles authorization", async () => {
+    const { browser, page, app } = await openApp({ callDelay: true })
+    try {
+        await app.locator("#name").fill("Grace")
+        await page.clock.install()
+        await app.locator("#uppercase").click()
+        await page.waitForFunction(() => !!window.releaseToolCall)
+        await page.clock.runFor(16000)
+        assert.equal(await app.locator("#uppercase").isEnabled(), false)
+        await page.evaluate(() => window.releaseToolCall())
+        await app
+            .locator("#result")
+            .filter({ hasText: "HELLO, GRACE!" })
+            .waitFor({ timeout: 1000 })
+        assert.equal(await app.locator("#name").inputValue(), "Grace")
+        assert.equal(
+            await page.evaluate(
+                () => window.calls.filter(({ method }) => method === "tools/call").length
+            ),
+            1
+        )
+    } finally {
+        await browser.close()
+    }
+})
+
+test("an initial tool failure replaces the waiting placeholder with the error", async () => {
+    const { browser, page, app } = await openApp()
+    try {
+        await app.locator("#name").fill("Grace")
+        await page.evaluate(() =>
+            window.notify("ui/notifications/tool-result", {
+                isError: true,
+                content: [{ type: "text", text: "The profile service is unavailable." }],
+            })
+        )
+        await app
+            .locator("#result")
+            .filter({ hasText: "The profile service is unavailable." })
+            .waitFor({ timeout: 1000 })
+        assert.equal(await app.locator("#authorization").isVisible(), false)
+        assert.equal(await app.locator("#name").inputValue(), "Grace")
+    } finally {
+        await browser.close()
+    }
+})
+
+test("initial authorization shows only the common prompt, then accepts the host's retry result", async () => {
+    const { browser, page, app } = await openApp()
+    try {
+        await app.locator("#name").fill("Grace")
+        await page.evaluate(() =>
+            window.notify("ui/notifications/tool-result", {
+                isError: true,
+                content: [{ type: "text", text: JSON.stringify({
+                    authorization_url: "https://accounts.example.com/authorize",
+                }) }],
+            })
+        )
+        await app.locator("#authorization").waitFor()
+        assert.equal(await app.locator("#editor").isVisible(), false)
+        assert.equal(await app.locator("#retry-action").isVisible(), false)
+        await app.locator("#authorize").click()
+        await page.waitForFunction(() => window.opened.length === 1)
+        assert.equal(
+            await page.evaluate(() => window.calls.some(({ method }) => method === "tools/call")),
+            false
+        )
+        await page.evaluate(() =>
+            window.notify("ui/notifications/tool-result", {
+                structuredContent: { result: "Hello, Grace!" },
+            })
+        )
+        await app.locator("#editor").waitFor()
+        assert.equal(await app.locator("#result").textContent(), "Hello, Grace!")
+        assert.equal(await app.locator("#name").inputValue(), "Grace")
     } finally {
         await browser.close()
     }
