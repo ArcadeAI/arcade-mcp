@@ -26,6 +26,12 @@ from typing import (
 
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, create_model, model_serializer
 from pydantic.fields import FieldInfo
+from pydantic.functional_validators import (
+    AfterValidator,
+    BeforeValidator,
+    PlainValidator,
+    WrapValidator,
+)
 from pydantic_core import PydanticUndefined
 from typing_extensions import NotRequired, Required
 
@@ -1318,6 +1324,17 @@ def create_func_models(func: Callable) -> tuple[type[BaseModel], type[BaseModel]
         field_type = _wrap_typeddicts_as_models(
             tool_field_info.field_type, f"{model_prefix}_{name}"
         )
+
+        validation_metadata = []
+        for item in getattr(param.annotation, "__metadata__", ()):
+            if isinstance(item, FieldInfo):
+                # Keep constraints without changing the published argument name
+                # or excluding the argument from executor dispatch.
+                validation_metadata.extend(item.metadata)
+            elif isinstance(item, (AfterValidator, BeforeValidator, PlainValidator, WrapValidator)):
+                validation_metadata.append(item)
+        if validation_metadata:
+            field_type = Annotated[(field_type,) + tuple(validation_metadata)]
 
         # extract_*_param_info unwraps Optional[T] to T before this point, so
         # re-wrap when the original annotation permitted None — otherwise the
