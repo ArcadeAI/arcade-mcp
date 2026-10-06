@@ -3,8 +3,8 @@
 This server publishes a greeting editor. The editor can call the original tool
 again or call a different tool in the same gateway.
 
-| Tool                         | App action                                       | Authorization        |
-| ---------------------------- | ------------------------------------------------ | -------------------- |
+| Tool                                 | App action                                       | Authorization        |
+| ------------------------------------ | ------------------------------------------------ | -------------------- |
 | `ToolsWithMcpApps.PreviewGreeting`   | Show the editor; preview an edited name          | None                 |
 | `ToolsWithMcpApps.UppercaseGreeting` | Uppercase the greeting from the editor           | None                 |
 | `ToolsWithMcpApps.GoogleProfile`     | Add the authorized Google account's display name | Google profile scope |
@@ -34,6 +34,7 @@ deploying. Before deploying a changed release, bump `project.version` in
 `pyproject.toml` and run `uv sync --extra dev` again. The entrypoint reads that
 installed package version; do not maintain a separate server version. When
 changing the HTML App, also update its `appInfo.version` in `editor.html`.
+Update the versioned URI examples below to match the package version.
 
 The current managed deployment path has one toolkit, one active version, and
 one replica. This example uses that path; it does not require multiple toolkits

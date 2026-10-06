@@ -81,17 +81,9 @@
             <h1>Greeting editor</h1>
             <section id="authorization" hidden aria-live="polite">
                 <strong>Authorization required</strong>
-                <p>
-                    Your edits are kept. Authorize the tool, then retry the
-                    action.
-                </p>
+                <p>Your edits are kept. Authorize the tool, then retry the action.</p>
                 <button id="authorize" type="button">Authorize tool</button>
-                <a
-                    id="auth-url"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    hidden
-                ></a>
+                <a id="auth-url" target="_blank" rel="noopener noreferrer" hidden></a>
                 <button id="retry-action" type="button">Retry action</button>
                 <p>Finishing authorization does not run the tool.</p>
             </section>
@@ -99,26 +91,14 @@
                 <label for="name">Name</label>
                 <input id="name" value="Ada" disabled />
                 <div class="actions">
-                    <button id="preview" type="button" disabled>
-                        Preview greeting
-                    </button>
-                    <button id="uppercase" type="button" disabled>
-                        Uppercase greeting
-                    </button>
-                    <button id="profile" type="button" disabled>
-                        Add Google profile
-                    </button>
+                    <button id="preview" type="button" disabled>Preview greeting</button>
+                    <button id="uppercase" type="button" disabled>Uppercase greeting</button>
+                    <button id="profile" type="button" disabled>Add Google profile</button>
                 </div>
-                <output id="result" aria-live="polite"
-                    >Waiting for the greeting…</output
-                >
+                <output id="result" aria-live="polite">Waiting for the greeting…</output>
             </section>
-            <p id="status" role="status">
-                Checking which tools this gateway exposes…
-            </p>
-            <button id="refresh" type="button" disabled>
-                Check tools again
-            </button>
+            <p id="status" role="status">Checking which tools this gateway exposes…</p>
+            <button id="refresh" type="button" disabled>Check tools again</button>
         </main>
         <script type="module">
             const element = (id) => document.getElementById(id)
@@ -144,8 +124,7 @@
             // Sandboxed Apps can have an opaque origin. Accept only the parent host;
             // correlate responses to requests rather than trusting arbitrary messages.
             function request(method, params) {
-                if (stopped)
-                    return Promise.reject(new Error("The App has closed."))
+                if (stopped) return Promise.reject(new Error("The App has closed."))
                 const id = nextId++
                 return new Promise((resolve, reject) => {
                     // The host may keep tools/call open during URL elicitation.
@@ -161,27 +140,19 @@
                                   )
                               }, 15000)
                     pending.set(id, { resolve, reject, timer })
-                    window.parent.postMessage(
-                        { jsonrpc: "2.0", id, method, params },
-                        "*"
-                    )
+                    window.parent.postMessage({ jsonrpc: "2.0", id, method, params }, "*")
                 })
             }
 
             function notify(method, params = {}) {
-                window.parent.postMessage(
-                    { jsonrpc: "2.0", method, params },
-                    "*"
-                )
+                window.parent.postMessage({ jsonrpc: "2.0", method, params }, "*")
             }
 
             function controls() {
                 element("name").disabled = discovery !== "ready" || busy
                 for (const [id, tool] of Object.entries(requested)) {
                     element(id).hidden =
-                        confirmedAvailability &&
-                        discovery !== "unknown" &&
-                        !available.has(tool)
+                        confirmedAvailability && discovery !== "unknown" && !available.has(tool)
                     element(id).disabled = discovery !== "ready" || busy
                 }
                 element("refresh").disabled = discovery === "pending" || busy
@@ -190,9 +161,7 @@
 
             function callName(tool) {
                 return Object.values(requested).find(
-                    (name) =>
-                        name.replaceAll(".", "_").toLowerCase() ===
-                        tool.name?.toLowerCase()
+                    (name) => name.replaceAll(".", "_").toLowerCase() === tool.name?.toLowerCase()
                 )
             }
 
@@ -202,42 +171,27 @@
                 let cursor
                 let recommendations = false
                 for (let page = 0; page < 100; page++) {
-                    const result = await request(
-                        "tools/list",
-                        cursor ? { cursor } : {}
-                    )
+                    const result = await request("tools/list", cursor ? { cursor } : {})
                     if (!Array.isArray(result.tools))
-                        throw new Error(
-                            "The host returned an invalid tool list."
-                        )
+                        throw new Error("The host returned an invalid tool list.")
                     for (const tool of result.tools) {
-                        if (
-                            ["Arcade_SelectTools", "Arcade_UseTool"].includes(
-                                tool.name
-                            )
-                        )
+                        if (["Arcade_SelectTools", "Arcade_UseTool"].includes(tool.name))
                             recommendations = true
                         const key = callName(tool)
                         const visibility = tool._meta?.ui?.visibility
                         if (
                             visibility &&
-                            (!Array.isArray(visibility) ||
-                                !visibility.includes("app"))
+                            (!Array.isArray(visibility) || !visibility.includes("app"))
                         )
                             continue
                         if (key) {
                             if (found.has(key))
-                                throw new Error(
-                                    "The host returned an ambiguous tool name."
-                                )
+                                throw new Error("The host returned an ambiguous tool name.")
                             found.set(key, tool.name)
                         }
                     }
                     if (!result.nextCursor) return { found, recommendations }
-                    if (
-                        typeof result.nextCursor !== "string" ||
-                        cursors.has(result.nextCursor)
-                    )
+                    if (typeof result.nextCursor !== "string" || cursors.has(result.nextCursor))
                         break
                     cursors.add(result.nextCursor)
                     cursor = result.nextCursor
@@ -251,15 +205,12 @@
                 // TODO: https://linear.app/arcadedev/issue/TOO-2155 — remove this fallback
                 // when the MCP Apps tools/list extension is supported throughout the path.
                 const uri = new URL("arcade://gateway/tool-availability/v1")
-                for (const tool of Object.values(requested))
-                    uri.searchParams.append("tool", tool)
+                for (const tool of Object.values(requested)) uri.searchParams.append("tool", tool)
                 // This nonce prevents host resource caching; it grants no access.
                 const bytes = crypto.getRandomValues(new Uint8Array(16))
                 bytes[6] = (bytes[6] & 15) | 64
                 bytes[8] = (bytes[8] & 63) | 128
-                const hex = [...bytes]
-                    .map((byte) => byte.toString(16).padStart(2, "0"))
-                    .join("")
+                const hex = [...bytes].map((byte) => byte.toString(16).padStart(2, "0")).join("")
                 uri.searchParams.set(
                     "request",
                     `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
@@ -273,9 +224,7 @@
                     contents[0].uri !== uri.href ||
                     contents[0].mimeType !== "application/json"
                 ) {
-                    throw new Error(
-                        "The gateway returned an invalid availability response."
-                    )
+                    throw new Error("The gateway returned an invalid availability response.")
                 }
                 const data = JSON.parse(contents[0].text)
                 if (data.version !== 1 || !Array.isArray(data.tools))
@@ -300,13 +249,10 @@
                 checking = (async () => {
                     discovery = "pending"
                     controls()
-                    element("status").textContent =
-                        "Checking which tools this gateway exposes…"
+                    element("status").textContent = "Checking which tools this gateway exposes…"
                     try {
                         if (!hostCapabilities.serverTools)
-                            throw new Error(
-                                "The host does not support App tool calls."
-                            )
+                            throw new Error("The host does not support App tool calls.")
                         let native
                         try {
                             native = await nativeTools()
@@ -326,8 +272,7 @@
                             "Only tools available to you in this gateway have buttons. Availability does not mean authorization."
                     } catch (error) {
                         discovery = "unknown"
-                        element("status").textContent =
-                            `Could not check tools. ${error.message}`
+                        element("status").textContent = `Could not check tools. ${error.message}`
                     } finally {
                         controls()
                     }
@@ -338,22 +283,17 @@
             }
 
             function authorizationUrl(value) {
-                const candidates = [
-                    value?.authorization_url,
-                    value?.authorizationUrl,
-                ]
+                const candidates = [value?.authorization_url, value?.authorizationUrl]
                 if (value?.code === -32042)
-                    candidates.push(
-                        ...(value.data?.elicitations ?? []).map(
-                            (item) => item.url
-                        )
-                    )
+                    candidates.push(...(value.data?.elicitations ?? []).map((item) => item.url))
                 for (const candidate of candidates) {
                     if (typeof candidate !== "string") continue
                     try {
                         const url = new URL(candidate)
                         if (
-                            ["https:", "http:"].includes(url.protocol) &&
+                            (url.protocol === "https:" ||
+                                (url.protocol === "http:" &&
+                                    ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname))) &&
                             !url.username &&
                             !url.password
                         )
@@ -405,10 +345,7 @@
                     await checkTools()
                     if (discovery !== "ready") return
                     const name = available.get(action.tool)
-                    if (!name)
-                        throw new Error(
-                            "The tool is no longer available in this gateway."
-                        )
+                    if (!name) throw new Error("The tool is no longer available in this gateway.")
                     // The host applies the connected user's ordinary access, consent,
                     // secrets and execution checks. The App gains no permission.
                     const result = await request("tools/call", {
@@ -423,24 +360,19 @@
                     }
                     if (result.isError)
                         throw new Error(
-                            typeof output === "string"
-                                ? output
-                                : "The tool could not run."
+                            typeof output === "string" ? output : "The tool could not run."
                         )
                     element("authorization").hidden = true
                     element("editor").hidden = false
                     retryAction = undefined
                     element("result").textContent =
-                        typeof output === "string"
-                            ? output
-                            : JSON.stringify(output)
+                        typeof output === "string" ? output : JSON.stringify(output)
                 } catch (error) {
                     const url = authorizationUrl(error)
                     if (url) showAuthorization(url, action)
                     else
                         element("status").textContent =
-                            error.message ||
-                            "The tool could not run. Your inputs are kept."
+                            error.message || "The tool could not run. Your inputs are kept."
                 } finally {
                     busy = false
                     controls()
@@ -448,11 +380,7 @@
             }
 
             window.addEventListener("message", (event) => {
-                if (
-                    event.source !== window.parent ||
-                    event.data?.jsonrpc !== "2.0"
-                )
-                    return
+                if (event.source !== window.parent || event.data?.jsonrpc !== "2.0") return
                 const message = event.data
                 if (message.id !== undefined && !message.method) {
                     const waiting = pending.get(message.id)
@@ -461,49 +389,33 @@
                     clearTimeout(waiting.timer)
                     if (message.error)
                         waiting.reject(
-                            Object.assign(
-                                new Error(message.error.message),
-                                message.error
-                            )
+                            Object.assign(new Error(message.error.message), message.error)
                         )
                     else waiting.resolve(message.result ?? {})
-                } else if (
-                    message.method === "ui/notifications/tool-input" &&
-                    !edited
-                ) {
+                } else if (message.method === "ui/notifications/tool-input" && !edited) {
                     if (typeof message.params?.arguments?.name === "string")
                         element("name").value = message.params.arguments.name
                 } else if (message.method === "ui/notifications/tool-result") {
                     const result = message.params
                     const output = readResult(result)
                     const url = authorizationUrl(output)
-                    if (url && result.isError)
-                        showAuthorization(url, undefined, true)
+                    if (url && result.isError) showAuthorization(url, undefined, true)
                     else if (!result.isError) {
                         element("authorization").hidden = true
                         element("editor").hidden = false
                         element("result").textContent =
-                            typeof output === "string"
-                                ? output
-                                : JSON.stringify(output)
+                            typeof output === "string" ? output : JSON.stringify(output)
                     } else {
                         element("result").textContent =
-                            typeof output === "string"
-                                ? output
-                                : "The tool could not run."
+                            typeof output === "string" ? output : "The tool could not run."
                     }
-                } else if (
-                    message.method === "notifications/tools/list_changed"
-                ) {
+                } else if (message.method === "notifications/tools/list_changed") {
                     void checkTools()
                 } else if (
                     ["ping", "ui/resource-teardown"].includes(message.method) &&
                     message.id !== undefined
                 ) {
-                    window.parent.postMessage(
-                        { jsonrpc: "2.0", id: message.id, result: {} },
-                        "*"
-                    )
+                    window.parent.postMessage({ jsonrpc: "2.0", id: message.id, result: {} }, "*")
                     if (message.method === "ui/resource-teardown") {
                         stopped = true
                         sizeObserver?.disconnect()
@@ -513,6 +425,15 @@
                         }
                         pending.clear()
                     }
+                } else if (message.id !== undefined && typeof message.method === "string") {
+                    window.parent.postMessage(
+                        {
+                            jsonrpc: "2.0",
+                            id: message.id,
+                            error: { code: -32601, message: "Method not found" },
+                        },
+                        "*"
+                    )
                 }
             })
 
