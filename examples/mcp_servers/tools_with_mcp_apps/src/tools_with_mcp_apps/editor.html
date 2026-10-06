@@ -365,6 +365,7 @@
                     element("authorization").hidden = true
                     element("editor").hidden = false
                     retryAction = undefined
+                    authUrl = undefined
                     element("result").textContent =
                         typeof output === "string" ? output : JSON.stringify(output)
                 } catch (error) {
@@ -403,6 +404,8 @@
                     else if (!result.isError) {
                         element("authorization").hidden = true
                         element("editor").hidden = false
+                        retryAction = undefined
+                        authUrl = undefined
                         element("result").textContent =
                             typeof output === "string" ? output : JSON.stringify(output)
                     } else {
@@ -451,7 +454,12 @@
             element("refresh").addEventListener("click", checkTools)
             element("retry-action").addEventListener(
                 "click",
-                () => retryAction && runAction(retryAction)
+                () =>
+                    retryAction &&
+                    runAction({
+                        tool: retryAction.tool,
+                        arguments: { name: element("name").value },
+                    })
             )
             element("authorize").addEventListener("click", async () => {
                 try {

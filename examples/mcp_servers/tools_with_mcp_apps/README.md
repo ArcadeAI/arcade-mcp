@@ -191,7 +191,8 @@ the example accepts the ordinary `authorization_url` result or a URL-elicitation
 required error (`-32042`). The editor shows a prominent authorization prompt,
 keeps the name, opens the authorization URL through `ui/open-link` when supported,
 and exposes **Retry action**. Finishing OAuth never triggers another call by
-itself. Retry uses the saved action arguments and rechecks tool availability.
+itself. Retry calls the same tool with the current inputs and rechecks tool
+availability.
 
 If an initial call has not executed, show the authorization prompt rather than
 an empty editor. The host must retry that originating call after authorization.
