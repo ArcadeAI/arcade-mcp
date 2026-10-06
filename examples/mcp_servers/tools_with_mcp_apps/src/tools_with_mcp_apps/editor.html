@@ -322,6 +322,16 @@
                 }
             }
 
+            function clearAuthorization() {
+                if (!element("authorization").hidden && discovery === "ready")
+                    element("status").textContent =
+                        "Choose an available action. Your edits are kept."
+                element("authorization").hidden = true
+                element("editor").hidden = false
+                retryAction = undefined
+                authUrl = undefined
+            }
+
             function showAuthorization(url, action, initial = false) {
                 authUrl = url
                 retryAction = action
@@ -362,18 +372,17 @@
                         throw new Error(
                             typeof output === "string" ? output : "The tool could not run."
                         )
-                    element("authorization").hidden = true
-                    element("editor").hidden = false
-                    retryAction = undefined
-                    authUrl = undefined
+                    clearAuthorization()
                     element("result").textContent =
                         typeof output === "string" ? output : JSON.stringify(output)
                 } catch (error) {
                     const url = authorizationUrl(error)
                     if (url) showAuthorization(url, action)
-                    else
+                    else {
+                        clearAuthorization()
                         element("status").textContent =
                             error.message || "The tool could not run. Your inputs are kept."
+                    }
                 } finally {
                     busy = false
                     controls()
@@ -402,13 +411,11 @@
                     const url = authorizationUrl(output)
                     if (url && result.isError) showAuthorization(url, undefined, true)
                     else if (!result.isError) {
-                        element("authorization").hidden = true
-                        element("editor").hidden = false
-                        retryAction = undefined
-                        authUrl = undefined
+                        clearAuthorization()
                         element("result").textContent =
                             typeof output === "string" ? output : JSON.stringify(output)
                     } else {
+                        clearAuthorization()
                         element("result").textContent =
                             typeof output === "string" ? output : "The tool could not run."
                     }
