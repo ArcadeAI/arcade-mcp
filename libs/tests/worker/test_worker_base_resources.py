@@ -96,6 +96,34 @@ def test_the_worker_strips_reserved_provenance_from_generic_resources(worker):
     assert listed.meta == {"author": True}
 
 
+def test_the_worker_does_not_expose_metadata_when_only_reserved_provenance_remains(worker):
+    worker.catalog.resources.add(
+        Resource(
+            uri="https://example.com/docs",
+            name="docs",
+            _meta={"arcade.dev/toolkit": {"name": "forged"}},
+        ),
+        "docs",
+    )
+
+    assert worker.list_resources().resources[0].meta is None
+
+
+def test_the_worker_does_not_expose_reserved_provenance_when_reading(worker):
+    registered = worker.catalog.resources.declare(
+        ResourceDeclaration(
+            path="preferences",
+            name="preferences",
+            meta={"arcade.dev/toolkit": {"name": "forged"}},
+            func=lambda: "settings",
+        ),
+        toolkit_name="Gmail",
+        toolkit_version="1.0.0",
+    )
+
+    assert worker.read_resource(registered.resource.uri).contents[0].meta is None
+
+
 def test_the_worker_preserves_an_explicitly_empty_metadata_object(worker):
     worker.catalog.resources.add(
         Resource(uri="https://example.com/docs", name="docs", _meta={}),

@@ -30,6 +30,14 @@ from arcade_serve.core.components import (
 logger = logging.getLogger(__name__)
 
 
+def _without_toolkit_provenance(meta: dict[str, Any] | None) -> dict[str, Any] | None:
+    if meta is None or TOOLKIT_PROVENANCE_META_KEY not in meta:
+        return meta
+    public_meta = dict(meta)
+    public_meta.pop(TOOLKIT_PROVENANCE_META_KEY)
+    return public_meta or None
+
+
 class BaseWorker(Worker):
     """
     A base worker class that provides a default implementation for registering tools and invoking them.
@@ -216,9 +224,7 @@ class BaseWorker(Worker):
         for resource in resources:
             toolkit_name = self.catalog.resources.get(resource.uri).toolkit_name
             if toolkit_name is None:
-                meta = None if resource.meta is None else dict(resource.meta)
-                if meta is not None:
-                    meta.pop(TOOLKIT_PROVENANCE_META_KEY, None)
+                meta = _without_toolkit_provenance(resource.meta)
             else:
                 meta = dict(resource.meta or {})
                 meta[TOOLKIT_PROVENANCE_META_KEY] = {"name": toolkit_name}
@@ -231,9 +237,7 @@ class BaseWorker(Worker):
         Read a resource by URI. Raises ResourceNotFoundError when there is none.
         """
         contents = self.catalog.resources.get(uri).contents
-        meta = None if contents.meta is None else dict(contents.meta)
-        if meta is not None:
-            meta.pop(TOOLKIT_PROVENANCE_META_KEY, None)
+        meta = _without_toolkit_provenance(contents.meta)
         return ReadResourceResult(contents=[contents.model_copy(update={"meta": meta})])
 
     def register_routes(self, router: Router) -> None:
