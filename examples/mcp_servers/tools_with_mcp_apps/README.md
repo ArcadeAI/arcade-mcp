@@ -72,12 +72,12 @@ from arcade_mcp_server import resource
 
 @resource(
     path="author-guide",
-    scheme="https",
+    scheme="resource",
     mime_type="text/plain",
     meta={"webUrl": "https://modelcontextprotocol.io/extensions/apps/overview"},
 )
 def author_guide() -> str:
-    """Read the public MCP Apps authoring guide."""
+    """Read the MCP Apps guide link with resources/read."""
     return "MCP Apps guide: https://modelcontextprotocol.io/extensions/apps/overview"
 ```
 
@@ -112,7 +112,7 @@ include the HTML file in the package. Both resources are available through
 This example uses only published resource declarations. It does not demonstrate
 resource templates or native-only resource registration APIs.
 
-The framework publishes `ui://ToolsWithMcpApps/0.1.3/editor.html` with MIME type
+The framework publishes `ui://ToolsWithMcpApps/0.1.4/editor.html` with MIME type
 `text/html;profile=mcp-app`. The gateway presents a globally unique resource URI
 that includes the registered server's identity. The host reads the exact URI in
 the tool's `_meta.ui.resourceUri`. Do not construct or decode that gateway URI
@@ -242,17 +242,27 @@ an empty editor. The host must retry that originating call after authorization.
 An ordinary execution or secret error is not converted into an OAuth prompt.
 This example has no secret-requiring tool.
 
-## HTTP(S) resources and release changes
+## Resource identifiers, web links, and release changes
 
-The server also publishes `https://ToolsWithMcpApps/0.1.3/author-guide`. This is an MCP
+The server also publishes `resource://ToolsWithMcpApps/0.1.4/author-guide`. This is an MCP
 resource identifier: the client retrieves the content with `resources/read`.
 The identifier does not create a web endpoint. The gateway wraps the identifier
 in a `resource://<server-key>/<encoded-original-uri>` routing address.
+The published identifier and the gateway address are different, even though
+both use `resource://`. Use the exact URI returned by the connected server or
+gateway in `resources/list`; do not substitute the published identifier.
 
 The resource preserves a separate public browser URL in `_meta.webUrl` and in
 the text: `https://modelcontextprotocol.io/extensions/apps/overview`. `webUrl` is
 author-supplied metadata, not a standard MCP field or a browser-navigation promise
 from the host. Do not replace a genuine browser URL with the gateway address.
+
+Use a non-web scheme for generated resource identifiers. An `https://` resource
+should identify content the client can fetch directly from the web, as described
+in the [MCP resource specification](https://modelcontextprotocol.io/specification/2025-11-25/server/resources#common-uri-schemes).
+The gateway still supports HTTP(S) resource identifiers and keeps the original
+identifier readable in the description. The HTTP(S) scheme alone does not prove
+that the identifier is a public web page.
 
 For the same registered server and exact original URI, a restart keeps the same
 gateway address and serves the current published content. After a resource is
@@ -272,5 +282,5 @@ Before marking a deployment verified, connect an unmodified MCP Apps host to the
 deployed server's gateway. Check the full-tool and missing-uppercase gateways;
 check a new end-user's Google authorization without revoking another user's
 consent. Test the stateless and stateful gateway routes separately. Confirm that
-`resources/read` returns the HTML and the HTTPS resource's `_meta.webUrl`. Record
+`resources/read` returns the HTML and the guide resource's separate `_meta.webUrl`. Record
 real-host results separately from any simulated-host checks.

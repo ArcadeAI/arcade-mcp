@@ -1,6 +1,6 @@
 [project]
 name = "tools_with_mcp_apps"
-version = "0.1.3"
+version = "0.1.4"
 description = "An MCP App that calls the same tool and other tools through a gateway"
 requires-python = ">=3.10"
 dependencies = ["arcade-mcp-server>=1.32.1,<2.0.0", "httpx>=0.28.0,<1.0.0"]

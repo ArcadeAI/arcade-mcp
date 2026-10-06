@@ -8,10 +8,10 @@ def editor() -> None:
 
 @resource(
     path="author-guide",
-    scheme="https",
+    scheme="resource",
     mime_type="text/plain",
     meta={"webUrl": "https://modelcontextprotocol.io/extensions/apps/overview"},
 )
 def author_guide() -> str:
-    """An HTTPS-scheme resource is read with resources/read, not a browser fetch."""
+    """Read the MCP Apps guide link with resources/read."""
     return "MCP Apps guide: https://modelcontextprotocol.io/extensions/apps/overview"
