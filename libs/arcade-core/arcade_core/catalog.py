@@ -604,11 +604,6 @@ def _interface_uri(
     tool_name: str, declaration: ResourceDeclaration, toolkit: ToolkitDefinition
 ) -> str:
     """Qualify the declaration a tool names, through the derivation registration uses."""
-    if toolkit.version is None:
-        raise ToolDefinitionError(
-            f"Tool '{tool_name}' names {declaration.name!r} as its user interface, but the "
-            f"toolkit has no version, so no URI can be derived for it."
-        )
     try:
         return interface_uri(
             declaration, toolkit_name=toolkit.name, toolkit_version=toolkit.version
@@ -617,6 +612,11 @@ def _interface_uri(
         raise ToolDefinitionError(
             f"Tool '{tool_name}' names {declaration.name!r} as its user interface, but its "
             f"path {declaration.path!r} is not usable. Reason: {e}"
+        ) from e
+    except ValueError as e:
+        raise ToolDefinitionError(
+            f"Tool '{tool_name}' names {declaration.name!r} as its user interface, but the "
+            f"toolkit has no version, so no URI can be derived for it."
         ) from e
 
 

@@ -195,6 +195,15 @@ def test_a_resource_uri_uses_the_same_toolkit_name_a_tool_does(two_word_package)
     assert catalog.resources.get(expected).resource.uri == expected
 
 
+def test_a_declared_resource_remembers_the_normalized_toolkit_name(two_word_package):
+    catalog = ToolCatalog()
+    catalog.add_toolkit(Toolkit.from_directory(two_word_package))
+
+    registered = catalog.resources.get("ui://GoogleDocs/8.1.0/dashboard.html")
+
+    assert registered.toolkit_name == "GoogleDocs"
+
+
 def test_a_declaration_in_init_registers_without_importing_it_twice(tmp_path, monkeypatch):
     """Importing `pkg.__init__` runs the package body again as a second module object."""
     root = tmp_path / "initpkg"

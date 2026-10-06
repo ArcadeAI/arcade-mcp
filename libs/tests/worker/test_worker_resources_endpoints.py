@@ -122,7 +122,10 @@ def test_the_read_carries_a_resources_own_meta(serving_with_meta):
 def test_the_listing_carries_it_too(serving_with_meta):
     listed = serving_with_meta.post("/worker/resources/list", json={}).json()
 
-    assert listed["resources"][0]["_meta"] == {"ui": {"prefersBorder": False}}
+    assert listed["resources"][0]["_meta"] == {
+        "ui": {"prefersBorder": False},
+        "arcade.dev/toolkit": {"name": "Gmail"},
+    }
 
 
 def test_absent_optional_fields_are_omitted_rather_than_null(serving):
