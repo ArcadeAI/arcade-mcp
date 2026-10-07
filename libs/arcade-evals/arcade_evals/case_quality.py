@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import copy
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from arcade_evals.errors import JudgeError
@@ -122,7 +122,12 @@ def build_quality_questions() -> dict[str, Any]:
 
 @dataclass
 class CaseQualityReport:
-    """Quality-gate decision. Only status == "passed" can pass."""
+    """Quality-gate decision. Only status == "passed" can pass.
+
+    ``verdicts`` holds only individually validated answers with their provider metadata.
+    A withheld report ("invalid" or "low_confidence") still carries the valid ones and
+    names the missing, invalid, or low-confidence dimension ids in ``reasons``.
+    """
 
     passed: bool
     status: str
@@ -136,7 +141,7 @@ class CaseQualityGrader:
 
     Thresholds are starting policies, not calibrated accuracy guarantees. Unavailable,
     incomplete, invalid, and low-confidence results return passed=False with a status
-    instead of inventing judgments. Complexity is descriptive unless fail_on_trivial
+    instead of inventing judgments; valid dimensions stay in the report's verdicts. Complexity is descriptive unless fail_on_trivial
     is enabled.
     """
 
@@ -149,6 +154,8 @@ class CaseQualityGrader:
     min_confidence: float = 0.5
 
     def __post_init__(self) -> None:
+        if not isinstance(self.fail_on_trivial, bool):
+            raise TypeError("fail_on_trivial must be a bool.")
         for name in ("min_context", "max_hint", "max_ambiguity", "min_human", "min_confidence"):
             try:
                 setattr(self, name, _checked_number(getattr(self, name), name, 0.0, 1.0))
@@ -182,47 +189,42 @@ class CaseQualityGrader:
             return _report(
                 "invalid", ["Case quality judge returned incomplete or invalid answers."]
             )
-        try:
-            verdicts = {
-                qid: checked_verdict(verdicts.get(qid), question)
-                for qid, question in questions.items()
-            }
-        except JudgeError:
-            return _report(
-                "invalid", ["Case quality judge returned incomplete or invalid answers."]
+        # Each dimension is validated on its own so one bad answer cannot discard the rest.
+        checked: dict[str, JudgeVerdict] = {}
+        problems: list[str] = []
+        for qid, question in questions.items():
+            if qid not in verdicts:
+                problems.append(f"{qid}: answer missing")
+                continue
+            try:
+                checked[qid] = checked_verdict(verdicts[qid], question)
+            except JudgeError:
+                problems.append(f"{qid}: answer invalid")
+        uncertain = [
+            f"{qid}: confidence {verdict.confidence:.2f} below min_confidence "
+            f"{self.min_confidence:.2f}"
+            for qid, verdict in checked.items()
+            if verdict.confidence is not None and verdict.confidence < self.min_confidence
+        ]
+        if problems or uncertain:
+            # Withheld, but keep every individually validated verdict for diagnosis.
+            return CaseQualityReport(
+                passed=False,
+                status="invalid" if problems else "low_confidence",
+                reasons=problems + uncertain,
+                verdicts=checked,
             )
-        if any(
-            verdict.confidence is not None and verdict.confidence < self.min_confidence
-            for verdict in verdicts.values()
-        ):
-            return _report("low_confidence", ["Case quality judgment is below min_confidence."])
 
-        choice = verdicts["complexityChoice"]
-        if (
-            choice.score is not None
-            or choice.label not in questions["complexityChoice"]["criteria"]
-        ):
-            return _report(
-                "invalid", ["Case quality judge returned an invalid complexity category."]
-            )
-
+        choice = checked["complexityChoice"]
         reasons: list[str] = []
-        checked: dict[str, JudgeVerdict] = {"complexityChoice": choice}
         for qid, minimum, maximum in (
             ("contextScore", self.min_context, 1.0),
             ("hintNoul", 0.0, self.max_hint),
             ("ambiguityScore", 0.0, self.max_ambiguity),
             ("humanNoul", self.min_human, 1.0),
         ):
-            verdict = verdicts[qid]
-            if verdict.label is not None:
-                return _report("invalid", [f"{qid}: categorical answer for a numeric question."])
-            try:
-                score = _checked_number(verdict.score, qid, 0.0, 1.0)
-            except JudgeError:
-                return _report("invalid", [f"{qid}: score is missing or out of range."])
-            checked[qid] = replace(verdict, score=score)
-            if not minimum <= score <= maximum:
+            score = checked[qid].score
+            if score is not None and not minimum <= score <= maximum:
                 reasons.append(
                     f"{qid}: {score:.2f} outside allowed range {minimum:.2f}..{maximum:.2f}"
                 )

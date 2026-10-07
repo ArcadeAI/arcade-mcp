@@ -88,6 +88,33 @@ GroundednessCritic(critic_field="summary", weight=0.5, provider="jev")  # no inv
 CompletenessCritic(critic_field="features", weight=0.5, provider="jev")  # no omissions (Jev Score)
 ```
 
+Runtime contract:
+
+- Judgments are reused only within one `EvalCase.evaluate` call, for assignment and
+  final scoring of the same candidate pair. There is no cross-case cache or shared
+  context mutation. Two absent values abstain without a request.
+- Model-visible system, user and history messages reach the judge through
+  `JudgeScope`; reference labels stay separate from generator prompts. When `scope`
+  or `context` is supplied, `IntentionCritic` and `GroundednessCritic` treat it as
+  authoritative evidence and `expected` as a reference label. With neither, `expected`
+  is the source. Grouped checks prefer a check's own `context` over the shared one and
+  never use another check's evidence.
+- Failures are conservative. An unavailable or low-confidence judge sets
+  `unavailable=True`; any exception from a traditional critic (for example
+  `NumericCritic` given a malformed argument) sets `critic_error=True`, with result
+  status `critic_error`. Either fails the case at any weight, keeps the critic's
+  weight in the score denominator, and fails single-run and repeated-run aggregation
+  (`last`, `mean`, `majority`). Compatibility change: before judge critics, a raising
+  critic's weight was dropped and the case could pass on the remaining weight.
+- `JudgeCriticGroup` sends all checks for one pair together. Members cannot configure
+  conflicting backend/provider/llm_model/fallback options. Missing, invalid or uncertain
+  members withhold the group's credit while preserving per-check diagnostic scores,
+  status, confidence and evidence. `judge_calls` and `judge_latency_ms` describe the
+  returned evaluation; `judge_calls_total` and `judge_latency_ms_total` are lifetime
+  counters. Multiple candidate pairs can require multiple requests.
+- Structured formulas, document edits and styles are judged as supplied textual or
+  JSON evidence, not as rendered appearance.
+
 ### Provider-neutral judge interface
 
 `JudgeBackend` is the shared interface: `judge(state=..., questions=...)`
@@ -168,13 +195,15 @@ for case in suite.cases:
 | `humanNoul` | Is the wording plausible for the task and audience? |
 
 Literal arguments and IDs are legitimate inputs, not automatic failures.
-Complexity describes coverage; `fail_on_trivial=True` optionally excludes
-trivial cases. The other gates use configurable `min_context`, `max_hint`,
-`max_ambiguity`, and `min_human` thresholds. Defaults are starting policies,
+Complexity describes coverage; `fail_on_trivial=True` (a `bool`; other types
+raise `TypeError`) optionally excludes trivial cases. The other gates use
+configurable `min_context`, `max_hint`, `max_ambiguity`, and `min_human` thresholds. Defaults are starting policies,
 not calibrated guarantees: `0.6`, `0.6`, `0.4`, and `0.5`, respectively.
-Each report preserves per-dimension verdicts and provider metadata. Missing or
-malformed judgments return `passed=False` with `invalid`; transport failures
-return `unavailable`, and insufficient confidence returns `low_confidence`.
+Each report preserves individually validated verdicts and provider metadata.
+Missing or malformed judgments return `passed=False` with `invalid`; insufficient
+confidence returns `low_confidence`. Both keep the valid dimensions in `verdicts` and
+name the missing, invalid or uncertain dimension ids in `reasons`; malformed answers
+are never included. Transport failures return `unavailable` with no verdicts.
 An unavailable judge is not evidence that the case is good or bad.
 
 Override the policy per grader when a suite needs a different acceptance bar;
@@ -265,21 +294,3 @@ Multi-run results include per-case statistics:
 ## License
 
 MIT License - see LICENSE file for details.
-
-
-Judgments are reused only within an `EvalCase.evaluate` call for assignment and
-final scoring of the same candidate pair. There is no persistent cross-case cache
-or shared context mutation. Model-visible system, user and history messages reach
-the judge through `JudgeScope`; reference labels remain separate from generator
-prompts. Identical labels do not establish groundedness or valid intent. Two absent
-values can abstain without a request. Any unavailable judgment or critic exception
-prevents a single run or repeated-run aggregation from passing, even at tiny weight.
-
-`JudgeCriticGroup` sends all checks for one pair together. Members cannot configure
-conflicting backend/provider/llm_model/fallback options. Missing, invalid or uncertain
-members withhold the entire group's credit while preserving per-check diagnostic
-scores, status, confidence and evidence. `judge_calls` and `judge_latency_ms` describe
-the returned evaluation; instance `judge_calls_total` and `judge_latency_ms_total`
-are lifetime counters. Multiple candidate pairs can require multiple requests.
-Structured formulas, document edits and styles can be judged as supplied textual
-or JSON evidence. These judgments do not validate rendered appearance.

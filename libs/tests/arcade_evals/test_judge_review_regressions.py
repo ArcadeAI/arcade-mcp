@@ -1,5 +1,6 @@
 """Boundary regressions for injected adapters and the actual HTTP opener."""
 
+import asyncio
 import copy
 import io
 import json
@@ -11,15 +12,19 @@ from urllib.response import addinfourl
 
 import pytest
 from arcade_evals import (
+    BinaryCritic,
     CaseQualityGrader,
     CompletenessCritic,
     EvalSuite,
     ExpectedMCPToolCall,
+    GroundednessCritic,
     IntentionCritic,
     JevBackend,
     JudgeCriticGroup,
+    JudgeScope,
     JudgeVerdict,
     LLMFallbackBackend,
+    NumericCritic,
     SemanticSimilarityCritic,
 )
 from arcade_evals.case_quality import build_quality_questions
@@ -325,3 +330,187 @@ def test_unavailable_run_cannot_be_hidden_by_repeated_run_aggregation(rule):
         False,
         False,
     )
+
+
+def numeric_error_suite(**rubric):
+    suite = EvalSuite("critic-error", "Use echo", rubric=EvalRubric(**rubric))
+    suite.add_case(
+        name="case",
+        user_message="Echo",
+        expected_tool_calls=[ExpectedMCPToolCall("echo", {"flag": True, "n": 5})],
+        critics=[BinaryCritic("flag", 0.9), NumericCritic("n", 0.1, value_range=(0, 10))],
+    )
+    return suite
+
+
+def test_traditional_critic_error_fails_closed_and_is_not_judge_unavailability(caplog):
+    suite = numeric_error_suite()
+    healthy = suite.cases[0].evaluate([("echo", {"flag": True, "n": 5})])
+    assert healthy.passed and not healthy.unavailable and not healthy.critic_error
+
+    result = suite.cases[0].evaluate([("echo", {"flag": True, "n": "SYNTHETIC_PRIVATE_MARKER"})])
+    weight = suite.rubric.tool_selection_weight
+    # The failed critic's weight stays in the denominator: never approval.
+    assert result.score == pytest.approx((weight + 0.9) / (weight + 1.0))
+    assert not result.passed and not result.warning
+    assert result.critic_error and not result.unavailable
+    assert "critic" in result.failure_reason and "judge" not in result.failure_reason.lower()
+    numeric = next(item for item in result.results if item["field"] == "n")
+    assert numeric["status"] == "critic_error" and numeric["weight"] == 0.1
+    assert numeric["score"] == 0.0 and numeric["match"] is False
+    assert "NumericCritic" in caplog.text and "judge" not in caplog.text.lower()
+    assert "SYNTHETIC_PRIVATE_MARKER" not in caplog.text and "Traceback" not in caplog.text
+
+
+def test_traditional_critic_error_cannot_warn_or_pass_under_lenient_thresholds():
+    suite = numeric_error_suite(fail_threshold=0.1, warn_threshold=0.05)
+    result = suite.cases[0].evaluate([("echo", {"flag": True, "n": "abc"})])
+    assert result.score > 0.9
+    assert result.passed is False and result.warning is False and result.fail
+
+
+def test_judge_exception_stays_judge_unavailability_not_critic_error():
+    class Raising(CompletenessCritic):
+        def evaluate_in_scope(self, expected, actual, scope=None):
+            raise RuntimeError("synthetic")
+
+    suite = EvalSuite("judge", "Use echo")
+    suite.add_case(
+        name="case",
+        user_message="Echo",
+        expected_tool_calls=[ExpectedMCPToolCall("echo", {"text": "hello"})],
+        critics=[Raising("text", 0.5)],
+    )
+    result = suite.cases[0].evaluate([("echo", {"text": "hello"})])
+    assert result.unavailable and not result.critic_error and not result.passed
+    assert "judge" in result.failure_reason.lower()
+    assert result.results[-1]["status"] == "unavailable"
+
+
+def test_critic_and_judge_failures_are_both_reported():
+    class Raising(CompletenessCritic):
+        def evaluate_in_scope(self, expected, actual, scope=None):
+            raise RuntimeError("synthetic")
+
+    suite = EvalSuite("both", "Use echo")
+    suite.add_case(
+        name="case",
+        user_message="Echo",
+        expected_tool_calls=[ExpectedMCPToolCall("echo", {"text": "hello", "n": 1})],
+        critics=[Raising("text", 0.5), NumericCritic("n", 0.5, value_range=(0, 2))],
+    )
+    result = suite.cases[0].evaluate([("echo", {"text": "hello", "n": "bad"})])
+    assert result.unavailable and result.critic_error
+    assert "judge" in result.failure_reason.lower() and "critic" in result.failure_reason.lower()
+
+
+@pytest.mark.parametrize("rule", ["last", "mean", "majority"])
+def test_critic_error_run_cannot_be_hidden_by_repeated_run_aggregation(rule):
+    errored = EvaluationResult(score=0.9999, passed=False, critic_error=True)
+    success = EvaluationResult(score=1.0, passed=True)
+    assert _resolve_pass_rule([errored, success, success], 0.9999, rule, EvalRubric()) == (
+        False,
+        False,
+    )
+
+
+@pytest.mark.parametrize("rule", ["last", "mean", "majority"])
+def test_repeated_runs_with_one_critic_error_fail_and_explain_why(rule):
+    suite = numeric_error_suite()
+    runs = iter([
+        [("echo", {"flag": True, "n": 5})],
+        [("echo", {"flag": True, "n": "abc"})],
+        [("echo", {"flag": True, "n": 5})],
+    ])
+
+    async def predicted(*args, **kwargs):
+        return next(runs)
+
+    suite._run_openai = predicted  # type: ignore[method-assign]
+    suite._process_tool_calls = lambda calls, registry=None: calls  # type: ignore[method-assign]
+    outcome = asyncio.run(
+        suite._run_case_with_stats(
+            suite.cases[0], None, "model", "openai", num_runs=3, seed=None, pass_rule=rule
+        )
+    )
+    aggregate = outcome["evaluation"]
+    assert not aggregate.passed and not aggregate.warning
+    assert aggregate.critic_error and not aggregate.unavailable
+    assert aggregate.failure_reason and "judge" not in aggregate.failure_reason.lower()
+    assert outcome["run_stats"]["passed"] == [True, False, True]
+
+
+def echo_backend():
+    backend = MagicMock()
+    backend.judge.side_effect = lambda **request: {
+        qid: JudgeVerdict(1.0, None, "fixture") for qid in request["questions"]
+    }
+    return backend
+
+
+@pytest.mark.parametrize(
+    "critic_cls,options",
+    [(IntentionCritic, {"intent": "Answer from the source"}), (GroundednessCritic, {})],
+)
+def test_standalone_rubric_prefers_supplied_evidence_over_expected(critic_cls, options):
+    # Checks what the judge is asked and shown; it cannot prove a model obeys the rubric.
+    backend = echo_backend()
+    context = {"source": "The office is in Berlin"}
+    critic = critic_cls("text", 1.0, backend=backend, context=context, **options)
+    scope = JudgeScope(user="Where is the office?")
+    critic.evaluate_in_scope("Paris", "Paris", scope)
+    request = backend.judge.call_args.kwargs
+    assert request["state"]["context"] == context
+    assert request["state"]["scope"]["user"] == "Where is the office?"
+    assert request["state"]["expected"] == "Paris"
+    instructions = request["questions"][critic.question_id]["instructions"]
+    assert "`scope` or `context`" in instructions and "authoritative" in instructions
+    assert "reference label" in instructions and "contradict" in instructions
+
+
+@pytest.mark.parametrize(
+    "critic_cls,options",
+    [(IntentionCritic, {"intent": "Answer from the source"}), (GroundednessCritic, {})],
+)
+def test_standalone_without_evidence_sends_only_expected_as_source(critic_cls, options):
+    backend = echo_backend()
+    critic = critic_cls("text", 1.0, backend=backend, **options)
+    critic.evaluate("Paris", "Paris")
+    state = backend.judge.call_args.kwargs["state"]
+    assert "context" not in state and "scope" not in state and state["expected"] == "Paris"
+    instructions = backend.judge.call_args.kwargs["questions"][critic.question_id]["instructions"]
+    assert "expected" in instructions
+
+
+def test_grouped_checks_keep_their_own_evidence_and_precedence():
+    backend = echo_backend()
+    group = JudgeCriticGroup(
+        "text",
+        1.0,
+        [
+            GroundednessCritic("text", 1.0, context={"note": "CHECK_ZERO_ONLY"}),
+            IntentionCritic("text", 1.0, intent="Cite the source", context="CHECK_ONE_ONLY"),
+        ],
+        backend,
+        context={"source": "SHARED_SOURCE"},
+    )
+    group.evaluate_in_scope("Paris", "Paris", JudgeScope(user="Where is the office?"))
+    request = backend.judge.call_args.kwargs
+    state, checks = request["state"], request["state"]["checks"]
+    assert state["context"] == {"source": "SHARED_SOURCE"} and state["scope"]["user"]
+    assert checks["check_0"]["context"] == {"note": "CHECK_ZERO_ONLY"}
+    assert checks["check_1"]["context"] == "CHECK_ONE_ONLY"
+    assert "CHECK_ONE_ONLY" not in str(checks["check_0"])
+    assert "CHECK_ZERO_ONLY" not in str(checks["check_1"])
+    assert "intent" in checks["check_1"] and "intent" not in checks["check_0"]
+    for qid, question in request["questions"].items():
+        text = question["instructions"]
+        assert f"`checks.{qid}`" in text and "takes precedence over the shared `context`" in text
+        assert "Do not use other checks' evidence" in text and "authoritative" in text
+
+
+def test_noul_llm_prompt_defines_true_probability_without_changing_score_rubric():
+    prompt = LLMFallbackBackend.SYSTEM_PROMPT
+    assert 'probability (0.0-1.0) that the criterion keyed "true" holds' in prompt
+    assert "not a general quality score" in prompt
+    assert "normalize to 0..1 using the first and last criterion as endpoints" in prompt

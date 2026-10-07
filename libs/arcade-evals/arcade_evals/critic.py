@@ -622,7 +622,10 @@ class IntentionCritic(JudgeCriticBase):
                 "type": "noul",
                 "instructions": (
                     f"Does `actual` fulfill this intent: {self.intent}? "
-                    "Use `expected` as the reference for what fulfillment looks like."
+                    "Use `expected` as the reference for what fulfillment looks like. "
+                    "If `scope` or `context` is supplied, it is authoritative evidence of the "
+                    "facts and requirements: `expected` is then only a reference label and never "
+                    "permission to assert facts that contradict that evidence."
                 ),
                 "criteria": {
                     "true": "Fulfills the intent completely with matching purpose and tone",
@@ -635,10 +638,11 @@ class IntentionCritic(JudgeCriticBase):
 @dataclass
 class GroundednessCritic(JudgeCriticBase):
     """
-    How much of actual is supported by expected-as-source (Jev Score).
+    How much of actual is supported by its source (Jev Score).
 
-    Penalizes invented or contradictory claims; paraphrase alone is not
-    penalized. Complements similarity (equivalence) and intention (purpose).
+    The source is the supplied scope or context when present, otherwise expected
+    (expected is then a reference label). Penalizes invented or contradictory
+    claims; paraphrase alone is not penalized. Complements similarity (equivalence) and intention (purpose).
     """
 
     question_id: ClassVar[str] = "groundedness"
@@ -657,8 +661,11 @@ class GroundednessCritic(JudgeCriticBase):
                 "type": "score",
                 "instructions": (
                     "How much of `actual` is supported by the facts and evidence in "
-                    "`expected`? Penalize invented claims, extrapolations, and "
-                    "contradictions; do not penalize wording differences."
+                    "`expected`? If `scope` or `context` is supplied, it is the authoritative "
+                    "source instead: judge support against it, treat `expected` only as a "
+                    "reference label, and penalize claims that contradict that evidence even "
+                    "when `expected` repeats them. Penalize invented claims, extrapolations, "
+                    "and contradictions; do not penalize wording differences."
                 ),
                 "criteria": list(self.LEVELS),
             }

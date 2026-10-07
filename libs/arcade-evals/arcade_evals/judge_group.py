@@ -81,8 +81,9 @@ class JudgeCriticGroup(Critic):
             instructions = (
                 f"For `expected` and `actual`, use the field in `checks.{qid}` if present, "
                 "otherwise the shared field. Use the shared `context` "
-                f"and `checks.{qid}` for this question's additional evidence. "
-                "Do not use other checks' evidence.\n\n"
+                f"and `checks.{qid}` for this question's additional evidence; a `context` in "
+                f"`checks.{qid}` takes precedence over the shared `context`. The shared `scope` "
+                "applies to every check. Do not use other checks' evidence.\n\n"
                 f"{question.get('instructions', '')}"
             )
             if self.instructions:

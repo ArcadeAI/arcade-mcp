@@ -191,6 +191,7 @@ def test_hint_rubric_separates_context_facts_from_benchmark_answers():
 def test_incomplete_or_invalid_judgments_cannot_pass(problem):
     gate = grader()
     answers = gate.backend.judge.return_value
+    bad = "contextScore"
     if problem == "missing":
         answers.pop("contextScore")
     elif problem == "wrong_score":
@@ -200,17 +201,27 @@ def test_incomplete_or_invalid_judgments_cannot_pass(problem):
     elif problem == "label_on_score":
         answers["contextScore"].label = "high"
     elif problem == "wrong_label":
+        bad = "complexityChoice"
         answers["complexityChoice"].label = "unknown"
     elif problem == "score_on_choice":
+        bad = "complexityChoice"
         answers["complexityChoice"].score = 0.5
     elif problem == "not_verdict":
+        bad = "humanNoul"
         answers["humanNoul"] = {"score": 0.9}
     else:
+        bad = None
         gate.backend.judge.return_value = None
     report = gate.grade(make_case())
     assert report.passed is False
     assert report.status == "invalid"
-    assert report.verdicts == {}
+    if bad is None:
+        assert report.verdicts == {}
+        return
+    # The invalid dimension is named and never reported as validated; the rest are kept.
+    assert any(reason.startswith(bad + ":") for reason in report.reasons)
+    assert set(report.verdicts) == QUESTION_IDS - {bad}
+    assert all(verdict.model == "fixed-model" for verdict in report.verdicts.values())
 
 
 def test_low_confidence_judgment_cannot_pass():
@@ -219,6 +230,46 @@ def test_low_confidence_judgment_cannot_pass():
     report = gate.grade(make_case())
     assert report.passed is False
     assert report.status == "low_confidence"
+    assert len(report.reasons) == 1 and report.reasons[0].startswith("contextScore:")
+    assert set(report.verdicts) == QUESTION_IDS
+
+
+def test_low_confidence_complexity_keeps_confident_hint_leak_signal():
+    gate = grader(hintNoul=0.95)
+    gate.backend.judge.return_value["complexityChoice"].confidence = 0.3
+    gate.backend.judge.return_value["contextScore"].confidence = 0.9
+    report = gate.grade(make_case())
+    assert report.passed is False and report.status == "low_confidence"
+    assert [reason.split(":")[0] for reason in report.reasons] == ["complexityChoice"]
+    assert report.verdicts["hintNoul"].score == pytest.approx(0.95)
+    assert report.verdicts["complexityChoice"].label == "simple"
+    assert report.verdicts["complexityChoice"].confidence == pytest.approx(0.3)
+    assert report.verdicts["contextScore"].confidence == pytest.approx(0.9)
+    assert report.verdicts["hintNoul"].backend == "custom"
+    assert report.verdicts["contextScore"].model == "fixed-model"
+
+
+def test_invalid_answer_outranks_low_confidence_and_names_both():
+    gate = grader()
+    answers = gate.backend.judge.return_value
+    answers["humanNoul"].score = 2.0
+    answers["ambiguityScore"].confidence = 0.2
+    report = gate.grade(make_case())
+    assert report.status == "invalid" and report.passed is False
+    assert [reason.split(":")[0] for reason in report.reasons] == ["humanNoul", "ambiguityScore"]
+    assert "humanNoul" not in report.verdicts
+    assert set(report.verdicts) == QUESTION_IDS - {"humanNoul"}
+
+
+@pytest.mark.parametrize("value", ["no", "false", 0, 1, None, "", []])
+def test_fail_on_trivial_must_be_bool(value):
+    with pytest.raises(TypeError, match="fail_on_trivial"):
+        CaseQualityGrader(backend=MagicMock(), fail_on_trivial=value)
+
+
+def test_fail_on_trivial_accepts_both_bools():
+    assert CaseQualityGrader(backend=MagicMock(), fail_on_trivial=True).fail_on_trivial is True
+    assert CaseQualityGrader(backend=MagicMock(), fail_on_trivial=False).fail_on_trivial is False
 
 
 @pytest.mark.parametrize("error", [JudgeError, RuntimeError])

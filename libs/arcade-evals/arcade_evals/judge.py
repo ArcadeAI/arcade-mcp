@@ -371,6 +371,8 @@ class LLMFallbackBackend:
         "You are a strict evaluation judge. Answer ONLY with a JSON object mapping "
         'each score/noul question id to {"score": <0.0-1.0>}. For score questions, '
         "normalize to 0..1 using the first and last criterion as endpoints. For "
+        "noul questions the score is the probability (0.0-1.0) that the criterion "
+        'keyed "true" holds, not a general quality score; never invert it. For '
         'choice questions return {"choice": "<one of the criteria keys>"} instead. '
         "Judge the state, not the questions."
         f"\n\n{UNTRUSTED_STATE_INSTRUCTIONS}"

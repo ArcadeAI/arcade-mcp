@@ -38,8 +38,9 @@ from arcade_evals._evalsuite._types import (
     NamedExpectedToolCall,
     _resolve_seed_spec,
 )
-from arcade_evals.critic import NoneCritic
+from arcade_evals.critic import JudgeCriticBase, NoneCritic
 from arcade_evals.judge import JudgeScope
+from arcade_evals.judge_group import JudgeCriticGroup
 from arcade_evals.weights import validate_and_normalize_critic_weights
 
 if TYPE_CHECKING:
@@ -50,7 +51,12 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-_WITHHELD_STATUSES = frozenset({"unavailable", "low_confidence", "error"})
+# Judge verdicts that were not obtained or not trusted.
+_JUDGE_WITHHELD_STATUSES = frozenset({"unavailable", "low_confidence"})
+# A traditional (non-judge) critic raised while evaluating an argument.
+_CRITIC_ERROR_STATUS = "critic_error"
+_JUDGE_WITHHELD_REASON = "A judge was unavailable or withheld its verdict."
+_CRITIC_ERROR_REASON = "A critic raised an error while evaluating an argument."
 
 # Re-export for backwards compatibility (these are now defined in _types.py)
 __all__ = [
@@ -77,6 +83,9 @@ class EvaluationResult:
         results: A list of dictionaries containing the results for each critic.
         failure_reason: If the evaluation failed completely due to settings in the rubric,
                         this field contains the reason for failure.
+        unavailable: A judge critic was unavailable, low-confidence, or incomplete.
+        critic_error: A traditional critic raised while evaluating an argument. The
+                      case fails, and the critic's weight stays in the denominator.
     """
 
     score: float = 0.0
@@ -85,6 +94,7 @@ class EvaluationResult:
     results: list[dict[str, Any]] = field(default_factory=list)
     failure_reason: str | None = None
     unavailable: bool = False
+    critic_error: bool = False
 
     @property
     def fail(self) -> bool:
@@ -156,6 +166,15 @@ class EvaluationResult:
 # are imported from _types (see top-level imports) to keep a single source of truth.
 
 
+def _withheld_reason(unavailable: bool, critic_error: bool) -> str:
+    reasons = []
+    if unavailable:
+        reasons.append(_JUDGE_WITHHELD_REASON)
+    if critic_error:
+        reasons.append(_CRITIC_ERROR_REASON)
+    return " ".join(reasons)
+
+
 def _compute_mean_std(values: list[float]) -> tuple[float, float]:
     if not values:
         return 0.0, 0.0
@@ -178,7 +197,7 @@ def _resolve_pass_rule(
         )
     if not run_evaluations:
         return False, False
-    if any(ev.unavailable for ev in run_evaluations):
+    if any(ev.unavailable or ev.critic_error for ev in run_evaluations):
         return False, False
     if pass_rule == PASS_RULE_MEAN:
         passed = mean_score >= rubric.fail_threshold
@@ -386,8 +405,10 @@ class EvalCase:
                     )
                     total_score += result["score"]
                     total_weight += critic.resolved_weight
-                    if result.get("status") in _WITHHELD_STATUSES:
+                    if result.get("status") in _JUDGE_WITHHELD_STATUSES:
                         evaluation_result.unavailable = True
+                    elif result.get("status") == _CRITIC_ERROR_STATUS:
+                        evaluation_result.critic_error = True
                     evaluation_result.add(
                         critic.critic_field,
                         result,
@@ -399,17 +420,20 @@ class EvalCase:
         # Compute the final score
         evaluation_result.compute_final_score(total_weight)
 
-        if evaluation_result.unavailable:
-            evaluation_result.failure_reason = "A judge was unavailable or withheld its verdict."
+        withheld = evaluation_result.unavailable or evaluation_result.critic_error
+        if withheld:
+            evaluation_result.failure_reason = _withheld_reason(
+                evaluation_result.unavailable, evaluation_result.critic_error
+            )
 
-        # Set pass/fail and warning status; unavailable judgments never pass or warn
+        # Set pass/fail and warning status; withheld judgments and critic errors never
+        # pass or warn
         evaluation_result.passed = (
-            not evaluation_result.unavailable
-            and evaluation_result.score >= self.rubric.fail_threshold
+            not withheld and evaluation_result.score >= self.rubric.fail_threshold
         )
         evaluation_result.warning = (
             not evaluation_result.passed
-            and not evaluation_result.unavailable
+            and not withheld
             and evaluation_result.score >= self.rubric.warn_threshold
         )
 
@@ -482,10 +506,18 @@ class EvalCase:
                     scope,
                 )
             except Exception:
-                logger.warning(
-                    "Critic evaluation failed for field '%s': unavailable", critic.critic_field
-                )
-                memo[key] = {"status": "error", "judged": False, "match": False, "score": 0.0}
+                # Never log exception text: it may carry argument or provider data.
+                if isinstance(critic, (JudgeCriticBase, JudgeCriticGroup)):
+                    logger.warning("Judge for field '%s' failed: unavailable", critic.critic_field)
+                    status = "unavailable"
+                else:
+                    logger.warning(
+                        "%s for field '%s' raised during evaluation: case fails closed",
+                        type(critic).__name__,
+                        critic.critic_field,
+                    )
+                    status = _CRITIC_ERROR_STATUS
+                memo[key] = {"status": status, "judged": False, "match": False, "score": 0.0}
         return memo[key]
 
 
@@ -971,13 +1003,20 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
         else:
             aggregate_failure_reason = None
 
+        any_unavailable = any(ev.unavailable for ev in run_evaluations)
+        any_critic_error = any(ev.critic_error for ev in run_evaluations)
+        if (any_unavailable or any_critic_error) and aggregate_failure_reason is None:
+            # A withheld run fails the aggregate even when the last run was clean.
+            aggregate_failure_reason = _withheld_reason(any_unavailable, any_critic_error)
+
         aggregate = EvaluationResult(
             score=mean_score,
             passed=passed,
             warning=warning,
             results=run_evaluations[-1].results if run_evaluations else [],
             failure_reason=aggregate_failure_reason,
-            unavailable=any(ev.unavailable for ev in run_evaluations),
+            unavailable=any_unavailable,
+            critic_error=any_critic_error,
         )
 
         run_stats = {
