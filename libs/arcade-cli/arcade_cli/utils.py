@@ -387,6 +387,10 @@ class CLIError(Exception):
         return self.message
 
 
+class StrongAuthenticationRequiredError(CLIError):
+    """Arcade refused the sign-in for not using strong authentication, and the operator was told."""
+
+
 def exit_if_strong_authentication_required(
     source: httpx.Response | BaseException | None,
 ) -> None:
@@ -395,6 +399,9 @@ def exit_if_strong_authentication_required(
     The refused sign-in can never become strong, so its tokens are forgotten:
     `arcade login` then signs in afresh instead of reporting that it already has.
     """
+    if isinstance(source, StrongAuthenticationRequiredError):
+        # Already explained; commands that catch every error hand it back here.
+        raise source
     refusal = from_response(source) if isinstance(source, httpx.Response) else from_error(source)
     if refusal is None:
         return
@@ -407,7 +414,7 @@ def exit_if_strong_authentication_required(
     if refusal.uri:
         console.print(f"Learn more: {escape(refusal.uri)}")
     console.print("You've been logged out. Run 'arcade login' to log in again.", style="dim")
-    raise CLIError(message)
+    raise StrongAuthenticationRequiredError(message)
 
 
 def handle_cli_error(

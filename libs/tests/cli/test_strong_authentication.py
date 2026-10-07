@@ -27,7 +27,11 @@ from arcade_cli.strong_authentication import (
     from_error,
     from_response,
 )
-from arcade_cli.utils import CLIError, handle_cli_error
+from arcade_cli.utils import (
+    CLIError,
+    exit_if_strong_authentication_required,
+    handle_cli_error,
+)
 from arcade_core.auth_tokens import CLIConfig, TokenResponse
 from arcade_core.config_model import AuthConfig, Config, UserConfig
 from arcadepy import AuthenticationError
@@ -150,6 +154,25 @@ class TestReportingTheRefusal:
 
         assert STRONG_AUTHENTICATION_REQUIRED in output.getvalue()
 
+    def test_a_reported_refusal_is_not_reported_again(
+        self, signed_in: Path, output: StringIO
+    ) -> None:
+        # Commands that catch every error hand the refusal back to
+        # handle_cli_error, chained to the response it was found in.
+        with pytest.raises(CLIError) as reported:
+            try:
+                _refusal().raise_for_status()
+            except httpx.HTTPStatusError as e:
+                exit_if_strong_authentication_required(e)
+        output.truncate(0)
+        output.seek(0)
+
+        with pytest.raises(CLIError) as again:
+            handle_cli_error("Failed to deploy server", reported.value, debug=False)
+
+        assert again.value is reported.value
+        assert output.getvalue() == ""
+
     def test_leaves_other_errors_alone(self, signed_in: Path, output: StringIO) -> None:
         other = httpx.Response(401, request=REQUEST)
         with pytest.raises(CLIError):
@@ -205,7 +228,7 @@ class TestLoggingIn:
         with pytest.raises(OAuthLoginError) as refused:
             exchange_code_for_tokens(client, "code", "http://127.0.0.1:9905/callback", "verifier")
 
-        assert str(refused.value) == f"Login failed: {DESCRIPTION}"
+        assert str(refused.value) == DESCRIPTION
 
     def test_a_refused_code_exchange_shows_its_error_uri(self) -> None:
         client = _oauth_client({
@@ -383,4 +406,4 @@ class TestLoggingInWithoutADescription:
         with pytest.raises(OAuthLoginError) as refused:
             exchange_code_for_tokens(client, "code", "http://127.0.0.1:9905/callback", "verifier")
 
-        assert str(refused.value) == "Login failed: invalid_grant"
+        assert str(refused.value) == "invalid_grant"

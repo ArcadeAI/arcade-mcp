@@ -178,7 +178,7 @@ def exchange_code_for_tokens(
             code_verifier=code_verifier,
         )
     except OAuthError as e:
-        message = f"Login failed: {e.description or e.error}"
+        message = e.description or e.error
         if error_uri:
             message += f"\nLearn more: {error_uri}"
         raise OAuthLoginError(message) from e
@@ -840,7 +840,7 @@ def perform_oauth_login(
     whoami = fetch_whoami(coordinator_url, tokens.access_token)
 
     if whoami.requires_strong_authentication:
-        raise OAuthLoginError(f"Login failed: {STRONG_AUTHENTICATION_REQUIRED}")
+        raise OAuthLoginError(STRONG_AUTHENTICATION_REQUIRED)
 
     # Validate org/project exist
     if not whoami.get_selected_org():
