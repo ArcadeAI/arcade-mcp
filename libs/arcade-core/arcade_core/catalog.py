@@ -1318,10 +1318,8 @@ def _declared_validation_metadata(param: inspect.Parameter) -> list[Any]:
     """
     if isinstance(param.default, FieldInfo):
         field_info = FieldInfo.from_annotated_attribute(param.annotation, param.default)
-    elif get_origin(param.annotation) is Annotated:
-        field_info = FieldInfo.from_annotation(param.annotation)
     else:
-        return []
+        field_info = FieldInfo.from_annotation(param.annotation)
     return [
         item
         for item in field_info.metadata
@@ -1330,10 +1328,7 @@ def _declared_validation_metadata(param: inspect.Parameter) -> list[Any]:
 
 
 def _core_schema_kind(field_type: Any) -> str:
-    schema = TypeAdapter(field_type).core_schema
-    while schema["type"] == "definitions":
-        schema = schema["schema"]
-    return str(schema["type"])
+    return str(TypeAdapter(field_type).core_schema["type"])
 
 
 def _applicable_validation_metadata(
@@ -1475,7 +1470,7 @@ def create_func_models(func: Callable) -> tuple[type[BaseModel], type[BaseModel]
                 _validate_as_declared_type(item, field_type) for item in validation_metadata
             ]
         if validation_metadata:
-            field_type = Annotated[(field_type, *validation_metadata)]
+            field_type = Annotated[(field_type,) + tuple(validation_metadata)]
 
         # extract_*_param_info unwraps Optional[T] to T before this point, so
         # re-wrap when the original annotation permitted None — otherwise the

@@ -56,6 +56,11 @@ class Window(TypedDict):
     end: int
 
 
+class Schedule(TypedDict):
+    name: str
+    window: Window
+
+
 def _require_ordered(window: dict) -> dict:
     if window["start"] > window["end"]:
         raise ValueError("start must not be after end")
@@ -429,6 +434,52 @@ class TestValidatorsOnTypedDictParams:
         output = await _run(fn, mt, value={"start": 1, "end": 2})
         assert output.error is None
         assert output.value == {"start": 1, "end": 2}
+
+
+class TestValidatorShapesOnTypedDictParams:
+    @pytest.mark.parametrize(
+        "validator",
+        [
+            AfterValidator(lambda window, info: window),
+            PlainValidator(lambda window, info: window),
+            WrapValidator(lambda window, handler, info: handler(window)),
+        ],
+        ids=["after", "plain", "wrap"],
+    )
+    @pytest.mark.asyncio
+    async def test_validators_taking_info_receive_it(self, validator):
+        def probe(value: Annotated[Window, validator, "Window"]) -> dict:
+            """Probe."""
+            return dict(value)
+
+        fn = tool(probe)
+        mt = _probe(fn)
+        output = await _run(fn, mt, value={"start": 1, "end": 2})
+        assert output.error is None
+        assert output.value == {"start": 1, "end": 2}
+
+    @pytest.mark.asyncio
+    async def test_builtin_callable_as_validator(self):
+        def probe(value: Annotated[Window, AfterValidator(dict), "Window"]) -> dict:
+            """Probe."""
+            return dict(value)
+
+        fn = tool(probe)
+        mt = _probe(fn)
+        output = await _run(fn, mt, value={"start": 1, "end": 2})
+        assert output.error is None
+        assert output.value == {"start": 1, "end": 2}
+
+    def test_constraint_on_list_of_nested_typeddicts(self):
+        def probe(value: Annotated[list[Schedule], Field(max_length=1), "Schedules"]) -> int:
+            """Probe."""
+            return len(value)
+
+        mt = _probe(tool(probe))
+        schedule = {"name": "a", "window": {"start": 1, "end": 2}}
+        assert len(mt.input_model(value=[schedule]).value) == 1
+        with pytest.raises(ValidationError):
+            mt.input_model(value=[schedule, schedule])
 
 
 class TestRoutingSettingsIgnored:
