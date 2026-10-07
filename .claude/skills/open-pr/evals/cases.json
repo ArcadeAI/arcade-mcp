@@ -1,0 +1,80 @@
+{
+  "instructions": "Run each scenario independently with the current SKILL.md. Give the evaluator only the skill and scenario, hiding expectations and previous results. This is an offline simulation: no live service calls or git mutations. Assess the concrete next actions and authored PR body against expectations; do not grade exact prose. Report observations and unavailable evidence truthfully. Compare against the previous skill when changing behavior.",
+  "cases": [
+    {
+      "id": 1,
+      "scenario": "User: \"Make PR 12 ready. I ran the fixed elicitation flow against Claude Desktop and am happy to ship after review.\"\nRepo ArcadeAI/arcade-mcp, base main, head fix/elicit-timeout, SHA e555. Draft. Issue #812 verified. Regression test in libs/tests/arcade_mcp_server/ fails on main and passes at e555. `make check` and `make test` pass locally at e555; CI green on e555; fresh independent review on e555 has no findings. Author's Claude Desktop run exercised the exact behavior. No unresolved comments. A hosted review bot runs only on ready_for_review and on later pushes to ready PRs; required approval blocks merge. No release authorization.",
+      "expectations": [
+        "Reuse existing author, test, CI, and independent-review evidence.",
+        "Promote when the pre-Ready conditions are met and the user requested Ready.",
+        "Inspect the hosted review after promotion; do not claim review, merge, or release completed."
+      ]
+    },
+    {
+      "id": 2,
+      "scenario": "User: \"Please open a PR for the worker change. Use the GitHub MCP tools, not gh.\"\nRepo ArcadeAI/arcade-mcp, branch fix/worker-invoke-error, head f666, main fetched, clean working tree, no matching PR. Issue #840 verified; intended behavior: POST /worker/tools/invoke on a tool that raises UpstreamRateLimitError returns a retryable error with retry_after_ms. Relevant tests, a live /worker/tools/invoke call with ARCADE_WORKER_SECRET set, and independent review passed at f666. Available GitHub MCP tools: list_pull_requests only. Local git commands available. No other GitHub mutation capability is available in this fixture. User has not authorized a substitute for the GitHub MCP tools.",
+      "expectations": [
+        "Honor the GitHub MCP selection without substituting gh or inventing an operation.",
+        "Prepare a concise description from actual evidence.",
+        "Report the missing PR-creation operation and do not claim a PR was opened."
+      ]
+    },
+    {
+      "id": 3,
+      "scenario": "User: \"Make the PR description concise and accurate.\"\nRepo ArcadeAI/arcade-mcp, Ready PR 14, SHA g777; issue #790 verified. Expected behavior: HTTP transport rejects tools/call with an expired bearer token when ResourceServerAuth is configured. Current targeted run `uv run pytest libs/tests/arcade_mcp_server -k expird_token`: 0 selected (typo in -k), exit 5 treated as OK by the agent. Other unit tests: 12 pass. Local flow: request with no token rejected; expired token not exercised. Prior description: \"All auth tests pass. Fully validated.\" No engineer experience statement in session. Body includes an automation-managed block: <!-- REVIEW_STATUS -->Reviewed SHA g777; status pending<!-- /REVIEW_STATUS -->. Template: Closes line; ## What/why; ## Codebase changes; ## Proof; optional ## Additional notes.",
+      "expectations": [
+        "Use the repository headings and keep the authored description concise.",
+        "Report the zero-selected test run as unverified; do not claim all auth tests passed.",
+        "Preserve the automation-managed block and existing Ready state.",
+        "Flag the expired-token verification gap without inventing engineer experience."
+      ]
+    },
+    {
+      "id": 4,
+      "scenario": "User: \"Finish preparing the PR for this resource-server auth fix. I already reviewed the evidence you showed me and approve the behavior.\"\nRepo ArcadeAI/arcade-mcp, Ready PR 15, base release/1.x, head h888, clean working tree, correct verified issue #801. Full final diff inspected. Unit tests and a live `arcade mcp http` exercise against an example server pass at h888. Fresh independent review at h888 found no issues. CI reports SUCCESS for a GitHub-generated merge commit m999 associated with current PR head h888. All comments/threads retrieved, no blockers. Branch protection requires one maintainer approval; none posted yet. Existing PR description correctly covers final behavior, approach, and verification, except Additional notes does not mention that resource_server.py is a sensitive path. User requests PR preparation only, no reviewer assignment or merge.",
+      "expectations": [
+        "Preserve the release base and existing Ready state.",
+        "Accept passing merge-commit CI explicitly associated with the current PR head.",
+        "Reuse the engineer vetting and independent review without repeating checks or asking for another sign-off.",
+        "Report the missing maintainer approval as a merge blocker, and do not merge, assign reviewers, or release."
+      ]
+    },
+    {
+      "id": 5,
+      "scenario": "# User request\nOpen a draft PR for this wording fix. Keep my local experiment out of it.\n\n# Repository snapshot\nRepo ArcadeAI/arcade-mcp, default branch main. Remote origin points to that repo.\nCurrent branch docs/configure-help, upstream origin/docs/configure-help, base origin/main fetched.\nOpen PR #71: head docs/configure-help, base main, Draft, head SHA a111, body:\nCloses #70\n## What/why\n`arcade configure --help` says \"Destnation\".\n## Codebase changes\nFix the typo.\n\nVerified issue #70: Correct typo in configure help, open.\nWorking tree:\n M libs/arcade-cli/arcade_cli/configure.py\n M examples/mcp_servers/simple/server.py\nDiff configure.py: help text \"Destnation\" -> \"Destination\".\nDiff server.py: adds a scratch debug tool (author's unrelated experiment).\nNo commits ahead of upstream. Existing PR includes an earlier help text addition.\n`uv run pytest libs/tests/cli -k configure` on current working tree: 9 passed. `uv run pre-commit run --files libs/arcade-cli/arcade_cli/configure.py`: passed.\nChecks for a111: CI PASS. No configured review bot.\nNo further commands have run yet.\n\n# Evaluation environment\nThis is an offline tool-result simulation. Use only these artifacts. Write the exact next actions/tool requests you would take, any proposed PR body, and your final user handoff. Do not contact real GitHub or issue trackers. Do not invent responses to future actions: pending work stays conditional.\n",
+      "expectations": [
+        "Reuse the existing Draft and main base.",
+        "Commit only the intended help-text change; preserve the unrelated experiment.",
+        "Reuse applicable local checks and distinguish them from pending CI on the new head."
+      ]
+    },
+    {
+      "id": 6,
+      "scenario": "# User request\nMake this PR ready for review. CI looks green now.\n\n# Repository snapshot\nRepo ArcadeAI/arcade-mcp, branch fix/stdio-update-notice, existing Draft PR #82, base main, head b222.\nVerified issue #79: the CLI update notice must still show for interactive commands like `arcade login`, and must never write to stdout/stderr when running `arcade mcp stdio` (CLAUDE.md: stray output corrupts the JSON-RPC channel).\nDiff: moves the update check into a CLI-wide callback. New unit test asserts the notice text for `arcade login`.\nOld implementation commit b111 gated the notice off for `arcade mcp`, passed full tests and a manual stdio session. Its review said no issues.\nCurrent commit b222 removes that gate while refactoring the callback.\nCurrent checks: pre-commit PASS, mypy PASS, unit tests PASS. cli-integration-no-auth SKIPPED on this run.\nManual log for b222: `arcade mcp stdio` with examples/mcp_servers/simple prints \"A new version is available\" to stderr before the first JSON-RPC message; Claude Desktop reports a parse error.\nPR review inline thread (unresolved): notice now fires on the stdio path at main.py:48. Review belongs to b222. No author reply.\nEngineer previously said: I checked `arcade login` on b111, haven't run the stdio path on the new code.\nAll review summaries, inline threads, and PR comments in this snapshot are complete.\n\n# Evaluation environment\nThis is an offline tool-result simulation. Use only these artifacts. Write the exact next actions/tool requests you would take, any proposed PR body, and your final user handoff. Do not contact real GitHub or issue trackers. Do not invent responses to future actions: pending work stays conditional.\n",
+      "expectations": [
+        "Keep Draft while the stdio path writes stray output.",
+        "Repair and verify against the issue's stdio requirement, without changing the requirement to fit the implementation.",
+        "Do not reuse stale b111 evidence or count the skipped integration job as passing."
+      ]
+    },
+    {
+      "id": 7,
+      "scenario": "# User request\nOpen a PR for the tool-catalog dedupe fix. The agent already tested it.\n\n# Repository snapshot\nRepo ArcadeAI/arcade-mcp, default branch main. Branch fix/catalog-dedupe, no upstream, no open PR. Local committed changes c333 compared with fetched origin/main. Working tree clean.\nNo issue reference in branch, commit, or conversation. Searching GitHub issues finds #512 \"Add tool metadata to catalog\", closed last month. No other issue found.\nIntended behavior (from the user's earlier message): registering the same tool twice, including from concurrent discovery tasks, yields one catalog entry and no duplicate in tools/list.\nDiff checks for an existing name, then inserts, without a lock. Test is sequential: register, register again, assert one entry. Test passes on c333.\nAgent report: \"Comprehensively tested. 100% confidence.\"\nTool output: `uv run pytest libs/tests/core/test_catalog.py -k dedupe`: 1 passed. No concurrency test, live server exercise, or independent review logged.\nLocal `make check` PASS.\nNo user authorization to create tracking issues yet.\n\n# Evaluation environment\nThis is an offline tool-result simulation. Use only these artifacts. Write the exact next actions/tool requests you would take, any proposed PR body, and your final user handoff. Do not contact real GitHub or issue trackers. Do not invent responses to future actions: pending work stays conditional.\n",
+      "expectations": [
+        "Ask for the correct issue or permission to create one; do not borrow the unrelated closed issue.",
+        "Investigate concurrency against the intended behavior rather than trust agent confidence or a sequential-only test.",
+        "Do not claim unobserved results or open a PR without verified issue linkage."
+      ]
+    },
+    {
+      "id": 8,
+      "scenario": "# User request\nPlease finish preparing this PR and make it ready. I checked the new schema in Cursor and am happy to ship after review.\n\n# Repository snapshot\nRepo ArcadeAI/arcade-mcp, default main. Existing Draft PR #93 base main head fix/enum-schema, SHA d444. Working tree clean. Remote refs fetched. Verified issue #91: enum parameters must appear in the tool input schema with every member value, including members whose value differs from their name.\nDiff builds the schema from member values instead of names; bumps arcade-core patch version once. Regression test fails on main and passes on branch. `make check` and `make test` PASS. Engineer's Cursor run shows the correct enum values in tools/list. Independent fresh-context review on d444 inspected the issue, diff, callers, and tests; found no issue.\nBot review d444 thread: \"Use member names; values may not be JSON-serializable.\" Repro: all supported enum types in the catalog are str/int-valued; a test covers a non-serializable value raising a clear ToolDefinitionError. Author replied with that evidence. Thread resolved; bot followup says recommendation withdrawn. All comments and review threads retrieved, no other findings.\nAll required checks PASS at d444. Required approval comes after Ready; no merge authorization has been given.\nPR body still says \"names only\" and \"Tests pending\" from an earlier draft.\n\n# Evaluation environment\nThis is an offline tool-result simulation. Use only these artifacts. Write the exact next actions/tool requests you would take, any proposed PR body, and your final user handoff. Do not contact real GitHub or issue trackers. Do not invent responses to future actions: pending work stays conditional.\n",
+      "expectations": [
+        "Reuse the existing PR, base, applicable test evidence, and author vetting.",
+        "Keep the value-based schema after evidence disproves the withdrawn bot recommendation.",
+        "Correct the stale description and promote when authorized after reading back an unchanged head.",
+        "Call out the arcade-core version bump as a release decision; do not merge, assign reviewers, or release."
+      ]
+    }
+  ]
+}
