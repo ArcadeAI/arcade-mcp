@@ -2,27 +2,75 @@
 Validation rules a tool author declares on a parameter must survive into the
 input model that the catalog generates, and reach the executor.
 
-Covers ``Field`` constraints (``ge``, ``le``, ``max_length``, ``strict``) and
-Pydantic validators carried in the parameter's ``Annotated`` metadata. Field
-settings that affect routing rather than validation (``alias``, ``exclude``)
-must not change the published argument name or what the tool receives.
+Covers constraints (``Field(ge=...)``, bare ``annotated_types`` markers,
+``StringConstraints``, constrained aliases like ``PositiveInt``, and
+``= Field(...)`` defaults) and Pydantic validators. Field settings that affect
+routing rather than validation (``alias``, ``exclude``) must not change the
+published argument name or what the tool receives.
+
+These rules are enforced on the generated input model only; they are not yet
+carried into the published tool definition or MCP ``inputSchema``.
 """
 
+import logging
 from typing import Annotated, Optional
 
 import pytest
+from annotated_types import Ge
 from arcade_core.catalog import ToolCatalog
 from arcade_core.errors import ErrorKind
 from arcade_core.executor import ToolExecutor
 from arcade_core.schema import ToolContext
 from arcade_tdk import tool
-from pydantic import AfterValidator, Field, PlainSerializer, ValidationError, WrapSerializer
+from pydantic import (
+    AfterValidator,
+    BeforeValidator,
+    Field,
+    PlainSerializer,
+    PlainValidator,
+    PositiveInt,
+    Strict,
+    StringConstraints,
+    ValidationError,
+    WrapSerializer,
+    WrapValidator,
+    conint,
+)
+from typing_extensions import TypedDict
+
+SECRET = "sk-live-SUPERSECRET-9999"
 
 
 def _require_odd(value: int) -> int:
     if value % 2 == 0:
         raise ValueError("Count must be odd")
     return value
+
+
+def _raise_type_error(value: str) -> str:
+    raise TypeError(f"cannot handle {value}")
+
+
+class Window(TypedDict):
+    start: int
+    end: int
+
+
+def _require_ordered(window: dict) -> dict:
+    if window["start"] > window["end"]:
+        raise ValueError("start must not be after end")
+    return window
+
+
+def _sort_window(window: dict) -> dict:
+    low, high = sorted((window["start"], window["end"]))
+    return {"start": low, "end": high}
+
+
+def _require_non_empty(windows: list) -> list:
+    if not all(isinstance(window, dict) for window in windows):
+        raise ValueError("windows must be dicts")
+    return windows
 
 
 @tool
@@ -63,14 +111,59 @@ def odd_count(value: Annotated[int, AfterValidator(_require_odd), "Odd count"]) 
     return value
 
 
+@tool
+def failing_validator(value: Annotated[str, AfterValidator(_raise_type_error), "Value"]) -> str:
+    """Return the value; its validator always raises TypeError."""
+    return value
+
+
+@tool
+def ordered_window(value: Annotated[Window, AfterValidator(_require_ordered), "Window"]) -> int:
+    """Return the window length."""
+    return value["end"] - value["start"]
+
+
+@tool
+def sorted_window(value: Annotated[Window, AfterValidator(_sort_window), "Window"]) -> dict:
+    """Return the window with its bounds sorted."""
+    return dict(value)
+
+
+@tool
+def window_list(
+    value: Annotated[list[Window], AfterValidator(_require_non_empty), "Windows"],
+) -> int:
+    """Return the number of windows."""
+    return len(value)
+
+
 catalog = ToolCatalog()
-for fn in (bounded_count, optional_count, plain_count, strict_count, short_code, odd_count):
+for fn in (
+    bounded_count,
+    optional_count,
+    plain_count,
+    strict_count,
+    short_code,
+    odd_count,
+    failing_validator,
+    ordered_window,
+    sorted_window,
+    window_list,
+):
     catalog.add_tool(fn, "DeclaredValidation")
 
 
 def _materialized(fn):
     td = catalog.find_tool_by_func(fn)
     return catalog.get_tool(td.get_fully_qualified_name())
+
+
+def _probe(fn):
+    """Register a tool in its own catalog and return the materialized tool."""
+    local_catalog = ToolCatalog()
+    local_catalog.add_tool(fn, "Probe")
+    td = local_catalog.find_tool_by_func(fn)
+    return local_catalog.get_tool(td.get_fully_qualified_name())
 
 
 async def _run(fn, mt, **kwargs):
@@ -95,7 +188,7 @@ class TestFieldConstraintsEnforced:
         mt = _materialized(bounded_count)
         assert mt.input_model(value=3).value == 3
 
-    def test_bounds_rendered_in_input_schema(self):
+    def test_bounds_present_on_internal_input_model(self):
         mt = _materialized(bounded_count)
         schema = mt.input_model.model_json_schema()["properties"]["value"]
         assert schema["minimum"] == 0
@@ -121,6 +214,106 @@ class TestFieldConstraintsEnforced:
         output = await _run(bounded_count, mt, value=6)
         assert output.error is not None
         assert output.error.kind == ErrorKind.TOOL_RUNTIME_BAD_INPUT_VALUE
+
+
+class TestConstraintDeclarationForms:
+    """Every way Pydantic lets an author declare a constraint is enforced."""
+
+    def test_bare_annotated_types_marker(self):
+        def probe(value: Annotated[int, Ge(0), "Count"]) -> int:
+            """Probe."""
+            return value
+
+        mt = _probe(tool(probe))
+        assert mt.input_model(value=0).value == 0
+        with pytest.raises(ValidationError):
+            mt.input_model(value=-1)
+
+    def test_constrained_alias(self):
+        def probe(value: Annotated[PositiveInt, "Count"]) -> int:
+            """Probe."""
+            return value
+
+        mt = _probe(tool(probe))
+        assert mt.input_model(value=1).value == 1
+        with pytest.raises(ValidationError):
+            mt.input_model(value=0)
+
+    def test_conint(self):
+        def probe(value: Annotated[conint(ge=0), "Count"]) -> int:  # type: ignore[valid-type]
+            """Probe."""
+            return value
+
+        mt = _probe(tool(probe))
+        with pytest.raises(ValidationError):
+            mt.input_model(value=-1)
+
+    def test_string_constraints(self):
+        def probe(value: Annotated[str, StringConstraints(max_length=2), "Code"]) -> str:
+            """Probe."""
+            return value
+
+        mt = _probe(tool(probe))
+        assert mt.input_model(value="ab").value == "ab"
+        with pytest.raises(ValidationError):
+            mt.input_model(value="abc")
+
+    def test_bare_strict_marker(self):
+        def probe(value: Annotated[int, Strict(), "Count"]) -> int:
+            """Probe."""
+            return value
+
+        mt = _probe(tool(probe))
+        with pytest.raises(ValidationError):
+            mt.input_model(value="5")
+
+    def test_field_given_as_signature_default(self):
+        def probe(value: Annotated[int, "Count"] = Field(3, ge=0)) -> int:
+            """Probe."""
+            return value
+
+        mt = _probe(tool(probe))
+        assert mt.input_model(value=1).value == 1
+        with pytest.raises(ValidationError):
+            mt.input_model(value=-1)
+
+
+class TestMisappliedConstraintsDropped:
+    """A constraint that does not apply to the parameter's type is dropped with a
+    warning when the tool is registered, rather than failing every call."""
+
+    def test_numeric_bound_on_string_is_dropped(self, caplog):
+        def probe(value: Annotated[str, Field(gt=0), "Value"]) -> str:
+            """Probe."""
+            return value
+
+        with caplog.at_level(logging.WARNING, logger="arcade_core.catalog"):
+            mt = _probe(tool(probe))
+        assert mt.input_model(value=SECRET).value == SECRET
+        assert any("gt" in record.getMessage() for record in caplog.records)
+
+    def test_applicable_constraint_beside_misapplied_one_is_kept(self, caplog):
+        def probe(value: Annotated[str, Field(gt=0, max_length=3), "Value"]) -> str:
+            """Probe."""
+            return value
+
+        with caplog.at_level(logging.WARNING, logger="arcade_core.catalog"):
+            mt = _probe(tool(probe))
+        assert mt.input_model(value="abc").value == "abc"
+        with pytest.raises(ValidationError):
+            mt.input_model(value="abcd")
+
+    @pytest.mark.asyncio
+    async def test_valid_call_succeeds_through_executor(self):
+        def probe(value: Annotated[str, Field(gt=0), "Value"]) -> str:
+            """Probe."""
+            return value
+
+        fn = tool(probe)
+        mt = _probe(fn)
+        output = await _run(fn, mt, value="anything")
+        assert output.error is None
+        assert output.value == "anything"
 
 
 class TestIntegerCoercionUnchanged:
@@ -159,6 +352,83 @@ class TestDeclaredValidatorsEnforced:
         accepted = await _run(odd_count, mt, value=3)
         assert accepted.error is None
         assert accepted.value == 3
+
+    @pytest.mark.asyncio
+    async def test_validator_message_reaches_agent_as_written(self):
+        mt = _materialized(odd_count)
+        output = await _run(odd_count, mt, value=2)
+        assert "Count must be odd" in output.error.message
+
+    @pytest.mark.asyncio
+    async def test_validator_raising_other_exception_is_sanitized_bad_input(self):
+        mt = _materialized(failing_validator)
+        output = await _run(failing_validator, mt, value=SECRET)
+        assert output.error is not None
+        assert output.error.kind == ErrorKind.TOOL_RUNTIME_BAD_INPUT_VALUE
+        assert "TypeError" in (output.error.developer_message or "")
+        assert output.error.stacktrace is None
+        assert SECRET not in output.model_dump_json()
+
+
+class TestValidatorsOnTypedDictParams:
+    """Validators on a TypedDict parameter see the dict the author declared,
+    even though the catalog validates TypedDicts through a generated model."""
+
+    @pytest.mark.asyncio
+    async def test_validator_receives_dict_and_accepts_valid_input(self):
+        mt = _materialized(ordered_window)
+        output = await _run(ordered_window, mt, value={"start": 1, "end": 4})
+        assert output.error is None
+        assert output.value == 3
+
+    @pytest.mark.asyncio
+    async def test_validator_rejection_is_bad_input(self):
+        mt = _materialized(ordered_window)
+        output = await _run(ordered_window, mt, value={"start": 4, "end": 1})
+        assert output.error is not None
+        assert output.error.kind == ErrorKind.TOOL_RUNTIME_BAD_INPUT_VALUE
+        assert "start must not be after end" in output.error.message
+
+    @pytest.mark.asyncio
+    async def test_validator_return_value_reaches_tool(self):
+        mt = _materialized(sorted_window)
+        output = await _run(sorted_window, mt, value={"start": 9, "end": 2})
+        assert output.error is None
+        assert output.value == {"start": 2, "end": 9}
+
+    def test_validator_result_still_forbids_unknown_keys(self):
+        mt = _materialized(ordered_window)
+        with pytest.raises(ValidationError):
+            mt.input_model(value={"start": 1, "end": 2, "extra": 3})
+
+    @pytest.mark.asyncio
+    async def test_validator_on_list_of_typeddicts_receives_dicts(self):
+        mt = _materialized(window_list)
+        output = await _run(window_list, mt, value=[{"start": 1, "end": 2}])
+        assert output.error is None
+        assert output.value == 1
+
+    @pytest.mark.parametrize(
+        "validator",
+        [
+            BeforeValidator(lambda window: window),
+            PlainValidator(lambda window: window),
+            WrapValidator(lambda window, handler: handler(window)),
+        ],
+        ids=["before", "plain", "wrap"],
+    )
+    @pytest.mark.asyncio
+    async def test_other_validator_modes_keep_dict_contract(self, validator):
+        def probe(value: Annotated[Window, validator, "Window"]) -> dict:
+            """Probe."""
+            assert isinstance(value, dict)
+            return dict(value)
+
+        fn = tool(probe)
+        mt = _probe(fn)
+        output = await _run(fn, mt, value={"start": 1, "end": 2})
+        assert output.error is None
+        assert output.value == {"start": 1, "end": 2}
 
 
 class TestRoutingSettingsIgnored:

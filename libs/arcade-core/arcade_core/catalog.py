@@ -24,7 +24,18 @@ from typing import (
     get_type_hints,
 )
 
-from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, create_model, model_serializer
+from annotated_types import Predicate
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    PlainSerializer,
+    PrivateAttr,
+    TypeAdapter,
+    WrapSerializer,
+    create_model,
+    model_serializer,
+)
 from pydantic.fields import FieldInfo
 from pydantic.functional_validators import (
     AfterValidator,
@@ -1290,6 +1301,137 @@ def _wrap_typeddicts_as_models(field_type: Any, model_name_prefix: str) -> Any:
     return field_type
 
 
+_VALIDATOR_TYPES = (AfterValidator, BeforeValidator, PlainValidator, WrapValidator)
+
+
+def _declared_validation_metadata(param: inspect.Parameter) -> list[Any]:
+    """Collect the constraints and validators an author declared on a parameter.
+
+    Pydantic gathers these from every supported form: ``Field(...)`` inside
+    ``Annotated``, bare ``annotated_types`` markers, ``StringConstraints``,
+    constrained aliases such as ``PositiveInt``, and ``= Field(...)`` given as
+    the signature default. Settings that are not validation (``alias``,
+    ``exclude``, ``description``) live on the ``FieldInfo`` itself rather than
+    in its metadata, so they never reach the generated input field. Serializers
+    are skipped because the executor passes the tool ``model_dump()`` output,
+    which a serializer would change.
+    """
+    if isinstance(param.default, FieldInfo):
+        field_info = FieldInfo.from_annotated_attribute(param.annotation, param.default)
+    elif get_origin(param.annotation) is Annotated:
+        field_info = FieldInfo.from_annotation(param.annotation)
+    else:
+        return []
+    return [
+        item
+        for item in field_info.metadata
+        if not isinstance(item, (str, Inferrable, PlainSerializer, WrapSerializer))
+    ]
+
+
+def _core_schema_kind(field_type: Any) -> str:
+    schema = TypeAdapter(field_type).core_schema
+    while schema["type"] == "definitions":
+        schema = schema["schema"]
+    return str(schema["type"])
+
+
+def _applicable_validation_metadata(
+    field_type: Any, metadata: list[Any], param_path: str
+) -> list[Any]:
+    """Drop constraints that cannot apply to ``field_type``.
+
+    Pydantic accepts a constraint that does not fit the type (``gt`` on a
+    ``str``) when the model is built, then raises on every call. A constraint
+    that fits compiles into the type's own schema, so a change in the schema
+    kind marks one that does not.
+    """
+    base_kind = _core_schema_kind(field_type)
+    applicable = []
+    for item in metadata:
+        if (
+            isinstance(item, (*_VALIDATOR_TYPES, Predicate))
+            or _core_schema_kind(Annotated[field_type, item]) == base_kind
+        ):
+            applicable.append(item)
+        else:
+            logger.warning(
+                "Ignoring constraint %r on parameter '%s': it does not apply to %s",
+                item,
+                param_path,
+                getattr(field_type, "__name__", field_type),
+            )
+    return applicable
+
+
+def _takes_info(func: Callable, arity: int) -> bool:
+    try:
+        parameters = inspect.signature(func).parameters.values()
+    except (TypeError, ValueError):
+        return False
+    positional = [p for p in parameters if p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)]
+    return len(positional) > arity
+
+
+def _validate_as_declared_type(item: Any, wrapped_type: Any) -> Any:
+    """Let a validator written for a TypedDict parameter see dicts.
+
+    TypedDict parameters are validated through a generated model (see
+    ``_wrap_typeddicts_as_models``), and the executor dumps that model back to
+    dicts before calling the tool. A validator on the parameter is written for
+    the dict form, so it receives the dumped value and its result is validated
+    back into the model.
+    """
+    if not isinstance(item, (AfterValidator, PlainValidator, WrapValidator)):
+        return item
+
+    adapter: TypeAdapter[Any] = TypeAdapter(wrapped_type)
+    func: Callable[..., Any] = item.func
+
+    if isinstance(item, AfterValidator):
+        if _takes_info(func, 1):
+
+            def after_with_info(value: Any, info: Any) -> Any:
+                return adapter.validate_python(func(adapter.dump_python(value), info))
+
+            return AfterValidator(after_with_info)
+
+        def after(value: Any) -> Any:
+            return adapter.validate_python(func(adapter.dump_python(value)))
+
+        return AfterValidator(after)
+
+    if isinstance(item, PlainValidator):
+        # Expressed as a wrap validator that never calls the inner handler:
+        # a plain validator would also replace the model's serializer.
+        if _takes_info(func, 1):
+
+            def plain_with_info(value: Any, _handler: Any, info: Any) -> Any:
+                return adapter.validate_python(func(value, info))
+
+            return WrapValidator(plain_with_info)
+
+        def plain(value: Any, _handler: Any) -> Any:
+            return adapter.validate_python(func(value))
+
+        return WrapValidator(plain)
+
+    def dict_handler(handler: Callable[[Any], Any]) -> Callable[[Any], Any]:
+        return lambda value: adapter.dump_python(handler(value))
+
+    if _takes_info(func, 2):
+
+        def wrap_with_info(value: Any, handler: Any, info: Any) -> Any:
+            return adapter.validate_python(func(value, dict_handler(handler), info))
+
+        return WrapValidator(wrap_with_info)
+
+    def wrap(value: Any, handler: Any) -> Any:
+        return adapter.validate_python(func(value, dict_handler(handler)))
+
+    return WrapValidator(wrap)
+
+
 def create_func_models(func: Callable) -> tuple[type[BaseModel], type[BaseModel]]:
     """
     Analyze a function to create corresponding Pydantic models for its input and output.
@@ -1325,16 +1467,15 @@ def create_func_models(func: Callable) -> tuple[type[BaseModel], type[BaseModel]
             tool_field_info.field_type, f"{model_prefix}_{name}"
         )
 
-        validation_metadata = []
-        for item in getattr(param.annotation, "__metadata__", ()):
-            if isinstance(item, FieldInfo):
-                # Keep constraints without changing the published argument name
-                # or excluding the argument from executor dispatch.
-                validation_metadata.extend(item.metadata)
-            elif isinstance(item, (AfterValidator, BeforeValidator, PlainValidator, WrapValidator)):
-                validation_metadata.append(item)
+        validation_metadata = _applicable_validation_metadata(
+            field_type, _declared_validation_metadata(param), f"{func.__name__}.{name}"
+        )
+        if field_type is not tool_field_info.field_type:
+            validation_metadata = [
+                _validate_as_declared_type(item, field_type) for item in validation_metadata
+            ]
         if validation_metadata:
-            field_type = Annotated[(field_type,) + tuple(validation_metadata)]
+            field_type = Annotated[(field_type, *validation_metadata)]
 
         # extract_*_param_info unwraps Optional[T] to T before this point, so
         # re-wrap when the original annotation permitted None — otherwise the

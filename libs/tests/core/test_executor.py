@@ -435,8 +435,8 @@ async def test_input_validation_error_does_not_leak_input_values():
     # The integer wrong-type value also must not appear.
     assert "12345" not in output.error.message
     assert "12345" not in output.error.developer_message
-    # Chained Pydantic failures must not reintroduce values through the traceback.
-    assert secret not in (output.error.stacktrace or "")
-    assert "12345" not in (output.error.stacktrace or "")
+    # Input validation errors carry no traceback, so the chained Pydantic
+    # error cannot reintroduce the rejected values.
+    assert output.error.stacktrace is None
     assert secret not in output.model_dump_json()
     assert "12345" not in output.model_dump_json()
