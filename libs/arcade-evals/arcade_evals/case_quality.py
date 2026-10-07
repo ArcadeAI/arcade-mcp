@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, Any
 
@@ -173,6 +174,7 @@ class CaseQualityGrader:
         }
         questions = build_quality_questions()
         try:
+            state = copy.deepcopy(state)
             verdicts = self.backend.judge(state=state, questions=questions)
         except Exception:
             return _report("unavailable", ["Case quality judge unavailable."])

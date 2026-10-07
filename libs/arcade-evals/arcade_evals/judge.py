@@ -344,6 +344,20 @@ class JevBackend:
         raise JudgeError("Unsupported Jev answer type.")
 
 
+def _checked_llm_answer(question: dict[str, Any], answer: Any) -> dict[str, Any]:
+    """Keep normalized LLM answers consistent with the requested question kind."""
+    if not isinstance(answer, dict):
+        raise JudgeError("LLM answer must be an object.")
+    kind = question["type"]
+    if "type" in answer and answer["type"] != kind:
+        raise JudgeError("LLM answer type does not match the requested question.")
+    # Both numeric LLM kinds use score; noul is specific to the Jev transport.
+    conflicting = ("score", "noul", "label") if kind == "choice" else ("noul", "choice", "label")
+    if any(key in answer for key in conflicting):
+        raise JudgeError("LLM answer contains conflicting metadata.")
+    return answer
+
+
 class LLMFallbackBackend:
     """Configurable OpenAI-compatible chat judge.
 
@@ -436,23 +450,23 @@ class LLMFallbackBackend:
             payload = json.loads(content or "{}")
             verdicts = {}
             for qid, question in questions.items():
+                answer = _checked_llm_answer(question, payload[qid])
                 if question.get("type") == "choice":
                     verdicts[qid] = _choice_verdict(
                         question,
-                        payload[qid],
+                        answer,
                         backend="llm",
                         model=model,
                     )
                 else:
                     verdicts[qid] = checked_verdict(
                         JudgeVerdict(
-                            score=_checked_number(payload[qid]["score"], "score", 0.0, 1.0),
-                            confidence=payload[qid].get("confidence"),
+                            score=_checked_number(answer["score"], "score", 0.0, 1.0),
+                            confidence=answer.get("confidence"),
                             backend="llm",
                             model=model,
-                            raw=dict(payload[qid]),
-                            label=payload[qid].get("choice"),
-                            probabilities=payload[qid].get("probabilities", {}),
+                            raw=dict(answer),
+                            probabilities=answer.get("probabilities", {}),
                         )
                     )
         except (KeyError, IndexError, TypeError, ValueError, AttributeError, OverflowError):

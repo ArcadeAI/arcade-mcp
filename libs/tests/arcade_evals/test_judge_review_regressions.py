@@ -1,5 +1,6 @@
 """Boundary regressions for injected adapters and the actual HTTP opener."""
 
+import copy
 import io
 import json
 import urllib.request
@@ -135,7 +136,7 @@ def test_withheld_group_preserves_siblings_and_uncertain_evidence():
     assert missing["details"][0]["evidence"] == {"reason": "supported"}
 
 
-def make_client(*, finish_reason=None, refusal=None, model=None):
+def make_client(*, finish_reason=None, refusal=None, model=None, answer=None):
     client = MagicMock()
     client.chat.completions.create.return_value = SimpleNamespace(
         model=model,
@@ -143,12 +144,118 @@ def make_client(*, finish_reason=None, refusal=None, model=None):
             SimpleNamespace(
                 finish_reason=finish_reason,
                 message=SimpleNamespace(
-                    content=json.dumps({"similarity": {"score": 1.0}}), refusal=refusal
+                    content=json.dumps({
+                        "similarity": {"score": 1.0} if answer is None else answer
+                    }),
+                    refusal=refusal,
                 ),
             )
         ],
     )
     return client
+
+
+def llm_question(kind):
+    return {
+        "type": kind,
+        "criteria": ["no", "yes"]
+        if kind == "score"
+        else {"true": "yes", "false": "no"}
+        if kind == "noul"
+        else {"simple": "One decision", "complex": "Dependent decisions"},
+    }
+
+
+@pytest.mark.parametrize(
+    "kind,answer",
+    [
+        ("score", {"score": 1, "noul": 0}),
+        ("score", {"score": 1, "type": "choice"}),
+        ("score", {"score": 1, "type": "noul"}),
+        ("score", {"score": 1, "choice": None}),
+        ("score", {"score": 1, "label": "simple"}),
+        ("noul", {"score": 1, "type": "score"}),
+        ("noul", {"score": 1, "noul": 0}),
+        ("noul", {"score": 1, "choice": "simple"}),
+        ("noul", {"score": 1, "label": None}),
+        ("choice", {"choice": "simple", "type": "score"}),
+        ("choice", {"choice": "simple", "type": "noul"}),
+        ("choice", {"choice": "simple", "score": 1}),
+        ("choice", {"choice": "simple", "noul": 0}),
+        ("choice", {"choice": "simple", "label": "complex"}),
+        ("score", {"score": 1, "type": None}),
+        ("noul", {"score": 1, "type": 1}),
+        ("choice", {"choice": "simple", "type": []}),
+    ],
+)
+def test_llm_conflicting_answer_kinds_fail_closed(kind, answer):
+    client = make_client(finish_reason="stop", answer=answer)
+    backend = LLMFallbackBackend(client=client)
+    with pytest.raises(JudgeError):
+        backend.judge(state={}, questions={"similarity": llm_question(kind)})
+
+
+@pytest.mark.parametrize("kind", ["score", "noul", "choice"])
+@pytest.mark.parametrize("declared_type", [False, True])
+def test_llm_valid_answer_kinds_preserve_normalized_contract(kind, declared_type):
+    answer = {"choice": "simple"} if kind == "choice" else {"score": 0.75}
+    if declared_type:
+        answer["type"] = kind
+    client = make_client(answer=answer)
+    verdict = LLMFallbackBackend(client=client).judge(
+        state={}, questions={"similarity": llm_question(kind)}
+    )["similarity"]
+    assert verdict.label == ("simple" if kind == "choice" else None)
+    assert verdict.score == (None if kind == "choice" else 0.75)
+    assert client.chat.completions.create.call_args.kwargs["response_format"] == {
+        "type": "json_object"
+    }
+
+
+@pytest.mark.parametrize("raises", [False, True])
+def test_quality_backend_mutation_cannot_change_case_or_caller_inputs(raises):
+    member = CompletenessCritic("text", 1.0, context={"source": ["member fact"]})
+    group = JudgeCriticGroup("text", 1.0, [member], MagicMock(), context={"source": ["group fact"]})
+    suite = EvalSuite("quality", "Use tools")
+    suite.add_case(
+        name="quality",
+        user_message="Read the ticket",
+        expected_tool_calls=[ExpectedMCPToolCall("read", {"text": ["reference"]})],
+        additional_messages=[{"role": "user", "content": [{"text": "prior fact"}]}],
+        critics=[group],
+    )
+    case = suite.cases[0]
+    tools = [{"name": "read", "parameters": {"required": ["text"]}}]
+    original = copy.deepcopy([
+        case.additional_messages,
+        case.expected_tool_calls[0].args,
+        tools,
+        group.context,
+        member.context,
+    ])
+
+    def mutate(*, state, questions):
+        state["model_visible"]["additional_messages"][0]["content"][0]["text"] = "MUTATED"
+        state["reference_labels"]["expected"][0]["args"]["text"].append("MUTATED")
+        state["tools"][0]["parameters"]["required"].append("MUTATED")
+        state["critics"][0]["context"]["source"].append("MUTATED")
+        state["critics"][0]["checks"][0]["context"]["source"].append("MUTATED")
+        if raises:
+            raise RuntimeError("Synthetic backend failure")
+        return quality_verdicts()
+
+    backend = MagicMock()
+    backend.judge.side_effect = mutate
+    report = CaseQualityGrader(backend=backend).grade(case, tools=tools)
+    assert report.status == ("unavailable" if raises else "passed")
+    assert report.passed is not raises
+    assert [
+        case.additional_messages,
+        case.expected_tool_calls[0].args,
+        tools,
+        group.context,
+        member.context,
+    ] == original
 
 
 @pytest.mark.parametrize(
