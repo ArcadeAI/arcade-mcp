@@ -65,6 +65,126 @@ result = similarity_critic.evaluate(
 )
 ```
 
+### Judge Critics
+
+Semantic judges for text arguments. Each critic tries an explicit backend,
+then Jev when `JEV_API_KEY` (or `TYPESAFE_API_KEY`) is set, then an
+OpenAI-compatible LLM only when `llm_model` is set, then a local tier
+(TF-IDF cosine; exact match for `IntentionCritic`).
+
+```python
+from arcade_evals import (
+    CompletenessCritic,
+    GroundednessCritic,
+    IntentionCritic,
+    SemanticSimilarityCritic,
+)
+
+SemanticSimilarityCritic(critic_field="content", weight=0.6)  # paraphrase (Jev Score)
+IntentionCritic(critic_field="tone", weight=0.4, intent="Professional tone")  # (Jev Noul)
+GroundednessCritic(critic_field="summary", weight=0.5)  # no invented facts (Jev Score)
+CompletenessCritic(critic_field="features", weight=0.5)  # no omissions (Jev Score)
+```
+
+### Provider-neutral judge interface
+
+`JudgeBackend` is the shared interface: `judge(state=..., questions=...)`
+returns a `JudgeVerdict` for each question ID. `JevBackend` adapts Jev's
+System One endpoint; `LLMFallbackBackend` adapts an OpenAI-compatible client
+and can also be used directly. A custom backend implements the same method;
+no registry, inheritance, or changes to Arcade's runner are needed.
+
+```python
+from openai import OpenAI
+from arcade_evals import LLMFallbackBackend, SemanticSimilarityCritic
+
+# Supply your provider's URL, API key, and model through your own configuration.
+client = OpenAI(base_url=provider_url, api_key=provider_api_key)
+backend = LLMFallbackBackend(client=client, model=provider_model)
+critic = SemanticSimilarityCritic(critic_field="text", weight=1.0, backend=backend)
+```
+
+Supported question types are `score` (ordered levels normalized to 0..1),
+`noul` (probability of yes), and `choice` (one named option). Choice verdicts
+have `label` and `score=None`: a category has no implicit numerical grade.
+Jev's reported Choice confidence and distribution are preserved and validated;
+the generic LLM adapter returns only the category without invented confidence.
+Question instructions/criteria are trusted configuration; state is evidence.
+
+### Evaluation case quality
+
+`CaseQualityGrader` reviews an existing `EvalCase` before model execution.
+It is opt-in and sends all five questions in one backend call. It does not
+modify cases, run tools, or change evaluation scores.
+
+```python
+from arcade_evals import CaseQualityGrader
+
+grader = CaseQualityGrader(backend=backend)
+for case in suite.cases:
+    report = grader.grade(case)  # Optional tools=[...] supplies tool definitions.
+    print(case.name, report.passed, report.reasons)
+    print(report.verdicts["complexity"].label)
+```
+
+| Dimension | What it checks |
+| --- | --- |
+| `context` | Can the expected outcome be derived from the model-visible information? |
+| `complexity` | Direct extraction, simple interpretation, dependent reasoning, or adversarial cues. |
+| `hint` | Does the request leak the answer instead of testing the intended skill? |
+| `ambiguity` | Could a reasonable alternative be incorrectly rejected? |
+| `human` | Is the wording plausible for the task and audience? |
+
+Literal arguments and IDs are legitimate inputs, not automatic failures.
+Complexity describes coverage; `fail_on_trivial=True` optionally excludes
+trivial cases. The other gates use configurable `min_context`, `max_hint`,
+`max_ambiguity`, and `min_human` thresholds. Defaults are starting policies,
+not calibrated guarantees: `0.6`, `0.6`, `0.4`, and `0.5`, respectively.
+Each report preserves per-dimension verdicts and provider metadata. Missing or
+malformed judgments raise `JudgeError`; an unavailable judge is not evidence
+that the case is good or bad.
+
+Override the policy per grader when a suite needs a different acceptance bar;
+the values are validated as finite numbers from `0.0` through `1.0`:
+
+```python
+strict_quality = CaseQualityGrader(
+    backend=backend,
+    min_context=0.7,
+    max_hint=0.5,
+    max_ambiguity=0.3,
+    min_human=0.6,
+    fail_on_trivial=True,
+)
+```
+
+These overrides affect only that `CaseQualityGrader` instance. They do not
+alter the suite, its generated tool calls, or global defaults.
+
+This is a review aid, not a proof that expected calls are correct. Tool
+definitions improve the review. Explicit critic instructions, context, intent,
+match/confidence thresholds, and grouped checks are included through an
+allowlist; backends and credentials are excluded. Executable custom critic
+behavior is not inspected. Critic context is not treated as extra information
+that was available to the evaluated model. No-call cases are supported.
+
+Runnable examples in `examples/evals/`:
+
+- `eval_judge_critics.py`: all four critics, passing/failing illustrative scores,
+  custom provider injection, cache hits, and call/latency metadata.
+- `eval_case_quality.py`: two passes and four failures, including a legitimate
+  literal ID and missing context, answer leakage, ambiguity, and template wording.
+- `eval_case_quality_calibration.py`: eleven paired priority, document, and
+  spreadsheet definitions. It defaults to scripted offline verdicts and reports
+  per-dimension threshold intervals; live provider runs require an explicit
+  backend and `--limit` request budget.
+- `eval_grouped_judges.py`: three checks on a structured document argument,
+  shared source context, one batch per pair, and integration with `EvalSuite`.
+
+These default to **offline scripted demonstrations**, not measured semantic
+accuracy. Use `--backend jev` or `--backend llm --model YOUR_MODEL` explicitly
+to send the examples to a configured provider. Live outcomes may differ.
+
 ### Advanced Evaluation
 
 ```python
