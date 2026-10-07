@@ -36,7 +36,7 @@ class TestJevBackend:
     def test_normalizes_score_to_unit_range(self) -> None:
         backend = JevBackend(api_key="k")
         questions = {"q": {"type": "score", "instructions": "x", "criteria": ["a", "b", "c"]}}
-        with patch("urllib.request.urlopen", return_value=_score_response()):
+        with patch("urllib.request.OpenerDirector.open", return_value=_score_response()):
             verdicts = backend.judge(state={"expected": "a", "actual": "b"}, questions=questions)
         assert verdicts["q"].score == pytest.approx(0.8)  # 1.6 / (3 - 1)
         assert verdicts["q"].confidence == pytest.approx(0.8)
@@ -49,9 +49,16 @@ class TestJevBackend:
         resp.read.return_value = json.dumps(payload).encode()
         resp.__enter__.return_value = resp
         backend = JevBackend(api_key="k")
-        with patch("urllib.request.urlopen", return_value=resp):
+        with patch("urllib.request.OpenerDirector.open", return_value=resp):
             verdicts = backend.judge(
-                state={}, questions={"q": {"type": "noul", "instructions": "x"}}
+                state={},
+                questions={
+                    "q": {
+                        "type": "noul",
+                        "instructions": "x",
+                        "criteria": {"true": "yes", "false": "no"},
+                    }
+                },
             )
         assert verdicts["q"].score == pytest.approx(0.93)
         assert verdicts["q"].confidence is None
@@ -61,10 +68,19 @@ class TestJevBackend:
 
         backend = JevBackend(api_key="k")
         with (
-            patch("urllib.request.urlopen", side_effect=OSError("down")),
+            patch("urllib.request.OpenerDirector.open", side_effect=OSError("down")),
             pytest.raises(JudgeError),
         ):
-            backend.judge(state={}, questions={"q": {"type": "noul", "instructions": "x"}})
+            backend.judge(
+                state={},
+                questions={
+                    "q": {
+                        "type": "noul",
+                        "instructions": "x",
+                        "criteria": {"true": "yes", "false": "no"},
+                    }
+                },
+            )
 
     def test_missing_key_raises_judge_error(self, monkeypatch: pytest.MonkeyPatch) -> None:
         from arcade_evals.judge import JudgeError
@@ -124,7 +140,14 @@ class TestLLMFallbackBackend:
         client = _FakeOpenAIClient({"q": {"score": 0.7}})
         backend = LLMFallbackBackend(client=client, model="test-model")
         verdicts = backend.judge(
-            state={"expected": "a"}, questions={"q": {"type": "noul", "instructions": "x"}}
+            state={"expected": "a"},
+            questions={
+                "q": {
+                    "type": "noul",
+                    "instructions": "x",
+                    "criteria": {"true": "yes", "false": "no"},
+                }
+            },
         )
         assert verdicts["q"].score == pytest.approx(0.7)
         assert verdicts["q"].confidence is None  # LLM reports no confidence
@@ -137,7 +160,16 @@ class TestLLMFallbackBackend:
         client = _FakeOpenAIClient({"q": {"score": "high"}})
         backend = LLMFallbackBackend(client=client, model="test-model")
         with pytest.raises(JudgeError):
-            backend.judge(state={}, questions={"q": {"type": "noul", "instructions": "x"}})
+            backend.judge(
+                state={},
+                questions={
+                    "q": {
+                        "type": "noul",
+                        "instructions": "x",
+                        "criteria": {"true": "yes", "false": "no"},
+                    }
+                },
+            )
 
     def test_out_of_range_score_raises_judge_error(self) -> None:
         from arcade_evals.judge import JudgeError, LLMFallbackBackend
@@ -145,7 +177,16 @@ class TestLLMFallbackBackend:
         client = _FakeOpenAIClient({"q": {"score": 1.5}})
         backend = LLMFallbackBackend(client=client, model="test-model")
         with pytest.raises(JudgeError):
-            backend.judge(state={}, questions={"q": {"type": "noul", "instructions": "x"}})
+            backend.judge(
+                state={},
+                questions={
+                    "q": {
+                        "type": "noul",
+                        "instructions": "x",
+                        "criteria": {"true": "yes", "false": "no"},
+                    }
+                },
+            )
 
     def test_transport_failure_raises_judge_error(self) -> None:
         from arcade_evals.judge import JudgeError, LLMFallbackBackend
@@ -159,7 +200,16 @@ class TestLLMFallbackBackend:
         )()
         backend = LLMFallbackBackend(client=client, model="test-model")
         with pytest.raises(JudgeError):
-            backend.judge(state={}, questions={"q": {"type": "noul", "instructions": "x"}})
+            backend.judge(
+                state={},
+                questions={
+                    "q": {
+                        "type": "noul",
+                        "instructions": "x",
+                        "criteria": {"true": "yes", "false": "no"},
+                    }
+                },
+            )
 
 
 class FakeBackend:
@@ -202,7 +252,7 @@ class TestJudgeChain:
         assert result["backend"] == "test"
         assert result["model"] == "m"
 
-    def test_low_score_confidence_escalates_to_deterministic_tier(self) -> None:
+    def test_low_score_confidence_is_withheld(self) -> None:
         from arcade_evals.judge import JudgeVerdict
 
         critic = _TestCritic(critic_field="text", weight=1.0)
@@ -210,8 +260,8 @@ class TestJudgeChain:
             "t": JudgeVerdict(score=0.5, confidence=0.0, backend="test", model="m")
         })
         result = critic.evaluate("hello world", "hello world")
-        assert result["match"] is True
-        assert result["backend"] == "deterministic"
+        assert result["match"] is False
+        assert result["status"] == "low_confidence"
 
     def test_verdict_without_confidence_is_accepted_directly(self) -> None:
         from arcade_evals.judge import JudgeVerdict
@@ -230,8 +280,8 @@ class TestJudgeChain:
         critic = _TestCritic(critic_field="text", weight=1.0)
         critic.backend = FakeBackend({"t": JudgeError("down")})
         result = critic.evaluate("hello world", "hello world")
-        assert result["match"] is True
-        assert result["score"] == pytest.approx(1.0)
+        assert result["match"] is False
+        assert result["score"] == 0.0
 
     def test_both_none_returns_full_score_without_judging(self) -> None:
         critic = _TestCritic(critic_field="text", weight=0.5)
@@ -251,14 +301,14 @@ class TestJudgeChain:
         critic.backend = fake
         critic.evaluate("a", "b")
         critic.evaluate("a", "b")
-        assert fake.calls == 1
+        assert fake.calls == 2
 
     def test_no_key_no_llm_uses_deterministic_tier(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.delenv("JEV_API_KEY", raising=False)
         monkeypatch.delenv("TYPESAFE_API_KEY", raising=False)
-        critic = _TestCritic(critic_field="text", weight=1.0)
+        critic = _TestCritic(critic_field="text", weight=1.0, fallback="lexical")
         result = critic.evaluate("hello world", "hello world")
-        assert result["backend"] == "deterministic"
+        assert result["backend"] == "lexical"
         assert result["match"] is True
 
 
@@ -345,7 +395,9 @@ class TestIntentionCritic:
         from arcade_evals.critic import IntentionCritic
         from arcade_evals.judge import JudgeError
 
-        critic = IntentionCritic(critic_field="text", weight=1.0, intent="Say hello")
+        critic = IntentionCritic(
+            critic_field="text", weight=1.0, intent="Say hello", fallback="lexical"
+        )
         critic.backend = FakeBackend({"intent": JudgeError("down")})
         assert critic.evaluate("hello", "hello")["match"] is True
         # Same topic, different wording: overlap must NOT count as intent.

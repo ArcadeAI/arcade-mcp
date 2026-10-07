@@ -1,7 +1,7 @@
 import logging
 import time
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 from datetime import timedelta
 from typing import Any, ClassVar
 
@@ -10,11 +10,13 @@ from dateutil import parser
 
 from arcade_evals.errors import JudgeError, WeightError
 from arcade_evals.judge import (
+    JEV_MODEL_DEFAULT,
     JevBackend,
     JudgeBackend,
+    JudgeScope,
     JudgeVerdict,
-    LLMFallbackBackend,
     _checked_number,
+    checked_verdict,
 )
 from arcade_evals.weights import FuzzyWeight, Weight, resolve_weight
 
@@ -50,6 +52,11 @@ class Critic(ABC):
     @abstractmethod
     def evaluate(self, expected: Any, actual: Any) -> dict[str, Any]:
         pass
+
+    def evaluate_in_scope(
+        self, expected: Any, actual: Any, scope: JudgeScope | None = None
+    ) -> dict[str, Any]:
+        return self.evaluate(expected, actual)
 
 
 @dataclass
@@ -367,28 +374,34 @@ class DatetimeCritic(Critic):
 @dataclass
 class JudgeCriticBase(Critic, ABC):
     """
-    Shared chain for judge critics: explicit backend, else Jev (key required),
-    else LLM (only when llm_model is set), always ending in a local tier.
+    One explicit judge per critic: provider="jev" or backend=..., never both.
 
-    Stays synchronous so EvalCase.evaluate() works unchanged. Extra result keys
-    (confidence, backend, model) flow into EvaluationResult for auditability.
+    Ambient environment keys never enable calls. Without a judge, evaluate() returns
+    status="unavailable" unless fallback="lexical". Lexical verdicts are labeled
+    status="fallback" and are never reported as judged. Unavailable and low-confidence
+    results score zero and never pass.
 
     Attributes:
         match_threshold: Minimum normalized score (0.0-1.0) for a match.
-        min_confidence: Below this real confidence (Jev Score only) the verdict
-            escalates to the next tier. None confidence is accepted as judged.
-        backend: Explicit JudgeBackend (tests, custom judges). Skips auto tiers.
-        judge_model: Jev model alias for the Jev tier.
-        llm_model: Enables the LLM tier when set (e.g. "gpt-4o-mini").
+        min_confidence: Minimum reported confidence (Jev Score only); lower verdicts
+            return status="low_confidence". Verdicts without confidence are accepted.
+        provider: Built-in provider. Only "jev" is supported.
+        backend: Explicit JudgeBackend, such as LLMFallbackBackend. Excludes provider.
+        judge_model: Jev model alias used when provider="jev".
+        fallback: "none" (default) or "lexical" (labeled local TF-IDF tier).
         instructions: Application-provided guidance appended to this critic's rubric.
         context: Optional JSON evidence, such as the original document or scenario messages.
     """
 
     match_threshold: float = 0.7
     min_confidence: float = 0.5
+    provider: str | None = field(default=None, kw_only=True)
     backend: JudgeBackend | None = None
-    judge_model: str = "jev-latest"
-    llm_model: str | None = None
+    judge_model: str = JEV_MODEL_DEFAULT
+    llm_model: str | None = None  # Compatibility only; explicit backend enables LLM calls.
+    fallback: str = field(default="none", kw_only=True)
+    judge_calls_total: int = field(default=0, init=False)
+    judge_latency_ms_total: float = field(default=0.0, init=False)
     instructions: str = field(default="", kw_only=True)
     context: Any = field(default=None, kw_only=True)
 
@@ -402,20 +415,12 @@ class JudgeCriticBase(Critic, ABC):
                 setattr(self, name, _checked_number(getattr(self, name), name, 0.0, 1.0))
             except JudgeError:
                 raise ValueError(f"{name} must be a finite number between 0.0 and 1.0.") from None
-        self._cache: dict[tuple[str, str, str, str], JudgeVerdict] = {}
-        self._judge_calls = {"jev": 0, "llm": 0, "explicit": 0}
-        self._judge_latency_ms = 0.0
-        self.clear_cache()
-
-    def clear_cache(self) -> None:
-        """Discard verdicts, e.g. after backend recovery or an in-place backend change.
-
-        Calls are synchronous, so one event loop's concurrent EvalSuite cases
-        cannot interleave a lookup and its fill. Instances are not thread-safe.
-        """
-        self._cache.clear()
-        self._cache_backend = self.backend
-        self._cache_config = (self.judge_model, self.llm_model, self.min_confidence)
+        if self.provider not in (None, "jev"):
+            raise ValueError("provider must be 'jev' or None.")
+        if self.provider is not None and self.backend is not None:
+            raise ValueError("Configure either provider or backend, not both.")
+        if self.fallback not in ("none", "lexical"):
+            raise ValueError("fallback must be 'none' or 'lexical'.")
 
     @abstractmethod
     def build_state(self, expected: Any, actual: Any) -> dict[str, Any]:
@@ -444,86 +449,86 @@ class JudgeCriticBase(Critic, ABC):
             }
         return state, questions
 
-    def _diagnostics(self, cache_hit: bool) -> dict[str, Any]:
-        """Snapshot lifetime backend work, including assignment-stage judgments."""
-        return {
-            "cache_hit": cache_hit,
-            "judge_calls": dict(self._judge_calls),
-            "judge_latency_ms": self._judge_latency_ms,
-        }
-
     def evaluate(self, expected: Any, actual: Any) -> dict[str, Any]:
+        return self.evaluate_in_scope(expected, actual)
+
+    def evaluate_in_scope(
+        self, expected: Any, actual: Any, scope: JudgeScope | None = None
+    ) -> dict[str, Any]:
         if expected is None and actual is None:
             return {
+                "status": "abstained",
+                "judged": False,
                 "match": True,
                 "score": self.resolved_weight,
                 "confidence": None,
                 "backend": "none",
                 "model": "",
-                **self._diagnostics(cache_hit=False),
+                "judge_calls": 0,
+                "judge_latency_ms": 0.0,
             }
-        config = (self.judge_model, self.llm_model, self.min_confidence)
-        if self.backend is not self._cache_backend or config != self._cache_config:
-            self.clear_cache()
         state, questions = self._prepare(expected, actual)
-        key = (
-            type(self).__name__,
-            self.critic_field,
-            repr(state),
-            repr(questions),
-        )
-        verdict = self._cache.get(key)
-        cache_hit = verdict is not None
-        if verdict is None:
-            verdict = self._run_chain(state, questions)
-            self._cache[key] = verdict
-        match = verdict.score >= self.match_threshold
+        if scope is not None:
+            state["scope"] = scope.as_state()
+        calls_before = self.judge_calls_total
+        latency_before = self.judge_latency_ms_total
+        try:
+            verdict = self._ask(state, questions)
+            status = "ok"
+        except Exception:
+            logger.warning("Judge for field '%s' failed.", self.critic_field)
+            if self.fallback == "none":
+                return self._withheld("unavailable", calls_before, latency_before)
+            verdict = JudgeVerdict(
+                score=self._deterministic_score(expected, actual),
+                confidence=None,
+                backend="lexical",
+                model="tfidf",
+            )
+            status = "fallback"
+        if (
+            status == "ok"
+            and verdict.confidence is not None
+            and verdict.confidence < self.min_confidence
+        ):
+            return self._withheld("low_confidence", calls_before, latency_before, verdict)
+        if verdict.score is None:
+            return self._withheld("unavailable", calls_before, latency_before)
         return {
-            "match": match,
-            "score": min(verdict.score, 1.0) * self.resolved_weight,
+            "status": status,
+            "judged": status == "ok",
+            "match": verdict.score >= self.match_threshold,
+            "score": verdict.score * self.resolved_weight,
             "confidence": verdict.confidence,
             "backend": verdict.backend,
             "model": verdict.model,
-            **self._diagnostics(cache_hit),
+            "judge_calls": self.judge_calls_total - calls_before,
+            "judge_latency_ms": self.judge_latency_ms_total - latency_before,
         }
 
-    def _run_chain(self, state: dict[str, Any], questions: dict[str, Any]) -> JudgeVerdict:
-        tiers = self._tiers()
-        for index, (name, tier) in enumerate(tiers):
-            started = None
-            if name in self._judge_calls:
-                self._judge_calls[name] += 1
-                started = time.perf_counter()
-            try:
-                verdict = self._ask(tier, state, questions)
-            except JudgeError:
-                # A custom backend can include credentials in its exception text.
-                logger.warning("Judge tier '%s' failed; trying the next tier.", name)
-                continue
-            finally:
-                if started is not None:
-                    self._judge_latency_ms += (time.perf_counter() - started) * 1000.0
-            if (
-                verdict.confidence is not None
-                and verdict.confidence < self.min_confidence
-                and index < len(tiers) - 1
-            ):
-                continue
-            return verdict
-        raise JudgeError("All judge tiers failed.")
+    def _withheld(
+        self,
+        status: str,
+        calls_before: int,
+        latency_before: float,
+        verdict: JudgeVerdict | None = None,
+    ) -> dict[str, Any]:
+        return {
+            "status": status,
+            "judged": False,
+            "match": False,
+            "score": 0.0,
+            "confidence": verdict.confidence if verdict is not None else None,
+            "backend": verdict.backend if verdict is not None else "unavailable",
+            "model": verdict.model if verdict is not None else "",
+            "judge_calls": self.judge_calls_total - calls_before,
+            "judge_latency_ms": self.judge_latency_ms_total - latency_before,
+        }
 
-    def _tiers(self) -> list[tuple[str, Any]]:
-        if self.backend is not None:
-            return [("explicit", self.backend), ("deterministic", "deterministic")]
-        tiers: list[tuple[str, Any]] = []
-        try:
-            tiers.append(("jev", JevBackend(model=self.judge_model)))
-        except JudgeError:
-            logger.debug("Jev unavailable (no API key); skipping Jev tier.")
-        if self.llm_model is not None:
-            tiers.append(("llm", LLMFallbackBackend(model=self.llm_model)))
-        tiers.append(("deterministic", "deterministic"))
-        return tiers
+    def _provider_backend(self) -> JudgeBackend:
+        if self.provider != "jev":
+            raise JudgeError("No judge is configured for this critic.")
+        return JevBackend(model=self.judge_model)
 
     def _deterministic_score(self, expected: Any, actual: Any) -> float:
         """Last-resort local score (0.0-1.0). Default is TF-IDF cosine overlap;
@@ -535,13 +540,14 @@ class JudgeCriticBase(Critic, ABC):
         )
         return float(fallback.evaluate(expected, actual)["score"])
 
-    def _ask(self, tier: Any, state: dict[str, Any], questions: dict[str, Any]) -> JudgeVerdict:
-        if tier == "deterministic":
-            score = self._deterministic_score(state.get("expected"), state.get("actual"))
-            return JudgeVerdict(
-                score=score, confidence=None, backend="deterministic", model="deterministic"
-            )
-        verdicts = tier.judge(state=state, questions=questions)
+    def _ask(self, state: dict[str, Any], questions: dict[str, Any]) -> JudgeVerdict:
+        backend = self.backend if self.backend is not None else self._provider_backend()
+        self.judge_calls_total += 1
+        started = time.perf_counter()
+        try:
+            verdicts = backend.judge(state=state, questions=questions)
+        finally:
+            self.judge_latency_ms_total += (time.perf_counter() - started) * 1000.0
         try:
             verdict = verdicts[self.question_id]
         except (KeyError, TypeError):
@@ -550,19 +556,7 @@ class JudgeCriticBase(Critic, ABC):
 
     @staticmethod
     def _checked_verdict(verdict: Any) -> JudgeVerdict:
-        if not isinstance(verdict, JudgeVerdict):
-            raise JudgeError("Judge backend returned an invalid verdict.")
-        if verdict.label is not None:
-            raise JudgeError("Numeric critic received a categorical verdict.")
-        return replace(
-            verdict,
-            score=_checked_number(verdict.score, "score", 0.0, 1.0),
-            confidence=(
-                _checked_number(verdict.confidence, "confidence", 0.0, 1.0)
-                if verdict.confidence is not None
-                else None
-            ),
-        )
+        return checked_verdict(verdict)
 
 
 @dataclass

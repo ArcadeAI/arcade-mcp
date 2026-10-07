@@ -265,11 +265,20 @@ class FixtureJudge:
         demo = self.fixture["demo"]
         return {
             qid: JudgeVerdict(
-                score=None if qid == "complexity" else demo[qid],
+                score=None
+                if qid == "complexityChoice"
+                else demo[
+                    {
+                        "contextScore": "context",
+                        "hintNoul": "hint",
+                        "ambiguityScore": "ambiguity",
+                        "humanNoul": "human",
+                    }[qid]
+                ],
                 confidence=None,
                 backend="demo",
                 model="illustrative-fixture",
-                label=self.fixture["complexity"] if qid == "complexity" else None,
+                label=self.fixture["complexity"] if qid == "complexityChoice" else None,
             )
             for qid in questions
         }
@@ -415,7 +424,17 @@ def run_calibration(
         case, tools = build_case(fixture)
         grader = CaseQualityGrader(backend=backend or FixtureJudge(fixture), **policy)
         report = grader.grade(case, tools=tools)
-        scores = {name: report.verdicts[name].score for name in DIMENSIONS}
+        scores = {
+            name: report.verdicts[
+                {
+                    "context": "contextScore",
+                    "hint": "hintNoul",
+                    "ambiguity": "ambiguityScore",
+                    "human": "humanNoul",
+                }[name]
+            ].score
+            for name in DIMENSIONS
+        }
         expected_dimensions = fixture["dimensions"]
         dimension_matches = {
             name: _is_good(name, scores[name], thresholds) == (expected_dimensions[name] == "good")
@@ -429,9 +448,9 @@ def run_calibration(
             "expected_dimensions": expected_dimensions,
             "dimension_matches": dimension_matches,
             "scores": scores,
-            "complexity": report.verdicts["complexity"].label,
+            "complexity": report.verdicts["complexityChoice"].label,
             "reasons": report.reasons,
-            "model": report.verdicts["context"].model,
+            "model": report.verdicts["contextScore"].model,
         })
     return {
         "policy": policy,

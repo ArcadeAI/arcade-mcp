@@ -44,7 +44,7 @@ def test_transport_failure_does_not_expose_exception_details(backend_name):
     marker = "synthetic-private-request-detail"
     if backend_name == "jev":
         backend = JevBackend(api_key="test-key")
-        operation = patch("urllib.request.urlopen", side_effect=OSError(marker))
+        operation = patch("urllib.request.OpenerDirector.open", side_effect=OSError(marker))
     else:
         client = llm_client(payload={})
         backend = LLMFallbackBackend(client=client)
@@ -59,23 +59,17 @@ def test_custom_backend_error_is_not_logged(caplog):
     backend = MagicMock()
     backend.judge.side_effect = JudgeError(marker)
     critic = SemanticSimilarityCritic("text", 1.0, backend=backend)
-    assert critic.evaluate("hello world", "hello world")["backend"] == "deterministic"
+    assert critic.evaluate("hello world", "hello world")["backend"] == "unavailable"
     assert marker not in caplog.text
 
 
-def test_empty_llm_choices_falls_through_full_chain():
-    jev = JevBackend(api_key="test-key")
-    llm = LLMFallbackBackend(client=llm_client(choices=[]))
-    critic = SemanticSimilarityCritic("text", 1.0)
-    with (
-        patch("arcade_evals.critic.JevBackend", return_value=jev),
-        patch("arcade_evals.critic.LLMFallbackBackend", return_value=llm),
-        patch("urllib.request.urlopen", return_value=response({"answers": {}})),
-    ):
-        critic.llm_model = "test-model"
+def test_llm_model_alone_never_enables_transport():
+    critic = SemanticSimilarityCritic("text", 1.0, llm_model="test-model")
+    with patch("urllib.request.OpenerDirector.open") as transport:
         result = critic.evaluate("hello world", "hello world")
-    assert result["backend"] == "deterministic"
-    assert result["score"] == pytest.approx(1.0)
+    transport.assert_not_called()
+    assert result["status"] == "unavailable"
+    assert result["score"] == 0.0
 
 
 @pytest.mark.parametrize(
@@ -89,7 +83,10 @@ def test_empty_llm_choices_falls_through_full_chain():
 )
 def test_invalid_jev_answer_is_rejected(answer):
     with (
-        patch("urllib.request.urlopen", return_value=response({"answers": {"similarity": answer}})),
+        patch(
+            "urllib.request.OpenerDirector.open",
+            return_value=response({"answers": {"similarity": answer}}),
+        ),
         pytest.raises(JudgeError),
     ):
         JevBackend(api_key="test-key").judge(state={}, questions=QUESTIONS)
@@ -116,8 +113,8 @@ def test_invalid_custom_verdict_falls_back(verdict):
     backend = MagicMock()
     backend.judge.return_value = {"similarity": verdict}
     result = SemanticSimilarityCritic("text", 1.0, backend=backend).evaluate("hello", "hello")
-    assert result["backend"] == "deterministic"
-    assert result["score"] == pytest.approx(1.0)
+    assert result["backend"] == "unavailable"
+    assert result["score"] == 0.0
 
 
 @pytest.mark.parametrize("field", ["match_threshold", "min_confidence"])
@@ -142,7 +139,7 @@ def test_untrusted_state_is_separate_from_judge_instructions(backend_name):
     if backend_name == "jev":
         backend = JevBackend(api_key="test-key")
         with patch(
-            "urllib.request.urlopen",
+            "urllib.request.OpenerDirector.open",
             return_value=response({"answers": {"similarity": {"type": "score", "score": 0.0}}}),
         ) as request:
             verdicts = backend.judge(state=state, questions=questions)

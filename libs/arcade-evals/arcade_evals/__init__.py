@@ -22,7 +22,7 @@ from .eval import (
     NamedExpectedToolCall,
     tool_eval,
 )
-from .judge import JevBackend, JudgeBackend, JudgeVerdict, LLMFallbackBackend
+from .judge import JevBackend, JudgeBackend, JudgeScope, JudgeVerdict, LLMFallbackBackend
 from .judge_group import JudgeCriticGroup
 from .loaders import (
     clear_tools_cache,
@@ -54,6 +54,7 @@ __all__ = [
     "JevBackend",
     "JudgeBackend",
     "JudgeCriticGroup",
+    "JudgeScope",
     "JudgeVerdict",
     "LLMFallbackBackend",
     "MCPToolDefinition",

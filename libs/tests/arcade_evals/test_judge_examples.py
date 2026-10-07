@@ -26,9 +26,9 @@ def test_default_examples_are_offline_and_show_passes_and_failures(filename, mon
     if filename == "eval_grouped_judges.py":
         assert len(rows) == 2
         assert [row["passed"] for row in rows] == [True, False]
-        assert [row["judgment"]["judge_calls"]["explicit"] for row in rows] == [1, 2]
+        assert [row["judgment"]["judge_calls"] for row in rows] == [1, 1]
         assert all(len(row["judgment"]["details"]) == 3 for row in rows)
-        assert all(row["judgment"]["cache_hit"] for row in rows)
+        assert all(row["judgment"]["judged"] for row in rows)
     elif filename == "eval_case_quality.py":
         assert len(rows) == 6
         assert sum(row["passed"] for row in rows) == 2
@@ -41,7 +41,7 @@ def test_default_examples_are_offline_and_show_passes_and_failures(filename, mon
         assert len({row["critic"] for row in rows}) == 4
         for row in rows:
             assert row["result"]["backend"] == "demo"
-            assert row["repeat_cache_hit"] is True
+            assert row["repeat_status"] == "ok"
             assert row["repeat_judge_calls"] == row["result"]["judge_calls"]
 
 
@@ -96,6 +96,6 @@ def test_calibration_example_applies_user_policy_overrides(monkeypatch):
     )
     assert output["policy"]["max_hint"] == 0.2
     assert output["cases"][0]["passed"] is False
-    assert output["cases"][0]["reasons"] == ["hint: 0.30 outside allowed range 0.00..0.20"]
+    assert output["cases"][0]["reasons"] == ["hintNoul: 0.30 outside allowed range 0.00..0.20"]
     with pytest.raises(ValueError, match="Unknown quality policy settings"):
         module["run_calibration"](policy_overrides={"unsupported": 0.2})

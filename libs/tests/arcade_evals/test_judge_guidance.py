@@ -54,12 +54,12 @@ def test_every_judge_critic_sends_custom_guidance_and_context(critic_type, optio
 
     # Changed evidence or guidance must not reuse an old verdict.
     critic.evaluate(expected, actual)
-    assert backend.judge.call_count == 1
+    assert backend.judge.call_count == 2
     critic.instructions = "Preserve formulas; use a blue header."
     critic.evaluate(expected, actual)
     critic.context["before"]["A1"] = "Net revenue"
     critic.evaluate(expected, actual)
-    assert backend.judge.call_count == 3
+    assert backend.judge.call_count == 4
 
 
 def test_new_fields_do_not_change_existing_intention_positional_arguments():

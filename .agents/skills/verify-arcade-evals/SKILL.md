@@ -199,7 +199,7 @@ git diff --check
 ```
 
 For a judge group, also exercise it through `EvalSuite` so assignment and final
-scoring share the same cached batch. For a quality harness, run the default
+scoring share the same case-local memoized batch. For a quality harness, run the default
 example with sockets blocked through `test_judge_examples.py`; a provider key
 present in the environment must not make demo mode live.
 
@@ -217,3 +217,17 @@ Report these facts concisely:
 
 Never silently change a fixture’s expected label to fit a provider response.
 Update a fixture only when the product contract changes, and explain why.
+
+## Adapter and fail-closed regressions
+
+Require explicit provider/backend opt-in; ambient credentials and compatibility
+`llm_model` never enable calls. Preserve positional backend/model constructors and
+keep provider/fallback keyword-only. Run `test_judge_review_regressions.py` for
+actual per-instance redirect refusal, confidence/Choice metadata validation on
+injected adapters, withheld per-check evidence, sanitized outer exceptions,
+completion/refusal checks, rubric validation, timeout and returned-model provenance.
+Unavailable or uncertain groups retain diagnostics and receive zero credit.
+Confirm tiny failed weights and every repeated-run pass rule cannot pass. Reuse
+assignment/final judgments only inside the same evaluation; histories from different
+cases require new decisions. Quality IDs are contextScore, complexityChoice,
+hintNoul, ambiguityScore and humanNoul. No-call abstention is a separate valid path.

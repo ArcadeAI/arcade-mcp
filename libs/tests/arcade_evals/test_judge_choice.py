@@ -21,7 +21,11 @@ QUESTIONS = {
         "instructions": "Is context sufficient?",
         "criteria": ["no", "yes"],
     },
-    "human": {"type": "noul", "instructions": "Is the request natural?"},
+    "human": {
+        "type": "noul",
+        "instructions": "Is the request natural?",
+        "criteria": {"true": "yes", "false": "no"},
+    },
 }
 
 
@@ -39,7 +43,7 @@ def run_judge(provider, answer):
         response.__enter__.return_value = response
         response.read.return_value = json.dumps(payload).encode()
         backend = JevBackend(api_key="test-key")
-        with patch("urllib.request.urlopen", return_value=response) as request:
+        with patch("urllib.request.OpenerDirector.open", return_value=response) as request:
             verdicts = backend.judge(state={"user": "Plan a trip"}, questions=QUESTIONS)
         assert request.call_count == 1
     else:

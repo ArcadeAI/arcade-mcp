@@ -98,7 +98,7 @@ def run_examples(backend: JudgeBackend | None = None) -> list[dict]:
             "expected": expected,
             "actual": actual,
             "result": first,
-            "repeat_cache_hit": cached["cache_hit"],
+            "repeat_status": cached["status"],
             "repeat_judge_calls": cached["judge_calls"],
         })
     return results

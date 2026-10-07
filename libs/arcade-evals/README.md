@@ -67,10 +67,12 @@ result = similarity_critic.evaluate(
 
 ### Judge Critics
 
-Semantic judges for text arguments. Each critic tries an explicit backend,
-then Jev when `JEV_API_KEY` (or `TYPESAFE_API_KEY`) is set, then an
-OpenAI-compatible LLM only when `llm_model` is set, then a local tier
-(TF-IDF cosine; exact match for `IntentionCritic`).
+Semantic judges are explicitly enabled with `provider="jev"` or an injected
+`backend`. Configure exactly one. Ambient keys and `llm_model` alone never enable
+requests; `llm_model` remains an inert compatibility constructor field. The
+default `fallback="none"` withholds unavailable or low-confidence judgments with
+zero credit. `fallback="lexical"` explicitly permits a labeled local TF-IDF tier
+(exact match for intent); its result has `status="fallback"` and `judged=False`.
 
 ```python
 from arcade_evals import (
@@ -80,10 +82,10 @@ from arcade_evals import (
     SemanticSimilarityCritic,
 )
 
-SemanticSimilarityCritic(critic_field="content", weight=0.6)  # paraphrase (Jev Score)
-IntentionCritic(critic_field="tone", weight=0.4, intent="Professional tone")  # (Jev Noul)
-GroundednessCritic(critic_field="summary", weight=0.5)  # no invented facts (Jev Score)
-CompletenessCritic(critic_field="features", weight=0.5)  # no omissions (Jev Score)
+SemanticSimilarityCritic(critic_field="content", weight=0.6, provider="jev")  # paraphrase (Jev Score)
+IntentionCritic(critic_field="tone", weight=0.4, intent="Professional tone", provider="jev")  # (Jev Noul)
+GroundednessCritic(critic_field="summary", weight=0.5, provider="jev")  # no invented facts (Jev Score)
+CompletenessCritic(critic_field="features", weight=0.5, provider="jev")  # no omissions (Jev Score)
 ```
 
 ### Provider-neutral judge interface
@@ -95,12 +97,12 @@ and can also be used directly. A custom backend implements the same method;
 no registry, inheritance, or changes to Arcade's runner are needed.
 
 ```python
-from openai import OpenAI
 from arcade_evals import LLMFallbackBackend, SemanticSimilarityCritic
 
 # Supply your provider's URL, API key, and model through your own configuration.
-client = OpenAI(base_url=provider_url, api_key=provider_api_key)
-backend = LLMFallbackBackend(client=client, model=provider_model)
+backend = LLMFallbackBackend(
+    base_url=provider_url, api_key=provider_api_key, model=provider_model, timeout=20.0
+)
 critic = SemanticSimilarityCritic(critic_field="text", weight=1.0, backend=backend)
 ```
 
@@ -108,7 +110,15 @@ Supported question types are `score` (ordered levels normalized to 0..1),
 `noul` (probability of yes), and `choice` (one named option). Choice verdicts
 have `label` and `score=None`: a category has no implicit numerical grade.
 Jev's reported Choice confidence and distribution are preserved and validated;
-the generic LLM adapter returns only the category without invented confidence.
+optional metadata is validated across built-in and injected adapters. Missing
+confidence remains absent; no adapter invents it. Rubrics are checked before
+requests. Score needs ordered levels; Noul needs `true`/`false` criteria; Choice
+needs at least two named options. URLs require HTTPS, except exact loopback
+hosts (`localhost`, `127.0.0.1`, `::1`) may use HTTP. Both default HTTP transports
+disable redirects per instance. An injected client owns its HTTP security policy.
+The LLM adapter passes per-request timeout, rejects explicit interrupted/refused
+responses, accepts absent completion metadata for compatible endpoints, and
+records the returned model identifier when supplied.
 Question instructions/criteria are trusted configuration; state is evidence.
 
 ### Evaluation case quality
@@ -124,16 +134,16 @@ grader = CaseQualityGrader(backend=backend)
 for case in suite.cases:
     report = grader.grade(case)  # Optional tools=[...] supplies tool definitions.
     print(case.name, report.passed, report.reasons)
-    print(report.verdicts["complexity"].label)
+    print(report.verdicts["complexityChoice"].label)
 ```
 
 | Dimension | What it checks |
 | --- | --- |
-| `context` | Can the expected outcome be derived from the model-visible information? |
-| `complexity` | Direct extraction, simple interpretation, dependent reasoning, or adversarial cues. |
-| `hint` | Does the request leak the answer instead of testing the intended skill? |
-| `ambiguity` | Could a reasonable alternative be incorrectly rejected? |
-| `human` | Is the wording plausible for the task and audience? |
+| `contextScore` | Can the expected outcome be derived from the model-visible information? |
+| `complexityChoice` | Direct extraction, simple interpretation, dependent reasoning, or adversarial cues. |
+| `hintNoul` | Does the request leak the answer instead of testing the intended skill? |
+| `ambiguityScore` | Could a reasonable alternative be incorrectly rejected? |
+| `humanNoul` | Is the wording plausible for the task and audience? |
 
 Literal arguments and IDs are legitimate inputs, not automatic failures.
 Complexity describes coverage; `fail_on_trivial=True` optionally excludes
@@ -141,8 +151,9 @@ trivial cases. The other gates use configurable `min_context`, `max_hint`,
 `max_ambiguity`, and `min_human` thresholds. Defaults are starting policies,
 not calibrated guarantees: `0.6`, `0.6`, `0.4`, and `0.5`, respectively.
 Each report preserves per-dimension verdicts and provider metadata. Missing or
-malformed judgments raise `JudgeError`; an unavailable judge is not evidence
-that the case is good or bad.
+malformed judgments return `passed=False` with `invalid`; transport failures
+return `unavailable`, and insufficient confidence returns `low_confidence`.
+An unavailable judge is not evidence that the case is good or bad.
 
 Override the policy per grader when a suite needs a different acceptance bar;
 the values are validated as finite numbers from `0.0` through `1.0`:
@@ -171,7 +182,7 @@ that was available to the evaluated model. No-call cases are supported.
 Runnable examples in `examples/evals/`:
 
 - `eval_judge_critics.py`: all four critics, passing/failing illustrative scores,
-  custom provider injection, cache hits, and call/latency metadata.
+  custom provider injection and request versus lifetime call/latency metadata.
 - `eval_case_quality.py`: two passes and four failures, including a legitimate
   literal ID and missing context, answer leakage, ambiguity, and template wording.
 - `eval_case_quality_calibration.py`: eleven paired priority, document, and
@@ -232,3 +243,21 @@ Multi-run results include per-case statistics:
 ## License
 
 MIT License - see LICENSE file for details.
+
+
+Judgments are reused only within an `EvalCase.evaluate` call for assignment and
+final scoring of the same candidate pair. There is no persistent cross-case cache
+or shared context mutation. Model-visible system, user and history messages reach
+the judge through `JudgeScope`; reference labels remain separate from generator
+prompts. Identical labels do not establish groundedness or valid intent. Two absent
+values can abstain without a request. Any unavailable judgment or critic exception
+prevents a single run or repeated-run aggregation from passing, even at tiny weight.
+
+`JudgeCriticGroup` sends all checks for one pair together. Members cannot configure
+conflicting backend/provider/llm_model/fallback options. Missing, invalid or uncertain
+members withhold the entire group's credit while preserving per-check diagnostic
+scores, status, confidence and evidence. `judge_calls` and `judge_latency_ms` describe
+the returned evaluation; instance `judge_calls_total` and `judge_latency_ms_total`
+are lifetime counters. Multiple candidate pairs can require multiple requests.
+Structured formulas, document edits and styles can be judged as supplied textual
+or JSON evidence. These judgments do not validate rendered appearance.

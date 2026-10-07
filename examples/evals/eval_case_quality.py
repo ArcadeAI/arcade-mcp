@@ -100,9 +100,11 @@ class FixtureJudge:
     def judge(self, *, state: dict, questions: dict) -> dict[str, JudgeVerdict]:
         answers = {
             qid: JudgeVerdict(score, None, "demo", "illustrative-fixture")
-            for qid, score in zip(("context", "hint", "ambiguity", "human"), self.example["scores"])
+            for qid, score in zip(
+                ("contextScore", "hintNoul", "ambiguityScore", "humanNoul"), self.example["scores"]
+            )
         }
-        answers["complexity"] = JudgeVerdict(
+        answers["complexityChoice"] = JudgeVerdict(
             None, None, "demo", "illustrative-fixture", label=self.example["complexity"]
         )
         return answers
