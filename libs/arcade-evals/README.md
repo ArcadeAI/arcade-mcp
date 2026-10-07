@@ -121,6 +121,28 @@ responses, accepts absent completion metadata for compatible endpoints, and
 records the returned model identifier when supplied.
 Question instructions/criteria are trusted configuration; state is evidence.
 
+#### Where Jev fits and where to use other tools
+
+Checked on 7 October 2026, `jev-1.13.0` supports bounded typed judgments over
+supplied text. Reference comparison, routing and case-quality checks fit this
+interface. Independent questions can share state and return separate answers;
+application code owns acceptance and actions. [Models](https://docs.typesafe.ai/models),
+[Introduction](https://docs.typesafe.ai/introduction).
+
+Confidence describes the answer distribution, not guaranteed correctness.
+Use code for exact arithmetic, counting and date ordering, and a generative model
+or agent for writing and execution. Images, audio and video are unsupported;
+use rendered inspection for visual appearance. Test ambiguous or adversarial
+inputs and option ordering on domain fixtures.
+[Confidence](https://docs.typesafe.ai/confidence),
+[Known limitations](https://docs.typesafe.ai/model-jaggedness/jev-1.13),
+[Coding agents](https://docs.typesafe.ai/introduction/coding-agents).
+
+Hosted requests should contain only data approved for that service; keep
+credentials outside state. Future versions may improve robustness, but those
+improvements remain unproven here. Pin the version and re-test instead of
+inheriting earlier results. [API](https://docs.typesafe.ai/api).
+
 ### Evaluation case quality
 
 `CaseQualityGrader` reviews an existing `EvalCase` before model execution.
