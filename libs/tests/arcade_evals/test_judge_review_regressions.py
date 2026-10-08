@@ -52,8 +52,7 @@ class RedirectResponse(urllib.request.HTTPHandler):
 
 
 @pytest.mark.parametrize("kind", ["jev", "llm"])
-def test_actual_instance_opener_rejects_redirect_without_second_request(kind, monkeypatch):
-    monkeypatch.setattr("socket.socket.connect", lambda *args: pytest.fail("Unexpected network"))
+def test_actual_instance_opener_rejects_redirect_without_second_request(kind, offline_socket_guard):
     backend = (
         JevBackend(api_key="synthetic", base_url="http://localhost/judge")
         if kind == "jev"

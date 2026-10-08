@@ -9,6 +9,7 @@ from arcade_cli.main import cli
 from arcade_evals import BinaryCritic, EvalSuite
 from arcade_evals.eval import EvalCase
 from arcade_evals.judge import JudgeVerdict
+from click import unstyle
 from typer.testing import CliRunner
 
 pytestmark = pytest.mark.evals
@@ -17,11 +18,10 @@ PRIVATE = "synthetic-private-provider-detail"
 
 
 @pytest.fixture(autouse=True)
-def no_execution_or_network(monkeypatch):
+def no_execution_or_network(monkeypatch, offline_socket_guard):
     blocked = Mock(side_effect=AssertionError("Unexpected execution or network"))
     for key in ("JEV_API_KEY", "TYPESAFE_API_KEY", "OPENAI_API_KEY"):
         monkeypatch.setenv(key, "synthetic-test-key")
-    monkeypatch.setattr("socket.socket.connect", blocked)
     monkeypatch.setattr("arcade_cli.main.check_and_notify", blocked)
     monkeypatch.setattr("arcade_cli.main.check_existing_login", blocked)
     monkeypatch.setattr("arcade_cli.main._credentials_file_contains_legacy", blocked)
@@ -379,12 +379,23 @@ def test_output_write_error_is_nonzero_with_visible_results(tmp_path, judge):
     assert "Complete: false" in result.output
 
 
-def test_help_is_public_and_requires_no_backend(tmp_path, judge):
-    result = runner.invoke(cli, ["evals-quality", "--help"])
+@pytest.mark.parametrize("color", [False, True], ids=["plain", "forced-color"])
+def test_help_is_public_and_requires_no_backend(judge, monkeypatch, color):
+    monkeypatch.delenv("NO_COLOR", raising=False)
+    # Typer caches these terminal settings at import, before fixture env changes.
+    monkeypatch.setattr("typer.rich_utils.FORCE_TERMINAL", color)
+    monkeypatch.setattr("typer.rich_utils.COLOR_SYSTEM", "standard" if color else None)
+    if color:
+        monkeypatch.setenv("FORCE_COLOR", "1")
+    else:
+        monkeypatch.delenv("FORCE_COLOR", raising=False)
+    result = runner.invoke(cli, ["evals-quality", "--help"], color=color)
     assert result.exit_code == 0
-    assert "--backend" in result.output
-    assert "--model" in result.output
-    assert "--output" in result.output
+    assert ("\x1b[" in result.output) is color
+    help_text = unstyle(result.output)
+    assert "--backend" in help_text
+    assert "--model" in help_text
+    assert "--output" in help_text
     judge[1].assert_not_called()
 
 

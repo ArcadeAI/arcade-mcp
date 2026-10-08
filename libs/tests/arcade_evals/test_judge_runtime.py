@@ -14,10 +14,9 @@ pytestmark = pytest.mark.evals
 
 
 @pytest.fixture(autouse=True)
-def offline(monkeypatch):
+def offline(monkeypatch, offline_socket_guard):
     for key in ("JEV_API_KEY", "TYPESAFE_API_KEY", "OPENAI_API_KEY"):
         monkeypatch.delenv(key, raising=False)
-    monkeypatch.setattr("socket.socket.connect", lambda *args: pytest.fail("Unexpected network"))
 
 
 class CountingBackend:

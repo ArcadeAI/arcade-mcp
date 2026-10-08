@@ -38,12 +38,10 @@ def server_with_evaluations_jev_eval_suite() -> EvalSuite:
     - CompletenessCritic: every required item in expected appears in actual
       (Jev Score). Catches omissions that paraphrase-level similarity passes.
 
-    Judge chain per critic: explicit backend, else Jev when JEV_API_KEY or
-    TYPESAFE_API_KEY is set, else an OpenAI-compatible LLM only when
-    llm_model is set, else local TF-IDF (exact match for IntentionCritic).
-    The critics call Jev live when a key is configured; without judge keys
-    they use the local tier. Running the suite still requires the model
-    provider that generates the tool calls being evaluated.
+    Each critic explicitly selects provider="jev". Live judgment requires
+    JEV_API_KEY or TYPESAFE_API_KEY. Missing credentials or an unavailable
+    judge withhold judgment; no fallback is enabled. Running the suite also
+    requires the model provider that generates the tool calls being evaluated.
     """
     suite = EvalSuite(
         name="Jev Judge Tools Evaluation",
@@ -52,8 +50,7 @@ def server_with_evaluations_jev_eval_suite() -> EvalSuite:
         rubric=rubric,
     )
 
-    # Paraphrase is fine; wrong tone is not. Uncomment llm_model to enable
-    # the LLM tier (needs OPENAI_API_KEY or equivalent for your provider).
+    # Paraphrase is fine; wrong tone is not.
     suite.add_case(
         name="Create email subject",
         user_message="Create an email subject using the tools accessible to you for trees in west coast content",
@@ -70,15 +67,15 @@ def server_with_evaluations_jev_eval_suite() -> EvalSuite:
             SemanticSimilarityCritic(
                 critic_field="email_content",
                 weight=0.6,
+                provider="jev",
                 match_threshold=0.7,
-                # llm_model="gpt-4o-mini",
             ),
             IntentionCritic(
                 critic_field="tone",
                 weight=0.4,
+                provider="jev",
                 intent="Professional tone for a business email",
                 match_threshold=0.7,
-                # llm_model="gpt-4o-mini",
             ),
         ],
     )
@@ -100,14 +97,16 @@ def server_with_evaluations_jev_eval_suite() -> EvalSuite:
             CompletenessCritic(
                 critic_field="main_features",
                 weight=0.6,
+                provider="jev",
                 match_threshold=0.7,
-                # llm_model="gpt-4o-mini",
             ),
             SemanticSimilarityCritic(
                 critic_field="target_audience",
                 weight=0.4,
+                provider="jev",
                 match_threshold=0.7,
-                # llm_model="gpt-4o-mini",
             ),
         ],
     )
+
+    return suite

@@ -11,6 +11,8 @@ requires --limit so the number of provider requests is visible before running.
 The output gives evidence ranges for each threshold; it does not automatically
 modify production policy. Threshold flags override only this run and are echoed
 under `policy` in the JSON output.
+Withheld results retain available diagnostic scores, but do not count as
+calibration matches or threshold evidence.
 """
 
 from __future__ import annotations
@@ -251,6 +253,13 @@ DIMENSIONS = {
     "human": {"threshold": "min_human", "direction": "minimum"},
 }
 
+SCORE_QUESTIONS = {
+    "context": "contextScore",
+    "hint": "hintNoul",
+    "ambiguity": "ambiguityScore",
+    "human": "humanNoul",
+}
+
 POLICY_FIELDS = ("min_context", "max_hint", "max_ambiguity", "min_human", "fail_on_trivial")
 
 
@@ -362,17 +371,20 @@ def _is_good(dimension: str, score: float, thresholds: dict[str, float]) -> bool
 
 
 def _calibration_ranges(rows: list[dict[str, Any]], thresholds: dict[str, float]) -> dict[str, Any]:
+    rows = [row for row in rows if row["status"] in ("passed", "failed")]
     result = {}
     for dimension, config in DIMENSIONS.items():
         good = [
             row["scores"][dimension]
             for row in rows
             if row["expected_dimensions"][dimension] == "good"
+            and row["scores"][dimension] is not None
         ]
         bad = [
             row["scores"][dimension]
             for row in rows
             if row["expected_dimensions"][dimension] == "bad"
+            and row["scores"][dimension] is not None
         ]
         item: dict[str, Any] = {
             "direction": config["direction"],
@@ -424,42 +436,41 @@ def run_calibration(
         case, tools = build_case(fixture)
         grader = CaseQualityGrader(backend=backend or FixtureJudge(fixture), **policy)
         report = grader.grade(case, tools=tools)
-        scores = {
-            name: report.verdicts[
-                {
-                    "context": "contextScore",
-                    "hint": "hintNoul",
-                    "ambiguity": "ambiguityScore",
-                    "human": "humanNoul",
-                }[name]
-            ].score
-            for name in DIMENSIONS
-        }
+        scores = {}
+        for name, question_id in SCORE_QUESTIONS.items():
+            verdict = report.verdicts.get(question_id)
+            scores[name] = verdict.score if verdict is not None else None
+        adjudicated = report.status in ("passed", "failed")
         expected_dimensions = fixture["dimensions"]
         dimension_matches = {
             name: _is_good(name, scores[name], thresholds) == (expected_dimensions[name] == "good")
+            if adjudicated and scores[name] is not None
+            else None
             for name in DIMENSIONS
         }
+        complexity = report.verdicts.get("complexityChoice")
+        context = report.verdicts.get("contextScore")
         rows.append({
             "case": fixture["name"],
             "expected_pass": fixture["expected_pass"],
             "passed": report.passed,
-            "outcome_matches": report.passed == fixture["expected_pass"],
+            "status": report.status,
+            "outcome_matches": report.passed == fixture["expected_pass"] if adjudicated else None,
             "expected_dimensions": expected_dimensions,
             "dimension_matches": dimension_matches,
             "scores": scores,
-            "complexity": report.verdicts["complexityChoice"].label,
+            "complexity": complexity.label if complexity is not None else None,
             "reasons": report.reasons,
-            "model": report.verdicts["contextScore"].model,
+            "model": context.model if context is not None else None,
         })
     return {
         "policy": policy,
         "cases": rows,
         "summary": {
             "fixtures": len(rows),
-            "outcome_matches": sum(row["outcome_matches"] for row in rows),
+            "outcome_matches": sum(row["outcome_matches"] is True for row in rows),
             "dimension_mismatches": sum(
-                not matched for row in rows for matched in row["dimension_matches"].values()
+                matched is False for row in rows for matched in row["dimension_matches"].values()
             ),
         },
         "thresholds": _calibration_ranges(rows, thresholds),

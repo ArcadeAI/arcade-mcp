@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-pytestmark = pytest.mark.evals
+pytestmark = [pytest.mark.evals, pytest.mark.usefixtures("offline_socket_guard")]
 EXAMPLES = Path(__file__).resolve().parents[3] / "examples" / "evals"
 
 
@@ -16,7 +16,6 @@ EXAMPLES = Path(__file__).resolve().parents[3] / "examples" / "evals"
 def test_default_examples_are_offline_and_show_passes_and_failures(filename, monkeypatch, capsys):
     for key in ("JEV_API_KEY", "TYPESAFE_API_KEY", "OPENAI_API_KEY"):
         monkeypatch.setenv(key, "synthetic-demo-must-not-use-this")
-    monkeypatch.setattr("socket.socket.connect", lambda *args: pytest.fail("Unexpected network"))
     monkeypatch.setattr("sys.argv", [filename])
     runpy.run_path(str(EXAMPLES / filename), run_name="__main__")
     output = json.loads(capsys.readouterr().out)
@@ -49,7 +48,6 @@ def test_calibration_example_is_offline_and_reports_threshold_evidence(monkeypat
     filename = "eval_case_quality_calibration.py"
     for key in ("JEV_API_KEY", "TYPESAFE_API_KEY", "OPENAI_API_KEY"):
         monkeypatch.setenv(key, "synthetic-demo-must-not-use-this")
-    monkeypatch.setattr("socket.socket.connect", lambda *args: pytest.fail("Unexpected network"))
     monkeypatch.setattr("sys.argv", [filename])
     runpy.run_path(str(EXAMPLES / filename), run_name="__main__")
     output = json.loads(capsys.readouterr().out)
@@ -71,7 +69,6 @@ def test_calibration_example_is_offline_and_reports_threshold_evidence(monkeypat
 
 
 def test_calibration_example_selects_named_offline_fixtures(monkeypatch):
-    monkeypatch.setattr("socket.socket.connect", lambda *args: pytest.fail("Unexpected network"))
     module = runpy.run_path(
         str(EXAMPLES / "eval_case_quality_calibration.py"), run_name="fixture_module"
     )
@@ -86,7 +83,6 @@ def test_calibration_example_selects_named_offline_fixtures(monkeypatch):
 
 
 def test_calibration_example_applies_user_policy_overrides(monkeypatch):
-    monkeypatch.setattr("socket.socket.connect", lambda *args: pytest.fail("Unexpected network"))
     module = runpy.run_path(
         str(EXAMPLES / "eval_case_quality_calibration.py"), run_name="policy_module"
     )
