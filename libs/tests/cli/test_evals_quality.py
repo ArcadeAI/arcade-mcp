@@ -156,6 +156,46 @@ def test_constructs_once_and_reports_actual_schemas_without_execution(tmp_path, 
     assert "synthetic-private" not in result.output + output.read_text()
 
 
+@pytest.mark.parametrize("style", ["sync", "async", "coroutine"])
+def test_preserves_user_factory_decorator_and_required_arguments(tmp_path, judge, style):
+    definition, factory_marker = _definition(tmp_path)
+    setup_marker = tmp_path / "decorator.constructed"
+    decorator_keyword = "async def" if style == "async" else "def"
+    factory_keyword = "def" if style == "sync" else "async def"
+    call = (
+        "await factory('decorated support')" if style == "async" else "factory('decorated support')"
+    )
+    user_factory = dedent(f"""
+        from functools import wraps
+
+        def inject_setup(factory):
+            @wraps(factory)
+            {decorator_keyword} decorated():
+                marker = Path({str(setup_marker)!r})
+                marker.write_text(marker.read_text() + 'x' if marker.exists() else 'x')
+                return {call}
+            return decorated
+
+        @tool_eval()
+        @inject_setup
+        {factory_keyword} definition(required_suite_name):
+            suite = make_suite()
+            suite.name = required_suite_name
+            return suite
+    """)
+    definition.write_text(definition.read_text().split("@tool_eval()")[0] + user_factory)
+    output = tmp_path / "report.json"
+    result = _invoke(definition, output)
+    assert result.exit_code == 0, result.output
+    assert setup_marker.read_text() == "x"
+    assert factory_marker.read_text() == "x"
+    judge[0].judge.assert_called_once()
+    report = json.loads(output.read_text())
+    assert report["complete"] is True
+    assert report["errors"] == []
+    assert report["cases"][0]["suite"] == "decorated support"
+
+
 def test_explicit_llm_model_is_used(tmp_path, judge):
     definition, _ = _definition(tmp_path)
     output = tmp_path / "report.json"

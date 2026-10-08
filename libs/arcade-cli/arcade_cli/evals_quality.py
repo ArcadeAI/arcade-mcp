@@ -55,8 +55,9 @@ def _import_factories(path: Path) -> list[Any]:
 async def _construct_suite(wrapper: Any) -> EvalSuite:
     from arcade_evals.eval import EvalSuite
 
-    factory = inspect.unwrap(wrapper)
-    if factory is wrapper:
+    # Preserve user decorators beneath Arcade's outer evaluation wrapper.
+    factory = getattr(wrapper, "__wrapped__", None)
+    if not callable(factory) or factory is wrapper:
         raise TypeError
     suite = factory()
     if inspect.isawaitable(suite):
