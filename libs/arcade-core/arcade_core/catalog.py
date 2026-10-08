@@ -43,7 +43,7 @@ from pydantic.functional_validators import (
     PlainValidator,
     WrapValidator,
 )
-from pydantic_core import PydanticUndefined
+from pydantic_core import PydanticCustomError, PydanticUndefined
 from typing_extensions import NotRequired, Required
 
 from arcade_core.annotations import Inferrable
@@ -1377,11 +1377,23 @@ def _validate_as_declared_type(item: Any, wrapped_type: Any) -> Any:
     the dict form, so it receives the dumped value and its result is validated
     back into the model.
     """
-    if not isinstance(item, (AfterValidator, PlainValidator, WrapValidator)):
+    if not isinstance(item, (AfterValidator, PlainValidator, WrapValidator, Predicate)):
         return item
 
     adapter: TypeAdapter[Any] = TypeAdapter(wrapped_type)
     func: Callable[..., Any] = item.func
+
+    if isinstance(item, Predicate):
+        name = getattr(func, "__qualname__", repr(func))
+
+        def predicate(value: Any) -> Any:
+            if not func(adapter.dump_python(value)):
+                raise PydanticCustomError(
+                    "predicate_failed", "Predicate {name} failed", {"name": name}
+                )
+            return value
+
+        return AfterValidator(predicate)
 
     if isinstance(item, AfterValidator):
         if _takes_info(func, 1):

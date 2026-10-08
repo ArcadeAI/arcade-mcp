@@ -16,7 +16,7 @@ import logging
 from typing import Annotated, Optional
 
 import pytest
-from annotated_types import Ge
+from annotated_types import Ge, Predicate
 from arcade_core.catalog import ToolCatalog
 from arcade_core.errors import ErrorKind
 from arcade_core.executor import ToolExecutor
@@ -457,6 +457,25 @@ class TestValidatorShapesOnTypedDictParams:
         output = await _run(fn, mt, value={"start": 1, "end": 2})
         assert output.error is None
         assert output.value == {"start": 1, "end": 2}
+
+    @pytest.mark.asyncio
+    async def test_predicate_receives_dict(self):
+        def probe(
+            value: Annotated[Window, Predicate(lambda w: w["start"] <= w["end"]), "Window"],
+        ) -> dict:
+            """Probe."""
+            return dict(value)
+
+        fn = tool(probe)
+        mt = _probe(fn)
+        accepted = await _run(fn, mt, value={"start": 1, "end": 4})
+        assert accepted.error is None
+        assert accepted.value == {"start": 1, "end": 4}
+
+        rejected = await _run(fn, mt, value={"start": 4, "end": 1})
+        assert rejected.error is not None
+        assert rejected.error.kind == ErrorKind.TOOL_RUNTIME_BAD_INPUT_VALUE
+        assert "Predicate" in rejected.error.message
 
     @pytest.mark.asyncio
     async def test_builtin_callable_as_validator(self):
