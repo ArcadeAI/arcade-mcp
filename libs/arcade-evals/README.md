@@ -122,6 +122,9 @@ returns a `JudgeVerdict` for each question ID. `JevBackend` adapts Jev's
 System One endpoint; `LLMFallbackBackend` adapts an OpenAI-compatible client
 and can also be used directly. A custom backend implements the same method;
 no registry, inheritance, or changes to Arcade's runner are needed.
+The LLM adapter logs a warning once per instance on its first request attempt:
+its scores need separate calibration and are not equivalent to Jev scores.
+Selecting it is explicit; a Jev outage does not activate it automatically.
 
 ```python
 from arcade_evals import LLMFallbackBackend, SemanticSimilarityCritic
@@ -175,6 +178,38 @@ inheriting earlier results. [API](https://docs.typesafe.ai/api).
 `CaseQualityGrader` reviews an existing `EvalCase` before model execution.
 It is opt-in and sends all five questions in one backend call. It does not
 modify cases, run tools, or change evaluation scores.
+
+For an informational CLI review of authored cases, use:
+
+```sh
+# Uses JEV_API_KEY or TYPESAFE_API_KEY; --model is optional for Jev.
+arcade evals-quality ./evals --backend jev --output quality-report.json
+
+# Uses OPENAI_API_KEY and an explicitly selected OpenAI chat model.
+arcade evals-quality ./evals --backend llm --model gpt-4o-mini --output quality-report.json
+```
+
+The command discovers `eval_*.py` files, invokes the original `@tool_eval`
+suite factories, and supplies registered tool schemas to the quality grader.
+It supports sync, async and coroutine-returning factories. It does not invoke
+the evaluation/capture wrapper, model generation, critics or tools. Imports and
+factories execute user Python and can have their own side effects; this is not
+a sandbox. Comparative definitions are explicitly rejected with a nonzero exit.
+
+The console and optional JSON report show each dimension's score and
+`100 * score` percentage, direction, separate optional confidence, complexity
+category and warnings. Percentages are dimension scores, not accuracy estimates;
+there is no overall quality percentage. Missing judgments remain `null`, and
+valid dimensions survive partial results. Reports identify the configured model;
+raw provider responses and provider-reported model text are omitted.
+
+Quality concerns return exit `0`. Provider-unavailable, invalid or low-confidence
+judgments also return `0`, with `complete=false` and explicit warnings. An
+all-unavailable report says that no usable judgments were obtained. Configuration,
+loading, unsupported definitions, no cases and output errors return nonzero;
+available partial results are saved when possible. The command does not gate or
+change normal `arcade evals` execution. The existing Python grader keeps its
+threshold-based `passed` and `status` behavior.
 
 ```python
 from arcade_evals import CaseQualityGrader

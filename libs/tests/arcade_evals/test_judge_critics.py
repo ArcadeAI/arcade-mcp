@@ -33,7 +33,7 @@ def _score_response(score=1.6, confidence=0.8, model="jev-1.13.0"):
 class TestJevBackend:
     """Tests for the Jev HTTP backend."""
 
-    def test_normalizes_score_to_unit_range(self) -> None:
+    def test_normalizes_score_to_unit_range(self, caplog: pytest.LogCaptureFixture) -> None:
         backend = JevBackend(api_key="k")
         questions = {"q": {"type": "score", "instructions": "x", "criteria": ["a", "b", "c"]}}
         with patch("urllib.request.OpenerDirector.open", return_value=_score_response()):
@@ -42,6 +42,7 @@ class TestJevBackend:
         assert verdicts["q"].confidence == pytest.approx(0.8)
         assert verdicts["q"].backend == "jev"
         assert verdicts["q"].model == "jev-1.13.0"
+        assert not [record for record in caplog.records if record.name == "arcade_evals.judge"]
 
     def test_noul_carries_no_confidence(self) -> None:
         payload = {"model": "jev-1.13.0", "answers": {"q": {"type": "noul", "noul": 0.93}}}
@@ -134,6 +135,70 @@ class _FakeOpenAIClient:
 class TestLLMFallbackBackend:
     """Tests for the OpenAI-compatible LLM fallback (fake client, no network)."""
 
+    @pytest.mark.parametrize("transport", ["client", "http"])
+    def test_warns_once_on_first_transport_use(
+        self, transport: str, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        from arcade_evals.judge import LLMFallbackBackend
+
+        payload = {"q": {"score": 0.7}, "other": {"score": 0.3}}
+        client = _FakeOpenAIClient(payload) if transport == "client" else None
+        backend = LLMFallbackBackend(
+            client=client,
+            model="synthetic-private-model\ninjected log line",
+            api_key="synthetic-private-key",
+            base_url="http://localhost/synthetic-private-path",
+        )
+        assert not caplog.records  # Constructing a backend does not use it.
+        if client is not None:
+            operation = patch.object(
+                client.chat.completions, "create", wraps=client.chat.completions.create
+            )
+        else:
+            response = MagicMock()
+            response.read.return_value = json.dumps({
+                "model": "synthetic-private-reported-model",
+                "choices": [{"message": {"content": json.dumps(payload)}}],
+            }).encode()
+            response.__enter__.return_value = response
+            operation = patch("urllib.request.OpenerDirector.open", return_value=response)
+        questions = {qid: {"type": "score", "criteria": ["no", "yes"]} for qid in payload}
+        with operation as request:
+            for _ in range(2):
+                verdicts = backend.judge(
+                    state={"text": "synthetic-private-payload"}, questions=questions
+                )
+                assert verdicts["q"].score == pytest.approx(0.7)
+                assert verdicts["other"].score == pytest.approx(0.3)
+            assert request.call_count == 2
+        records = [record for record in caplog.records if record.name == "arcade_evals.judge"]
+        assert len(records) == 1
+        assert records[0].levelname == "WARNING"
+        assert records[0].getMessage() == (
+            "LLMFallbackBackend is using a generic LLM judge. "
+            "Its scores are not equivalent to Jev; calibrate thresholds for this backend."
+        )
+        assert "synthetic-private" not in caplog.text
+        assert "injected log line" not in caplog.text
+
+    @pytest.mark.parametrize("reason", ["invalid_questions", "missing_key"])
+    def test_unused_backend_does_not_warn(
+        self, reason: str, caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from arcade_evals.judge import JudgeError, LLMFallbackBackend
+
+        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+        backend = LLMFallbackBackend()
+        questions = (
+            {}
+            if reason == "invalid_questions"
+            else {"q": {"type": "score", "criteria": ["no", "yes"]}}
+        )
+        with patch("urllib.request.OpenerDirector.open") as request, pytest.raises(JudgeError):
+            backend.judge(state={}, questions=questions)
+        request.assert_not_called()
+        assert not caplog.records
+
     def test_parses_scores_per_question(self) -> None:
         from arcade_evals.judge import LLMFallbackBackend
 
@@ -188,7 +253,7 @@ class TestLLMFallbackBackend:
                 },
             )
 
-    def test_transport_failure_raises_judge_error(self) -> None:
+    def test_transport_failure_raises_judge_error(self, caplog: pytest.LogCaptureFixture) -> None:
         from arcade_evals.judge import JudgeError, LLMFallbackBackend
 
         class _BrokenCompletions:
@@ -210,6 +275,9 @@ class TestLLMFallbackBackend:
                     }
                 },
             )
+        records = [record for record in caplog.records if record.name == "arcade_evals.judge"]
+        assert len(records) == 1
+        assert records[0].levelname == "WARNING"
 
 
 class FakeBackend:

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import copy
 import json
+import logging
 import math
 import os
 import urllib.request
@@ -17,6 +18,8 @@ from typing import Any, Protocol, runtime_checkable
 from urllib.parse import urlsplit
 
 from arcade_evals.errors import JudgeError
+
+logger = logging.getLogger(__name__)
 
 JEV_API_URL = "https://api.typesafe.ai/v1/systemone"
 JEV_MODEL_DEFAULT = "jev-latest"
@@ -365,6 +368,7 @@ class LLMFallbackBackend:
     ``base_url`` defaults to OpenAI; injected clients own their transport policy.
     Per-request ``timeout`` is passed to injected OpenAI-compatible clients. This backend runs only when a critic or grader is given it.
     Parsed verdicts are accepted as-is; request or shape failures raise JudgeError.
+    The first transport attempt logs a calibration warning once per instance.
     """
 
     SYSTEM_PROMPT = (
@@ -392,6 +396,15 @@ class LLMFallbackBackend:
         self.base_url = _checked_base_url(base_url or "https://api.openai.com/v1")
         self._opener = urllib.request.build_opener(_NoRedirect())
         self.api_key = api_key
+        self._usage_warned = False
+
+    def _warn_on_use(self) -> None:
+        if not self._usage_warned:
+            logger.warning(
+                "LLMFallbackBackend is using a generic LLM judge. "
+                "Its scores are not equivalent to Jev; calibrate thresholds for this backend."
+            )
+            self._usage_warned = True
 
     def judge(self, *, state: dict[str, Any], questions: dict[str, Any]) -> dict[str, JudgeVerdict]:
         _checked_questions(questions)
@@ -419,6 +432,7 @@ class LLMFallbackBackend:
             }
             if self._client is not None:
                 # A supplied client owns its transport policy; use a trusted adapter.
+                self._warn_on_use()
                 response = self._client.chat.completions.create(
                     **request_body, timeout=self.timeout
                 )
@@ -434,6 +448,7 @@ class LLMFallbackBackend:
                     data=json.dumps(request_body).encode(),
                     headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
                 )
+                self._warn_on_use()
                 with self._opener.open(request, timeout=self.timeout) as response:
                     completion = json.loads(response.read())
                     choice = completion["choices"][0]

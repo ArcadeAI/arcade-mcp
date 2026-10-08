@@ -631,6 +631,42 @@ def show(
     )
 
 
+@cli.command(
+    name="evals-quality",
+    help="Report case quality without running evaluations",
+    rich_help_panel="Build",
+)
+def evals_quality(
+    directory: str = typer.Argument(
+        ".", help="Directory or eval_*.py file containing suite definitions"
+    ),
+    backend: str = typer.Option(
+        ..., "--backend", help="Quality judge backend: jev or llm (required)"
+    ),
+    model: Optional[str] = typer.Option(
+        None, "--model", help="Judge model; required with --backend llm"
+    ),
+    output: Optional[Path] = typer.Option(
+        None, "--output", help="Save the informational report as JSON"
+    ),
+) -> None:
+    if backend not in {"jev", "llm"}:
+        raise typer.BadParameter("Choose jev or llm.", param_hint="--backend")
+    if model is not None and not model.strip():
+        raise typer.BadParameter("Model must be nonempty.", param_hint="--model")
+    if backend == "llm" and model is None:
+        raise typer.BadParameter("An explicit model is required for llm.", param_hint="--model")
+    require_dependency(
+        package_name="arcade_evals",
+        command_name="evals-quality",
+        uv_install_command=r"uv tool install 'arcade-mcp[evals]'",
+        pip_install_command=r"pip install 'arcade-mcp[evals]'",
+    )
+    from arcade_cli.evals_quality import run_quality_report
+
+    raise typer.Exit(run_quality_report(directory, backend=backend, model=model, output=output))
+
+
 @cli.command(help="Run tool calling evaluations", rich_help_panel="Build")
 def evals(
     directory: str = typer.Argument(".", help="Directory containing evaluation files"),
@@ -1378,9 +1414,14 @@ def main_callback(
 
     override_context(context_name)
 
-    # Background update check + notification (skip for update/upgrade/mcp to avoid
-    # corrupting MCP stdio protocol with non-JSON output)
-    if ctx.invoked_subcommand not in {update.__name__, upgrade.__name__, mcp.__name__}:
+    # Skip update checks for update/upgrade/mcp and informational quality reporting.
+    # MCP stdio must also remain free of non-JSON output.
+    if ctx.invoked_subcommand not in {
+        update.__name__,
+        upgrade.__name__,
+        mcp.__name__,
+        "evals-quality",
+    }:
         with contextlib.suppress(Exception):
             check_and_notify()
 
@@ -1390,6 +1431,7 @@ def main_callback(
         logout.__name__,
         dashboard.__name__,
         evals.__name__,
+        "evals-quality",
         mcp.__name__,
         new.__name__,
         show.__name__,
