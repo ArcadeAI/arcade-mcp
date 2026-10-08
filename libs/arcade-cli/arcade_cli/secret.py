@@ -5,6 +5,7 @@ from rich.table import Table
 from arcade_cli.console import console
 from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
+    exit_if_strong_authentication_required,
     get_auth_headers,
     get_org_scoped_url,
     resolve_engine_base_url,
@@ -98,6 +99,7 @@ def set_secret(
         try:
             _upsert_secret(secret_key, secret_value)
         except Exception as e:
+            exit_if_strong_authentication_required(e)
             console.print(f"Error setting secret '{secret_key}': {e}", style="bold red")
             continue
         console.print(
@@ -133,7 +135,8 @@ def unset_secret(
         try:
             _delete_secret(secret_id)
             console.print(f"Secret '{key}' deleted successfully")
-        except Exception:
+        except Exception as e:
+            exit_if_strong_authentication_required(e)
             console.print(
                 f"Failed to delete secret '{key}'. Do you have permission to delete this secret?",
                 style="bold red",
@@ -244,6 +247,7 @@ def _get_secrets() -> list[dict]:
     engine_url = state["engine_url"]
     url = get_org_scoped_url(engine_url, "/secrets")
     response = httpx.get(url, headers=get_auth_headers())
+    exit_if_strong_authentication_required(response)
     response.raise_for_status()
     return response.json()["items"]  # type: ignore[no-any-return]
 
