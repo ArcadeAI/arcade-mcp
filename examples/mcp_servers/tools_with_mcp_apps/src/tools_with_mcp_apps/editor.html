@@ -322,6 +322,20 @@
                 }
             }
 
+            function resultAuthorizationUrl(result) {
+                const url = authorizationUrl(readResult(result))
+                if (url) return url
+                for (const item of result.content ?? []) {
+                    if (item.type !== "text") continue
+                    try {
+                        const url = authorizationUrl(JSON.parse(item.text))
+                        if (url) return url
+                    } catch {
+                        /* Human-readable messages are not JSON. */
+                    }
+                }
+            }
+
             function clearAuthorization() {
                 if (!element("authorization").hidden && discovery === "ready")
                     element("status").textContent =
@@ -363,7 +377,7 @@
                         arguments: action.arguments,
                     })
                     const output = readResult(result)
-                    const url = authorizationUrl(output)
+                    const url = resultAuthorizationUrl(result)
                     if (url && result.isError) {
                         showAuthorization(url, action)
                         return
@@ -408,7 +422,7 @@
                 } else if (message.method === "ui/notifications/tool-result") {
                     const result = message.params
                     const output = readResult(result)
-                    const url = authorizationUrl(output)
+                    const url = resultAuthorizationUrl(result)
                     if (url && result.isError) showAuthorization(url, undefined, true)
                     else if (!result.isError) {
                         clearAuthorization()
@@ -479,7 +493,7 @@
             try {
                 const result = await request("ui/initialize", {
                     protocolVersion: "2026-01-26",
-                    appInfo: { name: "Greeting editor", version: "0.1.3" },
+                    appInfo: { name: "Greeting editor", version: "0.1.5" },
                     appCapabilities: {},
                 })
                 hostCapabilities = result.hostCapabilities ?? {}

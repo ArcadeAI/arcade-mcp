@@ -112,7 +112,7 @@ include the HTML file in the package. Both resources are available through
 This example uses only published resource declarations. It does not demonstrate
 resource templates or native-only resource registration APIs.
 
-The framework publishes `ui://ToolsWithMcpApps/0.1.4/editor.html` with MIME type
+The framework publishes `ui://ToolsWithMcpApps/0.1.5/editor.html` with MIME type
 `text/html;profile=mcp-app`. The gateway presents a globally unique resource URI
 that includes the registered server's identity. The host reads the exact URI in
 the tool's `_meta.ui.resourceUri`. Do not construct or decode that gateway URI
@@ -308,7 +308,7 @@ This example has no secret-requiring tool.
 
 ## Resource identifiers, web links, and release changes
 
-The server also publishes `resource://ToolsWithMcpApps/0.1.4/author-guide`. This is an MCP
+The server also publishes `resource://ToolsWithMcpApps/0.1.5/author-guide`. This is an MCP
 resource identifier: the client retrieves the content with `resources/read`.
 The identifier does not create a web endpoint. The gateway wraps the identifier
 in a `resource://<server-key>/<encoded-original-uri>` routing address.
