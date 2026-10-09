@@ -122,6 +122,70 @@ This example's HTML is bundled with the package and is the same for every
 end-user. Tool results and the host's tool availability responses supply runtime
 data. Avoid embedding user credentials or per-user data in the HTML resource.
 
+## Set CSP for external assets and requests
+
+The host runs an MCP App in a sandboxed iframe and enforces its Content Security
+Policy (CSP). The host reads that policy from `_meta.ui.csp` on each document in
+the `contents` array returned by `resources/read`. Put the policy in the
+resource's `meta` argument, not in the tool's metadata. The framework carries
+the resource metadata into both the resource listing and the read response.
+
+Use the MCP Apps field names, not browser CSP directive names:
+
+| MCP Apps field | What to allow | Example origin |
+| --- | --- | --- |
+| `resourceDomains` | External scripts, stylesheets, images and fonts | `https://cdn.example.com` |
+| `connectDomains` | Direct `fetch`, XHR and WebSocket requests | `https://api.example.com` |
+
+For an App that loads assets from a CDN and calls an API directly, change the
+resource declaration as follows. Replace the example origins with the origins
+that the App actually needs:
+
+```python
+from arcade_mcp_server import resource
+
+
+@resource(
+    file="editor.html",
+    title="Greeting editor",
+    meta={
+        "ui": {
+            "csp": {
+                "resourceDomains": ["https://cdn.example.com"],
+                "connectDomains": ["https://api.example.com"],
+            }
+        }
+    },
+)
+def editor() -> None:
+    """Edit a greeting and call tools through the connected MCP host."""
+```
+
+Do not use `script-src` or `connect-src` as keys in `_meta.ui.csp`. Those keys
+belong to the browser's CSP syntax, not the MCP Apps metadata contract. A host
+can block an external script or request when the required origin is not declared.
+
+The bundled greeting editor has inline JavaScript and CSS, and makes no direct
+network requests. Its tool calls use the host's `postMessage` bridge. The bridge
+does not need a `connectDomains` entry. Keep the bundled editor's declaration
+without a CSP allowlist unless you add external assets or direct network requests.
+
+For local development, declare each required origin, including the scheme and
+port. For example, scripts served at `http://localhost:5173` need that origin in
+`resourceDomains`. A development WebSocket at `ws://localhost:5173` needs that
+origin in `connectDomains`. An API at `http://localhost:8000` also needs its
+origin in `connectDomains`. `localhost` and `127.0.0.1` are different origins.
+Remove development origins before deployment. CSP does not replace the API
+server's CORS policy or the host's other security restrictions.
+
+If the App is blank, inspect the host's browser console for a blocked script or
+request. Check the returned document's `_meta.ui.csp` for the correct field and
+origin. A blocked external SDK script can prevent the bridge from initializing;
+`postMessage` itself is not a network request. See the
+[MCP Apps CSP and CORS guide](https://github.com/modelcontextprotocol/ext-apps/blob/main/docs/csp-cors.md)
+and the
+[MCP Apps security requirements](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx#4-content-security-policy-enforcement).
+
 ## Call a different tool
 
 The App sends requests to its parent host. The host uses the existing gateway
