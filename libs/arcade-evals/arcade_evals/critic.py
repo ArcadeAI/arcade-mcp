@@ -1,13 +1,26 @@
+import logging
+import time
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import timedelta
 from typing import Any, ClassVar
 
 import pytz
 from dateutil import parser
 
-from arcade_evals.errors import WeightError
+from arcade_evals.errors import JudgeError, WeightError
+from arcade_evals.judge import (
+    JEV_MODEL_DEFAULT,
+    JevBackend,
+    JudgeBackend,
+    JudgeScope,
+    JudgeVerdict,
+    _checked_number,
+    checked_verdict,
+)
 from arcade_evals.weights import FuzzyWeight, Weight, resolve_weight
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -39,6 +52,11 @@ class Critic(ABC):
     @abstractmethod
     def evaluate(self, expected: Any, actual: Any) -> dict[str, Any]:
         pass
+
+    def evaluate_in_scope(
+        self, expected: Any, actual: Any, scope: JudgeScope | None = None
+    ) -> dict[str, Any]:
+        return self.evaluate(expected, actual)
 
 
 @dataclass
@@ -351,3 +369,337 @@ class DatetimeCritic(Critic):
             ratio = max(ratio, 0)
             score = self.resolved_weight * ratio
             return {"match": False, "score": score}
+
+
+@dataclass
+class JudgeCriticBase(Critic, ABC):
+    """
+    One explicit judge per critic: provider="jev" or backend=..., never both.
+
+    Ambient environment keys never enable calls. Without a judge, evaluate() returns
+    status="unavailable" unless fallback="lexical". Lexical verdicts are labeled
+    status="fallback" and are never reported as judged. Unavailable and low-confidence
+    results score zero and never pass.
+
+    Attributes:
+        match_threshold: Minimum normalized score (0.0-1.0) for a match.
+        min_confidence: Minimum reported confidence (Jev Score only); lower verdicts
+            return status="low_confidence". Verdicts without confidence are accepted.
+        provider: Built-in provider. Only "jev" is supported.
+        backend: Explicit JudgeBackend, such as LLMFallbackBackend. Excludes provider.
+        judge_model: Jev model alias used when provider="jev".
+        fallback: "none" (default) or "lexical" (labeled local TF-IDF tier).
+        instructions: Application-provided guidance appended to this critic's rubric.
+        context: Optional JSON evidence, such as the original document or scenario messages.
+    """
+
+    match_threshold: float = 0.7
+    min_confidence: float = 0.5
+    provider: str | None = field(default=None, kw_only=True)
+    backend: JudgeBackend | None = None
+    judge_model: str = JEV_MODEL_DEFAULT
+    llm_model: str | None = None  # Compatibility only; explicit backend enables LLM calls.
+    fallback: str = field(default="none", kw_only=True)
+    judge_calls_total: int = field(default=0, init=False)
+    judge_latency_ms_total: float = field(default=0.0, init=False)
+    instructions: str = field(default="", kw_only=True)
+    context: Any = field(default=None, kw_only=True)
+
+    #: Set by concrete critics; selects their answer from a multi-question response.
+    question_id: ClassVar[str]
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        for name in ("match_threshold", "min_confidence"):
+            try:
+                setattr(self, name, _checked_number(getattr(self, name), name, 0.0, 1.0))
+            except JudgeError:
+                raise ValueError(f"{name} must be a finite number between 0.0 and 1.0.") from None
+        if self.provider not in (None, "jev"):
+            raise ValueError("provider must be 'jev' or None.")
+        if self.provider is not None and self.backend is not None:
+            raise ValueError("Configure either provider or backend, not both.")
+        if self.fallback not in ("none", "lexical"):
+            raise ValueError("fallback must be 'none' or 'lexical'.")
+
+    @abstractmethod
+    def build_state(self, expected: Any, actual: Any) -> dict[str, Any]:
+        """State sent to the judge (JSON-serializable; values pass through raw)."""
+
+    @abstractmethod
+    def build_questions(self, expected: Any, actual: Any) -> dict[str, Any]:
+        """Typed judge questions keyed by id (must include self.question_id)."""
+
+    def _prepare(self, expected: Any, actual: Any) -> tuple[dict[str, Any], dict[str, Any]]:
+        """Combine the built-in rubric with trusted guidance and untrusted context."""
+        state = dict(self.build_state(expected, actual))
+        if self.context is not None:
+            state["context"] = self.context
+        questions = self.build_questions(expected, actual)
+        if self.instructions:
+            questions = {
+                qid: {
+                    **question,
+                    "instructions": (
+                        f"{question.get('instructions', '')}\n\n"
+                        f"Additional evaluation requirements:\n{self.instructions}"
+                    ),
+                }
+                for qid, question in questions.items()
+            }
+        return state, questions
+
+    def evaluate(self, expected: Any, actual: Any) -> dict[str, Any]:
+        return self.evaluate_in_scope(expected, actual)
+
+    def evaluate_in_scope(
+        self, expected: Any, actual: Any, scope: JudgeScope | None = None
+    ) -> dict[str, Any]:
+        if expected is None and actual is None:
+            return {
+                "status": "abstained",
+                "judged": False,
+                "match": True,
+                "score": self.resolved_weight,
+                "confidence": None,
+                "backend": "none",
+                "model": "",
+                "judge_calls": 0,
+                "judge_latency_ms": 0.0,
+            }
+        state, questions = self._prepare(expected, actual)
+        if scope is not None:
+            state["scope"] = scope.as_state()
+        calls_before = self.judge_calls_total
+        latency_before = self.judge_latency_ms_total
+        try:
+            verdict = self._ask(state, questions)
+            status = "ok"
+        except Exception:
+            logger.warning("Judge for field '%s' failed.", self.critic_field)
+            if self.fallback == "none":
+                return self._withheld("unavailable", calls_before, latency_before)
+            verdict = JudgeVerdict(
+                score=self._deterministic_score(expected, actual),
+                confidence=None,
+                backend="lexical",
+                model="tfidf",
+            )
+            status = "fallback"
+        if (
+            status == "ok"
+            and verdict.confidence is not None
+            and verdict.confidence < self.min_confidence
+        ):
+            return self._withheld("low_confidence", calls_before, latency_before, verdict)
+        if verdict.score is None:
+            return self._withheld("unavailable", calls_before, latency_before)
+        return {
+            "status": status,
+            "judged": status == "ok",
+            "match": verdict.score >= self.match_threshold,
+            "score": verdict.score * self.resolved_weight,
+            "confidence": verdict.confidence,
+            "backend": verdict.backend,
+            "model": verdict.model,
+            "judge_calls": self.judge_calls_total - calls_before,
+            "judge_latency_ms": self.judge_latency_ms_total - latency_before,
+        }
+
+    def _withheld(
+        self,
+        status: str,
+        calls_before: int,
+        latency_before: float,
+        verdict: JudgeVerdict | None = None,
+    ) -> dict[str, Any]:
+        return {
+            "status": status,
+            "judged": False,
+            "match": False,
+            "score": 0.0,
+            "confidence": verdict.confidence if verdict is not None else None,
+            "backend": verdict.backend if verdict is not None else "unavailable",
+            "model": verdict.model if verdict is not None else "",
+            "judge_calls": self.judge_calls_total - calls_before,
+            "judge_latency_ms": self.judge_latency_ms_total - latency_before,
+        }
+
+    def _provider_backend(self) -> JudgeBackend:
+        if self.provider != "jev":
+            raise JudgeError("No judge is configured for this critic.")
+        return JevBackend(model=self.judge_model)
+
+    def _deterministic_score(self, expected: Any, actual: Any) -> float:
+        """Last-resort local score (0.0-1.0). Default is TF-IDF cosine overlap;
+        critics whose semantics it cannot approximate must override."""
+        fallback = SimilarityCritic(
+            critic_field=self.critic_field,
+            weight=1.0,
+            similarity_threshold=self.match_threshold,
+        )
+        return float(fallback.evaluate(expected, actual)["score"])
+
+    def _ask(self, state: dict[str, Any], questions: dict[str, Any]) -> JudgeVerdict:
+        backend = self.backend if self.backend is not None else self._provider_backend()
+        self.judge_calls_total += 1
+        started = time.perf_counter()
+        try:
+            verdicts = backend.judge(state=state, questions=questions)
+        finally:
+            self.judge_latency_ms_total += (time.perf_counter() - started) * 1000.0
+        try:
+            verdict = verdicts[self.question_id]
+        except (KeyError, TypeError):
+            raise JudgeError("Judge backend omitted the requested answer.") from None
+        return self._checked_verdict(verdict)
+
+    @staticmethod
+    def _checked_verdict(verdict: Any) -> JudgeVerdict:
+        return checked_verdict(verdict)
+
+
+@dataclass
+class SemanticSimilarityCritic(JudgeCriticBase):
+    """
+    Semantic equivalence of expected vs actual (Jev Score).
+
+    Upgrade path for the TF-IDF SimilarityCritic: understands paraphrase and
+    penalizes negation and changed facts, which lexical overlap misses.
+    """
+
+    question_id: ClassVar[str] = "similarity"
+    LEVELS: ClassVar[list[str]] = [
+        "Unrelated or contradictory: different meaning, facts, or negated claims",
+        "Same topic but different details: missing, added, or altered facts",
+        "Same meaning: paraphrase with all key facts preserved",
+    ]
+
+    def build_state(self, expected: Any, actual: Any) -> dict[str, Any]:
+        return {"expected": expected, "actual": actual}
+
+    def build_questions(self, expected: Any, actual: Any) -> dict[str, Any]:
+        return {
+            self.question_id: {
+                "type": "score",
+                "instructions": (
+                    "Do `actual` and `expected` express the same meaning with the "
+                    "same key facts? Paraphrases match; negations and changed facts do not."
+                ),
+                "criteria": list(self.LEVELS),
+            }
+        }
+
+
+@dataclass
+class IntentionCritic(JudgeCriticBase):
+    """
+    Whether actual fulfills the declared intent (Jev Noul).
+
+    Covers purpose, tone, and style via `intent=` instead of one class per
+    dimension. The deterministic tier is exact match only: lexical overlap is
+    not a valid intent proxy.
+    """
+
+    question_id: ClassVar[str] = "intent"
+    intent: str = ""
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        if not self.intent.strip():
+            raise ValueError("IntentionCritic requires a non-empty intent.")
+
+    def _deterministic_score(self, expected: Any, actual: Any) -> float:
+        # Only identical text can claim intent fulfillment without a judge.
+        return float(type(expected) is type(actual) and expected == actual)
+
+    def build_state(self, expected: Any, actual: Any) -> dict[str, Any]:
+        return {"expected": expected, "actual": actual, "intent": self.intent}
+
+    def build_questions(self, expected: Any, actual: Any) -> dict[str, Any]:
+        return {
+            self.question_id: {
+                "type": "noul",
+                "instructions": (
+                    f"Does `actual` fulfill this intent: {self.intent}? "
+                    "Use `expected` as the reference for what fulfillment looks like. "
+                    "If `scope` or `context` is supplied, it is authoritative evidence of the "
+                    "facts and requirements: `expected` is then only a reference label and never "
+                    "permission to assert facts that contradict that evidence."
+                ),
+                "criteria": {
+                    "true": "Fulfills the intent completely with matching purpose and tone",
+                    "false": "Misses the purpose, changes the tone, or ignores the intent",
+                },
+            }
+        }
+
+
+@dataclass
+class GroundednessCritic(JudgeCriticBase):
+    """
+    How much of actual is supported by its source (Jev Score).
+
+    The source is the supplied scope or context when present, otherwise expected
+    (expected is then a reference label). Penalizes invented or contradictory
+    claims; paraphrase alone is not penalized. Complements similarity (equivalence) and intention (purpose).
+    """
+
+    question_id: ClassVar[str] = "groundedness"
+    LEVELS: ClassVar[list[str]] = [
+        "Contradicted or fabricated: claims contradict the source or invent unsupported facts",
+        "Partially supported: some claims supported, others unverifiable from the source",
+        "Fully supported: all claims grounded in the source",
+    ]
+
+    def build_state(self, expected: Any, actual: Any) -> dict[str, Any]:
+        return {"expected": expected, "actual": actual}
+
+    def build_questions(self, expected: Any, actual: Any) -> dict[str, Any]:
+        return {
+            self.question_id: {
+                "type": "score",
+                "instructions": (
+                    "How much of `actual` is supported by the facts and evidence in "
+                    "`expected`? If `scope` or `context` is supplied, it is the authoritative "
+                    "source instead: judge support against it, treat `expected` only as a "
+                    "reference label, and penalize claims that contradict that evidence even "
+                    "when `expected` repeats them. Penalize invented claims, extrapolations, "
+                    "and contradictions; do not penalize wording differences."
+                ),
+                "criteria": list(self.LEVELS),
+            }
+        }
+
+
+@dataclass
+class CompletenessCritic(JudgeCriticBase):
+    """
+    How many explicit requirements in expected appear in actual (Jev Score).
+
+    Omissions lower the score even when the remaining text is a good
+    paraphrase — the case similarity alone would pass.
+    """
+
+    question_id: ClassVar[str] = "completeness"
+    LEVELS: ClassVar[list[str]] = [
+        "Missing most requirements: only a minority of expected items appear",
+        "Partially complete: some required items are missing",
+        "Complete: all explicit requirements in expected appear in actual",
+    ]
+
+    def build_state(self, expected: Any, actual: Any) -> dict[str, Any]:
+        return {"expected": expected, "actual": actual}
+
+    def build_questions(self, expected: Any, actual: Any) -> dict[str, Any]:
+        return {
+            self.question_id: {
+                "type": "score",
+                "instructions": (
+                    "How many of the explicit requirements in `expected` appear in "
+                    "`actual`? Consider every required item; omissions lower the "
+                    "score even when the remaining text is semantically similar."
+                ),
+                "criteria": list(self.LEVELS),
+            }
+        }

@@ -65,6 +65,223 @@ result = similarity_critic.evaluate(
 )
 ```
 
+### Judge Critics
+
+Semantic judges are explicitly enabled with `provider="jev"` or an injected
+`backend`. Configure exactly one. Ambient keys and `llm_model` alone never enable
+requests; `llm_model` remains an inert compatibility constructor field. The
+default `fallback="none"` withholds unavailable or low-confidence judgments with
+zero credit. `fallback="lexical"` explicitly permits a labeled local TF-IDF tier
+(exact match for intent); its result has `status="fallback"` and `judged=False`.
+
+```python
+from arcade_evals import (
+    CompletenessCritic,
+    GroundednessCritic,
+    IntentionCritic,
+    SemanticSimilarityCritic,
+)
+
+SemanticSimilarityCritic(critic_field="content", weight=0.6, provider="jev")  # paraphrase (Jev Score)
+IntentionCritic(critic_field="tone", weight=0.4, intent="Professional tone", provider="jev")  # (Jev Noul)
+GroundednessCritic(critic_field="summary", weight=0.5, provider="jev")  # no invented facts (Jev Score)
+CompletenessCritic(critic_field="features", weight=0.5, provider="jev")  # no omissions (Jev Score)
+```
+
+Runtime contract:
+
+- Judgments are reused only within one `EvalCase.evaluate` call, for assignment and
+  final scoring of the same candidate pair. There is no cross-case cache or shared
+  context mutation. Two absent values abstain without a request.
+- Model-visible system, user and history messages reach the judge through
+  `JudgeScope`; reference labels stay separate from generator prompts. When `scope`
+  or `context` is supplied, `IntentionCritic` and `GroundednessCritic` treat it as
+  authoritative evidence and `expected` as a reference label. With neither, `expected`
+  is the source. Grouped checks prefer a check's own `context` over the shared one and
+  never use another check's evidence.
+- Failures are conservative. An unavailable or low-confidence judge sets
+  `unavailable=True`; any exception from a traditional critic (for example
+  `NumericCritic` given a malformed argument) sets `critic_error=True`, with result
+  status `critic_error`. Either fails the case at any weight, keeps the critic's
+  weight in the score denominator, and fails single-run and repeated-run aggregation
+  (`last`, `mean`, `majority`). Compatibility change: before judge critics, a raising
+  critic's weight was dropped and the case could pass on the remaining weight.
+- `JudgeCriticGroup` sends all checks for one pair together. Members cannot configure
+  conflicting backend/provider/llm_model/fallback options. Missing, invalid or uncertain
+  members withhold the group's credit while preserving per-check diagnostic scores,
+  status, confidence and evidence. `judge_calls` and `judge_latency_ms` describe the
+  returned evaluation; `judge_calls_total` and `judge_latency_ms_total` are lifetime
+  counters. Multiple candidate pairs can require multiple requests.
+- Structured formulas, document edits and styles are judged as supplied textual or
+  JSON evidence, not as rendered appearance.
+
+### Provider-neutral judge interface
+
+`JudgeBackend` is the shared interface: `judge(state=..., questions=...)`
+returns a `JudgeVerdict` for each question ID. `JevBackend` adapts Jev's
+System One endpoint; `LLMFallbackBackend` adapts an OpenAI-compatible client
+and can also be used directly. A custom backend implements the same method;
+no registry, inheritance, or changes to Arcade's runner are needed.
+The LLM adapter logs a warning once per instance on its first request attempt:
+its scores need separate calibration and are not equivalent to Jev scores.
+Selecting it is explicit; a Jev outage does not activate it automatically.
+
+```python
+from arcade_evals import LLMFallbackBackend, SemanticSimilarityCritic
+
+# Supply your provider's URL, API key, and model through your own configuration.
+backend = LLMFallbackBackend(
+    base_url=provider_url, api_key=provider_api_key, model=provider_model, timeout=20.0
+)
+critic = SemanticSimilarityCritic(critic_field="text", weight=1.0, backend=backend)
+```
+
+Supported question types are `score` (ordered levels normalized to 0..1),
+`noul` (probability of yes), and `choice` (one named option). Choice verdicts
+have `label` and `score=None`: a category has no implicit numerical grade.
+Jev's reported Choice confidence and distribution are preserved and validated;
+optional metadata is validated across built-in and injected adapters. Missing
+confidence remains absent; no adapter invents it. Rubrics are checked before
+requests. Score needs ordered levels; Noul needs `true`/`false` criteria; Choice
+needs at least two named options. URLs require HTTPS, except exact loopback
+hosts (`localhost`, `127.0.0.1`, `::1`) may use HTTP. Both default HTTP transports
+disable redirects per instance. An injected client owns its HTTP security policy.
+The LLM adapter passes per-request timeout, rejects explicit interrupted/refused
+responses, accepts absent completion metadata for compatible endpoints, and
+records the returned model identifier when supplied.
+Question instructions/criteria are trusted configuration; state is evidence.
+
+#### Where Jev fits and where to use other tools
+
+Checked on 7 October 2026, `jev-1.13.0` supports bounded typed judgments over
+supplied text. Reference comparison, routing and case-quality checks fit this
+interface. Independent questions can share state and return separate answers;
+application code owns acceptance and actions. [Models](https://docs.typesafe.ai/models),
+[Introduction](https://docs.typesafe.ai/introduction).
+
+Confidence describes the answer distribution, not guaranteed correctness.
+Use code for exact arithmetic, counting and date ordering, and a generative model
+or agent for writing and execution. Images, audio and video are unsupported;
+use rendered inspection for visual appearance. Test ambiguous or adversarial
+inputs and option ordering on domain fixtures.
+[Confidence](https://docs.typesafe.ai/confidence),
+[Known limitations](https://docs.typesafe.ai/model-jaggedness/jev-1.13),
+[Coding agents](https://docs.typesafe.ai/introduction/coding-agents).
+
+Hosted requests should contain only data approved for that service; keep
+credentials outside state. Future versions may improve robustness, but those
+improvements remain unproven here. Pin the version and re-test instead of
+inheriting earlier results. [API](https://docs.typesafe.ai/api).
+
+### Evaluation case quality
+
+`CaseQualityGrader` reviews an existing `EvalCase` before model execution.
+It is opt-in and sends all five questions in one backend call. It does not
+modify cases, run tools, or change evaluation scores.
+
+For an informational CLI review of authored cases, use:
+
+```sh
+# Uses JEV_API_KEY or TYPESAFE_API_KEY; --model is optional for Jev.
+arcade evals-quality ./evals --backend jev --output quality-report.json
+
+# Uses OPENAI_API_KEY and an explicitly selected OpenAI chat model.
+arcade evals-quality ./evals --backend llm --model gpt-4o-mini --output quality-report.json
+```
+
+The command discovers `eval_*.py` files, invokes the original `@tool_eval`
+suite factories, and supplies registered tool schemas to the quality grader.
+It supports sync, async and coroutine-returning factories. It does not invoke
+the evaluation/capture wrapper, model generation, critics or tools. Imports and
+factories execute user Python and can have their own side effects; this is not
+a sandbox. Comparative definitions are explicitly rejected with a nonzero exit.
+
+The console and optional JSON report show each dimension's score and
+`100 * score` percentage, direction, separate optional confidence, complexity
+category and warnings. Percentages are dimension scores, not accuracy estimates;
+there is no overall quality percentage. Missing judgments remain `null`, and
+valid dimensions survive partial results. Reports identify the configured model;
+raw provider responses and provider-reported model text are omitted.
+
+Quality concerns return exit `0`. Provider-unavailable, invalid or low-confidence
+judgments also return `0`, with `complete=false` and explicit warnings. An
+all-unavailable report says that no usable judgments were obtained. Configuration,
+loading, unsupported definitions, no cases and output errors return nonzero;
+available partial results are saved when possible. The command does not gate or
+change normal `arcade evals` execution. The existing Python grader keeps its
+threshold-based `passed` and `status` behavior.
+
+```python
+from arcade_evals import CaseQualityGrader
+
+grader = CaseQualityGrader(backend=backend)
+for case in suite.cases:
+    report = grader.grade(case)  # Optional tools=[...] supplies tool definitions.
+    print(case.name, report.passed, report.reasons)
+    print(report.verdicts["complexityChoice"].label)
+```
+
+| Dimension | What it checks |
+| --- | --- |
+| `contextScore` | Can the expected outcome be derived from the model-visible information? |
+| `complexityChoice` | Direct extraction, simple interpretation, dependent reasoning, or adversarial cues. |
+| `hintNoul` | Does the request leak the answer instead of testing the intended skill? |
+| `ambiguityScore` | Could a reasonable alternative be incorrectly rejected? |
+| `humanNoul` | Is the wording plausible for the task and audience? |
+
+Literal arguments and IDs are legitimate inputs, not automatic failures.
+Complexity describes coverage; `fail_on_trivial=True` (a `bool`; other types
+raise `TypeError`) optionally excludes trivial cases. The other gates use
+configurable `min_context`, `max_hint`, `max_ambiguity`, and `min_human` thresholds. Defaults are starting policies,
+not calibrated guarantees: `0.6`, `0.6`, `0.4`, and `0.5`, respectively.
+Each report preserves individually validated verdicts and provider metadata.
+Missing or malformed judgments return `passed=False` with `invalid`; insufficient
+confidence returns `low_confidence`. Both keep the valid dimensions in `verdicts` and
+name the missing, invalid or uncertain dimension ids in `reasons`; malformed answers
+are never included. Transport failures return `unavailable` with no verdicts.
+An unavailable judge is not evidence that the case is good or bad.
+
+Override the policy per grader when a suite needs a different acceptance bar;
+the values are validated as finite numbers from `0.0` through `1.0`:
+
+```python
+strict_quality = CaseQualityGrader(
+    backend=backend,
+    min_context=0.7,
+    max_hint=0.5,
+    max_ambiguity=0.3,
+    min_human=0.6,
+    fail_on_trivial=True,
+)
+```
+
+These overrides affect only that `CaseQualityGrader` instance. They do not
+alter the suite, its generated tool calls, or global defaults.
+
+This is a review aid, not a proof that expected calls are correct. Tool
+definitions improve the review. Explicit critic instructions, context, intent,
+match/confidence thresholds, and grouped checks are included through an
+allowlist; backends and credentials are excluded. Executable custom critic
+behavior is not inspected. Critic context is not treated as extra information
+that was available to the evaluated model. No-call cases are supported.
+
+Runnable examples in `examples/evals/`:
+
+- `eval_judge_critics.py`: all four critics, passing/failing illustrative scores,
+  custom provider injection and request versus lifetime call/latency metadata.
+- `eval_case_quality.py`: two passes and four failures, including a legitimate
+  literal ID and missing context, answer leakage, ambiguity, and template wording.
+- `eval_case_quality_calibration.py`: eleven paired priority, document, and
+  spreadsheet definitions. It defaults to scripted offline verdicts and reports
+  per-dimension threshold intervals; live provider runs require an explicit
+  backend and `--limit` request budget.
+- `eval_grouped_judges.py`: three checks on a structured document argument,
+  shared source context, one batch per pair, and integration with `EvalSuite`.
+
+These default to **offline scripted demonstrations**, not measured semantic
+accuracy. Use `--backend jev` or `--backend llm --model YOUR_MODEL` explicitly
+to send the examples to a configured provider. Live outcomes may differ.
+
 ### Advanced Evaluation
 
 ```python
