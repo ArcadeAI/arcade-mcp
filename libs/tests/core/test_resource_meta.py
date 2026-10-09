@@ -6,6 +6,9 @@ works. The listing carries it too, from the same authored value, so the two
 cannot disagree about what a document asked for.
 """
 
+import logging
+from copy import deepcopy
+
 import pytest
 from arcade_core.resource_schema import BlobResourceContents, Resource, TextResourceContents
 from arcade_core.resources import ResourceDeclaration, ResourceRegistry, resource
@@ -33,6 +36,68 @@ def test_a_declared_meta_reaches_the_listing_and_the_read():
 
     assert registered.resource.meta == UI_META
     assert registered.contents.meta == UI_META
+
+
+@pytest.mark.parametrize(
+    "directive, field",
+    [("connect-src", "connectDomains"), ("script-src", "resourceDomains")],
+)
+def test_browser_csp_directives_warn_without_changing_the_resource(caplog, directive, field):
+    meta = {"ui": {"csp": {directive: ["https://example.com"]}}}
+    original_meta = deepcopy(meta)
+
+    @resource(path="panel.html", meta=meta)
+    def panel() -> str:
+        return "<p>panel</p>"
+
+    with caplog.at_level(logging.WARNING, logger="arcade_core.resources"):
+        _, registered = _registry_with(panel)
+
+    assert "ui://Kit/1.0.0/panel.html" in caplog.text
+    assert directive in caplog.text
+    assert f"_meta.ui.csp.{field}" in caplog.text
+    assert meta == original_meta
+    assert registered.resource.meta == original_meta
+    assert registered.contents.meta == original_meta
+    assert registered.contents.text == "<p>panel</p>"
+
+
+@pytest.mark.parametrize(
+    "meta",
+    [
+        None,
+        UI_META,
+        {"ui": {"csp": {"futureField": ["https://example.com"]}}},
+        {"custom": {"connect-src": ["https://example.com"]}},
+        {"ui": {"csp": "custom extension data"}},
+        {"ui": "custom extension data"},
+    ],
+)
+def test_other_resource_metadata_is_preserved_without_csp_warnings(caplog, meta):
+    @resource(path="panel.html", meta=meta)
+    def panel() -> str:
+        return "<p>panel</p>"
+
+    with caplog.at_level(logging.WARNING, logger="arcade_core.resources"):
+        _, registered = _registry_with(panel)
+
+    assert caplog.records == []
+    assert registered.resource.meta == meta
+    assert registered.contents.meta == meta
+
+
+def test_registering_the_same_declaration_again_does_not_repeat_csp_warnings(caplog):
+    @resource(path="panel.html", meta={"ui": {"csp": {"connect-src": []}}})
+    def panel() -> str:
+        return "<p>panel</p>"
+
+    with caplog.at_level(logging.WARNING, logger="arcade_core.resources"):
+        registry, registered = _registry_with(panel)
+        registry.declare(panel, toolkit_name="Kit", toolkit_version="1.0.0")
+        registry.list()
+        registry.get(registered.resource.uri)
+
+    assert len(caplog.records) == 1
 
 
 def test_a_blob_carries_it_too():

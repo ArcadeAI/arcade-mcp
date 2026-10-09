@@ -10,6 +10,7 @@ from __future__ import annotations
 import base64
 import binascii
 import inspect
+import logging
 import re
 import sys
 from bisect import bisect_right, insort
@@ -29,6 +30,8 @@ from arcade_core.resource_schema import (
 from arcade_core.utils import normalize_toolkit_name, strip_arcade_prefix
 
 DEFAULT_PAGE_SIZE = 250
+
+logger = logging.getLogger(__name__)
 
 _CURSOR_PREFIX = "after:"
 
@@ -185,6 +188,25 @@ def _contents(declaration: ResourceDeclaration, mime_type: str | None) -> Any:
             return declaration.file.read_text(encoding="utf-8")
         return declaration.file.read_bytes()
     return declaration()
+
+
+def _warn_browser_csp_directives(uri: str, meta: dict[str, Any] | None) -> None:
+    ui = (meta or {}).get("ui")
+    csp = ui.get("csp") if isinstance(ui, dict) else None
+    if not isinstance(csp, dict):
+        return
+    for directive, csp_field in (
+        ("connect-src", "connectDomains"),
+        ("script-src", "resourceDomains"),
+    ):
+        if directive in csp:
+            logger.warning(
+                "Resource %s uses browser CSP directive %r in _meta.ui.csp; "
+                "use _meta.ui.csp.%s instead. Metadata is unchanged.",
+                uri,
+                directive,
+                csp_field,
+            )
 
 
 def _interface_mime_type(declaration: ResourceDeclaration) -> str:
@@ -504,6 +526,7 @@ class ResourceRegistry:
             )
 
         mime_type = _interface_mime_type(declaration) if as_interface else declaration.mime_type
+        _warn_browser_csp_directives(uri, declaration.meta)
         resource = Resource(
             uri=uri,
             name=declaration.name,
