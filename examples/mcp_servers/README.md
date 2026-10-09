@@ -20,7 +20,7 @@ uv run python src/<name>/server.py http    # HTTP+SSE transport
 | [`user_elicitation/`](user_elicitation/) | Form-mode user input via `context.ui.elicit(...)` |
 | [`enum_elicitation/`](enum_elicitation/) | All five enum schema variants for elicitation (single/multi-select, titled/untitled, legacy) |
 | [`url_elicitation/`](url_elicitation/) | Out-of-band user verification via URL-mode elicitation |
-| [`resources/`](resources/) | MCP resources and resource templates via `@app.resource` |
+| [`tools_with_mcp_apps/`](tools_with_mcp_apps/) | Worker-compatible resources and MCP Apps using `@resource` and `@tool(ui=...)`, with cross-tool calls and authorization |
 | [`tool_chaining/`](tool_chaining/) | Tools calling other tools via `context.tools.call_raw(...)` |
 | [`tool_metadata/`](tool_metadata/) | Behavior hints and extras via `@app.tool(metadata=ToolMetadata(...))` |
 | [`tools_with_output_schema/`](tools_with_output_schema/) | Declaring `outputSchema` via typed return annotations |
@@ -32,3 +32,7 @@ uv run python src/<name>/server.py http    # HTTP+SSE transport
 | [`local_filesystem/`](local_filesystem/) | A toolkit that reads and writes real local filesystem state |
 | [`telemetry_passback/`](telemetry_passback/) | Emitting OpenTelemetry spans from a tool body |
 | [`server_with_evaluations/`](server_with_evaluations/) | Tool catalog shipped alongside an `arcade_evals` test suite |
+
+For resources and MCP Apps, start with `tools_with_mcp_apps/`. Its resource
+declarations work through both native MCP and the Arcade worker endpoints used
+by `arcade deploy` and gateways.
