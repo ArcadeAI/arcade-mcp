@@ -1066,7 +1066,7 @@ def extract_properties(
         pydantic_required_keys: list[str] = []
         for field_name, field_info in type_to_check.model_fields.items():
             # Get the field type
-            field_type = field_info.annotation
+            field_type: Any = field_info.annotation
             if field_type is None:
                 continue
 
