@@ -7,6 +7,7 @@ from arcade_cli.utils import (
     CLIError,
     create_cli_catalog,
     create_cli_catalog_local,
+    exit_if_strong_authentication_required,
     get_tools_from_engine,
     handle_cli_error,
 )
@@ -55,4 +56,5 @@ def show_logic(
     except CLIError:
         raise
     except Exception as e:
+        exit_if_strong_authentication_required(e)
         handle_cli_error(f"Failed to list tools: {escape(str(e))}", debug=debug)
