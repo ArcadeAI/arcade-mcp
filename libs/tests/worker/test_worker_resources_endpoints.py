@@ -8,12 +8,14 @@ decodes the bytes and a host that renders an interface compares some of them
 with string equality.
 """
 
+import logging
 from types import SimpleNamespace
 from typing import Annotated
 
 import pytest
 from arcade_core.resource_schema import Resource
 from arcade_core.resources import ResourceDeclaration
+from arcade_mcp_server import resource
 from arcade_serve.fastapi.worker import FastAPIWorker
 from arcade_tdk import ToolContext, tool
 from fastapi import FastAPI
@@ -123,6 +125,41 @@ def test_the_listing_carries_it_too(serving_with_meta):
     listed = serving_with_meta.post("/worker/resources/list", json={}).json()
 
     assert listed["resources"][0]["_meta"] == {"ui": {"prefersBorder": False}}
+
+
+def test_csp_warning_does_not_change_worker_resource_responses(caplog):
+    caplog.set_level(logging.WARNING, logger="arcade_core.resources")
+    meta = {"ui": {"csp": {"connect-src": ["https://api.example.com"]}}}
+
+    @resource(path="panel.html", meta=meta)
+    def panel() -> str:
+        return "<p>panel</p>"
+
+    app = FastAPI()
+    worker = FastAPIWorker(app=app, disable_auth=True)
+    worker.catalog.resources.declare(
+        panel, toolkit_name="Kit", toolkit_version="1.0.0", as_interface=True
+    )
+    client = TestClient(app)
+
+    listed = client.post("/worker/resources/list", json={})
+    uri = listed.json()["resources"][0]["uri"]
+    read = client.post("/worker/resources/read", json={"uri": uri})
+
+    assert "_meta.ui.csp.connectDomains" in caplog.text
+    assert listed.status_code == 200
+    assert listed.json()["resources"][0]["_meta"] == meta
+    assert read.status_code == 200
+    assert read.json() == {
+        "contents": [
+            {
+                "uri": uri,
+                "mimeType": "text/html;profile=mcp-app",
+                "text": "<p>panel</p>",
+                "_meta": meta,
+            }
+        ]
+    }
 
 
 def test_absent_optional_fields_are_omitted_rather_than_null(serving):
