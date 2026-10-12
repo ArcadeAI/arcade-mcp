@@ -133,10 +133,10 @@ class TestMicrosoftGraphErrorAdapter:
             message="The request is invalid", code="invalidRequest"
         )
 
-        user_message, developer_message = self.adapter._extract_error_details(mock_error)
+        developer_message = self.adapter._extract_error_details(mock_error)
 
-        assert user_message == "Upstream Microsoft Graph API error: The request is invalid"
-        assert developer_message == "Microsoft Graph error code: invalidRequest"
+        assert "The request is invalid" in developer_message
+        assert developer_message == "Microsoft Graph error code: invalidRequest. Message: The request is invalid"
 
     def test_extract_error_details_with_complete_inner_error(self):
         """Test extracting error details with complete inner error structure."""
@@ -154,9 +154,9 @@ class TestMicrosoftGraphErrorAdapter:
             inner_error=mock_inner_error,
         )
 
-        user_message, developer_message = self.adapter._extract_error_details(mock_error)
+        developer_message = self.adapter._extract_error_details(mock_error)
 
-        assert user_message == "Upstream Microsoft Graph API error: The request is invalid"
+        assert "The request is invalid" in developer_message
         assert "Microsoft Graph error code: invalidRequest" in developer_message
         assert (
             "Inner error: code: invalidSyntax, request-id: 12345-67890, date: 2025-09-22T16:08:56Z"
@@ -177,9 +177,9 @@ class TestMicrosoftGraphErrorAdapter:
             inner_error=mock_inner_error,
         )
 
-        user_message, developer_message = self.adapter._extract_error_details(mock_error)
+        developer_message = self.adapter._extract_error_details(mock_error)
 
-        assert user_message == "Upstream Microsoft Graph API error: Access is denied"
+        assert "Access is denied" in developer_message
         assert "Microsoft Graph error code: unauthorized" in developer_message
         assert "Inner error: code: tokenExpired, request-id: 67890-12345" in developer_message
         assert "date:" not in developer_message
@@ -192,10 +192,10 @@ class TestMicrosoftGraphErrorAdapter:
             inner_error=None,
         )
 
-        user_message, developer_message = self.adapter._extract_error_details(mock_error)
+        developer_message = self.adapter._extract_error_details(mock_error)
 
-        assert user_message == "Upstream Microsoft Graph API error: The resource could not be found"
-        assert developer_message == "Microsoft Graph error code: notFound"
+        assert "The resource could not be found" in developer_message
+        assert developer_message == "Microsoft Graph error code: notFound. Message: The resource could not be found"
         assert "Inner error:" not in developer_message
 
     def test_extract_error_details_with_empty_inner_error_fields(self):
@@ -215,10 +215,10 @@ class TestMicrosoftGraphErrorAdapter:
             inner_error=mock_inner_error,
         )
 
-        user_message, developer_message = self.adapter._extract_error_details(mock_error)
+        developer_message = self.adapter._extract_error_details(mock_error)
 
-        assert user_message == "Upstream Microsoft Graph API error: Service temporarily unavailable"
-        assert developer_message == "Microsoft Graph error code: serviceUnavailable"
+        assert "Service temporarily unavailable" in developer_message
+        assert developer_message == "Microsoft Graph error code: serviceUnavailable. Message: Service temporarily unavailable"
         assert "Inner error:" not in developer_message
 
     def test_extract_error_details_exact_microsoft_graph_structure(self):
@@ -237,12 +237,9 @@ class TestMicrosoftGraphErrorAdapter:
             inner_error=mock_inner_error,
         )
 
-        user_message, developer_message = self.adapter._extract_error_details(mock_error)
+        developer_message = self.adapter._extract_error_details(mock_error)
 
-        assert (
-            user_message
-            == "Upstream Microsoft Graph API error: Uploaded fragment overlaps with existing data."
-        )
+        assert "Uploaded fragment overlaps with existing data." in developer_message
         assert "Microsoft Graph error code: badRequest" in developer_message
         assert (
             "Inner error: code: invalidRange, request-id: request-id, date: date-time"
@@ -263,10 +260,13 @@ class TestMicrosoftGraphErrorAdapter:
         assert isinstance(result, UpstreamError)
         assert not isinstance(result, UpstreamRateLimitError)
         assert result.status_code == 404
-        assert (
-            result.message == "Upstream Microsoft Graph API error: The resource could not be found"
+        assert result.message == (
+            "Microsoft refused the request. Check the arguments; "
+            "if they are right, this account may not have access to the item."
         )
-        assert result.developer_message == "Microsoft Graph error code: itemNotFound"
+        assert result.developer_message == (
+            "Microsoft Graph error code: itemNotFound. Message: The resource could not be found"
+        )
         assert result.extra["service"] == "_microsoft_graph"
         assert result.extra["endpoint"] == "https://graph.microsoft.com/v1.0/me/messages/missing"
         assert result.extra["error_code"] == "itemNotFound"
@@ -285,8 +285,12 @@ class TestMicrosoftGraphErrorAdapter:
 
         assert isinstance(result, UpstreamRateLimitError)
         assert result.retry_after_ms == 30_000
-        assert result.message == "Upstream Microsoft Graph API error: Rate limit has been exceeded."
-        assert result.developer_message == "Microsoft Graph error code: tooManyRequests"
+        assert result.message == (
+            "Microsoft is rate-limiting requests for this account. Retry shortly."
+        )
+        assert result.developer_message == (
+            "Microsoft Graph error code: tooManyRequests. Message: Rate limit has been exceeded."
+        )
         assert result.extra["service"] == "_microsoft_graph"
         assert result.extra["endpoint"] == "https://graph.microsoft.com/v1.0/me/messages"
         assert result.extra["error_code"] == "tooManyRequests"
@@ -304,10 +308,10 @@ class TestMicrosoftGraphErrorAdapter:
 
         assert isinstance(result, UpstreamRateLimitError)
         assert result.retry_after_ms == 60_000
-        assert (
-            result.message
-            == "Upstream Microsoft Graph API error: Service temporarily unavailable due to high load."
+        assert result.message == (
+            "Microsoft is rate-limiting requests for this account. Retry shortly."
         )
+        assert "Service temporarily unavailable due to high load." in result.developer_message
 
     def test_map_api_error_rate_limit_503_with_service_unavailable(self):
         """Test mapping 503 error with ServiceUnavailable code."""
@@ -334,6 +338,11 @@ class TestMicrosoftGraphErrorAdapter:
         assert isinstance(result, UpstreamError)
         assert not isinstance(result, UpstreamRateLimitError)
         assert result.status_code == 503
+        assert result.message == (
+            "Microsoft could not complete the request because of a problem on its side. "
+            "Retry shortly."
+        )
+        assert "Service unavailable" in result.developer_message
 
     def test_map_api_error_default_status_code(self):
         """Test mapping API error with default status code."""
@@ -390,7 +399,10 @@ class TestMicrosoftGraphErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 401
-        assert result.message == "Upstream Microsoft Graph API error: Unauthorized"
+        assert result.message == (
+            "Microsoft rejected this account's authorization. Re-authorize and retry."
+        )
+        assert "Unauthorized" in result.developer_message
 
     def test_handle_api_errors_non_api_error(self):
         """Test handling non-APIError exceptions returns None."""
@@ -480,7 +492,11 @@ class TestMicrosoftGraphErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 403
-        assert result.message == "Upstream Microsoft Graph API error: Forbidden"
+        assert result.message == (
+            "Microsoft refused the request. Check the arguments; "
+            "if they are right, this account may not have access to the item."
+        )
+        assert "Forbidden" in result.developer_message
 
     def test_from_exception_fallback_for_unhandled_msgraph_error(self):
         """Test fallback handling for unhandled Microsoft Graph errors."""
@@ -655,7 +671,10 @@ class TestMicrosoftGraphErrorAdapter:
 
         assert isinstance(result, UpstreamRateLimitError)
         assert result.retry_after_ms == 300_000
-        assert result.message == "Upstream Microsoft Graph API error: Rate limit exceeded"
+        assert result.message == (
+            "Microsoft is rate-limiting requests for this account. Retry shortly."
+        )
+        assert "Rate limit exceeded" in result.developer_message
         assert result.extra["service"] == "_microsoft_graph"
         assert result.extra["error_code"] == "TooManyRequests"
 
@@ -703,6 +722,10 @@ class TestMicrosoftGraphErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 400
-        assert result.message == "Upstream Microsoft Graph API error: Invalid request syntax"
+        assert result.message == (
+            "Microsoft refused the request. Check the arguments; "
+            "if they are right, this account may not have access to the item."
+        )
+        assert "Invalid request syntax" in result.developer_message
         assert "Microsoft Graph error code: BadRequest" in result.developer_message
         assert "Inner error:" in result.developer_message
