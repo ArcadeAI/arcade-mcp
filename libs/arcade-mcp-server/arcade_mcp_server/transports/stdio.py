@@ -6,6 +6,7 @@ Provides stdio (stdin/stdout) transport for MCP communication.
 
 import asyncio
 import contextlib
+import io
 import logging
 import queue
 import signal
@@ -163,8 +164,15 @@ class StdioTransport:
                 msg = self.write_queue.get()
                 if msg is None:
                     break
-                sys.stdout.write(msg)
-                sys.stdout.flush()
+                stdout = sys.stdout
+                if isinstance(stdout, io.TextIOWrapper):
+                    # MCP stdio messages are UTF-8 regardless of the console encoding.
+                    stdout.flush()
+                    stdout.buffer.write(msg.encode("utf-8"))
+                    stdout.buffer.flush()
+                else:
+                    stdout.write(msg)
+                    stdout.flush()
         except Exception:
             logger.exception("Error in writer thread")
 

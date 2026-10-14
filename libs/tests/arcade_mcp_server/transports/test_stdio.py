@@ -1,4 +1,5 @@
 import asyncio
+import io
 import queue
 from unittest.mock import MagicMock, patch
 
@@ -83,6 +84,33 @@ class TestStdioReadStream:
 
 class TestStdioTransport:
     """Test StdioTransport functionality."""
+
+    def test_writer_emits_utf8_when_stdout_uses_legacy_encoding(self):
+        """MCP stdio records must be UTF-8 regardless of the console encoding."""
+        transport = StdioTransport()
+        transport._running = True
+        message = '{"error":"✗"}\n'
+        transport.write_queue.put(message)
+        transport.write_queue.put(None)
+
+        output = io.BytesIO()
+        stdout = io.TextIOWrapper(output, encoding="cp1252")
+        with patch("sys.stdout", stdout):
+            transport._writer_loop()
+
+        assert output.getvalue() == message.encode("utf-8")
+
+    def test_writer_supports_text_only_stdout(self):
+        transport = StdioTransport()
+        transport._running = True
+        transport.write_queue.put("message\n")
+        transport.write_queue.put(None)
+
+        stdout = io.StringIO()
+        with patch("sys.stdout", stdout):
+            transport._writer_loop()
+
+        assert stdout.getvalue() == "message\n"
 
     @pytest.mark.asyncio
     async def test_transport_initialization(self):
