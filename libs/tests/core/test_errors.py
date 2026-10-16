@@ -5,16 +5,20 @@ Covers the empty-message guard in ``ToolkitError.with_context()`` — without it
 that carries no diagnostic payload in logs/agent output.
 """
 
+from typing import get_type_hints
+
 import pytest
 from arcade_core.errors import (
     ErrorKind,
     FatalToolError,
     NetworkTransportError,
     RetryableToolError,
+    ToolkitError,
     ToolkitLoadError,
     UpstreamError,
 )
 from arcade_core.schema import ToolCallError
+from typing_extensions import Self
 
 
 @pytest.mark.parametrize("empty_message", ["", " ", "\t", "\n  \n"])
@@ -137,3 +141,9 @@ def test_tool_call_error_classification_properties(
     assert err.is_upstream_error is expected_upstream
     assert err.is_network_transport_error is expected_network
     assert err.is_toolkit_error is expected_toolkit
+
+
+def test_constructor_is_typed_as_the_subclass():
+    # Type checkers read the return annotation of `__new__` as the type of
+    # `SomeError(...)`, so anything but `Self` types every subclass as the base.
+    assert get_type_hints(ToolkitError.__new__)["return"] is Self
