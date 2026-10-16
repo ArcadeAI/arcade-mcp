@@ -1,0 +1,352 @@
+# Write a server with resources and MCP Apps
+
+This is the resource and MCP App authoring example for `arcade-mcp-server`.
+It uses `resource` and `tool` from the public `arcade_mcp_server` package.
+The same declarations publish resources through native MCP and the worker
+endpoints used by `arcade deploy` and gateways.
+
+The server publishes an HTML greeting editor and a plain-text guide. The editor
+can call the original tool again or call a different tool in the same gateway.
+
+| Tool                                 | App action                                       | Authorization        |
+| ------------------------------------ | ------------------------------------------------ | -------------------- |
+| `ToolsWithMcpApps.PreviewGreeting`   | Show the editor; preview an edited name          | None                 |
+| `ToolsWithMcpApps.UppercaseGreeting` | Uppercase the greeting from the editor           | None                 |
+| `ToolsWithMcpApps.GoogleProfile`     | Add the authorized Google account's display name | Google profile scope |
+
+The first two tools work without Google setup. The third tool is an optional,
+read-only example of authorization during an App interaction. It does not send
+email or change account data.
+
+## Run or deploy
+
+From this directory:
+
+```sh
+uv sync --extra dev
+uv run python src/tools_with_mcp_apps/server.py
+```
+
+The default transport is stdio. To publish the server through an Arcade gateway:
+
+```sh
+uv run arcade login
+uv run arcade deploy -e src/tools_with_mcp_apps/server.py
+```
+
+Use the CLI's login command for the intended environment and project before
+deploying. Before deploying a changed release, bump `project.version` in
+`pyproject.toml` and run `uv sync --extra dev` again. The entrypoint reads that
+installed package version; do not maintain a separate server version. When
+changing the HTML App, also update its `appInfo.version` in `editor.html`.
+Update the versioned URI examples below to match the package version.
+
+The current managed deployment path has one toolkit, one active version, and
+one replica. This example uses that path; it does not require multiple toolkits
+or replicas.
+
+In the Dashboard, create a gateway and select the three tools. Connect an MCP
+Apps host to the gateway, then call `ToolsWithMcpApps_PreviewGreeting` with `name: "Ada"`.
+Choose **Uppercase greeting** to call another tool. Create a second gateway
+without `ToolsWithMcpApps.UppercaseGreeting` to check that the uppercase button is absent.
+No resource picker or separate resource permission is required.
+
+Managed resources must be enabled by the deployment operator, with a
+resource-capable managed runtime already running on the deployed servers. A new
+Engine image or configured runner image tag alone does not prove that existing
+deployed servers have updated. See the platform's deployments guidance for
+rollout and rollback checks.
+
+## Declare resources and attach a tool's UI
+
+Use the standalone `@resource` decorator for each resource. Keep the resource
+declarations in the package imported by `app.add_tools_from_module(...)`, as
+shown in `server.py` and `tools.py`. This lets managed worker discovery find the
+same resources as native MCP.
+
+For a plain-text resource, return the published text:
+
+```python
+from arcade_mcp_server import resource
+
+
+@resource(
+    path="author-guide",
+    scheme="resource",
+    mime_type="text/plain",
+    meta={"webUrl": "https://modelcontextprotocol.io/extensions/apps/overview"},
+)
+def author_guide() -> str:
+    """Read the MCP Apps guide link with resources/read."""
+    return "MCP Apps guide: https://modelcontextprotocol.io/extensions/apps/overview"
+```
+
+For an MCP App, declare the bundled HTML file with the same decorator and attach
+the declaration with `@tool(ui=...)`. `src/tools_with_mcp_apps/ui.py` declares
+`editor.html`; `tools.py` imports the declaration and attaches the declaration to
+the tool. The combined declaration is:
+
+```python
+from typing import Annotated
+
+from arcade_mcp_server import resource, tool
+
+
+@resource(file="editor.html", title="Greeting editor")
+def editor() -> None:
+    """Edit a greeting and call tools through the connected MCP host."""
+
+
+@tool(ui=editor)
+def preview_greeting(name: Annotated[str, "The name to greet"]) -> str:
+    """Show a greeting editor."""
+    return f"Hello, {name}!"
+```
+
+Keep `editor.html` next to the module containing the resource declaration and
+include the HTML file in the package. Both resources are available through
+`POST /worker/resources/list` and `POST /worker/resources/read`. The worker's
+`GET /worker/tools` response includes the tool's UI resource URI. Do not set
+`_meta.ui.resourceUri` by hand; `@tool(ui=editor)` creates the link.
+
+This example uses only published resource declarations. It does not demonstrate
+resource templates or native-only resource registration APIs.
+
+The framework publishes `ui://ToolsWithMcpApps/0.1.5/editor.html` with MIME type
+`text/html;profile=mcp-app`. The gateway presents a globally unique resource URI
+that includes the registered server's identity. The host reads the exact URI in
+the tool's `_meta.ui.resourceUri`. Do not construct or decode that gateway URI
+inside the App, and do not assume the App knows its server's identity.
+
+This example's HTML is bundled with the package and is the same for every
+end-user. Tool results and the host's tool availability responses supply runtime
+data. Avoid embedding user credentials or per-user data in the HTML resource.
+
+## Set CSP for external assets and requests
+
+The host runs an MCP App in a sandboxed iframe and enforces its Content Security
+Policy (CSP). The host reads that policy from `_meta.ui.csp` on each document in
+the `contents` array returned by `resources/read`. Put the policy in the
+resource's `meta` argument, not in the tool's metadata. The framework carries
+the resource metadata into both the resource listing and the read response.
+
+Use the MCP Apps field names, not browser CSP directive names:
+
+| MCP Apps field | What to allow | Example origin |
+| --- | --- | --- |
+| `resourceDomains` | External scripts, stylesheets, images and fonts | `https://cdn.example.com` |
+| `connectDomains` | Direct `fetch`, XHR and WebSocket requests | `https://api.example.com` |
+
+For an App that loads assets from a CDN and calls an API directly, change the
+resource declaration as follows. Replace the example origins with the origins
+that the App actually needs:
+
+```python
+from arcade_mcp_server import resource
+
+
+@resource(
+    file="editor.html",
+    title="Greeting editor",
+    meta={
+        "ui": {
+            "csp": {
+                "resourceDomains": ["https://cdn.example.com"],
+                "connectDomains": ["https://api.example.com"],
+            }
+        }
+    },
+)
+def editor() -> None:
+    """Edit a greeting and call tools through the connected MCP host."""
+```
+
+Do not use `script-src` or `connect-src` as keys in `_meta.ui.csp`. Those keys
+belong to the browser's CSP syntax, not the MCP Apps metadata contract. A host
+can block an external script or request when the required origin is not declared.
+
+The bundled greeting editor has inline JavaScript and CSS, and makes no direct
+network requests. Its tool calls use the host's `postMessage` bridge. The bridge
+does not need a `connectDomains` entry. Keep the bundled editor's declaration
+without a CSP allowlist unless you add external assets or direct network requests.
+
+For local development, declare each required origin, including the scheme and
+port. For example, scripts served at `http://localhost:5173` need that origin in
+`resourceDomains`. A development WebSocket at `ws://localhost:5173` needs that
+origin in `connectDomains`. An API at `http://localhost:8000` also needs its
+origin in `connectDomains`. `localhost` and `127.0.0.1` are different origins.
+Remove development origins before deployment. CSP does not replace the API
+server's CORS policy or the host's other security restrictions.
+
+If the App is blank, inspect the host's browser console for a blocked script or
+request. Check the returned document's `_meta.ui.csp` for the correct field and
+origin. A blocked external SDK script can prevent the bridge from initializing;
+`postMessage` itself is not a network request. See the
+[MCP Apps CSP and CORS guide](https://github.com/modelcontextprotocol/ext-apps/blob/main/docs/csp-cors.md)
+and the
+[MCP Apps security requirements](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx#4-content-security-policy-enforcement).
+
+## Call a different tool
+
+The App sends requests to its parent host. The host uses the existing gateway
+connection; the iframe does not fetch the Engine API or hold an API key.
+
+The central call in `editor.html` is:
+
+```javascript
+// `available` maps ToolsWithMcpApps.UppercaseGreeting to the exact returned MCP name.
+const name = available.get("ToolsWithMcpApps.UppercaseGreeting")
+const result = await request("tools/call", {
+    name,
+    arguments: { name: document.getElementById("name").value },
+})
+```
+
+`request` is the small JSON-RPC/postMessage helper in this file. It initializes
+the MCP Apps connection, accepts messages only from the parent, correlates
+responses, and times out discovery requests. Tool calls can remain pending while
+the host handles URL elicitation; the App does not abandon the response after
+15 seconds. It is not a server-side tool call. With the
+[official MCP Apps SDK](https://modelcontextprotocol.github.io/ext-apps/api/classes/app.App.html),
+the equivalent call is `app.callServerTool({ name, arguments })`.
+
+For this gateway, the wire request is:
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 4,
+    "method": "tools/call",
+    "params": {
+        "name": "ToolsWithMcpApps_UppercaseGreeting",
+        "arguments": { "name": "Grace" }
+    }
+}
+```
+
+The result is `HELLO, GRACE!`. The same request with the discovered
+`ToolsWithMcpApps_PreviewGreeting` name resubmits to the original tool. Always call the
+exact name returned by discovery, not a name guessed from a resource URI.
+This example matches tool identities using the gateway's `Toolkit_Tool` naming.
+An App for a server with different tool names must match that server's published
+names instead; MCP does not prescribe Arcade's naming format.
+
+## Check tool availability before editing
+
+An App resource does not grant access to the tools the App calls. A gateway can
+omit a tool, and the connected end-user's access policy can also omit a tool.
+
+The editor first requests `tools/list`, as specified in the
+[draft MCP Apps extension](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/draft/apps.mdx#standard-mcp-messages).
+It collects every page and respects `_meta.ui.visibility`: a tool marked only
+`["model"]` is not an App action. An omitted visibility defaults to model and App
+visibility. The host may reject App messages; a draft feature is not a promise
+that every host implements the feature.
+
+If the host returns method-not-found (`-32601`), or its list exposes Arcade tool
+recommendation tools rather than a complete callable-tool list, the editor uses
+Arcade's existing temporary availability resource:
+
+```text
+arcade://gateway/tool-availability/v1?tool=ToolsWithMcpApps.PreviewGreeting&tool=ToolsWithMcpApps.UppercaseGreeting&tool=ToolsWithMcpApps.GoogleProfile&request=<fresh-uuid>
+```
+
+The App asks the host to `resources/read` that URI. The request is not a read of
+the HTML document, and the UUID is a cache-busting nonce, not a credential. The
+response contains one `application/json` resource whose text has this shape:
+
+```json
+{
+    "version": 1,
+    "tools": [
+        {
+            "tool": "ToolsWithMcpApps.PreviewGreeting",
+            "name": "ToolsWithMcpApps_PreviewGreeting"
+        },
+        {
+            "tool": "ToolsWithMcpApps.UppercaseGreeting",
+            "name": "ToolsWithMcpApps_UppercaseGreeting"
+        }
+    ]
+}
+```
+
+Only requested tools included in this gateway, permitted for this end-user,
+and visible to the App are returned. This check does **not** check OAuth consent,
+API keys, or tool secrets. The gateway recomputes availability on every request.
+The fallback is tracked for removal in
+[TOO-2155](https://linear.app/arcadedev/issue/TOO-2155); the code contains the same
+TODO. New Apps must retain the fallback until the complete path supports native
+App `tools/list`. Third-party Apps that do not use this convention are not
+automatically given this behavior.
+
+While discovery is pending or fails, the editor and action buttons are disabled.
+A confirmed missing tool has no button. Other discovery errors are **unknown**,
+not an empty tool list; **Check tools again** lets the user retry. The App checks
+again before an action and on tool-list change notifications. Access can still
+change between checking and calling, so an execution error remains possible.
+
+## Handle authorization without losing edits
+
+Availability means the tool can be called, not that the user has authorized the
+tool. **Add Google profile** makes an ordinary tool call. The Engine applies the
+normal consent, secrets, and execution policy; the App receives no extra rights.
+
+A host that handles URL elicitation can complete authorization as part of that
+interaction. If the host instead forwards an unresolved authorization response,
+the example accepts the ordinary `authorization_url` result or a URL-elicitation
+required error (`-32042`). The editor shows a prominent authorization prompt,
+keeps the name, opens the authorization URL through `ui/open-link` when supported,
+and exposes **Retry action**. Finishing OAuth never triggers another call by
+itself. Retry calls the same tool with the current inputs and rechecks tool
+availability.
+
+If an initial call has not executed, show the authorization prompt rather than
+an empty editor. The host must retry that originating call after authorization.
+An ordinary execution or secret error is not converted into an OAuth prompt.
+This example has no secret-requiring tool.
+
+## Resource identifiers, web links, and release changes
+
+The server also publishes `resource://ToolsWithMcpApps/0.1.5/author-guide`. This is an MCP
+resource identifier: the client retrieves the content with `resources/read`.
+The identifier does not create a web endpoint. The gateway wraps the identifier
+in a `resource://<server-key>/<encoded-original-uri>` routing address.
+The published identifier and the gateway address are different, even though
+both use `resource://`. Use the exact URI returned by the connected server or
+gateway in `resources/list`; do not substitute the published identifier.
+
+The resource preserves a separate public browser URL in `_meta.webUrl` and in
+the text: `https://modelcontextprotocol.io/extensions/apps/overview`. `webUrl` is
+optional author-supplied metadata, not a standard MCP field. The guide link is
+readable in the resource text without this metadata. Neither the worker nor the
+gateway requires `webUrl`. Do not replace a genuine browser URL with the gateway
+address.
+
+Use a non-web scheme for generated resource identifiers. An `https://` resource
+should identify content the client can fetch directly from the web, as described
+in the [MCP resource specification](https://modelcontextprotocol.io/specification/2025-11-25/server/resources#common-uri-schemes).
+When a server publishes a genuine HTTP(S) resource URI, the gateway keeps the
+original web URL in the description. The server does not need to repeat the
+URL in `webUrl`. The generated guide identifier above is not a web URL.
+
+For the same registered server and exact original URI, a restart keeps the same
+gateway address and serves the current published content. After a resource is
+removed, its old address returns resource-not-found. A new toolkit package
+version produces a different original URI in this framework; use the new
+tool-linked URI instead of assuming an old UI address refers to the new release.
+
+An older Python toolkit can publish no resources. The qualified managed runtime
+handles that case: an initial upstream resource-list response of HTTP 404 or 405
+means an empty resource list, and an unknown resource read means
+resource-not-found. Other upstream failures remain failures. This compatibility
+does not permit an old outer managed runtime; complete the runtime cutover first.
+
+## Verify a deployment
+
+Before marking a deployment verified, connect an unmodified MCP Apps host to the
+deployed server's gateway. Check the full-tool and missing-uppercase gateways;
+check a new end-user's Google authorization without revoking another user's
+consent. Test the stateless and stateful gateway routes separately. Confirm that
+`resources/read` returns the HTML and the guide resource's separate `_meta.webUrl`. Record
+real-host results separately from any simulated-host checks.

@@ -3,6 +3,8 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any
 
+from typing_extensions import Self
+
 
 class ErrorKind(str, Enum):
     """Error kind that is comprised of
@@ -51,7 +53,7 @@ class ToolkitError(Exception, ABC):
       extra                     : dict[str, Any] | None  # arbitrary structured metadata
     """
 
-    def __new__(cls, *args: Any, **kwargs: Any) -> "ToolkitError":
+    def __new__(cls, *args: Any, **kwargs: Any) -> Self:
         abs_methods = getattr(cls, "__abstractmethods__", None)
         if abs_methods:
             raise TypeError(f"Can't instantiate abstract class {cls.__name__}")
