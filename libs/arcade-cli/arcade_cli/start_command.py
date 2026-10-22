@@ -14,24 +14,41 @@ The runner starts a deployed MCP server with the command chosen here, the first 
 Server objects are found by parsing the project's source, never by importing it.
 
 ``fastmcp run`` gets fixed flags, so its port and path are known. Every other command's
-port and path are detected from the running server.
+port is detected: the loopback listener owned by the started process's tree (``uv run``,
+``uvicorn --workers`` and gunicorn listen from a descendant), never any listener on the
+machine. Its path is the first of ``/mcp`` and ``/`` that answers the MCP handshake, unless
+the ``path`` setting names it.
 """
 
 from __future__ import annotations
 
 import ast
 import contextlib
+import ipaddress
+import json
 import os
 import re
 import shlex
+import shutil
+import socket
+import subprocess
 import sys
-from collections.abc import Iterator
+import time
+from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal, cast
 
+import httpx
+import psutil
+from arcade_core.subprocess_utils import (
+    get_windows_no_window_creationflags,
+    graceful_terminate_process,
+)
 from packaging.requirements import InvalidRequirement, Requirement
 from packaging.utils import canonicalize_name
+
+from arcade_cli.configure import find_python_interpreter
 
 Framework = Literal["fastmcp", "mcp-sdk-1", "mcp-sdk-2"]
 Source = Literal["command", "fastmcp.json", "fastmcp", "mcp-sdk"]
@@ -39,6 +56,8 @@ Source = Literal["command", "fastmcp.json", "fastmcp", "mcp-sdk"]
 RUNNER_HOST = "127.0.0.1"
 RUNNER_PORT = 8000
 FASTMCP_PATH = "/mcp"
+DETECTED_PATHS = ("/mcp", "/")
+MCP_PROTOCOL_VERSION = "2025-06-18"
 
 
 def _fastmcp_run_flags(path: str) -> tuple[str, ...]:
@@ -453,3 +472,336 @@ def _transport(call: ast.Call) -> str | None:
     if isinstance(argument, ast.Constant) and isinstance(argument.value, str):
         return argument.value
     return None
+
+
+# Running locally
+
+
+@dataclass(frozen=True)
+class Handshake:
+    """What a server answered to ``initialize``."""
+
+    server_name: str
+    server_version: str
+    protocol_version: str
+    session_id: str | None
+
+
+@dataclass(frozen=True)
+class LocalEndpoint:
+    """The MCP endpoint of a server started on this machine."""
+
+    pid: int
+    port: int
+    path: str
+    handshake: Handshake
+
+    @property
+    def url(self) -> str:
+        return f"http://{RUNNER_HOST}:{self.port}{self.path}"
+
+
+@contextlib.contextmanager
+def run_locally(
+    start: StartCommand,
+    project_dir: Path,
+    *,
+    env: Mapping[str, str] | None = None,
+    debug: bool = False,
+    timeout: float = 30.0,
+) -> Iterator[LocalEndpoint]:
+    """Start the server in its project's environment and yield its MCP endpoint.
+
+    A fixed port is replaced with a free one, since this machine may already use 8000.
+    The server and every process it started are stopped on exit.
+    """
+    port = _free_port() if start.port is not None else None
+    process = _spawn(start.local_argv(port), project_dir, env, debug)
+    try:
+        yield _wait_for_endpoint(process, start, port, timeout, debug)
+    finally:
+        stop_process_tree(process)
+
+
+def _spawn(
+    argv: list[str], project_dir: Path, env: Mapping[str, str] | None, debug: bool
+) -> subprocess.Popen[bytes]:
+    # Commands name executables from the project's environment (python, fastmcp, uvicorn),
+    # the way the runner's PATH resolves them.
+    bin_dir = str(find_python_interpreter(project_dir).parent)
+    child_env = {**os.environ, **(env or {})}
+    child_env["PATH"] = bin_dir + os.pathsep + child_env.get("PATH", "")
+    executable = shutil.which(argv[0], path=child_env["PATH"])
+    if executable is None:
+        raise StartCommandError(
+            f"`{argv[0]}` wasn't found in the project's environment ({bin_dir}) or on PATH."
+        )
+    output = None if debug else subprocess.DEVNULL
+    return subprocess.Popen(
+        [executable, *argv[1:]],
+        cwd=project_dir,
+        env=child_env,
+        stdout=output,
+        stderr=output,
+        creationflags=get_windows_no_window_creationflags(new_process_group=True),
+    )
+
+
+def _wait_for_endpoint(
+    process: subprocess.Popen[bytes],
+    start: StartCommand,
+    port: int | None,
+    timeout: float,
+    debug: bool,
+) -> LocalEndpoint:
+    paths = (start.path,) if start.path else DETECTED_PATHS
+    hint = (
+        "Check the server output above."
+        if debug
+        else "Re-run with --debug to see the server's output."
+    )
+    listened: set[int] = set()
+    ipv6_only: set[int] = set()
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        code = process.poll()
+        if code is not None:
+            raise StartCommandError(
+                f"The server exited with code {code} before answering the MCP handshake. {hint}"
+            )
+        if port is not None:
+            ports = [port]
+        else:
+            ports, ipv6_ports = _owned_loopback_ports(process.pid)
+            ipv6_only.update(set(ipv6_ports) - set(ports))
+        for candidate_port in ports:
+            if not _is_listening(candidate_port):
+                continue
+            listened.add(candidate_port)
+            for candidate_path in paths:
+                url = f"http://{RUNNER_HOST}:{candidate_port}{candidate_path}"
+                handshake = mcp_handshake(url)
+                if handshake is not None:
+                    return LocalEndpoint(process.pid, candidate_port, candidate_path, handshake)
+        time.sleep(0.25)
+    raise _no_endpoint(paths, listened, ipv6_only, timeout, hint)
+
+
+def _no_endpoint(
+    paths: tuple[str, ...], listened: set[int], ipv6_only: set[int], timeout: float, hint: str
+) -> StartCommandError:
+    if listened:
+        tried = ", ".join(paths)
+        ports_tried = ", ".join(str(p) for p in sorted(listened))
+        return StartCommandError(
+            f"The server answered the MCP handshake on no path (tried {tried} on port "
+            f"{ports_tried}). If it serves MCP somewhere else, set `path`."
+        )
+    if ipv6_only:
+        addresses = ", ".join(f"[::1]:{p}" for p in sorted(ipv6_only))
+        return StartCommandError(
+            f"The server listens on {addresses} only, but Arcade Deploy connects to it at "
+            f"{RUNNER_HOST}. Listen on {RUNNER_HOST} instead."
+        )
+    return StartCommandError(
+        f"The server listened on no loopback port within {timeout:g} seconds. {hint}"
+    )
+
+
+def _owned_loopback_ports(pid: int) -> tuple[list[int], list[int]]:
+    """IPv4 and IPv6 loopback ports listened on by ``pid`` or its descendants, ascending.
+
+    Uses each process's own connections: the system-wide ``psutil.net_connections()``
+    needs root on macOS, and would also find servers this command didn't start.
+    """
+    ipv4: set[int] = set()
+    ipv6: set[int] = set()
+    other: list[str] = []
+    for host, port in _owned_listeners(pid):
+        if not _is_loopback(host):
+            other.append(f"[{host}]:{port}" if ":" in host else f"{host}:{port}")
+        elif ":" in host:
+            ipv6.add(port)
+        else:
+            ipv4.add(port)
+    if other:
+        raise StartCommandError(
+            f"The server listens on {', '.join(sorted(set(other)))}, which isn't a loopback "
+            f"address. Arcade Deploy requires the server to listen on {RUNNER_HOST} only."
+        )
+    return sorted(ipv4), sorted(ipv6)
+
+
+def _owned_listeners(pid: int) -> Iterable[tuple[str, int]]:
+    try:
+        root = psutil.Process(pid)
+        processes = [root, *root.children(recursive=True)]
+    except psutil.Error:
+        return []
+    listeners: list[tuple[str, int]] = []
+    for process in processes:
+        try:
+            connections = process.net_connections(kind="tcp")
+        except psutil.Error:
+            continue
+        listeners.extend(
+            (conn.laddr.ip, conn.laddr.port)
+            for conn in connections
+            if conn.status == psutil.CONN_LISTEN and conn.laddr
+        )
+    return listeners
+
+
+def _is_loopback(host: str) -> bool:
+    try:
+        return ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        return False
+
+
+def _is_listening(port: int) -> bool:
+    try:
+        socket.create_connection((RUNNER_HOST, port), timeout=0.5).close()
+    except OSError:
+        return False
+    return True
+
+
+def _free_port() -> int:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind((RUNNER_HOST, 0))
+        return int(sock.getsockname()[1])
+
+
+def stop_process_tree(process: subprocess.Popen[bytes], timeout: float = 5.0) -> None:
+    """Stop ``process`` and every process it started."""
+    try:
+        descendants = psutil.Process(process.pid).children(recursive=True)
+    except psutil.Error:
+        descendants = []
+    graceful_terminate_process(process)
+    for child in descendants:
+        with contextlib.suppress(psutil.Error):
+            child.terminate()
+    try:
+        process.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait()
+    _, alive = psutil.wait_procs(descendants, timeout=timeout)
+    for child in alive:
+        with contextlib.suppress(psutil.Error):
+            child.kill()
+
+
+# Speaking MCP
+
+# Every POST to a streamable HTTP endpoint advertises both, since the server may answer
+# with an event stream (MCP 2025-11-25, transports).
+_MCP_HEADERS = {
+    "Content-Type": "application/json",
+    "Accept": "application/json, text/event-stream",
+}
+
+
+def mcp_handshake(
+    url: str, *, headers: Mapping[str, str] | None = None, timeout: float = 5.0
+) -> Handshake | None:
+    """Send ``initialize`` to ``url``; ``None`` when it doesn't answer as an MCP endpoint."""
+    request = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+            "protocolVersion": MCP_PROTOCOL_VERSION,
+            "capabilities": {},
+            "clientInfo": {"name": "arcade-deploy", "version": "1.0.0"},
+        },
+    }
+    try:
+        response = httpx.post(
+            url,
+            json=request,
+            headers={**_MCP_HEADERS, **(headers or {})},
+            timeout=timeout,
+            follow_redirects=True,
+        )
+    except httpx.HTTPError:
+        return None
+    if response.status_code != 200:
+        return None
+    message = _jsonrpc_response(response, request_id=1)
+    result = message.get("result") if message else None
+    if not isinstance(result, dict) or "protocolVersion" not in result:
+        return None
+    info = result.get("serverInfo") or {}
+    return Handshake(
+        server_name=str(info.get("name", "")),
+        server_version=str(info.get("version", "")),
+        protocol_version=str(result["protocolVersion"]),
+        session_id=response.headers.get("mcp-session-id"),
+    )
+
+
+def list_tools(
+    endpoint: LocalEndpoint, *, headers: Mapping[str, str] | None = None
+) -> list[dict[str, Any]]:
+    """List every tool the server offers, in the session its handshake opened."""
+    session_headers = {
+        **_MCP_HEADERS,
+        "MCP-Protocol-Version": endpoint.handshake.protocol_version,
+        **(headers or {}),
+    }
+    if endpoint.handshake.session_id:
+        session_headers["Mcp-Session-Id"] = endpoint.handshake.session_id
+
+    tools: list[dict[str, Any]] = []
+    with httpx.Client(headers=session_headers, timeout=10.0, follow_redirects=True) as client:
+        client.post(endpoint.url, json={"jsonrpc": "2.0", "method": "notifications/initialized"})
+        cursor: str | None = None
+        request_id = 2
+        while True:
+            params = {"cursor": cursor} if cursor else {}
+            response = client.post(
+                endpoint.url,
+                json={"jsonrpc": "2.0", "id": request_id, "method": "tools/list", "params": params},
+            )
+            message = _jsonrpc_response(response, request_id) if response.is_success else None
+            if message is None or "result" not in message:
+                detail = message.get("error") if message else f"HTTP {response.status_code}"
+                raise StartCommandError(f"The server's tools/list failed: {detail}")
+            tools.extend(message["result"].get("tools", []))
+            cursor = message["result"].get("nextCursor")
+            if not cursor:
+                return tools
+            request_id += 1
+
+
+def _jsonrpc_response(response: httpx.Response, request_id: int) -> dict[str, Any] | None:
+    """The JSON-RPC response to ``request_id``, from a JSON body or an event stream."""
+    if response.headers.get("content-type", "").startswith("text/event-stream"):
+        for data in _event_stream_data(response.text):
+            try:
+                message = json.loads(data)
+            except ValueError:
+                continue
+            if isinstance(message, dict) and message.get("id") == request_id:
+                return message
+        return None
+    try:
+        message = response.json()
+    except ValueError:
+        return None
+    return message if isinstance(message, dict) else None
+
+
+def _event_stream_data(text: str) -> Iterator[str]:
+    """The ``data`` of each server-sent event in ``text``."""
+    data: list[str] = []
+    for line in [*text.splitlines(), ""]:
+        if not line:
+            if data:
+                yield "\n".join(data)
+            data = []
+        elif line.startswith("data:"):
+            data.append(line[5:].removeprefix(" "))
