@@ -13,12 +13,13 @@ carried into the published tool definition or MCP ``inputSchema``.
 """
 
 import logging
+from enum import Enum
 from typing import Annotated, Optional
 
 import pytest
 from annotated_types import Ge, Predicate
 from arcade_core.catalog import ToolCatalog
-from arcade_core.errors import ErrorKind
+from arcade_core.errors import ErrorKind, RetryableToolError
 from arcade_core.executor import ToolExecutor
 from arcade_core.schema import ToolContext
 from arcade_tdk import tool
@@ -49,6 +50,19 @@ def _require_odd(value: int) -> int:
 
 def _raise_type_error(value: str) -> str:
     raise TypeError(f"cannot handle {value}")
+
+
+def _retry_above_ten(value: int) -> int:
+    if value > 10:
+        raise RetryableToolError(
+            "Limit is too large", additional_prompt_content="Use a limit of at most 10"
+        )
+    return value
+
+
+class Color(str, Enum):
+    RED = "red"
+    BLUE = "blue"
 
 
 class Window(TypedDict):
@@ -321,6 +335,30 @@ class TestMisappliedConstraintsDropped:
         assert output.value == "anything"
 
 
+    @pytest.mark.parametrize(
+        "annotation",
+        [
+            Annotated[Color, Field(strict=True), "Color"],
+            Annotated[Color, Strict(), "Color"],
+            Annotated[Optional[Color], Field(strict=True), "Color"],
+        ],
+        ids=["field", "marker", "optional"],
+    )
+    @pytest.mark.asyncio
+    async def test_strict_on_enum_is_dropped(self, annotation, caplog):
+        def probe(value: annotation) -> str:  # type: ignore[valid-type]
+            """Probe."""
+            return value.value
+
+        fn = tool(probe)
+        with caplog.at_level(logging.WARNING, logger="arcade_core.catalog"):
+            mt = _probe(fn)
+        output = await _run(fn, mt, value="red")
+        assert output.error is None
+        assert output.value == "red"
+        assert any("strict" in record.getMessage() for record in caplog.records)
+
+
 class TestIntegerCoercionUnchanged:
     """Keeping declared rules must not make integer inputs strict by default."""
 
@@ -373,6 +411,21 @@ class TestDeclaredValidatorsEnforced:
         assert "TypeError" in (output.error.developer_message or "")
         assert output.error.stacktrace is None
         assert SECRET not in output.model_dump_json()
+
+
+    @pytest.mark.asyncio
+    async def test_validator_raising_tool_error_keeps_its_guidance(self):
+        def probe(value: Annotated[int, AfterValidator(_retry_above_ten), "Limit"]) -> int:
+            """Probe."""
+            return value
+
+        fn = tool(probe)
+        mt = _probe(fn)
+        output = await _run(fn, mt, value=11)
+        assert output.error is not None
+        assert output.error.kind == ErrorKind.TOOL_RUNTIME_RETRY
+        assert "Limit is too large" in output.error.message
+        assert output.error.additional_prompt_content == "Use a limit of at most 10"
 
 
 class TestValidatorsOnTypedDictParams:

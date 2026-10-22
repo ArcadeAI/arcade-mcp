@@ -125,6 +125,11 @@ class ToolExecutor:
                 developer_message=f"Pydantic validation failed: {developer_summary}",
             ) from None
 
+        except ToolRuntimeError:
+            # A validator raising a tool error carries the author's guidance,
+            # the same as when it is raised from the tool body.
+            raise
+
         except Exception as e:
             # A declared validator that raises anything other than ValueError
             # or AssertionError escapes Pydantic unwrapped. Its message and

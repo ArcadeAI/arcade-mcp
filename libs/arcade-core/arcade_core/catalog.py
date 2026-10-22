@@ -31,6 +31,7 @@ from pydantic import (
     Field,
     PlainSerializer,
     PrivateAttr,
+    Strict,
     TypeAdapter,
     WrapSerializer,
     create_model,
@@ -1340,11 +1341,16 @@ def _applicable_validation_metadata(
     ``str``) when the model is built, then raises on every call. A constraint
     that fits compiles into the type's own schema, so a change in the schema
     kind marks one that does not.
+
+    ``strict`` on an enum keeps the schema kind but still fails every call: the
+    executor validates the raw argument values, and a strict enum accepts only
+    enum instances.
     """
     base_kind = _core_schema_kind(field_type)
     applicable = []
     for item in metadata:
-        if (
+        strict_enum = base_kind == "enum" and isinstance(item, Strict) and item.strict
+        if not strict_enum and (
             isinstance(item, (*_VALIDATOR_TYPES, Predicate))
             or _core_schema_kind(Annotated[field_type, item]) == base_kind
         ):
