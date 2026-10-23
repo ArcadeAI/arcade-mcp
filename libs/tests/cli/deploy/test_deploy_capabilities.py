@@ -42,6 +42,27 @@ class TestDiscoveryDocument:
         assert doc.deployments.protocols == []
         assert doc.deployments.runners == []
 
+    @pytest.mark.parametrize("field", ["protocols", "runners"])
+    def test_a_null_list_reads_as_empty(self, field: str) -> None:
+        doc = DiscoveryDocument.model_validate(deployments(**{field: None}))
+
+        assert getattr(doc.deployments, field) == []
+
+    def test_a_runner_entry_that_cant_be_read_is_skipped(self) -> None:
+        doc = DiscoveryDocument.model_validate(
+            deployments(runners=[{"language": "python"}, "python3.12", PYTHON_RUNNER])
+        )
+
+        assert [r.version for r in doc.deployments.runners] == ["3.12"]
+
+    def test_an_unexpected_capabilities_shape_still_parses_the_document(self) -> None:
+        # Discovery also drives `arcade login`; a newer capabilities shape must not break it.
+        doc = DiscoveryDocument.model_validate(deployments(protocols="mcp", runners={"a": 1}))
+
+        assert doc.deployments.enabled is True
+        assert doc.deployments.protocols == []
+        assert doc.deployments.runners == []
+
     def test_an_unknown_runner_field_is_ignored(self) -> None:
         doc = DiscoveryDocument.model_validate(
             deployments(runners=[{**PYTHON_RUNNER, "architectures": ["x86_64"]}])

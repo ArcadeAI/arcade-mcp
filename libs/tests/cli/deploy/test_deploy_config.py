@@ -87,6 +87,44 @@ class TestWhereItIsRead:
         with pytest.raises(DeployConfigError, match=r"both .*\[tool\.arcade\.deploy\].*arcade\.toml"):
             load_deploy_config(tmp_path)
 
+    def test_an_arcade_toml_without_a_deploy_table_is_not_a_second_config(
+        self, tmp_path: Path
+    ) -> None:
+        write(
+            tmp_path,
+            {
+                "pyproject.toml": PYPROJECT + '\n[tool.arcade.deploy]\ncommand = "python app.py"\n',
+                "arcade.toml": '[other]\nkey = "value"\n',
+            },
+        )
+
+        config = load_deploy_config(tmp_path)
+
+        assert config.source == "pyproject.toml"
+        assert config.command == "python app.py"
+
+    def test_an_arcade_toml_without_a_deploy_table_is_no_config(self, tmp_path: Path) -> None:
+        write(tmp_path, {"requirements.txt": "fastmcp\n", "arcade.toml": '[other]\nkey = "v"\n'})
+
+        assert load_deploy_config(tmp_path).source is None
+
+    @pytest.mark.parametrize(
+        ("name", "content"),
+        [
+            ("pyproject.toml", "[tool]\narcade = 1\n"),
+            ("pyproject.toml", "tool = 1\n"),
+            ("pyproject.toml", "[tool.arcade]\ndeploy = 1\n"),
+            ("arcade.toml", "deploy = 1\n"),
+        ],
+    )
+    def test_a_deploy_setting_that_isnt_a_table_is_refused_naming_it(
+        self, tmp_path: Path, name: str, content: str
+    ) -> None:
+        write(tmp_path, {name: content})
+
+        with pytest.raises(DeployConfigError, match=name.replace(".", r"\.")):
+            load_deploy_config(tmp_path)
+
     def test_an_unreadable_file_is_refused_naming_it(self, tmp_path: Path) -> None:
         write(tmp_path, {"arcade.toml": "[deploy\n"})
 
@@ -159,6 +197,8 @@ class TestSettings:
 
 
 class TestNames:
+    # The Engine runner's reserved names (apps/engine/pkg/deployments/worker/runner/reserved.go),
+    # written out here so a change to the CLI's copy shows up as a failing test.
     @pytest.mark.parametrize(
         "name",
         [
@@ -166,9 +206,19 @@ class TestNames:
             "KUBERNETES_SERVICE_HOST",
             "ARCADE_TELEMETRY_LOGS",
             "ARCADE_WORKER_SECRET",
-            "ARCADE_BUNDLE_DIR",
             "ARCADE_ARTIFACT_STORE_URL",
+            "ARCADE_BUNDLE_URL",
+            "ARCADE_BUNDLE_KEY",
+            "ARCADE_BUNDLE_DIR",
+            "ARCADE_BUNDLE_NAME",
+            "ARCADE_BUNDLE_ENTRYPOINT",
             "WORKER_PORT",
+            "WORKER_PACKAGES",
+            "WORKER_CACHE_ENABLED",
+            "WORKER_CACHE_BUCKET",
+            "WORKER_BUNDLE_BUCKET",
+            "WORKER_BUNDLE_PATHS",
+            "WORKER_API_CONFIG_ENABLED",
             "PATH",
             "HOME",
             "TMPDIR",
@@ -183,6 +233,12 @@ class TestNames:
         write(tmp_path, {"arcade.toml": f'[deploy]\nsecrets = ["{name}"]\n'})
 
         with pytest.raises(DeployConfigError, match=f"{name} is reserved"):
+            load_deploy_config(tmp_path)
+
+    def test_a_reserved_api_key_env_is_refused(self, tmp_path: Path) -> None:
+        write(tmp_path, {"arcade.toml": '[deploy]\napi_key = { env = "HOME", header = "X-Key" }\n'})
+
+        with pytest.raises(DeployConfigError, match="HOME is reserved"):
             load_deploy_config(tmp_path)
 
     def test_a_reserved_environment_name_is_refused(self, tmp_path: Path) -> None:

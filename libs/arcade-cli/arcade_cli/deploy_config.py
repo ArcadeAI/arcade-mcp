@@ -147,18 +147,20 @@ def load_deploy_config(project_dir: Path) -> DeployConfig:
 
     pyproject = project_dir / "pyproject.toml"
     if pyproject.is_file():
-        deploy = _read_toml(pyproject).get("tool", {}).get("arcade", {}).get("deploy")
+        deploy = _table(_read_toml(pyproject), ("tool", "arcade", "deploy"), pyproject.name)
         if deploy is not None:
             table, source = deploy, "pyproject.toml"
 
     arcade_toml = project_dir / "arcade.toml"
     if arcade_toml.is_file():
-        if source == "pyproject.toml":
+        deploy = _table(_read_toml(arcade_toml), ("deploy",), arcade_toml.name)
+        if deploy is not None and source == "pyproject.toml":
             raise DeployConfigError(
                 "This project has deploy settings in both [tool.arcade.deploy] in "
-                "pyproject.toml and arcade.toml. Keep one of them."
+                "pyproject.toml and [deploy] in arcade.toml. Keep one of them."
             )
-        table, source = _read_toml(arcade_toml).get("deploy", {}), "arcade.toml"
+        if deploy is not None:
+            table, source = deploy, "arcade.toml"
 
     where = f"[tool.arcade.deploy] in {source}" if source == "pyproject.toml" else str(source)
     try:
@@ -168,6 +170,22 @@ def load_deploy_config(project_dir: Path) -> DeployConfig:
         raise DeployConfigError(f"The deploy settings in {where} are invalid:\n{problems}") from e
     config._source = source
     return config
+
+
+def _table(data: dict[str, Any], keys: tuple[str, ...], file_name: str) -> Any:
+    """The value at ``keys`` in a TOML document, or ``None`` when it's absent.
+
+    Every enclosing key must be a table; the value itself is validated by the caller.
+    """
+    value: Any = data
+    for depth, key in enumerate(keys):
+        if not isinstance(value, dict):
+            enclosing = ".".join(keys[:depth])
+            raise DeployConfigError(f"{file_name}: [{enclosing}] isn't a table.")
+        value = value.get(key)
+        if value is None:
+            return None
+    return value
 
 
 def _describe(error: Any) -> str:
