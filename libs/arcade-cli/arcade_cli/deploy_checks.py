@@ -43,7 +43,7 @@ def detect_protocol(project_dir: Path) -> Protocol:
             "No dependency source found: add a pyproject.toml, requirements.txt or "
             "fastmcp.json listing the server's dependencies."
         )
-    names = {_name(spec) for source in sources for spec in _specs(project_dir, source)}
+    names = {_name(spec) for source in sources for spec in declared_specs(project_dir, source)}
     return "arcade" if names & _ARCADE_PACKAGES else "mcp"
 
 
@@ -118,7 +118,7 @@ def _unpinned_warning(project_dir: Path, protocol: Protocol) -> list[str]:
     if source is None or source == "uv.lock":
         return []
     unpinned = sorted(
-        {_name(spec) for spec in _specs(project_dir, source) if not _is_pinned(spec)} - {""}
+        {_name(spec) for spec in declared_specs(project_dir, source) if not _is_pinned(spec)} - {""}
     )
     if not unpinned:
         return []
@@ -163,7 +163,7 @@ def _name(spec: str) -> str:
     return ""
 
 
-def _specs(project_dir: Path, source: str) -> list[str]:
+def declared_specs(project_dir: Path, source: str) -> list[str]:
     """The requirement specs a dependency source declares."""
     path = project_dir / source
     if source == "requirements.txt":
