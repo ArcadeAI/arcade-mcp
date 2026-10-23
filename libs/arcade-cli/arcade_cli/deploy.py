@@ -164,7 +164,7 @@ class UpdateDeploymentRequest(BaseModel):
 def check_mcp_deployments(engine_url: str) -> list[DeploymentsRunner]:
     """Refuse unless the Engine hosts MCP servers; return its Python runners.
 
-    Read from the Engine's discovery document before anything is uploaded (DEP-416).
+    Read from the Engine's discovery document before anything is uploaded.
     """
     try:
         discovery = fetch_discovery(engine_url)

@@ -1,4 +1,4 @@
-"""Checking the Engine hosts MCP servers before an MCP deploy uploads anything (DEP-393, DEP-416)."""
+"""Checking the Engine hosts MCP servers before an MCP deploy uploads anything."""
 
 from typing import Any
 from unittest.mock import patch

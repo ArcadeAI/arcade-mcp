@@ -1,4 +1,4 @@
-"""Running a start command locally and finding its MCP endpoint (DEP-415).
+"""Running a start command locally and finding its MCP endpoint.
 
 The servers here are stand-ins from ``start_command_servers/fakes`` so these tests need no
 network; ``test_start_command_matrix.py`` runs the real frameworks.

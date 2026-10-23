@@ -51,7 +51,7 @@ def install_source(project_dir: Path, protocol: Protocol) -> InstallSource | Non
     """The file the runner installs dependencies from: the first of these that exists.
 
     uv.lock, then (for MCP servers) fastmcp.json, then requirements.txt, then
-    pyproject.toml (DEP-537, DEP-390).
+    pyproject.toml.
     """
     order: tuple[InstallSource, ...] = ("uv.lock", "requirements.txt", "pyproject.toml")
     if protocol == "mcp":
@@ -80,9 +80,7 @@ def _refuse_poetry_without_export(project_dir: Path, pyproject: dict[str, Any]) 
     """Refuse dependencies only Poetry can install: pip reads [project].dependencies only."""
     poetry_dependencies = pyproject.get("tool", {}).get("poetry", {}).get("dependencies") or {}
     ignored = sorted(name for name in poetry_dependencies if name.lower() != "python")
-    if not ignored:
-        return
-    if (project_dir / "uv.lock").is_file() or (project_dir / "requirements.txt").is_file():
+    if not ignored or install_source(project_dir, "mcp") != "pyproject.toml":
         return
     raise ProjectCheckError(
         "The runner installs with pip, which ignores [tool.poetry.dependencies] "
@@ -191,8 +189,15 @@ def _fastmcp_json_specs(path: Path) -> list[str]:
     if not isinstance(dependencies, list) or not all(isinstance(d, str) for d in dependencies):
         raise ProjectCheckError("fastmcp.json: `environment.dependencies` isn't a list of strings.")
     specs = list(dependencies)
-    if environment.get("requirements"):
-        specs.extend(requirement_specs(path.parent / environment["requirements"]))
+    requirements = environment.get("requirements")
+    if requirements is not None:
+        if not isinstance(requirements, str):
+            raise ProjectCheckError("fastmcp.json: `environment.requirements` isn't a file path.")
+        if not (path.parent / requirements).is_file():
+            raise ProjectCheckError(
+                f"fastmcp.json: `environment.requirements` names {requirements}, which doesn't exist."
+            )
+        specs.extend(requirement_specs(path.parent / requirements))
     return specs
 
 

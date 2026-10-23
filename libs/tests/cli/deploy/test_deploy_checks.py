@@ -1,4 +1,4 @@
-"""Checks on a project before it deploys: protocol, dependencies, Python version (DEP-393)."""
+"""Checks on a project before it deploys: protocol, dependencies, Python version."""
 
 from pathlib import Path
 
@@ -69,6 +69,21 @@ class TestDetectProtocol:
         with pytest.raises(ProjectCheckError, match="fastmcp.json"):
             detect_protocol(tmp_path)
 
+    @pytest.mark.parametrize("requirements", ["1", "[]", '{"a": 1}'])
+    def test_a_fastmcp_json_requirements_that_isnt_a_path_is_refused(
+        self, tmp_path: Path, requirements: str
+    ) -> None:
+        write(tmp_path, {"fastmcp.json": f'{{"environment": {{"requirements": {requirements}}}}}'})
+
+        with pytest.raises(ProjectCheckError, match="environment.requirements"):
+            detect_protocol(tmp_path)
+
+    def test_a_missing_fastmcp_json_requirements_file_is_refused(self, tmp_path: Path) -> None:
+        write(tmp_path, {"fastmcp.json": '{"environment": {"requirements": "deps.txt"}}'})
+
+        with pytest.raises(ProjectCheckError, match=r"deps\.txt.*doesn't exist"):
+            detect_protocol(tmp_path)
+
     def test_a_project_with_no_dependency_source_is_refused(self, tmp_path: Path) -> None:
         write(tmp_path, {"server.py": "print('hi')\n"})
 
@@ -77,7 +92,7 @@ class TestDetectProtocol:
 
 
 class TestInstallSource:
-    """The file the runner installs from, first that exists (DEP-537, DEP-390)."""
+    """The file the runner installs from, first that exists."""
 
     def test_a_lock_wins(self, tmp_path: Path) -> None:
         write(
@@ -139,6 +154,17 @@ class TestRefusals:
 
         with pytest.raises(ProjectCheckError, match=r"httpx.*poetry export"):
             check_project(tmp_path, protocol="mcp", runners=PY312)
+
+    def test_a_poetry_project_installed_from_fastmcp_json_deploys(self, tmp_path: Path) -> None:
+        write(
+            tmp_path,
+            {
+                "pyproject.toml": '[tool.poetry.dependencies]\npython = "^3.11"\nfastmcp = "^3.4"\n',
+                "fastmcp.json": '{"environment": {"dependencies": ["fastmcp==3.4.1"]}}',
+            },
+        )
+
+        assert check_project(tmp_path, protocol="mcp", runners=PY312) == []
 
     def test_a_poetry_project_with_requirements_deploys(self, tmp_path: Path) -> None:
         write(
@@ -252,8 +278,8 @@ class TestWarnings:
             tmp_path,
             {
                 "pyproject.toml": pyproject(
-                    "turnkey-sdk==0.2.0",
-                    extra='[tool.uv.sources]\nturnkey-sdk = { git = "https://github.com/tkhq/python-sdk" }\n',
+                    "example-sdk==0.2.0",
+                    extra='[tool.uv.sources]\nexample-sdk = { git = "https://github.com/example/example-sdk" }\n',
                 )
             },
         )
@@ -267,7 +293,7 @@ class TestWarnings:
             tmp_path,
             {
                 "pyproject.toml": pyproject(
-                    "turnkey-sdk==0.2.0", extra='[tool.uv.sources]\nturnkey-sdk = { path = "../sdk" }\n'
+                    "example-sdk==0.2.0", extra='[tool.uv.sources]\nexample-sdk = { path = "../sdk" }\n'
                 ),
                 "uv.lock": "",
             },

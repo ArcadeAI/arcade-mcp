@@ -1,4 +1,4 @@
-"""Reading and checking the deploy config of an MCP server deploy (DEP-393)."""
+"""Reading and checking the deploy config of an MCP server deploy."""
 
 import json
 from pathlib import Path
@@ -197,8 +197,8 @@ class TestSettings:
 
 
 class TestNames:
-    # The Engine runner's reserved names (apps/engine/pkg/deployments/worker/runner/reserved.go),
-    # written out here so a change to the CLI's copy shows up as a failing test.
+    # Every name the deployment runner reserves, written out here so a change to the CLI's
+    # copy shows up as a failing test.
     @pytest.mark.parametrize(
         "name",
         [
