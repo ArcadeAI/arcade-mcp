@@ -107,6 +107,11 @@ class ToolExecutor:
             # may contain user secrets (passwords, tokens, PII). Both fields
             # below intentionally carry only field path + reason + Pydantic
             # error type code, never the rejected value itself.
+            #
+            # The exception is a tool author's own validator: the ValueError or
+            # AssertionError message it raises becomes ``err["msg"]`` and is
+            # surfaced as written, so the agent gets the author's hint ("Count
+            # must be odd"). Authors must not put the input value in it.
             summary = "; ".join(
                 f"{'.'.join(str(loc) for loc in err['loc']) or '<root>'}: {err['msg']}"
                 for err in e.errors()
@@ -118,7 +123,21 @@ class ToolExecutor:
             raise ToolInputError(
                 message=f"Invalid input: {summary}",
                 developer_message=f"Pydantic validation failed: {developer_summary}",
-            ) from e
+            ) from None
+
+        except ToolRuntimeError:
+            # A validator raising a tool error carries the author's guidance,
+            # the same as when it is raised from the tool body.
+            raise
+
+        except Exception as e:
+            # A declared validator that raises anything other than ValueError
+            # or AssertionError escapes Pydantic unwrapped. Its message and
+            # traceback may hold the input value, so surface only its type.
+            raise ToolInputError(
+                message="Invalid input: an input validator failed",
+                developer_message=f"Input validator raised {type(e).__name__}",
+            ) from None
 
         return inputs
 
