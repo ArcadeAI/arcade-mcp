@@ -34,9 +34,21 @@ class NoCloudGuardError(Exception):
     pass
 
 
+class DeploymentsRunner(BaseModel):
+    """A runner image deployed servers run on, as the Engine reports it."""
+
+    language: str
+    version: str
+    # The wheel platform tag without its architecture, such as musllinux_1_2.
+    platform: str = ""
+
+
 class DeploymentsDiscovery(BaseModel):
     enabled: bool = False
     reason: str = ""
+    # Both are absent from an Engine that predates MCP server deploys (DEP-416).
+    protocols: list[str] = []
+    runners: list[DeploymentsRunner] = []
 
 
 class DiscoveryDocument(BaseModel):
