@@ -13,8 +13,10 @@ The runner starts a deployed MCP server with the command chosen here, the first 
 
 Server objects are found by parsing the project's source, never by importing it.
 
-``fastmcp run`` gets fixed flags, so its port and path are known. Every other command's
-port and path are detected from the running server.
+The runner owns the address a server listens on. To a ``fastmcp run`` command chosen
+here it adds the serving flags itself (``fastmcp_run_flags``), so the deployed command
+names only the server. Every other command's port and path are detected from the
+running server.
 """
 
 from __future__ import annotations
@@ -36,12 +38,15 @@ from packaging.utils import canonicalize_name
 Framework = Literal["fastmcp", "mcp-sdk-1", "mcp-sdk-2"]
 Source = Literal["command", "fastmcp.json", "fastmcp", "mcp-sdk"]
 
-RUNNER_HOST = "127.0.0.1"
-RUNNER_PORT = 8000
+LOCAL_HOST = "127.0.0.1"
 FASTMCP_PATH = "/mcp"
 
 
-def _fastmcp_run_flags(path: str) -> tuple[str, ...]:
+def fastmcp_run_flags(port: int, path: str = FASTMCP_PATH) -> tuple[str, ...]:
+    """The serving flags the runner adds to a chosen ``fastmcp run`` command.
+
+    The CLI adds the same flags, with a free ``port``, to run the server locally.
+    """
     # --transport http: fastmcp 2.x ignores FASTMCP_TRANSPORT, and every run() defaults to stdio.
     # --no-banner: the banner checks PyPI for a newer version, which stalls start without egress.
     # --skip-env: the runner has installed the dependencies; without it a fastmcp.json
@@ -50,17 +55,15 @@ def _fastmcp_run_flags(path: str) -> tuple[str, ...]:
         "--transport",
         "http",
         "--host",
-        RUNNER_HOST,
+        LOCAL_HOST,
         "--port",
-        str(RUNNER_PORT),
+        str(port),
         "--path",
         path,
         "--no-banner",
         "--skip-env",
     )
 
-
-FASTMCP_RUN_FLAGS = _fastmcp_run_flags(FASTMCP_PATH)
 
 _SERVER_CLASSES: dict[str, Framework] = {
     "fastmcp.FastMCP": "fastmcp",
@@ -100,24 +103,28 @@ class StartCommandError(ValueError):
 class StartCommand:
     """How the runner starts the server.
 
-    ``command`` is what the deploy sends. ``port`` and ``path`` are known for
-    ``fastmcp run``; ``None`` means they are detected from the running server.
+    ``command`` is what the deploy sends. ``path`` is the server's path when it's known:
+    the ``path`` setting, or ``/mcp`` for a chosen ``fastmcp run``. ``None`` means detect it.
     """
 
     command: str
     source: Source
-    port: int | None = None
     path: str | None = None
 
     @property
     def argv(self) -> tuple[str, ...]:
         return tuple(shlex.split(self.command))
 
+    @property
+    def runner_sets_port(self) -> bool:
+        """Whether the runner adds ``fastmcp_run_flags``; otherwise the port is detected."""
+        return self.source in ("fastmcp", "fastmcp.json")
+
     def local_argv(self, port: int | None) -> list[str]:
-        """The command to run on this machine, on ``port`` when the port is fixed."""
+        """The command to run on this machine, with the runner's flags on ``port`` if it sets them."""
         argv = list(self.argv)
-        if self.port is not None and port is not None:
-            argv[argv.index("--port") + 1] = str(port)
+        if self.runner_sets_port and port is not None:
+            argv.extend(fastmcp_run_flags(port, self.path or FASTMCP_PATH))
         return argv
 
 
@@ -179,9 +186,8 @@ def _fastmcp_run(project_dir: Path, servers: list[ServerObject], path: str | Non
             "fastmcp is a dependency, but no module-level server object "
             f"(`mcp = FastMCP(...)`) was found. {_ASK_FOR_COMMAND}"
         )
-    path = path or FASTMCP_PATH
-    argv = ("fastmcp", "run", target, *_fastmcp_run_flags(path))
-    return StartCommand(command=shlex.join(argv), source=source, port=RUNNER_PORT, path=path)
+    argv = ("fastmcp", "run", target)
+    return StartCommand(command=shlex.join(argv), source=source, path=path or FASTMCP_PATH)
 
 
 def _sdk_script(
