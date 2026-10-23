@@ -135,6 +135,48 @@ def test_an_event_stream_response_is_read(project: Path) -> None:
         assert [tool["name"] for tool in list_tools(endpoint)] == ["echo"]
 
 
+def test_every_page_of_tools_is_listed(project: Path) -> None:
+    start = resolve_start_command(
+        project, command=f"python fake_mcp.py --port {free_port()} --tools one,two,three"
+    )
+
+    with run_locally(start, project) as endpoint:
+        assert [tool["name"] for tool in list_tools(endpoint)] == ["one", "two", "three"]
+
+
+def test_a_failed_tools_list_is_reported(project: Path) -> None:
+    start = resolve_start_command(
+        project, command=f"python fake_mcp.py --port {free_port()} --fail-tools-list"
+    )
+
+    with (
+        run_locally(start, project) as endpoint,
+        pytest.raises(StartCommandError, match="tools/list failed.*tools are unavailable"),
+    ):
+        list_tools(endpoint)
+
+
+def test_a_web_page_is_not_an_mcp_endpoint(project: Path) -> None:
+    # / and /mcp answer 200 with HTML; the MCP endpoint is elsewhere.
+    command = f"python fake_mcp.py --port {free_port()} --path /api/mcp --html-elsewhere"
+
+    with (
+        pytest.raises(StartCommandError, match="answered the MCP handshake on no path"),
+        run_locally(resolve_start_command(project, command=command), project, timeout=3),
+    ):
+        pass
+
+
+def test_a_command_that_isnt_installed_is_reported(project: Path) -> None:
+    start = resolve_start_command(project, command="no-such-server-command --port 8000")
+
+    with (
+        pytest.raises(StartCommandError, match="`no-such-server-command` wasn't found"),
+        run_locally(start, project),
+    ):
+        pass
+
+
 def test_a_listener_that_is_not_loopback_is_refused(project: Path) -> None:
     port = free_port()
     start = resolve_start_command(

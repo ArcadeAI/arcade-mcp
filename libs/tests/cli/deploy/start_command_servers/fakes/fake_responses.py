@@ -9,8 +9,17 @@ from typing import Any
 SESSION_ID = "fake-session"
 
 
-def answer(body: bytes, *, sse: bool = False) -> tuple[int, dict[str, str], bytes]:
-    """Return (status, headers, body) for one JSON-RPC message posted to the endpoint."""
+def answer(
+    body: bytes,
+    *,
+    sse: bool = False,
+    tools: tuple[str, ...] = ("echo",),
+    fail_tools_list: bool = False,
+) -> tuple[int, dict[str, str], bytes]:
+    """Return (status, headers, body) for one JSON-RPC message posted to the endpoint.
+
+    ``tools/list`` returns one tool per page, with a ``nextCursor`` until the last.
+    """
     message = json.loads(body)
     if "id" not in message:
         return 202, {}, b""
@@ -22,8 +31,15 @@ def answer(body: bytes, *, sse: bool = False) -> tuple[int, dict[str, str], byte
             "capabilities": {"tools": {}},
             "serverInfo": {"name": "fake-mcp", "version": "1.0.0"},
         }
+    elif message["method"] == "tools/list" and fail_tools_list:
+        error = {"code": -32603, "message": "tools are unavailable"}
+        payload = json.dumps({"jsonrpc": "2.0", "id": message["id"], "error": error})
+        return 200, {"Content-Type": "application/json"}, payload.encode()
     elif message["method"] == "tools/list":
-        result = {"tools": [{"name": "echo", "inputSchema": {"type": "object"}}]}
+        page = int(message.get("params", {}).get("cursor") or 0)
+        result = {"tools": [{"name": tools[page], "inputSchema": {"type": "object"}}]}
+        if page + 1 < len(tools):
+            result["nextCursor"] = str(page + 1)
     else:
         result = {}
 
