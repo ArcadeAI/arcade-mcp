@@ -17,13 +17,14 @@ from __future__ import annotations
 
 import json
 import re
-import sys
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal, cast
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, ValidationError, model_validator
+
+from arcade_cli.start_command import load_toml
 
 RUNNER_SETTINGS_PATH = ".arcade/deploy.json"
 
@@ -205,14 +206,7 @@ def _describe(error: Any) -> str:
 
 def _read_toml(path: Path) -> dict[str, Any]:
     try:
-        text = path.read_text(encoding="utf-8-sig")
-        if sys.version_info >= (3, 11):
-            import tomllib
-
-            return tomllib.loads(text)
-        import toml
-
-        return cast(dict[str, Any], toml.loads(text))
+        return load_toml(path)
     except Exception as e:
         raise DeployConfigError(f"{path.name} couldn't be read: {e}") from e
 

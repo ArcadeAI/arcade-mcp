@@ -263,13 +263,13 @@ def declared_dependencies(project_dir: Path) -> set[str]:
     pyproject = project_dir / "pyproject.toml"
     if pyproject.is_file():
         try:
-            data = _load_toml(pyproject)
+            data = load_toml(pyproject)
         except Exception as e:
             raise StartCommandError(f"pyproject.toml couldn't be read: {e}") from e
         specs.extend(data.get("project", {}).get("dependencies", []) or [])
     requirements = project_dir / "requirements.txt"
     if requirements.is_file():
-        specs.extend(_requirement_specs(requirements, seen=set()))
+        specs.extend(requirement_specs(requirements))
 
     names: set[str] = set()
     for spec in specs:
@@ -278,8 +278,9 @@ def declared_dependencies(project_dir: Path) -> set[str]:
     return names
 
 
-def _requirement_specs(path: Path, seen: set[Path]) -> Iterator[str]:
+def requirement_specs(path: Path, seen: set[Path] | None = None) -> Iterator[str]:
     """The requirement lines of a requirements file, following ``-r`` includes."""
+    seen = set() if seen is None else seen
     path = path.resolve()
     if path in seen or not path.is_file():
         return
@@ -290,13 +291,13 @@ def _requirement_specs(path: Path, seen: set[Path]) -> Iterator[str]:
         line = re.sub(r"(^|\s)#.*", "", line).strip()
         include = re.match(r"(?:-r|--requirement)(?:\s*=\s*|\s+)(\S+)$", line)
         if include:
-            yield from _requirement_specs(path.parent / include.group(1), seen)
+            yield from requirement_specs(path.parent / include.group(1), seen)
         elif line and not line.startswith("-"):
             # Per-requirement options such as --hash follow the requirement itself.
             yield re.split(r"\s+--", line, maxsplit=1)[0]
 
 
-def _load_toml(path: Path) -> dict[str, Any]:
+def load_toml(path: Path) -> dict[str, Any]:
     text = path.read_text(encoding="utf-8-sig")
     if sys.version_info >= (3, 11):
         import tomllib
