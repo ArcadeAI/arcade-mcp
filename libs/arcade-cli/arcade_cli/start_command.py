@@ -66,8 +66,10 @@ _SERVER_CLASSES: dict[str, Framework] = {
     "fastmcp.FastMCP": "fastmcp",
     "fastmcp.server.FastMCP": "fastmcp",
     "fastmcp.server.server.FastMCP": "fastmcp",
+    "mcp.server.FastMCP": "mcp-sdk-1",
     "mcp.server.fastmcp.FastMCP": "mcp-sdk-1",
     "mcp.server.fastmcp.server.FastMCP": "mcp-sdk-1",
+    "mcp.server.MCPServer": "mcp-sdk-2",
     "mcp.server.mcpserver.MCPServer": "mcp-sdk-2",
     "mcp.server.mcpserver.server.MCPServer": "mcp-sdk-2",
 }
@@ -263,13 +265,16 @@ def _requirement_specs(path: Path, seen: set[Path]) -> Iterator[str]:
     if path in seen or not path.is_file():
         return
     seen.add(path)
-    for line in path.read_text(encoding="utf-8-sig").splitlines():
+    # A trailing backslash continues a line, as in `uv export` and `pip-compile` output.
+    text = re.sub(r"\\\r?\n", " ", path.read_text(encoding="utf-8-sig"))
+    for line in text.splitlines():
         line = re.sub(r"(^|\s)#.*", "", line).strip()
         include = re.match(r"(?:-r|--requirement)(?:\s*=\s*|\s+)(\S+)$", line)
         if include:
             yield from _requirement_specs(path.parent / include.group(1), seen)
         elif line and not line.startswith("-"):
-            yield line
+            # Per-requirement options such as --hash follow the requirement itself.
+            yield re.split(r"\s+--", line, maxsplit=1)[0]
 
 
 def _load_toml(path: Path) -> dict[str, Any]:
