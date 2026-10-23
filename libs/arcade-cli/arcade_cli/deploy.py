@@ -29,7 +29,13 @@ from rich.text import Text
 
 from arcade_cli.configure import find_python_interpreter
 from arcade_cli.console import console
-from arcade_cli.context import resolve_active_context
+from arcade_cli.context import (
+    DeploymentsRunner,
+    DiscoveryError,
+    DiscoveryNotFoundError,
+    fetch_discovery,
+    resolve_active_context,
+)
 from arcade_cli.secret import load_env_file
 from arcade_cli.utils import (
     exit_if_strong_authentication_required,
@@ -73,14 +79,31 @@ class MCPInitializeRequest(BaseModel):
     params: MCPInitializeParams
 
 
+class DeployRefusedError(ValueError):
+    """The deploy is refused before anything is uploaded; the message names the reason."""
+
+
 class ToolkitBundle(BaseModel):
-    """A toolkit bundle for deployment."""
+    """A toolkit bundle for deployment.
+
+    An Arcade server bundle has ``type`` and ``entrypoint``. An MCP server bundle has
+    ``protocol="mcp"`` and the ``command`` the runner starts it with instead.
+    """
 
     name: str
     version: str
     bytes: str
-    type: str = "mcp"
-    entrypoint: str
+    type: str | None = "mcp"
+    entrypoint: str | None = None
+    protocol: str | None = None
+    command: str | None = None
+
+    @classmethod
+    def mcp_server(cls, name: str, version: str, archive: str, command: str) -> "ToolkitBundle":
+        """An MCP server bundle: ``archive`` is the base64 tarball, ``command`` starts it."""
+        return cls(
+            name=name, version=version, bytes=archive, type=None, protocol="mcp", command=command
+        )
 
 
 class DeploymentToolkits(BaseModel):
@@ -90,13 +113,26 @@ class DeploymentToolkits(BaseModel):
     packages: list[str] = Field(default_factory=list)
 
 
+class OAuthClientSettings(BaseModel):
+    """A pre-registered OAuth client the Engine signs users in to an MCP server with."""
+
+    client_id: str
+    client_secret: str
+
+
 class CreateDeploymentRequest(BaseModel):
-    """Deployment request payload for /v1/deployments endpoint."""
+    """Deployment request payload for /v1/deployments endpoint.
+
+    ``environment``, ``secrets`` and ``oauth_client`` are sent only for MCP servers.
+    """
 
     name: str
     description: str
     toolkits: DeploymentToolkits
     provider: str | None = None
+    environment: dict[str, str] | None = None
+    secrets: dict[str, str] | None = None
+    oauth_client: OAuthClientSettings | None = None
 
     def model_dump(self, **kwargs: Any) -> dict:
         kwargs.setdefault("exclude_none", True)
@@ -104,10 +140,54 @@ class CreateDeploymentRequest(BaseModel):
 
 
 class UpdateDeploymentRequest(BaseModel):
-    """Deployment request payload for /v1/deployments/{deployment_name} endpoint."""
+    """Deployment request payload for /v1/deployments/{deployment_name} endpoint.
+
+    The Engine stores exactly the ``environment`` and ``secrets`` an update carries, so an
+    MCP server deploy sends its full declared set. Without ``oauth_client`` the Engine keeps
+    the stored client.
+    """
 
     description: str
     toolkits: DeploymentToolkits
+    environment: dict[str, str] | None = None
+    secrets: dict[str, str] | None = None
+    oauth_client: OAuthClientSettings | None = None
+
+    def model_dump(self, **kwargs: Any) -> dict:
+        kwargs.setdefault("exclude_none", True)
+        return super().model_dump(**kwargs)
+
+
+# Engine Capabilities
+
+
+def check_mcp_deployments(engine_url: str) -> list[DeploymentsRunner]:
+    """Refuse unless the Engine hosts MCP servers; return its Python runners.
+
+    Read from the Engine's discovery document before anything is uploaded (DEP-416).
+    """
+    try:
+        discovery = fetch_discovery(engine_url)
+    except DiscoveryNotFoundError as e:
+        raise DeployRefusedError(
+            f"The Arcade Engine at {engine_url} predates MCP server deploys, so it can't host "
+            "this server. Servers built with arcade-mcp still deploy."
+        ) from e
+    except DiscoveryError as e:
+        raise DeployRefusedError(
+            f"Couldn't check whether the Arcade Engine at {engine_url} hosts MCP servers: {e}"
+        ) from e
+
+    deployments = discovery.deployments
+    if not deployments.enabled:
+        reason = deployments.reason or "deployments are not enabled on this installation"
+        raise DeployRefusedError(f"This installation is not accepting deployments: {reason}.")
+    if "mcp" not in deployments.protocols:
+        raise DeployRefusedError(
+            "This Arcade installation doesn't host MCP servers yet: its Engine deploys only "
+            "servers built with arcade-mcp. Ask your administrator to upgrade it."
+        )
+    return [runner for runner in deployments.runners if runner.language == "python"]
 
 
 # Deployment Status Functions
