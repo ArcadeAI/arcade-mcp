@@ -21,12 +21,25 @@ NO_WHEEL = {
 
 
 class FakeUv:
-    """Stands in for uv: resolves to RESOLVED and has no wheels for NO_WHEEL."""
+    """Stands in for uv: resolves to RESOLVED and has no wheels for NO_WHEEL.
 
-    def __init__(self, resolved: list[str] = RESOLVED, resolve_error: str | None = None) -> None:
+    ``resolve_error`` fails resolution (on ``resolve_error_arch`` only, when given);
+    ``check_error`` fails every wheels-only check the way a network error would.
+    """
+
+    def __init__(
+        self,
+        resolved: list[str] = RESOLVED,
+        resolve_error: str | None = None,
+        resolve_error_arch: str | None = None,
+        check_error: str | None = None,
+    ) -> None:
         self.calls: list[list[str]] = []
+        self.checked_files: list[str] = []
         self.resolved = resolved
         self.resolve_error = resolve_error
+        self.resolve_error_arch = resolve_error_arch
+        self.check_error = check_error
 
     def __call__(
         self, args: list[str], cwd: Path, stdin: str | None = None
@@ -36,11 +49,14 @@ class FakeUv:
             return self._done("httpx==0.28.1\n")
         arch = args[args.index("--python-platform") + 1].split("-")[0]
         if "--only-binary" not in args:
-            if self.resolve_error:
+            if self.resolve_error and self.resolve_error_arch in (None, arch):
                 return self._done("", 1, self.resolve_error)
             return self._done("\n".join(self.resolved) + "\n")
         pins = stdin if stdin is not None else Path(cwd, args[2]).read_text()
-        names = [line.split("==")[0] for line in pins.split()]
+        self.checked_files.append(pins)
+        if self.check_error:
+            return self._done("", 1, self.check_error)
+        names = [line.split("==")[0] for line in pins.splitlines() if "==" in line]
         missing = [name for name in names if arch in NO_WHEEL.get(name, set())]
         if missing:
             return self._done("", 1, f"Because {missing[0]} has no usable wheels ...")
@@ -74,6 +90,28 @@ class TestTargets:
             ("aarch64", "aarch64-manylinux_2_40"),
         ]
 
+    @pytest.mark.parametrize(
+        ("platform", "target"),
+        [
+            ("manylinux_2_17", "manylinux_2_17"),
+            ("manylinux_2_20", "manylinux_2_17"),
+            ("manylinux_2_28", "manylinux_2_28"),
+            ("manylinux_2_30", "manylinux_2_28"),
+            ("manylinux_2_34", "manylinux_2_34"),
+            ("manylinux2014", "manylinux2014"),
+        ],
+    )
+    def test_an_older_manylinux_uses_the_newest_uv_target_it_can_run(
+        self, platform: str, target: str
+    ) -> None:
+        assert uv_targets(platform) == [
+            ("x86_64", f"x86_64-{target}"),
+            ("aarch64", f"aarch64-{target}"),
+        ]
+
+    def test_a_manylinux_older_than_uv_knows_has_no_targets(self) -> None:
+        assert uv_targets("manylinux_2_5") == []
+
     def test_an_unknown_platform_has_no_targets(self) -> None:
         assert uv_targets("win_amd64") == []
         assert uv_targets("") == []
@@ -103,6 +141,54 @@ class TestWheelWarnings:
 
         assert wheel_warnings(tmp_path, "requirements.txt", MUSL) == []
         assert sum("--only-binary" in call for call in fake.calls) == 2
+
+    def test_the_requirements_index_options_apply_to_the_wheel_check(
+        self, tmp_path: Path, fake_uv: FakeUv
+    ) -> None:
+        (tmp_path / "wheels").mkdir()
+        (tmp_path / "requirements.txt").write_text(
+            "--index-url https://pypi.acme.internal/simple\n"
+            "--extra-index-url=https://download.pytorch.org/whl/cpu\n"
+            "-f ./wheels\n"
+            "httpx\n"
+        )
+
+        wheel_warnings(tmp_path, "requirements.txt", MUSL)
+
+        assert fake_uv.checked_files
+        for checked in fake_uv.checked_files:
+            assert "--index-url https://pypi.acme.internal/simple" in checked
+            assert "--extra-index-url https://download.pytorch.org/whl/cpu" in checked
+            assert f"--find-links {(tmp_path / 'wheels').resolve()}" in checked
+
+    def test_a_check_that_fails_for_another_reason_names_no_packages(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        use(monkeypatch, FakeUv(check_error="error: Failed to fetch: connection refused"))
+        (tmp_path / "requirements.txt").write_text("httpx\n")
+
+        warnings = wheel_warnings(tmp_path, "requirements.txt", MUSL)
+
+        assert warnings
+        assert all("Couldn't check" in w and "connection refused" in w for w in warnings)
+        assert not any("mysqlclient" in w for w in warnings)
+
+    def test_one_failed_architecture_keeps_the_others_results(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        use(monkeypatch, FakeUv(resolve_error="error: nope", resolve_error_arch="aarch64"))
+        (tmp_path / "requirements.txt").write_text("mysqlclient\n")
+
+        warnings = wheel_warnings(tmp_path, "requirements.txt", MUSL)
+
+        assert any("Couldn't resolve" in w and "aarch64" in w for w in warnings)
+        assert any("mysqlclient 2.3.0" in w for w in warnings)
+
+    def test_runners_for_other_languages_are_skipped(self, tmp_path: Path, fake_uv: FakeUv) -> None:
+        runners = [DeploymentsRunner(language="node", version="22", platform="musllinux_1_2")]
+
+        assert wheel_warnings(tmp_path, "requirements.txt", runners) == []
+        assert fake_uv.calls == []
 
     def test_a_lock_is_exported_first(self, tmp_path: Path, fake_uv: FakeUv) -> None:
         (tmp_path / "pyproject.toml").write_text('[project]\nname = "srv"\nversion = "0"\n')

@@ -72,20 +72,22 @@ def check_project(
         return warnings
 
     _refuse_poetry_without_export(project_dir, pyproject)
-    _refuse_excluded_python(pyproject, runners)
+    _refuse_excluded_python(pyproject, [r for r in runners if r.language == "python"])
     return [*_unpinned_warning(project_dir, protocol), *warnings]
 
 
 def _refuse_poetry_without_export(project_dir: Path, pyproject: dict[str, Any]) -> None:
-    poetry_dependencies = pyproject.get("tool", {}).get("poetry", {}).get("dependencies")
-    if poetry_dependencies is None:
+    """Refuse dependencies only Poetry can install: pip reads [project].dependencies only."""
+    poetry_dependencies = pyproject.get("tool", {}).get("poetry", {}).get("dependencies") or {}
+    ignored = sorted(name for name in poetry_dependencies if name.lower() != "python")
+    if not ignored:
         return
     if (project_dir / "uv.lock").is_file() or (project_dir / "requirements.txt").is_file():
         return
     raise ProjectCheckError(
-        "This is a Poetry project, and the runner can't install [tool.poetry.dependencies]. "
-        "Export them with `poetry export -f requirements.txt --output requirements.txt` "
-        "and deploy again."
+        "The runner installs with pip, which ignores [tool.poetry.dependencies] "
+        f"({', '.join(ignored)}). Export them with "
+        "`poetry export -f requirements.txt --output requirements.txt` and deploy again."
     )
 
 
@@ -177,10 +179,18 @@ def declared_specs(project_dir: Path, source: str) -> list[str]:
 
 def _fastmcp_json_specs(path: Path) -> list[str]:
     try:
-        environment = json.loads(path.read_text(encoding="utf-8-sig")).get("environment") or {}
-    except (ValueError, AttributeError) as e:
+        document = json.loads(path.read_text(encoding="utf-8-sig"))
+    except ValueError as e:
         raise ProjectCheckError(f"fastmcp.json couldn't be read: {e}") from e
-    specs = list(environment.get("dependencies") or [])
+    if not isinstance(document, dict):
+        raise ProjectCheckError("fastmcp.json isn't a JSON object.")
+    environment = document.get("environment") or {}
+    if not isinstance(environment, dict):
+        raise ProjectCheckError("fastmcp.json: `environment` isn't an object.")
+    dependencies = environment.get("dependencies") or []
+    if not isinstance(dependencies, list) or not all(isinstance(d, str) for d in dependencies):
+        raise ProjectCheckError("fastmcp.json: `environment.dependencies` isn't a list of strings.")
+    specs = list(dependencies)
     if environment.get("requirements"):
         specs.extend(requirement_specs(path.parent / environment["requirements"]))
     return specs

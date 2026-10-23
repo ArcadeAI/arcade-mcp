@@ -47,6 +47,28 @@ class TestDetectProtocol:
 
         assert detect_protocol(tmp_path) == "arcade"
 
+    def test_a_fastmcp_json_requirements_file_is_read(self, tmp_path: Path) -> None:
+        write(
+            tmp_path,
+            {
+                "fastmcp.json": '{"environment": {"requirements": "deps/requirements.txt"}}',
+                "deps/requirements.txt": "arcade-mcp-server==1.23.0\n",
+            },
+        )
+
+        assert detect_protocol(tmp_path) == "arcade"
+
+    @pytest.mark.parametrize(
+        "content", ['{"environment": "uv"}', '["not", "an", "object"]', '{"environment": {"dependencies": "x"}}']
+    )
+    def test_a_malformed_fastmcp_json_is_refused_naming_it(
+        self, tmp_path: Path, content: str
+    ) -> None:
+        write(tmp_path, {"fastmcp.json": content})
+
+        with pytest.raises(ProjectCheckError, match="fastmcp.json"):
+            detect_protocol(tmp_path)
+
     def test_a_project_with_no_dependency_source_is_refused(self, tmp_path: Path) -> None:
         write(tmp_path, {"server.py": "print('hi')\n"})
 
@@ -92,6 +114,32 @@ class TestRefusals:
         with pytest.raises(ProjectCheckError, match="poetry export"):
             check_project(tmp_path, protocol="mcp", runners=PY312)
 
+    def test_a_poetry_2_project_with_project_dependencies_deploys(self, tmp_path: Path) -> None:
+        write(
+            tmp_path,
+            {
+                "pyproject.toml": pyproject(
+                    "fastmcp==3.4.1", extra='[tool.poetry.dependencies]\npython = "^3.11"\n'
+                )
+            },
+        )
+
+        assert check_project(tmp_path, protocol="mcp", runners=PY312) == []
+
+    def test_poetry_dependencies_pip_would_ignore_are_refused(self, tmp_path: Path) -> None:
+        write(
+            tmp_path,
+            {
+                "pyproject.toml": pyproject(
+                    "fastmcp==3.4.1",
+                    extra='[tool.poetry.dependencies]\npython = "^3.11"\nhttpx = "^0.28"\n',
+                )
+            },
+        )
+
+        with pytest.raises(ProjectCheckError, match=r"httpx.*poetry export"):
+            check_project(tmp_path, protocol="mcp", runners=PY312)
+
     def test_a_poetry_project_with_requirements_deploys(self, tmp_path: Path) -> None:
         write(
             tmp_path,
@@ -123,6 +171,24 @@ class TestRefusals:
 
         assert check_project(tmp_path, protocol="mcp", runners=runners) == []
 
+    def test_only_python_runners_count(self, tmp_path: Path) -> None:
+        write(tmp_path, {"pyproject.toml": pyproject(extra='requires-python = ">=3.10"\n')})
+        runners = [
+            DeploymentsRunner(language="python", version="3.9"),
+            DeploymentsRunner(language="node", version="22"),
+        ]
+
+        with pytest.raises(ProjectCheckError, match="Python 3.9") as refusal:
+            check_project(tmp_path, protocol="mcp", runners=runners)
+
+        assert "22" not in str(refusal.value)
+
+    def test_an_invalid_requires_python_is_refused(self, tmp_path: Path) -> None:
+        write(tmp_path, {"pyproject.toml": pyproject(extra='requires-python = "3.12+"\n')})
+
+        with pytest.raises(ProjectCheckError, match="isn't valid"):
+            check_project(tmp_path, protocol="mcp", runners=PY312)
+
     def test_no_runners_reported_skips_the_python_check(self, tmp_path: Path) -> None:
         write(tmp_path, {"pyproject.toml": pyproject(extra='requires-python = ">=3.99"\n')})
 
@@ -139,6 +205,13 @@ class TestWarnings:
         assert "fastmcp, rich" in warnings[0]
         assert "uv lock" in warnings[0]
         assert "pip freeze" in warnings[0]
+
+    def test_a_long_list_of_unpinned_dependencies_is_shortened(self, tmp_path: Path) -> None:
+        write(tmp_path, {"requirements.txt": "".join(f"pkg{i}\n" for i in range(8))})
+
+        warnings = check_project(tmp_path, protocol="mcp", runners=PY312)
+
+        assert "pkg0, pkg1, pkg2, pkg3, pkg4 and 3 more" in warnings[0]
 
     def test_a_lock_pins_everything(self, tmp_path: Path) -> None:
         write(tmp_path, {"pyproject.toml": pyproject("fastmcp>=3"), "uv.lock": ""})
