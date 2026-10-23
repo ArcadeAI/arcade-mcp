@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 from arcade_cli.start_command import (
-    fastmcp_run_flags,
+    FASTMCP_RUN_FLAGS,
     StartCommandError,
     find_server_objects,
     resolve_start_command,
@@ -49,8 +49,8 @@ def write(project: Path, files: dict[str, str]) -> Path:
 
 
 class TestFlags:
-    def test_the_runners_fastmcp_run_flags(self) -> None:
-        assert fastmcp_run_flags(8000) == (
+    def test_every_fastmcp_run_gets_the_fixed_flags(self) -> None:
+        assert FASTMCP_RUN_FLAGS == (
             "--transport",
             "http",
             "--host",
@@ -73,7 +73,7 @@ class TestExplicitCommand:
         assert start.source == "command"
         assert start.command == "uvicorn app:app --workers 2"
         assert start.argv == ("uvicorn", "app:app", "--workers", "2")
-        assert not start.runner_sets_port
+        assert start.port is None
         assert start.path is None
 
     def test_a_blank_command_is_refused(self, tmp_path: Path) -> None:
@@ -100,8 +100,8 @@ class TestFastMCPJson:
         start = resolve_start_command(tmp_path)
 
         assert start.source == "fastmcp.json"
-        assert start.argv == ("fastmcp", "run", "fastmcp.json")
-        assert start.runner_sets_port
+        assert start.argv == ("fastmcp", "run", "fastmcp.json", *FASTMCP_RUN_FLAGS)
+        assert start.port == 8000
         assert start.path == "/mcp"
 
 
@@ -115,8 +115,11 @@ class TestFastMCPRun:
         start = resolve_start_command(tmp_path)
 
         assert start.source == "fastmcp"
-        assert start.command == "fastmcp run src/srv/server.py:mcp"
-        assert start.runner_sets_port
+        assert start.argv == ("fastmcp", "run", "src/srv/server.py:mcp", *FASTMCP_RUN_FLAGS)
+        assert start.command == (
+            "fastmcp run src/srv/server.py:mcp --transport http --host 127.0.0.1 "
+            "--port 8000 --path /mcp --no-banner --skip-env"
+        )
 
     def test_fastmcp_declared_in_requirements_txt_counts(self, tmp_path: Path) -> None:
         write(
@@ -170,15 +173,13 @@ class TestFastMCPRun:
 
         assert resolve_start_command(tmp_path).argv[2] == "server.py:server"
 
-    def test_a_path_setting_is_the_fastmcp_run_path(self, tmp_path: Path) -> None:
+    def test_a_path_setting_is_passed_to_fastmcp_run(self, tmp_path: Path) -> None:
         write(tmp_path, {"pyproject.toml": FASTMCP_PROJECT, "server.py": FASTMCP_SERVER})
 
         start = resolve_start_command(tmp_path, path="/api/mcp")
 
-        assert start.command == "fastmcp run server.py:mcp"
+        assert start.argv[start.argv.index("--path") + 1] == "/api/mcp"
         assert start.path == "/api/mcp"
-        local = start.local_argv(port=8765)
-        assert local[local.index("--path") + 1] == "/api/mcp"
 
     def test_several_server_objects_are_refused_and_listed(self, tmp_path: Path) -> None:
         write(
@@ -274,7 +275,7 @@ class TestMCPSDK:
 
         assert start.source == "mcp-sdk"
         assert start.argv == ("python", "server.py")
-        assert not start.runner_sets_port
+        assert start.port is None
         assert start.path is None
         assert "fastmcp" not in start.command
 
@@ -443,25 +444,16 @@ class TestNothingDetected:
 
 
 class TestLocalArgv:
-    def test_fastmcp_run_gets_the_runners_flags_locally_on_the_given_port(
+    def test_fastmcp_run_listens_on_the_local_port_but_deploys_with_8000(
         self, tmp_path: Path
     ) -> None:
         write(tmp_path, {"pyproject.toml": FASTMCP_PROJECT, "server.py": FASTMCP_SERVER})
         start = resolve_start_command(tmp_path)
 
-        assert start.local_argv(port=8765) == [
-            "fastmcp",
-            "run",
-            "server.py:mcp",
-            *fastmcp_run_flags(8765),
-        ]
+        local = start.local_argv(port=8765)
 
-    def test_an_explicit_fastmcp_run_command_is_left_alone(self, tmp_path: Path) -> None:
-        # fastmcp 4 refuses a repeated flag, so the runner adds none to an author's command.
-        start = resolve_start_command(tmp_path, command="fastmcp run server.py:mcp --port 9000")
-
-        assert not start.runner_sets_port
-        assert start.local_argv(port=8765) == ["fastmcp", "run", "server.py:mcp", "--port", "9000"]
+        assert local[local.index("--port") + 1] == "8765"
+        assert "--port 8000" in start.command
 
     def test_detected_commands_run_unchanged(self, tmp_path: Path) -> None:
         start = resolve_start_command(tmp_path, command="python app.py --port 8000")
