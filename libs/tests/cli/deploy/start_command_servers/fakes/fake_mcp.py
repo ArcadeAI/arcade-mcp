@@ -11,6 +11,7 @@
 
 import argparse
 import socket
+import socketserver
 import subprocess
 import sys
 import threading
@@ -23,6 +24,14 @@ class Server(ThreadingHTTPServer):
     def __init__(self, host: str, port: int, handler: type[BaseHTTPRequestHandler]) -> None:
         self.address_family = socket.AF_INET6 if ":" in host else socket.AF_INET
         super().__init__((host, port), handler)
+
+    def server_bind(self) -> None:
+        # HTTPServer.server_bind looks up socket.getfqdn(host) between bind() and listen().
+        # That reverse DNS lookup can stall for seconds (GitHub's macOS runners), leaving
+        # the port bound but not listening, so skip it.
+        socketserver.TCPServer.server_bind(self)
+        self.server_name = str(self.server_address[0])
+        self.server_port = int(self.server_address[1])
 
 
 class NotFound(BaseHTTPRequestHandler):
