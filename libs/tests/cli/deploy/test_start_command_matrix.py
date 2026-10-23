@@ -1,4 +1,4 @@
-"""The supported frameworks start and list their tools locally (DEP-415).
+"""The supported frameworks start and list their tools locally.
 
 One fixture per version in ``start_command_servers``. Each gets its own virtual
 environment, installed with uv from the fixture's pinned dependencies, so these tests

@@ -17,19 +17,19 @@ from __future__ import annotations
 
 import json
 import re
-import sys
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal, cast
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, ValidationError, model_validator
 
+from arcade_cli.start_command import load_toml
+
 RUNNER_SETTINGS_PATH = ".arcade/deploy.json"
 
-# The runner sets these for itself and refuses a deployment that declares one
-# (apps/engine/pkg/deployments/worker/runner/reserved.go in the Engine). The ARCADE_BUNDLE_*
-# and ARCADE_ARTIFACT_STORE_URL names are its old names, still read during DEP-421's change.
+# The runner sets these for itself and refuses a deployment that declares one. The
+# ARCADE_BUNDLE_* and ARCADE_ARTIFACT_STORE_URL names are older names it still reads.
 _RESERVED_PREFIXES = ("ARCADE_RUNNER_", "KUBERNETES_", "ARCADE_TELEMETRY_")
 _RESERVED_NAMES = frozenset({
     "ARCADE_WORKER_SECRET",
@@ -56,7 +56,7 @@ _RESERVED_NAMES = frozenset({
     "PIP_CACHE_DIR",
 })
 
-# The platform credential's header (DEP-417): the runner strips it from every request.
+# The platform credential's header: the runner strips it from every request.
 _PLATFORM_CREDENTIAL_HEADER = "Arcade-Worker-Auth"
 
 _VARIABLE_NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_]*\Z")
@@ -67,7 +67,7 @@ class DeployConfigError(ValueError):
 
 
 class ApiKey(BaseModel):
-    """Where a server that checks a static key expects it (DEP-398)."""
+    """Where a server that checks a static key expects it."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -205,14 +205,7 @@ def _describe(error: Any) -> str:
 
 def _read_toml(path: Path) -> dict[str, Any]:
     try:
-        text = path.read_text(encoding="utf-8-sig")
-        if sys.version_info >= (3, 11):
-            import tomllib
-
-            return tomllib.loads(text)
-        import toml
-
-        return cast(dict[str, Any], toml.loads(text))
+        return load_toml(path)
     except Exception as e:
         raise DeployConfigError(f"{path.name} couldn't be read: {e}") from e
 

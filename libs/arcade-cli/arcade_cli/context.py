@@ -47,7 +47,7 @@ class DeploymentsRunner(BaseModel):
 class DeploymentsDiscovery(BaseModel):
     enabled: bool = False
     reason: str = ""
-    # Both are absent from an Engine that predates MCP server deploys (DEP-416).
+    # Both are absent from an Engine that predates MCP server deploys.
     protocols: list[str] = []
     runners: list[DeploymentsRunner] = []
 

@@ -1,4 +1,4 @@
-"""Choosing the start command for an MCP server deploy (DEP-415), without running anything."""
+"""Choosing the start command for an MCP server deploy, without running anything."""
 
 from pathlib import Path
 
