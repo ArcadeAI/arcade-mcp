@@ -11,6 +11,19 @@ from arcade_core.errors import (
 
 logger = logging.getLogger(__name__)
 
+# Graph's error text can echo request content back, so it never reaches the agent:
+# the agent gets a fixed message per error class, and Graph's text goes to
+# developer_message.
+RATE_LIMITED_MESSAGE = "Microsoft is rate-limiting requests for this account. Retry shortly."
+SERVER_ERROR_MESSAGE = (
+    "Microsoft could not complete the request because of a problem on its side. Retry shortly."
+)
+UNAUTHORIZED_MESSAGE = "Microsoft rejected this account's authorization. Re-authorize and retry."
+REFUSED_MESSAGE = (
+    "Microsoft refused the request. Check the arguments; "
+    "if they are right, this account may not have access to the item."
+)
+
 
 class MicrosoftGraphErrorAdapter:
     """Error adapter for Microsoft Graph SDK (msgraph-sdk)."""
@@ -98,9 +111,9 @@ class MicrosoftGraphErrorAdapter:
 
         return 1000
 
-    def _extract_error_details(self, error: Any) -> tuple[str, str | None]:
+    def _extract_error_details(self, error: Any) -> str:
         """
-        Extract error message and developer details from Microsoft Graph APIError.
+        Extract the developer details from a Microsoft Graph APIError.
 
         Microsoft Graph errors always have this structure:
         {
@@ -119,7 +132,7 @@ class MicrosoftGraphErrorAdapter:
             error: The APIError to extract details from
 
         Returns:
-            Tuple of (user_message, developer_message)
+            The developer message: Graph's error code, message and inner error details
         """
         message = "Unknown Microsoft Graph error"
         code = "UnknownError"
@@ -134,8 +147,7 @@ class MicrosoftGraphErrorAdapter:
             if hasattr(error.error, "inner_error"):
                 inner_error = error.error.inner_error
 
-        user_message = f"Upstream Microsoft Graph API error: {message}"
-        developer_message = f"Microsoft Graph error code: {code}"
+        developer_message = f"Microsoft Graph error code: {code}. Message: {message}"
 
         # Add inner error details if present
         if inner_error:
@@ -143,7 +155,7 @@ class MicrosoftGraphErrorAdapter:
             if inner_error_details:
                 developer_message += f" - Inner error: {inner_error_details}"
 
-        return user_message, developer_message
+        return developer_message
 
     def _format_inner_error_details(self, inner_error: Any) -> str:
         """Format inner error details into a readable string."""
@@ -173,7 +185,7 @@ class MicrosoftGraphErrorAdapter:
         ):
             status_code = error.response_status_code
 
-        message, developer_message = self._extract_error_details(error)
+        developer_message = self._extract_error_details(error)
 
         extra = {
             "service": self.slug,
@@ -199,10 +211,17 @@ class MicrosoftGraphErrorAdapter:
         ):
             return UpstreamRateLimitError(
                 retry_after_ms=self._get_retry_after_milliseconds(error),
-                message=message,
+                message=RATE_LIMITED_MESSAGE,
                 developer_message=developer_message,
                 extra=extra,
             )
+
+        if status_code >= 500:
+            message = SERVER_ERROR_MESSAGE
+        elif status_code == 401:
+            message = UNAUTHORIZED_MESSAGE
+        else:
+            message = REFUSED_MESSAGE
 
         return UpstreamError(
             message=message,

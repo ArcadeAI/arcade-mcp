@@ -1,87 +1,107 @@
 <!--
-PR title: conventional commits with optional scope, e.g.
-  feat(arcade-core): add support for X
-  fix(arcade-mcp-server): handle stdio EOF
-  chore(arcade-tdk): bump dep
+A good PR is small and does one thing. A reader should learn why it matters,
+what changes, the important choice, and the evidence without reconstructing
+them from the diff. The author can explain and defend every line before asking
+for review, and stays responsible for AI-assisted work.
 
-Keep the title short and scannable. The description does the explaining.
+Write in increasing detail: toolkit author/user, new contributor, then
+specialist. Three to five sentences per section is a ceiling, not a quota; one
+is fine. Use bullets if clearer. Link existing issues, docs, and decisions
+instead of copying them. Keep detail proportional to the change and its risk.
+Delete every instruction comment before publishing, and omit Additional notes
+when empty.
 -->
 
-## Summary
-
-<!-- One short paragraph in plain English: what does this change do, and why? -->
-
-Resolves: <!-- Linear ticket link OR GitHub issue # (e.g. #123, or https://linear.app/...) -->
-
-## Design decisions
-
 <!--
-Delete this section if the change is mechanical.
-
-Call out non-obvious choices: why this approach, what alternatives you considered,
-what's intentionally NOT done. This is the part hardest to reconstruct from the
-diff and easiest to skip — write it anyway.
+Write the bare issue reference after the word: a GitHub issue (#123) or, for
+Arcade staff, a Linear ID (e.g. PLT-123). No brackets, no placeholder
+text. The word before the ID is what GitHub/Linear acts on: `Closes` when
+merging this PR completes the issue, `Part of` when the PR is only one piece
+of it (the issue is linked and its status left alone). Replace `Closes` with
+`Part of` as needed. If no issue exists yet, file one first. Do not write
+"Linear issue:" or "Linear ticket:"; the former is a closing phrase and the
+latter is not recognized. Keep the ID out of the PR title, which is
+`type(scope): summary` (Conventional Commits; type `feat`, `fix`, or `chore`;
+scope is the lib or area, e.g. `fix(arcade-mcp-server):`, `feat(arcade-cli):`).
 -->
 
-## Scope
+Closes
+
+## What/why
 
 <!--
-Delete this section if scope is obvious from the summary.
-
-In scope:
--
-
-Not in scope (handled separately / out of band):
--
+What problem does this solve, and what observable behavior changes?
+Use language a toolkit author or MCP client user can follow, with enough
+context to understand without opening the issue. Where useful, explain how to
+reproduce the old behavior and recognize the new one.
 -->
 
-## Test plan
+## Codebase changes
 
 <!--
-Concrete, verifiable steps — not "tests pass." Describe what you actually exercised.
-Example shape:
-
-- [ ] `make check` (ruff + mypy) clean
-- [ ] `make test` passes
-- [ ] Ran `arcade mcp stdio` against the example server and confirmed tools/list returns the expected entries
-- [ ] Exercised the end-user path: `arcade login` → tool call → confirmed auth token reached the tool
-- [ ] Verified the MCP stdio channel stayed clean (no stray stdout/stderr) per CLAUDE.md
-- [ ] Bumped the affected library version(s) in `libs/arcade-*/pyproject.toml` if the change is breaking
+Explain the approach and consequential decisions that are not obvious from
+the diff, at a level a new contributor can follow. Say which side(s) of the
+dual protocol are affected (MCP, Arcade Worker, or both) when relevant, and
+which library versions were bumped. Skip file inventories and coding diaries.
 -->
 
-- [ ]
-- [ ]
-
-## Risk note
+## Proof
 
 <!--
-Delete this section unless the PR touches a sensitive area.
+Show that the change does what What/why promises, on the current head.
 
-Sensitive paths in this repo include:
+Verification: one row per behavior or state the change promises, saying how
+it was proven. Name the command or tool used (`make check`, `make test`,
+`uv run pytest libs/tests/...`, `arcade mcp stdio` against an example server,
+MCP Inspector, a `/worker/tools/invoke` request). Say plainly what was run
+for real, what was mocked and at which boundary, and what was only judged;
+never let a mocked or skipped check read as a real run. State observed
+results, not adjectives: "tools/call on an expired token returned
+TOOL_RUNTIME_RETRY", not "Tested thoroughly". Keep this accurate after
+revisions.
+
+- User-visible output (CLI output, tool error payloads, schemas): fill the
+  Before/After table with the relevant excerpt.
+- Internal-only: drop the Before/After table; list the commands or requests
+  run, the assertion, and the observed result, including the failing case now
+  passing.
+- Nothing runnable (workflow, manifest, pin, docs): drop both tables; say it
+  was judged rather than run, and what it was checked against.
+
+Example:
+
+| Behavior                                     | How it was proven                                                         |
+| -------------------------------------------- | ------------------------------------------------------------------------- |
+| TypedDict fields carry descriptions          | Unit: `make test`, new test fails on main, passes here                    |
+| stdio channel stays clean                    | Real: `arcade mcp stdio` with examples/mcp_servers/simple, no stray output |
+| Worker invoke returns the same error payload | Mocked: upstream HTTP client patched, `/worker/tools/invoke` via TestClient |
+
+| Before | After |
+| ------ | ----- |
+| `"description": null` | `"description": "Name to greet"` |
+-->
+
+| Behavior | How it was proven |
+| -------- | ----------------- |
+|          |                   |
+
+| Before | After |
+| ------ | ----- |
+|        |       |
+
+## Additional notes
+
+<!--
+Optional: material risks, verification gaps, rollout constraints, or a specific
+reviewer decision. Omit this section when there is nothing to add.
+
+For sensitive changes, explain what could be affected and how the risk is
+controlled. Sensitive paths in this repo include:
 - `libs/arcade-serve/` — worker JWT auth and `/worker/*` endpoints
 - `libs/arcade-mcp-server/arcade_mcp_server/resource_server.py` — OAuth 2.1 token validation
-- MCP stdio transport — any new stdout/stderr writes can corrupt the JSON-RPC channel
-- `pyproject.toml` files — version bumps, dependency changes, breaking-change semver
+- MCP stdio transport — any new stdout/stderr writes corrupt the JSON-RPC channel
+- `pyproject.toml` files — version bumps, dependency floors, breaking-change semver
 - Tool secrets / env-var flow — anything reachable from `context.get_secret()`
 
-Describe the blast radius (who/what breaks if this is wrong) and your mitigations.
+If patch coverage is below 85%, say why here.
 -->
-
-## Coverage note
-
-<!--
-Delete this section unless patch coverage is in the yellow zone (70–85%).
-Aim for green (85%+); meaningful coverage matters more than artificial numbers.
-Why coverage is below green:
--->
-
-## Author checklist
-
-Before moving this PR from Draft to Ready for Review:
-
-- [ ] Linked to a Linear ticket or GitHub issue (above)
-- [ ] I understand every change in the diff — not "an agent wrote it, I'm not sure why"
-- [ ] Runs locally, exercised through the end-user path (not just unit tests)
-- [ ] `make check` and `make test` are green locally; CI is expected to pass
-- [ ] I've pulled the branch fresh and reviewed my own diff top-to-bottom
-- [ ] I'd merge it myself if a teammate said LGTM right now

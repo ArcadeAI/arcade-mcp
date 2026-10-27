@@ -13,6 +13,7 @@ from textwrap import dedent
 from typing import Any, Callable, cast
 from urllib.parse import urlparse
 
+import httpx
 import idna
 from arcade_core import ToolCatalog, Toolkit
 from arcade_core.config_model import Config
@@ -41,6 +42,11 @@ from typer.core import TyperGroup
 from typer.models import Context
 
 from arcade_cli.console import console
+from arcade_cli.strong_authentication import (
+    STRONG_AUTHENTICATION_REQUIRED,
+    from_error,
+    from_response,
+)
 
 # -----------------------------------------------------------------------------
 # Shared helpers for the CLI
@@ -381,6 +387,36 @@ class CLIError(Exception):
         return self.message
 
 
+class StrongAuthenticationRequiredError(CLIError):
+    """Arcade refused the sign-in for not using strong authentication, and the operator was told."""
+
+
+def exit_if_strong_authentication_required(
+    source: httpx.Response | BaseException | None,
+) -> None:
+    """Sign out and explain, when Arcade refused the sign-in for not using strong authentication.
+
+    The refused sign-in can never become strong, so its tokens are forgotten:
+    `arcade login` then signs in afresh instead of reporting that it already has.
+    """
+    if isinstance(source, StrongAuthenticationRequiredError):
+        # Already explained; commands that catch every error hand it back here.
+        raise source
+    refusal = from_response(source) if isinstance(source, httpx.Response) else from_error(source)
+    if refusal is None:
+        return
+
+    from arcade_cli.authn import forget_sign_in
+
+    forget_sign_in()
+    message = refusal.description or STRONG_AUTHENTICATION_REQUIRED
+    console.print(f"❌ {escape(message)}", style="bold red")
+    if refusal.uri:
+        console.print(f"Learn more: {escape(refusal.uri)}")
+    console.print("You've been logged out. Run 'arcade login' to log in again.", style="dim")
+    raise StrongAuthenticationRequiredError(message)
+
+
 def handle_cli_error(
     message: str,
     error: Exception | None = None,
@@ -388,6 +424,7 @@ def handle_cli_error(
     should_exit: bool = True,
 ) -> None:
     """Handle CLI error reporting with optional debug traceback and exit."""
+    exit_if_strong_authentication_required(error)
     if error and debug:
         console.print(f"❌ {message}: {traceback.format_exc()}", style="bold red")
     elif error:

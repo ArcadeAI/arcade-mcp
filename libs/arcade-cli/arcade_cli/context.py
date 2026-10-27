@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 from dataclasses import dataclass
 from typing import Any
 from urllib.parse import urlparse
@@ -7,7 +8,7 @@ from urllib.parse import urlparse
 import httpx
 from arcade_core.config_model import Config, ContextKind
 from arcade_core.constants import PROD_COORDINATOR_HOST, PROD_ENGINE_HOST
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, ValidationError, field_validator, model_validator
 
 from arcade_cli import _startup_environment
 
@@ -34,9 +35,37 @@ class NoCloudGuardError(Exception):
     pass
 
 
+class DeploymentsRunner(BaseModel):
+    """A runner image deployed servers run on, as the Engine reports it."""
+
+    language: str
+    version: str
+    # The wheel platform tag without its architecture, such as musllinux_1_2.
+    platform: str = ""
+
+
 class DeploymentsDiscovery(BaseModel):
     enabled: bool = False
     reason: str = ""
+    # Both are absent from an Engine that predates MCP server deploys.
+    protocols: list[str] = []
+    runners: list[DeploymentsRunner] = []
+
+    # `arcade login` reads this document too, so a capabilities shape this CLI doesn't
+    # know reads as "none reported" instead of failing the whole document.
+    @field_validator("protocols", mode="before")
+    @classmethod
+    def _protocols(cls, value: Any) -> list[str]:
+        return [item for item in value if isinstance(item, str)] if isinstance(value, list) else []
+
+    @field_validator("runners", mode="before")
+    @classmethod
+    def _runners(cls, value: Any) -> list[DeploymentsRunner]:
+        runners: list[DeploymentsRunner] = []
+        for entry in value if isinstance(value, list) else []:
+            with contextlib.suppress(ValidationError):
+                runners.append(DeploymentsRunner.model_validate(entry))
+        return runners
 
 
 class DiscoveryDocument(BaseModel):

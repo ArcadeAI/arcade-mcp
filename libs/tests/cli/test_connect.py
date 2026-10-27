@@ -8,6 +8,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
+from arcade_cli.utils import CLIError
 from arcade_cli.connect import (
     _get_context_key,
     _read_cache,
@@ -251,11 +252,21 @@ class TestListGateways:
     @patch("arcade_cli.utils.get_org_project_context", return_value=("org1", "proj1"))
     def test_returns_empty_on_error(self, _ctx: MagicMock, mock_get: MagicMock) -> None:
         mock_resp = MagicMock()
-        mock_resp.status_code = 401
+        mock_resp.status_code = 500
         mock_get.return_value = mock_resp
 
         result = list_gateways("tok")
         assert result == []
+
+    @patch("arcade_cli.connect.httpx.get")
+    @patch("arcade_cli.utils.get_org_project_context", return_value=("org1", "proj1"))
+    def test_reports_a_refused_login(self, _ctx: MagicMock, mock_get: MagicMock) -> None:
+        mock_resp = MagicMock()
+        mock_resp.status_code = 401
+        mock_get.return_value = mock_resp
+
+        with pytest.raises(CLIError):
+            list_gateways("tok")
 
 
 # ---------------------------------------------------------------------------

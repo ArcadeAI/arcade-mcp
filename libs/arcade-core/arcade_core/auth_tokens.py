@@ -5,6 +5,7 @@ Shared access-token utilities used by both the CLI and MCP server.
 from __future__ import annotations
 
 from datetime import datetime, timedelta
+from typing import Any
 
 import httpx
 from pydantic import BaseModel
@@ -77,6 +78,17 @@ def refresh_access_token(
     )
 
 
+def _oauth_error(error: httpx.HTTPError) -> dict[str, Any]:
+    """The RFC 6749 §5.2 error body of a failed token request, or an empty dict."""
+    if not isinstance(error, httpx.HTTPStatusError):
+        return {}
+    try:
+        body = error.response.json()
+    except ValueError:
+        return {}
+    return body if isinstance(body, dict) else {}
+
+
 def get_valid_access_token(coordinator_url: str | None = None) -> str:
     """
     Get a valid access token, refreshing if necessary.
@@ -108,9 +120,17 @@ def get_valid_access_token(coordinator_url: str | None = None) -> str:
         try:
             new_tokens = refresh_access_token(cli_config, config.auth.refresh_token)
         except httpx.HTTPError as e:
+            oauth_error = _oauth_error(e)
+            # A refused refresh token will never work again. Keeping it would
+            # leave `arcade login` reporting that it is already logged in.
+            if oauth_error.get("error") == "invalid_grant":
+                config.auth = None
+                config.save_to_file()
+            reason = oauth_error.get("error_description") or oauth_error.get("error") or e
             raise ValueError(
-                f"Failed to refresh token: {e}. Please run 'arcade login' to re-authenticate."
-            )
+                f"Failed to refresh token: {str(reason).rstrip('.')}. "
+                "Please run 'arcade login' to re-authenticate."
+            ) from e
 
         # Update stored credentials
         expires_at = datetime.now() + timedelta(seconds=new_tokens.expires_in)

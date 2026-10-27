@@ -31,6 +31,11 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "evals: marks tests that require eval dependencies (openai, anthropic, mcp)"
     )
+    config.addinivalue_line(
+        "markers",
+        "deploy_matrix: builds real fastmcp and MCP SDK environments with uv (needs network);"
+        ' deselect with -m "not deploy_matrix"',
+    )
 
 
 def pytest_collection_modifyitems(config, items):
