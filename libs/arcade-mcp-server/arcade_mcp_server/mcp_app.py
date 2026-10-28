@@ -55,7 +55,11 @@ from arcade_mcp_server.types import (
     ToolExecution,
 )
 from arcade_mcp_server.usage import ServerTracker
-from arcade_mcp_server.worker import create_arcade_mcp, serve_with_force_quit
+from arcade_mcp_server.worker import (
+    create_arcade_mcp,
+    ensure_port_available,
+    serve_with_force_quit,
+)
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -616,6 +620,17 @@ class MCPApp:
                     auth_servers = metadata.get("authorization_servers", [])
                     logger.info(f"Accepted authorization server(s): {', '.join(auth_servers)}")
 
+            try:
+                ensure_port_available(
+                    host,
+                    port,
+                    'Use another port:  app.run(transport="http", port={port})\n'
+                    "     or set:            ARCADE_SERVER_PORT={port}",
+                )
+            except ServerError as e:
+                logger.error(str(e))
+                sys.exit(1)
+
             if reload:
                 self._run_with_reload(host, port)
             else:
@@ -641,7 +656,19 @@ class MCPApp:
                 )
             )
         else:
-            raise ServerError(f"Invalid transport: {transport}")
+            if os.getenv("ARCADE_SERVER_TRANSPORT") == transport:
+                source = " (from the ARCADE_SERVER_TRANSPORT environment variable)"
+                fix = "  To fix, set ARCADE_SERVER_TRANSPORT=stdio or ARCADE_SERVER_TRANSPORT=http"
+            else:
+                source = ""
+                fix = '  To fix, use app.run(transport="stdio") or app.run(transport="http")'
+            raise ServerError(
+                f"Invalid transport: '{transport}'{source}\n\n"
+                "  Supported transports:\n"
+                "    - stdio: the client launches the server (e.g. Claude Desktop)\n"
+                "    - http:  the client connects over HTTP (e.g. Cursor, VS Code)\n\n"
+                f"{fix}"
+            )
 
     def _run_with_reload(self, host: str, port: int) -> None:
         """

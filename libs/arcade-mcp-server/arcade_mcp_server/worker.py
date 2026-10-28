@@ -6,8 +6,10 @@ MCP Server endpoints over HTTP/SSE. MCP is always enabled in this integrated mod
 """
 
 import asyncio
+import errno
 import logging
 import os
+import socket
 from collections.abc import AsyncGenerator, AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from types import FrameType
@@ -26,6 +28,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.types import Receive, Scope, Send
 
+from arcade_mcp_server.exceptions import ServerError
 from arcade_mcp_server.fastapi.auth_routes import create_auth_router
 from arcade_mcp_server.fastapi.middleware import AddTrailingSlashToPathMiddleware
 from arcade_mcp_server.logging_utils import setup_logging
@@ -426,6 +429,43 @@ async def serve_with_force_quit(
     await server.serve()
 
 
+# Windows reports "address in use" as WSAEADDRINUSE, not EADDRINUSE
+_ADDRESS_IN_USE_ERRNOS = {errno.EADDRINUSE, getattr(errno, "WSAEADDRINUSE", errno.EADDRINUSE)}
+
+
+def ensure_port_available(host: str, port: int, change_port_hint: str) -> None:
+    """Raise a ServerError with fix steps if another process is listening on host:port.
+
+    Other bind failures are left for uvicorn to report.
+
+    Args:
+        change_port_hint: How to pick another port in the caller's entry point.
+            ``{port}`` is replaced with a suggested alternative port.
+    """
+    family = socket.AF_INET6 if ":" in host else socket.AF_INET
+    with socket.socket(family, socket.SOCK_STREAM) as sock:
+        if os.name != "nt":
+            # Match uvicorn, which sets SO_REUSEADDR on POSIX so ports in TIME_WAIT are reusable
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            sock.bind((host, port))
+        except OSError as exc:
+            if exc.errno not in _ADDRESS_IN_USE_ERRNOS:
+                return
+        else:
+            return
+
+    suggested_port = port + 1 if port < 65535 else port - 1
+    raise ServerError(
+        f"Port {port} is already in use\n\n"
+        f"  Another process is already listening on {host}:{port}.\n\n"
+        "  To fix, either:\n"
+        f"  1. Stop the other process using port {port}\n"
+        f"  2. {change_port_hint.format(port=suggested_port)}\n\n"
+        "  Then restart the server."
+    )
+
+
 def run_arcade_mcp(
     host: str = "127.0.0.1",
     port: int = 8000,
@@ -453,12 +493,15 @@ def run_arcade_mcp(
     Raises:
         ValueError: If both reload=True and workers > 1 are specified, as uvicorn
             does not support multiple workers in reload mode.
+        ServerError: If another process is already listening on host:port.
     """
     if reload and workers > 1:
         raise ValueError(
             "Cannot use reload=True with workers > 1. "
             "Uvicorn does not support multiple workers in reload mode."
         )
+
+    ensure_port_available(host, port, "Use another port:  arcade mcp http --port {port}")
 
     log_level = "debug" if debug else "info"
 
