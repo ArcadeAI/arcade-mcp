@@ -25,6 +25,8 @@ InstallSource = Literal["uv.lock", "fastmcp.json", "requirements.txt", "pyprojec
 
 _ARCADE_PACKAGES = {"arcade-mcp-server", "arcade-mcp"}
 _UNPINNED_LISTED = 5
+# The files a project may list its dependencies in.
+DEPENDENCY_SOURCES = ("pyproject.toml", "requirements.txt", "fastmcp.json")
 
 
 class ProjectCheckError(ValueError):
@@ -33,11 +35,7 @@ class ProjectCheckError(ValueError):
 
 def detect_protocol(project_dir: Path) -> Protocol:
     """``arcade`` when the project depends on arcade-mcp, otherwise ``mcp``."""
-    sources = [
-        name
-        for name in ("pyproject.toml", "requirements.txt", "fastmcp.json")
-        if (project_dir / name).is_file()
-    ]
+    sources = [name for name in DEPENDENCY_SOURCES if (project_dir / name).is_file()]
     if not sources:
         raise ProjectCheckError(
             "No dependency source found: add a pyproject.toml, requirements.txt or "

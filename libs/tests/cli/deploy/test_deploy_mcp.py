@@ -14,6 +14,7 @@ import pytest
 from arcade_cli import deploy_mcp
 from arcade_cli.context import DeploymentsRunner
 from arcade_cli.deploy import DeployRefusedError
+from arcade_cli.deploy_checks import ProjectCheckError
 from arcade_cli.deploy_mcp import deploy_mcp_server, deploys_mcp_server
 
 FAKES = Path(__file__).parent / "start_command_servers" / "fakes"
@@ -271,6 +272,21 @@ class TestRouting:
         self, tmp_path: Path
     ) -> None:
         assert not deploys_mcp_server(tmp_path)
+
+    @pytest.mark.parametrize(
+        ("name", "content", "match"),
+        [
+            ("fastmcp.json", "{not json", "fastmcp.json couldn't be read"),
+            ("pyproject.toml", "[project\n", "pyproject.toml couldn't be read"),
+        ],
+    )
+    def test_a_dependency_file_that_cant_be_read_is_reported_not_routed_to_arcade(
+        self, tmp_path: Path, name: str, content: str, match: str
+    ) -> None:
+        (tmp_path / name).write_text(content)
+
+        with pytest.raises(ProjectCheckError, match=match):
+            deploys_mcp_server(tmp_path)
 
 
 

@@ -127,14 +127,17 @@ def deploy_mcp_server(
 
 
 def deploys_mcp_server(project_dir: Path) -> bool:
-    """Whether ``project_dir`` is an MCP server project rather than an Arcade one."""
-    from arcade_cli.deploy_checks import ProjectCheckError, detect_protocol
+    """Whether ``project_dir`` is an MCP server project rather than an Arcade one.
 
-    try:
-        return detect_protocol(project_dir) == "mcp"
-    except ProjectCheckError:
-        # No dependency source at all: the Arcade path reports it as it always has.
+    A project with no dependency file stays on the Arcade path, which reports it as it always
+    has. A dependency file that can't be read raises ``ProjectCheckError`` rather than being
+    taken for an Arcade project.
+    """
+    from arcade_cli.deploy_checks import DEPENDENCY_SOURCES, detect_protocol
+
+    if not any((project_dir / name).is_file() for name in DEPENDENCY_SOURCES):
         return False
+    return detect_protocol(project_dir) == "mcp"
 
 
 # Validation
