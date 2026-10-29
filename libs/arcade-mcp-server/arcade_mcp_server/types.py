@@ -85,7 +85,7 @@ RELATED_TASK_META_KEY: str = "io.modelcontextprotocol/related-task"
 # Non-date identifiers like "DRAFT-2025-v3" exist in spec artifacts and would break
 # lexical comparison. This is also how we add future versions cleanly — just add an entry.
 VERSION_FEATURES: dict[str, set[str]] = {
-    STATELESS_PROTOCOL_VERSION: {"base", "tools"},
+    STATELESS_PROTOCOL_VERSION: {"base", "tools", "tool_input_errors"},
     "2025-06-18": {"base", "sampling", "elicitation_form", "resources", "prompts", "tools"},
     "2025-11-25": {
         "base",
@@ -99,6 +99,7 @@ VERSION_FEATURES: dict[str, set[str]] = {
         "tool_calling_in_sampling",
         "icons",
         "tool_execution",
+        "tool_input_errors",
         "enum_schemas",
         "implementation_metadata",
     },

@@ -1710,10 +1710,10 @@ class MCPServer:
                 error = result.error
                 if error:
                     # 2025-06-18: input validation errors are JSONRPCError -32602
-                    # (version-gated — 2025-11-25 sends them as CallToolResult isError=True)
+                    # Later versions return a tool result with isError=True.
                     error_kind = getattr(error, "kind", None)
                     if error_kind == ErrorKind.TOOL_RUNTIME_BAD_INPUT_VALUE and (
-                        session and not session.has_feature("tool_execution")
+                        session and not session.has_feature("tool_input_errors")
                     ):
                         self._tracker.track_tool_call(False, "invalid tool input")
                         return JSONRPCError(
@@ -1780,8 +1780,8 @@ class MCPServer:
         except (ValidationError, ToolInputError) as e:
             # Input validation errors: version-gated response shape
             self._tracker.track_tool_call(False, "invalid tool input")
-            if session and session.has_feature("tool_execution"):
-                # 2025-11-25: input validation → CallToolResult(isError=True)
+            if session and session.has_feature("tool_input_errors"):
+                # Input validation failures belong to the tool result.
                 return JSONRPCResponse(
                     id=message.id,
                     result=CallToolResult(

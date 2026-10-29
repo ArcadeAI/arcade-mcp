@@ -142,6 +142,38 @@ async def test_discovery_and_ordinary_call_without_initialization(
                 json={"jsonrpc": "2.0", "id": 6, "method": method, "params": {"_meta": META}},
             )
             assert unsupported.json()["error"]["code"] == -32601
+        for arguments in [{}, {"text": {"nested": "dict"}}]:
+            invalid = await client.post(
+                "/mcp/",
+                headers=HEADERS,
+                json={
+                    "jsonrpc": "2.0",
+                    "id": 7,
+                    "method": "tools/call",
+                    "params": {
+                        "name": "TestToolkit_test_tool",
+                        "arguments": arguments,
+                        "_meta": META,
+                    },
+                },
+            )
+            body = invalid.json()
+            assert "error" not in body, body
+            assert body["result"]["isError"] is True
+            assert body["result"]["resultType"] == "complete"
+            assert body["result"]["content"][0]["text"]
+        unknown = await client.post(
+            "/mcp/",
+            headers=HEADERS,
+            json={
+                "jsonrpc": "2.0",
+                "id": 8,
+                "method": "tools/call",
+                "params": {"name": "missing_tool", "arguments": {}, "_meta": META},
+            },
+        )
+        assert unknown.json()["error"]["code"] == -32602
+        assert "result" not in unknown.json()
         conflict = await client.post(
             "/mcp/",
             headers=HEADERS,
