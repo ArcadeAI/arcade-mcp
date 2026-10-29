@@ -1211,9 +1211,6 @@ def deploy(
             "When --skip-validate is set, you must provide --server-name and --server-version.",
             should_exit=True,
         )
-    if skip_validate and secrets == "auto":
-        secrets = "skip"
-
     try:
         deploy_server_logic(
             entrypoint=entrypoint,

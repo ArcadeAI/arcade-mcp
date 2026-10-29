@@ -16,6 +16,8 @@ import psutil
 import pytest
 from arcade_cli.start_command import (
     StartCommandError,
+    TokenRequiredError,
+    fetch_well_known,
     list_tools,
     resolve_start_command,
     run_locally,
@@ -227,3 +229,62 @@ def test_a_server_that_exits_is_reported(project: Path) -> None:
 
     with pytest.raises(StartCommandError, match="exited with code 3"), run_locally(start, project):
         pass
+
+
+def test_an_endpoint_that_needs_a_token_is_found_and_listing_says_so(project: Path) -> None:
+    start = resolve_start_command(
+        project, command=f"python fake_mcp.py --port {free_port()} --bearer secret"
+    )
+
+    with run_locally(start, project) as endpoint:
+        assert endpoint.path == "/mcp"
+        assert endpoint.handshake is None
+        assert endpoint.token_challenge is not None
+        assert endpoint.token_challenge.startswith("Bearer")
+        with pytest.raises(TokenRequiredError):
+            list_tools(endpoint)
+
+
+def test_a_server_that_needs_a_token_only_to_list_tools_says_so(project: Path) -> None:
+    start = resolve_start_command(
+        project, command=f"python fake_mcp.py --port {free_port()} --bearer-for-tools secret"
+    )
+
+    with run_locally(start, project) as endpoint:
+        assert endpoint.handshake is not None
+        with pytest.raises(TokenRequiredError):
+            list_tools(endpoint)
+
+
+def test_headers_reach_the_handshake_and_the_listing(project: Path) -> None:
+    command = f"python fake_mcp.py --port {free_port()} --key-header X-API-Key --key k1"
+    start = resolve_start_command(project, command=command)
+
+    with run_locally(start, project, headers={"X-API-Key": "k1"}) as endpoint:
+        assert endpoint.handshake is not None
+        assert [tool["name"] for tool in list_tools(endpoint, headers={"X-API-Key": "k1"})] == [
+            "echo"
+        ]
+
+
+def test_a_refused_key_is_reported_as_needing_a_token(project: Path) -> None:
+    command = f"python fake_mcp.py --port {free_port()} --key-header X-API-Key --key k1"
+    start = resolve_start_command(project, command=command)
+
+    with run_locally(start, project, headers={"X-API-Key": "wrong"}) as endpoint:
+        assert endpoint.handshake is None
+        assert endpoint.token_challenge == ""
+
+
+def test_well_known_documents_are_read_from_the_root_and_under_the_path(project: Path) -> None:
+    command = (
+        f"python fake_mcp.py --port {free_port()} "
+        """--well-known 'oauth-authorization-server={"issuer": "https://auth.example"}'"""
+    )
+    start = resolve_start_command(project, command=command)
+
+    with run_locally(start, project) as endpoint:
+        assert fetch_well_known(endpoint, "oauth-authorization-server") == {
+            "issuer": "https://auth.example"
+        }
+        assert fetch_well_known(endpoint, "oauth-protected-resource") is None

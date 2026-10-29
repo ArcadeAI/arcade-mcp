@@ -36,6 +36,7 @@ from arcade_cli.context import (
     fetch_discovery,
     resolve_active_context,
 )
+from arcade_cli.deploy_config import RUNNER_SETTINGS_PATH
 from arcade_cli.secret import load_env_file
 from arcade_cli.utils import (
     exit_if_strong_authentication_required,
@@ -502,6 +503,41 @@ def create_package_archive(package_dir: Path) -> str:
     return package_bytes_b64
 
 
+def create_mcp_bundle(project_dir: Path, runner_settings: str | None = None) -> str:
+    """A base64 tar.gz of an MCP server project, as the runner installs and starts it.
+
+    Unlike an Arcade archive, it keeps ``uv.lock`` (the runner installs from it) and any
+    directory named ``build`` or ``dist``, which may be the server's own package. Hidden
+    files (``.env``, ``.git``, ``.venv``), virtual environments, caches and egg-info stay
+    behind. ``runner_settings`` becomes ``.arcade/deploy.json``, replacing any copy in the
+    project, since the CLI is its only author.
+    """
+    if not project_dir.is_dir():
+        raise ValueError(f"Package directory not found: {project_dir}")
+    root = project_dir.resolve()
+
+    def exclude(tarinfo: tarfile.TarInfo) -> tarfile.TarInfo | None:
+        relative = Path(tarinfo.name).parts[1:]
+        if any(
+            part.startswith(".") or part == "__pycache__" or part.endswith((".egg-info", ".pyc"))
+            for part in relative
+        ):
+            return None
+        if tarinfo.isdir() and (root.joinpath(*relative) / "pyvenv.cfg").is_file():
+            return None
+        return tarinfo
+
+    byte_stream = io.BytesIO()
+    with tarfile.open(fileobj=byte_stream, mode="w:gz") as tar:
+        tar.add(root, arcname=project_dir.name, filter=exclude)
+        if runner_settings is not None:
+            payload = runner_settings.encode()
+            settings = tarfile.TarInfo(f"{project_dir.name}/{RUNNER_SETTINGS_PATH}")
+            settings.size, settings.mode, settings.mtime = len(payload), 0o644, int(time.time())
+            tar.addfile(settings, io.BytesIO(payload))
+    return base64.b64encode(byte_stream.getvalue()).decode("utf-8")
+
+
 def _resolve_server_process_stdio(debug: bool) -> tuple[int | None, int | None]:
     """Choose stdout/stderr targets for the temporary validation server process.
 
@@ -900,6 +936,18 @@ def deploy_server_to_engine(
         client.close()
 
 
+def _load_env_file() -> Path | None:
+    """Load the nearest .env (searching upward) without overriding the environment."""
+    console.print("\nSearching for .env file...", style="dim")
+    env_path = find_env_file()
+    if env_path is not None:
+        load_dotenv(env_path, override=False)
+        console.print(f"✓ Loaded environment from {env_path}", style="green")
+    else:
+        console.print("[!] No .env file found in current or parent directories", style="yellow")
+    return env_path
+
+
 def deploy_server_logic(
     entrypoint: str,
     skip_validate: bool,
@@ -940,10 +988,28 @@ def deploy_server_logic(
         user_email = (config.user.email if config.user else None) or "User"
         console.print(f"✓ {user_email} is logged in", style="green")
     engine_url = resolve_engine_base_url(host, port, force_tls, force_no_tls)
+    current_dir = Path.cwd()
+
+    from arcade_cli.deploy_mcp import deploy_mcp_server, deploys_mcp_server
+
+    if deploys_mcp_server(current_dir):
+        _load_env_file()
+        deploy_mcp_server(
+            current_dir,
+            engine_url,
+            skip_validate=skip_validate,
+            server_name=server_name,
+            server_version=server_version,
+            secrets=secrets,
+            debug=debug,
+            provider=provider,
+        )
+        return
+    if skip_validate and secrets == "auto":
+        secrets = "skip"
 
     # Step 2: Validate necessary files exist in the correct location
     console.print("\nValidating pyproject.toml exists in current directory...", style="dim")
-    current_dir = Path.cwd()
     pyproject_path = current_dir / "pyproject.toml"
 
     if not pyproject_path.exists():
@@ -963,13 +1029,7 @@ def deploy_server_logic(
     console.print(f"✓ Entrypoint file found at {entrypoint_path}", style="green")
 
     # Step 3: Load .env file if it exists (searches upward through parent directories)
-    console.print("\nSearching for .env file...", style="dim")
-    env_path = find_env_file()
-    if env_path is not None:
-        load_dotenv(env_path, override=False)
-        console.print(f"✓ Loaded environment from {env_path}", style="green")
-    else:
-        console.print("[!] No .env file found in current or parent directories", style="yellow")
+    env_path = _load_env_file()
 
     # Step 4: Verify server and extract metadata (or skip if --skip-validate)
     required_secrets_from_validation: set[str] = set()
@@ -1064,6 +1124,11 @@ def deploy_server_logic(
         raise ValueError(f"Deployment failed: {e}") from e
 
     # Step 8: Monitor deployment with live status and logs
+    watch_rollout(engine_url, server_name, debug, is_update)
+
+
+def watch_rollout(engine_url: str, server_name: str, debug: bool, is_update: bool) -> None:
+    """Show the rollout until it settles; raise unless the server ends up running."""
     final_status, all_logs = asyncio.run(
         _monitor_deployment_with_logs(engine_url, server_name, debug, is_update)
     )
