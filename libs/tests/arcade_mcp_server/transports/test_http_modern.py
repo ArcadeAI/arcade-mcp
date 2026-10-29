@@ -3,6 +3,7 @@
 import httpx
 import pytest
 from arcade_mcp_server.server import MCPServer
+from arcade_mcp_server.types import Resource, ResourceTemplate, Prompt, PromptMessage
 from arcade_mcp_server.transports.http_session_manager import HTTPSessionManager
 from starlette.applications import Starlette
 from starlette.routing import Mount
@@ -25,6 +26,17 @@ META = {
 async def test_discovery_and_ordinary_call_without_initialization(
     mcp_server: MCPServer, configured_stateless: bool
 ) -> None:
+    await mcp_server.resources.add_resource(
+        Resource(uri="test://readme", name="Readme"), handler=lambda _: "Readme body"
+    )
+    await mcp_server.resources.add_template_with_handler(
+        ResourceTemplate(uriTemplate="test://{name}", name="Named"),
+        lambda _uri, name: f"Hello {name}",
+    )
+    await mcp_server.prompts.add_prompt(
+        Prompt(name="greeting"),
+        handler=lambda _: [PromptMessage(role="user", content={"type": "text", "text": "Hello"})],
+    )
     manager = HTTPSessionManager(
         server=mcp_server, json_response=True, stateless=configured_stateless
     )
@@ -76,7 +88,11 @@ async def test_discovery_and_ordinary_call_without_initialization(
             "2025-11-25",
             "2025-06-18",
         ]
-        assert discovery.json()["result"]["capabilities"] == {"tools": {}}
+        assert discovery.json()["result"]["capabilities"] == {
+            "tools": {},
+            "resources": {},
+            "prompts": {},
+        }
         assert "mcp-session-id" not in discovery.headers
 
         listing = await client.post(
@@ -88,6 +104,44 @@ async def test_discovery_and_ordinary_call_without_initialization(
         tools = listing.json()["result"]["tools"]
         ordinary = next(tool for tool in tools if tool["name"] == "TestToolkit_test_tool")
         assert ordinary["inputSchema"]["properties"]["text"]["type"] == "string"
+        for method, params, field, expected in [
+            ("resources/list", {}, "resources", "Readme"),
+            ("resources/templates/list", {}, "resourceTemplates", "Named"),
+            ("resources/read", {"uri": "test://readme"}, "contents", "Readme body"),
+            ("resources/read", {"uri": "test://Alice"}, "contents", "Hello Alice"),
+            ("prompts/list", {}, "prompts", "greeting"),
+            ("prompts/get", {"name": "greeting"}, "messages", "Hello"),
+        ]:
+            ordinary = await client.post(
+                "/mcp/",
+                headers=HEADERS,
+                json={
+                    "jsonrpc": "2.0",
+                    "id": 5,
+                    "method": method,
+                    "params": {**params, "_meta": META},
+                },
+            )
+            assert ordinary.status_code == 200, ordinary.text
+            result = ordinary.json()
+            assert "error" not in result, result
+            entries = result["result"][field]
+            assert len(entries) == 1, result
+            entry = entries[0]
+            if field == "contents":
+                assert entry["text"] == expected
+            elif field == "messages":
+                assert entry == {"role": "user", "content": {"type": "text", "text": expected}}
+            else:
+                assert entry["name"] == expected
+            assert "mcp-session-id" not in ordinary.headers
+        for method in ["resources/subscribe", "tasks/list", "logging/setLevel"]:
+            unsupported = await client.post(
+                "/mcp/",
+                headers=HEADERS,
+                json={"jsonrpc": "2.0", "id": 6, "method": method, "params": {"_meta": META}},
+            )
+            assert unsupported.json()["error"]["code"] == -32601
         conflict = await client.post(
             "/mcp/",
             headers=HEADERS,

@@ -3,7 +3,9 @@
 import hashlib
 import hmac
 import json
+import logging
 import math
+import secrets
 import time
 from typing import Any, Literal
 
@@ -11,6 +13,20 @@ import jwt
 from pydantic import BaseModel, ConfigDict
 
 from arcade_core.schema import ToolCallProtocol
+from arcade_core.schema_validation import validate_elicitation_schema
+
+
+def create_elicitation_secret(secret: str | None) -> str:
+    if not secret:
+        logging.getLogger(__name__).warning(
+            "ARCADE_WORKER_SECRET is unset; elicitation continuations are only valid on this process"
+        )
+        return secrets.token_urlsafe(32)
+    if len(secret.encode()) < 32:
+        logging.getLogger(__name__).warning(
+            "Elicitation requires ARCADE_WORKER_SECRET of at least 32 bytes; ordinary tool calls remain available"
+        )
+    return secret
 
 
 class ElicitationResponse(BaseModel):
@@ -71,6 +87,10 @@ class Elicitation:
             self.responses = state["responses"]
             pending = state["pending"]
             if pending in protocol.input_responses:
+                try:
+                    ElicitationResponse.model_validate(protocol.input_responses[pending])
+                except ValueError as error:
+                    raise ValueError("Invalid elicitation response") from error
                 self.responses[pending] = protocol.input_responses[pending]
 
     def _state_key(self) -> bytes:
@@ -117,9 +137,9 @@ class Elicitation:
         if effective_mode == "form":
             if url is not None or elicitation_id is not None:
                 raise ValueError("URL parameters are not supported in form mode")
-            params["requestedSchema"] = (
-                schema if schema is not None else {"type": "object", "properties": {}}
-            )
+            form_schema = schema if schema is not None else {"type": "object", "properties": {}}
+            validate_elicitation_schema(form_schema)
+            params["requestedSchema"] = form_schema
         elif effective_mode == "url":
             if schema is not None or not url:
                 raise ValueError("URL mode requires url, without schema")

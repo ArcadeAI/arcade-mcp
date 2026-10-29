@@ -18,14 +18,18 @@ import asyncio
 import contextlib
 import logging
 import os
-import secrets
 from typing import Any, Callable, ClassVar, cast
 from urllib.parse import quote, urlparse, urlunparse
 
 from arcade_core.auth_tokens import get_valid_access_token
 from arcade_core.catalog import MaterializedTool, ToolCatalog
 from arcade_core.constants import PROD_COORDINATOR_HOST, PROD_ENGINE_HOST
-from arcade_core.elicitation import Elicitation, InputRequired, MissingClientCapabilities
+from arcade_core.elicitation import (
+    Elicitation,
+    InputRequired,
+    MissingClientCapabilities,
+    create_elicitation_secret,
+)
 from arcade_core.errors import ErrorKind, ToolInputError
 from arcade_core.executor import ToolExecutor
 from arcade_core.log_extras import build_tool_error_log_extra, build_tool_error_span_attributes
@@ -319,7 +323,7 @@ class MCPServer:
 
         # Settings (load first so we can use values from it)
         self.settings = settings or MCPSettings.from_env()
-        self._elicitation_secret = self.settings.arcade.server_secret or secrets.token_urlsafe(32)
+        self._elicitation_secret = create_elicitation_secret(self.settings.arcade.server_secret)
 
         # Server info
         self.name = name if name else self.settings.server.name
@@ -789,7 +793,18 @@ class MCPServer:
         if (
             session is not None
             and session.negotiated_version == STATELESS_PROTOCOL_VERSION
-            and method not in {"server/discover", "tools/list", "tools/call", "ping"}
+            and method
+            not in {
+                "server/discover",
+                "tools/list",
+                "tools/call",
+                "ping",
+                "resources/list",
+                "resources/templates/list",
+                "resources/read",
+                "prompts/list",
+                "prompts/get",
+            }
         ):
             return JSONRPCError(
                 id=msg_id,
@@ -1053,7 +1068,7 @@ class MCPServer:
         storage on ``session._negotiated_capabilities`` for per-request dispatch.
         """
         if version == STATELESS_PROTOCOL_VERSION:
-            return {"tools": {}}
+            return {"tools": {}, "resources": {}, "prompts": {}}
         caps: dict[str, Any] = {
             "tools": {"listChanged": True},
             "logging": {},

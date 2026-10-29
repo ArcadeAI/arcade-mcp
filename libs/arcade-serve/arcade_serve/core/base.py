@@ -1,12 +1,16 @@
 import logging
 import os
-import secrets
 import time
 from datetime import datetime
 from typing import Any, Callable, ClassVar
 
 from arcade_core.catalog import ToolCatalog, Toolkit
-from arcade_core.elicitation import Elicitation, InputRequired, MissingClientCapabilities
+from arcade_core.elicitation import (
+    Elicitation,
+    InputRequired,
+    MissingClientCapabilities,
+    create_elicitation_secret,
+)
 from arcade_core.executor import ToolExecutor
 from arcade_core.log_extras import build_tool_error_log_extra, build_tool_error_span_attributes
 from arcade_core.resource_schema import ListResourcesResult, ReadResourceResult
@@ -66,7 +70,7 @@ class BaseWorker(Worker):
             )
 
         self.secret = self._set_secret(secret, disable_auth)
-        self._elicitation_secret = self.secret or secrets.token_urlsafe(32)
+        self._elicitation_secret = create_elicitation_secret(self.secret)
         self.environment = os.environ.get("ARCADE_ENVIRONMENT", "local")
 
         self.tool_counter = None

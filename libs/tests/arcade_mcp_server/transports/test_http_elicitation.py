@@ -302,3 +302,22 @@ async def test_missing_capability_error_has_http_400_in_sse_mode(elicitation_cli
         assert body["error"]["data"]["requiredCapabilities"] == {"elicitation": {"url": {}}}
         assert "result" not in body
         assert invocations == ["url"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("answer", [{}, {"action": "unknown"}, {"action": "accept", "content": []}])
+async def test_malformed_answer_is_invalid_params_before_tool_execution(elicitation_client, answer):
+    async with elicitation_client() as (client, invocations):
+        first = (await call(client, arguments={"mode": "form"}, capabilities={"elicitation": {}}))[
+            "result"
+        ]
+        key = next(iter(first["inputRequests"]))
+        rejected = await call(
+            client,
+            arguments={"mode": "form"},
+            requestState=first["requestState"],
+            inputResponses={key: answer},
+        )
+        assert rejected["error"]["code"] == -32602, rejected
+        assert invocations == ["form"]
+        assert "pydantic" not in str(rejected).lower()

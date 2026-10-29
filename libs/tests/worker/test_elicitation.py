@@ -345,3 +345,31 @@ def test_worker_missing_mode_is_a_protocol_error(worker_client, mode):
     assert body["output"].get("external") is None
     assert body["output"].get("value") is None
     assert invocations == [mode]
+
+
+@pytest.mark.parametrize("answer", [{}, {"action": "unknown"}, {"action": "accept", "content": []}])
+def test_worker_rejects_malformed_answer_before_tool_execution(worker_client, answer):
+    request = {
+        "tool": {"toolkit": "Elicitation", "name": "RequestInput"},
+        "inputs": {"mode": "form"},
+        "protocol": {"version": "2026-07-28", "capabilities": {"elicitation": {"form": {}}}},
+    }
+    first = worker_client.post("/worker/tools/invoke", json=request).json()["output"]["external"]
+    key = next(iter(first["inputRequests"]))
+    request["protocol"].update({
+        "requestState": first["requestState"],
+        "inputResponses": {key: answer},
+    })
+    rejected = worker_client.post("/worker/tools/invoke", json=request)
+    assert rejected.status_code == 400, rejected.json()
+    assert rejected.json()["code"] == -32602
+    assert invocations == ["form"]
+    assert "pydantic" not in rejected.text.lower()
+
+
+@pytest.mark.parametrize("secret", [None, "short"])
+def test_worker_reports_ephemeral_or_weak_elicitation_key_at_startup(caplog, secret):
+    worker = FastAPIWorker(app=FastAPI(), secret=secret, disable_auth=secret is None)
+    assert worker is not None
+    expected = "only valid on this process" if secret is None else "at least 32 bytes"
+    assert expected in caplog.text
