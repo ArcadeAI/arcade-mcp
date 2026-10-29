@@ -15,6 +15,16 @@ from arcade_mcp_server.types import ToolExecution
 from loguru import logger as loguru_logger
 
 
+@pytest.fixture(autouse=True)
+def _skip_port_check():
+    """run() binds the port to check it is free; keep these tests independent of the machine.
+
+    The real check is covered in test_startup_transport_errors.py.
+    """
+    with patch("arcade_mcp_server.mcp_app.ensure_port_available"):
+        yield
+
+
 class TestMCPAppVersionValidation:
     """Tests for MCPApp version validation."""
 
