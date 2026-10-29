@@ -368,8 +368,39 @@ def test_worker_rejects_malformed_answer_before_tool_execution(worker_client, an
 
 
 @pytest.mark.parametrize("secret", [None, "short"])
-def test_worker_reports_ephemeral_or_weak_elicitation_key_at_startup(caplog, secret):
+def test_worker_reports_ephemeral_or_weak_elicitation_key_at_startup(caplog, monkeypatch, secret):
+    monkeypatch.delenv("ARCADE_WORKER_SECRET", raising=False)
     worker = FastAPIWorker(app=FastAPI(), secret=secret, disable_auth=secret is None)
     assert worker is not None
     expected = "only valid on this process" if secret is None else "at least 32 bytes"
     assert expected in caplog.text
+
+
+@pytest.mark.parametrize("configuration", ["argument", "environment"])
+def test_unauthenticated_worker_can_resume_with_shared_configured_key(monkeypatch, configuration):
+    secret = secrets.token_urlsafe(32)
+    if configuration == "environment":
+        monkeypatch.setenv("ARCADE_WORKER_SECRET", secret)
+    clients = []
+    for _ in range(2):
+        app = FastAPI()
+        worker = FastAPIWorker(
+            app=app, disable_auth=True, secret=secret if configuration == "argument" else None
+        )
+        worker.register_tool(request_input, toolkit_name="Elicitation")
+        clients.append(TestClient(app))
+    request = {
+        "tool": {"toolkit": "Elicitation", "name": "RequestInput"},
+        "inputs": {"mode": "form"},
+        "protocol": {"version": "2026-07-28", "capabilities": {"elicitation": {}}},
+    }
+    with clients[0] as first, clients[1] as second:
+        result = first.post("/worker/tools/invoke", json=request).json()["output"]["external"]
+        answer = {"action": "accept", "content": {"label": "same key"}}
+        request["protocol"].update({
+            "requestState": result["requestState"],
+            "inputResponses": {"1": answer},
+        })
+        completed = second.post("/worker/tools/invoke", json=request)
+        assert completed.status_code == 200, completed.text
+        assert completed.json()["output"]["value"] == answer

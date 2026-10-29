@@ -70,7 +70,9 @@ class BaseWorker(Worker):
             )
 
         self.secret = self._set_secret(secret, disable_auth)
-        self._elicitation_secret = create_elicitation_secret(self.secret)
+        self._elicitation_secret = create_elicitation_secret(
+            self.secret or secret or os.environ.get("ARCADE_WORKER_SECRET")
+        )
         self.environment = os.environ.get("ARCADE_ENVIRONMENT", "local")
 
         self.tool_counter = None
