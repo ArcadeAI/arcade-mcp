@@ -71,7 +71,9 @@ def stand_in(tmp_path: Path, *, arcade_toml: str = "", server_args: str = "") ->
     for fake in FAKES.glob("*.py"):
         shutil.copy(fake, project / fake.name)
     (project / "requirements.txt").write_text("fastmcp==4.1.3\n")
-    command = f"python fake_mcp.py --port {free_port()} {server_args}".strip()
+    # The port goes last so the command never ends in a quote, which older TOML parsers
+    # reject next to the closing delimiter.
+    command = " ".join(filter(None, ["python fake_mcp.py", server_args, f"--port {free_port()}"]))
     # A literal string, so a command holding JSON or quotes needs no escaping.
     literal = "'''"
     (project / "arcade.toml").write_text(
