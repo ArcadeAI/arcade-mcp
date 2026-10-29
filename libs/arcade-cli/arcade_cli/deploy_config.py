@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import json
 import re
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
@@ -129,15 +129,19 @@ def _check_names(config: DeployConfig) -> None:
     for name in named:
         if not _VARIABLE_NAME.match(name):
             raise ValueError(f"{name!r} isn't a valid environment variable name.")
-    for name in deployed:
-        if name in _RESERVED_NAMES or name.startswith(_RESERVED_PREFIXES):
-            raise ValueError(
-                f"{name} is reserved for the deployment runtime; declare the value under "
-                "another name."
-            )
+    for name in reserved_names(deployed):
+        raise ValueError(
+            f"{name} is reserved for the deployment runtime; declare the value under "
+            "another name."
+        )
     both = sorted(set(config.environment) & set(config.secrets))
     if both:
         raise ValueError(f"Declared as both an environment value and a secret: {', '.join(both)}")
+
+
+def reserved_names(names: Iterable[str]) -> list[str]:
+    """The names among ``names`` that the deployment runtime sets for itself."""
+    return sorted(n for n in names if n in _RESERVED_NAMES or n.startswith(_RESERVED_PREFIXES))
 
 
 def load_deploy_config(project_dir: Path) -> DeployConfig:

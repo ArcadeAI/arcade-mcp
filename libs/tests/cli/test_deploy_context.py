@@ -22,7 +22,11 @@ def work_dir(tmp_path: Path) -> Path:
 def project_dir(work_dir: Path) -> Path:
     proj = work_dir / "proj"
     proj.mkdir()
-    (proj / "pyproject.toml").write_text("[project]\nname = 'x'\nversion = '0.1.0'\n")
+    # An Arcade server project: it depends on arcade-mcp-server, which is what routes
+    # `arcade deploy` to the Arcade flow rather than the MCP server flow.
+    (proj / "pyproject.toml").write_text(
+        "[project]\nname = 'x'\nversion = '0.1.0'\ndependencies = ['arcade-mcp-server']\n"
+    )
     (proj / "server.py").write_text("")
     return proj
 

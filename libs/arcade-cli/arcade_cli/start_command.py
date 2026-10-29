@@ -115,6 +115,14 @@ class StartCommandError(ValueError):
     """The server's start command can't be determined, or the server didn't start."""
 
 
+class TokenRequiredError(StartCommandError):
+    """The server refused to list its tools without a token: ``challenge`` is what it sent."""
+
+    def __init__(self, challenge: str | None) -> None:
+        self.challenge = challenge or ""
+        super().__init__("The server needs a token to list its tools.")
+
+
 @dataclass(frozen=True)
 class StartCommand:
     """How the runner starts the server.
@@ -311,6 +319,11 @@ def load_toml(path: Path) -> dict[str, Any]:
 # Scanning source
 
 
+def project_modules(project_dir: Path) -> list[tuple[Path, ast.Module]]:
+    """The project's parsed Python files, skipping tests, environments and unparsable files."""
+    return _parse_project(project_dir)
+
+
 def find_server_objects(project_dir: Path) -> list[ServerObject]:
     """Every module-level MCP server object in the project's source."""
     return [
@@ -495,7 +508,10 @@ class LocalEndpoint:
     pid: int
     port: int
     path: str
-    handshake: Handshake
+    # None when the endpoint refused the handshake for want of a token; then
+    # ``token_challenge`` is its WWW-Authenticate header ("" when it sent none).
+    handshake: Handshake | None
+    token_challenge: str | None = None
 
     @property
     def url(self) -> str:
@@ -510,26 +526,39 @@ def run_locally(
     env: Mapping[str, str] | None = None,
     debug: bool = False,
     timeout: float = 30.0,
+    headers: Mapping[str, str] | None = None,
+    python: Path | None = None,
 ) -> Iterator[LocalEndpoint]:
     """Start the server in its project's environment and yield its MCP endpoint.
+
+    ``headers`` go with every probe, for a server that checks a static key. An endpoint
+    that refuses for want of a token still counts as found; see ``LocalEndpoint``.
+    ``python`` is the project's interpreter; commands resolve from its directory first.
+    A command whose port is detected gets ``HOST``/``PORT`` hints with a free port, as
+    the runner gives them, for servers that read them.
 
     A fixed port is replaced with a free one, since this machine may already use 8000.
     The server and every process it started are stopped on exit.
     """
     port = _free_port() if start.port is not None else None
-    process = _spawn(start.local_argv(port), project_dir, env, debug)
+    hints = {} if port is not None else {"HOST": RUNNER_HOST, "PORT": str(_free_port())}
+    process = _spawn(start.local_argv(port), project_dir, {**hints, **(env or {})}, debug, python)
     try:
-        yield _wait_for_endpoint(process, start, port, timeout, debug)
+        yield _wait_for_endpoint(process, start, port, timeout, debug, headers)
     finally:
         stop_process_tree(process)
 
 
 def _spawn(
-    argv: list[str], project_dir: Path, env: Mapping[str, str] | None, debug: bool
+    argv: list[str],
+    project_dir: Path,
+    env: Mapping[str, str] | None,
+    debug: bool,
+    python: Path | None = None,
 ) -> subprocess.Popen[bytes]:
     # Commands name executables from the project's environment (python, fastmcp, uvicorn),
     # the way the runner's PATH resolves them.
-    bin_dir = str(find_python_interpreter(project_dir).parent)
+    bin_dir = str((python or find_python_interpreter(project_dir)).parent)
     child_env = {**os.environ, **(env or {})}
     child_env["PATH"] = bin_dir + os.pathsep + child_env.get("PATH", "")
     executable = shutil.which(argv[0], path=child_env["PATH"])
@@ -554,6 +583,7 @@ def _wait_for_endpoint(
     port: int | None,
     timeout: float,
     debug: bool,
+    headers: Mapping[str, str] | None = None,
 ) -> LocalEndpoint:
     paths = (start.path,) if start.path else DETECTED_PATHS
     hint = (
@@ -581,9 +611,13 @@ def _wait_for_endpoint(
             listened.add(candidate_port)
             for candidate_path in paths:
                 url = f"http://{RUNNER_HOST}:{candidate_port}{candidate_path}"
-                handshake = mcp_handshake(url)
-                if handshake is not None:
-                    return LocalEndpoint(process.pid, candidate_port, candidate_path, handshake)
+                answer = _probe(url, headers)
+                if isinstance(answer, Handshake):
+                    return LocalEndpoint(process.pid, candidate_port, candidate_path, answer)
+                if answer is not None:
+                    return LocalEndpoint(
+                        process.pid, candidate_port, candidate_path, None, token_challenge=answer
+                    )
         time.sleep(0.25)
     raise _no_endpoint(paths, listened, ipv6_only, timeout, hint)
 
@@ -709,6 +743,18 @@ def mcp_handshake(
     url: str, *, headers: Mapping[str, str] | None = None, timeout: float = 5.0
 ) -> Handshake | None:
     """Send ``initialize`` to ``url``; ``None`` when it doesn't answer as an MCP endpoint."""
+    answer = _probe(url, headers, timeout)
+    return answer if isinstance(answer, Handshake) else None
+
+
+def _probe(
+    url: str, headers: Mapping[str, str] | None, timeout: float = 5.0
+) -> Handshake | str | None:
+    """The handshake at ``url``, its token challenge when it wants one, or ``None``.
+
+    A 401 with a ``Bearer`` challenge is an MCP endpoint behind OAuth. With ``headers``
+    sent (a static key), a 401 or 403 without one is the key being refused.
+    """
     request = {
         "jsonrpc": "2.0",
         "id": 1,
@@ -729,6 +775,11 @@ def mcp_handshake(
         )
     except httpx.HTTPError:
         return None
+    challenge = str(response.headers.get("www-authenticate", ""))
+    if response.status_code == 401 and challenge.lower().startswith("bearer"):
+        return challenge
+    if response.status_code in (401, 403) and headers:
+        return challenge
     if response.status_code != 200:
         return None
     message = _jsonrpc_response(response, request_id=1)
@@ -747,7 +798,12 @@ def mcp_handshake(
 def list_tools(
     endpoint: LocalEndpoint, *, headers: Mapping[str, str] | None = None
 ) -> list[dict[str, Any]]:
-    """List every tool the server offers, in the session its handshake opened."""
+    """List every tool the server offers, in the session its handshake opened.
+
+    Raises ``TokenRequiredError`` when the server wants a token for it.
+    """
+    if endpoint.handshake is None:
+        raise TokenRequiredError(endpoint.token_challenge)
     session_headers = {
         **_MCP_HEADERS,
         "MCP-Protocol-Version": endpoint.handshake.protocol_version,
@@ -767,6 +823,8 @@ def list_tools(
                 endpoint.url,
                 json={"jsonrpc": "2.0", "id": request_id, "method": "tools/list", "params": params},
             )
+            if response.status_code in (401, 403):
+                raise TokenRequiredError(response.headers.get("www-authenticate"))
             message = _jsonrpc_response(response, request_id) if response.is_success else None
             if message is None or "result" not in message:
                 detail = message.get("error") if message else f"HTTP {response.status_code}"
@@ -776,6 +834,33 @@ def list_tools(
             if not cursor:
                 return tools
             request_id += 1
+
+
+def fetch_well_known(
+    endpoint: LocalEndpoint,
+    name: str,
+    *,
+    headers: Mapping[str, str] | None = None,
+    paths: Iterable[str] = (),
+) -> dict[str, Any] | None:
+    """``/.well-known/<name>`` from the running server: at its root, or inserted before its
+    MCP path or any of ``paths`` (RFC 8414 path insertion)."""
+    base = f"http://{RUNNER_HOST}:{endpoint.port}/.well-known/{name}"
+    suffixes = [endpoint.path, *paths]
+    for url in dict.fromkeys([base] + [base + suffix.rstrip("/") for suffix in suffixes]):
+        try:
+            response = httpx.get(url, headers=dict(headers or {}), timeout=5.0)
+        except httpx.HTTPError:
+            continue
+        if response.status_code != 200:
+            continue
+        try:
+            document = response.json()
+        except ValueError:
+            continue
+        if isinstance(document, dict):
+            return document
+    return None
 
 
 def _jsonrpc_response(response: httpx.Response, request_id: int) -> dict[str, Any] | None:
