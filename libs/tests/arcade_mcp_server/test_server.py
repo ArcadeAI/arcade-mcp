@@ -1364,9 +1364,7 @@ class TestParamsMetaValidation:
         assert response.error["code"] == -32602
 
     @pytest.mark.asyncio
-    async def test_meta_string_returns_invalid_params(
-        self, mcp_server, initialized_server_session
-    ):
+    async def test_meta_string_returns_invalid_params(self, mcp_server, initialized_server_session):
         message = {
             "jsonrpc": "2.0",
             "id": 1,
@@ -1379,9 +1377,7 @@ class TestParamsMetaValidation:
         assert "_meta" in response.error["message"]
 
     @pytest.mark.asyncio
-    async def test_meta_array_returns_invalid_params(
-        self, mcp_server, initialized_server_session
-    ):
+    async def test_meta_array_returns_invalid_params(self, mcp_server, initialized_server_session):
         message = {
             "jsonrpc": "2.0",
             "id": 1,
@@ -3047,9 +3043,7 @@ class TestTaskAugmentedToolCall:
             "method": "tasks/result",
             "params": {"taskId": task_id},
         }
-        result_response = await mcp_server.handle_message(
-            result_msg, initialized_server_session
-        )
+        result_response = await mcp_server.handle_message(result_msg, initialized_server_session)
 
         # Spec: cancelled task -> JSONRPCResponse with a CallToolResult body
         # whose isError=True. Not a JSONRPCError.
@@ -3059,9 +3053,7 @@ class TestTaskAugmentedToolCall:
         # depending on whether the bg-task path or the fallback fired).
         if hasattr(payload, "isError"):
             assert payload.isError is True
-            assert any(
-                hasattr(c, "text") and "cancel" in c.text.lower() for c in payload.content
-            )
+            assert any(hasattr(c, "text") and "cancel" in c.text.lower() for c in payload.content)
         else:
             assert isinstance(payload, dict)
             assert payload.get("isError") is True
@@ -3434,9 +3426,7 @@ class TestTaskTtlValidation:
         assert response.result.task.status == TaskStatus.WORKING
 
     @pytest.mark.asyncio
-    async def test_tool_call_rejects_string_ttl(
-        self, mcp_server, initialized_server_session
-    ):
+    async def test_tool_call_rejects_string_ttl(self, mcp_server, initialized_server_session):
         """A JSON-string ``ttl`` value must be rejected at the inline
         validator. Without the type gate the value would survive into
         ``create_task`` and raise downstream when pydantic tries to coerce
@@ -4355,9 +4345,7 @@ class TestHandleCallToolReturnType:
 
         args = typing.get_args(return_type)
         assert args, f"return type must be a Union, got {return_type!r}"
-        assert any(a is JSONRPCError for a in args), (
-            f"missing JSONRPCError branch: {args!r}"
-        )
+        assert any(a is JSONRPCError for a in args), f"missing JSONRPCError branch: {args!r}"
 
         # All non-error branches must be parameterised JSONRPCResponses,
         # and the union of their inner types must cover {CallToolResult,
@@ -4375,8 +4363,7 @@ class TestHandleCallToolReturnType:
             metadata = getattr(branch, "__pydantic_generic_metadata__", {})
             type_args = metadata.get("args", ())
             assert type_args, (
-                f"JSONRPCResponse must be parameterised; no Pydantic generic args on "
-                f"{branch!r}"
+                f"JSONRPCResponse must be parameterised; no Pydantic generic args on {branch!r}"
             )
             inner = type_args[0]
             assert inner is not typing.Any, (
@@ -4393,3 +4380,13 @@ class TestHandleCallToolReturnType:
         assert CreateTaskResult in inner_types, (
             f"CreateTaskResult missing from response branches: {inner_types!r}"
         )
+
+
+@pytest.mark.parametrize("secret", ["", "short"])
+def test_server_reports_ephemeral_or_weak_elicitation_key_at_startup(
+    tool_catalog, mcp_settings, caplog, secret
+):
+    mcp_settings.arcade.server_secret = secret
+    MCPServer(catalog=tool_catalog, settings=mcp_settings)
+    expected = "only valid on this process" if not secret else "at least 32 bytes"
+    assert expected in caplog.text

@@ -31,6 +31,20 @@ Use it when you need MCP tools that aren't already in the prebuilt catalog: inte
 - `arcade evals` for testing tool-call accuracy against real LLMs.
 - `arcade deploy` for one-command hosting on Arcade Cloud.
 
+## Stateless tool elicitation
+
+MCP 2026-07-28 HTTP connections support form and URL elicitation through `tools/call`.
+Ordinary resource and prompt operations remain available; elicitation through those
+operations is deferred.
+
+Set `ARCADE_WORKER_SECRET` to the same value of at least 32 UTF-8 bytes on every
+replica that can resume a tool. Without it, continuations are process-local and
+cannot survive a restart. Short configured keys disable elicitation state signing;
+ordinary tool calls remain available. Startup logs report both configurations.
+
+Retries replay the tool. Keep input-request ordering deterministic and make side
+effects before each input request idempotent.
+
 ## Authorized tool calling
 
 Tools can declare:

@@ -243,7 +243,11 @@ def fetch_available_toolkits(
 
     from arcadepy import NOT_GIVEN, APIConnectionError
 
-    from arcade_cli.utils import get_arcade_client, resolve_engine_base_url
+    from arcade_cli.utils import (
+        exit_if_strong_authentication_required,
+        get_arcade_client,
+        resolve_engine_base_url,
+    )
 
     url = base_url or resolve_engine_base_url(None, None, False, False, default_port=None)
     if debug:
@@ -266,6 +270,7 @@ def fetch_available_toolkits(
     except APIConnectionError:
         console.print(f"Could not connect to Arcade Engine at {url}.", style="bold red")
     except Exception as e:
+        exit_if_strong_authentication_required(e)
         if debug:
             console.print(f"  [dim]Error fetching toolkits: {e}[/dim]")
         else:
@@ -297,7 +302,12 @@ def list_gateways(
     Returns a list of gateway dicts (each with ``id``, ``slug``, ``name``,
     ``tool_filter``, etc.).
     """
-    from arcade_cli.utils import get_org_project_context, resolve_engine_base_url
+    from arcade_cli.utils import (
+        exit_if_strong_authentication_required,
+        get_org_project_context,
+        handle_cli_error,
+        resolve_engine_base_url,
+    )
 
     url = base_url or resolve_engine_base_url(None, None, False, False, default_port=None)
     org_id, project_id = get_org_project_context()
@@ -312,6 +322,11 @@ def list_gateways(
         headers={"Authorization": f"Bearer {access_token}"},
         timeout=30,
     )
+
+    # A refused sign-in would otherwise read as a project with no gateways.
+    exit_if_strong_authentication_required(resp)
+    if resp.status_code == 401:
+        handle_cli_error("Arcade refused your login. Run 'arcade logout', then 'arcade login'.")
 
     if resp.status_code != 200:
         if debug:
@@ -367,7 +382,11 @@ def create_gateway(
 
     Returns the gateway response dict (with ``slug``, ``id``, ``name``, etc.).
     """
-    from arcade_cli.utils import get_org_project_context, resolve_engine_base_url
+    from arcade_cli.utils import (
+        exit_if_strong_authentication_required,
+        get_org_project_context,
+        resolve_engine_base_url,
+    )
 
     url = base_url or resolve_engine_base_url(None, None, False, False, default_port=None)
     org_id, project_id = get_org_project_context()
@@ -400,6 +419,7 @@ def create_gateway(
         console.print(f"  [dim]{resp.text[:500]}[/dim]")
 
     if resp.status_code not in (200, 201):
+        exit_if_strong_authentication_required(resp)
         raise RuntimeError(f"Failed to create gateway ({resp.status_code}): {resp.text}")
 
     data: dict[Any, Any] = resp.json()

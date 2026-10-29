@@ -14,6 +14,7 @@ from rich.table import Table
 from arcade_cli.console import console
 from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
+    exit_if_strong_authentication_required,
     get_arcade_client,
     get_auth_headers,
     get_org_scoped_url,
@@ -319,6 +320,7 @@ def _display_deployment_logs(
                 formatted_timestamp = _format_timestamp_to_local(log["timestamp"])
                 console.print(f"[{formatted_timestamp}] {log['line']}", markup=False)
     except httpx.HTTPStatusError as e:
+        exit_if_strong_authentication_required(e)
         handle_cli_error(
             f"Failed to fetch logs: {e.response.status_code} {e.response.text}", debug=debug
         )
@@ -357,6 +359,7 @@ async def _stream_deployment_logs(
                 else:
                     console.print(line, markup=False)
     except httpx.HTTPStatusError as e:
+        exit_if_strong_authentication_required(e)
         handle_cli_error(f"Failed to stream logs: {e.response.status_code}", debug=debug)
     except Exception as e:
         handle_cli_error(f"Error streaming logs: {e}", debug=debug)
