@@ -15,6 +15,9 @@ from arcade_core.errors import (
     UpstreamError,
     UpstreamRateLimitError,
 )
+from arcade_core.schema_validation import (
+    UnsupportedSchemaDialectError as CoreUnsupportedSchemaDialectError,
+)
 
 __all__ = [
     "AuthorizationError",
@@ -124,7 +127,7 @@ class IncompleteAuthContextError(MCPError):
     """Auth context is missing required claims (e.g., iss) for task scoping."""
 
 
-class UnsupportedSchemaDialectError(MCPError, ValueError):
+class UnsupportedSchemaDialectError(MCPError, CoreUnsupportedSchemaDialectError):
     """Raised when a JSON Schema $schema URI declares an unsupported dialect.
 
     Inherits from both ``MCPError`` (so framework-level catchers keep

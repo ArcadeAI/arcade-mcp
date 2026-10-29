@@ -64,6 +64,7 @@ class TestVersionHasFeature:
     def test_tool_execution_only_in_2025_11_25(self) -> None:
         assert version_has_feature("2025-06-18", "tool_execution") is False
         assert version_has_feature("2025-11-25", "tool_execution") is True
+        assert version_has_feature("2026-07-28", "tool_execution") is False
 
     def test_unknown_version_returns_false(self) -> None:
         assert version_has_feature("9999-01-01", "base") is False

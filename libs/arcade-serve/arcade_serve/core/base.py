@@ -5,10 +5,17 @@ from datetime import datetime
 from typing import Any, Callable, ClassVar
 
 from arcade_core.catalog import ToolCatalog, Toolkit
+from arcade_core.elicitation import (
+    Elicitation,
+    InputRequired,
+    MissingClientCapabilities,
+    create_elicitation_secret,
+)
 from arcade_core.executor import ToolExecutor
 from arcade_core.log_extras import build_tool_error_log_extra, build_tool_error_span_attributes
 from arcade_core.resource_schema import ListResourcesResult, ReadResourceResult
 from arcade_core.schema import (
+    ToolCallOutput,
     ToolCallRequest,
     ToolCallResponse,
     ToolDefinition,
@@ -16,7 +23,7 @@ from arcade_core.schema import (
 from opentelemetry import trace
 from opentelemetry.metrics import Meter
 
-from arcade_serve.core.common import Router, Worker
+from arcade_serve.core.common import InvalidRequestParamsError, Router, Worker
 from arcade_serve.core.components import (
     CallToolComponent,
     CatalogComponent,
@@ -63,6 +70,9 @@ class BaseWorker(Worker):
             )
 
         self.secret = self._set_secret(secret, disable_auth)
+        self._elicitation_secret = create_elicitation_secret(
+            self.secret or secret or os.environ.get("ARCADE_WORKER_SECRET")
+        )
         self.environment = os.environ.get("ARCADE_ENVIRONMENT", "local")
 
         self.tool_counter = None
@@ -146,14 +156,34 @@ class BaseWorker(Worker):
             current_span.set_attribute("toolkit_name", str(tool_fqname.toolkit_name))
             current_span.set_attribute("environment", self.environment)
 
-            output = await ToolExecutor.run(
-                func=materialized_tool.tool,
-                definition=materialized_tool.definition,
-                input_model=materialized_tool.input_model,
-                output_model=materialized_tool.output_model,
-                context=tool_request.context,
-                **tool_request.inputs or {},
-            )
+            if tool_request.protocol is not None and tool_request.protocol.version == "2026-07-28":
+                try:
+                    tool_request.context._request_ui = Elicitation(
+                        tool_request.protocol,
+                        self._elicitation_secret,
+                        {
+                            "tool": tool_request.tool.model_dump(),
+                            "inputs": tool_request.inputs or {},
+                            "user": tool_request.context.user_id,
+                        },
+                    )
+                except ValueError as error:
+                    raise InvalidRequestParamsError(str(error)) from error
+            try:
+                output = await ToolExecutor.run(
+                    func=materialized_tool.tool,
+                    definition=materialized_tool.definition,
+                    input_model=materialized_tool.input_model,
+                    output_model=materialized_tool.output_model,
+                    context=tool_request.context,
+                    **tool_request.inputs or {},
+                )
+            except MissingClientCapabilities as missing:
+                output = ToolCallOutput(protocol_error=missing.error)
+            except InputRequired as pending:
+                output = ToolCallOutput(external=pending.result)
+            finally:
+                tool_request.context._request_ui = None
             if output.error:
                 for key, value in build_tool_error_span_attributes(output.error).items():
                     current_span.set_attribute(key, value)
@@ -182,6 +212,11 @@ class BaseWorker(Worker):
             )
             if output.error.stacktrace:
                 logger.debug(f"{execution_id} | Tool traceback: {output.error.stacktrace}")
+        elif output.protocol_error:
+            logger.info(
+                f"{execution_id} | Tool {tool_fqname.name} "
+                f"version {tool_fqname.toolkit_version} requires client capabilities"
+            )
         else:
             # Match the failure-path identifiers for log correlation.
             logger.info(
@@ -196,7 +231,7 @@ class BaseWorker(Worker):
             execution_id=execution_id,
             duration=duration_ms,
             finished_at=datetime.now().isoformat(),
-            success=not output.error,
+            success=not (output.error or output.protocol_error),
             output=output,
         )
 

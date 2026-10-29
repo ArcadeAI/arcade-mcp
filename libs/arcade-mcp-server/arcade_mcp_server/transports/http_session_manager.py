@@ -25,7 +25,11 @@ from arcade_mcp_server.transports.http_streamable import (
     EventStore,
     HTTPStreamableTransport,
 )
-from arcade_mcp_server.types import INVALID_REQUEST, SUPPORTED_PROTOCOL_VERSIONS
+from arcade_mcp_server.types import (
+    INVALID_REQUEST,
+    STATELESS_PROTOCOL_VERSION,
+    SUPPORTED_HTTP_PROTOCOL_VERSIONS,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -192,7 +196,7 @@ def _validate_protocol_version_header(
             # Spec backcompat: assume 2025-03-26 when the header is absent
             # on a non-initialize request.
             return None, "2025-03-26"
-        if header_version not in SUPPORTED_PROTOCOL_VERSIONS:
+        if header_version not in SUPPORTED_HTTP_PROTOCOL_VERSIONS:
             return (
                 _create_transport_error_response(
                     400, f"Bad Request: Unsupported protocol version: {header_version}"
@@ -202,7 +206,7 @@ def _validate_protocol_version_header(
         return None, header_version
 
     if header_version is not None:
-        if header_version not in SUPPORTED_PROTOCOL_VERSIONS:
+        if header_version not in SUPPORTED_HTTP_PROTOCOL_VERSIONS:
             return (
                 _create_transport_error_response(
                     400, f"Bad Request: Unsupported protocol version: {header_version}"
@@ -355,7 +359,10 @@ class HTTPSessionManager:
             await response(scope, receive, send)
             return
 
-        if self.stateless:
+        if (
+            self.stateless
+            or request.headers.get(MCP_PROTOCOL_VERSION_HEADER) == STATELESS_PROTOCOL_VERSION
+        ):
             await self._handle_stateless_request(scope, receive, send)
         else:
             await self._handle_stateful_request(scope, receive, send)
@@ -408,6 +415,32 @@ class HTTPSessionManager:
         if version_error is not None:
             await version_error(scope, receive, send)
             return
+
+        if header_version == STATELESS_PROTOCOL_VERSION and body_bytes is not None:
+            try:
+                payload = json.loads(body_bytes)
+            except json.JSONDecodeError:
+                payload = None  # The transport owns malformed JSON responses.
+            if isinstance(payload, dict):
+                params = payload.get("params")
+                meta = params.get("_meta") if isinstance(params, dict) else None
+                body_version = (
+                    meta.get("io.modelcontextprotocol/protocolVersion")
+                    if isinstance(meta, dict)
+                    else None
+                )
+                if body_version != header_version:
+                    response = Response(
+                        json.dumps({
+                            "jsonrpc": "2.0",
+                            "id": payload.get("id"),
+                            "error": {"code": -32020, "message": "Protocol version mismatch"},
+                        }),
+                        status_code=400,
+                        media_type="application/json",
+                    )
+                    await response(scope, receive, send)
+                    return
 
         # --- Stateless version conflict check for initialize ---
         if is_initialize and header_version:
