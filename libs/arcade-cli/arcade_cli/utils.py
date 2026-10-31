@@ -81,13 +81,13 @@ class Provider(str, Enum):
 # Edit these values to change the default models used by the CLI.
 # These are used when --models is not specified.
 #
-# Note: Anthropic models include date suffixes (e.g., -20250929) which may need
+# Note: Some Anthropic models include date suffixes which may need
 # periodic updates. Check https://docs.anthropic.com/en/docs/about-claude/models
 # for the latest model identifiers.
 
 DEFAULT_MODELS: dict[Provider, str] = {
     Provider.OPENAI: "gpt-4o",
-    Provider.ANTHROPIC: "claude-sonnet-4-5-20250929",
+    Provider.ANTHROPIC: "claude-sonnet-5-5",
 }
 
 
@@ -251,7 +251,7 @@ def parse_provider_spec(spec: str) -> ProviderConfig:
         spec: Provider spec string. Examples:
             - "openai" -> use OpenAI with default model
             - "openai:gpt-4o" -> use OpenAI with gpt-4o
-            - "anthropic:claude-sonnet-4-5-20250929,claude-3-haiku-20240307"
+            - "anthropic:claude-sonnet-5-5,claude-haiku-5-5"
 
     Returns:
         ProviderConfig with parsed provider and models.

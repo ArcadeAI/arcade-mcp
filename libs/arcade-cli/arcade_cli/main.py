@@ -663,7 +663,7 @@ def evals(
         "--use-provider",
         "-p",
         help="Provider(s) and models to use. Format: 'provider' or 'provider:model1,model2'. "
-        "Can be repeated. Examples: --use-provider openai or --use-provider openai:gpt-4o --use-provider anthropic:claude-sonnet-4-5-20250929",
+        "Can be repeated. Examples: --use-provider openai or --use-provider openai:gpt-4o --use-provider anthropic:claude-sonnet-5-5",
     ),
     api_key: Optional[list[str]] = typer.Option(
         None,
