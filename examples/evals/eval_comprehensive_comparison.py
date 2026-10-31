@@ -7,7 +7,7 @@ This example demonstrates comparative evaluations across different sources:
 
 Run:
     arcade evals examples/evals/eval_comprehensive_comparison.py \\
-        -p "openai:gpt-4o anthropic:claude-sonnet-4-5-20250929" \\
+        -p "openai:gpt-4o anthropic:claude-sonnet-5-5" \\
         -k openai:YOUR_KEY -k anthropic:YOUR_KEY \\
         -o comparison.html -d
 """

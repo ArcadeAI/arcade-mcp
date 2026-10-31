@@ -251,7 +251,7 @@ def parse_provider_spec(spec: str) -> ProviderConfig:
         spec: Provider spec string. Examples:
             - "openai" -> use OpenAI with default model
             - "openai:gpt-4o" -> use OpenAI with gpt-4o
-            - "anthropic:claude-sonnet-4-5-20250929,claude-3-haiku-20240307"
+            - "anthropic:claude-sonnet-5-5,claude-haiku-5-5"
 
     Returns:
         ProviderConfig with parsed provider and models.
