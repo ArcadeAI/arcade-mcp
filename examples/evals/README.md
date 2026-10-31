@@ -53,6 +53,45 @@ arcade evals examples/evals/eval_http_mcp_server.py \
 
 ## 📚 Example Files
 
+### Judge critics and evaluation quality
+
+These standalone scripts review text or eval definitions without running
+the model that generates tool calls:
+
+```bash
+uv run --extra evals python examples/evals/eval_judge_critics.py
+uv run --extra evals python examples/evals/eval_case_quality.py
+```
+
+Both default to offline demo backends with **illustrative scripted scores**.
+They demonstrate the integration and pass/fail policies, not model accuracy.
+
+- `eval_judge_critics.py`: semantic similarity, intention/tone, groundedness,
+  completeness, repeated-call caching, and backend diagnostics. Four passing
+  and four failing examples.
+- `eval_case_quality.py`: context sufficiency, complexity, answer leakage,
+  ambiguity, and realistic wording. Two passing and four failing examples;
+  legitimate IDs and explicit arguments can pass.
+- `eval_case_quality_calibration.py`: offline fixture calibration with
+  per-dimension threshold ranges; `--backend jev --limit N` for bounded live runs.
+- `eval_grouped_judges.py`: batched judgments over a structured document argument.
+
+For actual judgments, select a provider explicitly:
+
+```bash
+# Uses JEV_API_KEY or TYPESAFE_API_KEY; sends the example data to Jev.
+uv run --extra evals python examples/evals/eval_case_quality.py --backend jev
+
+# Uses OPENAI_API_KEY; any configured OpenAI-compatible client can be injected.
+uv run --extra evals python examples/evals/eval_judge_critics.py --backend llm --model YOUR_MODEL
+```
+
+`JudgeBackend` is the provider-neutral interface. Jev's System One endpoint,
+an OpenAI-compatible LLM, and a custom backend share the same contract.
+`CaseQualityGrader(backend=...)` can review `suite.cases` independently of
+execution. Provider errors raise `JudgeError`; live outcomes may differ from
+the scripted examples. The normal `arcade evals` CLI examples continue below.
+
 ### Example Structure
 
 All examples follow a consistent pattern:
