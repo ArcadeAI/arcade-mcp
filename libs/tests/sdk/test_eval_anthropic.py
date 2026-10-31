@@ -50,7 +50,7 @@ class TestDefaultModels:
 
     def test_get_default_model_anthropic(self) -> None:
         """Test get_default_model returns correct model for Anthropic."""
-        assert get_default_model(Provider.ANTHROPIC) == "claude-sonnet-4-5-20250929"
+        assert get_default_model(Provider.ANTHROPIC) == "claude-sonnet-5-5"
 
     def test_default_models_are_valid_strings(self) -> None:
         """Test that all default models are non-empty strings."""
