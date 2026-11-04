@@ -312,7 +312,11 @@ def _validate(
         with run_locally(
             start, project_dir, env=env, debug=debug, python=python, headers=headers
         ) as endpoint:
-            if api_key is not None and endpoint.handshake is None:
+            if (
+                api_key is not None
+                and endpoint.handshake is None
+                and _refuses_key(api_key, endpoint.token_challenge)
+            ):
                 raise _key_refused(api_key, values)
             console.print(f"✓ The server answers MCP at {endpoint.path}", style="green")
             _refuse_arcade_worker(endpoint)
@@ -368,8 +372,8 @@ def _check_tools(
 ) -> None:
     try:
         tools = list_tools(endpoint, headers=headers)
-    except TokenRequiredError:
-        if api_key is not None:
+    except TokenRequiredError as needs_token:
+        if api_key is not None and _refuses_key(api_key, needs_token.challenge):
             raise _key_refused(api_key, values) from None
         console.print(
             "✓ The server needs a token to list its tools; they appear once a user authorizes it",
@@ -395,6 +399,19 @@ def _local_api_key(
     key = values.secrets.get(api_key.env) or secrets_module.token_urlsafe(32)
     value = f"{api_key.scheme} {key}" if api_key.scheme else key
     return {api_key.env: key}, {api_key.header: value}
+
+
+def _refuses_key(api_key: ApiKey, challenge: str | None) -> bool:
+    """Whether a 401/403 sent with the key means the key was refused.
+
+    A Bearer challenge asks for a user's OAuth token. When the key travels in another
+    header the server took it, and the tools appear once a user authorizes, as for any
+    server behind OAuth. When the key itself goes in Authorization, the challenge is the
+    key being refused.
+    """
+    if not (challenge or "").lower().startswith("bearer"):
+        return True
+    return api_key.header.lower() == "authorization"
 
 
 def _key_refused(api_key: ApiKey, values: DeclaredValues) -> DeployRefusedError:

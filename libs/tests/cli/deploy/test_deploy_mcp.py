@@ -299,6 +299,41 @@ class TestApiKey:
         assert engine.created[0]["secrets"] == {}
         assert "Found 1 tool(s)" in capsys.readouterr().out
 
+    @pytest.mark.parametrize("oauth", ["--bearer user-token", "--bearer-for-tools user-token"])
+    def test_a_server_that_takes_the_key_and_wants_a_user_token_still_deploys(
+        self,
+        tmp_path: Path,
+        engine: FakeEngine,
+        capsys: pytest.CaptureFixture[str],
+        oauth: str,
+    ) -> None:
+        project = stand_in(
+            tmp_path,
+            arcade_toml='[deploy.api_key]\nenv = "SERVER_KEY"\nheader = "X-API-Key"\n',
+            server_args=f"--key-header X-API-Key --key-env SERVER_KEY {oauth}",
+        )
+
+        deploy(project)
+
+        assert engine.created
+        assert "needs a token to list its tools" in capsys.readouterr().out
+
+    def test_a_bearer_challenge_to_a_key_in_authorization_is_a_refused_key(
+        self, tmp_path: Path, engine: FakeEngine
+    ) -> None:
+        project = stand_in(
+            tmp_path,
+            arcade_toml=(
+                '[deploy.api_key]\nenv = "SERVER_KEY"\n'
+                'header = "Authorization"\nscheme = "Bearer"\n'
+            ),
+            server_args="--bearer the-fixed-key",
+        )
+
+        with pytest.raises(DeployRefusedError, match=r"declare SERVER_KEY under `secrets`"):
+            deploy(project)
+        assert not engine.uploaded
+
     def test_a_refused_declared_key_is_refused_before_upload(
         self, tmp_path: Path, engine: FakeEngine, monkeypatch: pytest.MonkeyPatch
     ) -> None:
