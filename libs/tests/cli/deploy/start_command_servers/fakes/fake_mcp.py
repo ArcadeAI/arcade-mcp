@@ -3,6 +3,7 @@
     python fake_mcp.py --port 8123 [--path /mcp] [--host 127.0.0.1] [--sse] [--launcher]
                        [--decoy-port 8124] [--tools a,b] [--fail-tools-list] [--html-elsewhere]
                        [--bearer TOKEN] [--bearer-for-tools TOKEN] [--key-header H --key K]
+                       [--key-header H --key-env NAME [--key-scheme S]] [--worker-health]
                        [--well-known NAME=JSON ...]
 
 ``--launcher`` runs this script again as a child process and waits for it, the way
@@ -13,12 +14,15 @@
 Auth: ``--bearer`` refuses every MCP request without that bearer token (401 with a Bearer
 challenge, as an OAuth resource server does); ``--bearer-for-tools`` refuses only
 ``tools/list``; ``--key-header``/``--key`` refuse requests without that static key (401, no
-challenge). ``--well-known name=JSON`` serves a document at ``/.well-known/<name>`` (and its
-path-inserted form under the MCP path).
+challenge). ``--key-env`` reads that key from an environment variable instead, and
+``--key-scheme`` expects it after a scheme ("Bearer <key>"). ``--worker-health`` answers
+``GET /worker/health`` as an Arcade server does. ``--well-known name=JSON`` serves a document
+at ``/.well-known/<name>`` (and its path-inserted form under the MCP path).
 """
 
 import argparse
 import json
+import os
 import socket
 import socketserver
 import subprocess
@@ -54,8 +58,11 @@ class NotFound(BaseHTTPRequestHandler):
 def _refusal(args: argparse.Namespace, headers: object, body: bytes) -> tuple[int, dict[str, str]] | None:
     """The 401 this server answers a request with, or None to serve it."""
     authorization = getattr(headers, "get")("Authorization") or ""
-    if args.key_header and getattr(headers, "get")(args.key_header) != args.key:
-        return 401, {}
+    if args.key_header:
+        key = os.environ.get(args.key_env, "") if args.key_env else args.key
+        expected = f"{args.key_scheme} {key}" if args.key_scheme else key
+        if not key or getattr(headers, "get")(args.key_header) != expected:
+            return 401, {}
     challenge = {"WWW-Authenticate": 'Bearer resource_metadata="/.well-known/oauth-protected-resource"'}
     if args.bearer and authorization != f"Bearer {args.bearer}":
         return 401, challenge
@@ -74,7 +81,9 @@ def serve(args: argparse.Namespace) -> None:
 
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self) -> None:
-            if self.path in documents:
+            if args.worker_health and self.path == "/worker/health":
+                self._send(200, {"Content-Type": "application/json"}, b'{"status": "ok"}')
+            elif self.path in documents:
                 self._send(200, {"Content-Type": "application/json"}, documents[self.path].encode())
             else:
                 self.send_error(404)
@@ -133,6 +142,9 @@ def main() -> None:
     parser.add_argument("--bearer-for-tools")
     parser.add_argument("--key-header")
     parser.add_argument("--key")
+    parser.add_argument("--key-env")
+    parser.add_argument("--key-scheme")
+    parser.add_argument("--worker-health", action="store_true")
     parser.add_argument("--well-known", action="append", default=[])
     args = parser.parse_args()
 
