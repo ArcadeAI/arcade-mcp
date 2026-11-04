@@ -15,7 +15,12 @@ from arcade_cli import deploy_mcp
 from arcade_cli.context import DeploymentsRunner
 from arcade_cli.deploy import DeployRefusedError
 from arcade_cli.deploy_checks import ProjectCheckError
-from arcade_cli.deploy_mcp import deploy_mcp_server, deploys_mcp_server
+from arcade_cli.deploy_mcp import (
+    deploy_mcp_server,
+    deploys_mcp_server,
+    engine_toolkit_name,
+    framework_warning,
+)
 
 FAKES = Path(__file__).parent / "start_command_servers" / "fakes"
 SECRET_VALUE = "sk-very-secret-value-1234"
@@ -83,16 +88,23 @@ def stand_in(tmp_path: Path, *, arcade_toml: str = "", server_args: str = "") ->
     return project
 
 
-def deploy(project: Path, *, secrets: str = "auto") -> None:
+def deploy(
+    project: Path,
+    *,
+    secrets: str = "auto",
+    env_file: Path | None = None,
+    skip_validate: bool = False,
+) -> None:
     deploy_mcp_server(
         project,
         "http://engine.test",
-        skip_validate=False,
-        server_name=None,
-        server_version=None,
+        skip_validate=skip_validate,
+        server_name="srv" if skip_validate else None,
+        server_version="1.0.0" if skip_validate else None,
         secrets=secrets,
         debug=False,
         provider=None,
+        env_file=env_file,
     )
 
 
@@ -173,20 +185,149 @@ class TestDeploy:
         assert "needs a token to list its tools" in capsys.readouterr().out
 
 class TestSecretsMode:
-    def test_a_mode_other_than_auto_is_noted_and_the_declared_secrets_are_sent(
+    def test_all_sends_every_env_file_entry_and_the_declared_secrets(
+        self, tmp_path: Path, engine: FakeEngine, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("SNOWFLAKE_TOKEN", SECRET_VALUE)
+        project = stand_in(
+            tmp_path,
+            arcade_toml='secrets = ["SNOWFLAKE_TOKEN"]\n[deploy.environment]\nREGION = "us-east"\n',
+        )
+        env_file = project / ".env"
+        env_file.write_text("EXTRA_TOKEN=extra-value\nREGION=eu-west\n")
+
+        deploy(project, secrets="all", env_file=env_file)
+
+        [body] = engine.created
+        assert body["secrets"] == {"SNOWFLAKE_TOKEN": SECRET_VALUE, "EXTRA_TOKEN": "extra-value"}
+        # A name declared as an environment value stays one.
+        assert body["environment"] == {"REGION": "us-east"}
+
+    def test_all_refuses_a_reserved_name_in_env_file(
+        self, tmp_path: Path, engine: FakeEngine
+    ) -> None:
+        project = stand_in(tmp_path)
+        env_file = project / ".env"
+        env_file.write_text("EXTRA_TOKEN=x\nARCADE_WORKER_SECRET=y\n")
+
+        with pytest.raises(DeployRefusedError, match=r"ARCADE_WORKER_SECRET.*reserves"):
+            deploy(project, secrets="all", env_file=env_file)
+        assert not engine.uploaded
+
+    def test_skip_with_declared_secrets_is_refused(
+        self, tmp_path: Path, engine: FakeEngine, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("SNOWFLAKE_TOKEN", SECRET_VALUE)
+        project = stand_in(tmp_path, arcade_toml='secrets = ["SNOWFLAKE_TOKEN"]\n')
+
+        with pytest.raises(DeployRefusedError, match=r"--secrets skip.*SNOWFLAKE_TOKEN"):
+            deploy(project, secrets="skip")
+        assert not engine.uploaded
+
+    def test_skip_without_declared_secrets_deploys(
+        self, tmp_path: Path, engine: FakeEngine
+    ) -> None:
+        project = stand_in(tmp_path)
+
+        deploy(project, secrets="skip")
+
+        assert engine.created[0]["secrets"] == {}
+
+    def test_skip_validate_keeps_auto_sending_the_declared_secrets(
+        self, tmp_path: Path, engine: FakeEngine, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("SNOWFLAKE_TOKEN", SECRET_VALUE)
+        project = stand_in(tmp_path, arcade_toml='secrets = ["SNOWFLAKE_TOKEN"]\n')
+
+        deploy(project, skip_validate=True)
+
+        assert engine.created[0]["secrets"] == {"SNOWFLAKE_TOKEN": SECRET_VALUE}
+
+
+class TestApiKey:
+    def test_a_key_declared_as_a_secret_reaches_the_server_in_its_header(
         self,
         tmp_path: Path,
         engine: FakeEngine,
         monkeypatch: pytest.MonkeyPatch,
         capsys: pytest.CaptureFixture[str],
     ) -> None:
-        monkeypatch.setenv("SNOWFLAKE_TOKEN", SECRET_VALUE)
-        project = stand_in(tmp_path, arcade_toml='secrets = ["SNOWFLAKE_TOKEN"]\n')
+        monkeypatch.setenv("SERVER_KEY", SECRET_VALUE)
+        project = stand_in(
+            tmp_path,
+            arcade_toml=(
+                'secrets = ["SERVER_KEY"]\n'
+                '[deploy.api_key]\nenv = "SERVER_KEY"\nheader = "X-API-Key"\n'
+            ),
+            # The server checks the header against a fixed key, not its environment.
+            server_args=f"--key-header X-API-Key --key {SECRET_VALUE}",
+        )
 
-        deploy(project, secrets="skip")
+        deploy(project)
 
-        assert engine.created[0]["secrets"] == {"SNOWFLAKE_TOKEN": SECRET_VALUE}
-        assert "--secrets skip doesn't apply to MCP servers yet" in capsys.readouterr().out
+        assert engine.created[0]["secrets"] == {"SERVER_KEY": SECRET_VALUE}
+        assert "Found 1 tool(s)" in capsys.readouterr().out
+
+    def test_the_key_is_sent_after_its_scheme(
+        self, tmp_path: Path, engine: FakeEngine, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("SERVER_KEY", SECRET_VALUE)
+        project = stand_in(
+            tmp_path,
+            arcade_toml=(
+                'secrets = ["SERVER_KEY"]\n[deploy.api_key]\nenv = "SERVER_KEY"\n'
+                'header = "Authorization"\nscheme = "Bearer"\n'
+            ),
+            server_args="--key-header Authorization --key-env SERVER_KEY --key-scheme Bearer",
+        )
+
+        deploy(project)
+
+        assert engine.created
+
+    def test_an_undeclared_key_is_generated_and_put_in_the_servers_environment(
+        self, tmp_path: Path, engine: FakeEngine, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        project = stand_in(
+            tmp_path,
+            arcade_toml='[deploy.api_key]\nenv = "SERVER_KEY"\nheader = "X-API-Key"\n',
+            server_args="--key-header X-API-Key --key-env SERVER_KEY",
+        )
+
+        deploy(project)
+
+        assert engine.created[0]["secrets"] == {}
+        assert "Found 1 tool(s)" in capsys.readouterr().out
+
+    def test_a_refused_declared_key_is_refused_before_upload(
+        self, tmp_path: Path, engine: FakeEngine, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("SERVER_KEY", "not-the-key")
+        project = stand_in(
+            tmp_path,
+            arcade_toml=(
+                'secrets = ["SERVER_KEY"]\n'
+                '[deploy.api_key]\nenv = "SERVER_KEY"\nheader = "X-API-Key"\n'
+            ),
+            server_args="--key-header X-API-Key --key the-fixed-key",
+        )
+
+        with pytest.raises(DeployRefusedError, match=r"refused the API key from the secret SERVER_KEY"):
+            deploy(project)
+        assert not engine.uploaded
+
+    def test_a_fixed_key_the_server_wont_take_suggests_declaring_it(
+        self, tmp_path: Path, engine: FakeEngine
+    ) -> None:
+        project = stand_in(
+            tmp_path,
+            arcade_toml='[deploy.api_key]\nenv = "SERVER_KEY"\nheader = "X-API-Key"\n',
+            server_args="--key-header X-API-Key --key the-fixed-key",
+        )
+
+        with pytest.raises(DeployRefusedError, match=r"declare SERVER_KEY under `secrets`"):
+            deploy(project)
+        assert not engine.uploaded
 
 
 class TestRefusedBeforeUpload:
@@ -236,6 +377,13 @@ class TestRefusedBeforeUpload:
                 provider=None,
             )
         assert not engine.uploaded
+
+    def test_an_arcade_server_missing_its_arcade_mcp_dependency(
+        self, tmp_path: Path, engine: FakeEngine
+    ) -> None:
+        project = stand_in(tmp_path, server_args="--worker-health")
+
+        self.refused(project, engine, r"/worker/health.*arcade-mcp")
 
     def test_no_supported_framework(self, tmp_path: Path, engine: FakeEngine) -> None:
         project = tmp_path / "plain"
@@ -288,6 +436,93 @@ class TestRouting:
         with pytest.raises(ProjectCheckError, match=match):
             deploys_mcp_server(tmp_path)
 
+class TestToolkitName:
+    @pytest.mark.parametrize(
+        ("server_name", "toolkit"),
+        [
+            ("Expense Tools", "ExpenseTools"),
+            ("echo-server", "Echo"),
+            ("fake-mcp", "Fake"),
+            ("my_MCP_Server", "My"),
+            ("snowflake analytics 2", "SnowflakeAnalytics2"),
+            ("mcp-server", "Tools"),
+            ("", "Tools"),
+        ],
+    )
+    def test_mirrors_the_engine(self, server_name: str, toolkit: str) -> None:
+        assert engine_toolkit_name(server_name) == toolkit
+
+    def test_the_deploy_prints_it(
+        self, tmp_path: Path, engine: FakeEngine, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        deploy(stand_in(tmp_path))
+
+        assert "listed under the toolkit Fake" in capsys.readouterr().out
+
+
+class TestFrameworkWarning:
+    @pytest.mark.parametrize(
+        "versions",
+        [
+            {"fastmcp": "4.1.3", "mcp": "1.30.0"},
+            {"fastmcp": "2.14.0", "mcp": "1.9.0"},
+            {"fastmcp": None, "mcp": "2.0.1"},
+        ],
+    )
+    def test_tested_versions_have_no_warning(self, versions: dict[str, str | None]) -> None:
+        assert framework_warning(versions) is None
+
+    @pytest.mark.parametrize(
+        ("versions", "named"),
+        [
+            ({"fastmcp": "5.0.0", "mcp": "1.30.0"}, "fastmcp 5.0.0"),
+            ({"fastmcp": None, "mcp": "3.0.0"}, "the MCP SDK (mcp) 3.0.0"),
+        ],
+    )
+    def test_a_newer_major_is_warned(self, versions: dict[str, str | None], named: str) -> None:
+        warning = framework_warning(versions)
+        assert warning is not None
+        assert named in warning
+
+    def test_neither_framework_is_warned(self) -> None:
+        warning = framework_warning({"fastmcp": None, "mcp": None})
+        assert warning is not None
+        assert "Neither fastmcp nor the MCP SDK" in warning
+
+    def test_the_warning_never_refuses_the_deploy(
+        self,
+        tmp_path: Path,
+        engine: FakeEngine,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        monkeypatch.setattr(
+            deploy_mcp, "_framework_versions", lambda python: {"fastmcp": "5.0.0", "mcp": None}
+        )
+
+        deploy(stand_in(tmp_path))
+
+        assert engine.created
+        assert "hasn't been tested with fastmcp 5.0.0" in capsys.readouterr().out
+
+    def test_an_interpreter_that_cant_be_asked_gives_no_warning(
+        self,
+        tmp_path: Path,
+        engine: FakeEngine,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        monkeypatch.setattr(deploy_mcp, "_framework_versions", lambda python: {})
+
+        deploy(stand_in(tmp_path))
+
+        assert "Neither fastmcp" not in capsys.readouterr().out
+
+    def test_versions_are_read_with_the_projects_interpreter(self) -> None:
+        versions = deploy_mcp._framework_versions(Path(sys.executable))
+
+        assert versions["mcp"]  # the test environment has the MCP SDK
+        assert set(versions) == {"fastmcp", "mcp"}
 
 
 def test_refusals_are_value_errors() -> None:

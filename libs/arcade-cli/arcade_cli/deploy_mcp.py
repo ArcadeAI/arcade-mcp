@@ -11,11 +11,19 @@ declared environment and secrets, which replace the server's previous set.
 from __future__ import annotations
 
 import ast
+import json
 import os
-from dataclasses import dataclass
+import re
+import secrets as secrets_module
+import subprocess
+from collections.abc import Mapping
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
+
+import httpx
+from packaging.version import InvalidVersion, Version
 
 from arcade_cli.console import console
 from arcade_cli.deploy import (
@@ -34,12 +42,17 @@ from arcade_cli.deploy import (
 )
 from arcade_cli.deploy_checks import check_project, install_source
 from arcade_cli.deploy_config import (
+    ApiKey,
     DeclaredValues,
+    DeployConfig,
     load_deploy_config,
+    reserved_names,
     resolve_declared_values,
     runner_settings_json,
 )
+from arcade_cli.secret import load_env_file
 from arcade_cli.start_command import (
+    RUNNER_HOST,
     LocalEndpoint,
     StartCommand,
     StartCommandError,
@@ -71,6 +84,11 @@ class _Validated:
     version: str
 
 
+# The newest major versions of each framework Arcade Deploy is tested with.
+_TESTED_MAJORS = {"fastmcp": 4, "mcp": 2}
+_FRAMEWORK_LABELS = {"fastmcp": "fastmcp", "mcp": "the MCP SDK (mcp)"}
+
+
 def deploy_mcp_server(
     project_dir: Path,
     engine_url: str,
@@ -81,8 +99,13 @@ def deploy_mcp_server(
     secrets: str,
     debug: bool,
     provider: str | None,
+    env_file: Path | None = None,
 ) -> None:
-    """Deploy the MCP server in ``project_dir``; every refusal happens before the upload."""
+    """Deploy the MCP server in ``project_dir``; every refusal happens before the upload.
+
+    ``env_file`` is the .env already loaded into the environment; ``--secrets all`` sends
+    each of its entries.
+    """
     console.print("\nChecking the Arcade Engine can host MCP servers...", style="dim")
     runners = check_mcp_deployments(engine_url)
     console.print("✓ The Engine hosts MCP servers", style="green")
@@ -93,14 +116,7 @@ def deploy_mcp_server(
         console.print(f"✓ Deploy settings from {config.source}", style="green")
     for warning in check_project(project_dir, protocol="mcp", runners=runners):
         console.print(f"[!] {warning}", style="yellow", markup=False)
-    values = resolve_declared_values(config, os.environ)
-    if secrets != "auto":
-        console.print(
-            f"[!] --secrets {secrets} doesn't apply to MCP servers yet: the secrets declared "
-            "in the deploy settings are sent.",
-            style="yellow",
-            markup=False,
-        )
+    values = _values_to_send(config, secrets, env_file)
     if values.secrets:
         names = ", ".join(sorted(values.secrets))
         console.print(f"✓ Sending {len(values.secrets)} secret(s): {names}", style="green")
@@ -112,11 +128,19 @@ def deploy_mcp_server(
         _refuse_own_sign_in_by_imports(project_dir)
         if server_name is None or server_version is None:
             raise ValueError("--server-name and --server-version are required with --skip-validate")
+        python = _find_project_python(project_dir)
+        if python is not None:
+            _warn_untested_frameworks(python)
         validated = _Validated(server_name, server_version)
     else:
         console.print("\nStarting the server locally to check it...", style="dim")
-        validated = _validate(project_dir, start, values, debug)
+        validated = _validate(project_dir, start, values, config.api_key, debug)
     console.print(f"✓ Server: {validated.name} {validated.version}", style="green", markup=False)
+    console.print(
+        f"✓ Its tools will be listed under the toolkit {engine_toolkit_name(validated.name)}",
+        style="green",
+        markup=False,
+    )
 
     console.print("\nCreating deployment package...", style="dim")
     archive = create_mcp_bundle(project_dir, runner_settings_json(config))
@@ -140,19 +164,160 @@ def deploys_mcp_server(project_dir: Path) -> bool:
     return detect_protocol(project_dir) == "mcp"
 
 
+def engine_toolkit_name(server_name: str) -> str:
+    """The toolkit name the Engine gives a deployed MCP server's tools.
+
+    Mirrors the Engine's ``formatServerNameAsPascalCase``: lowercase, drop "mcp" and
+    "server", split on anything not a letter or digit, capitalize each word. A name left
+    empty becomes "Tools".
+    """
+    name = server_name.lower().replace("mcp", "").replace("server", "")
+    words = [word for word in re.split(r"[^a-z0-9]+", name) if word]
+    return "".join(word[0].upper() + word[1:] for word in words) or "Tools"
+
+
+# Secrets
+
+
+def _values_to_send(config: DeployConfig, mode: str, env_file: Path | None) -> DeclaredValues:
+    """The environment and secrets the deploy sends, for the ``--secrets`` mode.
+
+    A deploy replaces the server's whole set of secrets, so ``skip`` can't keep declared
+    secrets in place and is refused when there are any.
+    """
+    mode = mode.lower()
+    if mode == "skip" and config.secrets:
+        raise DeployRefusedError(
+            "--secrets skip would remove the secrets this server declares "
+            f"({', '.join(config.secrets)}): a deploy replaces the server's whole set of "
+            "secrets. Deploy with --secrets auto to send them."
+        )
+    values = resolve_declared_values(config, os.environ)
+    if mode != "all":
+        return values
+
+    entries = load_env_file(str(env_file)) if env_file is not None else {}
+    if env_file is None:
+        console.print(
+            "[!] --secrets all: no .env file was found, so only the declared secrets are sent.",
+            style="yellow",
+            markup=False,
+        )
+    names = [name for name in entries if name not in config.environment]
+    reserved = reserved_names(names)
+    if reserved:
+        raise DeployRefusedError(
+            f"--secrets all would send {', '.join(reserved)} from {env_file}, which the "
+            "deployment runtime reserves for itself. Remove them from .env, or deploy with "
+            "--secrets auto to send only the declared secrets."
+        )
+    # The environment wins over .env, as it did when .env was loaded.
+    from_env_file = {name: os.environ.get(name) or entries[name] for name in names}
+    return replace(values, secrets={**from_env_file, **values.secrets})
+
+
+# Untested framework versions
+
+
+def framework_warning(versions: Mapping[str, str | None]) -> str | None:
+    """A warning when the project's frameworks are newer than tested, or absent.
+
+    ``versions`` maps "fastmcp" and "mcp" to their installed versions, ``None`` when
+    not installed.
+    """
+    installed = {name: version for name, version in versions.items() if version}
+    if not installed:
+        return (
+            "Neither fastmcp nor the MCP SDK (mcp) is installed in the project's environment. "
+            "Arcade Deploy is tested with servers built on them; the deploy goes ahead."
+        )
+    untested = []
+    for name, version in sorted(installed.items()):
+        try:
+            major = Version(version).major
+        except InvalidVersion:
+            continue
+        if name in _TESTED_MAJORS and major > _TESTED_MAJORS[name]:
+            untested.append(
+                f"{_FRAMEWORK_LABELS[name]} {version} (tested up to {_TESTED_MAJORS[name]}.x)"
+            )
+    if not untested:
+        return None
+    return (
+        f"Arcade Deploy hasn't been tested with {' or '.join(untested)}; the deploy goes "
+        "ahead, but check the server once it's running."
+    )
+
+
+def _warn_untested_frameworks(python: Path) -> None:
+    versions = _framework_versions(python)
+    if not versions:
+        return  # The interpreter couldn't be asked; say nothing rather than guess.
+    warning = framework_warning(versions)
+    if warning:
+        console.print(f"[!] {warning}", style="yellow", markup=False)
+
+
+_VERSIONS_SCRIPT = """
+import importlib.metadata as m, json
+versions = {}
+for name in ("fastmcp", "mcp"):
+    try:
+        versions[name] = m.version(name)
+    except m.PackageNotFoundError:
+        versions[name] = None
+print(json.dumps(versions))
+"""
+
+
+def _framework_versions(python: Path) -> dict[str, str | None]:
+    """fastmcp's and the MCP SDK's versions as the project's own interpreter sees them."""
+    try:
+        result = subprocess.run(
+            [str(python), "-c", _VERSIONS_SCRIPT],
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=True,
+        )
+        versions = json.loads(result.stdout)
+    except (OSError, subprocess.SubprocessError, ValueError):
+        return {}
+    if not isinstance(versions, dict):
+        return {}
+    return {str(k): (str(v) if v else None) for k, v in versions.items()}
+
+
 # Validation
 
 
 def _validate(
-    project_dir: Path, start: StartCommand, values: DeclaredValues, debug: bool
+    project_dir: Path,
+    start: StartCommand,
+    values: DeclaredValues,
+    api_key: ApiKey | None,
+    debug: bool,
 ) -> _Validated:
     python = _project_python(project_dir)
-    env = {**values.environment, **values.secrets}
+    _warn_untested_frameworks(python)
+    key_env, headers = _local_api_key(api_key, values)
+    # The runner sets ARCADE_WORKER_SECRET; with it an Arcade server serves /worker/*.
+    env = {
+        **values.environment,
+        **values.secrets,
+        **key_env,
+        "ARCADE_WORKER_SECRET": secrets_module.token_urlsafe(32),
+    }
     try:
-        with run_locally(start, project_dir, env=env, debug=debug, python=python) as endpoint:
+        with run_locally(
+            start, project_dir, env=env, debug=debug, python=python, headers=headers
+        ) as endpoint:
+            if api_key is not None and endpoint.handshake is None:
+                raise _key_refused(api_key, values)
             console.print(f"✓ The server answers MCP at {endpoint.path}", style="green")
+            _refuse_arcade_worker(endpoint)
             _refuse_own_sign_in(endpoint, project_dir)
-            _check_tools(endpoint)
+            _check_tools(endpoint, api_key, values, headers)
             name = endpoint.handshake.server_name if endpoint.handshake else ""
             version = endpoint.handshake.server_version if endpoint.handshake else ""
     except StartCommandError:
@@ -166,7 +331,7 @@ def _validate(
     )
 
 
-def _project_python(project_dir: Path) -> Path:
+def _find_project_python(project_dir: Path) -> Path | None:
     """The project's own interpreter: its ``.venv``, else an active virtual environment."""
     candidates = [project_dir / ".venv"]
     if os.environ.get("VIRTUAL_ENV"):
@@ -175,6 +340,14 @@ def _project_python(project_dir: Path) -> Path:
         for python in (venv / "bin" / "python", venv / "Scripts" / "python.exe"):
             if python.exists():
                 return python
+    return None
+
+
+def _project_python(project_dir: Path) -> Path:
+    """The project's own interpreter; refuses the deploy when it has none."""
+    python = _find_project_python(project_dir)
+    if python is not None:
+        return python
     setup = {
         "uv.lock": "uv sync",
         "requirements.txt": "uv venv && uv pip install -r requirements.txt",
@@ -187,16 +360,72 @@ def _project_python(project_dir: Path) -> Path:
     )
 
 
-def _check_tools(endpoint: LocalEndpoint) -> None:
+def _check_tools(
+    endpoint: LocalEndpoint,
+    api_key: ApiKey | None,
+    values: DeclaredValues,
+    headers: Mapping[str, str],
+) -> None:
     try:
-        tools = list_tools(endpoint)
+        tools = list_tools(endpoint, headers=headers)
     except TokenRequiredError:
+        if api_key is not None:
+            raise _key_refused(api_key, values) from None
         console.print(
             "✓ The server needs a token to list its tools; they appear once a user authorizes it",
             style="green",
         )
         return
     console.print(f"✓ Found {len(tools)} tool(s)", style="green")
+
+
+# API keys
+
+
+def _local_api_key(
+    api_key: ApiKey | None, values: DeclaredValues
+) -> tuple[dict[str, str], dict[str, str]]:
+    """The key's environment variable and request header for the local check.
+
+    The key is the declared secret's value when ``api_key.env`` names one, else a random
+    key, as the runner generates.
+    """
+    if api_key is None:
+        return {}, {}
+    key = values.secrets.get(api_key.env) or secrets_module.token_urlsafe(32)
+    value = f"{api_key.scheme} {key}" if api_key.scheme else key
+    return {api_key.env: key}, {api_key.header: value}
+
+
+def _key_refused(api_key: ApiKey, values: DeclaredValues) -> DeployRefusedError:
+    if api_key.env in values.secrets:
+        return DeployRefusedError(
+            f"The server refused the API key from the secret {api_key.env} (api_key.env), sent "
+            f"in the {api_key.header} header. Check {api_key.env} holds the key the server "
+            "expects, and that api_key.header and api_key.scheme match how it reads it."
+        )
+    return DeployRefusedError(
+        f"The server refused a generated API key put in {api_key.env} (api_key.env) and sent in "
+        f"the {api_key.header} header, so it doesn't read its key from {api_key.env}. If it "
+        f"checks a fixed key, declare {api_key.env} under `secrets` holding that key."
+    )
+
+
+# Arcade servers
+
+
+def _refuse_arcade_worker(endpoint: LocalEndpoint) -> None:
+    """Refuse an Arcade server: it answers the Arcade worker API's health check."""
+    try:
+        response = httpx.get(f"http://{RUNNER_HOST}:{endpoint.port}/worker/health", timeout=5.0)
+    except httpx.HTTPError:
+        return
+    if response.status_code == 200:
+        raise DeployRefusedError(
+            "This server answers the Arcade worker API (GET /worker/health), so it's an "
+            "Arcade server, but the project doesn't list arcade-mcp among its dependencies. "
+            "Add arcade-mcp (or arcade-mcp-server) to its dependencies and deploy again."
+        )
 
 
 # Servers that run their own sign-in
