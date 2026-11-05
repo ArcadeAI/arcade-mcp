@@ -41,7 +41,7 @@ arcade evals examples/evals/eval_arcade_gateway.py \
 # Compare multiple models
 arcade evals examples/evals/eval_stdio_mcp_server.py \
     -p openai:gpt-4o \
-    -p anthropic:claude-sonnet-4-5-20250929 \
+    -p anthropic:claude-sonnet-5-5 \
     -k openai:YOUR_OPENAI_KEY \
     -k anthropic:YOUR_ANTHROPIC_KEY
 
@@ -207,7 +207,7 @@ export ARCADE_USER_ID=your_user_id
 
 arcade evals examples/evals/eval_comprehensive_comparison.py \
     -p openai:gpt-4o \
-    -p anthropic:claude-sonnet-4-5-20250929 \
+    -p anthropic:claude-sonnet-5-5 \
     -k openai:YOUR_KEY \
     -k anthropic:YOUR_KEY \
     -o comparison.html -d
@@ -251,7 +251,7 @@ arcade evals eval_file.py -p openai:gpt-4o,gpt-4o-mini -k openai:YOUR_KEY
 ```bash
 arcade evals eval_file.py \
     -p openai:gpt-4o \
-    -p anthropic:claude-sonnet-4-5-20250929 \
+    -p anthropic:claude-sonnet-5-5 \
     -k openai:YOUR_KEY \
     -k anthropic:YOUR_KEY
 ```
@@ -295,7 +295,7 @@ arcade evals examples/evals/eval_arcade_gateway.py \
 ```bash
 arcade evals examples/evals/eval_stdio_mcp_server.py \
     -p openai:gpt-4o \
-    -p anthropic:claude-sonnet-4-5-20250929 \
+    -p anthropic:claude-sonnet-5-5 \
     -k openai:YOUR_OPENAI_KEY \
     -k anthropic:YOUR_ANTHROPIC_KEY \
     -o battle.html -d
@@ -315,7 +315,7 @@ arcade evals examples/evals/eval_http_mcp_server.py \
 # Compare performance across multiple tool sources
 arcade evals examples/evals/eval_comprehensive_comparison.py \
     -p openai:gpt-4o \
-    -p anthropic:claude-sonnet-4-5-20250929 \
+    -p anthropic:claude-sonnet-5-5 \
     -k openai:YOUR_KEY \
     -k anthropic:YOUR_KEY \
     -o comparison.html -d
