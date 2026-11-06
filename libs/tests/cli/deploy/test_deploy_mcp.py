@@ -70,8 +70,10 @@ def project_environment(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("VIRTUAL_ENV", sys.prefix)
 
 
-def stand_in(tmp_path: Path, *, arcade_toml: str = "", server_args: str = "") -> Path:
-    """A project whose `command` starts the stand-in MCP server."""
+def stand_in(
+    tmp_path: Path, *, arcade_toml: str = "", server_args: str = "", script: str = "fake_mcp.py"
+) -> Path:
+    """A project whose `command` starts the stand-in MCP server, run by ``script``."""
     project = tmp_path / "srv"
     project.mkdir()
     for fake in FAKES.glob("*.py"):
@@ -79,7 +81,7 @@ def stand_in(tmp_path: Path, *, arcade_toml: str = "", server_args: str = "") ->
     (project / "requirements.txt").write_text("fastmcp==4.1.3\n")
     # The port goes last so the command never ends in a quote, which older TOML parsers
     # reject next to the closing delimiter.
-    command = " ".join(filter(None, ["python fake_mcp.py", server_args, f"--port {free_port()}"]))
+    command = " ".join(filter(None, [f"python {script}", server_args, f"--port {free_port()}"]))
     # A literal string, so a command holding JSON or quotes needs no escaping.
     literal = "'''"
     (project / "arcade.toml").write_text(
@@ -361,6 +363,131 @@ class TestApiKey:
         )
 
         with pytest.raises(DeployRefusedError, match=r"declare SERVER_KEY under `secrets`"):
+            deploy(project)
+        assert not engine.uploaded
+
+
+def move_settings_to_pyproject(project: Path) -> None:
+    """Turn a stand-in's arcade.toml into [tool.arcade.deploy] in a pyproject.toml."""
+    settings = (project / "arcade.toml").read_text().replace("[deploy", "[tool.arcade.deploy")
+    (project / "arcade.toml").unlink()
+    (project / "requirements.txt").unlink()
+    (project / "pyproject.toml").write_text(
+        '[project]\nname = "srv"\nversion = "1.0.0"\ndependencies = ["fastmcp==4.1.3"]\n\n'
+        + settings
+    )
+
+
+class TestApiKeyScenarios:
+    """DEP-398: servers that check a static key deploy unchanged; the key is never shown."""
+
+    HARDCODED_KEY = "dev-key-123"
+
+    def hardcoded_key_server(self, tmp_path: Path, arcade_toml: str) -> Path:
+        """A server whose source holds the only key it accepts."""
+        project = stand_in(
+            tmp_path,
+            arcade_toml=arcade_toml,
+            server_args="--key-header Authorization --key-scheme Bearer",
+            script="server.py",
+        )
+        (project / "server.py").write_text(
+            "import runpy, sys\n"
+            f"sys.argv = ['fake_mcp.py', '--key', {self.HARDCODED_KEY!r}, *sys.argv[1:]]\n"
+            "runpy.run_path('fake_mcp.py', run_name='__main__')\n"
+        )
+        return project
+
+    def assert_key_not_shown(self, key: str, body: dict[str, Any], output: str) -> None:
+        """Not in the output, nor in anything the Engine shows or the runner reads."""
+        assert key not in output
+        assert key not in json.dumps(body["environment"])
+        assert key not in body["toolkits"]["bundles"][0]["command"]
+        assert key.encode() not in bundle_files(body)["srv/.arcade/deploy.json"]
+
+    def test_a_key_read_from_the_environment_needs_nothing_from_the_author(
+        self, tmp_path: Path, engine: FakeEngine, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        project = stand_in(
+            tmp_path,
+            arcade_toml='[deploy.api_key]\nenv = "API_KEY"\nheader = "Authorization"\nscheme = "Bearer"\n',
+            server_args="--key-header Authorization --key-scheme Bearer --key-env API_KEY",
+        )
+
+        deploy(project)
+
+        [body] = engine.created
+        assert body["secrets"] == {}
+        assert body["environment"] == {}
+        # The runner gets where the key goes, never a value: it generates its own.
+        assert json.loads(bundle_files(body)["srv/.arcade/deploy.json"]) == {
+            "api_key": {"env": "API_KEY", "header": "Authorization", "scheme": "Bearer"}
+        }
+        assert "Found 1 tool(s)" in capsys.readouterr().out
+
+    @pytest.mark.parametrize("settings_file", ["arcade.toml", "pyproject.toml"])
+    def test_a_hardcoded_key_works_when_supplied_as_a_secret(
+        self,
+        tmp_path: Path,
+        engine: FakeEngine,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
+        settings_file: str,
+    ) -> None:
+        monkeypatch.setenv("EXPENSE_API_KEY", self.HARDCODED_KEY)
+        project = self.hardcoded_key_server(
+            tmp_path,
+            'secrets = ["EXPENSE_API_KEY"]\n[deploy.api_key]\nenv = "EXPENSE_API_KEY"\n'
+            'header = "Authorization"\nscheme = "Bearer"\n',
+        )
+        if settings_file == "pyproject.toml":
+            move_settings_to_pyproject(project)
+
+        deploy(project)
+
+        [body] = engine.created
+        # The key travels only as the secret the author declared.
+        assert body["secrets"] == {"EXPENSE_API_KEY": self.HARDCODED_KEY}
+        output = capsys.readouterr().out
+        assert f"Deploy settings from {settings_file}" in output
+        assert "Found 1 tool(s)" in output
+        self.assert_key_not_shown(self.HARDCODED_KEY, body, output)
+
+    def test_a_supplied_key_the_server_refuses_uploads_nothing(
+        self,
+        tmp_path: Path,
+        engine: FakeEngine,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        monkeypatch.setenv("EXPENSE_API_KEY", "some-other-key")
+        project = self.hardcoded_key_server(
+            tmp_path,
+            'secrets = ["EXPENSE_API_KEY"]\n[deploy.api_key]\nenv = "EXPENSE_API_KEY"\n'
+            'header = "Authorization"\nscheme = "Bearer"\n',
+        )
+
+        with pytest.raises(DeployRefusedError, match="refused the API key") as refused:
+            deploy(project)
+
+        assert not engine.uploaded
+        shown = capsys.readouterr().out + str(refused.value)
+        assert "some-other-key" not in shown
+        assert self.HARDCODED_KEY not in shown
+
+    def test_a_declared_key_secret_with_no_value_uploads_nothing(
+        self, tmp_path: Path, engine: FakeEngine, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.delenv("EXPENSE_API_KEY", raising=False)
+        project = stand_in(
+            tmp_path,
+            arcade_toml=(
+                'secrets = ["EXPENSE_API_KEY"]\n'
+                '[deploy.api_key]\nenv = "EXPENSE_API_KEY"\nheader = "X-API-Key"\n'
+            ),
+        )
+
+        with pytest.raises(ValueError, match=r"EXPENSE_API_KEY \(api_key\.env\)"):
             deploy(project)
         assert not engine.uploaded
 
