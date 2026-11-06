@@ -21,6 +21,7 @@ from arcade_cli.deploy_mcp import (
     engine_toolkit_name,
     framework_warning,
 )
+from arcade_cli.deploy_wheels import WheelCheckResult
 
 FAKES = Path(__file__).parent / "start_command_servers" / "fakes"
 SECRET_VALUE = "sk-very-secret-value-1234"
@@ -41,9 +42,13 @@ class FakeEngine:
         self.watched: list[str] = []
         runners = [DeploymentsRunner(language="python", version="3.12", platform="musllinux_1_2")]
         monkeypatch.setattr(deploy_mcp, "check_mcp_deployments", lambda url: runners)
+        self.wheel_result = WheelCheckResult()
+        monkeypatch.setattr(deploy_mcp, "check_wheels", lambda *a, **k: self.wheel_result)
         monkeypatch.setattr(deploy_mcp, "server_already_exists", lambda url, name: exists)
         monkeypatch.setattr(
-            deploy_mcp, "deploy_server_to_engine", lambda url, body, debug: self.created.append(body)
+            deploy_mcp,
+            "deploy_server_to_engine",
+            lambda url, body, debug: self.created.append(body),
         )
         monkeypatch.setattr(
             deploy_mcp,
@@ -51,7 +56,9 @@ class FakeEngine:
             lambda url, name, body, debug: self.updated.append(body),
         )
         monkeypatch.setattr(
-            deploy_mcp, "watch_rollout", lambda url, name, debug, is_update: self.watched.append(name)
+            deploy_mcp,
+            "watch_rollout",
+            lambda url, name, debug, is_update: self.watched.append(name),
         )
 
     @property
@@ -153,7 +160,7 @@ class TestDeploy:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         engine = FakeEngine(monkeypatch, exists=True)
-        project = stand_in(tmp_path, arcade_toml="[deploy.environment]\nREGION = \"us-east\"\n")
+        project = stand_in(tmp_path, arcade_toml='[deploy.environment]\nREGION = "us-east"\n')
 
         deploy(project)
 
@@ -165,7 +172,9 @@ class TestDeploy:
     def test_the_runner_settings_ship_in_the_bundle(
         self, tmp_path: Path, engine: FakeEngine
     ) -> None:
-        project = stand_in(tmp_path, arcade_toml='path = "/api/mcp"\n', server_args="--path /api/mcp")
+        project = stand_in(
+            tmp_path, arcade_toml='path = "/api/mcp"\n', server_args="--path /api/mcp"
+        )
         (project / "uv.lock").write_text("version = 1\n")
 
         deploy(project)
@@ -183,6 +192,23 @@ class TestDeploy:
 
         assert engine.created
         assert "needs a token to list its tools" in capsys.readouterr().out
+
+    def test_packages_without_wheels_are_a_warning_not_a_refusal(
+        self, tmp_path: Path, engine: FakeEngine, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        engine.wheel_result = WheelCheckResult(
+            warnings=["These packages have no prebuilt wheel for the runner: mysqlclient 2.3.0."],
+            notes=["The wheel check for the runner (musllinux_1_2, Python 3.12, aarch64) didn't"],
+        )
+        project = stand_in(tmp_path)
+
+        deploy(project)
+
+        assert engine.created
+        output = capsys.readouterr().out
+        assert "[!] These packages have no prebuilt wheel for the runner: mysqlclient" in output
+        assert "[!] The wheel check for the runner" in output
+
 
 class TestSecretsMode:
     def test_all_sends_every_env_file_entry_and_the_declared_secrets(
@@ -377,7 +403,9 @@ class TestRefusedBeforeUpload:
         self.refused(project, engine, r"\bSNOWFLAKE_TOKEN\b")
 
     @pytest.mark.parametrize("name", ["PATH", "ARCADE_RUNNER_REGION", "FASTMCP_HOME"])
-    def test_a_reserved_environment_name(self, tmp_path: Path, engine: FakeEngine, name: str) -> None:
+    def test_a_reserved_environment_name(
+        self, tmp_path: Path, engine: FakeEngine, name: str
+    ) -> None:
         project = stand_in(tmp_path, arcade_toml=f'[deploy.environment]\n{name} = "x"\n')
 
         self.refused(project, engine, rf"\b{name}\b.*reserved")
@@ -390,7 +418,9 @@ class TestRefusedBeforeUpload:
             tmp_path,
             server_args=f"--bearer secret --well-known 'oauth-authorization-server={document}'",
         )
-        (project / "auth.py").write_text("from fastmcp.server.auth.providers.github import GitHubProvider\n")
+        (project / "auth.py").write_text(
+            "from fastmcp.server.auth.providers.github import GitHubProvider\n"
+        )
 
         self.refused(project, engine, r"authorization server \(GitHubProvider\)")
 
@@ -423,7 +453,9 @@ class TestRefusedBeforeUpload:
     def test_no_supported_framework(self, tmp_path: Path, engine: FakeEngine) -> None:
         project = tmp_path / "plain"
         project.mkdir()
-        (project / "pyproject.toml").write_text('[project]\nname = "plain-tools"\nversion = "0.1.0"\n')
+        (project / "pyproject.toml").write_text(
+            '[project]\nname = "plain-tools"\nversion = "0.1.0"\n'
+        )
         (project / "server.py").write_text("print('hi')\n")
 
         self.refused(project, engine, "`command`")
@@ -558,7 +590,6 @@ class TestFrameworkWarning:
 
         assert versions["mcp"]  # the test environment has the MCP SDK
         assert set(versions) == {"fastmcp", "mcp"}
-
 
 def test_refusals_are_value_errors() -> None:
     assert issubclass(DeployRefusedError, ValueError)
