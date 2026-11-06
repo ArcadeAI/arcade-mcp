@@ -161,6 +161,16 @@ class TestWhatTheRunnerInstalls:
             "error: The lockfile is outdated"
         ]
 
+    def test_requirements_txt_is_passed_as_a_path_not_on_stdin(self, tmp_path: Path) -> None:
+        # uv can't parse an `-r C:\...` line read from stdin, so Windows paths broke the check.
+        uv = FakeUv()
+
+        check_wheels(project(tmp_path), protocol="mcp", runners=[MUSL], run_uv=uv)
+
+        for args, stdin in uv.resolves():
+            assert args[2] == str(tmp_path / "requirements.txt")
+            assert stdin == ""
+
     def test_fastmcp_json_dependencies(self, tmp_path: Path) -> None:
         (tmp_path / "fastmcp.json").write_text(
             json.dumps({"environment": {"dependencies": ["fastmcp>=2", "mysqlclient"]}})

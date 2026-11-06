@@ -109,7 +109,7 @@ def check_wheels(
     except _Unfinished as e:
         result.notes.append(f"The wheel check didn't finish: exporting uv.lock failed: {e}")
         return result
-    if not requirements.strip():
+    if requirements.path == "-" and not requirements.text.strip():
         return result
 
     for runner in python_runners:
@@ -163,7 +163,17 @@ def _uv_platform_suffix(platform: str) -> str | None:
     return None if supported is None else f"manylinux_{supported[0]}_{supported[1]}"
 
 
-def _requirements(project_dir: Path, source: str, run_uv: UvRunner) -> tuple[str, list[str]]:
+@dataclass(frozen=True)
+class _Requirements:
+    """What uv resolves: a requirements file's path, or ``-`` for ``text`` on stdin."""
+
+    path: str
+    text: str = ""
+
+
+def _requirements(
+    project_dir: Path, source: str, run_uv: UvRunner
+) -> tuple[_Requirements, list[str]]:
     """The requirements the runner installs from ``source``, and the index options they use."""
     if source == "uv.lock":
         exported = run_uv(
@@ -173,17 +183,18 @@ def _requirements(project_dir: Path, source: str, run_uv: UvRunner) -> tuple[str
         )
         if exported.returncode != 0:
             raise _Unfinished(_first_error(exported.stderr))
-        return exported.stdout, []
+        return _Requirements("-", exported.stdout), []
     if source == "requirements.txt":
+        # Passed as a path, not as an `-r` line on stdin: uv can't parse a Windows path there.
         path = project_dir / "requirements.txt"
-        return f"-r {path}\n", _index_options(path)
+        return _Requirements(str(path)), _index_options(path)
     specs = declared_specs(project_dir, source)
     index_args: list[str] = []
     if source == "fastmcp.json":
         included = _fastmcp_requirements_file(project_dir)
         if included is not None:
             index_args = _index_options(included)
-    return "".join(f"{spec}\n" for spec in specs), index_args
+    return _Requirements("-", "".join(f"{spec}\n" for spec in specs)), index_args
 
 
 def _fastmcp_requirements_file(project_dir: Path) -> Path | None:
@@ -226,13 +237,17 @@ def _index_options(path: Path, seen: set[Path] | None = None) -> list[str]:
 
 
 def _missing_wheels(
-    run_uv: UvRunner, requirements: str, index_args: list[str], python: str, target: str
+    run_uv: UvRunner,
+    requirements: _Requirements,
+    index_args: list[str],
+    python: str,
+    target: str,
 ) -> tuple[list[tuple[str, str]], list[str]]:
     """The (name, version) pairs with no wheel for ``target``, and the checks that failed."""
     common = ["--python-version", python, "--python-platform", target, *index_args]
     resolved = run_uv(
-        ["pip", "compile", "-", "--no-header", "--no-annotate", *common],
-        requirements,
+        ["pip", "compile", requirements.path, "--no-header", "--no-annotate", *common],
+        requirements.text,
         _RESOLVE_TIMEOUT,
     )
     if resolved.returncode != 0:
