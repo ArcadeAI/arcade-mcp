@@ -1,7 +1,18 @@
 from ._evalsuite._providers import ProviderName
 from ._evalsuite._tool_registry import MCPToolDefinition
 from .capture import CapturedCase, CapturedRun, CapturedToolCall, CaptureResult
-from .critic import BinaryCritic, DatetimeCritic, NoneCritic, NumericCritic, SimilarityCritic
+from .case_quality import CaseQualityGrader, CaseQualityReport
+from .critic import (
+    BinaryCritic,
+    CompletenessCritic,
+    DatetimeCritic,
+    GroundednessCritic,
+    IntentionCritic,
+    NoneCritic,
+    NumericCritic,
+    SemanticSimilarityCritic,
+    SimilarityCritic,
+)
 from .eval import (
     AnyExpectedToolCall,
     EvalRubric,
@@ -11,6 +22,8 @@ from .eval import (
     NamedExpectedToolCall,
     tool_eval,
 )
+from .judge import JevBackend, JudgeBackend, JudgeScope, JudgeVerdict, LLMFallbackBackend
+from .judge_group import JudgeCriticGroup
 from .loaders import (
     clear_tools_cache,
     load_arcade_mcp_gateway_async,
@@ -27,17 +40,29 @@ __all__ = [
     "CapturedCase",
     "CapturedRun",
     "CapturedToolCall",
+    "CaseQualityGrader",
+    "CaseQualityReport",
+    "CompletenessCritic",
     "DatetimeCritic",
     "EvalRubric",
     "EvalSuite",
     "ExpectedMCPToolCall",
     "ExpectedToolCall",
     "FuzzyWeight",
+    "GroundednessCritic",
+    "IntentionCritic",
+    "JevBackend",
+    "JudgeBackend",
+    "JudgeCriticGroup",
+    "JudgeScope",
+    "JudgeVerdict",
+    "LLMFallbackBackend",
     "MCPToolDefinition",
     "NamedExpectedToolCall",
     "NoneCritic",
     "NumericCritic",
     "ProviderName",
+    "SemanticSimilarityCritic",
     "SimilarityCritic",
     "Weight",
     "clear_tools_cache",

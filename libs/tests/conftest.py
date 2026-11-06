@@ -4,7 +4,10 @@ This conftest.py is at the root of the tests directory and applies to all test m
 """
 
 import os
+import socket
 import tempfile
+from contextvars import ContextVar
+from unittest.mock import Mock
 
 # Point the config directory at a throwaway path before anything imports
 # arcade_core. ARCADE_CONFIG_PATH is bound at import, so a fixture cannot
@@ -14,7 +17,7 @@ import tempfile
 _test_config_dir = tempfile.TemporaryDirectory(prefix="arcade-test-config-")
 os.environ.setdefault("ARCADE_WORK_DIR", _test_config_dir.name)
 
-import pytest
+import pytest  # noqa: E402
 
 # Check if eval dependencies are available
 try:
@@ -24,6 +27,34 @@ try:
     EVALS_DEPS_AVAILABLE = True
 except ImportError:
     EVALS_DEPS_AVAILABLE = False
+
+
+@pytest.fixture
+def offline_socket_guard(monkeypatch):
+    """Reject network connections while retaining Windows asyncio socketpairs."""
+    blocked = Mock(side_effect=AssertionError("Unexpected network"))
+    creating_socketpair = ContextVar("creating_socketpair", default=False)
+    original_connect = socket.socket.connect
+    original_socketpair = socket.socketpair
+
+    def guarded_connect(sock, address):
+        if creating_socketpair.get():
+            return original_connect(sock, address)
+        return blocked(address)
+
+    def guarded_socketpair(*args, **kwargs):
+        # Windows implements socketpair with a local TCP connection. Permit
+        # only this synchronous stdlib call, never arbitrary localhost traffic.
+        token = creating_socketpair.set(True)
+        try:
+            return original_socketpair(*args, **kwargs)
+        finally:
+            creating_socketpair.reset(token)
+
+    monkeypatch.setattr(socket.socket, "connect", guarded_connect)
+    monkeypatch.setattr(socket, "socketpair", guarded_socketpair)
+    yield blocked
+    blocked.assert_not_called()
 
 
 def pytest_configure(config):
