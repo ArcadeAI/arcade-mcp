@@ -275,6 +275,40 @@ class TestNames:
         with pytest.raises(DeployConfigError, match="TOKEN"):
             load_deploy_config(tmp_path)
 
+    def test_an_api_key_env_declared_as_an_environment_value_is_refused(
+        self, tmp_path: Path
+    ) -> None:
+        # An environment value is shown in the server's details, and the runner puts its
+        # own key in api_key.env unless a secret holds one.
+        write(
+            tmp_path,
+            {
+                "arcade.toml": (
+                    '[deploy]\napi_key = { env = "API_KEY", header = "X-API-Key" }\n'
+                    '[deploy.environment]\nAPI_KEY = "dev-key-123"\n'
+                )
+            },
+        )
+
+        with pytest.raises(DeployConfigError, match=r"API_KEY.*api_key\.env.*under `secrets`"):
+            load_deploy_config(tmp_path)
+
+    def test_an_api_key_in_pyproject_is_read(self, tmp_path: Path) -> None:
+        write(
+            tmp_path,
+            {
+                "pyproject.toml": PYPROJECT
+                + '\n[tool.arcade.deploy]\nsecrets = ["EXPENSE_API_KEY"]\n'
+                'api_key = { env = "EXPENSE_API_KEY", header = "Authorization", scheme = "Bearer" }\n'
+            },
+        )
+
+        config = load_deploy_config(tmp_path)
+
+        assert config.source == "pyproject.toml"
+        assert config.api_key is not None
+        assert config.api_key.env == "EXPENSE_API_KEY"
+
     def test_an_invalid_variable_name_is_refused(self, tmp_path: Path) -> None:
         write(tmp_path, {"arcade.toml": '[deploy]\nsecrets = ["MY-KEY"]\n'})
 
@@ -309,6 +343,22 @@ class TestDeclaredValues:
 
         with pytest.raises(DeployConfigError, match=r"no value in your environment or \.env: B$"):
             resolve_declared_values(load_deploy_config(tmp_path), {"A": "1", "B": ""})
+
+    def test_a_declared_key_secret_with_no_value_is_named_as_the_api_key(
+        self, tmp_path: Path
+    ) -> None:
+        write(
+            tmp_path,
+            {
+                "arcade.toml": (
+                    '[deploy]\nsecrets = ["EXPENSE_API_KEY"]\n'
+                    'api_key = { env = "EXPENSE_API_KEY", header = "X-API-Key" }\n'
+                )
+            },
+        )
+
+        with pytest.raises(DeployConfigError, match=r"EXPENSE_API_KEY \(api_key\.env\)"):
+            resolve_declared_values(load_deploy_config(tmp_path), {})
 
     def test_an_oauth_client_secret_with_no_value_is_refused(self, tmp_path: Path) -> None:
         write(

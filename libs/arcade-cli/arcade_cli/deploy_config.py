@@ -137,6 +137,15 @@ def _check_names(config: DeployConfig) -> None:
     both = sorted(set(config.environment) & set(config.secrets))
     if both:
         raise ValueError(f"Declared as both an environment value and a secret: {', '.join(both)}")
+    # An environment value is shown in the server's details, and the runner puts its own
+    # key in api_key.env unless a secret holds one: the key would show and not be used.
+    if config.api_key and config.api_key.env in config.environment:
+        name = config.api_key.env
+        raise ValueError(
+            f"{name} is the API key's variable (api_key.env), so it can't be an environment "
+            f"value, which anyone who can see the server can read. Declare {name} under "
+            "`secrets` to supply a fixed key, or leave it out and Arcade generates one."
+        )
 
 
 def reserved_names(names: Iterable[str]) -> list[str]:
@@ -225,7 +234,12 @@ class DeclaredValues:
 
 def resolve_declared_values(config: DeployConfig, env: Mapping[str, str]) -> DeclaredValues:
     """Fill the declared secrets and OAuth client secret from the deployer's environment."""
-    missing = [name for name in config.secrets if not env.get(name)]
+    key_env = config.api_key.env if config.api_key else None
+    missing = [
+        f"{name} (api_key.env)" if name == key_env else name
+        for name in config.secrets
+        if not env.get(name)
+    ]
     if missing:
         raise DeployConfigError(
             "Declared secrets have no value in your environment or .env: " + ", ".join(missing)
