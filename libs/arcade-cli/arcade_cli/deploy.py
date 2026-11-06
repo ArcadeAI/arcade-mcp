@@ -993,7 +993,7 @@ def deploy_server_logic(
     from arcade_cli.deploy_mcp import deploy_mcp_server, deploys_mcp_server
 
     if deploys_mcp_server(current_dir):
-        _load_env_file()
+        env_file = _load_env_file()
         deploy_mcp_server(
             current_dir,
             engine_url,
@@ -1003,6 +1003,7 @@ def deploy_server_logic(
             secrets=secrets,
             debug=debug,
             provider=provider,
+            env_file=env_file,
         )
         return
     if skip_validate and secrets == "auto":

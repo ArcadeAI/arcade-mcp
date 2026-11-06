@@ -1158,7 +1158,10 @@ def deploy(
             "  `auto` (default): During validation, discover required secret KEYS and upsert only those. "
             "If `--skip-validate` is set, `auto` becomes `skip`.\n"
             "  `all`: Upsert every key/value pair from your server's .env file regardless of what the server needs.\n"
-            "  `skip`: Do not upsert any secrets (assumes they are already present in Arcade)."
+            "  `skip`: Do not upsert any secrets (assumes they are already present in Arcade).\n"
+            "For MCP servers (FastMCP, MCP SDK), `auto` sends the secrets declared in the deploy "
+            "settings, even with `--skip-validate`; `all` also sends every .env entry; `skip` "
+            "is refused when secrets are declared, since a deploy replaces the server's secrets."
         ),
         show_choices=True,
         rich_help_panel="Advanced",
