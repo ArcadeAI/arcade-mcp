@@ -26,6 +26,7 @@ import httpx
 from packaging.version import InvalidVersion, Version
 
 from arcade_cli.console import console
+from arcade_cli.context import DeploymentsRunner
 from arcade_cli.deploy import (
     CreateDeploymentRequest,
     DeploymentToolkits,
@@ -50,6 +51,7 @@ from arcade_cli.deploy_config import (
     resolve_declared_values,
     runner_settings_json,
 )
+from arcade_cli.deploy_wheels import check_wheels
 from arcade_cli.secret import load_env_file
 from arcade_cli.start_command import (
     RUNNER_HOST,
@@ -116,6 +118,7 @@ def deploy_mcp_server(
         console.print(f"✓ Deploy settings from {config.source}", style="green")
     for warning in check_project(project_dir, protocol="mcp", runners=runners):
         console.print(f"[!] {warning}", style="yellow", markup=False)
+    _warn_about_missing_wheels(project_dir, runners)
     values = _values_to_send(config, secrets, env_file)
     if values.secrets:
         names = ", ".join(sorted(values.secrets))
@@ -148,6 +151,20 @@ def deploy_mcp_server(
 
     is_update = _send(engine_url, validated, archive, start, values, provider, debug)
     watch_rollout(engine_url, validated.name, debug, is_update)
+
+
+def _warn_about_missing_wheels(project_dir: Path, runners: list[DeploymentsRunner]) -> None:
+    """Warn, never refuse, about dependencies that would compile on the runner."""
+    if not any(runner.language == "python" for runner in runners):
+        return
+    console.print("\nChecking dependencies have prebuilt wheels for the runner...", style="dim")
+    result = check_wheels(project_dir, protocol="mcp", runners=runners)
+    for warning in result.warnings:
+        console.print(f"[!] {warning}", style="yellow", markup=False)
+    for note in result.notes:
+        console.print(f"[!] {note}", style="dim", markup=False)
+    if not result.warnings and not result.notes:
+        console.print("✓ Every dependency has a prebuilt wheel for the runner", style="green")
 
 
 def deploys_mcp_server(project_dir: Path) -> bool:
