@@ -280,7 +280,9 @@ class TrackedTyperCommand(TyperCommand):
 
             from arcade_cli.utils import CLIError
 
-            error_msg = str(e)[:300]
+            # Send only the exception type. Messages can echo raw CLI arguments,
+            # such as secret values or API keys, and must not reach telemetry.
+            error_msg = type(e).__name__
             command_tracker.track_command_execution(
                 command_tracker.get_full_command_path(ctx),
                 success=False,

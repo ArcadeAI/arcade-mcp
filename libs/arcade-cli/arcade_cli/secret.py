@@ -87,7 +87,10 @@ def set_secret(
                 or pair.split("=", 1)[0].strip() == ""
                 or pair.split("=", 1)[1].strip() == ""
             ):
-                raise typer.BadParameter(f"Invalid format '{pair}'. Expected KEY=VALUE")
+                # Don't echo the pair: it may contain the secret value.
+                raise typer.BadParameter(
+                    "Invalid secret format. Expected KEY=VALUE with a non-empty key and value."
+                )
             key, value = pair.split("=", 1)
             key = key.strip()
             if " " in key:

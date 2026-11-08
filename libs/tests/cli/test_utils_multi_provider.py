@@ -328,6 +328,8 @@ class TestParseApiKeySpec:
             parse_api_key_spec("openai-key-without-colon")
         assert "Invalid --api-key format" in str(exc_info.value)
         assert "provider:key" in str(exc_info.value)
+        # The spec holds the API key, so the message must not echo it.
+        assert "openai-key-without-colon" not in str(exc_info.value)
 
     def test_empty_key_raises(self) -> None:
         """Test that empty key raises ValueError."""
@@ -340,6 +342,7 @@ class TestParseApiKeySpec:
         with pytest.raises(ValueError) as exc_info:
             parse_api_key_spec("invalid:sk-test")
         assert "Invalid provider" in str(exc_info.value)
+        assert "sk-test" not in str(exc_info.value)
 
 
 class TestParseOutputPaths:
