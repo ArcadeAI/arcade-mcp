@@ -15,6 +15,7 @@ from arcade_core.schema import TOOL_NAME_SEPARATOR
 from openai import AsyncOpenAI
 from scipy.optimize import linear_sum_assignment
 
+from arcade_evals._evalsuite._backend import InferenceBackend
 from arcade_evals._evalsuite._capture import _EvalSuiteCaptureMixin
 from arcade_evals._evalsuite._comparative_execution import _EvalSuiteComparativeMixin
 from arcade_evals._evalsuite._convenience import _EvalSuiteConvenienceMixin
@@ -868,15 +869,20 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
         seed: str | int | None,
         pass_rule: str,
         registry: EvalSuiteToolRegistry | None = None,
+        backend: InferenceBackend | None = None,
     ) -> dict[str, Any]:
         if num_runs < 1:
             raise ValueError("num_runs must be >= 1")
 
         seed_policy, seed_value = _resolve_seed_spec(seed)
         seed_policy_display = seed_policy
-        if provider == "openai":
+        if backend is not None:
+            # Backend manages its own seed policy
+            seed_policy_display = f"{seed_policy} (backend-managed)"
+            run_seeds: list[int | None] = [None for _ in range(num_runs)]
+        elif provider == "openai":
             if seed_policy == "random":
-                run_seeds: list[int | None] = [
+                run_seeds = [
                     random.randint(0, 2**31 - 1)  # noqa: S311
                     for _ in range(num_runs)
                 ]
@@ -896,7 +902,11 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
 
         for run_index in range(num_runs):
             run_seed = run_seeds[run_index]
-            if provider == "anthropic":
+            if backend is not None:
+                predicted_args = await self._run_with_backend(
+                    backend, case, registry=registry
+                )
+            elif provider == "anthropic":
                 predicted_args = await self._run_anthropic(client, model, case, registry=registry)
             else:
                 predicted_args = await self._run_openai(
@@ -972,15 +982,29 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
 
     async def run(
         self,
-        client: Any,  # AsyncOpenAI | AsyncAnthropic - use Any to avoid import dependency
-        model: str,
+        client: Any = None,  # AsyncOpenAI | AsyncAnthropic - use Any to avoid import dependency
+        model: str = "",
         provider: ProviderName = "openai",
         num_runs: int = 1,
         seed: str | int | None = "constant",
         multi_run_pass_rule: str = PASS_RULE_LAST,
+        *,
+        backend: InferenceBackend | None = None,
     ) -> dict[str, Any]:
         """
         Run the evaluation suite.
+
+        Can be called in two ways:
+
+        1. Built-in provider path (backwards compatible)::
+
+            results = await suite.run(client=client, model="gpt-4o")
+
+        2. Custom backend path::
+
+            from arcade_evals import OpenAICompatBackend
+            backend = OpenAICompatBackend(client, "gemini-2.5-flash", seed=None, strict=False)
+            results = await suite.run(backend=backend)
 
         Args:
             client: The LLM client instance (AsyncOpenAI or AsyncAnthropic).
@@ -989,6 +1013,8 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
             num_runs: Number of runs per case.
             seed: Seed policy ("constant", "random", or an integer seed).
             multi_run_pass_rule: How to determine pass/warn for multi-run cases.
+            backend: An InferenceBackend implementation. When provided,
+                ``client``, ``model``, and ``provider`` are ignored.
 
         Returns:
             A dictionary containing the evaluation results.
@@ -1002,8 +1028,15 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
                 f"Valid values: {', '.join(sorted(_VALID_PASS_RULES))}"
             )
 
+        # Resolve model name: explicit model takes precedence, then backend
+        effective_model = model or (backend.model_name if backend else "")
+        if not effective_model:
+            raise ValueError("model must be provided either directly or via backend.model_name")
+        if backend is None and client is None:
+            raise ValueError("Either 'client' or 'backend' must be provided.")
+
         results: dict[str, Any] = {
-            "model": model,
+            "model": effective_model,
             "suite_name": self.name,
             "rubric": self.rubric,
             "cases": [],
@@ -1022,11 +1055,12 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
                 case_result = await self._run_case_with_stats(
                     case,
                     client,
-                    model,
+                    effective_model,
                     provider,
                     num_runs=num_runs,
                     seed=seed,
                     pass_rule=multi_run_pass_rule,
+                    backend=backend,
                 )
 
                 # Prepare the result
@@ -1055,6 +1089,32 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
 
         results["cases"] = case_results
         return results
+
+    async def _run_with_backend(
+        self,
+        backend: InferenceBackend,
+        case: "EvalCase",
+        registry: EvalSuiteToolRegistry | None = None,
+    ) -> list[tuple[str, dict[str, Any]]]:
+        """Run evaluation using a custom InferenceBackend.
+
+        Args:
+            backend: The backend implementation.
+            case: The evaluation case.
+            registry: Optional registry to use. If None, uses _internal_registry.
+
+        Returns:
+            List of tool calls.
+        """
+        effective_registry = registry or self._internal_registry
+        if effective_registry is None:
+            raise RuntimeError("No registry available")
+
+        messages: list[dict[str, Any]] = [{"role": "system", "content": case.system_message}]
+        messages.extend(case.additional_messages)
+        messages.append({"role": "user", "content": case.user_message})
+
+        return await backend.call_with_tools(messages, effective_registry)
 
     async def _run_openai(
         self,
