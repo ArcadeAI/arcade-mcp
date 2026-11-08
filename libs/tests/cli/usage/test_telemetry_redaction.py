@@ -79,3 +79,28 @@ def test_failed_command_reports_exception_type_only(captured_events: MagicMock) 
 
     payloads = _failed_payloads(captured_events)
     assert payloads[0][PROP_ERROR_MESSAGE] == "BadParameter"
+
+
+def test_group_callback_failure_does_not_send_error_text(captured_events: MagicMock) -> None:
+    """Callback failures (login checks and the like) go through a second tracking path."""
+    import typer
+    from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
+    from arcade_cli.utils import CLIError
+
+    app = TrackedTyper(cls=TrackedTyperGroup)
+
+    @app.callback()
+    def main(ctx: typer.Context) -> None:
+        raise CLIError("Callback failed", ValueError(SECRET_VALUE))
+
+    @app.command()
+    def run() -> None:
+        pass
+
+    result = runner.invoke(app, ["run"])
+
+    assert result.exit_code != 0
+    payloads = _failed_payloads(captured_events)
+    assert payloads, "expected a failed-command event"
+    assert SECRET_VALUE not in json.dumps(payloads)
+    assert payloads[0][PROP_ERROR_MESSAGE] == "CLIError"

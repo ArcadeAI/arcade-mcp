@@ -238,6 +238,15 @@ class CommandTracker:
         self.usage_service.capture(event_name, self.user_id, properties=properties, is_anon=is_anon)
 
 
+def _telemetry_error_message(error: BaseException) -> str:
+    """Describe a failure for usage telemetry by exception type only.
+
+    Messages can echo raw CLI arguments, such as secret values or API keys, and
+    must not reach telemetry.
+    """
+    return type(error).__name__
+
+
 # Global tracker instance
 command_tracker = CommandTracker()
 
@@ -280,9 +289,7 @@ class TrackedTyperCommand(TyperCommand):
 
             from arcade_cli.utils import CLIError
 
-            # Send only the exception type. Messages can echo raw CLI arguments,
-            # such as secret values or API keys, and must not reach telemetry.
-            error_msg = type(e).__name__
+            error_msg = _telemetry_error_message(e)
             command_tracker.track_command_execution(
                 command_tracker.get_full_command_path(ctx),
                 success=False,
@@ -361,7 +368,7 @@ class TrackedTyper(typer.Typer):
                         command_name,
                         success=False,
                         duration_ms=duration,
-                        error_message=str(e)[:300],
+                        error_message=_telemetry_error_message(e),
                         monotonic_start=start_monotonic,
                         monotonic_end=end_monotonic,
                     )
