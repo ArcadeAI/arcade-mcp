@@ -1,6 +1,7 @@
 import importlib.util
 import ipaddress
 import os
+import re
 import shlex
 import sys
 import traceback
@@ -11,7 +12,7 @@ from importlib import metadata
 from pathlib import Path
 from textwrap import dedent
 from typing import Any, Callable, cast
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 
 import httpx
 import idna
@@ -819,6 +820,27 @@ def get_org_scoped_url(base_url: str, path: str) -> str:
     project_id = config.context.project_id
 
     return f"{base_url}/v1/orgs/{org_id}/projects/{project_id}{path}"
+
+
+# Secret keys are environment variable names: the deploy flow reads them with
+# os.getenv and tools read them from the environment. Anything else, such as "/",
+# "." or "%", could change the API path the key is sent to.
+_SECRET_KEY_PATTERN = re.compile(r"[A-Za-z0-9_]+")
+
+
+def validate_secret_key(key: str) -> str:
+    """Return the key if it is a valid secret key, otherwise raise ValueError."""
+    if not _SECRET_KEY_PATTERN.fullmatch(key):
+        raise ValueError(
+            f"Invalid secret key {key!r}: secret keys may contain only "
+            "letters, digits and underscores."
+        )
+    return key
+
+
+def secret_url_path(key: str) -> str:
+    """Build the "/secrets/<key>" API path for a validated, fully encoded key."""
+    return f"/secrets/{quote(validate_secret_key(key), safe='')}"
 
 
 def build_api_key_scoped_url(base_url: str, path: str) -> str:
