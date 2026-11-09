@@ -305,7 +305,11 @@ class Toolkit(BaseModel):
         """
         # Get all python files in the package directory
         try:
-            modules = [f for f in package_dir.glob("**/*.py") if f.is_file() and Validate.path(f)]
+            # Sorted: the order decides which declaration wins a conflict, and the
+            # filesystem lists a directory in no particular order (hash order on ext4).
+            modules = sorted(
+                f for f in package_dir.glob("**/*.py") if f.is_file() and Validate.path(f)
+            )
         except OSError as e:
             raise ToolkitLoadError(
                 f"Failed to locate Python files in package directory for '{package_name}'."
