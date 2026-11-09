@@ -43,7 +43,9 @@ from arcade_cli.utils import (
     get_auth_headers,
     get_org_scoped_url,
     resolve_engine_base_url,
+    secret_url_path,
     validate_and_get_config,
+    validate_secret_key,
 )
 
 logger = logging.getLogger(__name__)
@@ -788,7 +790,8 @@ def get_required_secrets(
             ):
                 for secret in tool["requirements"]["secrets"]:
                     if secret.get("key"):
-                        required_secrets.add(secret["key"])
+                        # A tool author controls this key, and it ends up in an API path.
+                        required_secrets.add(validate_secret_key(secret["key"]))
 
         console.print(f"✓ Found {len(tools_data)} tools", style="green")
 
@@ -868,6 +871,12 @@ def upsert_secrets_to_engine(
     client = httpx.Client(headers=get_auth_headers())
 
     for secret_key in sorted(secrets):
+        try:
+            secret_path = secret_url_path(secret_key)
+        except ValueError as e:
+            console.print(f"❌ Skipping secret upload: {e}", style="red")
+            continue
+
         secret_value = os.getenv(secret_key)
 
         if secret_value:
@@ -884,7 +893,7 @@ def upsert_secrets_to_engine(
 
         try:
             # Upsert secret to engine
-            url = get_org_scoped_url(engine_url, f"/secrets/{secret_key}")
+            url = get_org_scoped_url(engine_url, secret_path)
             response = client.put(
                 url,
                 json={"description": "Secret set via CLI", "value": secret_value},

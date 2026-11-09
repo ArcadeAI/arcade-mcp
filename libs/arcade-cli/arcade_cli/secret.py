@@ -1,3 +1,5 @@
+from urllib.parse import quote
+
 import httpx
 import typer
 from rich.table import Table
@@ -9,6 +11,8 @@ from arcade_cli.utils import (
     get_auth_headers,
     get_org_scoped_url,
     resolve_engine_base_url,
+    secret_url_path,
+    validate_secret_key,
 )
 
 app = TrackedTyper(
@@ -93,10 +97,16 @@ def set_secret(
                 )
             key, value = pair.split("=", 1)
             key = key.strip()
-            if " " in key:
-                raise typer.BadParameter(f"Secret key '{key}' cannot contain spaces")
             value = value  # keep the value as is, including the whitespace
             secrets[key] = value
+
+    # Validate every key before sending any of them, so a bad key never
+    # leaves a partial upload behind.
+    for secret_key in secrets:
+        try:
+            validate_secret_key(secret_key)
+        except ValueError as e:
+            raise typer.BadParameter(str(e)) from e
 
     for secret_key, secret_value in secrets.items():
         try:
@@ -236,7 +246,7 @@ def _remove_inline_comment(value: str) -> str:
 def _upsert_secret(secret_key: str, secret_value: str) -> None:
     """Upsert a secret to the engine."""
     engine_url = state["engine_url"]
-    url = get_org_scoped_url(engine_url, f"/secrets/{secret_key}")
+    url = get_org_scoped_url(engine_url, secret_url_path(secret_key))
     response = httpx.put(
         url,
         headers=get_auth_headers(),
@@ -258,6 +268,6 @@ def _get_secrets() -> list[dict]:
 def _delete_secret(secret_id: str) -> None:
     """Delete a secret from the engine."""
     engine_url = state["engine_url"]
-    url = get_org_scoped_url(engine_url, f"/secrets/{secret_id}")
+    url = get_org_scoped_url(engine_url, f"/secrets/{quote(secret_id, safe='')}")
     response = httpx.delete(url, headers=get_auth_headers())
     response.raise_for_status()
