@@ -37,6 +37,7 @@ from arcade_cli.deploy import (
     check_mcp_deployments,
     create_mcp_bundle,
     deploy_server_to_engine,
+    fetch_oauth_callback_url,
     server_already_exists,
     update_deployment,
     watch_rollout,
@@ -151,6 +152,27 @@ def deploy_mcp_server(
 
     is_update = _send(engine_url, validated, archive, start, values, provider, debug)
     watch_rollout(engine_url, validated.name, debug, is_update)
+    if values.oauth_client:
+        _print_oauth_callback_url(engine_url, validated.name)
+
+
+def _print_oauth_callback_url(engine_url: str, server_name: str) -> None:
+    """Print the callback URL to register in the identity provider's OAuth app."""
+    callback_url = fetch_oauth_callback_url(engine_url, server_name)
+    if callback_url is None:
+        console.print(
+            "\n[!] The Engine didn't return an OAuth callback URL for this server. It may not "
+            "support oauth_client in deploys yet, in which case the client wasn't stored and "
+            "users can't sign in to this server through it.",
+            style="yellow",
+            markup=False,
+        )
+        return
+    console.print(
+        "\nOAuth callback URL (register it as a redirect URI in your identity provider's app):",
+        style="bold",
+    )
+    console.print(f"  {callback_url}", markup=False, highlight=False, soft_wrap=True)
 
 
 def _warn_about_missing_wheels(project_dir: Path, runners: list[DeploymentsRunner]) -> None:

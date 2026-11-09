@@ -397,6 +397,27 @@ def server_already_exists(engine_url: str, server_name: str) -> bool:
     return cast(bool, response.json().get("managed"))
 
 
+def fetch_oauth_callback_url(engine_url: str, server_name: str) -> str | None:
+    """The OAuth callback URL Arcade gives the server, or None if the Engine has none.
+
+    Read from ``mcp.redirect_uri`` of ``GET /workers/{name}``; the Engine fills it in for a
+    server deployed with an ``oauth_client``. The deploy has already succeeded by the time
+    this runs, so any failure to read it is None rather than an error.
+    """
+    url = get_org_scoped_url(engine_url, f"/workers/{server_name}")
+    try:
+        with httpx.Client(headers=get_auth_headers(), timeout=DEPLOY_TIMEOUT_SECONDS) as client:
+            response = client.get(url)
+            response.raise_for_status()
+            worker = response.json()
+    except (httpx.HTTPError, ValueError):
+        logger.debug("Couldn't read the OAuth callback URL of %s", server_name, exc_info=True)
+        return None
+    mcp = worker.get("mcp") if isinstance(worker, dict) else None
+    redirect_uri = mcp.get("redirect_uri") if isinstance(mcp, dict) else None
+    return redirect_uri if isinstance(redirect_uri, str) and redirect_uri else None
+
+
 def update_deployment(
     engine_url: str,
     server_name: str,

@@ -12,6 +12,7 @@ from arcade_cli.deploy import (
     DEPLOY_TIMEOUT_SECONDS,
     create_package_archive,
     deploy_server_to_engine,
+    fetch_oauth_callback_url,
     get_required_secrets,
     get_server_info,
     start_server_process,
@@ -481,3 +482,72 @@ def test_wait_for_health_debug_message(reserved_unreachable_local_url: str) -> N
     assert "above" in msg.lower() or "output" in msg.lower(), (
         f"Debug mode error should reference checking output above; got: {msg!r}"
     )
+
+
+# OAuth callback URL
+
+
+class TestFetchOAuthCallbackUrl:
+    """``fetch_oauth_callback_url`` reads ``mcp.redirect_uri`` from ``GET /workers/{name}``."""
+
+    @pytest.fixture
+    def engine(self, monkeypatch: pytest.MonkeyPatch) -> list[httpx.Request]:
+        self.response = httpx.Response(200, json={})
+        requests: list[httpx.Request] = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            requests.append(request)
+            return self.response
+
+        real_client = httpx.Client
+        monkeypatch.setattr(
+            "arcade_cli.deploy.httpx.Client",
+            lambda **kwargs: real_client(**kwargs, transport=httpx.MockTransport(handler)),
+        )
+        monkeypatch.setattr(
+            "arcade_cli.deploy.get_auth_headers", lambda: {"Authorization": "Bearer test"}
+        )
+        monkeypatch.setattr(
+            "arcade_cli.deploy.get_org_scoped_url",
+            lambda base, path: f"{base}/v1/orgs/o/projects/p{path}",
+        )
+        return requests
+
+    def test_reads_the_redirect_uri_of_the_server(self, engine: list[httpx.Request]) -> None:
+        url = "https://cloud.arcade.dev/api/v1/oauth/callback/srv"
+        self.response = httpx.Response(200, json={"id": "srv", "mcp": {"redirect_uri": url}})
+
+        assert fetch_oauth_callback_url("http://engine.test", "srv") == url
+        [request] = engine
+        assert request.method == "GET"
+        assert str(request.url) == "http://engine.test/v1/orgs/o/projects/p/workers/srv"
+        assert request.headers["Authorization"] == "Bearer test"
+
+    @pytest.mark.parametrize(
+        "body",
+        [{}, {"mcp": None}, {"mcp": {}}, {"mcp": {"redirect_uri": ""}}, {"mcp": "x"}, []],
+        ids=["no mcp", "null mcp", "no redirect_uri", "empty redirect_uri", "odd mcp", "list"],
+    )
+    def test_no_redirect_uri_is_none(self, engine: list[httpx.Request], body: object) -> None:
+        self.response = httpx.Response(200, json=body)
+
+        assert fetch_oauth_callback_url("http://engine.test", "srv") is None
+
+    def test_an_engine_error_is_none(self, engine: list[httpx.Request]) -> None:
+        self.response = httpx.Response(500, text="boom")
+
+        assert fetch_oauth_callback_url("http://engine.test", "srv") is None
+
+    def test_a_connection_error_is_none(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        def refuse(request: httpx.Request) -> httpx.Response:
+            raise httpx.ConnectError("refused")
+
+        real_client = httpx.Client
+        monkeypatch.setattr(
+            "arcade_cli.deploy.httpx.Client",
+            lambda **kwargs: real_client(**kwargs, transport=httpx.MockTransport(refuse)),
+        )
+        monkeypatch.setattr("arcade_cli.deploy.get_auth_headers", lambda: {})
+        monkeypatch.setattr("arcade_cli.deploy.get_org_scoped_url", lambda base, path: base + path)
+
+        assert fetch_oauth_callback_url("http://engine.test", "srv") is None
