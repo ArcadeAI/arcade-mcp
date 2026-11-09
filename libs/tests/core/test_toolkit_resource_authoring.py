@@ -578,3 +578,22 @@ def test_two_resources_sharing_a_path_fail_the_toolkit(widgets_package):
     # caught this would be left holding the second one.
     kept = catalog.resources.get("ui://Widgets/2.3.1/dashboard.html")
     assert kept.resource.name == "dashboard", "the first declaration must survive the conflict"
+
+
+def test_module_scan_order_does_not_depend_on_the_filesystem(widgets_package, monkeypatch):
+    """Which declaration is "first" must not depend on the order the OS lists files in."""
+    from pathlib import Path
+
+    (widgets_package / "arcade_widgets" / "ui_two.py").write_text(
+        textwrap.dedent(SECOND_UI_MODULE), encoding="utf-8"
+    )
+    real_glob = Path.glob
+
+    def reversed_glob(self, pattern, *args, **kwargs):
+        return sorted(real_glob(self, pattern, *args, **kwargs), reverse=True)
+
+    monkeypatch.setattr(Path, "glob", reversed_glob)
+    toolkit = Toolkit.from_directory(widgets_package)
+
+    scanned = [name for names in toolkit.resources.values() for name in names]
+    assert scanned.index("dashboard") < scanned.index("other_dashboard")
