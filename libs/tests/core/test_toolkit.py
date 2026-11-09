@@ -653,3 +653,24 @@ def helper_tool():
         # Both files should be included
         assert "mypackage.entrypoint" in result
         assert "mypackage.tools.helper" in result
+
+
+def test_scan_directory_loads_modules_in_path_order_whatever_the_filesystem_returns(
+    tmp_path, monkeypatch
+):
+    """Discovery order decides which declaration wins a conflict, so it must not depend
+    on the order the filesystem lists a directory in (hash order on ext4)."""
+    package_dir = tmp_path / "mypackage"
+    package_dir.mkdir()
+    for name in ["__init__.py", "a.py", "b.py", "c.py"]:
+        (package_dir / name).write_text("", encoding="utf-8")
+
+    real_glob = Path.glob
+    monkeypatch.setattr(
+        Path, "glob", lambda self, pattern: reversed(list(real_glob(self, pattern)))
+    )
+    monkeypatch.setattr("arcade_core.toolkit.get_tools_from_ast", lambda tree: ["t"])
+
+    tools = Toolkit.tools_from_directory(package_dir, "mypackage")
+
+    assert list(tools) == ["mypackage.__init__", "mypackage.a", "mypackage.b", "mypackage.c"]

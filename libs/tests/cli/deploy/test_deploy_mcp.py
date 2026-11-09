@@ -60,6 +60,14 @@ class FakeEngine:
             "watch_rollout",
             lambda url, name, debug, is_update: self.watched.append(name),
         )
+        self.callback_url: str | None = None
+        self.callback_lookups: list[str] = []
+
+        def fetch_callback(url: str, name: str) -> str | None:
+            self.callback_lookups.append(name)
+            return self.callback_url
+
+        monkeypatch.setattr(deploy_mcp, "fetch_oauth_callback_url", fetch_callback)
 
     @property
     def uploaded(self) -> bool:
@@ -210,6 +218,83 @@ class TestDeploy:
         output = capsys.readouterr().out
         assert "[!] These packages have no prebuilt wheel for the runner: mysqlclient" in output
         assert "[!] The wheel check for the runner" in output
+
+
+OAUTH_CLIENT_TOML = 'oauth_client = { client_id = "abc", client_secret_env = "ENTRA_SECRET" }\n'
+CALLBACK_URL = "https://cloud.arcade.dev/api/v1/oauth/callback/fake-mcp"
+
+
+class TestOAuthCallbackUrl:
+    @pytest.mark.parametrize("exists", [False, True], ids=["first deploy", "redeploy"])
+    def test_the_callback_url_is_printed_after_an_oauth_client_deploy(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
+        exists: bool,
+    ) -> None:
+        engine = FakeEngine(monkeypatch, exists=exists)
+        engine.callback_url = CALLBACK_URL
+        monkeypatch.setenv("ENTRA_SECRET", SECRET_VALUE)
+        project = stand_in(tmp_path, arcade_toml=OAUTH_CLIENT_TOML)
+
+        deploy(project)
+
+        [body] = engine.updated if exists else engine.created
+        assert body["oauth_client"] == {"client_id": "abc", "client_secret": SECRET_VALUE}
+        assert engine.callback_lookups == ["fake-mcp"]
+        output = capsys.readouterr().out
+        assert "OAuth callback URL" in output
+        assert CALLBACK_URL in output
+        assert SECRET_VALUE not in output
+
+    def test_the_lookup_happens_after_the_rollout(
+        self, tmp_path: Path, engine: FakeEngine, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        engine.callback_url = CALLBACK_URL
+        monkeypatch.setenv("ENTRA_SECRET", SECRET_VALUE)
+        order: list[str] = []
+        monkeypatch.setattr(
+            deploy_mcp, "watch_rollout", lambda url, name, debug, is_update: order.append("rollout")
+        )
+        monkeypatch.setattr(
+            deploy_mcp,
+            "fetch_oauth_callback_url",
+            lambda url, name: order.append("lookup") or CALLBACK_URL,
+        )
+        project = stand_in(tmp_path, arcade_toml=OAUTH_CLIENT_TOML)
+
+        deploy(project)
+
+        assert order == ["rollout", "lookup"]
+
+    def test_an_engine_with_no_callback_url_is_a_warning_not_a_failure(
+        self,
+        tmp_path: Path,
+        engine: FakeEngine,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        monkeypatch.setenv("ENTRA_SECRET", SECRET_VALUE)
+        project = stand_in(tmp_path, arcade_toml=OAUTH_CLIENT_TOML)
+
+        deploy(project)
+
+        assert engine.created
+        assert engine.callback_lookups == ["fake-mcp"]
+        output = capsys.readouterr().out
+        assert "[!] The Engine didn't return an OAuth callback URL" in output
+
+    def test_a_deploy_without_an_oauth_client_prints_no_callback_url(
+        self, tmp_path: Path, engine: FakeEngine, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        engine.callback_url = CALLBACK_URL
+        project = stand_in(tmp_path)
+
+        deploy(project)
+
+        assert engine.callback_lookups == []
+        assert "callback URL" not in capsys.readouterr().out
 
 
 class TestSecretsMode:
