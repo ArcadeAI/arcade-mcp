@@ -765,7 +765,11 @@ def evals(
     model_specs: list[ModelSpec] = []
 
     # Resolve API keys from --api-key flags and environment
-    api_keys = resolve_provider_api_keys(api_keys_specs=api_key)
+    try:
+        api_keys = resolve_provider_api_keys(api_keys_specs=api_key)
+    except ValueError as e:
+        handle_cli_error(str(e), should_exit=True)
+        return
 
     if use_provider:
         # Parse provider specs - supports multiple --use-provider flags

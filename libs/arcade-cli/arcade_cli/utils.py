@@ -177,10 +177,10 @@ def parse_api_key_spec(spec: str) -> tuple[Provider, str]:
     Raises:
         ValueError: If format is invalid or provider is unknown.
     """
+    # Error messages must not echo the spec or any part of it: it holds the API key.
     if ":" not in spec:
         raise ValueError(
-            f"Invalid --api-key format: '{spec}'. "
-            "Expected format: 'provider:key' (e.g., 'openai:sk-...')"
+            "Invalid --api-key format. Expected format: 'provider:key' (e.g., 'openai:sk-...')"
         )
 
     provider_str, key = spec.split(":", 1)
@@ -188,15 +188,14 @@ def parse_api_key_spec(spec: str) -> tuple[Provider, str]:
     key = key.strip()
 
     if not key:
-        raise ValueError(f"Empty API key for provider '{provider_str}'")
+        raise ValueError("Empty API key in --api-key. Expected format: 'provider:key'")
 
     try:
         provider = Provider(provider_str)
     except ValueError:
         valid_providers = [p.value for p in Provider]
         raise ValueError(
-            f"Invalid provider '{provider_str}' in --api-key. "
-            f"Valid providers: {', '.join(valid_providers)}"
+            f"Invalid provider in --api-key. Valid providers: {', '.join(valid_providers)}"
         )
 
     return provider, key
@@ -371,7 +370,9 @@ def resolve_provider_api_keys(
 
 
 class CLIError(Exception):
-    """Custom exception for CLI errors that preserves error messages for tracking.
+    """Custom exception for CLI errors that have already been reported to the user.
+
+    Usage telemetry records only the exception type, never this message.
 
     Never use this exception directly. Use handle_cli_error utility function instead.
     """
