@@ -260,6 +260,46 @@ class TestJWKSTokenValidator:
             assert user.claims["iss"] == "https://auth.example.com"
 
     @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ("client_claims", "expected_client_id"),
+        [
+            ({"client_id": "app-1", "azp": "app-2"}, "app-1"),
+            ({"azp": "app-2"}, "app-2"),
+            ({}, None),
+        ],
+    )
+    async def test_client_id_comes_only_from_client_claims(
+        self, rsa_joserfc_key, jwks_data, client_claims, expected_client_id
+    ):
+        """A token naming no client must not be given a shared placeholder
+        client_id: task isolation keys on it, so two unrelated clients would
+        share one namespace."""
+        claims = {
+            "sub": "user123",
+            "iss": "https://auth.example.com",
+            "aud": "https://mcp.example.com/mcp",
+            "exp": int(time.time()) + 3600,
+            "iat": int(time.time()),
+            **client_claims,
+        }
+        token = jwt.encode({"alg": "RS256", "kid": "test-key-1"}, claims, rsa_joserfc_key)
+
+        with patch("httpx.AsyncClient.get") as mock_get:
+            mock_response = Mock()
+            mock_response.json.return_value = jwks_data
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
+
+            validator = JWKSTokenValidator(
+                jwks_uri="https://auth.example.com/.well-known/jwks.json",
+                issuer="https://auth.example.com",
+                audience="https://mcp.example.com/mcp",
+            )
+
+            user = await validator.validate_token(token)
+            assert user.client_id == expected_client_id
+
+    @pytest.mark.asyncio
     async def test_validate_expired_token(self, expired_jwt_token, jwks_data):
         """Test validating an expired JWT token."""
         with patch("httpx.AsyncClient.get") as mock_get:
