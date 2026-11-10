@@ -34,6 +34,14 @@ class TestDetectProtocol:
 
         assert detect_protocol(tmp_path) == "arcade"
 
+    def test_poetry_dependencies_are_read(self, tmp_path: Path) -> None:
+        write(
+            tmp_path,
+            {"pyproject.toml": '[tool.poetry.dependencies]\npython = "^3.11"\narcade_mcp = "^1.17"\n'},
+        )
+
+        assert detect_protocol(tmp_path) == "arcade"
+
     def test_anything_else_means_mcp(self, tmp_path: Path) -> None:
         write(tmp_path, {"requirements.txt": "fastmcp==3.4.1\n"})
 
@@ -112,6 +120,11 @@ class TestInstallSource:
         write(tmp_path, {"pyproject.toml": pyproject()})
 
         assert install_source(tmp_path, "mcp") == "pyproject.toml"
+
+    def test_an_arcade_bundle_has_no_lock_to_install_from(self, tmp_path: Path) -> None:
+        write(tmp_path, {"pyproject.toml": pyproject(), "uv.lock": ""})
+
+        assert install_source(tmp_path, "arcade") == "pyproject.toml"
 
 
 class TestRefusals:
@@ -270,10 +283,7 @@ class TestWarnings:
 
         assert check_project(tmp_path, protocol="mcp", runners=PY312) == []
 
-    @pytest.mark.parametrize("protocol", ["arcade", "mcp"])
-    def test_uv_sources_without_a_lock_warn_for_both_protocols(
-        self, tmp_path: Path, protocol: str
-    ) -> None:
+    def test_uv_sources_without_a_lock_warn(self, tmp_path: Path) -> None:
         write(
             tmp_path,
             {
@@ -284,7 +294,7 @@ class TestWarnings:
             },
         )
 
-        warnings = check_project(tmp_path, protocol=protocol, runners=PY312)
+        warnings = check_project(tmp_path, protocol="mcp", runners=PY312)
 
         assert any("[tool.uv.sources]" in w and "uv lock" in w for w in warnings)
 
@@ -301,10 +311,69 @@ class TestWarnings:
 
         assert check_project(tmp_path, protocol="mcp", runners=PY312) == []
 
-    def test_an_arcade_deploy_gets_only_the_uv_sources_warning(self, tmp_path: Path) -> None:
+
+
+class TestArcadeServers:
+    """An Arcade server gets the same refusals and warnings, for the bundle it ships."""
+
+    def test_requires_python_that_excludes_the_runner_is_refused(self, tmp_path: Path) -> None:
         write(
             tmp_path,
-            {"pyproject.toml": pyproject("arcade-mcp-server>=1", extra='requires-python = ">=3.99"\n')},
+            {"pyproject.toml": pyproject("arcade-mcp==1.17.0", extra='requires-python = ">=3.99"\n')},
+        )
+
+        with pytest.raises(ProjectCheckError, match=r"'>=3\.99'.*Python 3\.12"):
+            check_project(tmp_path, protocol="arcade", runners=PY312)
+
+    def test_a_poetry_project_without_an_export_is_refused(self, tmp_path: Path) -> None:
+        write(
+            tmp_path,
+            {
+                "pyproject.toml": (
+                    '[tool.poetry]\nname = "srv"\n[tool.poetry.dependencies]\n'
+                    'python = "^3.11"\narcade-mcp = "^1.17"\n'
+                ),
+                # The bundle leaves the lock behind, so it doesn't stand in for an export.
+                "uv.lock": "",
+            },
+        )
+
+        with pytest.raises(ProjectCheckError, match="poetry export"):
+            check_project(tmp_path, protocol="arcade", runners=PY312)
+
+    def test_unpinned_dependencies_warn_without_suggesting_a_lock(self, tmp_path: Path) -> None:
+        write(tmp_path, {"pyproject.toml": pyproject("arcade-mcp>=1.17", "httpx==0.28.1"), "uv.lock": ""})
+
+        [warning] = check_project(tmp_path, protocol="arcade", runners=PY312)
+
+        assert "arcade-mcp" in warning
+        assert "httpx" not in warning
+        assert "uv lock" not in warning
+        assert "pip freeze" in warning
+
+    def test_uv_sources_warn_even_with_a_lock(self, tmp_path: Path) -> None:
+        write(
+            tmp_path,
+            {
+                "pyproject.toml": pyproject(
+                    "arcade-mcp==1.17.0",
+                    "example-sdk==0.2.0",
+                    extra='[tool.uv.sources]\nexample-sdk = { path = "../sdk" }\n',
+                ),
+                "uv.lock": "",
+            },
+        )
+
+        [warning] = check_project(tmp_path, protocol="arcade", runners=PY312)
+
+        assert "[tool.uv.sources]" in warning
+        assert "doesn't carry uv.lock" in warning
+        assert "Run `uv lock`" not in warning
+
+    def test_a_pinned_project_gets_no_warnings(self, tmp_path: Path) -> None:
+        write(
+            tmp_path,
+            {"pyproject.toml": pyproject("arcade-mcp==1.17.0", extra='requires-python = ">=3.10"\n')},
         )
 
         assert check_project(tmp_path, protocol="arcade", runners=PY312) == []

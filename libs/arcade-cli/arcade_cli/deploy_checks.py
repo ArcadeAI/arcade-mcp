@@ -42,16 +42,20 @@ def detect_protocol(project_dir: Path) -> Protocol:
             "fastmcp.json listing the server's dependencies."
         )
     names = {_name(spec) for source in sources for spec in declared_specs(project_dir, source)}
+    # A Poetry project may list its dependencies only under [tool.poetry.dependencies].
+    poetry = _pyproject(project_dir).get("tool", {}).get("poetry", {}).get("dependencies") or {}
+    names |= {canonicalize_name(name) for name in poetry}
     return "arcade" if names & _ARCADE_PACKAGES else "mcp"
 
 
 def install_source(project_dir: Path, protocol: Protocol) -> InstallSource | None:
     """The file the runner installs dependencies from: the first of these that exists.
 
-    uv.lock, then (for MCP servers) fastmcp.json, then requirements.txt, then
-    pyproject.toml.
+    For MCP servers: uv.lock, then fastmcp.json, then requirements.txt, then pyproject.toml.
+    An Arcade server's bundle leaves ``*.lock`` files behind, so for it: requirements.txt,
+    then pyproject.toml.
     """
-    order: tuple[InstallSource, ...] = ("uv.lock", "requirements.txt", "pyproject.toml")
+    order: tuple[InstallSource, ...] = ("requirements.txt", "pyproject.toml")
     if protocol == "mcp":
         order = ("uv.lock", "fastmcp.json", "requirements.txt", "pyproject.toml")
     return next((source for source in order if (project_dir / source).is_file()), None)
@@ -60,25 +64,23 @@ def install_source(project_dir: Path, protocol: Protocol) -> InstallSource | Non
 def check_project(
     project_dir: Path, *, protocol: Protocol, runners: list[DeploymentsRunner]
 ) -> list[str]:
-    """Refuse a project the runner can't install; return warnings about the rest.
-
-    Arcade servers deploy as before: they get only the uv sources warning.
-    """
+    """Refuse a project the runner can't install; return warnings about the rest."""
     pyproject = _pyproject(project_dir)
-    warnings = _uv_sources_warning(project_dir, pyproject)
-    if protocol == "arcade":
-        return warnings
-
-    _refuse_poetry_without_export(project_dir, pyproject)
+    _refuse_poetry_without_export(project_dir, pyproject, protocol)
     _refuse_excluded_python(pyproject, [r for r in runners if r.language == "python"])
-    return [*_unpinned_warning(project_dir, protocol), *warnings]
+    return [
+        *_unpinned_warning(project_dir, protocol),
+        *_uv_sources_warning(project_dir, pyproject, protocol),
+    ]
 
 
-def _refuse_poetry_without_export(project_dir: Path, pyproject: dict[str, Any]) -> None:
+def _refuse_poetry_without_export(
+    project_dir: Path, pyproject: dict[str, Any], protocol: Protocol
+) -> None:
     """Refuse dependencies only Poetry can install: pip reads [project].dependencies only."""
     poetry_dependencies = pyproject.get("tool", {}).get("poetry", {}).get("dependencies") or {}
     ignored = sorted(name for name in poetry_dependencies if name.lower() != "python")
-    if not ignored or install_source(project_dir, "mcp") != "pyproject.toml":
+    if not ignored or install_source(project_dir, protocol) != "pyproject.toml":
         return
     raise ProjectCheckError(
         "The runner installs with pip, which ignores [tool.poetry.dependencies] "
@@ -123,16 +125,26 @@ def _unpinned_warning(project_dir: Path, protocol: Protocol) -> list[str]:
     listed = ", ".join(unpinned[:_UNPINNED_LISTED])
     if len(unpinned) > _UNPINNED_LISTED:
         listed += f" and {len(unpinned) - _UNPINNED_LISTED} more"
+    # An Arcade server's bundle doesn't carry uv.lock, so locking doesn't pin its deploy.
+    how = "`uv lock`, or " if protocol == "mcp" else "`==` versions, or "
     return [
         f"These dependencies in {source} aren't pinned, so the deploy may install versions "
-        f"you haven't tested: {listed}. Pin them with `uv lock`, or "
-        "`pip freeze > requirements.txt`."
+        f"you haven't tested: {listed}. Pin them with {how}`pip freeze > requirements.txt`."
     ]
 
 
-def _uv_sources_warning(project_dir: Path, pyproject: dict[str, Any]) -> list[str]:
+def _uv_sources_warning(
+    project_dir: Path, pyproject: dict[str, Any], protocol: Protocol
+) -> list[str]:
     if not pyproject.get("tool", {}).get("uv", {}).get("sources"):
         return []
+    if protocol == "arcade":
+        return [
+            "pyproject.toml has [tool.uv.sources], but an Arcade server's bundle doesn't "
+            "carry uv.lock, so the runner installs with pip, which ignores uv sources: those "
+            "packages come from PyPI instead. Publish them to an index, or declare them as "
+            "direct URL dependencies (`name @ git+https://...`)."
+        ]
     if (project_dir / "uv.lock").is_file():
         return []
     return [

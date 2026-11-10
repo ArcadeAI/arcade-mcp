@@ -126,7 +126,8 @@ class OAuthClientSettings(BaseModel):
 class CreateDeploymentRequest(BaseModel):
     """Deployment request payload for /v1/deployments endpoint.
 
-    ``environment``, ``secrets`` and ``oauth_client`` are sent only for MCP servers.
+    ``environment`` and ``secrets`` are sent when the project has a deploy config;
+    ``oauth_client`` only for MCP servers.
     """
 
     name: str
@@ -145,8 +146,8 @@ class CreateDeploymentRequest(BaseModel):
 class UpdateDeploymentRequest(BaseModel):
     """Deployment request payload for /v1/deployments/{deployment_name} endpoint.
 
-    The Engine stores exactly the ``environment`` and ``secrets`` an update carries, so an
-    MCP server deploy sends its full declared set. Without ``oauth_client`` the Engine keeps
+    The Engine stores exactly the ``environment`` and ``secrets`` an update carries, so a
+    deploy with a deploy config sends its full declared set. Without ``oauth_client`` the Engine keeps
     the stored client.
     """
 
@@ -191,6 +192,19 @@ def check_mcp_deployments(engine_url: str) -> list[DeploymentsRunner]:
             "servers built with arcade-mcp. Ask your administrator to upgrade it."
         )
     return [runner for runner in deployments.runners if runner.language == "python"]
+
+
+def deployment_runners(engine_url: str) -> list[DeploymentsRunner]:
+    """The Engine's Python runners, from its discovery document; none when it can't say.
+
+    For Arcade servers, which every Engine hosts: an Engine without discovery, or without
+    runners in it, still takes the deploy, just without the checks that need a runner.
+    """
+    try:
+        discovery = fetch_discovery(engine_url)
+    except DiscoveryError:
+        return []
+    return [r for r in discovery.deployments.runners if r.language == "python"]
 
 
 # Deployment Status Functions
@@ -468,12 +482,14 @@ def update_deployment(
         client.close()
 
 
-def create_package_archive(package_dir: Path) -> str:
+def create_package_archive(package_dir: Path, runner_settings: str | None = None) -> str:
     """
     Create a tar.gz archive of the package directory.
 
     Args:
         package_dir: Path to the package directory to archive
+        runner_settings: The contents of ``.arcade/deploy.json``, added to the archive
+            when given. The project's own copy, a hidden file, is always left behind.
 
     Returns:
         Base64-encoded string of the tar.gz archive bytes
@@ -517,6 +533,8 @@ def create_package_archive(package_dir: Path) -> str:
     byte_stream = io.BytesIO()
     with tarfile.open(fileobj=byte_stream, mode="w:gz") as tar:
         tar.add(package_dir, arcname=package_dir.name, filter=exclude_filter)
+        if runner_settings is not None:
+            _add_runner_settings(tar, package_dir.name, runner_settings)
 
     # Get bytes and encode to base64
     byte_stream.seek(0)
@@ -554,11 +572,15 @@ def create_mcp_bundle(project_dir: Path, runner_settings: str | None = None) -> 
     with tarfile.open(fileobj=byte_stream, mode="w:gz") as tar:
         tar.add(root, arcname=project_dir.name, filter=exclude)
         if runner_settings is not None:
-            payload = runner_settings.encode()
-            settings = tarfile.TarInfo(f"{project_dir.name}/{RUNNER_SETTINGS_PATH}")
-            settings.size, settings.mode, settings.mtime = len(payload), 0o644, int(time.time())
-            tar.addfile(settings, io.BytesIO(payload))
+            _add_runner_settings(tar, project_dir.name, runner_settings)
     return base64.b64encode(byte_stream.getvalue()).decode("utf-8")
+
+
+def _add_runner_settings(tar: tarfile.TarFile, root: str, runner_settings: str) -> None:
+    payload = runner_settings.encode()
+    settings = tarfile.TarInfo(f"{root}/{RUNNER_SETTINGS_PATH}")
+    settings.size, settings.mode, settings.mtime = len(payload), 0o644, int(time.time())
+    tar.addfile(settings, io.BytesIO(payload))
 
 
 def _resolve_server_process_stdio(debug: bool) -> tuple[int | None, int | None]:
@@ -587,13 +609,22 @@ def _resolve_server_process_stdio(debug: bool) -> tuple[int | None, int | None]:
     return subprocess.DEVNULL, subprocess.DEVNULL
 
 
-def start_server_process(entrypoint: str, debug: bool = False) -> tuple[subprocess.Popen, int]:
+def start_server_process(
+    entrypoint: str,
+    debug: bool = False,
+    *,
+    python: Path | None = None,
+    env: dict[str, str] | None = None,
+) -> tuple[subprocess.Popen, int]:
     """
     Start the MCP server process on a random port.
 
     Args:
         entrypoint: Path to the entrypoint file that runs the MCPApp instance
         debug: Whether to show debug information
+        python: The interpreter to run it with; by default the project's .venv, else the
+            system Python
+        env: Values to add to its environment, such as the declared environment and secrets
 
     Returns:
         Tuple of (process, port)
@@ -606,6 +637,7 @@ def start_server_process(entrypoint: str, debug: bool = False) -> tuple[subproce
     # override MCPApp.run() settings
     env = {
         **os.environ,
+        **(env or {}),
         "ARCADE_SERVER_HOST": "localhost",
         "ARCADE_SERVER_PORT": str(port),
         "ARCADE_SERVER_TRANSPORT": "http",
@@ -617,7 +649,7 @@ def start_server_process(entrypoint: str, debug: bool = False) -> tuple[subproce
     # find_python_interpreter() looks for .venv/bin/python in cwd, falling back to sys.executable.
     # This ensures the server runs in the project's environment even when the CLI is installed
     # in an isolated environment (e.g., via 'uv tool install arcade-mcp').
-    project_python = find_python_interpreter()
+    project_python = python or find_python_interpreter()
     cmd = [str(project_python), entrypoint]
 
     creationflags = get_windows_no_window_creationflags(new_process_group=True)
@@ -802,7 +834,11 @@ def get_required_secrets(
 
 
 def verify_server_and_get_metadata(
-    entrypoint: str, debug: bool = False
+    entrypoint: str,
+    debug: bool = False,
+    *,
+    python: Path | None = None,
+    env: dict[str, str] | None = None,
 ) -> tuple[str, str, set[str]]:
     """
     Start the server, verify it's healthy, and extract metadata.
@@ -818,6 +854,8 @@ def verify_server_and_get_metadata(
     Args:
         entrypoint: Path to the entrypoint file that runs the MCPApp instance
         debug: Whether to show debug information
+        python: The interpreter to run the server with (see ``start_server_process``)
+        env: Values to add to the server's environment
 
     Returns:
         Tuple of (server_name, server_version, required_secrets_set)
@@ -825,7 +863,7 @@ def verify_server_and_get_metadata(
     Raises:
         ValueError: If the server fails to start or metadata extraction fails
     """
-    process, port = start_server_process(entrypoint, debug)
+    process, port = start_server_process(entrypoint, debug, python=python, env=env)
     console.print(f"✓ Server started on port {port}", style="green")
     base_url = f"http://127.0.0.1:{port}"
 
@@ -1036,8 +1074,6 @@ def deploy_server_logic(
             env_file=env_file,
         )
         return
-    if skip_validate and secrets == "auto":
-        secrets = "skip"
 
     # Step 2: Validate necessary files exist in the correct location
     console.print("\nValidating pyproject.toml exists in current directory...", style="dim")
@@ -1062,6 +1098,16 @@ def deploy_server_logic(
     # Step 3: Load .env file if it exists (searches upward through parent directories)
     env_path = _load_env_file()
 
+    # Step 3b: Read the deploy config and check the project before anything is uploaded
+    from arcade_cli.deploy_arcade import prepare_arcade_deploy
+
+    arcade_deploy = prepare_arcade_deploy(
+        current_dir, engine_url, secrets=secrets, skip_validate=skip_validate
+    )
+    # Without validation there are no tools to read project secrets from.
+    if skip_validate and secrets == "auto":
+        secrets = "skip"
+
     # Step 4: Verify server and extract metadata (or skip if --skip-validate)
     required_secrets_from_validation: set[str] = set()
 
@@ -1083,7 +1129,12 @@ def deploy_server_logic(
         )
         try:
             server_name, server_version, required_secrets_from_validation = (
-                verify_server_and_get_metadata(entrypoint, debug=debug)
+                verify_server_and_get_metadata(
+                    entrypoint,
+                    debug=debug,
+                    python=arcade_deploy.python,
+                    env=arcade_deploy.local_environment,
+                )
             )
         except Exception as e:
             raise ValueError(
@@ -1098,7 +1149,7 @@ def deploy_server_logic(
         console.print("\n[!] Skipping secret upload (--secrets skip)", style="yellow")
     elif secrets == "all" and env_path is not None:
         console.print("\nUploading ALL secrets from .env file...", style="dim")
-        secrets_to_upsert = set(load_env_file(str(env_path)).keys())
+        secrets_to_upsert = arcade_deploy.project_secrets(set(load_env_file(str(env_path)).keys()))
         if secrets_to_upsert:
             console.print(f"✓ Found {len(secrets_to_upsert)} secret(s) in .env file", style="green")
             upsert_secrets_to_engine(engine_url, secrets_to_upsert, debug)
@@ -1106,6 +1157,9 @@ def deploy_server_logic(
             console.print("[!] No secrets found in .env file", style="yellow")
     elif secrets == "auto":
         # Only upload required secrets discovered during validation
+        required_secrets_from_validation = arcade_deploy.project_secrets(
+            required_secrets_from_validation
+        )
         if required_secrets_from_validation:
             console.print(
                 f"\nUploading {len(required_secrets_from_validation)} required secret(s) to Arcade...",
@@ -1118,7 +1172,7 @@ def deploy_server_logic(
     # Step 6: Create tar.gz archive of current directory
     console.print("\nCreating deployment package...", style="dim")
     try:
-        archive_base64 = create_package_archive(current_dir)
+        archive_base64 = create_package_archive(current_dir, arcade_deploy.runner_settings)
         archive_size_kb = len(archive_base64) * 3 / 4 / 1024  # base64 is ~4/3 larger
         console.print(f"✓ Package created ({archive_size_kb:.1f} KB)", style="green")
     except Exception as e:
@@ -1135,12 +1189,17 @@ def deploy_server_logic(
             entrypoint=entrypoint,
         )
         deployment_toolkits = DeploymentToolkits(bundles=[toolkit_bundle])
+        values = arcade_deploy.values
+        environment = values.environment if values else None
+        deployment_secrets = values.secrets if values else None
 
         if server_already_exists(engine_url, server_name):
             is_update = True
             update_request = UpdateDeploymentRequest(
                 description="MCP Server deployed via CLI",
                 toolkits=deployment_toolkits,
+                environment=environment,
+                secrets=deployment_secrets,
             )
             update_deployment(engine_url, server_name, update_request.model_dump(), debug)
         else:
@@ -1149,6 +1208,8 @@ def deploy_server_logic(
                 description="MCP Server deployed via CLI",
                 toolkits=deployment_toolkits,
                 provider=provider,
+                environment=environment,
+                secrets=deployment_secrets,
             )
             deploy_server_to_engine(engine_url, create_request.model_dump(), debug)
     except Exception as e:
