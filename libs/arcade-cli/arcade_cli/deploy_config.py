@@ -1,8 +1,9 @@
-"""The deploy config of an MCP server deploy.
+"""The deploy config of an MCP or Arcade server deploy.
 
 Read from ``[tool.arcade.deploy]`` in pyproject.toml, else from ``[deploy]`` in an
 ``arcade.toml`` beside the server, for projects with only a requirements.txt. Most servers
-need none: the start command, port and path are detected.
+need none: the start command, port and path are detected. An Arcade server uses only
+``environment`` and ``secrets`` (see ``deploy_arcade``).
 
 The CLI is the only parser of this config. It sends the start command, environment,
 secrets and OAuth client in the deploy request, and writes the runner's share
