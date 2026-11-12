@@ -52,6 +52,7 @@ from arcade_cli.deploy_config import (
     resolve_declared_values,
     runner_settings_json,
 )
+from arcade_cli.deploy_native_libs import warn_about_native_libs
 from arcade_cli.deploy_wheels import check_wheels
 from arcade_cli.secret import load_env_file
 from arcade_cli.start_command import (
@@ -120,6 +121,7 @@ def deploy_mcp_server(
     for warning in check_project(project_dir, protocol="mcp", runners=runners):
         console.print(f"[!] {warning}", style="yellow", markup=False)
     warn_about_missing_wheels(project_dir, "mcp", runners)
+    warn_about_native_libs(project_dir, config, runners)
     values = _values_to_send(config, secrets, env_file)
     if values.secrets:
         names = ", ".join(sorted(values.secrets))

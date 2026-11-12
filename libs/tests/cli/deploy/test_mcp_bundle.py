@@ -6,7 +6,14 @@ import json
 import tarfile
 from pathlib import Path
 
-from arcade_cli.deploy import create_mcp_bundle, create_package_archive
+import pytest
+from arcade_cli import deploy
+from arcade_cli.deploy import (
+    BundleTooLargeError,
+    DeployRefusedError,
+    create_mcp_bundle,
+    create_package_archive,
+)
 
 
 def write(project: Path, files: dict[str, str]) -> Path:
@@ -94,3 +101,31 @@ class TestArcadeArchiveUnchanged:
         assert "srv/build/__init__.py" not in names
         assert "srv/.env" not in names
         assert "srv/server.py" in names
+
+
+class TestSizeCap:
+    def test_the_cap_matches_the_engine(self) -> None:
+        assert deploy.MAX_UNCOMPRESSED_BUNDLE_BYTES == 256 * 1024 * 1024
+        assert "256 MiB" in str(BundleTooLargeError())
+        assert isinstance(BundleTooLargeError(), DeployRefusedError)
+
+    @pytest.mark.parametrize("pack", [create_mcp_bundle, create_package_archive])
+    def test_a_bundle_over_the_cap_is_refused(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, pack: object
+    ) -> None:
+        monkeypatch.setattr(deploy, "MAX_UNCOMPRESSED_BUNDLE_BYTES", 64 * 1024)
+        project = write(tmp_path / "srv", {"server.py": "print('hi')\n"})
+        # Incompressible, so it's the uncompressed size that's refused.
+        (project / "data.bin").write_bytes(bytes(range(256)) * 512)
+
+        with pytest.raises(BundleTooLargeError, match="uncompressed size cap"):
+            pack(project)  # type: ignore[operator]
+
+    @pytest.mark.parametrize("pack", [create_mcp_bundle, create_package_archive])
+    def test_a_bundle_under_the_cap_is_packed(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, pack: object
+    ) -> None:
+        monkeypatch.setattr(deploy, "MAX_UNCOMPRESSED_BUNDLE_BYTES", 64 * 1024)
+        project = write(tmp_path / "srv", {"server.py": "print('hi')\n"})
+
+        assert "srv/server.py" in members(pack(project, '{"path": "/mcp"}'))  # type: ignore[operator]

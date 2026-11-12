@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from arcade_cli import deploy as deploy_module
 from arcade_cli import deploy_mcp
 from arcade_cli.context import DeploymentsRunner
 from arcade_cli.deploy import DeployRefusedError
@@ -192,6 +193,33 @@ class TestDeploy:
         files = bundle_files(engine.created[0])
         assert json.loads(files["srv/.arcade/deploy.json"]) == {"path": "/api/mcp"}
         assert "srv/uv.lock" in files
+
+    def test_native_libs_ship_in_the_bundles_runner_settings(
+        self, tmp_path: Path, engine: FakeEngine
+    ) -> None:
+        project = stand_in(tmp_path, arcade_toml='native_libs = ["vendor/odbc"]\n')
+        (project / "vendor" / "odbc").mkdir(parents=True)
+        (project / "vendor" / "odbc" / "libmsodbcsql.so").write_bytes(b"")
+
+        deploy(project)
+
+        files = bundle_files(engine.created[0])
+        assert json.loads(files["srv/.arcade/deploy.json"]) == {"native_libs": ["vendor/odbc"]}
+        assert "srv/vendor/odbc/libmsodbcsql.so" in files
+
+    def test_a_native_library_for_another_platform_warns_and_deploys(
+        self, tmp_path: Path, engine: FakeEngine, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        project = stand_in(tmp_path, arcade_toml='native_libs = ["vendor/odbc"]\n')
+        (project / "vendor" / "odbc").mkdir(parents=True)
+        (project / "vendor" / "odbc" / "libodbc.so.2").write_bytes(b"MZ" + bytes(62))
+
+        deploy(project)
+
+        output = " ".join(capsys.readouterr().out.split())
+        assert "may not load on the runner: vendor/odbc/libodbc.so.2" in output
+        assert "Windows (PE)" in output
+        assert engine.created
 
     def test_a_server_that_needs_a_token_to_list_tools_still_deploys(
         self, tmp_path: Path, engine: FakeEngine, capsys: pytest.CaptureFixture[str]
@@ -460,7 +488,9 @@ class TestApiKey:
             server_args="--key-header X-API-Key --key the-fixed-key",
         )
 
-        with pytest.raises(DeployRefusedError, match=r"refused the API key from the secret SERVER_KEY"):
+        with pytest.raises(
+            DeployRefusedError, match=r"refused the API key from the secret SERVER_KEY"
+        ):
             deploy(project)
         assert not engine.uploaded
 
@@ -609,6 +639,26 @@ class TestRefusedBeforeUpload:
             deploy(project, **kwargs)
         assert not engine.uploaded
 
+    @pytest.mark.parametrize(
+        ("entry", "match"),
+        [("vendor/odbc", "doesn't exist"), ("/opt/odbc", "not absolute paths")],
+    )
+    def test_a_missing_or_outside_native_libs_directory(
+        self, tmp_path: Path, engine: FakeEngine, entry: str, match: str
+    ) -> None:
+        project = stand_in(tmp_path, arcade_toml=f'native_libs = ["{entry}"]\n')
+
+        self.refused(project, engine, match)
+
+    def test_a_bundle_over_the_size_cap(
+        self, tmp_path: Path, engine: FakeEngine, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setattr(deploy_module, "MAX_UNCOMPRESSED_BUNDLE_BYTES", 64 * 1024)
+        project = stand_in(tmp_path)
+        (project / "data.bin").write_bytes(bytes(range(256)) * 512)
+
+        self.refused(project, engine, "uncompressed size cap", skip_validate=True)
+
     def test_a_declared_secret_with_no_value(self, tmp_path: Path, engine: FakeEngine) -> None:
         project = stand_in(tmp_path, arcade_toml='secrets = ["SNOWFLAKE_TOKEN"]\n')
 
@@ -715,6 +765,7 @@ class TestRouting:
         with pytest.raises(ProjectCheckError, match=match):
             deploys_mcp_server(tmp_path)
 
+
 class TestToolkitName:
     @pytest.mark.parametrize(
         ("server_name", "toolkit"),
@@ -802,6 +853,7 @@ class TestFrameworkWarning:
 
         assert versions["mcp"]  # the test environment has the MCP SDK
         assert set(versions) == {"fastmcp", "mcp"}
+
 
 def test_refusals_are_value_errors() -> None:
     assert issubclass(DeployRefusedError, ValueError)

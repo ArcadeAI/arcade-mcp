@@ -55,6 +55,10 @@ DEPLOY_CONFIG = (
 )
 
 
+NATIVE_LIBS_CONFIG = '\n[tool.arcade.deploy]\nnative_libs = ["vendor/odbc"]\n'
+MACH_O = b"\xcf\xfa\xed\xfe" + bytes(60)
+
+
 class FakeEngine:
     """Records what the deploy sends and which project secrets it uploads."""
 
@@ -203,7 +207,9 @@ class TestDeployConfig:
         # The valid server's tool requires MY_SECRET_KEY as a per-call project secret.
         monkeypatch.setenv("MY_SECRET_KEY", SECRET_VALUE)
         arcade_project(
-            tmp_path, monkeypatch, pyproject_extra='\n[tool.arcade.deploy]\nsecrets = ["MY_SECRET_KEY"]\n'
+            tmp_path,
+            monkeypatch,
+            pyproject_extra='\n[tool.arcade.deploy]\nsecrets = ["MY_SECRET_KEY"]\n',
         )
 
         run_deploy()
@@ -243,19 +249,20 @@ class TestDeployConfig:
         assert body["environment"] == {"REGION": "us-east"}
         assert body["secrets"] == {}
 
-    def test_the_runner_settings_ship_in_the_bundle(
+    def test_native_libs_ship_in_the_bundles_runner_settings(
         self, tmp_path: Path, engine: FakeEngine, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        settings = '{\n  "native_libs": ["msodbcsql18"]\n}\n'
-        monkeypatch.setattr(deploy_arcade, "runner_settings_json", lambda config: settings)
-        arcade_project(tmp_path, monkeypatch)
-        (tmp_path / "srv" / ".arcade").mkdir()
-        (tmp_path / "srv" / ".arcade" / "deploy.json").write_text('{"stale": true}')
+        project = arcade_project(tmp_path, monkeypatch, pyproject_extra=NATIVE_LIBS_CONFIG)
+        (project / "vendor" / "odbc").mkdir(parents=True)
+        (project / "vendor" / "odbc" / "libmsodbcsql.so").write_bytes(b"")
+        (project / ".arcade").mkdir()
+        (project / ".arcade" / "deploy.json").write_text('{"stale": true}')
 
         run_deploy(skip_validate=True)
 
         files = bundle_files(engine.created[0])
-        assert json.loads(files["srv/.arcade/deploy.json"]) == {"native_libs": ["msodbcsql18"]}
+        assert json.loads(files["srv/.arcade/deploy.json"]) == {"native_libs": ["vendor/odbc"]}
+        assert "srv/vendor/odbc/libmsodbcsql.so" in files
 
 
 class TestRefusals:
@@ -312,10 +319,63 @@ class TestRefusals:
         self, tmp_path: Path, engine: FakeEngine, monkeypatch: pytest.MonkeyPatch, setting: str
     ) -> None:
         monkeypatch.setenv("SECRET", "value")
-        arcade_project(tmp_path, monkeypatch, pyproject_extra=f"\n[tool.arcade.deploy]\n{setting}\n")
+        arcade_project(
+            tmp_path, monkeypatch, pyproject_extra=f"\n[tool.arcade.deploy]\n{setting}\n"
+        )
 
         with pytest.raises(DeployRefusedError, match="apply only to MCP servers"):
             run_deploy()
+
+        assert not engine.uploaded
+
+    @pytest.mark.parametrize(
+        ("entry", "match"),
+        [("vendor/odbc", "doesn't exist"), ("../odbc", "leaves the project")],
+    )
+    def test_a_missing_or_outside_native_libs_directory_is_refused(
+        self,
+        tmp_path: Path,
+        engine: FakeEngine,
+        monkeypatch: pytest.MonkeyPatch,
+        entry: str,
+        match: str,
+    ) -> None:
+        (tmp_path / "odbc").mkdir()
+        arcade_project(
+            tmp_path,
+            monkeypatch,
+            pyproject_extra=f'\n[tool.arcade.deploy]\nnative_libs = ["{entry}"]\n',
+        )
+
+        with pytest.raises(DeployConfigError, match=match):
+            run_deploy(skip_validate=True)
+
+        assert not engine.uploaded
+
+    def test_a_native_libs_directory_the_archive_leaves_out_is_refused(
+        self, tmp_path: Path, engine: FakeEngine, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        project = arcade_project(
+            tmp_path,
+            monkeypatch,
+            pyproject_extra='\n[tool.arcade.deploy]\nnative_libs = ["build/odbc"]\n',
+        )
+        (project / "build" / "odbc").mkdir(parents=True)
+
+        with pytest.raises(DeployRefusedError, match="leaves out directories named build"):
+            run_deploy(skip_validate=True)
+
+        assert not engine.uploaded
+
+    def test_a_bundle_over_the_size_cap_is_refused(
+        self, tmp_path: Path, engine: FakeEngine, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setattr(deploy, "MAX_UNCOMPRESSED_BUNDLE_BYTES", 64 * 1024)
+        project = arcade_project(tmp_path, monkeypatch)
+        (project / "data.bin").write_bytes(bytes(range(256)) * 512)
+
+        with pytest.raises(DeployRefusedError, match="uncompressed size cap"):
+            run_deploy(skip_validate=True)
 
         assert not engine.uploaded
 
@@ -386,6 +446,24 @@ class TestWarnings:
         assert "arcade-mcp-server" in output
         assert "[tool.uv.sources]" in output
         assert "pyodbc has no prebuilt wheel" in output
+        assert engine.uploaded
+
+    def test_a_native_library_for_another_platform_warns_and_deploys(
+        self,
+        tmp_path: Path,
+        engine: FakeEngine,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        project = arcade_project(tmp_path, monkeypatch, pyproject_extra=NATIVE_LIBS_CONFIG)
+        (project / "vendor" / "odbc").mkdir(parents=True)
+        (project / "vendor" / "odbc" / "libmsodbcsql.so").write_bytes(MACH_O)
+
+        run_deploy(skip_validate=True)
+
+        output = " ".join(capsys.readouterr().out.split())
+        assert "may not load on the runner: vendor/odbc/libmsodbcsql.so" in output
+        assert "macOS (Mach-O)" in output
         assert engine.uploaded
 
 

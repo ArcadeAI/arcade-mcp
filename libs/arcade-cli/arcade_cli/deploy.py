@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import gzip
 import io
 import logging
 import os
@@ -9,6 +10,7 @@ import sys
 import tarfile
 import time
 from collections import deque
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any, cast
 
@@ -54,6 +56,10 @@ logger = logging.getLogger(__name__)
 # Constants
 
 DEPLOY_TIMEOUT_SECONDS = 360
+
+# The Engine refuses a bundle whose uncompressed tar is larger than this (its
+# maxDecompressedBundleBytes); the CLI refuses it first, before uploading.
+MAX_UNCOMPRESSED_BUNDLE_BYTES = 256 << 20
 
 # Models
 
@@ -482,6 +488,17 @@ def update_deployment(
         client.close()
 
 
+def arcade_archive_drops(part: str) -> bool:
+    """Whether an Arcade archive leaves out files under a path component named ``part``."""
+    return (
+        part.startswith(".")
+        or part == "__pycache__"
+        or part.endswith(".egg-info")
+        or part in ("dist", "build")
+        or part.endswith(".lock")
+    )
+
+
 def create_package_archive(package_dir: Path, runner_settings: str | None = None) -> str:
     """
     Create a tar.gz archive of the package directory.
@@ -496,6 +513,7 @@ def create_package_archive(package_dir: Path, runner_settings: str | None = None
 
     Raises:
         ValueError: If package_dir doesn't exist or is not a directory
+        BundleTooLargeError: If the archive is over the uncompressed size cap
     """
     if not package_dir.exists():
         raise ValueError(f"Package directory not found: {package_dir}")
@@ -513,35 +531,16 @@ def create_package_archive(package_dir: Path, runner_settings: str | None = None
         - dist and build directories
         - files ending with .lock
         """
-        name = tarinfo.name
-
-        parts = Path(name).parts
-
-        for part in parts:
-            if (
-                part.startswith(".")
-                or part == "__pycache__"
-                or part.endswith(".egg-info")
-                or part in ["dist", "build"]
-                or part.endswith(".lock")
-            ):
-                return None
-
+        if any(arcade_archive_drops(part) for part in Path(tarinfo.name).parts):
+            return None
         return tarinfo
 
-    # Create tar.gz archive in memory
-    byte_stream = io.BytesIO()
-    with tarfile.open(fileobj=byte_stream, mode="w:gz") as tar:
+    def add(tar: tarfile.TarFile) -> None:
         tar.add(package_dir, arcname=package_dir.name, filter=exclude_filter)
         if runner_settings is not None:
             _add_runner_settings(tar, package_dir.name, runner_settings)
 
-    # Get bytes and encode to base64
-    byte_stream.seek(0)
-    package_bytes = byte_stream.read()
-    package_bytes_b64 = base64.b64encode(package_bytes).decode("utf-8")
-
-    return package_bytes_b64
+    return base64.b64encode(_pack(add)).decode("utf-8")
 
 
 def create_mcp_bundle(project_dir: Path, runner_settings: str | None = None) -> str:
@@ -568,12 +567,51 @@ def create_mcp_bundle(project_dir: Path, runner_settings: str | None = None) -> 
             return None
         return tarinfo
 
-    byte_stream = io.BytesIO()
-    with tarfile.open(fileobj=byte_stream, mode="w:gz") as tar:
+    def add(tar: tarfile.TarFile) -> None:
         tar.add(root, arcname=project_dir.name, filter=exclude)
         if runner_settings is not None:
             _add_runner_settings(tar, project_dir.name, runner_settings)
-    return base64.b64encode(byte_stream.getvalue()).decode("utf-8")
+
+    return base64.b64encode(_pack(add)).decode("utf-8")
+
+
+class BundleTooLargeError(DeployRefusedError):
+    """The bundle is over the Engine's uncompressed size cap; nothing is uploaded."""
+
+    def __init__(self) -> None:
+        cap = MAX_UNCOMPRESSED_BUNDLE_BYTES >> 20
+        super().__init__(
+            f"The deployment package is over the {cap} MiB uncompressed size cap that Arcade "
+            f"accepts. Trim the project (large data files, bundled libraries, virtual "
+            f"environments outside hidden directories) to under {cap} MiB and deploy again."
+        )
+
+
+class _CappedWriter:
+    """Counts the uncompressed tar stream and stops it once it passes the cap."""
+
+    def __init__(self, target: gzip.GzipFile, cap: int) -> None:
+        self._target, self._cap, self.written = target, cap, 0
+
+    def write(self, data: bytes) -> int:
+        self.written += len(data)
+        if self.written > self._cap:
+            raise BundleTooLargeError()
+        return self._target.write(data)
+
+
+def _pack(add: Callable[[tarfile.TarFile], None]) -> bytes:
+    """A tar.gz of what ``add`` puts in it, refused once it passes the uncompressed cap.
+
+    The cap is on the tar stream, as the Engine measures it, and is checked while packing,
+    so an oversized project fails without being compressed in full.
+    """
+    byte_stream = io.BytesIO()
+    with gzip.GzipFile(fileobj=byte_stream, mode="wb") as compressed:
+        capped = _CappedWriter(compressed, MAX_UNCOMPRESSED_BUNDLE_BYTES)
+        with tarfile.open(fileobj=capped, mode="w|") as tar:  # type: ignore[call-overload]
+            add(tar)
+    return byte_stream.getvalue()
 
 
 def _add_runner_settings(tar: tarfile.TarFile, root: str, runner_settings: str) -> None:
@@ -1175,6 +1213,8 @@ def deploy_server_logic(
         archive_base64 = create_package_archive(current_dir, arcade_deploy.runner_settings)
         archive_size_kb = len(archive_base64) * 3 / 4 / 1024  # base64 is ~4/3 larger
         console.print(f"✓ Package created ({archive_size_kb:.1f} KB)", style="green")
+    except DeployRefusedError:
+        raise
     except Exception as e:
         raise ValueError(f"Failed to create package archive: {e}") from e
 
