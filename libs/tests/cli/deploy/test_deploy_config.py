@@ -84,7 +84,9 @@ class TestWhereItIsRead:
             },
         )
 
-        with pytest.raises(DeployConfigError, match=r"both .*\[tool\.arcade\.deploy\].*arcade\.toml"):
+        with pytest.raises(
+            DeployConfigError, match=r"both .*\[tool\.arcade\.deploy\].*arcade\.toml"
+        ):
             load_deploy_config(tmp_path)
 
     def test_an_arcade_toml_without_a_deploy_table_is_not_a_second_config(
@@ -158,7 +160,9 @@ class TestSettings:
         assert config.oauth_client.client_secret_env == "ENTRA_SECRET"
 
     def test_a_bare_key_header_has_no_scheme(self, tmp_path: Path) -> None:
-        write(tmp_path, {"arcade.toml": '[deploy]\napi_key = { env = "K", header = "X-API-Key" }\n'})
+        write(
+            tmp_path, {"arcade.toml": '[deploy]\napi_key = { env = "K", header = "X-API-Key" }\n'}
+        )
 
         api_key = load_deploy_config(tmp_path).api_key
 
@@ -172,7 +176,10 @@ class TestSettings:
             load_deploy_config(tmp_path)
 
     def test_an_unknown_api_key_setting_lists_the_api_key_settings(self, tmp_path: Path) -> None:
-        write(tmp_path, {"arcade.toml": '[deploy]\napi_key = { env = "K", header = "H", prefix = "x" }\n'})
+        write(
+            tmp_path,
+            {"arcade.toml": '[deploy]\napi_key = { env = "K", header = "H", prefix = "x" }\n'},
+        )
 
         with pytest.raises(DeployConfigError, match=r"api_key\.prefix .*env, header, scheme\)"):
             load_deploy_config(tmp_path)
@@ -248,7 +255,13 @@ class TestNames:
             load_deploy_config(tmp_path)
 
     @pytest.mark.parametrize(
-        "name", ["ARCADE_API_KEY", "AWS_ACCESS_KEY_ID", "GOOGLE_APPLICATION_CREDENTIALS", "AZURE_CLIENT_ID"]
+        "name",
+        [
+            "ARCADE_API_KEY",
+            "AWS_ACCESS_KEY_ID",
+            "GOOGLE_APPLICATION_CREDENTIALS",
+            "AZURE_CLIENT_ID",
+        ],
     )
     def test_other_arcade_and_cloud_names_are_allowed(self, tmp_path: Path, name: str) -> None:
         write(tmp_path, {"arcade.toml": f'[deploy]\nsecrets = ["{name}"]\n'})
@@ -363,7 +376,9 @@ class TestDeclaredValues:
     def test_an_oauth_client_secret_with_no_value_is_refused(self, tmp_path: Path) -> None:
         write(
             tmp_path,
-            {"arcade.toml": '[deploy]\noauth_client = { client_id = "abc", client_secret_env = "S" }\n'},
+            {
+                "arcade.toml": '[deploy]\noauth_client = { client_id = "abc", client_secret_env = "S" }\n'
+            },
         )
 
         with pytest.raises(DeployConfigError, match="client_secret_env.*S"):
@@ -399,3 +414,86 @@ class TestRunnerSettings:
         write(tmp_path, {"arcade.toml": '[deploy]\ncommand = "python app.py"\n'})
 
         assert runner_settings_json(load_deploy_config(tmp_path)) is None
+
+
+class TestNativeLibs:
+    @pytest.mark.parametrize(
+        "files",
+        [
+            {
+                "pyproject.toml": PYPROJECT
+                + '\n[tool.arcade.deploy]\nnative_libs = ["vendor/odbc"]\n'
+            },
+            {"arcade.toml": '[deploy]\nnative_libs = ["vendor/odbc"]\n'},
+        ],
+        ids=["pyproject.toml", "arcade.toml"],
+    )
+    def test_native_libs_alone_writes_the_runner_settings(
+        self, tmp_path: Path, files: dict[str, str]
+    ) -> None:
+        write(tmp_path, {**files, "vendor/odbc/libmsodbcsql.so": ""})
+
+        settings = json.loads(runner_settings_json(load_deploy_config(tmp_path)) or "")
+
+        assert settings == {"native_libs": ["vendor/odbc"]}
+
+    def test_entries_are_normalized(self, tmp_path: Path) -> None:
+        write(
+            tmp_path,
+            {
+                "arcade.toml": '[deploy]\nnative_libs = ["./vendor/odbc/", "lib"]\n',
+                "vendor/odbc/a.so": "",
+                "lib/b.so": "",
+            },
+        )
+
+        assert load_deploy_config(tmp_path).native_libs == ["vendor/odbc", "lib"]
+
+    def test_no_native_libs_is_an_empty_list(self, tmp_path: Path) -> None:
+        write(tmp_path, {"arcade.toml": "[deploy]\n"})
+
+        assert load_deploy_config(tmp_path).native_libs == []
+
+    @pytest.mark.parametrize(
+        ("entry", "match"),
+        [
+            ("/opt/odbc", "not absolute paths"),
+            ("C:/odbc", "not absolute paths"),
+            ("../odbc", "leaves the project"),
+            ("vendor/../../odbc", "leaves the project"),
+            (".", "project directory itself"),
+            ("", "empty entry"),
+            ("vendor\\\\odbc", "use '/'"),
+            (".libs", "leaves out"),
+            ("vendor/__pycache__", "leaves out"),
+            ("missing", "doesn't exist"),
+            ("file.so", "isn't a directory"),
+        ],
+    )
+    def test_an_entry_outside_the_project_or_missing_is_refused(
+        self, tmp_path: Path, entry: str, match: str
+    ) -> None:
+        write(
+            tmp_path,
+            {
+                "arcade.toml": f'[deploy]\nnative_libs = ["{entry}"]\n',
+                "file.so": "",
+                ".libs/a.so": "",
+                "vendor/__pycache__/a.so": "",
+            },
+        )
+
+        with pytest.raises(DeployConfigError, match=match):
+            load_deploy_config(tmp_path)
+
+    def test_a_symlink_out_of_the_project_is_refused(self, tmp_path: Path) -> None:
+        outside = tmp_path / "outside"
+        outside.mkdir()
+        project = write(tmp_path / "srv", {"arcade.toml": '[deploy]\nnative_libs = ["odbc"]\n'})
+        try:
+            (project / "odbc").symlink_to(outside, target_is_directory=True)
+        except OSError:
+            pytest.skip("symlinks unavailable")
+
+        with pytest.raises(DeployConfigError, match="leads outside the project"):
+            load_deploy_config(project)
