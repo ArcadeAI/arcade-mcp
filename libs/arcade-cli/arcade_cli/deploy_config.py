@@ -3,12 +3,16 @@
 Read from ``[tool.arcade.deploy]`` in pyproject.toml, else from ``[deploy]`` in an
 ``arcade.toml`` beside the server, for projects with only a requirements.txt. Most servers
 need none: the start command, port and path are detected. An Arcade server uses only
-``environment`` and ``secrets`` (see ``deploy_arcade``).
+``environment``, ``secrets`` and ``apt_packages`` (see ``deploy_arcade``).
 
 The CLI is the only parser of this config. It sends the start command, environment,
 secrets and OAuth client in the deploy request, and writes the runner's share
-(``api_key``, ``path``) to ``.arcade/deploy.json`` in the bundle, so the runner never reads
-the author's files.
+(``api_key``, ``path``, ``apt_packages``) to ``.arcade/deploy.json`` in the bundle, so the
+runner never reads the author's files.
+
+``apt_packages`` names Debian packages the runner installs for the server's native
+libraries. The CLI checks the names only: it doesn't contact Debian or look at the
+packages on the deployer's machine.
 
 Settings hold names and formats only, never a credential value: a secret is named here
 and its value read from the deployer's environment or .env at deploy time.
@@ -62,6 +66,10 @@ _PLATFORM_CREDENTIAL_HEADER = "Arcade-Worker-Auth"
 
 _VARIABLE_NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_]*\Z")
 
+# A Debian binary package name (Debian Policy 5.6.1), with no version or architecture.
+_APT_PACKAGE_NAME = re.compile(r"[a-z0-9][a-z0-9+.-]+\Z")
+MAX_APT_PACKAGES = 64
+
 
 class DeployConfigError(ValueError):
     """The deploy config can't be read or is refused; nothing is uploaded."""
@@ -97,6 +105,7 @@ class DeployConfig(BaseModel):
     api_key: ApiKey | None = None
     oauth_client: OAuthClient | None = None
     path: str | None = None
+    apt_packages: list[str] = Field(default_factory=list)
 
     _source: Literal["pyproject.toml", "arcade.toml"] | None = PrivateAttr(default=None)
 
@@ -117,6 +126,7 @@ class DeployConfig(BaseModel):
                 "to authenticate its own calls to the server."
             )
         _check_names(self)
+        _check_apt_packages(self.apt_packages)
         return self
 
 
@@ -147,6 +157,47 @@ def _check_names(config: DeployConfig) -> None:
             f"value, which anyone who can see the server can read. Declare {name} under "
             "`secrets` to supply a fixed key, or leave it out and Arcade generates one."
         )
+
+
+def _check_apt_packages(names: list[str]) -> None:
+    if len(names) > MAX_APT_PACKAGES:
+        raise ValueError(
+            f"apt_packages lists {len(names)} packages; at most {MAX_APT_PACKAGES} are allowed "
+            f"(the first over the limit is {names[MAX_APT_PACKAGES]!r})."
+        )
+    seen: set[str] = set()
+    for name in names:
+        problem = _apt_package_problem(name)
+        if problem:
+            raise ValueError(f"apt_packages: {name!r} {problem}")
+        if name in seen:
+            raise ValueError(f"apt_packages: {name!r} is listed twice.")
+        seen.add(name)
+
+
+def _apt_package_problem(name: str) -> str | None:
+    """Why ``name`` isn't a Debian package name, or ``None`` when it is one."""
+    if _APT_PACKAGE_NAME.match(name):
+        if name.endswith(".deb"):
+            return "is a path to a .deb file; name the Debian package instead."
+        return None
+    if "://" in name:
+        return "is a URL; name the Debian package instead."
+    if "/" in name or "\\" in name:
+        return "is a path; name the Debian package instead."
+    if any(c in name for c in "=<>"):
+        return (
+            "has a version; give the package name only. The runner installs the version in "
+            "its pinned Debian snapshot."
+        )
+    if ":" in name:
+        return "has an architecture suffix; give the package name only."
+    if _APT_PACKAGE_NAME.match(name.lower()):
+        return "has uppercase letters; Debian package names are lowercase."
+    return (
+        "isn't a Debian package name: lowercase letters, digits and + - . only, starting "
+        "with a letter or digit, at least two characters."
+    )
 
 
 def reserved_names(names: Iterable[str]) -> list[str]:
@@ -271,4 +322,6 @@ def runner_settings_json(config: DeployConfig) -> str | None:
         settings["api_key"] = config.api_key.model_dump(exclude_none=True)
     if config.path:
         settings["path"] = config.path
+    if config.apt_packages:
+        settings["apt_packages"] = list(config.apt_packages)
     return json.dumps(settings, indent=2) + "\n" if settings else None

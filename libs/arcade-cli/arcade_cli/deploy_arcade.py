@@ -5,10 +5,11 @@ MCP server, ``[tool.arcade.deploy]`` in pyproject.toml or ``[deploy]`` in arcade
 gets the same checks before anything is uploaded: what the runner can install, which
 dependencies lack a prebuilt wheel, and a virtual environment to run the server in locally.
 
-Only ``environment`` and ``secrets`` apply to an Arcade server. They go in the deploy request
-as the deployment's environment and secrets, beside the per-call project secrets its tools
-declare with ``requires_secrets``. A project with no deploy config sends neither, so it
-deploys as it did before the config existed.
+Only ``environment``, ``secrets`` and ``apt_packages`` apply to an Arcade server. The first two
+go in the deploy request as the deployment's environment and secrets, beside the per-call
+project secrets its tools declare with ``requires_secrets``. ``apt_packages`` goes to the runner
+in ``.arcade/deploy.json``, as for an MCP server. A project with no deploy config sends none of
+them, so it deploys as it did before the config existed.
 """
 
 from __future__ import annotations
@@ -34,7 +35,8 @@ from arcade_cli.deploy_mcp import (
 )
 
 # Settings for an MCP server's start and sign-in: an Arcade server starts from --entrypoint
-# and the Engine calls it through the Arcade worker API.
+# and the Engine calls it through the Arcade worker API. apt_packages isn't one of them: the
+# runner installs those packages for either kind of server.
 _MCP_ONLY_SETTINGS = ("command", "path", "api_key", "oauth_client")
 
 
@@ -104,5 +106,5 @@ def _refuse_mcp_only_settings(config: DeployConfig) -> None:
             f"{', '.join(present)} in the deploy settings ({config.source}) apply only to MCP "
             "servers. This project depends on arcade-mcp, so it deploys as an Arcade server: "
             "it starts from --entrypoint and Arcade calls it through the Arcade worker API. "
-            "Remove them; environment and secrets still apply."
+            "Remove them; environment, secrets and apt_packages still apply."
         )

@@ -3,6 +3,7 @@
 import base64
 import io
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -243,22 +244,73 @@ class TestDeployConfig:
         assert body["environment"] == {"REGION": "us-east"}
         assert body["secrets"] == {}
 
-    def test_the_runner_settings_ship_in_the_bundle(
+    def test_apt_packages_ship_in_the_bundle(
         self, tmp_path: Path, engine: FakeEngine, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        settings = '{\n  "native_libs": ["msodbcsql18"]\n}\n'
-        monkeypatch.setattr(deploy_arcade, "runner_settings_json", lambda config: settings)
-        arcade_project(tmp_path, monkeypatch)
+        arcade_project(
+            tmp_path,
+            monkeypatch,
+            pyproject_extra='\n[tool.arcade.deploy]\napt_packages = ["unixodbc", "libaio1t64"]\n',
+        )
         (tmp_path / "srv" / ".arcade").mkdir()
         (tmp_path / "srv" / ".arcade" / "deploy.json").write_text('{"stale": true}')
 
         run_deploy(skip_validate=True)
 
         files = bundle_files(engine.created[0])
-        assert json.loads(files["srv/.arcade/deploy.json"]) == {"native_libs": ["msodbcsql18"]}
+        assert json.loads(files["srv/.arcade/deploy.json"]) == {
+            "apt_packages": ["unixodbc", "libaio1t64"]
+        }
+
+    @pytest.mark.parametrize(
+        "pyproject_extra",
+        ["", "\n[tool.arcade.deploy]\napt_packages = []\n"],
+        ids=["omitted", "empty"],
+    )
+    def test_no_apt_packages_ship_no_runner_settings(
+        self,
+        tmp_path: Path,
+        engine: FakeEngine,
+        monkeypatch: pytest.MonkeyPatch,
+        pyproject_extra: str,
+    ) -> None:
+        arcade_project(tmp_path, monkeypatch, pyproject_extra=pyproject_extra)
+
+        run_deploy(skip_validate=True)
+
+        assert "srv/.arcade/deploy.json" not in bundle_files(engine.created[0])
 
 
 class TestRefusals:
+    @pytest.mark.parametrize(
+        ("packages", "named"),
+        [
+            ('["UnixODBC"]', "UnixODBC"),
+            ('["./debs/unixodbc.deb"]', "./debs/unixodbc.deb"),
+            ('["unixodbc=2.3.12-2"]', "unixodbc=2.3.12-2"),
+            ('["unixodbc", "unixodbc"]', "unixodbc"),
+        ],
+        ids=["uppercase", "path", "version pin", "duplicate"],
+    )
+    def test_an_invalid_apt_package_is_refused_before_upload(
+        self,
+        tmp_path: Path,
+        engine: FakeEngine,
+        monkeypatch: pytest.MonkeyPatch,
+        packages: str,
+        named: str,
+    ) -> None:
+        arcade_project(
+            tmp_path,
+            monkeypatch,
+            pyproject_extra=f"\n[tool.arcade.deploy]\napt_packages = {packages}\n",
+        )
+
+        with pytest.raises(DeployConfigError, match=f"apt_packages: {re.escape(repr(named))}"):
+            run_deploy(skip_validate=True)
+
+        assert not engine.uploaded
+
     def test_a_reserved_name_is_refused_before_upload(
         self, tmp_path: Path, engine: FakeEngine, monkeypatch: pytest.MonkeyPatch
     ) -> None:
