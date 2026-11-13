@@ -348,13 +348,18 @@ def resolve_declared_values(config: DeployConfig, env: Mapping[str, str]) -> Dec
     )
 
 
-def runner_settings_json(config: DeployConfig) -> str | None:
-    """The contents of ``.arcade/deploy.json``, or ``None`` when the runner needs nothing."""
+def runner_settings_json(config: DeployConfig, extra_native_libs: Iterable[str] = ()) -> str | None:
+    """The contents of ``.arcade/deploy.json``, or ``None`` when the runner needs nothing.
+
+    ``extra_native_libs`` are appended after the author's own ``native_libs``, such as the
+    ``vendor/native`` directory the deploy collects libraries into.
+    """
     settings: dict[str, Any] = {}
     if config.api_key:
         settings["api_key"] = config.api_key.model_dump(exclude_none=True)
     if config.path:
         settings["path"] = config.path
-    if config.native_libs:
-        settings["native_libs"] = list(config.native_libs)
+    native_libs = [*config.native_libs, *extra_native_libs]
+    if native_libs:
+        settings["native_libs"] = native_libs
     return json.dumps(settings, indent=2) + "\n" if settings else None

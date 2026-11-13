@@ -33,6 +33,7 @@ from arcade_cli.deploy_mcp import (
     refuse_skipping_declared_secrets,
     warn_about_missing_wheels,
 )
+from arcade_cli.deploy_native_collect import NATIVE_DIR, NativeCollection, collect_native_libs
 from arcade_cli.deploy_native_libs import warn_about_native_libs
 
 # Settings for an MCP server's start and sign-in: an Arcade server starts from --entrypoint
@@ -50,6 +51,8 @@ class ArcadeDeploy:
     values: DeclaredValues | None
     # The project's interpreter for the local check; None with --skip-validate.
     python: Path | None
+    # Native libraries collected from Debian for vendor/native; None when none are missing.
+    native: NativeCollection | None = None
 
     @property
     def local_environment(self) -> dict[str, str]:
@@ -61,7 +64,12 @@ class ArcadeDeploy:
     @property
     def runner_settings(self) -> str | None:
         """The contents of ``.arcade/deploy.json``, or ``None`` when the runner needs nothing."""
-        return runner_settings_json(self.config)
+        return runner_settings_json(self.config, [NATIVE_DIR] if self.native else [])
+
+    @property
+    def native_files(self) -> dict[str, bytes] | None:
+        """The collected native libraries to add to the bundle, by project-relative path."""
+        return self.native.files() if self.native else None
 
     def project_secrets(self, names: set[str]) -> set[str]:
         """The per-call project secrets to upload: a declared secret isn't one of them."""
@@ -88,6 +96,7 @@ def prepare_arcade_deploy(
         console.print(f"[!] {warning}", style="yellow", markup=False)
     warn_about_missing_wheels(project_dir, "arcade", runners)
     warn_about_native_libs(project_dir, config, runners)
+    native = collect_native_libs(project_dir, config, runners, protocol="arcade")
 
     values = None
     if config.source:
@@ -98,7 +107,7 @@ def prepare_arcade_deploy(
             console.print(f"✓ Sending {len(values.secrets)} secret(s): {names}", style="green")
 
     python = None if skip_validate else project_python(project_dir)
-    return ArcadeDeploy(config=config, values=values, python=python)
+    return ArcadeDeploy(config=config, values=values, python=python, native=native)
 
 
 def _refuse_mcp_only_settings(config: DeployConfig) -> None:

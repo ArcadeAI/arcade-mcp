@@ -42,6 +42,8 @@ class DeploymentsRunner(BaseModel):
     version: str
     # The wheel platform tag without its architecture, such as musllinux_1_2.
     platform: str = ""
+    # The CPU architecture, such as x86_64 or aarch64; absent from an Engine that predates it.
+    architecture: str = ""
 
 
 class DeploymentsDiscovery(BaseModel):

@@ -10,7 +10,7 @@ import sys
 import tarfile
 import time
 from collections import deque
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Any, cast
 
@@ -499,7 +499,11 @@ def arcade_archive_drops(part: str) -> bool:
     )
 
 
-def create_package_archive(package_dir: Path, runner_settings: str | None = None) -> str:
+def create_package_archive(
+    package_dir: Path,
+    runner_settings: str | None = None,
+    extra_files: Mapping[str, bytes] | None = None,
+) -> str:
     """
     Create a tar.gz archive of the package directory.
 
@@ -539,18 +543,24 @@ def create_package_archive(package_dir: Path, runner_settings: str | None = None
         tar.add(package_dir, arcname=package_dir.name, filter=exclude_filter)
         if runner_settings is not None:
             _add_runner_settings(tar, package_dir.name, runner_settings)
+        _add_files(tar, package_dir.name, extra_files or {})
 
     return base64.b64encode(_pack(add)).decode("utf-8")
 
 
-def create_mcp_bundle(project_dir: Path, runner_settings: str | None = None) -> str:
+def create_mcp_bundle(
+    project_dir: Path,
+    runner_settings: str | None = None,
+    extra_files: Mapping[str, bytes] | None = None,
+) -> str:
     """A base64 tar.gz of an MCP server project, as the runner installs and starts it.
 
     Unlike an Arcade archive, it keeps ``uv.lock`` (the runner installs from it) and any
     directory named ``build`` or ``dist``, which may be the server's own package. Hidden
     files (``.env``, ``.git``, ``.venv``), virtual environments, caches and egg-info stay
     behind. ``runner_settings`` becomes ``.arcade/deploy.json``, replacing any copy in the
-    project, since the CLI is its only author.
+    project, since the CLI is its only author. ``extra_files`` are added by project-relative
+    path, such as the native libraries the deploy collected.
     """
     if not project_dir.is_dir():
         raise ValueError(f"Package directory not found: {project_dir}")
@@ -571,6 +581,7 @@ def create_mcp_bundle(project_dir: Path, runner_settings: str | None = None) -> 
         tar.add(root, arcname=project_dir.name, filter=exclude)
         if runner_settings is not None:
             _add_runner_settings(tar, project_dir.name, runner_settings)
+        _add_files(tar, project_dir.name, extra_files or {})
 
     return base64.b64encode(_pack(add)).decode("utf-8")
 
@@ -615,10 +626,14 @@ def _pack(add: Callable[[tarfile.TarFile], None]) -> bytes:
 
 
 def _add_runner_settings(tar: tarfile.TarFile, root: str, runner_settings: str) -> None:
-    payload = runner_settings.encode()
-    settings = tarfile.TarInfo(f"{root}/{RUNNER_SETTINGS_PATH}")
-    settings.size, settings.mode, settings.mtime = len(payload), 0o644, int(time.time())
-    tar.addfile(settings, io.BytesIO(payload))
+    _add_files(tar, root, {RUNNER_SETTINGS_PATH: runner_settings.encode()})
+
+
+def _add_files(tar: tarfile.TarFile, root: str, files: Mapping[str, bytes]) -> None:
+    for name, payload in files.items():
+        info = tarfile.TarInfo(f"{root}/{name}")
+        info.size, info.mode, info.mtime = len(payload), 0o644, int(time.time())
+        tar.addfile(info, io.BytesIO(payload))
 
 
 def _resolve_server_process_stdio(debug: bool) -> tuple[int | None, int | None]:
@@ -1210,7 +1225,9 @@ def deploy_server_logic(
     # Step 6: Create tar.gz archive of current directory
     console.print("\nCreating deployment package...", style="dim")
     try:
-        archive_base64 = create_package_archive(current_dir, arcade_deploy.runner_settings)
+        archive_base64 = create_package_archive(
+            current_dir, arcade_deploy.runner_settings, arcade_deploy.native_files
+        )
         archive_size_kb = len(archive_base64) * 3 / 4 / 1024  # base64 is ~4/3 larger
         console.print(f"✓ Package created ({archive_size_kb:.1f} KB)", style="green")
     except DeployRefusedError:

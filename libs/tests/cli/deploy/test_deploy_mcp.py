@@ -207,6 +207,39 @@ class TestDeploy:
         assert json.loads(files["srv/.arcade/deploy.json"]) == {"native_libs": ["vendor/odbc"]}
         assert "srv/vendor/odbc/libmsodbcsql.so" in files
 
+    def test_collected_native_libraries_ship_and_append_vendor_native(
+        self, tmp_path: Path, engine: FakeEngine, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from arcade_cli import deploy_native_collect
+        from arcade_cli.deploy_native_collect import CollectedLibrary, NativeCollection
+
+        project = stand_in(tmp_path, arcade_toml='native_libs = ["vendor/odbc"]\n')
+        (project / "vendor" / "odbc").mkdir(parents=True)
+        (project / "vendor" / "odbc" / "libmsodbcsql.so").write_bytes(b"")
+        collection = NativeCollection((CollectedLibrary("libodbc.so.2", "libodbc2", "2", b"lib"),))
+        monkeypatch.setattr(deploy_mcp, "collect_native_libs", lambda *a, **k: collection)
+
+        deploy(project)
+
+        files = bundle_files(engine.created[0])
+        settings = json.loads(files["srv/.arcade/deploy.json"])
+        assert settings == {"native_libs": ["vendor/odbc", "vendor/native"]}
+        assert files["srv/vendor/native/libodbc.so.2"] == b"lib"
+        assert not (project / "vendor" / "native").exists()
+        assert deploy_native_collect.NATIVE_DIR == "vendor/native"
+
+    def test_a_refused_collection_uploads_nothing(
+        self, tmp_path: Path, engine: FakeEngine, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        def refuse(*args: Any, **kwargs: Any) -> None:
+            raise DeployRefusedError("libodbc.so.2 couldn't be collected")
+
+        monkeypatch.setattr(deploy_mcp, "collect_native_libs", refuse)
+
+        with pytest.raises(DeployRefusedError, match=r"libodbc\.so\.2"):
+            deploy(stand_in(tmp_path))
+        assert not engine.uploaded
+
     def test_a_native_library_for_another_platform_warns_and_deploys(
         self, tmp_path: Path, engine: FakeEngine, capsys: pytest.CaptureFixture[str]
     ) -> None:

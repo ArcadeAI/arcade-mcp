@@ -264,6 +264,24 @@ class TestDeployConfig:
         assert json.loads(files["srv/.arcade/deploy.json"]) == {"native_libs": ["vendor/odbc"]}
         assert "srv/vendor/odbc/libmsodbcsql.so" in files
 
+    def test_collected_native_libraries_ship_and_append_vendor_native(
+        self, tmp_path: Path, engine: FakeEngine, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from arcade_cli.deploy_native_collect import CollectedLibrary, NativeCollection
+
+        project = arcade_project(tmp_path, monkeypatch, pyproject_extra=NATIVE_LIBS_CONFIG)
+        (project / "vendor" / "odbc").mkdir(parents=True)
+        collection = NativeCollection((CollectedLibrary("libaio.so.1", "libaio1t64", "1", b"lib"),))
+        monkeypatch.setattr(deploy_arcade, "collect_native_libs", lambda *a, **k: collection)
+
+        run_deploy(skip_validate=True)
+
+        files = bundle_files(engine.created[0])
+        settings = json.loads(files["srv/.arcade/deploy.json"])
+        assert settings == {"native_libs": ["vendor/odbc", "vendor/native"]}
+        assert files["srv/vendor/native/libaio.so.1"] == b"lib"
+        assert not (project / "vendor" / "native").exists()
+
 
 class TestRefusals:
     def test_a_reserved_name_is_refused_before_upload(

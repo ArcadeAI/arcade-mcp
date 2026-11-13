@@ -21,7 +21,7 @@ import struct
 from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import BinaryIO
+from typing import IO
 
 from arcade_cli.console import console
 from arcade_cli.context import DeploymentsRunner
@@ -33,6 +33,7 @@ _MACHINE_NAMES = {3: "x86 (32-bit)", 40: "ARM (32-bit)", 8: "MIPS", 20: "PowerPC
 
 _PT_LOAD, _PT_DYNAMIC, _PT_INTERP = 1, 2, 3
 _DT_NULL, _DT_NEEDED, _DT_STRTAB, _DT_STRSZ = 0, 1, 5, 10
+_DT_RPATH, _DT_RUNPATH = 15, 29
 
 _GLIBC_VERSION = re.compile(rb"GLIBC_(\d+)\.(\d+)")
 _SHARED_LIBRARY = re.compile(r".+\.so(\.\d+)*")
@@ -54,6 +55,9 @@ class ElfInfo:
     machine_name: str
     libc: str | None  # "glibc", "musl", or None when it links neither by name
     glibc: tuple[int, int] | None  # the newest GLIBC_x.y symbol version it needs
+    # The libraries it names (DT_NEEDED) and its search path (DT_RUNPATH, else DT_RPATH).
+    needed: tuple[str, ...] = ()
+    runpath: tuple[str, ...] = ()
 
 
 def native_lib_warnings(
@@ -159,20 +163,25 @@ def read_elf(path: Path) -> ElfInfo:
     can't be read.
     """
     with path.open("rb") as file:
-        header = file.read(64)
-        if header[:4] != b"\x7fELF":
-            return ElfInfo(None, _foreign_format(header), None, None)
-        if len(header) < 64:
-            raise TruncatedElfError(f"{path} ends inside its ELF header")
-        if header[4] != 2 or header[5] != 1:
-            bits = "32-bit" if header[4] == 1 else "big-endian"
-            return ElfInfo(None, f"{bits} ELF", None, None)
-        (machine,) = struct.unpack_from("<H", header, 18)
-        arch = _MACHINES.get(machine)
-        if arch is None:
-            name = _MACHINE_NAMES.get(machine, f"ELF machine {machine}")
-            return ElfInfo(None, name, None, None)
-        needed, strings, interp = _dynamic(file, header)
+        return read_elf_from(file, str(path))
+
+
+def read_elf_from(file: IO[bytes], name: str) -> ElfInfo:
+    """``read_elf`` for an open, seekable file, such as a member of a wheel."""
+    header = file.read(64)
+    if header[:4] != b"\x7fELF":
+        return ElfInfo(None, _foreign_format(header), None, None)
+    if len(header) < 64:
+        raise TruncatedElfError(f"{name} ends inside its ELF header")
+    if header[4] != 2 or header[5] != 1:
+        bits = "32-bit" if header[4] == 1 else "big-endian"
+        return ElfInfo(None, f"{bits} ELF", None, None)
+    (machine,) = struct.unpack_from("<H", header, 18)
+    arch = _MACHINES.get(machine)
+    if arch is None:
+        machine_name = _MACHINE_NAMES.get(machine, f"ELF machine {machine}")
+        return ElfInfo(None, machine_name, None, None)
+    needed, strings, interp, runpath = _dynamic(file, header)
     libc: str | None = None
     if (interp and b"ld-musl" in interp) or any(
         n.startswith("libc.musl") or n == "libc.so" for n in needed
@@ -183,7 +192,14 @@ def read_elf(path: Path) -> ElfInfo:
     versions = [(int(a), int(b)) for a, b in _GLIBC_VERSION.findall(strings)]
     if versions and libc is None:
         libc = "glibc"
-    return ElfInfo(arch, arch, libc, max(versions) if versions else None)
+    return ElfInfo(
+        arch,
+        arch,
+        libc,
+        max(versions) if versions else None,
+        needed=tuple(needed),
+        runpath=tuple(entry for entry in runpath.split(":") if entry),
+    )
 
 
 def _foreign_format(header: bytes) -> str:
@@ -194,8 +210,8 @@ def _foreign_format(header: bytes) -> str:
     return "a format other than ELF"
 
 
-def _dynamic(file: BinaryIO, header: bytes) -> tuple[list[str], bytes, bytes | None]:
-    """The DT_NEEDED names, the dynamic string table and PT_INTERP of a 64-bit LE ELF."""
+def _dynamic(file: IO[bytes], header: bytes) -> tuple[list[str], bytes, bytes | None, str]:
+    """The DT_NEEDED names, dynamic string table, PT_INTERP and run path of a 64-bit LE ELF."""
     read, seek = file.read, file.seek
     (phoff,) = struct.unpack_from("<Q", header, 32)
     phentsize, phnum = struct.unpack_from("<HH", header, 54)
@@ -220,12 +236,13 @@ def _dynamic(file: BinaryIO, header: bytes) -> tuple[list[str], bytes, bytes | N
         seek(interp_at[0])
         interp = read(min(interp_at[1], 4096))
     if dynamic is None:
-        return [], b"", interp
+        return [], b"", interp, ""
 
     seek(dynamic[0])
     raw = read(min(dynamic[1], 1 << 20))
     needed_offsets: list[int] = []
     strtab = strsz = None
+    runpath_at: dict[int, int] = {}
     for at in range(0, len(raw) - 15, 16):
         tag, value = struct.unpack_from("<qQ", raw, at)
         if tag == _DT_NULL:
@@ -236,8 +253,10 @@ def _dynamic(file: BinaryIO, header: bytes) -> tuple[list[str], bytes, bytes | N
             strtab = value
         elif tag == _DT_STRSZ:
             strsz = value
+        elif tag in (_DT_RPATH, _DT_RUNPATH):
+            runpath_at[tag] = value
     if strtab is None or strsz is None:
-        return [], b"", interp
+        return [], b"", interp, ""
     start = next(
         (
             offset + strtab - vaddr
@@ -248,9 +267,17 @@ def _dynamic(file: BinaryIO, header: bytes) -> tuple[list[str], bytes, bytes | N
     )
     seek(start)
     strings = read(min(strsz, 16 << 20))
-    needed = [
-        strings[o : strings.find(b"\0", o)].decode(errors="replace")
-        for o in needed_offsets
-        if o < len(strings)
-    ]
-    return needed, strings, interp
+    needed = [_string(strings, o) for o in needed_offsets if o < len(strings)]
+    # The loader ignores DT_RPATH when DT_RUNPATH is present.
+    runpath_offset = runpath_at.get(_DT_RUNPATH, runpath_at.get(_DT_RPATH))
+    runpath = (
+        _string(strings, runpath_offset)
+        if runpath_offset is not None and runpath_offset < len(strings)
+        else ""
+    )
+    return needed, strings, interp, runpath
+
+
+def _string(strings: bytes, offset: int) -> str:
+    end = strings.find(b"\0", offset)
+    return strings[offset : end if end >= 0 else len(strings)].decode(errors="replace")
