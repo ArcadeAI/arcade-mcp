@@ -182,9 +182,10 @@ All errors in `arcade_core/errors.py`. Tool developers should use these subclass
 
 | Error class | When to use | `can_retry` | `ErrorKind` |
 |-------------|-------------|-------------|-------------|
+| `ToolExecutionError` | Expected failure the tool reports on purpose (invalid value, missing data, a refused request). Use it directly when no subclass fits. | `False` | `TOOL_RUNTIME_ERROR` |
 | `RetryableToolError` | Transient failure, LLM can retry with same/different args. Accepts `additional_prompt_content` and `retry_after_ms`. | `True` | `TOOL_RUNTIME_RETRY` |
 | `ContextRequiredToolError` | Needs human input before retry (e.g., ambiguous argument). Requires `additional_prompt_content`. | `False` | `TOOL_RUNTIME_CONTEXT_REQUIRED` |
-| `FatalToolError` | Unrecoverable failure (500). | `False` | `TOOL_RUNTIME_FATAL` |
+| `FatalToolError` | Unexpected failure the tool did not handle (500); `@tool` wraps unhandled exceptions in it. | `False` | `TOOL_RUNTIME_FATAL` |
 | `UpstreamError` | External API failure. Auto-maps HTTP status codes to error kinds and retryability (5xx/429 retryable). Requires `status_code`. | varies | `UPSTREAM_RUNTIME_*` |
 | `UpstreamRateLimitError` | Rate limit (429). Requires `retry_after_ms`. | `True` | `UPSTREAM_RUNTIME_RATE_LIMIT` |
 

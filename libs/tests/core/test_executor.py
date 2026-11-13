@@ -173,9 +173,9 @@ for tool_func in tools:
             {},
             ToolCallOutput(
                 error=ToolCallError(
-                    message="[TOOL_RUNTIME_FATAL] ToolExecutionError during execution of tool 'tool_execution_error_tool': test",
-                    kind=ErrorKind.TOOL_RUNTIME_FATAL,
-                    developer_message="[TOOL_RUNTIME_FATAL] ToolExecutionError during execution of tool 'tool_execution_error_tool': test developer message",
+                    message="[TOOL_RUNTIME_ERROR] ToolExecutionError during execution of tool 'tool_execution_error_tool': test",
+                    kind=ErrorKind.TOOL_RUNTIME_ERROR,
+                    developer_message="[TOOL_RUNTIME_ERROR] ToolExecutionError during execution of tool 'tool_execution_error_tool': test developer message",
                     can_retry=False,
                 )
             ),
