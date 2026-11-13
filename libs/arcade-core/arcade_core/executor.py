@@ -1,4 +1,5 @@
 import asyncio
+import difflib
 import traceback
 from collections.abc import Callable
 from typing import Any
@@ -17,6 +18,29 @@ from arcade_core.schema import (
     ToolContext,
     ToolDefinition,
 )
+
+
+def _unknown_parameter_hint(input_model: type[BaseModel], error: ValidationError) -> str:
+    """Name the parameters a tool accepts when the caller passed one it does not.
+
+    Pydantic's "Extra inputs are not permitted" names only the rejected key, so an
+    agent that guessed a parameter name has nothing to correct it with. Parameter
+    names come from the tool's schema, never from the caller's values.
+    """
+    unknown = [
+        str(err["loc"][0])
+        for err in error.errors()
+        if err["type"] == "extra_forbidden" and len(err["loc"]) == 1
+    ]
+    if not unknown:
+        return ""
+    accepted = list(input_model.model_fields)
+    suggestions = []
+    for name in unknown:
+        close = difflib.get_close_matches(name, accepted, n=1)
+        if close:
+            suggestions.append(f" Did you mean '{close[0]}' instead of '{name}'?")
+    return "".join(suggestions) + f" Accepted parameters: {', '.join(accepted)}."
 
 
 class ToolExecutor:
@@ -121,7 +145,7 @@ class ToolExecutor:
                 for err in e.errors()
             )
             raise ToolInputError(
-                message=f"Invalid input: {summary}",
+                message=f"Invalid input: {summary}{_unknown_parameter_hint(input_model, e)}",
                 developer_message=f"Pydantic validation failed: {developer_summary}",
             ) from None
 

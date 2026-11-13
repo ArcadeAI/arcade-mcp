@@ -440,3 +440,59 @@ async def test_input_validation_error_does_not_leak_input_values():
     assert output.error.stacktrace is None
     assert secret not in output.model_dump_json()
     assert "12345" not in output.model_dump_json()
+
+
+@tool
+def paged_tool(
+    query: Annotated[str, "what to search for"],
+    end_cursor: Annotated[str | None, "cursor from the previous page"] = None,
+    limit: Annotated[int, "page size"] = 20,
+) -> Annotated[str, "output"]:
+    """Tool with a pagination cursor"""
+    return query
+
+
+catalog.add_tool(paged_tool, "PagedToolkit")
+
+
+async def _run_paged_tool(**inputs):
+    tool_definition = catalog.find_tool_by_func(paged_tool)
+    full_tool = catalog.get_tool(tool_definition.get_fully_qualified_name())
+    return await ToolExecutor.run(
+        func=paged_tool,
+        definition=tool_definition,
+        input_model=full_tool.input_model,
+        output_model=full_tool.output_model,
+        context=ToolContext(),
+        **inputs,
+    )
+
+
+@pytest.mark.asyncio
+async def test_unknown_parameter_names_the_accepted_parameters():
+    output = await _run_paged_tool(query="q", page_token="opaque-token-value")
+
+    assert output.error is not None
+    assert output.error.kind == ErrorKind.TOOL_RUNTIME_BAD_INPUT_VALUE
+    assert "page_token" in output.error.message
+    assert "Accepted parameters: query, end_cursor, limit." in output.error.message
+    assert "opaque-token-value" not in output.error.message
+    assert "opaque-token-value" not in (output.error.developer_message or "")
+
+
+@pytest.mark.asyncio
+async def test_unknown_parameter_close_to_a_real_one_suggests_it():
+    output = await _run_paged_tool(query="q", after_cursor="opaque-token-value")
+
+    assert output.error is not None
+    assert "Did you mean 'end_cursor' instead of 'after_cursor'?" in output.error.message
+    assert "opaque-token-value" not in output.error.message
+
+
+@pytest.mark.asyncio
+async def test_wrong_type_on_a_known_parameter_does_not_list_parameters():
+    output = await _run_paged_tool(query="q", limit="many")
+
+    assert output.error is not None
+    assert "limit" in output.error.message
+    assert "Accepted parameters" not in output.error.message
