@@ -576,7 +576,12 @@ class TestNativeLibs:
         )
         (project / "vendor").mkdir()
         try:
-            (project / "vendor" / "odbc").symlink_to("../drivers/odbc", target_is_directory=True)
+            (project / "vendor" / "odbc").symlink_to(
+                # Path gives the OS's separator: Windows doesn't follow a relative link
+                # written with forward slashes.
+                Path("..", "drivers", "odbc"),
+                target_is_directory=True,
+            )
         except OSError:
             pytest.skip("symlinks unavailable")
 
