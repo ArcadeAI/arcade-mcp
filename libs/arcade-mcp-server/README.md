@@ -8,9 +8,9 @@ Arcade MCP (Model Context Protocol) Server enables AI assistants and development
 
 ## Quick Links
 
-- **[Quickstart Guide](getting-started/quickstart.md)** - Get up and running in minutes
-- **[Walkthrough](examples/README.md)** - Learn by example
-- **[API Reference](api/app.md)** - MCPApp API documentation
+- **[Quickstart Guide](https://docs.arcade.dev/en/get-started/quickstarts/mcp-server-quickstart)** - Get up and running in minutes
+- **[Walkthrough](../../examples/mcp_servers/README.md)** - Learn by example
+- **[API Reference](https://docs.arcade.dev/en/build/create-tools/tool-basics/mcp-apps)** - MCPApp API documentation
 
 ## Features
 
