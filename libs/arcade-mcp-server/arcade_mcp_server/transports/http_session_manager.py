@@ -504,13 +504,14 @@ class HTTPSessionManager:
 
         if self._task_group is None:
             raise RuntimeError("Task group not initialized")
-        await self._task_group.start(run_stateless_server)
-
-        # Handle the HTTP request (replay body so inner Request() can read it)
-        await http_transport.handle_request(scope, inner_receive, send)
-
-        # Terminate the transport
-        await http_transport.terminate()
+        try:
+            await self._task_group.start(run_stateless_server)
+            # Replay the body so the inner Request() can read it.
+            await http_transport.handle_request(scope, inner_receive, send)
+        finally:
+            # The request's cancellation must not interrupt stream cleanup.
+            with anyio.CancelScope(shield=True):
+                await http_transport.terminate()
 
     async def _handle_stateful_request(
         self,
