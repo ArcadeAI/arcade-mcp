@@ -497,3 +497,42 @@ class TestNativeLibs:
 
         with pytest.raises(DeployConfigError, match="leads outside the project"):
             load_deploy_config(project)
+
+    @pytest.mark.parametrize("kind", ["file", "directory", "dangling"])
+    def test_a_link_inside_an_entry_that_leads_outside_the_project_is_refused(
+        self, tmp_path: Path, kind: str
+    ) -> None:
+        outside = write(tmp_path / "outside", {"libmsodbcsql.so.18": ""})
+        project = write(
+            tmp_path / "srv",
+            {"arcade.toml": '[deploy]\nnative_libs = ["vendor/odbc"]\n', "vendor/odbc/ok.so": ""},
+        )
+        target = {
+            "file": outside / "libmsodbcsql.so.18",
+            "directory": outside,
+            "dangling": project / "vendor" / "odbc" / "missing.so",
+        }[kind]
+        try:
+            (project / "vendor" / "odbc" / "lib").symlink_to(
+                target, target_is_directory=kind == "directory"
+            )
+        except OSError:
+            pytest.skip("symlinks unavailable")
+
+        with pytest.raises(DeployConfigError, match=r"vendor/odbc/lib in native_libs is a link outside"):
+            load_deploy_config(project)
+
+    def test_a_link_to_a_library_in_the_project_is_allowed(self, tmp_path: Path) -> None:
+        project = write(
+            tmp_path,
+            {
+                "arcade.toml": '[deploy]\nnative_libs = ["vendor/odbc"]\n',
+                "vendor/odbc/libodbc.so.2.0.0": "",
+            },
+        )
+        try:
+            (project / "vendor" / "odbc" / "libodbc.so.2").symlink_to("libodbc.so.2.0.0")
+        except OSError:
+            pytest.skip("symlinks unavailable")
+
+        assert load_deploy_config(project).native_libs == ["vendor/odbc"]

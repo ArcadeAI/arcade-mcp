@@ -17,6 +17,7 @@ and its value read from the deployer's environment or .env at deploy time.
 from __future__ import annotations
 
 import json
+import os
 import re
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
@@ -162,12 +163,31 @@ def check_native_libs(config: DeployConfig, project_dir: Path) -> None:
             raise DeployConfigError(
                 f"native_libs names {entry}, which {what} in the project ({project_dir})."
             )
-        # A symlink to a directory outside the project would ship as a dangling link.
-        if not directory.resolve().is_relative_to(root):
+        # The bundle keeps symlinks as links: one that leads outside the project, or to
+        # nothing, arrives on the runner dangling.
+        for path in [directory, *_links_under(directory)]:
+            target = path.resolve()
+            if target.exists() and target.is_relative_to(root):
+                continue
+            if path == directory:
+                raise DeployConfigError(
+                    f"native_libs names {entry}, which leads outside the project: copy the "
+                    "libraries into the project instead of linking to them."
+                )
+            name = path.relative_to(project_dir).as_posix()
             raise DeployConfigError(
-                f"native_libs names {entry}, which leads outside the project: copy the "
-                "libraries into the project instead of linking to them."
+                f"{name} in native_libs is a link outside the project or to nothing, so it "
+                "would arrive on the runner broken. Copy the libraries into the project "
+                "instead of linking to them."
             )
+
+
+def _links_under(directory: Path) -> list[Path]:
+    """The symlinks under ``directory``, without descending into linked directories."""
+    links = []
+    for parent, dirs, files in os.walk(directory):
+        links += [Path(parent, name) for name in (*dirs, *files)]
+    return [path for path in links if path.is_symlink()]
 
 
 def _check_names(config: DeployConfig) -> None:

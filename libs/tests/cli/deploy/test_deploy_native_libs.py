@@ -160,3 +160,45 @@ class TestWarnings:
         [warning] = warnings(tmp_path)
 
         assert "and 2 more" in warning
+
+    @pytest.mark.parametrize(
+        "content",
+        [b"\x7fELF", b"\x7fELF\x02\x01\x01" + bytes(9), elf()[:100]],
+        ids=["magic-only", "short-header", "cut-program-headers"],
+    )
+    def test_a_truncated_library_is_warned_not_fatal(self, tmp_path: Path, content: bytes) -> None:
+        project(tmp_path, {"libodbc.so": content})
+
+        [warning] = warnings(tmp_path)
+
+        assert "vendor/odbc/libodbc.so" in warning
+        assert "truncated" in warning
+
+    def test_a_linked_library_is_checked_once(self, tmp_path: Path) -> None:
+        project(tmp_path, {"libodbc.so.2.0.0": b"MZ" + bytes(62)})
+        odbc = tmp_path / "vendor" / "odbc"
+        try:
+            (odbc / "libodbc.so.2").symlink_to("libodbc.so.2.0.0")
+            (odbc / "libodbc.so").symlink_to("libodbc.so.2")
+        except OSError:
+            pytest.skip("symlinks unavailable")
+
+        [warning] = warnings(tmp_path)
+
+        assert "Windows (PE)" in warning
+        assert warning.count("vendor/odbc/libodbc.so") == 1
+
+    def test_a_library_reached_only_through_a_link_is_checked(self, tmp_path: Path) -> None:
+        project(tmp_path, {})
+        (tmp_path / "drivers").mkdir()
+        (tmp_path / "drivers" / "libodbc.so.2").write_bytes(b"MZ" + bytes(62))
+        try:
+            (tmp_path / "vendor" / "odbc" / "libodbc.so.2").symlink_to(
+                tmp_path / "drivers" / "libodbc.so.2"
+            )
+        except OSError:
+            pytest.skip("symlinks unavailable")
+
+        [warning] = warnings(tmp_path)
+
+        assert "vendor/odbc/libodbc.so.2" in warning

@@ -15,6 +15,7 @@ check is skipped.
 
 from __future__ import annotations
 
+import os
 import re
 import struct
 from collections.abc import Iterator
@@ -70,6 +71,9 @@ def native_lib_warnings(
         name = library.relative_to(project_dir).as_posix()
         try:
             info = read_elf(library)
+        except TruncatedElfError:
+            problems.setdefault("a truncated ELF file", []).append(name)
+            continue
         except OSError:
             continue
         for target in targets:
@@ -123,22 +127,43 @@ def _mismatch(info: ElfInfo, runner: _Runner) -> str | None:
 
 
 def _shared_libraries(project_dir: Path, directories: list[str]) -> Iterator[Path]:
+    """Each library under ``directories`` once, however many links lead to it.
+
+    A link counts by its target (``libodbc.so -> libodbc.so.2``), which ``check_native_libs``
+    has already kept inside the project. Linked directories aren't descended into.
+    """
     seen: set[Path] = set()
     for entry in directories:
-        for path in sorted((project_dir / entry).rglob("*")):
-            if path in seen or path.is_symlink() or not path.is_file():
+        files = [
+            Path(parent, name)
+            for parent, _dirs, names in os.walk(project_dir / entry)
+            for name in names
+        ]
+        for path in sorted(files):
+            target = path.resolve()
+            if target in seen or not target.is_file():
                 continue
-            if _SHARED_LIBRARY.fullmatch(path.name):
-                seen.add(path)
+            if _SHARED_LIBRARY.fullmatch(path.name) or _SHARED_LIBRARY.fullmatch(target.name):
+                seen.add(target)
                 yield path
 
 
+class TruncatedElfError(OSError):
+    """The file starts as an ELF file but ends before its headers do."""
+
+
 def read_elf(path: Path) -> ElfInfo:
-    """Read a shared library's architecture and the libc it links; raises OSError."""
+    """Read a shared library's architecture and the libc it links.
+
+    Raises ``TruncatedElfError`` for an ELF file cut short, and ``OSError`` when the file
+    can't be read.
+    """
     with path.open("rb") as file:
         header = file.read(64)
         if header[:4] != b"\x7fELF":
             return ElfInfo(None, _foreign_format(header), None, None)
+        if len(header) < 64:
+            raise TruncatedElfError(f"{path} ends inside its ELF header")
         if header[4] != 2 or header[5] != 1:
             bits = "32-bit" if header[4] == 1 else "big-endian"
             return ElfInfo(None, f"{bits} ELF", None, None)
@@ -181,7 +206,7 @@ def _dynamic(file: BinaryIO, header: bytes) -> tuple[list[str], bytes, bytes | N
         seek(phoff + index * phentsize)
         entry = read(56)
         if len(entry) < 56:
-            break
+            raise TruncatedElfError("the file ends inside its program headers")
         p_type, _flags, offset, vaddr, _paddr, filesz = struct.unpack_from("<IIQQQQ", entry)
         if p_type == _PT_LOAD:
             loads.append((vaddr, offset, filesz))
