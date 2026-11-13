@@ -399,3 +399,110 @@ class TestRunnerSettings:
         write(tmp_path, {"arcade.toml": '[deploy]\ncommand = "python app.py"\n'})
 
         assert runner_settings_json(load_deploy_config(tmp_path)) is None
+
+    def test_apt_packages_alone_are_written(self, tmp_path: Path) -> None:
+        write(tmp_path, {"arcade.toml": '[deploy]\napt_packages = ["unixodbc", "libaio1t64"]\n'})
+
+        settings = json.loads(runner_settings_json(load_deploy_config(tmp_path)) or "")
+
+        assert settings == {"apt_packages": ["unixodbc", "libaio1t64"]}
+
+    def test_apt_packages_are_written_beside_the_other_settings(self, tmp_path: Path) -> None:
+        write(
+            tmp_path,
+            {"arcade.toml": '[deploy]\npath = "/api/mcp"\napt_packages = ["unixodbc"]\n'},
+        )
+
+        settings = json.loads(runner_settings_json(load_deploy_config(tmp_path)) or "")
+
+        assert settings == {"path": "/api/mcp", "apt_packages": ["unixodbc"]}
+
+    def test_an_empty_apt_packages_list_writes_no_file(self, tmp_path: Path) -> None:
+        write(tmp_path, {"arcade.toml": "[deploy]\napt_packages = []\n"})
+
+        assert runner_settings_json(load_deploy_config(tmp_path)) is None
+
+
+class TestAptPackages:
+    def test_omitted_is_empty(self, tmp_path: Path) -> None:
+        write(tmp_path, {"arcade.toml": "[deploy]\n"})
+
+        assert load_deploy_config(tmp_path).apt_packages == []
+
+    def test_read_from_pyproject(self, tmp_path: Path) -> None:
+        write(
+            tmp_path,
+            {
+                "pyproject.toml": PYPROJECT
+                + '\n[tool.arcade.deploy]\napt_packages = ["unixodbc", "libgssapi-krb5-2"]\n'
+            },
+        )
+
+        assert load_deploy_config(tmp_path).apt_packages == ["unixodbc", "libgssapi-krb5-2"]
+
+    @pytest.mark.parametrize(
+        "name", ["unixodbc", "libaio1t64", "libgssapi-krb5-2", "libstdc++6", "g++", "python3.12"]
+    )
+    def test_debian_package_names_are_accepted(self, tmp_path: Path, name: str) -> None:
+        write(tmp_path, {"arcade.toml": f'[deploy]\napt_packages = ["{name}"]\n'})
+
+        assert load_deploy_config(tmp_path).apt_packages == [name]
+
+    @pytest.mark.parametrize(
+        ("name", "reason"),
+        [
+            ("UnixODBC", "lowercase"),
+            ("./debs/unixodbc.deb", "path"),
+            ("/opt/libaio.so.1", "path"),
+            ("unixodbc.deb", "path"),
+            ("https://deb.debian.org/pool/u/unixodbc.deb", "URL"),
+            ("unixodbc=2.3.12-2", "version"),
+            ("unixodbc>=2.3", "version"),
+            ("unixodbc:amd64", "architecture"),
+            ("a", "Debian package name"),
+            ("-unixodbc", "Debian package name"),
+            ("unix odbc", "Debian package name"),
+            ("", "Debian package name"),
+        ],
+    )
+    def test_an_invalid_name_is_refused_naming_it(
+        self, tmp_path: Path, name: str, reason: str
+    ) -> None:
+        write(tmp_path, {"arcade.toml": f"[deploy]\napt_packages = ['unixodbc', '{name}']\n"})
+
+        with pytest.raises(DeployConfigError) as e:
+            load_deploy_config(tmp_path)
+
+        assert f"apt_packages: {name!r}" in str(e.value)
+        assert reason in str(e.value)
+
+    def test_a_duplicate_is_refused_naming_it(self, tmp_path: Path) -> None:
+        write(tmp_path, {"arcade.toml": '[deploy]\napt_packages = ["unixodbc", "unixodbc"]\n'})
+
+        with pytest.raises(DeployConfigError, match=r"apt_packages: 'unixodbc' is listed twice"):
+            load_deploy_config(tmp_path)
+
+    def test_64_names_are_accepted(self, tmp_path: Path) -> None:
+        names = ", ".join(f'"pkg{i}"' for i in range(64))
+        write(tmp_path, {"arcade.toml": f"[deploy]\napt_packages = [{names}]\n"})
+
+        assert len(load_deploy_config(tmp_path).apt_packages) == 64
+
+    def test_more_than_64_names_are_refused_naming_the_first_over(self, tmp_path: Path) -> None:
+        names = ", ".join(f'"pkg{i}"' for i in range(65))
+        write(tmp_path, {"arcade.toml": f"[deploy]\napt_packages = [{names}]\n"})
+
+        with pytest.raises(DeployConfigError, match=r"65 packages.*at most 64.*'pkg64'"):
+            load_deploy_config(tmp_path)
+
+    def test_a_non_string_is_refused(self, tmp_path: Path) -> None:
+        write(tmp_path, {"arcade.toml": "[deploy]\napt_packages = [3]\n"})
+
+        with pytest.raises(DeployConfigError, match=r"apt_packages\.0"):
+            load_deploy_config(tmp_path)
+
+    def test_a_string_instead_of_a_list_is_refused(self, tmp_path: Path) -> None:
+        write(tmp_path, {"arcade.toml": '[deploy]\napt_packages = "unixodbc"\n'})
+
+        with pytest.raises(DeployConfigError, match="apt_packages"):
+            load_deploy_config(tmp_path)

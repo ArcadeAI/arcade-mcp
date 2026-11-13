@@ -193,6 +193,27 @@ class TestDeploy:
         assert json.loads(files["srv/.arcade/deploy.json"]) == {"path": "/api/mcp"}
         assert "srv/uv.lock" in files
 
+    def test_apt_packages_ship_in_the_bundle(self, tmp_path: Path, engine: FakeEngine) -> None:
+        project = stand_in(
+            tmp_path, arcade_toml='apt_packages = ["unixodbc", "libgssapi-krb5-2"]\n'
+        )
+
+        deploy(project)
+
+        files = bundle_files(engine.created[0])
+        assert json.loads(files["srv/.arcade/deploy.json"]) == {
+            "apt_packages": ["unixodbc", "libgssapi-krb5-2"]
+        }
+
+    @pytest.mark.parametrize("arcade_toml", ["", "apt_packages = []\n"], ids=["omitted", "empty"])
+    def test_no_apt_packages_ship_no_runner_settings(
+        self, tmp_path: Path, engine: FakeEngine, arcade_toml: str
+    ) -> None:
+        deploy(stand_in(tmp_path, arcade_toml=arcade_toml))
+
+        assert engine.created
+        assert "srv/.arcade/deploy.json" not in bundle_files(engine.created[0])
+
     def test_a_server_that_needs_a_token_to_list_tools_still_deploys(
         self, tmp_path: Path, engine: FakeEngine, capsys: pytest.CaptureFixture[str]
     ) -> None:
@@ -613,6 +634,27 @@ class TestRefusedBeforeUpload:
         project = stand_in(tmp_path, arcade_toml='secrets = ["SNOWFLAKE_TOKEN"]\n')
 
         self.refused(project, engine, r"\bSNOWFLAKE_TOKEN\b")
+
+    @pytest.mark.parametrize(
+        ("packages", "match"),
+        [
+            ('["UnixODBC"]', r"apt_packages: 'UnixODBC' .*lowercase"),
+            ('["https://deb.debian.org/x.deb"]', r"apt_packages: 'https://deb\.debian\.org/x\.deb'"),
+            ('["unixodbc=2.3.12-2"]', r"apt_packages: 'unixodbc=2\.3\.12-2' has a version"),
+            ('["unixodbc", "unixodbc"]', r"apt_packages: 'unixodbc' is listed twice"),
+            (
+                "[" + ", ".join(f'"pkg{i}"' for i in range(65)) + "]",
+                r"at most 64.*'pkg64'",
+            ),
+        ],
+        ids=["uppercase", "url", "version pin", "duplicate", "over 64"],
+    )
+    def test_an_invalid_apt_packages_list(
+        self, tmp_path: Path, engine: FakeEngine, packages: str, match: str
+    ) -> None:
+        project = stand_in(tmp_path, arcade_toml=f"apt_packages = {packages}\n")
+
+        self.refused(project, engine, match)
 
     @pytest.mark.parametrize("name", ["PATH", "ARCADE_RUNNER_REGION", "FASTMCP_HOME"])
     def test_a_reserved_environment_name(
