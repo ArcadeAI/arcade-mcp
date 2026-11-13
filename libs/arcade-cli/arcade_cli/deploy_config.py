@@ -163,18 +163,32 @@ def check_native_libs(config: DeployConfig, project_dir: Path) -> None:
             raise DeployConfigError(
                 f"native_libs names {entry}, which {what} in the project ({project_dir})."
             )
-        # The bundle keeps symlinks as links: one that leads outside the project, or to
-        # nothing, arrives on the runner dangling.
-        for path in [directory, *_links_under(directory)]:
-            target = path.resolve()
-            if target.exists() and target.is_relative_to(root):
+        # The bundle keeps symlinks as links, with their target text unchanged. A link that
+        # leads outside the project, to nothing, or to an absolute path (which names this
+        # machine's directories, not the runner's) arrives on the runner broken.
+        parents = [
+            project_dir / Path(*Path(entry).parts[:n]) for n in range(1, len(Path(entry).parts))
+        ]
+        for path in [*parents, directory, *_links_under(directory)]:
+            if not path.is_symlink() and path != directory:
                 continue
+            target = path.resolve()
+            absolute = path.is_symlink() and os.path.isabs(os.readlink(path))
+            if target.exists() and target.is_relative_to(root) and not absolute:
+                continue
+            name = path.relative_to(project_dir).as_posix()
+            if absolute and target.exists() and target.is_relative_to(root):
+                raise DeployConfigError(
+                    f"{name} in native_libs is a link with an absolute target "
+                    f"({os.readlink(path)}), which won't exist on the runner. Make it a "
+                    "relative link, such as one made with `ln -s libodbc.so.2 libodbc.so` in "
+                    "the library's directory."
+                )
             if path == directory:
                 raise DeployConfigError(
                     f"native_libs names {entry}, which leads outside the project: copy the "
                     "libraries into the project instead of linking to them."
                 )
-            name = path.relative_to(project_dir).as_posix()
             raise DeployConfigError(
                 f"{name} in native_libs is a link outside the project or to nothing, so it "
                 "would arrive on the runner broken. Copy the libraries into the project "

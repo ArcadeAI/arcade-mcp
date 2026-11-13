@@ -519,7 +519,9 @@ class TestNativeLibs:
         except OSError:
             pytest.skip("symlinks unavailable")
 
-        with pytest.raises(DeployConfigError, match=r"vendor/odbc/lib in native_libs is a link outside"):
+        with pytest.raises(
+            DeployConfigError, match=r"vendor/odbc/lib in native_libs is a link outside"
+        ):
             load_deploy_config(project)
 
     def test_a_link_to_a_library_in_the_project_is_allowed(self, tmp_path: Path) -> None:
@@ -532,6 +534,49 @@ class TestNativeLibs:
         )
         try:
             (project / "vendor" / "odbc" / "libodbc.so.2").symlink_to("libodbc.so.2.0.0")
+        except OSError:
+            pytest.skip("symlinks unavailable")
+
+        assert load_deploy_config(project).native_libs == ["vendor/odbc"]
+
+    @pytest.mark.parametrize("where", ["inside", "entry", "parent"])
+    def test_an_absolute_link_to_a_library_in_the_project_is_refused(
+        self, tmp_path: Path, where: str
+    ) -> None:
+        # The bundle stores the link text, so an absolute target is broken on the runner.
+        project = write(
+            tmp_path,
+            {
+                "arcade.toml": '[deploy]\nnative_libs = ["vendor/odbc"]\n',
+                "drivers/odbc/libodbc.so.2": "",
+            },
+        )
+        links = {
+            "inside": (project / "vendor/odbc/libodbc.so", project / "drivers/odbc/libodbc.so.2"),
+            "entry": (project / "vendor/odbc", project / "drivers/odbc"),
+            "parent": (project / "vendor", project / "drivers"),
+        }
+        link, target = links[where]
+        link.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            link.symlink_to(target.resolve(), target_is_directory=target.is_dir())
+        except OSError:
+            pytest.skip("symlinks unavailable")
+
+        with pytest.raises(DeployConfigError, match="absolute target"):
+            load_deploy_config(project)
+
+    def test_a_relative_link_for_the_entry_is_allowed(self, tmp_path: Path) -> None:
+        project = write(
+            tmp_path,
+            {
+                "arcade.toml": '[deploy]\nnative_libs = ["vendor/odbc"]\n',
+                "drivers/odbc/libodbc.so.2": "",
+            },
+        )
+        (project / "vendor").mkdir()
+        try:
+            (project / "vendor" / "odbc").symlink_to("../drivers/odbc", target_is_directory=True)
         except OSError:
             pytest.skip("symlinks unavailable")
 

@@ -194,7 +194,7 @@ class TestWarnings:
         (tmp_path / "drivers" / "libodbc.so.2").write_bytes(b"MZ" + bytes(62))
         try:
             (tmp_path / "vendor" / "odbc" / "libodbc.so.2").symlink_to(
-                tmp_path / "drivers" / "libodbc.so.2"
+                "../../drivers/libodbc.so.2"
             )
         except OSError:
             pytest.skip("symlinks unavailable")
