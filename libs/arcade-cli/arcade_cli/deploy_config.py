@@ -3,11 +3,11 @@
 Read from ``[tool.arcade.deploy]`` in pyproject.toml, else from ``[deploy]`` in an
 ``arcade.toml`` beside the server, for projects with only a requirements.txt. Most servers
 need none: the start command, port and path are detected. An Arcade server uses only
-``environment`` and ``secrets`` (see ``deploy_arcade``).
+``environment``, ``secrets`` and ``native_libs`` (see ``deploy_arcade``).
 
 The CLI is the only parser of this config. It sends the start command, environment,
 secrets and OAuth client in the deploy request, and writes the runner's share
-(``api_key``, ``path``) to ``.arcade/deploy.json`` in the bundle, so the runner never reads
+(``api_key``, ``path``, ``native_libs``) to ``.arcade/deploy.json`` in the bundle, so the runner never reads
 the author's files.
 
 Settings hold names and formats only, never a credential value: a secret is named here
@@ -20,7 +20,7 @@ import json
 import re
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, ValidationError, model_validator
@@ -97,6 +97,9 @@ class DeployConfig(BaseModel):
     api_key: ApiKey | None = None
     oauth_client: OAuthClient | None = None
     path: str | None = None
+    # Project directories holding bundled shared libraries (an ODBC driver, Oracle Instant
+    # Client) that the runner puts on the server's library path.
+    native_libs: list[str] = Field(default_factory=list)
 
     _source: Literal["pyproject.toml", "arcade.toml"] | None = PrivateAttr(default=None)
 
@@ -117,7 +120,54 @@ class DeployConfig(BaseModel):
                 "to authenticate its own calls to the server."
             )
         _check_names(self)
+        self.native_libs = [_native_lib_path(entry) for entry in self.native_libs]
         return self
+
+
+def _native_lib_path(entry: str) -> str:
+    """A ``native_libs`` entry as a normalized project-relative POSIX path."""
+    if not entry.strip():
+        raise ValueError("`native_libs` has an empty entry.")
+    if "\\" in entry:
+        raise ValueError(f"`native_libs` entries use '/' between directories: {entry!r}")
+    path = PurePosixPath(entry)
+    if path.is_absolute() or re.match(r"[A-Za-z]:", entry):
+        raise ValueError(
+            f"`native_libs` entries are directories relative to the project, not absolute "
+            f"paths: {entry!r}"
+        )
+    if ".." in path.parts:
+        raise ValueError(f"`native_libs` entry {entry!r} leaves the project.")
+    if path == PurePosixPath("."):
+        raise ValueError(
+            "`native_libs` can't name the project directory itself; name the directory "
+            "that holds the libraries."
+        )
+    for part in path.parts:
+        if part.startswith(".") or part == "__pycache__" or part.endswith(".egg-info"):
+            raise ValueError(
+                f"`native_libs` entry {entry!r} is a directory the bundle leaves out "
+                f"({part}); move the libraries to a directory that isn't hidden or a cache."
+            )
+    return path.as_posix()
+
+
+def check_native_libs(config: DeployConfig, project_dir: Path) -> None:
+    """Refuse a ``native_libs`` entry that isn't a directory inside the project."""
+    root = project_dir.resolve()
+    for entry in config.native_libs:
+        directory = project_dir / entry
+        if not directory.is_dir():
+            what = "isn't a directory" if directory.exists() else "doesn't exist"
+            raise DeployConfigError(
+                f"native_libs names {entry}, which {what} in the project ({project_dir})."
+            )
+        # A symlink to a directory outside the project would ship as a dangling link.
+        if not directory.resolve().is_relative_to(root):
+            raise DeployConfigError(
+                f"native_libs names {entry}, which leads outside the project: copy the "
+                "libraries into the project instead of linking to them."
+            )
 
 
 def _check_names(config: DeployConfig) -> None:
@@ -132,8 +182,7 @@ def _check_names(config: DeployConfig) -> None:
             raise ValueError(f"{name!r} isn't a valid environment variable name.")
     for name in reserved_names(deployed):
         raise ValueError(
-            f"{name} is reserved for the deployment runtime; declare the value under "
-            "another name."
+            f"{name} is reserved for the deployment runtime; declare the value under another name."
         )
     both = sorted(set(config.environment) & set(config.secrets))
     if both:
@@ -183,6 +232,7 @@ def load_deploy_config(project_dir: Path) -> DeployConfig:
         problems = "\n".join(f"  {_describe(error)}" for error in e.errors())
         raise DeployConfigError(f"The deploy settings in {where} are invalid:\n{problems}") from e
     config._source = source
+    check_native_libs(config, project_dir)
     return config
 
 
@@ -271,4 +321,6 @@ def runner_settings_json(config: DeployConfig) -> str | None:
         settings["api_key"] = config.api_key.model_dump(exclude_none=True)
     if config.path:
         settings["path"] = config.path
+    if config.native_libs:
+        settings["native_libs"] = list(config.native_libs)
     return json.dumps(settings, indent=2) + "\n" if settings else None

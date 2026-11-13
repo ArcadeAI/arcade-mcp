@@ -5,9 +5,10 @@ MCP server, ``[tool.arcade.deploy]`` in pyproject.toml or ``[deploy]`` in arcade
 gets the same checks before anything is uploaded: what the runner can install, which
 dependencies lack a prebuilt wheel, and a virtual environment to run the server in locally.
 
-Only ``environment`` and ``secrets`` apply to an Arcade server. They go in the deploy request
-as the deployment's environment and secrets, beside the per-call project secrets its tools
-declare with ``requires_secrets``. A project with no deploy config sends neither, so it
+Only ``environment``, ``secrets`` and ``native_libs`` apply to an Arcade server. The first two
+go in the deploy request as the deployment's environment and secrets, beside the per-call
+project secrets its tools declare with ``requires_secrets``; ``native_libs`` goes to the runner
+in ``.arcade/deploy.json``. A project with no deploy config sends neither, so it
 deploys as it did before the config existed.
 """
 
@@ -18,7 +19,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from arcade_cli.console import console
-from arcade_cli.deploy import DeployRefusedError, deployment_runners
+from arcade_cli.deploy import DeployRefusedError, arcade_archive_drops, deployment_runners
 from arcade_cli.deploy_checks import check_project
 from arcade_cli.deploy_config import (
     DeclaredValues,
@@ -32,9 +33,10 @@ from arcade_cli.deploy_mcp import (
     refuse_skipping_declared_secrets,
     warn_about_missing_wheels,
 )
+from arcade_cli.deploy_native_libs import warn_about_native_libs
 
 # Settings for an MCP server's start and sign-in: an Arcade server starts from --entrypoint
-# and the Engine calls it through the Arcade worker API.
+# and the Engine calls it through the Arcade worker API. native_libs applies to both.
 _MCP_ONLY_SETTINGS = ("command", "path", "api_key", "oauth_client")
 
 
@@ -81,9 +83,11 @@ def prepare_arcade_deploy(
     if config.source:
         console.print(f"✓ Deploy settings from {config.source}", style="green")
     _refuse_mcp_only_settings(config)
+    _refuse_native_libs_left_out(config)
     for warning in check_project(project_dir, protocol="arcade", runners=runners):
         console.print(f"[!] {warning}", style="yellow", markup=False)
     warn_about_missing_wheels(project_dir, "arcade", runners)
+    warn_about_native_libs(project_dir, config, runners)
 
     values = None
     if config.source:
@@ -104,5 +108,17 @@ def _refuse_mcp_only_settings(config: DeployConfig) -> None:
             f"{', '.join(present)} in the deploy settings ({config.source}) apply only to MCP "
             "servers. This project depends on arcade-mcp, so it deploys as an Arcade server: "
             "it starts from --entrypoint and Arcade calls it through the Arcade worker API. "
-            "Remove them; environment and secrets still apply."
+            "Remove them; environment, secrets and native_libs still apply."
         )
+
+
+def _refuse_native_libs_left_out(config: DeployConfig) -> None:
+    """Refuse a native_libs directory an Arcade archive leaves out, such as build/."""
+    for entry in config.native_libs:
+        dropped = [part for part in entry.split("/") if arcade_archive_drops(part)]
+        if dropped:
+            raise DeployRefusedError(
+                f"native_libs names {entry}, but an Arcade server's bundle leaves out "
+                f"directories named {dropped[0]}, so the libraries wouldn't ship. Move them "
+                "to another directory."
+            )
