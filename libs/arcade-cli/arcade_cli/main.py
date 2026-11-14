@@ -547,6 +547,9 @@ def mcp(
         creation_flags = get_windows_no_window_creationflags()
         if creation_flags:
             run_kwargs["creationflags"] = creation_flags
+            # Explicit streams keep the client's pipes when CREATE_NO_WINDOW
+            # would otherwise give the child fresh console handles.
+            run_kwargs.update(stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
         result = subprocess.run(cmd, **run_kwargs)
 
         # Exit with the same code as the subprocess
