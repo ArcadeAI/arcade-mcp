@@ -307,7 +307,6 @@ def fetch_organizations(coordinator_url: str) -> list[OrgInfo]:
 
     Args:
         coordinator_url: Base URL of the Coordinator
-        access_token: Valid access token
 
     Returns:
         List of organizations
@@ -331,7 +330,6 @@ def fetch_projects(coordinator_url: str, org_id: str) -> list[ProjectInfo]:
 
     Args:
         coordinator_url: Base URL of the Coordinator
-        access_token: Valid access token
         org_id: Organization ID
 
     Returns:

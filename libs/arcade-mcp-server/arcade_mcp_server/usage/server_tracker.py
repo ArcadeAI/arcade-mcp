@@ -146,7 +146,7 @@ class ServerTracker:
 
         Args:
             success: Whether the tool call succeeded (True) or failed (False)
-            reason: The reason for the failure (if any)
+            failure_reason: The reason for the failure (if any)
         """
         if not is_tracking_enabled():
             return

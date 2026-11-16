@@ -116,7 +116,6 @@ def _create_tool_schema(
         name: The name of the function
         description: Description of what the function does
         parameters: JSON schema for the function parameters
-        strict: Whether to enforce strict validation (default: True for reliable function calls)
     Returns:
         A properly typed OpenAIToolSchema
     """
