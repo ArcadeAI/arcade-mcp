@@ -178,3 +178,20 @@ def test_client_disconnect_returns_499(client_no_auth, call_tool_payload):
 
         # Verify that we get a 499 status code
         assert response.status_code == 499
+
+
+def test_catalog_route_accepts_additional_secret_from_environment(monkeypatch, test_app):
+    import jwt
+
+    monkeypatch.setenv("ARCADE_WORKER_SECRET_ADDITIONAL", "rotated-in-secret")
+    worker = FastAPIWorker(app=test_app, secret="current-secret")  # noqa: S106 test secret
+    worker.register_tool(sample_tool_fastapi, toolkit_name="fastapi_kit")
+    client = TestClient(test_app)
+
+    def get_catalog(secret: str) -> int:
+        token = jwt.encode({"aud": "worker", "ver": "1"}, secret, algorithm="HS256")
+        return client.get("/worker/tools", headers={"Authorization": f"Bearer {token}"}).status_code
+
+    assert get_catalog("current-secret") == 200
+    assert get_catalog("rotated-in-secret") == 200
+    assert get_catalog("unknown-secret") == 401

@@ -244,6 +244,7 @@ The `arcade` CLI (`libs/arcade-cli/arcade_cli/main.py`) is typer-based. Key comm
 | Env var | Purpose |
 |---------|---------|
 | `ARCADE_WORKER_SECRET` | Enables `/worker/*` endpoints for Arcade Engine integration |
+| `ARCADE_WORKER_SECRET_ADDITIONAL` | Comma-separated extra secrets `/worker/*` accepts (never signs with), for zero-downtime worker secret rotation |
 | `ARCADE_DISABLED_TOOLS` | Comma-separated `ToolkitName::ToolName` pairs to exclude from catalog |
 | `ARCADE_DISABLED_TOOLKITS` | Comma-separated toolkit names to exclude from catalog |
 | `ARCADE_API_KEY` | API key for Arcade Cloud (deploy, evals) |
