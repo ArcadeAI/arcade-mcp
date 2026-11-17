@@ -1,6 +1,5 @@
 import json
 import logging
-import os
 from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import Enum
@@ -30,15 +29,14 @@ class SigningAlgorithm(str, Enum):
     HS256 = "HS256"
 
 
-def accepted_worker_secrets(value: str | None = None) -> tuple[str, ...]:
-    """Parse the accepted secrets, from ``value`` or ``ARCADE_WORKER_SECRETS``.
+def parse_worker_secrets(raw: str | None) -> tuple[str, ...]:
+    """Parse an ``ARCADE_WORKER_SECRETS`` value.
 
     Unset or empty means none. Anything but a JSON array of non-empty strings
     raises, so a worker with a broken list fails at startup instead of
     rejecting the Engine's calls.
     """
-    raw = os.environ.get(WORKER_SECRETS_ENV, "") if value is None else value
-    if not raw.strip():
+    if raw is None or not raw.strip():
         return ()
     try:
         decoded = json.loads(raw)

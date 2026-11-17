@@ -1,4 +1,5 @@
 import json
+from collections.abc import Sequence
 from typing import Any, Callable
 
 from arcade_core.resources import InvalidCursorError, ResourceNotFoundError
@@ -37,6 +38,7 @@ class FastAPIWorker(BaseWorker):
         disable_auth: bool = False,
         otel_meter: Meter | None = None,
         components: list[type[WorkerComponent]] | None = None,
+        accepted_secrets: Sequence[str] | None = None,
     ) -> None:
         """
         Initialize the FastAPIWorker with a FastAPI app instance.
@@ -47,8 +49,10 @@ class FastAPIWorker(BaseWorker):
             disable_auth: Whether to disable authorization
             otel_meter: Optional OpenTelemetry meter
             components: Optional list of components to register
+            accepted_secrets: Optional more secrets to accept on Engine requests; defaults
+                to the ARCADE_WORKER_SECRETS environment variable
         """
-        super().__init__(secret, disable_auth, otel_meter)
+        super().__init__(secret, disable_auth, otel_meter, accepted_secrets)
         self.app = app
         self.router = FastAPIRouter(app, self)
 

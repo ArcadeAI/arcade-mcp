@@ -2,9 +2,8 @@ import jwt
 import pytest
 from arcade_serve.core.auth import (
     SUPPORTED_TOKEN_VER,
-    WORKER_SECRETS_ENV,
     SigningAlgorithm,
-    accepted_worker_secrets,
+    parse_worker_secrets,
     validate_engine_token,
 )
 
@@ -85,6 +84,7 @@ def test_accepted_secret_still_checks_claims():
 @pytest.mark.parametrize(
     ("raw", "expected"),
     [
+        (None, ()),
         ("", ()),
         ("  ", ()),
         ("[]", ()),
@@ -92,18 +92,11 @@ def test_accepted_secret_still_checks_claims():
         ('["a", "b"]', ("a", "b")),
     ],
 )
-def test_accepted_worker_secrets_parsing(raw, expected):
-    assert accepted_worker_secrets(raw) == expected
+def test_parse_worker_secrets(raw, expected):
+    assert parse_worker_secrets(raw) == expected
 
 
 @pytest.mark.parametrize("raw", ["a,b", "not json", '"a"', '{"a": 1}', '["a", ""]', '["a", 1]'])
-def test_accepted_worker_secrets_refuses_anything_but_an_array_of_strings(raw):
+def test_parse_worker_secrets_refuses_anything_but_an_array_of_strings(raw):
     with pytest.raises(ValueError, match="ARCADE_WORKER_SECRETS"):
-        accepted_worker_secrets(raw)
-
-
-def test_accepted_worker_secrets_reads_environment(monkeypatch):
-    monkeypatch.setenv(WORKER_SECRETS_ENV, f'["{NEW_SECRET}", "other"]')
-    assert accepted_worker_secrets() == (NEW_SECRET, "other")
-    monkeypatch.delenv(WORKER_SECRETS_ENV)
-    assert accepted_worker_secrets() == ()
+        parse_worker_secrets(raw)

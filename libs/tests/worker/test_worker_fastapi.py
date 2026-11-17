@@ -195,3 +195,47 @@ def test_catalog_route_accepts_secrets_listed_in_environment(monkeypatch, test_a
     assert get_catalog("current-secret") == 200
     assert get_catalog("rotated-in-secret") == 200
     assert get_catalog("unknown-secret") == 401
+
+
+def test_catalog_route_accepts_secrets_passed_explicitly(monkeypatch, test_app):
+    import jwt
+
+    monkeypatch.setenv("ARCADE_WORKER_SECRETS", '["ignored-env-secret"]')
+    worker = FastAPIWorker(
+        app=test_app,
+        secret="current-secret",  # noqa: S106 test secret
+        accepted_secrets=["rotated-in-secret"],
+    )
+    worker.register_tool(sample_tool_fastapi, toolkit_name="fastapi_kit")
+    client = TestClient(test_app)
+
+    def get_catalog(secret: str) -> int:
+        token = jwt.encode({"aud": "worker", "ver": "1"}, secret, algorithm="HS256")
+        return client.get("/worker/tools", headers={"Authorization": f"Bearer {token}"}).status_code
+
+    assert get_catalog("current-secret") == 200
+    assert get_catalog("rotated-in-secret") == 200
+    assert get_catalog("ignored-env-secret") == 401
+
+
+def test_malformed_worker_secrets_environment_fails_at_startup(monkeypatch, test_app):
+    monkeypatch.setenv("ARCADE_WORKER_SECRETS", "a,b")
+    with pytest.raises(ValueError, match="ARCADE_WORKER_SECRETS"):
+        FastAPIWorker(app=test_app, secret="current-secret")  # noqa: S106 test secret
+
+
+def test_worker_secrets_unset_accepts_only_the_worker_secret(monkeypatch, test_app):
+    import jwt
+
+    monkeypatch.delenv("ARCADE_WORKER_SECRETS", raising=False)
+    worker = FastAPIWorker(app=test_app, secret="current-secret")  # noqa: S106 test secret
+    worker.register_tool(sample_tool_fastapi, toolkit_name="fastapi_kit")
+    client = TestClient(test_app)
+
+    def get_catalog(secret: str) -> int:
+        token = jwt.encode({"aud": "worker", "ver": "1"}, secret, algorithm="HS256")
+        return client.get("/worker/tools", headers={"Authorization": f"Bearer {token}"}).status_code
+
+    assert worker.accepted_secrets == ()
+    assert get_catalog("current-secret") == 200
+    assert get_catalog("some-other-secret") == 401
