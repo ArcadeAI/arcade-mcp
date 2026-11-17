@@ -1,10 +1,10 @@
 import jwt
 import pytest
 from arcade_serve.core.auth import (
-    ADDITIONAL_SECRETS_ENV,
     SUPPORTED_TOKEN_VER,
+    WORKER_SECRETS_ENV,
     SigningAlgorithm,
-    additional_worker_secrets,
+    accepted_worker_secrets,
     validate_engine_token,
 )
 
@@ -55,9 +55,14 @@ def test_malformed_token_rejected(garbage):
 NEW_SECRET = "new-worker-secret-at-least-32-bytes-long"  # noqa: S105 test secret, not a credential
 
 
-def test_token_signed_with_additional_secret_accepted():
+def test_token_signed_with_an_accepted_secret_accepted():
     token = _mint({"aud": "worker", "ver": SUPPORTED_TOKEN_VER}, secret=NEW_SECRET)
-    assert validate_engine_token(WORKER_SECRET, token, ("unrelated-secret", NEW_SECRET)).valid
+    assert validate_engine_token(WORKER_SECRET, token, (WORKER_SECRET, NEW_SECRET)).valid
+
+
+def test_worker_secret_accepted_even_when_not_listed():
+    token = _mint({"aud": "worker", "ver": SUPPORTED_TOKEN_VER})
+    assert validate_engine_token(WORKER_SECRET, token, (NEW_SECRET,)).valid
 
 
 def test_token_signed_with_no_accepted_secret_rejected():
@@ -67,7 +72,7 @@ def test_token_signed_with_no_accepted_secret_rejected():
     assert result.error == "Signature verification failed"
 
 
-def test_additional_secret_still_checks_claims():
+def test_accepted_secret_still_checks_claims():
     token = _mint({"aud": "not-worker", "ver": SUPPORTED_TOKEN_VER}, secret=NEW_SECRET)
     assert not validate_engine_token(WORKER_SECRET, token, (NEW_SECRET,)).valid
 
@@ -81,17 +86,24 @@ def test_additional_secret_still_checks_claims():
     ("raw", "expected"),
     [
         ("", ()),
-        (" , ,", ()),
-        ("a", ("a",)),
-        (" a , b ,, c ", ("a", "b", "c")),
+        ("  ", ()),
+        ("[]", ()),
+        ('["a"]', ("a",)),
+        ('["a", "b"]', ("a", "b")),
     ],
 )
-def test_additional_worker_secrets_parsing(raw, expected):
-    assert additional_worker_secrets(raw) == expected
+def test_accepted_worker_secrets_parsing(raw, expected):
+    assert accepted_worker_secrets(raw) == expected
 
 
-def test_additional_worker_secrets_reads_environment(monkeypatch):
-    monkeypatch.setenv(ADDITIONAL_SECRETS_ENV, f"{NEW_SECRET}, other")
-    assert additional_worker_secrets() == (NEW_SECRET, "other")
-    monkeypatch.delenv(ADDITIONAL_SECRETS_ENV)
-    assert additional_worker_secrets() == ()
+@pytest.mark.parametrize("raw", ["a,b", "not json", '"a"', '{"a": 1}', '["a", ""]', '["a", 1]'])
+def test_accepted_worker_secrets_refuses_anything_but_an_array_of_strings(raw):
+    with pytest.raises(ValueError, match="ARCADE_WORKER_SECRETS"):
+        accepted_worker_secrets(raw)
+
+
+def test_accepted_worker_secrets_reads_environment(monkeypatch):
+    monkeypatch.setenv(WORKER_SECRETS_ENV, f'["{NEW_SECRET}", "other"]')
+    assert accepted_worker_secrets() == (NEW_SECRET, "other")
+    monkeypatch.delenv(WORKER_SECRETS_ENV)
+    assert accepted_worker_secrets() == ()

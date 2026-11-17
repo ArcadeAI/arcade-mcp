@@ -23,7 +23,7 @@ from arcade_core.schema import (
 from opentelemetry import trace
 from opentelemetry.metrics import Meter
 
-from arcade_serve.core.auth import additional_worker_secrets
+from arcade_serve.core.auth import accepted_worker_secrets
 from arcade_serve.core.common import InvalidRequestParamsError, Router, Worker
 from arcade_serve.core.components import (
     CallToolComponent,
@@ -71,7 +71,7 @@ class BaseWorker(Worker):
             )
 
         self.secret = self._set_secret(secret, disable_auth)
-        self.additional_secrets = () if disable_auth else additional_worker_secrets()
+        self.accepted_secrets = () if disable_auth else accepted_worker_secrets()
         self._elicitation_secret = create_elicitation_secret(
             self.secret or secret or os.environ.get("ARCADE_WORKER_SECRET")
         )

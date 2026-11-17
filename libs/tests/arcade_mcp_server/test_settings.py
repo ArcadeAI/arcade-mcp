@@ -159,7 +159,7 @@ class TestReservedToolSecretKeys:
     def test_is_reserved_tool_secret_key_matches_credentials(self) -> None:
         """The worker secrets and the API key are reserved."""
         assert is_reserved_tool_secret_key("ARCADE_WORKER_SECRET")
-        assert is_reserved_tool_secret_key("ARCADE_WORKER_SECRET_ADDITIONAL")
+        assert is_reserved_tool_secret_key("ARCADE_WORKER_SECRETS")
         assert is_reserved_tool_secret_key("ARCADE_API_KEY")
 
     def test_is_reserved_tool_secret_key_is_case_insensitive(self) -> None:

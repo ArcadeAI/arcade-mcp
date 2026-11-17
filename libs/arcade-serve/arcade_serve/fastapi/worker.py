@@ -101,19 +101,19 @@ class FastAPIRouter(Router):
         use_auth_for_route = not self.worker.disable_auth and require_auth
 
         def call_validate_engine_request(
-            worker_secret: str, additional_secrets: tuple[str, ...]
+            worker_secret: str, accepted_secrets: tuple[str, ...]
         ) -> Callable:
             async def dependency(
                 credentials: HTTPAuthorizationCredentials = Depends(security),
             ) -> None:
-                await validate_engine_request(worker_secret, credentials, additional_secrets)
+                await validate_engine_request(worker_secret, credentials, accepted_secrets)
 
             return dependency
 
         async def wrapped_handler(
             request: Request,
             _: None = Depends(
-                call_validate_engine_request(self.worker.secret, self.worker.additional_secrets)
+                call_validate_engine_request(self.worker.secret, self.worker.accepted_secrets)
             )
             if use_auth_for_route
             else None,

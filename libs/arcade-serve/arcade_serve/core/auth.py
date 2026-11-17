@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from collections.abc import Iterable
@@ -8,11 +9,12 @@ import jwt
 
 SUPPORTED_TOKEN_VER = "1"  # noqa: S105 Possible hardcoded password assigned (false positive)
 
-ADDITIONAL_SECRETS_ENV = "ARCADE_WORKER_SECRET_ADDITIONAL"
-"""Comma-separated secrets accepted alongside the worker secret, never used to sign.
+WORKER_SECRETS_ENV = "ARCADE_WORKER_SECRETS"
+"""A JSON array of secrets the worker accepts on Engine requests, never used to sign.
 
-Lets the worker secret rotate without downtime: workers accept both the old and
-the new value while the Engine and the workers move to the new one.
+The worker secret itself is always accepted too. Listing the old and the new
+value lets the worker secret rotate without rejecting calls: append the new
+one, switch the Engine to it, then drop the old one.
 """
 
 logger = logging.getLogger(__name__)
@@ -28,19 +30,35 @@ class SigningAlgorithm(str, Enum):
     HS256 = "HS256"
 
 
-def additional_worker_secrets(value: str | None = None) -> tuple[str, ...]:
-    """Parse the additional accepted secrets, from ``value`` or the environment."""
-    raw = os.environ.get(ADDITIONAL_SECRETS_ENV, "") if value is None else value
-    return tuple(part.strip() for part in raw.split(",") if part.strip())
+def accepted_worker_secrets(value: str | None = None) -> tuple[str, ...]:
+    """Parse the accepted secrets, from ``value`` or ``ARCADE_WORKER_SECRETS``.
+
+    Unset or empty means none. Anything but a JSON array of non-empty strings
+    raises, so a worker with a broken list fails at startup instead of
+    rejecting the Engine's calls.
+    """
+    raw = os.environ.get(WORKER_SECRETS_ENV, "") if value is None else value
+    if not raw.strip():
+        return ()
+    try:
+        decoded = json.loads(raw)
+    except json.JSONDecodeError:
+        raise ValueError(f"{WORKER_SECRETS_ENV} must be a JSON array of strings") from None
+    if not isinstance(decoded, list) or not all(
+        isinstance(secret, str) and secret for secret in decoded
+    ):
+        raise ValueError(f"{WORKER_SECRETS_ENV} must be a JSON array of non-empty strings")
+    return tuple(decoded)
 
 
 def validate_engine_token(
     worker_secret: str,
     token: str,
-    additional_secrets: Iterable[str] = (),
+    accepted_secrets: Iterable[str] = (),
 ) -> TokenValidationResult:
     signature_error: jwt.InvalidSignatureError | None = None
-    for index, secret in enumerate((worker_secret, *additional_secrets)):
+    secrets = dict.fromkeys((worker_secret, *accepted_secrets))
+    for index, secret in enumerate(secrets):
         try:
             payload = jwt.decode(
                 token,
@@ -56,7 +74,7 @@ def validate_engine_token(
             return TokenValidationResult(valid=False, error=str(e))
 
         if index > 0:
-            logger.debug("Worker token verified with an additional worker secret")
+            logger.debug("Worker token verified with a secret from %s", WORKER_SECRETS_ENV)
 
         token_ver = payload.get("ver")
         if token_ver != SUPPORTED_TOKEN_VER:

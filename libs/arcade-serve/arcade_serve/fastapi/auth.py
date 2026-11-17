@@ -10,10 +10,10 @@ from arcade_serve.core.auth import validate_engine_token
 async def validate_engine_request(
     worker_secret: str,
     credentials: HTTPAuthorizationCredentials,
-    additional_secrets: Iterable[str] = (),
+    accepted_secrets: Iterable[str] = (),
 ) -> None:
     jwt: str = credentials.credentials
-    validation_result = validate_engine_token(worker_secret, jwt, additional_secrets)
+    validation_result = validate_engine_token(worker_secret, jwt, accepted_secrets)
 
     if not validation_result.valid:
         raise HTTPException(
