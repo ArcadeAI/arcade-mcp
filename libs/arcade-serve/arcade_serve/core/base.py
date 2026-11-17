@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+from collections.abc import Sequence
 from datetime import datetime
 from typing import Any, Callable, ClassVar
 
@@ -23,6 +24,7 @@ from arcade_core.schema import (
 from opentelemetry import trace
 from opentelemetry.metrics import Meter
 
+from arcade_serve.core.auth import WORKER_SECRETS_ENV, parse_worker_secrets
 from arcade_serve.core.common import InvalidRequestParamsError, Router, Worker
 from arcade_serve.core.components import (
     CallToolComponent,
@@ -57,10 +59,13 @@ class BaseWorker(Worker):
         secret: str | None = None,
         disable_auth: bool = False,
         otel_meter: Meter | None = None,
+        accepted_secrets: Sequence[str] | None = None,
     ) -> None:
         """
         Initialize the BaseWorker with an empty ToolCatalog.
         If no secret is provided, the worker will use the ARCADE_WORKER_SECRET environment variable.
+        If no accepted_secrets are provided, the worker will use the ARCADE_WORKER_SECRETS
+        environment variable, a JSON array of more secrets to accept on Engine requests.
         """
         self.catalog = ToolCatalog()
         self.disable_auth = disable_auth
@@ -70,6 +75,7 @@ class BaseWorker(Worker):
             )
 
         self.secret = self._set_secret(secret, disable_auth)
+        self.accepted_secrets = self._set_accepted_secrets(accepted_secrets, disable_auth)
         self._elicitation_secret = create_elicitation_secret(
             self.secret or secret or os.environ.get("ARCADE_WORKER_SECRET")
         )
@@ -97,6 +103,15 @@ class BaseWorker(Worker):
         raise ValueError(
             "No secret provided for worker. Set the ARCADE_WORKER_SECRET environment variable."
         )
+
+    def _set_accepted_secrets(
+        self, accepted_secrets: Sequence[str] | None, disable_auth: bool
+    ) -> tuple[str, ...]:
+        if disable_auth:
+            return ()
+        if accepted_secrets is not None:
+            return tuple(accepted_secrets)
+        return parse_worker_secrets(os.environ.get(WORKER_SECRETS_ENV))
 
     def get_catalog(self) -> list[ToolDefinition]:
         """
