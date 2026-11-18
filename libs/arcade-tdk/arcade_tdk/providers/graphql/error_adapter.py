@@ -10,11 +10,30 @@ from arcade_core.errors import (
     NetworkTransportError,
     ToolRuntimeError,
     UpstreamError,
+    UpstreamRateLimitError,
 )
 
 from arcade_tdk.providers.http.error_adapter import BaseHTTPErrorMapper
 
 logger = logging.getLogger(__name__)
+
+# A GraphQL API's error text can carry internal details or echo request content back, so it
+# never reaches the agent: the agent gets a fixed message per error class, and the API's
+# messages and codes go to developer_message.
+RATE_LIMITED_MESSAGE = (
+    "The upstream service is rate-limiting requests for this account. Retry shortly."
+)
+SERVER_ERROR_MESSAGE = (
+    "The upstream service could not complete the request because of a problem on its side. "
+    "Retry shortly."
+)
+UNAUTHORIZED_MESSAGE = (
+    "The upstream service rejected this account's authorization. Re-authorize and retry."
+)
+REFUSED_MESSAGE = (
+    "The upstream service refused the request. Check the arguments; "
+    "if they are right, this account may not have access to the item."
+)
 
 # Standard Apollo/GraphQL error codes mapped to HTTP status codes
 _GQL_CODE_TO_STATUS = {
@@ -26,6 +45,7 @@ _GQL_CODE_TO_STATUS = {
     "BAD_USER_INPUT": 400,
     "GRAPHQL_VALIDATION_FAILED": 400,
     "GRAPHQL_PARSE_FAILED": 400,
+    "RATELIMITED": 429,  # Linear's rate-limit code
     "INTERNAL_SERVER_ERROR": 500,
 }
 
@@ -156,7 +176,8 @@ class GraphQLErrorAdapter(BaseHTTPErrorMapper):
             _extract_error_message(e.get("message") if isinstance(e, dict) else e)
             for e in errors_list
         ]
-        joined = "; ".join(messages) if messages else "Unknown GraphQL error"
+        # A query error raised without an `errors` payload carries its text on the exception.
+        detail = "; ".join(messages) if messages else _extract_error_message(exc)
 
         # Extract error codes and map to HTTP status
         codes: list[str] = []
@@ -177,18 +198,37 @@ class GraphQLErrorAdapter(BaseHTTPErrorMapper):
         status = max(mapped_statuses) if mapped_statuses else HTTPStatus.UNPROCESSABLE_ENTITY.value
 
         unique_codes = sorted(set(codes))
+        code_label = (
+            f"GraphQL error codes: {', '.join(unique_codes)}" if unique_codes else "GraphQL error"
+        )
+        developer_message = f"{code_label}. Message: {detail}"
+        extra: dict[str, Any] = {
+            "service": self.slug,
+            "error_type": "TransportQueryError",
+            "gql_error_codes": unique_codes,
+        }
+
+        if status == HTTPStatus.TOO_MANY_REQUESTS:
+            # A query error carries no response headers, so the default retry delay applies.
+            return UpstreamRateLimitError(
+                retry_after_ms=self._parse_retry_ms({}),
+                message=RATE_LIMITED_MESSAGE,
+                developer_message=developer_message,
+                extra=extra,
+            )
+
+        if status >= HTTPStatus.INTERNAL_SERVER_ERROR:
+            message = SERVER_ERROR_MESSAGE
+        elif status == HTTPStatus.UNAUTHORIZED:
+            message = UNAUTHORIZED_MESSAGE
+        else:
+            message = REFUSED_MESSAGE
 
         return UpstreamError(
-            message=f"Upstream GraphQL error: {joined}",
+            message=message,
             status_code=status,
-            developer_message=f"GraphQL error codes: {', '.join(unique_codes)}"
-            if unique_codes
-            else "GraphQL error",
-            extra={
-                "service": self.slug,
-                "error_type": "TransportQueryError",
-                "gql_error_codes": unique_codes,
-            },
+            developer_message=developer_message,
+            extra=extra,
         )
 
     def _handle_transport_error(self, exc: Any) -> UpstreamError:

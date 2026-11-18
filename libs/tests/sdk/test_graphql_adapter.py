@@ -252,7 +252,7 @@ class TestGraphQLErrorAdapter:
     # --- TransportQueryError tests ---
 
     def test_query_error_extracts_messages_and_codes(self) -> None:
-        """Should extract messages and map error codes to status."""
+        """Should map error codes to status and put messages and codes in developer_message."""
         errors = [
             {"message": "Not authorized", "extensions": {"code": "FORBIDDEN"}},
             {"message": "Server error", "extensions": {"code": "INTERNAL_SERVER_ERROR"}},
@@ -264,12 +264,15 @@ class TestGraphQLErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == HTTPStatus.INTERNAL_SERVER_ERROR  # Highest mapped status
-        assert "Not authorized" in result.message
-        assert "Server error" in result.message
+        assert result.message == gql_adapter.SERVER_ERROR_MESSAGE
+        assert result.developer_message == (
+            "GraphQL error codes: FORBIDDEN, INTERNAL_SERVER_ERROR. "
+            "Message: Not authorized; Server error"
+        )
         assert result.extra["gql_error_codes"] == ["FORBIDDEN", "INTERNAL_SERVER_ERROR"]
 
     def test_query_error_defaults_when_empty(self) -> None:
-        """Should handle empty/missing errors gracefully."""
+        """With no `errors` payload, the exception's own text goes to developer_message."""
         exc = DummyTransportQueryError(errors=None)
 
         with _patch_loader():
@@ -277,7 +280,8 @@ class TestGraphQLErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-        assert "Unknown GraphQL error" in result.message
+        assert result.message == gql_adapter.REFUSED_MESSAGE
+        assert result.developer_message == "GraphQL error. Message: query error"
 
     def test_query_error_deduplicates_codes(self) -> None:
         """Duplicate error codes should be deduplicated."""
@@ -468,7 +472,7 @@ class TestGqlVersionTolerance:
 
     @pytest.mark.parametrize("profile", GQL_VERSION_PROFILES)
     def test_query_error_keeps_real_message_on_every_version(self, profile: str) -> None:
-        """The GraphQL message must reach the caller, not be swallowed."""
+        """The GraphQL message reaches developer_message on every gql version."""
         with _fake_gql_installed(profile) as module:
             exc = module.TransportQueryError(
                 errors=[{"message": "Entity not found", "extensions": {"code": "NOT_FOUND"}}]
@@ -476,9 +480,11 @@ class TestGqlVersionTolerance:
             result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
 
         assert isinstance(result, UpstreamError)
-        assert result.message == "Upstream GraphQL error: Entity not found"
+        assert result.message == gql_adapter.REFUSED_MESSAGE
         assert result.status_code == HTTPStatus.NOT_FOUND
-        assert result.developer_message == "GraphQL error codes: NOT_FOUND"
+        assert result.developer_message == (
+            "GraphQL error codes: NOT_FOUND. Message: Entity not found"
+        )
 
     def test_present_classes_still_map_when_a_sibling_is_missing(self) -> None:
         """One missing class must not disable the branches around it."""
@@ -514,8 +520,8 @@ class TestGqlVersionTolerance:
             result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
 
         assert isinstance(result, UpstreamError)
-        assert result.message == "Upstream GraphQL error: Entity not found"
-        assert "status code 500" not in result.message
+        assert result.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+        assert "Entity not found" in (result.developer_message or "")
 
     @pytest.mark.parametrize("profile", GQL_VERSION_PROFILES)
     def test_server_error_keeps_its_status_and_stays_off_the_network_branch(
@@ -697,6 +703,43 @@ class TestStdioDebugLoggingHelper:
         assert root.handlers == before
 
 
+class TestQueryErrorAgentMessage:
+    """The agent reads `message`, so the upstream's own error text goes to developer_message."""
+
+    @pytest.mark.parametrize(
+        ("code", "message_name"),
+        [
+            ("UNAUTHENTICATED", "UNAUTHORIZED_MESSAGE"),
+            ("FORBIDDEN", "REFUSED_MESSAGE"),
+            ("NOT_FOUND", "REFUSED_MESSAGE"),
+            ("BAD_USER_INPUT", "REFUSED_MESSAGE"),
+            ("UNRECOGNIZED_CODE", "REFUSED_MESSAGE"),
+            ("RATELIMITED", "RATE_LIMITED_MESSAGE"),
+            ("INTERNAL_SERVER_ERROR", "SERVER_ERROR_MESSAGE"),
+        ],
+    )
+    def test_each_error_class_gets_a_fixed_message(self, code: str, message_name: str) -> None:
+        result = _map_query_errors([
+            {"message": "Lookup on db.internal.example timed out", "extensions": {"code": code}}
+        ])
+
+        assert result.message == getattr(gql_adapter, message_name)
+        assert "db.internal.example" in (result.developer_message or "")
+
+    @pytest.mark.parametrize("profile", GQL_VERSION_PROFILES)
+    def test_text_of_a_query_error_without_an_errors_payload_stays_off_the_agent(
+        self, profile: str
+    ) -> None:
+        """A query error raised with only a message keeps that text in developer_message."""
+        with _fake_gql_installed(profile) as module:
+            exc = module.TransportQueryError("duplicate key violates constraint idx_internal")
+            result = gql_adapter.GraphQLErrorAdapter().from_exception(exc)
+
+        assert isinstance(result, UpstreamError)
+        assert "idx_internal" not in result.message
+        assert "idx_internal" in (result.developer_message or "")
+
+
 class TestQueryErrorStatusSelection:
     """422 is the no-recognized-code fallback, not a floor that masks specific 4xx codes."""
 
@@ -711,6 +754,7 @@ class TestQueryErrorStatusSelection:
             ("BAD_USER_INPUT", 400, ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST),
             ("GRAPHQL_VALIDATION_FAILED", 400, ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST),
             ("GRAPHQL_PARSE_FAILED", 400, ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST),
+            ("RATELIMITED", 429, ErrorKind.UPSTREAM_RUNTIME_RATE_LIMIT),
             ("INTERNAL_SERVER_ERROR", 500, ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR),
         ],
     )
@@ -729,6 +773,16 @@ class TestQueryErrorStatusSelection:
 
         assert result.status_code == expected_status
         assert result.kind == expected_kind
+
+    def test_rate_limit_code_is_a_retryable_rate_limit_error(self) -> None:
+        """A query error carries no Retry-After header, so the default retry delay applies."""
+        result = _map_query_errors([
+            {"message": "Rate limit exceeded", "extensions": {"code": "RATELIMITED"}}
+        ])
+
+        assert isinstance(result, UpstreamRateLimitError)
+        assert result.can_retry is True
+        assert result.retry_after_ms == 1_000
 
     def test_unknown_code_falls_back_to_422(self) -> None:
         """No recognized code → the unprocessable-entity fallback, code still reported."""
@@ -768,8 +822,8 @@ class TestQueryErrorStatusSelection:
         INTERNAL_SERVER_ERROR response.
 
         The scalar `status_code`/`kind` picks one code, but no signal is
-        discarded: both messages and both codes still reach the caller, which is
-        what keeps the single-label choice cheap.
+        discarded: both messages and both codes are kept in `developer_message`
+        and `extra`, which is what keeps the single-label choice cheap.
         """
         result = _map_query_errors([
             {"message": "Not authenticated", "extensions": {"code": "UNAUTHENTICATED"}},
@@ -778,8 +832,10 @@ class TestQueryErrorStatusSelection:
 
         assert result.status_code == HTTPStatus.NOT_FOUND
         assert result.kind == ErrorKind.UPSTREAM_RUNTIME_NOT_FOUND
-        assert "Not authenticated" in result.message
-        assert "Entity not found" in result.message
+        assert result.developer_message == (
+            "GraphQL error codes: NOT_FOUND, UNAUTHENTICATED. "
+            "Message: Not authenticated; Entity not found"
+        )
         assert result.extra["gql_error_codes"] == ["NOT_FOUND", "UNAUTHENTICATED"]
 
 
@@ -795,7 +851,7 @@ class TestMalformedErrorsPayload:
         """A bare-string element must not raise AttributeError on `.get`."""
         result = _map_query_errors(["Entity not found"])
 
-        assert result.message == "Upstream GraphQL error: Entity not found"
+        assert result.developer_message == "GraphQL error. Message: Entity not found"
         assert result.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
         assert result.extra["gql_error_codes"] == []
 
@@ -806,8 +862,9 @@ class TestMalformedErrorsPayload:
             "something went wrong",
         ])
 
-        assert "Entity not found" in result.message
-        assert "something went wrong" in result.message
+        assert result.developer_message == (
+            "GraphQL error codes: NOT_FOUND. Message: Entity not found; something went wrong"
+        )
         assert result.status_code == HTTPStatus.NOT_FOUND
         assert result.extra["gql_error_codes"] == ["NOT_FOUND"]
 
@@ -815,7 +872,7 @@ class TestMalformedErrorsPayload:
         """A non-list `errors` must not be iterated character by character."""
         result = _map_query_errors("Entity not found")
 
-        assert result.message == "Upstream GraphQL error: Entity not found"
+        assert result.developer_message == "GraphQL error. Message: Entity not found"
         assert result.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
     def test_tuple_of_error_dicts_is_not_collapsed(self) -> None:
@@ -828,7 +885,9 @@ class TestMalformedErrorsPayload:
             {"message": "Entity not found", "extensions": {"code": "NOT_FOUND"}},
         ))
 
-        assert result.message == "Upstream GraphQL error: Entity not found"
+        assert result.developer_message == (
+            "GraphQL error codes: NOT_FOUND. Message: Entity not found"
+        )
         assert result.status_code == HTTPStatus.NOT_FOUND
         assert result.extra["gql_error_codes"] == ["NOT_FOUND"]
 
@@ -839,7 +898,9 @@ class TestMalformedErrorsPayload:
             "extensions": {"code": "NOT_FOUND"},
         })
 
-        assert result.message == "Upstream GraphQL error: Entity not found"
+        assert result.developer_message == (
+            "GraphQL error codes: NOT_FOUND. Message: Entity not found"
+        )
         assert result.status_code == HTTPStatus.NOT_FOUND
 
     def test_one_shot_iterable_is_not_exhausted_by_the_first_pass(self) -> None:
@@ -851,6 +912,8 @@ class TestMalformedErrorsPayload:
         errors = iter([{"message": "Entity not found", "extensions": {"code": "NOT_FOUND"}}])
         result = _map_query_errors(errors)
 
-        assert result.message == "Upstream GraphQL error: Entity not found"
+        assert result.developer_message == (
+            "GraphQL error codes: NOT_FOUND. Message: Entity not found"
+        )
         assert result.extra["gql_error_codes"] == ["NOT_FOUND"]
         assert result.status_code == HTTPStatus.NOT_FOUND
