@@ -51,6 +51,47 @@ def test_get_secret_with_case_insensitive_key():
     assert tool_context.get_secret(key.lower()) == val
 
 
+@pytest.mark.parametrize("secrets", [None, []])
+def test_set_secret_initializes_context(secrets):
+    tool_context = ToolContext(secrets=secrets)
+
+    tool_context.set_secret("My_Key", "secret_value")
+
+    assert tool_context.secrets == [ToolSecretItem(key="My_Key", value="secret_value")]
+    assert tool_context.get_secret("my_key") == "secret_value"
+
+
+@pytest.mark.parametrize("key", ["My_Key", "MY_KEY", "my_key"])
+def test_set_secret_updates_existing_key(key):
+    tool_context = ToolContext(
+        secrets=[
+            ToolSecretItem(key="My_Key", value="old_value"),
+            ToolSecretItem(key="Other_Key", value="other_value"),
+        ]
+    )
+
+    tool_context.set_secret(key, "new_value")
+
+    assert tool_context.get_secret(key) == "new_value"
+    assert tool_context.secrets == [
+        ToolSecretItem(key="My_Key", value="new_value"),
+        ToolSecretItem(key="Other_Key", value="other_value"),
+    ]
+
+
+def test_set_secret_adds_distinct_key():
+    tool_context = ToolContext(secrets=[ToolSecretItem(key="My_Key", value="secret_value")])
+
+    tool_context.set_secret("Other_Key", "other_value")
+
+    assert tool_context.get_secret("My_Key") == "secret_value"
+    assert tool_context.get_secret("Other_Key") == "other_value"
+    assert tool_context.secrets == [
+        ToolSecretItem(key="My_Key", value="secret_value"),
+        ToolSecretItem(key="Other_Key", value="other_value"),
+    ]
+
+
 def test_get_secret_key_not_found():
     key = "nonexistent_key"
     secrets = [ToolSecretItem(key="other_key", value="another_secret")]
