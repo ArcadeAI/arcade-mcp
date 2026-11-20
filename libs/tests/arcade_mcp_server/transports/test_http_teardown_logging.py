@@ -2,8 +2,9 @@
 
 ``HTTPStreamableTransport.terminate()`` closes the memory streams that
 ``ServerSession.run``, the transport's ``message_router`` and the standalone GET
-stream writer are still reading from. anyio raises ``ClosedResourceError`` in those
-readers. That is the expected shutdown path, so it is logged at DEBUG.
+stream writer are still reading from. On anyio 4.16+ a reader waiting on a closed
+stream raises ``ClosedResourceError``. That is the expected shutdown path, so it
+is logged at DEBUG. A closure that terminate() didn't cause is still an ERROR.
 
 A stateless request terminates its transport at the end of every request, and a
 stateful DELETE terminates the session's transport, so both cover this path.
@@ -43,7 +44,9 @@ BASE_HEADERS = {
 }
 
 # From anyio 4.16, closing a memory stream wakes a waiting reader with
-# ClosedResourceError. Earlier versions end the reader's loop with EndOfStream.
+# ClosedResourceError. Earlier versions usually end the reader's loop with
+# EndOfStream instead (they raise ClosedResourceError only if the reader wasn't
+# waiting at the moment of the close).
 ANYIO_WAKES_CLOSED_READERS = tuple(int(p) for p in version("anyio").split(".")[:2]) >= (4, 16)
 
 
@@ -112,14 +115,21 @@ def _error_records(caplog: pytest.LogCaptureFixture) -> list[str]:
     return [f"{r.name}: {r.getMessage()}" for r in caplog.records if r.levelno >= logging.ERROR]
 
 
-def _tool_call(request_id: int, meta: dict[str, Any] | None = None) -> dict[str, Any]:
-    params: dict[str, Any] = {"name": "TestToolkit_test_tool", "arguments": {"text": "hi"}}
-    if meta is not None:
-        params["_meta"] = meta
-    return {"jsonrpc": "2.0", "id": request_id, "method": "tools/call", "params": params}
+def _modern_tool_call(request_id: int) -> dict[str, Any]:
+    return {
+        "jsonrpc": "2.0",
+        "id": request_id,
+        "method": "tools/call",
+        "params": {
+            "name": "TestToolkit_test_tool",
+            "arguments": {"text": "hi"},
+            "_meta": MODERN_META,
+        },
+    }
 
 
-def _sse_result(resp: httpx.Response) -> dict[str, Any]:
+def _jsonrpc_body(resp: httpx.Response) -> dict[str, Any]:
+    """Return the JSON-RPC message from a JSON response or the last event of an SSE one."""
     if resp.headers["content-type"].startswith("application/json"):
         return resp.json()  # type: ignore[no-any-return]
     data = [line[len("data:") :] for line in resp.text.splitlines() if line.startswith("data:")]
@@ -149,10 +159,10 @@ async def test_modern_stateless_request_logs_no_warnings(
         resp = await client.post(
             "/mcp/",
             headers={**BASE_HEADERS, "MCP-Protocol-Version": MODERN_VERSION},
-            json=_tool_call(1, MODERN_META),
+            json=_modern_tool_call(1),
         )
         assert resp.status_code == 200, resp.text
-        assert _sse_result(resp)["result"]["content"] == [{"type": "text", "text": "Echo: hi"}]
+        assert _jsonrpc_body(resp)["result"]["content"] == [{"type": "text", "text": "Echo: hi"}]
 
         await _wait_until(lambda: len(closed_transports) == 1)
         assert _noisy_records(caplog) == []
@@ -185,6 +195,8 @@ async def test_stateful_delete_logs_no_warnings(
     caplog: pytest.LogCaptureFixture,
     closed_transports: list[HTTPStreamableTransport],
 ) -> None:
+    """DELETE terminates the stateful session's transport while its session loop and
+    message router are still waiting for messages."""
     caplog.set_level(logging.DEBUG)
     async with _client(mcp_server, stateless=False) as client:
         init = await client.post(
@@ -312,7 +324,7 @@ class _SlowServer:
 @pytest.mark.asyncio
 @pytest.mark.skipif(
     not ANYIO_WAKES_CLOSED_READERS,
-    reason="anyio < 4.16 ends the session loop normally, so in-flight handlers run to completion",
+    reason="anyio < 4.16 usually ends the session loop normally, so handlers run to completion",
 )
 async def test_teardown_cancels_in_flight_handlers(caplog: pytest.LogCaptureFixture) -> None:
     """Once the transport is gone nobody can receive a response, so in-flight handlers
@@ -381,8 +393,8 @@ async def test_response_after_transport_close_is_dropped_quietly(
     mcp_server: MCPServer, caplog: pytest.LogCaptureFixture, closed_end: str
 ) -> None:
     """A handler that finishes after teardown can't deliver its response. That must not
-    crash the session. On anyio < 4.16 closing a stream does not wake its reader with an
-    error, so in-flight handlers run to completion and reach this send."""
+    crash the session. On anyio < 4.16 the session loop usually ends without cancelling
+    in-flight handlers, so they run to completion and reach this send."""
     caplog.set_level(logging.DEBUG)
     send_stream, receive_stream = anyio.create_memory_object_stream[Any](1)
     # terminate() closes both ends; either one alone must be handled.
@@ -399,13 +411,14 @@ async def test_response_after_transport_close_is_dropped_quietly(
 # -----------------------------------------------------------------------------
 
 
-@pytest.mark.asyncio
-async def test_delete_with_open_get_stream_logs_no_warnings(
-    mcp_server: MCPServer, caplog: pytest.LogCaptureFixture
-) -> None:
-    """Clients usually keep a standalone GET stream open, so DELETE commonly ends one."""
-    caplog.set_level(logging.DEBUG)
-    transport = HTTPStreamableTransport(mcp_session_id="s1", is_json_response_enabled=True)
+@asynccontextmanager
+async def _open_get_stream(
+    transport: HTTPStreamableTransport,
+) -> AsyncIterator[list[dict[str, Any]]]:
+    """Open a standalone GET stream on a connected transport.
+
+    Yields the ASGI messages the GET response has sent so far.
+    """
     disconnected = anyio.Event()
     sent: list[dict[str, Any]] = []
 
@@ -424,20 +437,57 @@ async def test_delete_with_open_get_stream_logs_no_warnings(
         "headers": [(b"accept", b"text/event-stream"), (b"mcp-session-id", b"s1")],
     }
 
-    def response_finished() -> bool:
-        return any(m["type"] == "http.response.body" and not m.get("more_body") for m in sent)
-
-    async with _running_session(mcp_server, transport), anyio.create_task_group() as tg:
+    async with anyio.create_task_group() as tg:
         tg.start_soon(transport.handle_request, get_scope, receive, send)
         await _wait_until(lambda: GET_STREAM_KEY in transport._request_streams)
-
-        await transport.terminate()
-
-        await _wait_until(response_finished)
+        yield sent
         disconnected.set()
+
+
+def _response_finished(sent: list[dict[str, Any]]) -> bool:
+    return any(m["type"] == "http.response.body" and not m.get("more_body") for m in sent)
+
+
+@pytest.mark.asyncio
+async def test_delete_with_open_get_stream_logs_no_warnings(
+    mcp_server: MCPServer, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Clients usually keep a standalone GET stream open, so DELETE commonly ends one."""
+    caplog.set_level(logging.DEBUG)
+    transport = HTTPStreamableTransport(mcp_session_id="s1", is_json_response_enabled=True)
+
+    async with (
+        _running_session(mcp_server, transport),
+        _open_get_stream(transport) as sent,
+    ):
+        await transport.terminate()
+        await _wait_until(lambda: _response_finished(sent))
 
     assert sent[0]["status"] == 200
     assert _noisy_records(caplog) == []
+
+
+@pytest.mark.asyncio
+@pytest.mark.skipif(
+    not ANYIO_WAKES_CLOSED_READERS,
+    reason="anyio < 4.16 ends the GET writer's loop quietly when its stream is closed",
+)
+async def test_get_stream_closed_before_terminate_is_an_error(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Only a closure caused by terminate() is routine for the GET stream writer."""
+    caplog.set_level(logging.DEBUG)
+    transport = HTTPStreamableTransport(mcp_session_id="s1", is_json_response_enabled=True)
+
+    async with transport.connect(), _open_get_stream(transport) as sent:
+        # connect() closes request streams like this when it exits without terminate().
+        await transport._clean_up_memory_streams(GET_STREAM_KEY)
+        await _wait_until(lambda: _response_finished(sent))
+        await transport.terminate()
+
+    assert _error_records(caplog) == [
+        "arcade_mcp_server.transports.http_streamable: Error in standalone SSE writer"
+    ]
 
 
 class _FailingEventStore:
