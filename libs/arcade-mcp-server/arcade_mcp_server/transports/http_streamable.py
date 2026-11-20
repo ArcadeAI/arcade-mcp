@@ -693,6 +693,12 @@ class HTTPStreamableTransport:
                     async for event_message in standalone_stream_reader:
                         event_data = self._create_event_data(event_message)
                         await sse_stream_writer.send(event_data)
+            except anyio.ClosedResourceError:
+                if self._terminated:
+                    # terminate() closes the GET stream while this writer waits on it.
+                    logger.debug("Standalone SSE writer stopped: transport terminated")
+                else:
+                    logger.exception("Error in standalone SSE writer")
             except Exception:
                 logger.exception("Error in standalone SSE writer")
             finally:
@@ -943,6 +949,12 @@ class HTTPStreamableTransport:
                                 )
                             except (anyio.BrokenResourceError, anyio.ClosedResourceError):
                                 self._request_streams.pop(request_stream_id, None)
+                except anyio.ClosedResourceError:
+                    if self._terminated:
+                        # terminate() closes the write stream reader during teardown.
+                        logger.debug("Message router stopped: transport terminated")
+                    else:
+                        logger.exception("Unexpected closure of stream in message router")
                 except Exception:
                     logger.exception("Error in message router")
 

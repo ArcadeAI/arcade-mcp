@@ -399,6 +399,7 @@ class ServerSession:
         if not self.read_stream:
             raise SessionError("No read stream available")
 
+        closed_by_transport = False
         async with anyio.create_task_group() as tg:
             try:
                 async for message in self.read_stream:
@@ -407,14 +408,24 @@ class ServerSession:
                         tg.start_soon(self._process_message, message)
             except asyncio.CancelledError:
                 pass
+            except anyio.ClosedResourceError:
+                # The transport closed the read stream during teardown (for example,
+                # HTTPStreamableTransport.terminate()). That is a normal shutdown.
+                logger.debug("Session read stream closed by transport")
+                closed_by_transport = True
             except Exception as e:
-                await self.server.logger.exception("Session error")
+                logger.exception("Session error")
                 raise SessionError(f"Session error: {e}") from e
             finally:
                 # Cleanup
                 if self._request_manager:
                     # Cancel any pending requests
                     await self._cleanup_pending_requests()
+
+            if closed_by_transport:
+                # Nobody can receive responses any more, so stop in-flight handlers.
+                # This runs after the cleanup above so that cleanup isn't cancelled.
+                tg.cancel_scope.cancel()
 
     async def _process_message(self, message: str | Any) -> None:
         """Process a single message.
@@ -461,7 +472,7 @@ class ServerSession:
                 if not response_data.endswith("\n"):
                     response_data += "\n"
 
-                await self.write_stream.send(response_data)
+                await self._send_response(response_data)
 
         except json.JSONDecodeError:
             await self._send_error_response(
@@ -501,7 +512,20 @@ class ServerSession:
 
         # JSON-RPC error responses MUST include "id" even when null.
         response_data = error_response.model_dump_json(by_alias=True) + "\n"
-        await self.write_stream.send(response_data)
+        await self._send_response(response_data)
+
+    async def _send_response(self, response_data: str) -> None:
+        """Send a response to the client, dropping it if the transport has closed.
+
+        The transport can be torn down while a handler runs (a stateless request
+        ends, or the client sends DELETE). Nobody can receive the response then.
+        """
+        if not self.write_stream:
+            return
+        try:
+            await self.write_stream.send(response_data)
+        except (anyio.ClosedResourceError, anyio.BrokenResourceError):
+            logger.debug("Response dropped: transport closed")
 
     async def _cleanup_pending_requests(self) -> None:
         """Clean up any pending requests."""
