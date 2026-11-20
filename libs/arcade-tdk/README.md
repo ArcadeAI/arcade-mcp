@@ -44,7 +44,7 @@ from arcade_tdk.auth import Reddit
 @tool(requires_auth=Reddit(scopes=["read"]))
 def get_posts_in_subreddit(
     subreddit: Annotated[str, "The name of the subreddit"],
-    limit: Annotated[int, "The number of posts to return]
+    limit: Annotated[int, "The number of posts to return"]
 ) -> dict:
     """Get posts from a specific subreddit"""
     # TODO: Implement your Reddit tool
