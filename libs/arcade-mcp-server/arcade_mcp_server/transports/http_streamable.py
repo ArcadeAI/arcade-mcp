@@ -943,6 +943,9 @@ class HTTPStreamableTransport:
                                 )
                             except (anyio.BrokenResourceError, anyio.ClosedResourceError):
                                 self._request_streams.pop(request_stream_id, None)
+                except anyio.ClosedResourceError:
+                    # terminate() closes the write stream reader during teardown.
+                    logger.debug("Message router stopped: stream closed")
                 except Exception:
                     logger.exception("Error in message router")
 

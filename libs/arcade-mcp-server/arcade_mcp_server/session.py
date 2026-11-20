@@ -407,8 +407,14 @@ class ServerSession:
                         tg.start_soon(self._process_message, message)
             except asyncio.CancelledError:
                 pass
+            except anyio.ClosedResourceError:
+                # The transport closed the read stream during teardown (for example,
+                # HTTPStreamableTransport.terminate()). That is a normal shutdown, so
+                # cancel any handlers still in flight instead of reporting an error.
+                logger.debug("Session read stream closed by transport")
+                tg.cancel_scope.cancel()
             except Exception as e:
-                await self.server.logger.exception("Session error")
+                logger.exception("Session error")
                 raise SessionError(f"Session error: {e}") from e
             finally:
                 # Cleanup
