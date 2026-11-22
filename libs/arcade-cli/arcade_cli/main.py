@@ -547,6 +547,10 @@ def mcp(
         creation_flags = get_windows_no_window_creationflags()
         if creation_flags:
             run_kwargs["creationflags"] = creation_flags
+            # Explicitly pass stdio handles so that CREATE_NO_WINDOW does not
+            # cause the child to open new console handles, which would break
+            # the MCP stdio transport pipe between client and server.
+            run_kwargs.update(stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
         result = subprocess.run(cmd, **run_kwargs)
 
         # Exit with the same code as the subprocess
