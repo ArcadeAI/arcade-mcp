@@ -37,8 +37,14 @@ def bad_value_with_picture() -> Annotated[ToolResult[FileDetails], "The file"]:
     return ToolResult({"name": "cat.png"}, content=[IMAGE_BLOCK])  # type: ignore[arg-type]
 
 
+@tool
+def file_without_content() -> Annotated[ToolResult[FileDetails], "The file"]:
+    """Return a file's details with no content blocks."""
+    return ToolResult(FileDetails(name="cat.png", size=5))
+
+
 catalog = ToolCatalog()
-for func in (file_with_picture, file_details, bad_value_with_picture):
+for func in (file_with_picture, file_details, bad_value_with_picture, file_without_content):
     catalog.add_tool(func, "Files")
 
 
@@ -94,3 +100,8 @@ def test_tool_result_output_model_schema_matches_inner_type():
     assert json.dumps(wrapped).replace("FileWithPicture", "X") == json.dumps(plain).replace(
         "FileDetails", "X"
     )
+
+
+@pytest.mark.asyncio
+async def test_tool_result_without_content_returns_what_a_plain_return_does():
+    assert await _run(file_without_content) == await _run(file_details)

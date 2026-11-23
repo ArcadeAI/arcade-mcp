@@ -104,7 +104,7 @@ class ToolExecutor:
         Build the success output; a ToolResult's content adds the MCP result as `external`.
         """
         tool_output = output_factory.success(data=output, logs=logs)
-        if content is not None:
+        if content:
             tool_output.external = ToolExecutor._mcp_result(content, tool_output.value)
         return tool_output
 
