@@ -1,7 +1,13 @@
-"""Shared helper for tool-call-error structured-log extras.
+"""Shared helpers for tool-call-error logs and span attributes.
 
 Field names (``error_*``, ``tool_name``, ``toolkit_version``) are load-bearing
 for Datadog dashboards — renaming is a breaking change for downstream alerts.
+
+Data policy: a tool's error ``message`` and ``developer_message`` routinely echo
+end-user content (inputs, upstream responses, emails, tokens). Workers must not
+keep execution inputs or results, so these helpers only ever emit error
+*metadata* (kind, status, retry advice). The full text belongs at DEBUG level
+only; callers still return it to the caller of the tool.
 """
 
 from __future__ import annotations
@@ -9,6 +15,10 @@ from __future__ import annotations
 from typing import Any
 
 from arcade_core.schema import ToolCallError
+
+
+def _kind_value(error: ToolCallError) -> str:
+    return error.kind.value if hasattr(error.kind, "value") else str(error.kind)
 
 
 def build_tool_error_log_extra(
@@ -20,6 +30,9 @@ def build_tool_error_log_extra(
     **additional: Any,
 ) -> dict[str, Any]:
     """Build the structured ``extra`` dict for a failed-tool-call WARNING log.
+
+    Contains no error text (``message`` / ``developer_message``); log those at
+    DEBUG level only.
 
     Args:
         error: The ``ToolCallError``. ``kind`` is normalized via ``.value``
@@ -38,14 +51,11 @@ def build_tool_error_log_extra(
         "unset" from "set-to-None"; canonical ``error_*`` fields are always
         present (``None`` when unset on the error).
     """
-    kind_value = error.kind.value if hasattr(error.kind, "value") else str(error.kind)
-
     extra: dict[str, Any] = {
-        "error_kind": kind_value,
-        "error_message": error.message,
-        "error_developer_message": error.developer_message,
+        "error_kind": _kind_value(error),
         "error_status_code": error.status_code,
         "error_can_retry": error.can_retry,
+        "error_retry_after_ms": error.retry_after_ms,
         "tool_name": tool_name,
     }
     if toolkit_name is not None:
@@ -60,13 +70,31 @@ def build_tool_error_log_extra(
     return extra
 
 
-def build_tool_error_span_attributes(error: ToolCallError) -> dict[str, str]:
-    """Build stable span attributes for failed tool-call diagnostics."""
-    kind_value = error.kind.value if hasattr(error.kind, "value") else str(error.kind)
-    attrs = {
-        "tool_error_kind": kind_value,
-        "tool_error_message": error.message,
+def format_tool_error_summary(error: ToolCallError) -> str:
+    """Render a one-line, text-free summary of a tool error for log messages.
+
+    Example: ``kind=UPSTREAM_RUNTIME_NOT_FOUND status=404 can_retry=False``.
+    """
+    parts = [f"kind={_kind_value(error)}"]
+    if error.status_code is not None:
+        parts.append(f"status={error.status_code}")
+    parts.append(f"can_retry={error.can_retry}")
+    if error.retry_after_ms is not None:
+        parts.append(f"retry_after_ms={error.retry_after_ms}")
+    return " ".join(parts)
+
+
+def build_tool_error_span_attributes(error: ToolCallError) -> dict[str, str | int | bool]:
+    """Build stable span attributes for failed tool-call diagnostics.
+
+    Contains no error text (``message`` / ``developer_message``).
+    """
+    attrs: dict[str, str | int | bool] = {
+        "tool_error_kind": _kind_value(error),
+        "tool_error_can_retry": error.can_retry,
     }
-    if error.developer_message:
-        attrs["tool_error_developer_message"] = error.developer_message
+    if error.status_code is not None:
+        attrs["tool_error_status_code"] = error.status_code
+    if error.retry_after_ms is not None:
+        attrs["tool_error_retry_after_ms"] = error.retry_after_ms
     return attrs

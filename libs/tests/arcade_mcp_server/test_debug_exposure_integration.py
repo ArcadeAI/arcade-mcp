@@ -165,10 +165,10 @@ async def test_integration_baseline_no_leak(erroring_server):
 
 
 @pytest.mark.asyncio
-async def test_integration_tool_error_records_developer_message_on_current_span(
+async def test_integration_tool_error_keeps_error_text_off_current_span(
     erroring_server, monkeypatch
 ):
-    """Developer message stays out of MCP content but is attached to telemetry."""
+    """Developer message stays out of MCP content and out of span attributes."""
 
     class FakeSpan:
         def __init__(self):
@@ -189,12 +189,10 @@ async def test_integration_tool_error_records_developer_message_on_current_span(
     assert "Failed to fetch results" in text
     assert "HTTP 503" not in text
     assert span.attributes["tool_error_kind"] == "TOOL_RUNTIME_FATAL"
-    assert span.attributes["tool_error_message"].startswith("[TOOL_RUNTIME_FATAL] FatalToolError")
-    assert (
-        span.attributes["tool_error_developer_message"]
-        == "[TOOL_RUNTIME_FATAL] FatalToolError during execution of tool "
-        "'raises_fatal_tool_error': HTTP 503 on upstream endpoint for query='ping'"
-    )
+    # Error text echoes user content, so it never reaches span attributes.
+    assert "tool_error_message" not in span.attributes
+    assert "tool_error_developer_message" not in span.attributes
+    assert not any("query='ping'" in str(v) for v in span.attributes.values())
 
 
 @pytest.mark.asyncio

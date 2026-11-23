@@ -4293,15 +4293,37 @@ class TestLogToolCallError:
             mcp_server._log_tool_call_error("MyToolkit.MyTool", err)
 
         record = next(r for r in caplog.records if "MyToolkit.MyTool error" in r.getMessage())
-        # Renderable text is the human-readable summary.
-        assert "Spreadsheet not found" in record.getMessage()
+        # Renderable text is a metadata-only summary.
+        assert "kind=TOOL_RUNTIME_FATAL status=404 can_retry=False" in record.getMessage()
         # Structured fields — the Datadog contract.
         assert record.tool_name == "MyToolkit.MyTool"
         assert record.error_kind == "TOOL_RUNTIME_FATAL"
-        assert record.error_message == "Spreadsheet not found"
-        assert record.error_developer_message == "dev: ssn=123"
         assert record.error_status_code == 404
         assert record.error_can_retry is False
+        # Error text echoes user content and must not be logged above DEBUG.
+        assert not hasattr(record, "error_message")
+        assert not hasattr(record, "error_developer_message")
+        for r in caplog.records:
+            assert "Spreadsheet not found" not in r.getMessage()
+            assert "ssn=123" not in r.getMessage()
+
+    def test_error_text_logged_at_debug(self, mcp_server, caplog):
+        import logging
+
+        err = ToolCallError(
+            message="No contact with email jane@example.com",
+            developer_message="dev: ssn=123",
+            kind=ErrorKind.UPSTREAM_RUNTIME_NOT_FOUND,
+            status_code=404,
+        )
+        with caplog.at_level(logging.DEBUG, logger="arcade.mcp"):
+            mcp_server._log_tool_call_error("t", err)
+
+        above_debug = [r.getMessage() for r in caplog.records if r.levelno > logging.DEBUG]
+        assert not any("jane@example.com" in m or "ssn=123" in m for m in above_debug)
+        debug = [r.getMessage() for r in caplog.records if r.levelno == logging.DEBUG]
+        assert any("jane@example.com" in m for m in debug)
+        assert any("ssn=123" in m for m in debug)
 
     def test_kind_value_used_when_available(self, mcp_server, caplog):
         import logging
@@ -4327,7 +4349,7 @@ class TestLogToolCallError:
         assert record.levelno == logging.WARNING
 
     def test_optional_fields_propagate_none(self, mcp_server, caplog):
-        """status_code / developer_message default to None and must propagate
+        """status_code / retry_after_ms default to None and must propagate
         as None (not be dropped, not be coerced) so Datadog can distinguish
         'unset' from 'set to falsy'."""
         import logging
@@ -4337,7 +4359,7 @@ class TestLogToolCallError:
             mcp_server._log_tool_call_error("t", err)
 
         record = next(r for r in caplog.records if "t error" in r.getMessage())
-        assert record.error_developer_message is None
+        assert record.error_retry_after_ms is None
         assert record.error_status_code is None
 
 

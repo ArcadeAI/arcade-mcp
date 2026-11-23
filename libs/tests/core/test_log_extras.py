@@ -6,7 +6,11 @@ Field names are load-bearing for dashboards.
 
 import pytest
 from arcade_core.errors import ErrorKind
-from arcade_core.log_extras import build_tool_error_log_extra, build_tool_error_span_attributes
+from arcade_core.log_extras import (
+    build_tool_error_log_extra,
+    build_tool_error_span_attributes,
+    format_tool_error_summary,
+)
 from arcade_core.schema import ToolCallError
 
 
@@ -27,12 +31,25 @@ def test_canonical_field_contract():
     extra = build_tool_error_log_extra(_err(developer_message="dev: x"), tool_name="MyTool")
     assert extra == {
         "error_kind": "TOOL_RUNTIME_FATAL",
-        "error_message": "Spreadsheet not found",
-        "error_developer_message": "dev: x",
         "error_status_code": 404,
         "error_can_retry": False,
+        "error_retry_after_ms": None,
         "tool_name": "MyTool",
     }
+
+
+def test_log_extra_never_contains_error_text():
+    """Error text echoes end-user content; it must not reach logs above DEBUG."""
+    err = _err(
+        message="No contact with email jane@example.com",
+        developer_message="GET /contacts?email=jane@example.com",
+        additional_prompt_content="try jane@example.com again",
+        stacktrace="Traceback ... jane@example.com",
+    )
+    extra = build_tool_error_log_extra(err, tool_name="t")
+    assert "jane@example.com" not in str(extra)
+    assert "jane@example.com" not in format_tool_error_summary(err)
+    assert "jane@example.com" not in str(build_tool_error_span_attributes(err))
 
 
 def test_kind_enum_value_used_not_repr():
@@ -55,6 +72,7 @@ def test_kind_string_fallback_when_not_enum():
         developer_message = None
         status_code = None
         can_retry = False
+        retry_after_ms = None
 
     extra = build_tool_error_log_extra(FakeError(), tool_name="t")
     assert extra["error_kind"] == "CUSTOM_KIND"
@@ -97,38 +115,55 @@ def test_additional_extras_cannot_clobber_canonical_fields():
     extra = build_tool_error_log_extra(
         _err(message="canonical"),
         tool_name="t",
-        error_message="OVERRIDE_ATTEMPT",
+        error_kind="OVERRIDE_ATTEMPT",
         tool_name_override="ignored too",
     )
-    assert extra["error_message"] == "canonical"
+    assert extra["error_kind"] == "TOOL_RUNTIME_FATAL"
     # Non-canonical-name additions still pass through.
     assert extra["tool_name_override"] == "ignored too"
 
 
-def test_developer_message_none_propagates():
-    """``error_developer_message`` is present and explicitly None when the
-    error has no developer_message — Datadog needs to distinguish 'unset'
-    from 'set to None' on this field specifically."""
-    extra = build_tool_error_log_extra(_err(developer_message=None), tool_name="t")
-    assert "error_developer_message" in extra
-    assert extra["error_developer_message"] is None
-
-
-def test_span_attributes_include_developer_message_when_present():
+def test_span_attributes_contract():
     attrs = build_tool_error_span_attributes(_err(developer_message="dev: x"))
     assert attrs == {
         "tool_error_kind": "TOOL_RUNTIME_FATAL",
-        "tool_error_message": "Spreadsheet not found",
-        "tool_error_developer_message": "dev: x",
+        "tool_error_can_retry": False,
+        "tool_error_status_code": 404,
     }
 
 
-def test_span_attributes_omit_empty_developer_message():
-    attrs = build_tool_error_span_attributes(_err(developer_message=""))
+def test_span_attributes_include_retry_after_when_present():
+    attrs = build_tool_error_span_attributes(
+        _err(
+            kind=ErrorKind.UPSTREAM_RUNTIME_RATE_LIMIT,
+            status_code=None,
+            can_retry=True,
+            retry_after_ms=1500,
+        )
+    )
     assert attrs == {
-        "tool_error_kind": "TOOL_RUNTIME_FATAL",
-        "tool_error_message": "Spreadsheet not found",
+        "tool_error_kind": "UPSTREAM_RUNTIME_RATE_LIMIT",
+        "tool_error_can_retry": True,
+        "tool_error_retry_after_ms": 1500,
     }
+
+
+def test_summary_format():
+    assert format_tool_error_summary(_err()) == "kind=TOOL_RUNTIME_FATAL status=404 can_retry=False"
+    assert (
+        format_tool_error_summary(
+            _err(
+                kind=ErrorKind.UPSTREAM_RUNTIME_RATE_LIMIT,
+                status_code=429,
+                can_retry=True,
+                retry_after_ms=2000,
+            )
+        )
+        == "kind=UPSTREAM_RUNTIME_RATE_LIMIT status=429 can_retry=True retry_after_ms=2000"
+    )
+    assert format_tool_error_summary(_err(status_code=None)) == (
+        "kind=TOOL_RUNTIME_FATAL can_retry=False"
+    )
 
 
 def test_status_code_none_propagates():

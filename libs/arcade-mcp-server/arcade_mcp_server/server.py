@@ -32,7 +32,11 @@ from arcade_core.elicitation import (
 )
 from arcade_core.errors import ErrorKind, ToolInputError
 from arcade_core.executor import ToolExecutor
-from arcade_core.log_extras import build_tool_error_log_extra, build_tool_error_span_attributes
+from arcade_core.log_extras import (
+    build_tool_error_log_extra,
+    build_tool_error_span_attributes,
+    format_tool_error_summary,
+)
 from arcade_core.network.org_transport import build_org_scoped_async_http_client
 from arcade_core.schema import (
     ToolAuthorizationContext,
@@ -1822,11 +1826,18 @@ class MCPServer:
             )
 
     def _log_tool_call_error(self, tool_name: str, error: ToolCallError) -> None:
-        """Emit a structured WARNING log for a failed tool call."""
+        """Log a failed tool call: metadata at WARNING, error text at DEBUG only.
+
+        Error text echoes end-user content (inputs, upstream responses), so it
+        must not reach logs above DEBUG.
+        """
         logger.warning(
-            f"Tool {tool_name} error: {error.message}",
+            f"Tool {tool_name} error: {format_tool_error_summary(error)}",
             extra=build_tool_error_log_extra(error, tool_name=tool_name),
         )
+        logger.debug(f"Tool {tool_name} error message: {error.message}")
+        if error.developer_message:
+            logger.debug(f"Tool {tool_name} developer message: {error.developer_message}")
 
     def _record_tool_error_span_attributes(self, error: ToolCallError) -> None:
         """Attach tool error details to the active telemetry span when present."""

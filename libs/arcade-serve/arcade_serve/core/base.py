@@ -13,7 +13,11 @@ from arcade_core.elicitation import (
     create_elicitation_secret,
 )
 from arcade_core.executor import ToolExecutor
-from arcade_core.log_extras import build_tool_error_log_extra, build_tool_error_span_attributes
+from arcade_core.log_extras import (
+    build_tool_error_log_extra,
+    build_tool_error_span_attributes,
+    format_tool_error_summary,
+)
 from arcade_core.resource_schema import ListResourcesResult, ReadResourceResult
 from arcade_core.schema import (
     ToolCallOutput,
@@ -214,12 +218,16 @@ class BaseWorker(Worker):
                 toolkit_version=str(tool_fqname.toolkit_version),
                 execution_id=execution_id,
             )
+            # Error text echoes end-user content, so it stays at DEBUG; the
+            # WARNING line carries only metadata (kind, status, retry advice).
             logger.warning(
-                f"{execution_id} | Tool {tool_fqname.name} version {tool_fqname.toolkit_version} failed: {output.error.message}",
+                f"{execution_id} | Tool {tool_fqname.name} version {tool_fqname.toolkit_version} "
+                f"failed: {format_tool_error_summary(output.error)}",
                 extra=log_extra,
             )
+            logger.debug(f"{execution_id} | Error message: {output.error.message}")
             if output.error.developer_message:
-                logger.warning(
+                logger.debug(
                     f"{execution_id} | Developer message: {output.error.developer_message}",
                 )
             logger.debug(
