@@ -2787,7 +2787,15 @@ class MCPServer:
         )
 
         if result.external is not None and result.error is None:
-            return CallToolResult(**result.external)
+            try:
+                return CallToolResult(**result.external)
+            except ValidationError:
+                # Same as _handle_call_tool: a malformed block is the tool's output fault
+                logger.exception("Tool returned invalid MCP content blocks")
+                return CallToolResult(
+                    content=[TextContent(type="text", text="Failed to serialize tool output")],
+                    isError=True,
+                )
         if result.value is not None:
             content = convert_to_mcp_content(result.value)
             structured_content = convert_content_to_structured_content(result.value)

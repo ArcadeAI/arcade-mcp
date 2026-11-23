@@ -38,7 +38,7 @@ def get_picture() -> Annotated[ToolResult[FileDetails], "The file"]:
     return ToolResult(FileDetails(name="cat.png", size=5), content=[Image(PNG, "image/png")])
 
 
-@tool
+@tool(execution=ToolExecution(taskSupport="optional"))
 def get_broken_picture() -> Annotated[ToolResult[FileDetails], "The file"]:
     """Return a content block that is not a valid MCP block."""
     return ToolResult(FileDetails(name="cat.png", size=5), content=[{"type": "image"}])
@@ -141,6 +141,30 @@ async def test_malformed_content_block_is_a_tool_output_error(server, session):
 
     assert response.result.isError is True
     assert response.result.content[0].text == "Failed to serialize tool output"
+
+
+@pytest.mark.asyncio
+async def test_malformed_content_block_in_task_is_a_tool_output_error(server, session):
+    session.negotiated_version = "2025-11-25"
+    session._negotiated_capabilities = {"tasks": {"requests": {"tools": {"call": {}}}}}
+    response = await server.handle_message(
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {"name": "Files.GetBrokenPicture", "arguments": {}, "task": {"ttl": 60000}},
+        },
+        session,
+    )
+
+    stored = await asyncio.wait_for(
+        server._task_manager.get_result(
+            response.result.task.taskId, context_key=f"session:{session.session_id}"
+        ),
+        timeout=5.0,
+    )
+    assert stored.isError is True
+    assert stored.content[0].text == "Failed to serialize tool output"
 
 
 SERVER_SCRIPT = """
