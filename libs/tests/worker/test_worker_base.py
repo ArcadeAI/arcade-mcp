@@ -363,11 +363,65 @@ async def test_call_tool_error_text_never_logged_or_traced_above_debug(
     )
     assert warning.levelno == logging.WARNING
     assert "Tool LeakyErrorTool " in warning.getMessage()
-    assert "kind=UPSTREAM_RUNTIME_NOT_FOUND" in warning.getMessage()
-    assert "status=404" in warning.getMessage()
-    assert "can_retry=False" in warning.getMessage()
+    assert "UPSTREAM_RUNTIME_NOT_FOUND (HTTP 404)" in warning.getMessage()
+    assert "inputs: email=string(16)" in warning.getMessage()
     assert warning.error_kind == "UPSTREAM_RUNTIME_NOT_FOUND"
     assert warning.error_status_code == 404
+    assert warning.error_can_retry is False
+    assert warning.tool_inputs_shape == "email=string(16)"
+
+    run_tool_span = next(span for span in fake_tracer.spans if span.name == "RunTool")
+    assert run_tool_span.attributes["execution_id"] == "exec_leak"
+    assert run_tool_span.attributes["tool_inputs_shape"] == "email=string(16)"
+    assert run_tool_span.attributes["tool_error_summary"] == "UPSTREAM_RUNTIME_NOT_FOUND (HTTP 404)"
+
+
+@tool
+def limited_tool(
+    context: ToolContext,
+    channel: Annotated[str, "Channel"],
+    limit: Annotated[int, "Limit"],
+) -> int:
+    """Takes an int limit."""
+    return limit
+
+
+@pytest.mark.asyncio
+async def test_call_tool_input_validation_failure_names_parameter(
+    base_worker_no_auth, caplog, fake_tracer, monkeypatch
+):
+    """A rejected input names the declared parameter and the shape it got, at
+    WARNING and on the span, without the value or caller-sent keys."""
+    import logging
+
+    monkeypatch.setattr(base_module.trace, "get_tracer", lambda name: fake_tracer)
+    base_worker_no_auth.register_tool(limited_tool, toolkit_name="kit")
+    tool_request = ToolCallRequest(
+        execution_id="exec_bad_input",
+        tool=ToolReference(toolkit="Kit", name="LimitedTool"),
+        inputs={"channel": "C01234567", "limit": "abc", "jane_doe_ssn": "123-45-6789"},
+    )
+
+    with caplog.at_level(logging.INFO, logger="arcade_serve.core.base"):
+        await base_worker_no_auth.call_tool(tool_request)
+
+    expected_summary = (
+        "TOOL_RUNTIME_BAD_INPUT_VALUE (HTTP 400): limit failed validation, got string(3)"
+    )
+    expected_shape = "channel=string(9) limit=string(3) +1 undeclared"
+    warning = next(r for r in caplog.records if "failed:" in r.getMessage())
+    assert warning.getMessage() == (
+        f"exec_bad_input | Tool LimitedTool version None failed: {expected_summary}"
+        f" | inputs: {expected_shape}"
+    )
+    run_tool_span = next(span for span in fake_tracer.spans if span.name == "RunTool")
+    assert run_tool_span.attributes["tool_error_summary"] == expected_summary
+    assert run_tool_span.attributes["tool_inputs_shape"] == expected_shape
+    for value in ("C01234567", "abc", "jane_doe_ssn", "123-45-6789"):
+        for record in caplog.records:
+            assert value not in record.getMessage()
+            assert value not in str(record.__dict__)
+        assert not any(value in str(v) for v in run_tool_span.attributes.values())
 
 
 @pytest.mark.asyncio
@@ -508,6 +562,7 @@ async def test_call_tool_component_error_records_call_tool_span_attributes(
     call_tool_span = next(span for span in fake_tracer.spans if span.name == "CallTool")
     assert call_tool_span.attributes["tool_error_kind"] == "TOOL_RUNTIME_FATAL"
     assert call_tool_span.attributes["tool_error_can_retry"] is False
+    assert call_tool_span.attributes["execution_id"] == "comp_error_exec"
     assert "tool_error_message" not in call_tool_span.attributes
     assert "tool_error_developer_message" not in call_tool_span.attributes
 

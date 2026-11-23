@@ -162,6 +162,7 @@ class BaseWorker(Worker):
                 },
             )
         execution_id = tool_request.execution_id or ""
+        parameter_names = [p.name for p in materialized_tool.definition.input.parameters]
         logger.info(
             f"{execution_id} | Calling tool: {tool_fqname.name} "
             f"version: {tool_fqname.toolkit_version}"
@@ -204,7 +205,12 @@ class BaseWorker(Worker):
             finally:
                 tool_request.context._request_ui = None
             if output.error:
-                for key, value in build_tool_error_span_attributes(output.error).items():
+                for key, value in build_tool_error_span_attributes(
+                    output.error,
+                    inputs=tool_request.inputs,
+                    parameter_names=parameter_names,
+                    execution_id=execution_id,
+                ).items():
                     current_span.set_attribute(key, value)
 
         end_time = time.time()  # End time in seconds
@@ -216,13 +222,20 @@ class BaseWorker(Worker):
                 tool_name=str(tool_fqname.name),
                 toolkit_name=str(tool_fqname.toolkit_name),
                 toolkit_version=str(tool_fqname.toolkit_version),
+                inputs=tool_request.inputs,
+                parameter_names=parameter_names,
                 execution_id=execution_id,
             )
+            summary = format_tool_error_summary(
+                output.error, inputs=tool_request.inputs, parameter_names=parameter_names
+            )
+            inputs_shape = log_extra.get("tool_inputs_shape")
             # Error text echoes end-user content, so it stays at DEBUG; the
-            # WARNING line carries only metadata (kind, status, retry advice).
+            # WARNING line carries only metadata (kind, status, retry advice,
+            # which declared parameter failed, input types and sizes).
             logger.warning(
                 f"{execution_id} | Tool {tool_fqname.name} version {tool_fqname.toolkit_version} "
-                f"failed: {format_tool_error_summary(output.error)}",
+                f"failed: {summary}" + (f" | inputs: {inputs_shape}" if inputs_shape else ""),
                 extra=log_extra,
             )
             logger.debug(f"{execution_id} | Error message: {output.error.message}")

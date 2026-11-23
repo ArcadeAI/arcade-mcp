@@ -94,7 +94,10 @@ class CallToolComponent(WorkerComponent):
 
             response = await self.worker.call_tool(call_tool_request)
             if response.output and response.output.error:
-                for key, value in build_tool_error_span_attributes(response.output.error).items():
+                # Input shape is on the child RunTool span.
+                for key, value in build_tool_error_span_attributes(
+                    response.output.error, execution_id=response.execution_id
+                ).items():
                     current_span.set_attribute(key, value)
             return response
 

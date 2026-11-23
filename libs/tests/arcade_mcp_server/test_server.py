@@ -4294,12 +4294,17 @@ class TestLogToolCallError:
 
         record = next(r for r in caplog.records if "MyToolkit.MyTool error" in r.getMessage())
         # Renderable text is a metadata-only summary.
-        assert "kind=TOOL_RUNTIME_FATAL status=404 can_retry=False" in record.getMessage()
+        assert record.getMessage().endswith(
+            " | Tool MyToolkit.MyTool error: TOOL_RUNTIME_FATAL (HTTP 404)"
+        )
         # Structured fields — the Datadog contract.
         assert record.tool_name == "MyToolkit.MyTool"
         assert record.error_kind == "TOOL_RUNTIME_FATAL"
         assert record.error_status_code == 404
         assert record.error_can_retry is False
+        # A generated ID links this line to the DEBUG detail when none is passed.
+        assert record.execution_id
+        assert record.getMessage().startswith(f"{record.execution_id} | ")
         # Error text echoes user content and must not be logged above DEBUG.
         assert not hasattr(record, "error_message")
         assert not hasattr(record, "error_developer_message")

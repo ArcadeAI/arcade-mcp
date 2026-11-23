@@ -1,4 +1,4 @@
-"""Tests for ``build_tool_error_log_extra``.
+"""Tests for the tool-error log and span helpers in ``arcade_core.log_extras``.
 
 Locks the Datadog-facet contract shared by the MCP and worker transports.
 Field names are load-bearing for dashboards.
@@ -9,6 +9,7 @@ from arcade_core.errors import ErrorKind
 from arcade_core.log_extras import (
     build_tool_error_log_extra,
     build_tool_error_span_attributes,
+    describe_inputs_shape,
     format_tool_error_summary,
 )
 from arcade_core.schema import ToolCallError
@@ -129,6 +130,7 @@ def test_span_attributes_contract():
         "tool_error_kind": "TOOL_RUNTIME_FATAL",
         "tool_error_can_retry": False,
         "tool_error_status_code": 404,
+        "tool_error_summary": "TOOL_RUNTIME_FATAL (HTTP 404)",
     }
 
 
@@ -145,11 +147,24 @@ def test_span_attributes_include_retry_after_when_present():
         "tool_error_kind": "UPSTREAM_RUNTIME_RATE_LIMIT",
         "tool_error_can_retry": True,
         "tool_error_retry_after_ms": 1500,
+        "tool_error_summary": "UPSTREAM_RUNTIME_RATE_LIMIT (retry after 1500ms)",
     }
 
 
-def test_summary_format():
-    assert format_tool_error_summary(_err()) == "kind=TOOL_RUNTIME_FATAL status=404 can_retry=False"
+def test_span_attributes_include_inputs_shape_and_execution_id():
+    attrs = build_tool_error_span_attributes(
+        _err(),
+        inputs={"channel": "C01234567", "limit": 5},
+        parameter_names=["channel", "limit"],
+        execution_id="exec_1",
+    )
+    assert attrs["tool_inputs_shape"] == "channel=string(9) limit=number"
+    assert attrs["execution_id"] == "exec_1"
+    assert "C01234567" not in str(attrs)
+
+
+def test_summary_uses_engine_wording():
+    assert format_tool_error_summary(_err()) == "TOOL_RUNTIME_FATAL (HTTP 404)"
     assert (
         format_tool_error_summary(
             _err(
@@ -159,10 +174,108 @@ def test_summary_format():
                 retry_after_ms=2000,
             )
         )
-        == "kind=UPSTREAM_RUNTIME_RATE_LIMIT status=429 can_retry=True retry_after_ms=2000"
+        == "UPSTREAM_RUNTIME_RATE_LIMIT (HTTP 429, retry after 2000ms)"
     )
-    assert format_tool_error_summary(_err(status_code=None)) == (
-        "kind=TOOL_RUNTIME_FATAL can_retry=False"
+    assert format_tool_error_summary(_err(status_code=None)) == "TOOL_RUNTIME_FATAL"
+
+
+@pytest.mark.parametrize("status_code", [0, 99, 600, 123456789, -1])
+def test_non_http_status_is_not_named(status_code):
+    """``status_code`` is set by tool code; outside 100-599 it is the tool's own
+    number and could carry anything, so it is left out everywhere."""
+    err = _err(status_code=status_code)
+    assert format_tool_error_summary(err) == "TOOL_RUNTIME_FATAL"
+    assert "tool_error_status_code" not in build_tool_error_span_attributes(err)
+    assert build_tool_error_log_extra(err, tool_name="t")["error_status_code"] is None
+
+
+def test_inputs_shape_describes_types_and_sizes_never_values():
+    shape = describe_inputs_shape(
+        {
+            "name": "Jane Doe",
+            "count": 3,
+            "ratio": 0.5,
+            "flag": True,
+            "tags": ["a", "b"],
+            "filters": {"email": "jane@example.com"},
+            "cursor": None,
+            "jane_doe_ssn": "123-45-6789",
+            "other_extra": 1,
+        },
+        ["name", "count", "ratio", "flag", "tags", "filters", "cursor", "absent"],
+    )
+    assert shape == (
+        "name=string(8) count=number ratio=number flag=boolean tags=array(2) "
+        "filters=object(1) cursor=null +2 undeclared"
+    )
+    for value in ("Jane", "jane@example.com", "jane_doe_ssn", "123-45-6789"):
+        assert value not in shape
+
+
+def test_inputs_shape_empty_without_inputs():
+    assert describe_inputs_shape(None, ["a"]) == ""
+    assert describe_inputs_shape({}, ["a"]) == ""
+    assert "tool_inputs_shape" not in build_tool_error_span_attributes(_err())
+    assert "tool_inputs_shape" not in build_tool_error_log_extra(_err(), tool_name="t")
+
+
+def test_log_extra_includes_inputs_shape():
+    extra = build_tool_error_log_extra(
+        _err(), tool_name="t", inputs={"limit": "abc"}, parameter_names=["limit"]
+    )
+    assert extra["tool_inputs_shape"] == "limit=string(3)"
+
+
+def _input_err(developer_message):
+    return _err(
+        kind=ErrorKind.TOOL_RUNTIME_BAD_INPUT_VALUE,
+        status_code=400,
+        message="[TOOL_RUNTIME_BAD_INPUT_VALUE] ToolInputError during execution of tool "
+        "'x': Invalid input: limit: Input should be a valid integer",
+        developer_message=developer_message,
+    )
+
+
+def test_summary_names_failed_parameter_with_real_worker_prefix():
+    err = _input_err(
+        "[TOOL_RUNTIME_BAD_INPUT_VALUE] ToolInputError during execution of tool 'x': "
+        "Pydantic validation failed: limit[int_parsing]"
+    )
+    assert format_tool_error_summary(
+        err, inputs={"limit": "abc", "channel": "C1"}, parameter_names=["channel", "limit"]
+    ) == ("TOOL_RUNTIME_BAD_INPUT_VALUE (HTTP 400): limit failed validation, got string(3)")
+
+
+def test_summary_flags_nested_failure_without_naming_nested_keys():
+    err = _input_err(
+        "Pydantic validation failed: filters.jane_doe_ssn[string_type]; limit[missing]"
+    )
+    summary = format_tool_error_summary(
+        err, inputs={"filters": {"jane_doe_ssn": 1}}, parameter_names=["filters", "limit"]
+    )
+    assert summary == (
+        "TOOL_RUNTIME_BAD_INPUT_VALUE (HTTP 400): "
+        "filters has a nested value that failed validation; limit failed validation, got missing"
+    )
+    assert "jane_doe_ssn" not in summary
+
+
+def test_summary_ignores_undeclared_or_untrusted_validation_names():
+    """Only declared parameter names are written; the developer message is
+    untrusted (a tool can raise its own ToolInputError) and input keys come
+    from the caller."""
+    err = _input_err(
+        "Pydantic validation failed: jane_doe_ssn[extra_forbidden]; "
+        "jane@example.com[x]; <root>[model_type]"
+    )
+    summary = format_tool_error_summary(err, inputs={}, parameter_names=["limit"])
+    assert summary == "TOOL_RUNTIME_BAD_INPUT_VALUE (HTTP 400)"
+
+
+def test_summary_validation_details_only_for_bad_input_kind():
+    err = _err(developer_message="Pydantic validation failed: limit[int_parsing]")
+    assert format_tool_error_summary(err, parameter_names=["limit"]) == (
+        "TOOL_RUNTIME_FATAL (HTTP 404)"
     )
 
 
