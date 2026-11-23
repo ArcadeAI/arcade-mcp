@@ -1693,8 +1693,23 @@ class MCPServer:
             # Convert result
             if result.external is not None and result.error is None:
                 # A ToolResult: its blocks, the value as JSON text, and structuredContent
+                try:
+                    tool_result = CallToolResult(**result.external)
+                except ValidationError:
+                    # A malformed block is the tool's output fault, not the caller's input
+                    logger.exception("Tool returned invalid MCP content blocks")
+                    self._tracker.track_tool_call(False, "invalid tool output")
+                    return JSONRPCResponse(
+                        id=message.id,
+                        result=CallToolResult(
+                            content=[
+                                TextContent(type="text", text="Failed to serialize tool output")
+                            ],
+                            isError=True,
+                        ),
+                    )
                 self._tracker.track_tool_call(True)
-                return JSONRPCResponse(id=message.id, result=CallToolResult(**result.external))
+                return JSONRPCResponse(id=message.id, result=tool_result)
             if result.value is not None:
                 content = convert_to_mcp_content(result.value)
 
