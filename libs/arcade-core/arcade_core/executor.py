@@ -6,6 +6,8 @@ from typing import Any
 from pydantic import BaseModel, ValidationError
 
 from arcade_core.errors import (
+    InputErrorDetail,
+    InputErrorReason,
     ToolInputError,
     ToolOutputError,
     ToolRuntimeError,
@@ -17,6 +19,100 @@ from arcade_core.schema import (
     ToolContext,
     ToolDefinition,
 )
+
+# Pydantic error type codes mapped onto the closed InputErrorReason set. Codes
+# not listed here (or matched by prefix below) report InputErrorReason.INVALID.
+_PYDANTIC_REASONS: dict[str, InputErrorReason] = {
+    **dict.fromkeys(
+        (
+            "missing",
+            "missing_argument",
+            "missing_keyword_only_argument",
+            "missing_positional_only_argument",
+        ),
+        InputErrorReason.MISSING,
+    ),
+    **dict.fromkeys(
+        ("extra_forbidden", "unexpected_keyword_argument", "unexpected_positional_argument"),
+        InputErrorReason.UNEXPECTED,
+    ),
+    **dict.fromkeys(
+        ("string_type", "string_sub_type", "string_unicode"), InputErrorReason.EXPECTED_STRING
+    ),
+    **dict.fromkeys(
+        ("int_type", "int_parsing", "int_parsing_size", "int_from_float"),
+        InputErrorReason.EXPECTED_INTEGER,
+    ),
+    **dict.fromkeys(
+        ("float_type", "float_parsing", "decimal_type", "decimal_parsing", "finite_number"),
+        InputErrorReason.EXPECTED_NUMBER,
+    ),
+    **dict.fromkeys(("bool_type", "bool_parsing"), InputErrorReason.EXPECTED_BOOLEAN),
+    **dict.fromkeys(
+        ("list_type", "tuple_type", "set_type", "frozen_set_type", "iterable_type"),
+        InputErrorReason.EXPECTED_ARRAY,
+    ),
+    **dict.fromkeys(
+        ("dict_type", "mapping_type", "model_type", "model_attributes_type", "dataclass_type"),
+        InputErrorReason.EXPECTED_OBJECT,
+    ),
+    **dict.fromkeys(("literal_error", "enum"), InputErrorReason.NOT_ALLOWED),
+    **dict.fromkeys(("string_too_short", "too_short"), InputErrorReason.TOO_SHORT),
+    **dict.fromkeys(("string_too_long", "too_long"), InputErrorReason.TOO_LONG),
+    **dict.fromkeys(
+        (
+            "greater_than",
+            "greater_than_equal",
+            "less_than",
+            "less_than_equal",
+            "multiple_of",
+            "decimal_max_digits",
+            "decimal_max_places",
+            "decimal_whole_digits",
+        ),
+        InputErrorReason.OUT_OF_RANGE,
+    ),
+    "string_pattern_mismatch": InputErrorReason.PATTERN_MISMATCH,
+    **dict.fromkeys(("value_error", "assertion_error"), InputErrorReason.VALIDATOR_FAILED),
+}
+
+# Families of format checks (date_parsing, uuid_version, url_scheme, ...).
+_FORMAT_PREFIXES = ("date", "time", "uuid", "url", "json")
+
+
+def _input_error_reason(error_type: str) -> InputErrorReason:
+    reason = _PYDANTIC_REASONS.get(error_type)
+    if reason is not None:
+        return reason
+    if error_type.startswith(_FORMAT_PREFIXES):
+        return InputErrorReason.INVALID_FORMAT
+    return InputErrorReason.INVALID
+
+
+def _input_error_details(
+    error: ValidationError, input_model: type[BaseModel]
+) -> list[InputErrorDetail]:
+    """Report each rejected input as a declared parameter and a reason code.
+
+    Only declared parameter names are reported: an undeclared key comes from the
+    caller and may itself hold user data, so it is reported without a parameter.
+    Nested locations (list indexes, dict keys) are reduced to ``nested=True`` for
+    the same reason. Duplicates collapse, so a long list with many bad items
+    yields one entry per parameter and reason.
+    """
+    declared = set(input_model.model_fields)
+    details: dict[InputErrorDetail, None] = {}
+    for err in error.errors():
+        loc = err["loc"]
+        head = loc[0] if loc else None
+        parameter = head if isinstance(head, str) and head in declared else None
+        detail = InputErrorDetail(
+            parameter=parameter,
+            reason=_input_error_reason(err["type"]),
+            nested=parameter is not None and len(loc) > 1,
+        )
+        details.setdefault(detail, None)
+    return list(details)
 
 
 class ToolExecutor:
@@ -79,6 +175,7 @@ class ToolExecutor:
                 can_retry=e.can_retry,
                 status_code=e.status_code,
                 extra=e.extra,
+                input_errors=getattr(e, "input_errors", None),
             )
 
         # if we get here we're in trouble
@@ -123,6 +220,7 @@ class ToolExecutor:
             raise ToolInputError(
                 message=f"Invalid input: {summary}",
                 developer_message=f"Pydantic validation failed: {developer_summary}",
+                input_errors=_input_error_details(e, input_model),
             ) from None
 
         except ToolRuntimeError:
@@ -137,6 +235,7 @@ class ToolExecutor:
             raise ToolInputError(
                 message="Invalid input: an input validator failed",
                 developer_message=f"Input validator raised {type(e).__name__}",
+                input_errors=[InputErrorDetail(reason=InputErrorReason.VALIDATOR_FAILED)],
             ) from None
 
         return inputs

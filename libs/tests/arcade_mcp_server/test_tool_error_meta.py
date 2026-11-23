@@ -9,6 +9,7 @@ Schema (camelCase on the wire):
 - ``_meta.arcade.additionalPromptContent``: str (when present on the error)
 - ``_meta.arcade.retryAfterMs``: int (when present on the error)
 - ``_meta.arcade.statusCode``: int (when present on the error)
+- ``_meta.arcade.inputErrors``: list of {parameter, reason, nested} (rejected inputs)
 
 Vendor-local ``_meta.arcade.*`` namespace matches the existing precedent for
 tool-definition metadata in ``arcade_mcp_server/convert.py``.
@@ -150,3 +151,35 @@ async def test_successful_call_has_no_arcade_error_meta(mcp_server):
     # here -- the contract is "no error-kind keys on success".
     if result.meta is not None and "arcade" in result.meta:
         assert "errorKind" not in result.meta["arcade"]
+
+
+@pytest.mark.asyncio
+async def test_rejected_input_emits_input_errors_meta(mcp_server):
+    """A rejected argument -> inputErrors names the declared parameter and a reason
+    code from the closed set, so clients need not parse the message text."""
+    message = CallToolRequest(
+        jsonrpc="2.0",
+        id=8,
+        method="tools/call",
+        params={"name": "TestToolkit.test_tool", "arguments": {"text": ["jane@example.com"]}},
+    )
+    response = await mcp_server._handle_call_tool(message)
+    meta = _arcade_meta(_result(response))
+    assert meta["errorKind"] == "TOOL_RUNTIME_BAD_INPUT_VALUE"
+    assert meta["inputErrors"] == [
+        {"parameter": "text", "reason": "expected_string", "nested": False}
+    ]
+    assert "jane@example.com" not in str(meta)
+
+
+@pytest.mark.asyncio
+async def test_input_errors_omitted_for_other_errors(mcp_server):
+    message = CallToolRequest(
+        jsonrpc="2.0",
+        id=9,
+        method="tools/call",
+        params={"name": "TestToolkit.failing_tool", "arguments": {}},
+    )
+    response = await mcp_server._handle_call_tool(message)
+    meta = _arcade_meta(_result(response))
+    assert "inputErrors" not in meta

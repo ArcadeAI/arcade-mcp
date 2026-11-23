@@ -159,6 +159,9 @@ def _build_arcade_error_meta(error: ToolCallError) -> dict[str, Any]:
     - ``additionalPromptContent``: str. Present iff the error carries it.
     - ``retryAfterMs``: int. Present iff the error carries it.
     - ``statusCode``: int. Present iff the error carries it.
+    - ``inputErrors``: list of ``{"parameter", "reason", "nested"}``. Present iff
+      the error reports rejected inputs. ``reason`` is an ``InputErrorReason``
+      value; ``parameter`` is a declared parameter name or ``null``.
 
     Optional fields are omitted when absent (rather than set to ``None``) so
     clients can distinguish "field absent" from "field explicitly null".
@@ -177,6 +180,9 @@ def _build_arcade_error_meta(error: ToolCallError) -> dict[str, Any]:
     status_code = getattr(error, "status_code", None)
     if status_code is not None:
         arcade_meta["statusCode"] = status_code
+    input_errors = getattr(error, "input_errors", None)
+    if input_errors:
+        arcade_meta["inputErrors"] = [d.model_dump(mode="json") for d in input_errors]
     return arcade_meta
 
 

@@ -2,7 +2,7 @@ from typing import Any, TypeVar
 
 from pydantic import BaseModel
 
-from arcade_core.errors import ErrorKind
+from arcade_core.errors import ErrorKind, InputErrorDetail
 from arcade_core.schema import ToolCallError, ToolCallLog, ToolCallOutput
 from arcade_core.utils import coerce_empty_list_to_none
 
@@ -70,6 +70,7 @@ class ToolOutputFactory:
         can_retry: bool = False,
         status_code: int | None = None,
         extra: dict[str, Any] | None = None,
+        input_errors: list[InputErrorDetail] | None = None,
     ) -> ToolCallOutput:
         if not message or not message.strip():
             message = "Unspecified error during tool execution"
@@ -77,6 +78,7 @@ class ToolOutputFactory:
             error=ToolCallError(
                 message=message,
                 developer_message=developer_message,
+                input_errors=input_errors or None,
                 can_retry=can_retry,
                 additional_prompt_content=additional_prompt_content,
                 retry_after_ms=retry_after_ms,
