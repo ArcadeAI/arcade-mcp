@@ -1,3 +1,4 @@
+import base64
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
@@ -485,6 +486,13 @@ class ImageContent(BaseModel):
     mimeType: str
     annotations: Annotations | None = None
     meta: dict[str, Any] | None = Field(alias="_meta", default=None)
+
+
+def Image(data: bytes, mime_type: str) -> ImageContent:
+    """An image block from raw bytes, to send to the model in a ``ToolResult``."""
+    return ImageContent(
+        type="image", data=base64.b64encode(data).decode("ascii"), mimeType=mime_type
+    )
 
 
 class AudioContent(BaseModel):
