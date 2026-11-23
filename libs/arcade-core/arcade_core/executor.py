@@ -1,4 +1,5 @@
 import asyncio
+import json
 import traceback
 from collections.abc import Callable
 from typing import Any
@@ -17,6 +18,7 @@ from arcade_core.schema import (
     ToolContext,
     ToolDefinition,
 )
+from arcade_core.tool_result import ToolResult
 
 
 class ToolExecutor:
@@ -61,11 +63,16 @@ class ToolExecutor:
             else:
                 results = await asyncio.to_thread(func, **func_args)
 
+            content = None
+            if isinstance(results, ToolResult):
+                content = results.content
+                results = results.value
+
             # serialize the output model
             output = await ToolExecutor._serialize_output(output_model, results)
 
             # return the output
-            return output_factory.success(data=output, logs=tool_call_logs)
+            return ToolExecutor._success(output, content, tool_call_logs)
 
         except ToolRuntimeError as e:
             e.with_context(func.__name__)
@@ -88,6 +95,38 @@ class ToolExecutor:
                 developer_message=str(e),
                 stacktrace=traceback.format_exc(),
             )
+
+    @staticmethod
+    def _success(
+        output: BaseModel, content: list[Any] | None, logs: list[ToolCallLog]
+    ) -> ToolCallOutput:
+        """
+        Build the success output; a ToolResult's content adds the MCP result as `external`.
+        """
+        tool_output = output_factory.success(data=output, logs=logs)
+        if content is not None:
+            tool_output.external = ToolExecutor._mcp_result(content, tool_output.value)
+        return tool_output
+
+    @staticmethod
+    def _mcp_result(content: list[Any], value: Any) -> dict[str, Any]:
+        """
+        Build the MCP tool result for a ToolResult: its blocks, then the value as JSON text.
+        """
+        blocks = [
+            block.model_dump(mode="json", by_alias=True, exclude_none=True)
+            if isinstance(block, BaseModel)
+            else block
+            for block in content
+        ]
+        text = (
+            json.dumps(value, ensure_ascii=False) if isinstance(value, (dict, list)) else str(value)
+        )
+        return {
+            "content": [*blocks, {"type": "text", "text": text}],
+            "structuredContent": value if isinstance(value, dict) else {"result": value},
+            "isError": False,
+        }
 
     @staticmethod
     async def _serialize_input(input_model: type[BaseModel], **kwargs: Any) -> BaseModel:

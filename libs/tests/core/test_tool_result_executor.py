@@ -1,0 +1,96 @@
+import json
+from typing import Annotated
+
+import pytest
+from arcade_core import ToolResult
+from arcade_core.catalog import ToolCatalog, create_output_definition, determine_output_model
+from arcade_core.executor import ToolExecutor
+from arcade_core.schema import ToolContext
+from arcade_tdk import tool
+from typing_extensions import TypedDict
+
+IMAGE_BLOCK = {"type": "image", "data": "aGVsbG8=", "mimeType": "image/png"}
+
+
+class FileDetails(TypedDict):
+    """A file's details."""
+
+    name: str
+    size: int
+
+
+@tool
+def file_with_picture() -> Annotated[ToolResult[FileDetails], "The file"]:
+    """Return a file's details and its picture."""
+    return ToolResult(FileDetails(name="cat.png", size=5), content=[IMAGE_BLOCK])
+
+
+@tool
+def file_details() -> Annotated[FileDetails, "The file"]:
+    """Return a file's details."""
+    return FileDetails(name="cat.png", size=5)
+
+
+@tool
+def bad_value_with_picture() -> Annotated[ToolResult[FileDetails], "The file"]:
+    """Return a value that does not match the output schema."""
+    return ToolResult({"name": "cat.png"}, content=[IMAGE_BLOCK])  # type: ignore[arg-type]
+
+
+catalog = ToolCatalog()
+for func in (file_with_picture, file_details, bad_value_with_picture):
+    catalog.add_tool(func, "Files")
+
+
+async def _run(func):
+    materialized = catalog.get_tool(catalog.find_tool_by_func(func).get_fully_qualified_name())
+    return await ToolExecutor.run(
+        func=materialized.tool,
+        definition=materialized.definition,
+        input_model=materialized.input_model,
+        output_model=materialized.output_model,
+        context=ToolContext(),
+    )
+
+
+@pytest.mark.asyncio
+async def test_tool_result_returns_value_and_external_content():
+    output = await _run(file_with_picture)
+
+    value = {"name": "cat.png", "size": 5}
+    assert output.error is None
+    assert output.value == value
+    assert output.external == {
+        "content": [IMAGE_BLOCK, {"type": "text", "text": json.dumps(value, ensure_ascii=False)}],
+        "structuredContent": value,
+        "isError": False,
+    }
+
+
+@pytest.mark.asyncio
+async def test_tool_result_value_is_validated_against_output_model():
+    output = await _run(bad_value_with_picture)
+
+    assert output.error is not None
+    assert output.external is None
+
+
+@pytest.mark.asyncio
+async def test_plain_return_has_no_external():
+    output = await _run(file_details)
+
+    assert output.value == {"name": "cat.png", "size": 5}
+    assert output.external is None
+
+
+def test_tool_result_output_definition_matches_inner_type():
+    assert create_output_definition(file_with_picture) == create_output_definition(file_details)
+
+
+def test_tool_result_output_model_schema_matches_inner_type():
+    wrapped = determine_output_model(file_with_picture).model_json_schema()
+    plain = determine_output_model(file_details).model_json_schema()
+
+    assert json.dumps(wrapped).replace("FileWithPicture", "X") == json.dumps(plain).replace(
+        "FileDetails", "X"
+    )
