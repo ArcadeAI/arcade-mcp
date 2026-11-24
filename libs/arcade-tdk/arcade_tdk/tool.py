@@ -100,8 +100,8 @@ def _raise_as_arcade_error(
         Resolution:
         * ``message`` (agent-facing) — exception **type only**, no
           ``str(exception)`` content.
-        * ``developer_message`` (server-side logs only — ``error_developer_message``
-          Datadog facet, never returned to the client) — carries the
+        * ``developer_message`` (server-side DEBUG logs only, never returned
+          to the client) — carries the
           full ``f"{ExceptionType}: {str(exception)}"`` so on-call engineers
           retain debugging context. Authorized log access is the security
           boundary, not the agent transport.

@@ -18,6 +18,7 @@ import asyncio
 import contextlib
 import logging
 import os
+import uuid
 from typing import Any, Callable, ClassVar, cast
 from urllib.parse import quote, urlparse, urlunparse
 
@@ -32,7 +33,11 @@ from arcade_core.elicitation import (
 )
 from arcade_core.errors import ErrorKind, ToolInputError
 from arcade_core.executor import ToolExecutor
-from arcade_core.log_extras import build_tool_error_log_extra, build_tool_error_span_attributes
+from arcade_core.log_extras import (
+    build_tool_error_log_extra,
+    build_tool_error_span_attributes,
+    format_tool_error_summary,
+)
 from arcade_core.network.org_transport import build_org_scoped_async_http_client
 from arcade_core.schema import (
     ToolAuthorizationContext,
@@ -1724,14 +1729,22 @@ class MCPServer:
                     error_text = error.message
                     if error.additional_prompt_content:
                         error_text += f"\n\n{error.additional_prompt_content}"
-                    self._record_tool_error_span_attributes(error)
+                    # A server-generated ID links the span, the WARNING line and
+                    # the DEBUG lines holding the full text. The JSON-RPC request
+                    # ID is not used because the client writes it.
+                    execution_id = uuid.uuid4().hex
+                    self._record_tool_error_span_attributes(
+                        error, tool, input_params, execution_id=execution_id
+                    )
                     error_text = augment_error_message_for_debug(
                         error_text,
                         error.developer_message,
                         error.stacktrace,
                     )
                     content = convert_to_mcp_content(error_text)
-                    self._log_tool_call_error(tool_name, error)
+                    self._log_tool_call_error(
+                        tool_name, error, tool, input_params, execution_id=execution_id
+                    )
                 else:
                     content = convert_to_mcp_content("Error calling tool")
 
@@ -1821,20 +1834,69 @@ class MCPServer:
                 },
             )
 
-    def _log_tool_call_error(self, tool_name: str, error: ToolCallError) -> None:
-        """Emit a structured WARNING log for a failed tool call."""
-        logger.warning(
-            f"Tool {tool_name} error: {error.message}",
-            extra=build_tool_error_log_extra(error, tool_name=tool_name),
-        )
+    @staticmethod
+    def _parameter_names(tool: MaterializedTool | None) -> list[str]:
+        if tool is None:
+            return []
+        return [p.name for p in tool.definition.input.parameters]
 
-    def _record_tool_error_span_attributes(self, error: ToolCallError) -> None:
-        """Attach tool error details to the active telemetry span when present."""
-        span = trace.get_current_span()
+    def _log_tool_call_error(
+        self,
+        tool_name: str,
+        error: ToolCallError,
+        tool: MaterializedTool | None = None,
+        inputs: dict[str, Any] | None = None,
+        *,
+        execution_id: str | None = None,
+    ) -> None:
+        """Log a failed tool call: metadata at WARNING, error text at DEBUG only.
+
+        Error text echoes end-user content (inputs, upstream responses), so it
+        must not reach logs above DEBUG. Every line carries ``execution_id`` so
+        the WARNING line (and the span) can be matched to the DEBUG detail.
+        """
+        execution_id = execution_id or uuid.uuid4().hex
+        parameter_names = self._parameter_names(tool)
+        log_extra = build_tool_error_log_extra(
+            error,
+            tool_name=tool_name,
+            inputs=inputs,
+            parameter_names=parameter_names,
+            execution_id=execution_id,
+        )
+        summary = format_tool_error_summary(error, inputs=inputs, parameter_names=parameter_names)
+        inputs_shape = log_extra.get("tool_inputs_shape")
+        logger.warning(
+            f"{execution_id} | Tool {tool_name} error: {summary}"
+            + (f" | inputs: {inputs_shape}" if inputs_shape else ""),
+            extra=log_extra,
+        )
+        logger.debug(f"{execution_id} | Tool {tool_name} error message: {error.message}")
+        if error.developer_message:
+            logger.debug(
+                f"{execution_id} | Tool {tool_name} developer message: {error.developer_message}"
+            )
+
+    def _record_tool_error_span_attributes(
+        self,
+        error: ToolCallError,
+        tool: MaterializedTool | None = None,
+        inputs: dict[str, Any] | None = None,
+        *,
+        execution_id: str | None = None,
+        span: trace.Span | None = None,
+    ) -> None:
+        """Attach tool error metadata to ``span`` (default: the active span) when recording."""
+        span = span or trace.get_current_span()
         if not span or not span.is_recording():
             return
 
-        for key, value in build_tool_error_span_attributes(error).items():
+        for key, value in build_tool_error_span_attributes(
+            error,
+            inputs=inputs,
+            parameter_names=self._parameter_names(tool),
+            execution_id=execution_id,
+        ).items():
             span.set_attribute(key, value)
 
     def _create_error_response(
@@ -2758,14 +2820,25 @@ class MCPServer:
         if mctx is not None:
             mctx.set_tool_context(tool_context)
 
-        result = await ToolExecutor.run(
-            func=tool.tool,
-            definition=tool.definition,
-            input_model=tool.input_model,
-            output_model=tool.output_model,
-            context=mctx if mctx is not None else tool_context,
-            **arguments,
-        )
+        tool_name = str(getattr(tool.definition, "name", "<unknown>"))
+        execution_id = uuid.uuid4().hex
+        # The tools/call request's span has ended by the time a background task
+        # finishes, so the run gets its own span (like the worker's RunTool) to
+        # carry the error metadata and the ID that links it to the logs.
+        with trace.get_tracer(__name__).start_as_current_span("RunTool") as span:
+            span.set_attribute("tool_name", tool_name)
+            result = await ToolExecutor.run(
+                func=tool.tool,
+                definition=tool.definition,
+                input_model=tool.input_model,
+                output_model=tool.output_model,
+                context=mctx if mctx is not None else tool_context,
+                **arguments,
+            )
+            if result.value is None and result.error is not None:
+                self._record_tool_error_span_attributes(
+                    result.error, tool, arguments, execution_id=execution_id, span=span
+                )
 
         if result.value is not None:
             content = convert_to_mcp_content(result.value)
@@ -2786,7 +2859,9 @@ class MCPServer:
                 error_text = error.message
                 if error.additional_prompt_content:
                     error_text += f"\n\n{error.additional_prompt_content}"
-                self._log_tool_call_error(getattr(tool.definition, "name", "<unknown>"), error)
+                self._log_tool_call_error(
+                    tool_name, error, tool, arguments, execution_id=execution_id
+                )
             else:
                 error_text = "Error calling tool"
             content = convert_to_mcp_content(error_text)

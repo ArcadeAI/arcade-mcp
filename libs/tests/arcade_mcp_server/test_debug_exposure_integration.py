@@ -165,10 +165,10 @@ async def test_integration_baseline_no_leak(erroring_server):
 
 
 @pytest.mark.asyncio
-async def test_integration_tool_error_records_developer_message_on_current_span(
+async def test_integration_tool_error_keeps_error_text_off_current_span(
     erroring_server, monkeypatch
 ):
-    """Developer message stays out of MCP content but is attached to telemetry."""
+    """Developer message stays out of MCP content and out of span attributes."""
 
     class FakeSpan:
         def __init__(self):
@@ -189,12 +189,49 @@ async def test_integration_tool_error_records_developer_message_on_current_span(
     assert "Failed to fetch results" in text
     assert "HTTP 503" not in text
     assert span.attributes["tool_error_kind"] == "TOOL_RUNTIME_FATAL"
-    assert span.attributes["tool_error_message"].startswith("[TOOL_RUNTIME_FATAL] FatalToolError")
-    assert (
-        span.attributes["tool_error_developer_message"]
-        == "[TOOL_RUNTIME_FATAL] FatalToolError during execution of tool "
-        "'raises_fatal_tool_error': HTTP 503 on upstream endpoint for query='ping'"
+    # Error text echoes user content, so it never reaches span attributes.
+    assert "tool_error_message" not in span.attributes
+    assert "tool_error_developer_message" not in span.attributes
+    assert not any("query='ping'" in str(v) for v in span.attributes.values())
+    assert span.attributes["tool_error_summary"] == "TOOL_RUNTIME_FATAL (HTTP 500)"
+    assert span.attributes["tool_inputs_shape"] == "query=string(4)"
+
+
+@pytest.mark.asyncio
+async def test_integration_tool_error_id_links_span_warning_and_debug_lines(
+    erroring_server, monkeypatch, caplog
+):
+    """One server-generated execution_id is on the span, the WARNING line and
+    the DEBUG lines that hold the full text, so the detail can be found."""
+    import logging
+
+    class FakeSpan:
+        def __init__(self):
+            self.attributes = {}
+
+        def is_recording(self):
+            return True
+
+        def set_attribute(self, key, value):
+            self.attributes[key] = value
+
+    span = FakeSpan()
+    monkeypatch.setattr("arcade_mcp_server.server.trace.get_current_span", lambda: span)
+
+    with caplog.at_level(logging.DEBUG, logger="arcade.mcp"):
+        await _call(erroring_server, "raises_fatal_tool_error")
+
+    execution_id = span.attributes["execution_id"]
+    assert execution_id
+    warning = next(r for r in caplog.records if r.levelno == logging.WARNING)
+    assert warning.getMessage() == (
+        f"{execution_id} | Tool TestToolkit.raises_fatal_tool_error error: "
+        "TOOL_RUNTIME_FATAL (HTTP 500) | inputs: query=string(4)"
     )
+    assert warning.execution_id == execution_id
+    debug = [r.getMessage() for r in caplog.records if r.levelno == logging.DEBUG]
+    assert any(m.startswith(f"{execution_id} | ") and "query='ping'" in m for m in debug)
+    assert any(m.startswith(f"{execution_id} | ") and "Failed to fetch" in m for m in debug)
 
 
 @pytest.mark.asyncio
