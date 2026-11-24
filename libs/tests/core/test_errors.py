@@ -13,6 +13,7 @@ from arcade_core.errors import (
     FatalToolError,
     NetworkTransportError,
     RetryableToolError,
+    ToolExecutionError,
     ToolkitError,
     ToolkitLoadError,
     UpstreamError,
@@ -108,6 +109,32 @@ def test_network_transport_error_to_payload_omits_status_code():
     assert payload["error_type"] == "PoolTimeout"
 
 
+# ---- Error kinds: deliberate errors vs crashes -------------------------------
+
+
+def test_explicitly_raised_tool_execution_error_is_not_fatal():
+    err = ToolExecutionError("A last name is required to create this record.")
+    assert err.kind is ErrorKind.TOOL_RUNTIME_ERROR
+    assert err.can_retry is False
+    assert err.with_context("create_record").message.startswith("[TOOL_RUNTIME_ERROR]")
+
+
+def test_fatal_tool_error_stays_fatal():
+    assert FatalToolError("boom").kind is ErrorKind.TOOL_RUNTIME_FATAL
+
+
+@pytest.mark.parametrize(
+    "err, kind",
+    [
+        (RetryableToolError("again"), ErrorKind.TOOL_RUNTIME_RETRY),
+        (UpstreamError("bad", status_code=400), ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST),
+        (NetworkTransportError("slow"), ErrorKind.NETWORK_TRANSPORT_RUNTIME_UNMAPPED),
+    ],
+)
+def test_subclasses_keep_their_own_kind(err, kind):
+    assert err.kind is kind
+
+
 # ---- ToolCallError classification properties (wire-format schema) ----------
 
 
@@ -115,6 +142,7 @@ def test_network_transport_error_to_payload_omits_status_code():
     "kind, expected_tool, expected_upstream, expected_network, expected_toolkit",
     [
         (ErrorKind.TOOL_RUNTIME_FATAL, True, False, False, False),
+        (ErrorKind.TOOL_RUNTIME_ERROR, True, False, False, False),
         (ErrorKind.TOOL_RUNTIME_RETRY, True, False, False, False),
         (ErrorKind.TOOL_RUNTIME_CONTEXT_REQUIRED, True, False, False, False),
         (ErrorKind.TOOL_RUNTIME_BAD_INPUT_VALUE, True, False, False, False),

@@ -144,7 +144,9 @@ class TestServerSettingsVersionValidation:
         settings = ServerSettings(version="v1")
         assert settings.version == "1.0.0"
 
-    def test_mcp_settings_env_rejects_invalid_version(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_mcp_settings_env_rejects_invalid_version(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test MCP_SERVER_VERSION env var is validated."""
         monkeypatch.setenv("MCP_SERVER_VERSION", "not-valid")
         with pytest.raises(ValidationError, match="semver"):
@@ -155,8 +157,9 @@ class TestReservedToolSecretKeys:
     """Reserved framework credentials must never be exposed to tools as secrets."""
 
     def test_is_reserved_tool_secret_key_matches_credentials(self) -> None:
-        """The worker secret and the API key are reserved."""
+        """The worker secrets and the API key are reserved."""
         assert is_reserved_tool_secret_key("ARCADE_WORKER_SECRET")
+        assert is_reserved_tool_secret_key("ARCADE_WORKER_SECRETS")
         assert is_reserved_tool_secret_key("ARCADE_API_KEY")
 
     def test_is_reserved_tool_secret_key_is_case_insensitive(self) -> None:

@@ -1795,6 +1795,12 @@ class MCPServer:
                     id=message.id,
                     error={"code": INVALID_PARAMS, "message": str(e)},
                 )
+        except IncompleteAuthContextError as e:
+            self._tracker.track_tool_call(False, "incomplete auth context")
+            return JSONRPCError(
+                id=message.id,
+                error={"code": INTERNAL_ERROR, "message": str(e)},
+            )
         except Exception:
             logger.exception("Error calling tool")
             self._tracker.track_tool_call(False, "internal error calling tool")

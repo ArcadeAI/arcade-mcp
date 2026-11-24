@@ -20,6 +20,7 @@ class ErrorKind(str, Enum):
     TOOL_RUNTIME_BAD_OUTPUT_VALUE = "TOOL_RUNTIME_BAD_OUTPUT_VALUE"
     TOOL_RUNTIME_RETRY = "TOOL_RUNTIME_RETRY"
     TOOL_RUNTIME_CONTEXT_REQUIRED = "TOOL_RUNTIME_CONTEXT_REQUIRED"
+    TOOL_RUNTIME_ERROR = "TOOL_RUNTIME_ERROR"
     TOOL_RUNTIME_FATAL = "TOOL_RUNTIME_FATAL"
     UPSTREAM_RUNTIME_BAD_REQUEST = "UPSTREAM_RUNTIME_BAD_REQUEST"
     UPSTREAM_RUNTIME_AUTH_ERROR = "UPSTREAM_RUNTIME_AUTH_ERROR"
@@ -264,7 +265,13 @@ class ToolExecutionError(ToolRuntimeError):
 
     This is the base class for tool execution errors and should be raised when catching
     exceptions within a tool to provide meaningful information to the tool caller.
+
+    Raising it is a deliberate answer from the tool, so it reports TOOL_RUNTIME_ERROR.
+    TOOL_RUNTIME_FATAL is kept for FatalToolError, which wraps exceptions the tool
+    did not handle.
     """
+
+    kind: ErrorKind = ErrorKind.TOOL_RUNTIME_ERROR
 
     def __init__(
         self,
@@ -325,6 +332,7 @@ class FatalToolError(ToolExecutionError):
     Raised when there is an unexpected or unknown error executing a tool.
     """
 
+    kind: ErrorKind = ErrorKind.TOOL_RUNTIME_FATAL
     status_code: int = 500
 
     def __init__(

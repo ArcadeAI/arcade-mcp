@@ -42,7 +42,7 @@ from arcade_cli.deploy import (
     update_deployment,
     watch_rollout,
 )
-from arcade_cli.deploy_checks import check_project, install_source
+from arcade_cli.deploy_checks import Protocol, check_project, install_source
 from arcade_cli.deploy_config import (
     ApiKey,
     DeclaredValues,
@@ -119,7 +119,7 @@ def deploy_mcp_server(
         console.print(f"✓ Deploy settings from {config.source}", style="green")
     for warning in check_project(project_dir, protocol="mcp", runners=runners):
         console.print(f"[!] {warning}", style="yellow", markup=False)
-    _warn_about_missing_wheels(project_dir, runners)
+    warn_about_missing_wheels(project_dir, "mcp", runners)
     values = _values_to_send(config, secrets, env_file)
     if values.secrets:
         names = ", ".join(sorted(values.secrets))
@@ -132,7 +132,7 @@ def deploy_mcp_server(
         _refuse_own_sign_in_by_imports(project_dir)
         if server_name is None or server_version is None:
             raise ValueError("--server-name and --server-version are required with --skip-validate")
-        python = _find_project_python(project_dir)
+        python = find_project_python(project_dir)
         if python is not None:
             _warn_untested_frameworks(python)
         validated = _Validated(server_name, server_version)
@@ -175,12 +175,14 @@ def _print_oauth_callback_url(engine_url: str, server_name: str) -> None:
     console.print(f"  {callback_url}", markup=False, highlight=False, soft_wrap=True)
 
 
-def _warn_about_missing_wheels(project_dir: Path, runners: list[DeploymentsRunner]) -> None:
+def warn_about_missing_wheels(
+    project_dir: Path, protocol: Protocol, runners: list[DeploymentsRunner]
+) -> None:
     """Warn, never refuse, about dependencies that would compile on the runner."""
     if not any(runner.language == "python" for runner in runners):
         return
     console.print("\nChecking dependencies have prebuilt wheels for the runner...", style="dim")
-    result = check_wheels(project_dir, protocol="mcp", runners=runners)
+    result = check_wheels(project_dir, protocol=protocol, runners=runners)
     for warning in result.warnings:
         console.print(f"[!] {warning}", style="yellow", markup=False)
     for note in result.notes:
@@ -225,12 +227,7 @@ def _values_to_send(config: DeployConfig, mode: str, env_file: Path | None) -> D
     secrets in place and is refused when there are any.
     """
     mode = mode.lower()
-    if mode == "skip" and config.secrets:
-        raise DeployRefusedError(
-            "--secrets skip would remove the secrets this server declares "
-            f"({', '.join(config.secrets)}): a deploy replaces the server's whole set of "
-            "secrets. Deploy with --secrets auto to send them."
-        )
+    refuse_skipping_declared_secrets(config, mode)
     values = resolve_declared_values(config, os.environ)
     if mode != "all":
         return values
@@ -253,6 +250,16 @@ def _values_to_send(config: DeployConfig, mode: str, env_file: Path | None) -> D
     # The environment wins over .env, as it did when .env was loaded.
     from_env_file = {name: os.environ.get(name) or entries[name] for name in names}
     return replace(values, secrets={**from_env_file, **values.secrets})
+
+
+def refuse_skipping_declared_secrets(config: DeployConfig, mode: str) -> None:
+    """Refuse ``--secrets skip`` when the server declares secrets: a deploy replaces them."""
+    if mode.lower() == "skip" and config.secrets:
+        raise DeployRefusedError(
+            "--secrets skip would remove the secrets this server declares "
+            f"({', '.join(config.secrets)}): a deploy replaces the server's whole set of "
+            "secrets. Deploy with --secrets auto to send them."
+        )
 
 
 # Untested framework versions
@@ -337,7 +344,7 @@ def _validate(
     api_key: ApiKey | None,
     debug: bool,
 ) -> _Validated:
-    python = _project_python(project_dir)
+    python = project_python(project_dir)
     _warn_untested_frameworks(python)
     key_env, headers = _local_api_key(api_key, values)
     # The runner sets ARCADE_WORKER_SECRET; with it an Arcade server serves /worker/*.
@@ -374,7 +381,7 @@ def _validate(
     )
 
 
-def _find_project_python(project_dir: Path) -> Path | None:
+def find_project_python(project_dir: Path) -> Path | None:
     """The project's own interpreter: its ``.venv``, else an active virtual environment."""
     candidates = [project_dir / ".venv"]
     if os.environ.get("VIRTUAL_ENV"):
@@ -386,9 +393,9 @@ def _find_project_python(project_dir: Path) -> Path | None:
     return None
 
 
-def _project_python(project_dir: Path) -> Path:
+def project_python(project_dir: Path) -> Path:
     """The project's own interpreter; refuses the deploy when it has none."""
-    python = _find_project_python(project_dir)
+    python = find_project_python(project_dir)
     if python is not None:
         return python
     setup = {

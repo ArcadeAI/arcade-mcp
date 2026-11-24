@@ -2914,6 +2914,36 @@ class TestTaskAugmentedToolCall:
         assert response.result.task.taskId is not None
 
     @pytest.mark.asyncio
+    async def test_task_call_without_client_identity_reports_incomplete_auth_context(
+        self, mcp_server, initialized_server_session
+    ):
+        """A task-augmented call whose token names no client gets the
+        incomplete-auth-context error that tasks/* return, not a generic
+        tool-execution failure, and creates no task."""
+        _enable_tasks(initialized_server_session)
+        owner = ResourceOwner(
+            user_id="alice",
+            client_id=None,
+            claims={"iss": "https://auth.example.com", "sub": "alice"},
+        )
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {
+                "name": "TestToolkit.test_tool",
+                "arguments": {"text": "hello"},
+                "task": {"ttl": 60000},
+            },
+        }
+        response = await mcp_server.handle_message(
+            message, initialized_server_session, resource_owner=owner
+        )
+        assert isinstance(response, JSONRPCError)
+        assert "client_id" in response.error["message"]
+        assert len(mcp_server._task_manager._tasks) == 0
+
+    @pytest.mark.asyncio
     async def test_tool_call_without_task_returns_normal_result(
         self, mcp_server, initialized_server_session
     ):

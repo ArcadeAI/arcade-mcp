@@ -350,11 +350,11 @@ class JWKSTokenValidator(ResourceServerValidator):
             decoded: Decoded token claims
 
         Returns:
-            Client identifier or "unknown" if no client claim found
+            Client identifier, or None if the token names no client. Task
+            isolation is keyed on this value, so it must never fall back to a
+            placeholder that unrelated clients would share.
         """
-        client_id = decoded.get("client_id") or decoded.get("azp") or "unknown"
-
-        return client_id
+        return decoded.get("client_id") or decoded.get("azp") or None
 
     def _extract_granted_scopes(self, decoded: dict[str, Any]) -> frozenset[str]:
         """Parse granted scopes from JWT claims.
