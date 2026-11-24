@@ -123,8 +123,18 @@ class ToolExecutor:
         if not all(
             isinstance(block, dict) and isinstance(block.get("type"), str) for block in blocks
         ):
-            raise TypeError("ToolResult content must be MCP content blocks")
-        json.dumps(blocks)
+            raise ToolOutputError(
+                message="Failed to serialize tool output",
+                developer_message="ToolResult content must be MCP content blocks: JSON objects "
+                "with a string type.",
+            )
+        try:
+            json.dumps(blocks)
+        except (TypeError, ValueError) as e:
+            raise ToolOutputError(
+                message="Failed to serialize tool output",
+                developer_message=f"ToolResult content is not JSON serializable: {e!s}",
+            ) from e
         text = (
             json.dumps(value, ensure_ascii=False) if isinstance(value, (dict, list)) else str(value)
         )

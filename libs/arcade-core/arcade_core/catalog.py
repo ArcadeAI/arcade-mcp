@@ -683,14 +683,18 @@ def create_input_definition(func: Callable) -> ToolInput:
 
 
 def _unwrap_tool_result(annotation: Any) -> Any:
-    """Turn ``ToolResult[T]`` into ``T``, keeping any ``Annotated`` metadata around it."""
-    if get_origin(annotation) is Annotated:
+    """Turn ``ToolResult[T]`` into ``T``, inside ``Annotated`` and unions such as ``| None``."""
+    origin = get_origin(annotation)
+    if origin is Annotated:
         inner = get_args(annotation)[0]
-        if get_origin(inner) is ToolResult:
-            return annotation.copy_with((get_args(inner)[0],))
-        return annotation
-    if get_origin(annotation) is ToolResult:
+        unwrapped = _unwrap_tool_result(inner)
+        return annotation if unwrapped is inner else annotation.copy_with((unwrapped,))
+    if origin is ToolResult:
         return get_args(annotation)[0]
+    if is_union(annotation):
+        args = get_args(annotation)
+        unwrapped_args = tuple(_unwrap_tool_result(arg) for arg in args)
+        return annotation if unwrapped_args == args else Union[unwrapped_args]
     return annotation
 
 

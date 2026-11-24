@@ -49,8 +49,15 @@ def file_with_raw_bytes() -> Annotated[ToolResult[FileDetails], "The file"]:
     return ToolResult(FileDetails(name="cat.png", size=5), content=[b"\x89PNG"])
 
 
+@tool
+def maybe_file() -> Annotated[ToolResult[FileDetails] | None, "The file, if any"]:
+    """Return a file's details and its picture, or nothing."""
+    return ToolResult(FileDetails(name="cat.png", size=5), content=[IMAGE_BLOCK])
+
+
 catalog = ToolCatalog()
 for func in (
+    maybe_file,
     file_with_picture,
     file_details,
     bad_value_with_picture,
@@ -120,8 +127,19 @@ async def test_tool_result_without_content_returns_what_a_plain_return_does():
 
 
 @pytest.mark.asyncio
-async def test_content_that_is_not_a_block_is_an_error():
+async def test_content_that_is_not_a_block_is_an_output_error():
     output = await _run(file_with_raw_bytes)
 
     assert output.error is not None
+    assert "TOOL_RUNTIME_BAD_OUTPUT_VALUE" in output.error.message
     assert output.external is None
+
+
+@pytest.mark.asyncio
+async def test_optional_tool_result_unwraps_to_its_value():
+    definition = catalog.find_tool_by_func(maybe_file)
+
+    assert definition.output.value_schema.val_type == "json"
+    output = await _run(maybe_file)
+    assert output.value == {"name": "cat.png", "size": 5}
+    assert output.external["content"][0] == IMAGE_BLOCK
