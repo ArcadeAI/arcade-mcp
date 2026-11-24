@@ -3003,6 +3003,64 @@ class TestTaskAugmentedToolCall:
         assert task.status == TaskStatus.FAILED
 
     @pytest.mark.asyncio
+    async def test_task_augmented_tool_error_on_own_span_linked_to_logs(
+        self, mcp_server, initialized_server_session, monkeypatch, caplog
+    ):
+        """The tools/call span has ended when a background task fails, so the
+        run gets its own span carrying the error metadata and the same
+        execution_id as the WARNING line."""
+        import contextlib
+        import logging
+
+        from arcade_mcp_server import server as server_module
+
+        class FakeSpan:
+            def __init__(self, name):
+                self.name = name
+                self.attributes = {}
+
+            def is_recording(self):
+                return True
+
+            def set_attribute(self, key, value):
+                self.attributes[key] = value
+
+        spans = []
+
+        class FakeTracer:
+            @contextlib.contextmanager
+            def start_as_current_span(self, name, *args, **kwargs):
+                span = FakeSpan(name)
+                spans.append(span)
+                yield span
+
+        monkeypatch.setattr(server_module.trace, "get_tracer", lambda *_a, **_k: FakeTracer())
+        _enable_tasks(initialized_server_session)
+        sid = initialized_server_session.session_id
+        message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {"name": "TestToolkit.failing_tool", "arguments": {}, "task": {"ttl": 60000}},
+        }
+        with caplog.at_level(logging.WARNING, logger="arcade.mcp"):
+            response = await mcp_server.handle_message(message, initialized_server_session)
+            await asyncio.wait_for(
+                mcp_server._task_manager.get_result(
+                    response.result.task.taskId, context_key=f"session:{sid}"
+                ),
+                timeout=5.0,
+            )
+
+        run_tool = next(span for span in spans if span.name == "RunTool")
+        assert run_tool.attributes["tool_name"] == "failing_tool"
+        assert run_tool.attributes["tool_error_kind"] == "TOOL_RUNTIME_FATAL"
+        execution_id = run_tool.attributes["execution_id"]
+        warning = next(r for r in caplog.records if "failing_tool error" in r.getMessage())
+        assert warning.execution_id == execution_id
+        assert warning.getMessage().startswith(f"{execution_id} | ")
+
+    @pytest.mark.asyncio
     async def test_cancel_running_task_cancels_tool_execution(
         self, mcp_server, initialized_server_session
     ):

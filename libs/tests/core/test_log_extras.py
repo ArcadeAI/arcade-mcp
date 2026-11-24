@@ -177,6 +177,12 @@ def test_summary_uses_engine_wording():
         == "UPSTREAM_RUNTIME_RATE_LIMIT (HTTP 429, retry after 2000ms)"
     )
     assert format_tool_error_summary(_err(status_code=None)) == "TOOL_RUNTIME_FATAL"
+    assert (
+        format_tool_error_summary(
+            _err(kind=ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR, status_code=503, can_retry=True)
+        )
+        == "UPSTREAM_RUNTIME_SERVER_ERROR (HTTP 503, retryable)"
+    )
 
 
 @pytest.mark.parametrize("status_code", [0, 99, 600, 123456789, -1])
@@ -189,14 +195,14 @@ def test_non_http_status_is_not_named(status_code):
     assert build_tool_error_log_extra(err, tool_name="t")["error_status_code"] is None
 
 
-def test_inputs_shape_describes_types_and_sizes_never_values():
+def test_inputs_shape_uses_engine_words_and_never_values():
     shape = describe_inputs_shape(
         {
             "name": "Jane Doe",
             "count": 3,
             "ratio": 0.5,
             "flag": True,
-            "tags": ["a", "b"],
+            "tags": ["a", 1],
             "filters": {"email": "jane@example.com"},
             "cursor": None,
             "jane_doe_ssn": "123-45-6789",
@@ -204,12 +210,42 @@ def test_inputs_shape_describes_types_and_sizes_never_values():
         },
         ["name", "count", "ratio", "flag", "tags", "filters", "cursor", "absent"],
     )
+    # Alphabetical, like the Engine, so whole-line queries match.
     assert shape == (
-        "name=string(8) count=number ratio=number flag=boolean tags=array(2) "
-        "filters=object(1) cursor=null +2 undeclared"
+        "count=number cursor=null filters=object(1 keys) flag=bool name=string(8) "
+        "ratio=number tags=list(2) +2 other"
     )
     for value in ("Jane", "jane@example.com", "jane_doe_ssn", "123-45-6789"):
         assert value not in shape
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        ("jane@example.com", "string(email)"),
+        ("123e4567-e89b-12d3-a456-426614174000", "string(uuid)"),
+        ("https://example.com/p?token=abc", "string(url)"),
+        ("2026-11-24T10:00:00Z", "string(datetime)"),
+        ("2026-11-24", "string(date)"),
+        ("not an email", "string(12)"),
+        ("a" * 300 + "@example.com", "string(312)"),
+        (["jane@example.com"], "list(1, email)"),
+        (["a", "b"], "list(2, string)"),
+        ([1, 2.5], "list(2, number)"),
+        ([[1], [2]], "list(2, list)"),
+        ([], "list(0)"),
+        ({}, "object(0 keys)"),
+    ],
+)
+def test_inputs_shape_formats(value, expected):
+    assert describe_inputs_shape({"v": value}, ["v"]) == f"v={expected}"
+
+
+def test_inputs_shape_names_at_most_20_inputs():
+    names = [f"p{i:02d}" for i in range(23)]
+    shape = describe_inputs_shape(dict.fromkeys(names, 1) | {"extra": 1}, names)
+    assert shape.split()[:20] == [f"p{i:02d}=number" for i in range(20)]
+    assert shape.endswith(" +4 other")
 
 
 def test_inputs_shape_empty_without_inputs():
@@ -255,21 +291,22 @@ def test_summary_flags_nested_failure_without_naming_nested_keys():
     )
     assert summary == (
         "TOOL_RUNTIME_BAD_INPUT_VALUE (HTTP 400): "
-        "filters has a nested value that failed validation; limit failed validation, got missing"
+        "filters has a nested value that failed validation; "
+        "limit failed validation and was not sent"
     )
     assert "jane_doe_ssn" not in summary
 
 
-def test_summary_ignores_undeclared_or_untrusted_validation_names():
+def test_summary_reports_undeclared_validation_failures_without_names():
     """Only declared parameter names are written; the developer message is
     untrusted (a tool can raise its own ToolInputError) and input keys come
-    from the caller."""
+    from the caller. A failure on an undeclared key is reported once, unnamed."""
     err = _input_err(
         "Pydantic validation failed: jane_doe_ssn[extra_forbidden]; "
         "jane@example.com[x]; <root>[model_type]"
     )
     summary = format_tool_error_summary(err, inputs={}, parameter_names=["limit"])
-    assert summary == "TOOL_RUNTIME_BAD_INPUT_VALUE (HTTP 400)"
+    assert summary == ("TOOL_RUNTIME_BAD_INPUT_VALUE (HTTP 400): an unexpected parameter was sent")
 
 
 def test_summary_validation_details_only_for_bad_input_kind():

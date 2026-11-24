@@ -364,15 +364,15 @@ async def test_call_tool_error_text_never_logged_or_traced_above_debug(
     assert warning.levelno == logging.WARNING
     assert "Tool LeakyErrorTool " in warning.getMessage()
     assert "UPSTREAM_RUNTIME_NOT_FOUND (HTTP 404)" in warning.getMessage()
-    assert "inputs: email=string(16)" in warning.getMessage()
+    assert "inputs: email=string(email)" in warning.getMessage()
     assert warning.error_kind == "UPSTREAM_RUNTIME_NOT_FOUND"
     assert warning.error_status_code == 404
     assert warning.error_can_retry is False
-    assert warning.tool_inputs_shape == "email=string(16)"
+    assert warning.tool_inputs_shape == "email=string(email)"
 
     run_tool_span = next(span for span in fake_tracer.spans if span.name == "RunTool")
     assert run_tool_span.attributes["execution_id"] == "exec_leak"
-    assert run_tool_span.attributes["tool_inputs_shape"] == "email=string(16)"
+    assert run_tool_span.attributes["tool_inputs_shape"] == "email=string(email)"
     assert run_tool_span.attributes["tool_error_summary"] == "UPSTREAM_RUNTIME_NOT_FOUND (HTTP 404)"
 
 
@@ -406,9 +406,10 @@ async def test_call_tool_input_validation_failure_names_parameter(
         await base_worker_no_auth.call_tool(tool_request)
 
     expected_summary = (
-        "TOOL_RUNTIME_BAD_INPUT_VALUE (HTTP 400): limit failed validation, got string(3)"
+        "TOOL_RUNTIME_BAD_INPUT_VALUE (HTTP 400): limit failed validation, got string(3); "
+        "an unexpected parameter was sent"
     )
-    expected_shape = "channel=string(9) limit=string(3) +1 undeclared"
+    expected_shape = "channel=string(9) limit=string(3) +1 other"
     warning = next(r for r in caplog.records if "failed:" in r.getMessage())
     assert warning.getMessage() == (
         f"exec_bad_input | Tool LimitedTool version None failed: {expected_summary}"

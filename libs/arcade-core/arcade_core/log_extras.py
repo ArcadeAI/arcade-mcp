@@ -83,9 +83,6 @@ def build_tool_error_log_extra(
     return extra
 
 
-_MISSING = object()
-
-
 def _http_status(error: ToolCallError) -> int | None:
     """Return ``status_code`` only when it is an HTTP status (100-599).
 
@@ -98,42 +95,100 @@ def _http_status(error: ToolCallError) -> int | None:
     return None
 
 
-def _value_shape(value: Any) -> str:
-    """Describe a value by type and size, never by content."""
-    if value is _MISSING:
-        return "missing"
+# Formats are only recognized in short strings, which also bounds the regex work.
+_FORMAT_MAX_LENGTH = 256
+_STRING_FORMATS = (
+    ("email", re.compile(r"[^@\s]+@[^@\s]+\.[^@\s]+")),
+    ("uuid", re.compile(r"[0-9a-fA-F]{8}-(?:[0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}")),
+    ("url", re.compile(r"[A-Za-z][A-Za-z0-9+.-]*://\S+")),
+    (
+        "datetime",
+        re.compile(r"\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?"),
+    ),
+    ("date", re.compile(r"\d{4}-\d{2}-\d{2}")),
+)
+_MAX_NAMED_INPUTS = 20
+
+
+def _string_format(value: str) -> str | None:
+    if len(value) > _FORMAT_MAX_LENGTH:
+        return None
+    for name, pattern in _STRING_FORMATS:
+        if pattern.fullmatch(value):
+            return name
+    return None
+
+
+def _item_shape(value: Any) -> str:
+    """Shape of a list item, without sizes, so items can be compared."""
+    if isinstance(value, str):
+        return _string_format(value) or "string"
+    if isinstance(value, (list, tuple)):
+        return "list"
+    if isinstance(value, Mapping):
+        return "object"
+    return _scalar_shape(value)
+
+
+def _common_item_shape(items: Sequence[Any]) -> str | None:
+    """The shape all items share, or ``None``; stops at the first mismatch."""
+    shape: str | None = None
+    for item in items:
+        item_shape = _item_shape(item)
+        if shape is not None and item_shape != shape:
+            return None
+        shape = item_shape
+    return shape
+
+
+def _scalar_shape(value: Any) -> str:
     if value is None:
         return "null"
     if isinstance(value, bool):
-        return "boolean"
+        return "bool"
     if isinstance(value, (int, float)):
         return "number"
-    if isinstance(value, str):
-        return f"string({len(value)})"
-    if isinstance(value, Mapping):
-        return f"object({len(value)})"
-    if isinstance(value, (list, tuple)):
-        return f"array({len(value)})"
     return "object"
+
+
+def _value_shape(value: Any) -> str:
+    """Describe a value by type, format and size, never by content.
+
+    Uses the Engine's words: ``string(9)``, ``string(email)``, ``number``,
+    ``bool``, ``null``, ``list(2)``, ``list(1, email)``, ``object(1 keys)``.
+    """
+    if isinstance(value, str):
+        return f"string({_string_format(value) or len(value)})"
+    if isinstance(value, Mapping):
+        return f"object({len(value)} keys)"
+    if isinstance(value, (list, tuple)):
+        item_shape = _common_item_shape(value)
+        if item_shape is not None:
+            return f"list({len(value)}, {item_shape})"
+        return f"list({len(value)})"
+    return _scalar_shape(value)
 
 
 def describe_inputs_shape(
     inputs: Mapping[str, Any] | None, parameter_names: Sequence[str] = ()
 ) -> str:
-    """Describe each declared input by type and size, never its value.
+    """Describe each declared input by type, format and size, never its value.
 
-    Example: ``channel=string(9) limit=number``.
+    Example: ``channel=string(9) limit=number``. Inputs are listed
+    alphabetically, at most 20 by name, as the Engine does.
 
     Only declared parameter names are written: input keys come from the
-    caller, so an undeclared key (``jane_doe_ssn``) is only counted.
+    caller, so an undeclared key (``jane_doe_ssn``) is only counted, along
+    with any declared inputs past the first 20 (``+2 other``).
     """
     if not inputs:
         return ""
     declared = set(parameter_names)
-    parts = [f"{name}={_value_shape(inputs[name])}" for name in parameter_names if name in inputs]
-    undeclared = sum(1 for key in inputs if key not in declared)
-    if undeclared:
-        parts.append(f"+{undeclared} undeclared")
+    names = sorted(name for name in declared if name in inputs)
+    parts = [f"{name}={_value_shape(inputs[name])}" for name in names[:_MAX_NAMED_INPUTS]]
+    other = len(names[_MAX_NAMED_INPUTS:]) + sum(1 for key in inputs if key not in declared)
+    if other:
+        parts.append(f"+{other} other")
     return " ".join(parts)
 
 
@@ -151,8 +206,9 @@ def _validation_details(
     The executor writes ``Pydantic validation failed: limit[int_parsing]``
     into ``developer_message``. That text is untrusted (a tool can raise its
     own ``ToolInputError``), so only names matching a declared parameter are
-    written. Only the top-level parameter is named; deeper ``loc`` parts can
-    be keys the caller sent, so a nested failure is only flagged.
+    written; a failure on an undeclared key is reported without its name.
+    Only the top-level parameter is named; deeper ``loc`` parts can be keys
+    the caller sent, so a nested failure is only flagged.
     """
     if error.kind != ErrorKind.TOOL_RUNTIME_BAD_INPUT_VALUE or not parameter_names:
         return []
@@ -167,14 +223,22 @@ def _validation_details(
         match = _VALIDATION_ENTRY.match(entry)
         if not match:
             continue
-        top, _, rest = match.group("loc").partition(".")
-        if top not in declared or (top in details and not rest):
+        loc = match.group("loc")
+        top, _, rest = loc.partition(".")
+        if top not in declared:
+            # Validation failed on a key the tool doesn't declare (the caller
+            # chose it), so say so without naming it.
+            if loc != "<root>":
+                details.setdefault("", "an unexpected parameter was sent")
+            continue
+        if top in details and not rest:
             continue
         if rest:
             details[top] = f"{top} has a nested value that failed validation"
+        elif inputs is None or top not in inputs:
+            details[top] = f"{top} failed validation and was not sent"
         else:
-            value = inputs.get(top, _MISSING) if inputs is not None else _MISSING
-            details[top] = f"{top} failed validation, got {_value_shape(value)}"
+            details[top] = f"{top} failed validation, got {_value_shape(inputs[top])}"
     return list(details.values())
 
 
@@ -187,7 +251,8 @@ def format_tool_error_summary(
     """Render a one-line, text-free summary of a tool error.
 
     Uses the Engine's wording so the same failure reads the same everywhere:
-    ``UPSTREAM_RUNTIME_RATE_LIMIT (HTTP 429, retry after 2000ms)`` or
+    ``UPSTREAM_RUNTIME_RATE_LIMIT (HTTP 429, retry after 2000ms)``,
+    ``UPSTREAM_RUNTIME_SERVER_ERROR (HTTP 503, retryable)`` or
     ``TOOL_RUNTIME_BAD_INPUT_VALUE (HTTP 400): limit failed validation, got string(3)``.
     """
     qualifiers = []
@@ -196,6 +261,8 @@ def format_tool_error_summary(
         qualifiers.append(f"HTTP {status}")
     if error.retry_after_ms is not None:
         qualifiers.append(f"retry after {error.retry_after_ms}ms")
+    elif error.can_retry:
+        qualifiers.append("retryable")
     summary = _kind_value(error)
     if qualifiers:
         summary += f" ({', '.join(qualifiers)})"

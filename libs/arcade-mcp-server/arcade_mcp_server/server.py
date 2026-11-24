@@ -1884,9 +1884,10 @@ class MCPServer:
         inputs: dict[str, Any] | None = None,
         *,
         execution_id: str | None = None,
+        span: trace.Span | None = None,
     ) -> None:
-        """Attach tool error metadata to the active telemetry span when present."""
-        span = trace.get_current_span()
+        """Attach tool error metadata to ``span`` (default: the active span) when recording."""
+        span = span or trace.get_current_span()
         if not span or not span.is_recording():
             return
 
@@ -2819,14 +2820,25 @@ class MCPServer:
         if mctx is not None:
             mctx.set_tool_context(tool_context)
 
-        result = await ToolExecutor.run(
-            func=tool.tool,
-            definition=tool.definition,
-            input_model=tool.input_model,
-            output_model=tool.output_model,
-            context=mctx if mctx is not None else tool_context,
-            **arguments,
-        )
+        tool_name = str(getattr(tool.definition, "name", "<unknown>"))
+        execution_id = uuid.uuid4().hex
+        # The tools/call request's span has ended by the time a background task
+        # finishes, so the run gets its own span (like the worker's RunTool) to
+        # carry the error metadata and the ID that links it to the logs.
+        with trace.get_tracer(__name__).start_as_current_span("RunTool") as span:
+            span.set_attribute("tool_name", tool_name)
+            result = await ToolExecutor.run(
+                func=tool.tool,
+                definition=tool.definition,
+                input_model=tool.input_model,
+                output_model=tool.output_model,
+                context=mctx if mctx is not None else tool_context,
+                **arguments,
+            )
+            if result.value is None and result.error is not None:
+                self._record_tool_error_span_attributes(
+                    result.error, tool, arguments, execution_id=execution_id, span=span
+                )
 
         if result.value is not None:
             content = convert_to_mcp_content(result.value)
@@ -2848,7 +2860,7 @@ class MCPServer:
                 if error.additional_prompt_content:
                     error_text += f"\n\n{error.additional_prompt_content}"
                 self._log_tool_call_error(
-                    getattr(tool.definition, "name", "<unknown>"), error, tool, arguments
+                    tool_name, error, tool, arguments, execution_id=execution_id
                 )
             else:
                 error_text = "Error calling tool"
