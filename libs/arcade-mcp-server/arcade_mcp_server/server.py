@@ -1693,25 +1693,7 @@ class MCPServer:
             # Convert result
             if result.external is not None and result.error is None:
                 # A ToolResult: its blocks, the value as JSON text, and structuredContent
-                try:
-                    tool_result = CallToolResult(**result.external)
-                except ValidationError as exc:
-                    # A malformed block is the tool's output fault, not the caller's input.
-                    # Log where it failed, never the values, which can hold tool output.
-                    logger.error(  # noqa: TRY400
-                        "Tool returned invalid MCP content blocks at %s",
-                        [error["loc"] for error in exc.errors()],
-                    )
-                    self._tracker.track_tool_call(False, "invalid tool output")
-                    return JSONRPCResponse(
-                        id=message.id,
-                        result=CallToolResult(
-                            content=[
-                                TextContent(type="text", text="Failed to serialize tool output")
-                            ],
-                            isError=True,
-                        ),
-                    )
+                tool_result = CallToolResult(**result.external)
                 self._tracker.track_tool_call(True)
                 return JSONRPCResponse(id=message.id, result=tool_result)
             if result.value is not None:
@@ -2791,18 +2773,7 @@ class MCPServer:
         )
 
         if result.external is not None and result.error is None:
-            try:
-                return CallToolResult(**result.external)
-            except ValidationError as exc:
-                # Same as _handle_call_tool: a malformed block is the tool's output fault
-                logger.error(  # noqa: TRY400
-                    "Tool returned invalid MCP content blocks at %s",
-                    [error["loc"] for error in exc.errors()],
-                )
-                return CallToolResult(
-                    content=[TextContent(type="text", text="Failed to serialize tool output")],
-                    isError=True,
-                )
+            return CallToolResult(**result.external)
         if result.value is not None:
             content = convert_to_mcp_content(result.value)
             structured_content = convert_content_to_structured_content(result.value)

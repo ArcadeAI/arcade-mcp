@@ -8,9 +8,9 @@ T = TypeVar("T")
 class ToolResult(Generic[T]):
     """A tool's value plus MCP content blocks, such as an image, sent to the model with it.
 
-    Annotate the tool's return as ``ToolResult[T]``; its output schema is the schema of ``T``.
-    REST callers get ``value``. MCP clients get ``content``, then ``value`` as a JSON text
-    block, with ``value`` as ``structuredContent``.
+    Annotate the tool's return as ``ToolResult[T]``. ``value`` is the tool's result and sets
+    its output schema. MCP clients get the ``content`` blocks first, then ``value`` as a JSON
+    text block and as ``structuredContent``.
     """
 
     value: T

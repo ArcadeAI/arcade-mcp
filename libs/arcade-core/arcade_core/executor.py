@@ -1,15 +1,19 @@
 import asyncio
-import json
 import traceback
 from collections.abc import Callable
 from typing import Any
 
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, TypeAdapter, ValidationError
 
 from arcade_core.errors import (
     ToolInputError,
     ToolOutputError,
     ToolRuntimeError,
+)
+from arcade_core.mcp_content import (
+    MCPContent,
+    convert_content_to_structured_content,
+    convert_to_mcp_content,
 )
 from arcade_core.output import output_factory
 from arcade_core.schema import (
@@ -19,6 +23,8 @@ from arcade_core.schema import (
     ToolDefinition,
 )
 from arcade_core.tool_result import ToolResult
+
+_CONTENT_BLOCKS = TypeAdapter(list[MCPContent])
 
 
 class ToolExecutor:
@@ -113,36 +119,25 @@ class ToolExecutor:
         """
         Build the MCP tool result for a ToolResult: its blocks, then the value as JSON text.
         """
-        blocks = [
-            block.model_dump(mode="json", by_alias=True, exclude_none=True)
-            if isinstance(block, BaseModel)
-            else block
-            for block in content
-        ]
-        # The worker sends these as they are, so refuse anything that isn't a JSON block
-        if not all(
-            isinstance(block, dict) and isinstance(block.get("type"), str) for block in blocks
-        ):
-            raise ToolOutputError(
-                message="Failed to serialize tool output",
-                developer_message="ToolResult content must be MCP content blocks: JSON objects "
-                "with a string type.",
-            )
         try:
-            json.dumps(blocks)
-        except (TypeError, ValueError) as e:
+            blocks = _CONTENT_BLOCKS.validate_python(content)
+        except ValidationError as e:
             raise ToolOutputError(
                 message="Failed to serialize tool output",
-                developer_message=f"ToolResult content is not JSON serializable: {e!s}",
+                developer_message="ToolResult content must be MCP content blocks: "
+                f"{[error['loc'] for error in e.errors()]}",
             ) from e
-        text = (
-            json.dumps(value, ensure_ascii=False) if isinstance(value, (dict, list)) else str(value)
-        )
-        return {
-            "content": [*blocks, {"type": "text", "text": text}],
-            "structuredContent": value if isinstance(value, dict) else {"result": value},
+        result = {
+            "content": [
+                block.model_dump(mode="json", by_alias=True, exclude_none=True)
+                for block in [*blocks, *convert_to_mcp_content(value)]
+            ],
             "isError": False,
         }
+        structured = convert_content_to_structured_content(value)
+        if structured is not None:
+            result["structuredContent"] = structured
+        return result
 
     @staticmethod
     async def _serialize_input(input_model: type[BaseModel], **kwargs: Any) -> BaseModel:

@@ -140,7 +140,7 @@ async def test_malformed_content_block_is_a_tool_output_error(server, session):
     )
 
     assert response.result.isError is True
-    assert response.result.content[0].text == "Failed to serialize tool output"
+    assert "Failed to serialize tool output" in response.result.content[0].text
 
 
 @pytest.mark.asyncio
@@ -164,7 +164,7 @@ async def test_malformed_content_block_in_task_is_a_tool_output_error(server, se
         timeout=5.0,
     )
     assert stored.isError is True
-    assert stored.content[0].text == "Failed to serialize tool output"
+    assert "Failed to serialize tool output" in stored.content[0].text
 
 
 SERVER_SCRIPT = """
