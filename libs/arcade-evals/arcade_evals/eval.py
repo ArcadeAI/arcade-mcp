@@ -896,15 +896,28 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
 
         for run_index in range(num_runs):
             run_seed = run_seeds[run_index]
-            if provider == "anthropic":
-                predicted_args = await self._run_anthropic(client, model, case, registry=registry)
-            else:
-                predicted_args = await self._run_openai(
-                    client, model, case, registry=registry, seed=run_seed
+            try:
+                if provider == "anthropic":
+                    predicted_args = await self._run_anthropic(
+                        client, model, case, registry=registry
+                    )
+                else:
+                    predicted_args = await self._run_openai(
+                        client, model, case, registry=registry, seed=run_seed
+                    )
+            except json.JSONDecodeError as e:
+                # The model returned tool-call arguments that are not valid JSON. Score this
+                # run as a failure instead of aborting every other case in the suite.
+                processed_calls = []
+                evaluation = EvaluationResult(
+                    score=0.0,
+                    passed=False,
+                    warning=False,
+                    failure_reason=f"Model returned invalid JSON in tool call arguments: {e}",
                 )
-
-            processed_calls = self._process_tool_calls(predicted_args, registry=registry)
-            evaluation = case.evaluate(processed_calls)
+            else:
+                processed_calls = self._process_tool_calls(predicted_args, registry=registry)
+                evaluation = case.evaluate(processed_calls)
 
             run_evaluations.append(evaluation)
             run_scores.append(evaluation.score)
