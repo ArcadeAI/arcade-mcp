@@ -35,6 +35,11 @@ dependencies = [
     "platformdirs>=4.3.6; platform_system == 'Windows'",
 ]
 
+[project.urls]
+Homepage = "https://www.arcade.dev"
+Documentation = "https://docs.arcade.dev"
+Repository = "https://github.com/ArcadeAI/arcade-mcp"
+
 [project.optional-dependencies]
 all = [
     # LLM providers (needed for evals)
