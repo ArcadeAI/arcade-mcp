@@ -119,6 +119,12 @@ class ToolExecutor:
             else block
             for block in content
         ]
+        # The worker sends these as they are, so refuse anything that isn't a JSON block
+        if not all(
+            isinstance(block, dict) and isinstance(block.get("type"), str) for block in blocks
+        ):
+            raise TypeError("ToolResult content must be MCP content blocks")
+        json.dumps(blocks)
         text = (
             json.dumps(value, ensure_ascii=False) if isinstance(value, (dict, list)) else str(value)
         )

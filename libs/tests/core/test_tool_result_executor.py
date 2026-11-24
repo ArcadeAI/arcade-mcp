@@ -43,8 +43,20 @@ def file_without_content() -> Annotated[ToolResult[FileDetails], "The file"]:
     return ToolResult(FileDetails(name="cat.png", size=5))
 
 
+@tool
+def file_with_raw_bytes() -> Annotated[ToolResult[FileDetails], "The file"]:
+    """Return raw bytes instead of a content block."""
+    return ToolResult(FileDetails(name="cat.png", size=5), content=[b"\x89PNG"])
+
+
 catalog = ToolCatalog()
-for func in (file_with_picture, file_details, bad_value_with_picture, file_without_content):
+for func in (
+    file_with_picture,
+    file_details,
+    bad_value_with_picture,
+    file_without_content,
+    file_with_raw_bytes,
+):
     catalog.add_tool(func, "Files")
 
 
@@ -105,3 +117,11 @@ def test_tool_result_output_model_schema_matches_inner_type():
 @pytest.mark.asyncio
 async def test_tool_result_without_content_returns_what_a_plain_return_does():
     assert await _run(file_without_content) == await _run(file_details)
+
+
+@pytest.mark.asyncio
+async def test_content_that_is_not_a_block_is_an_error():
+    output = await _run(file_with_raw_bytes)
+
+    assert output.error is not None
+    assert output.external is None
