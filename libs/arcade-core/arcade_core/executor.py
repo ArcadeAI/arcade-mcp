@@ -3,12 +3,17 @@ import traceback
 from collections.abc import Callable
 from typing import Any
 
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, TypeAdapter, ValidationError
 
 from arcade_core.errors import (
     ToolInputError,
     ToolOutputError,
     ToolRuntimeError,
+)
+from arcade_core.mcp_content import (
+    MCPContent,
+    convert_content_to_structured_content,
+    convert_to_mcp_content,
 )
 from arcade_core.output import output_factory
 from arcade_core.schema import (
@@ -17,6 +22,9 @@ from arcade_core.schema import (
     ToolContext,
     ToolDefinition,
 )
+from arcade_core.tool_result import ToolResult
+
+_CONTENT_BLOCKS = TypeAdapter(list[MCPContent])
 
 
 class ToolExecutor:
@@ -61,11 +69,16 @@ class ToolExecutor:
             else:
                 results = await asyncio.to_thread(func, **func_args)
 
+            content = None
+            if isinstance(results, ToolResult):
+                content = results.content
+                results = results.value
+
             # serialize the output model
             output = await ToolExecutor._serialize_output(output_model, results)
 
             # return the output
-            return output_factory.success(data=output, logs=tool_call_logs)
+            return ToolExecutor._success(output, content, tool_call_logs)
 
         except ToolRuntimeError as e:
             e.with_context(func.__name__)
@@ -88,6 +101,43 @@ class ToolExecutor:
                 developer_message=str(e),
                 stacktrace=traceback.format_exc(),
             )
+
+    @staticmethod
+    def _success(
+        output: BaseModel, content: list[Any] | None, logs: list[ToolCallLog]
+    ) -> ToolCallOutput:
+        """
+        Build the success output; a ToolResult's content adds the MCP result as `external`.
+        """
+        tool_output = output_factory.success(data=output, logs=logs)
+        if content:
+            tool_output.external = ToolExecutor._mcp_result(content, tool_output.value)
+        return tool_output
+
+    @staticmethod
+    def _mcp_result(content: list[Any], value: Any) -> dict[str, Any]:
+        """
+        Build the MCP tool result for a ToolResult: its blocks, then the value as JSON text.
+        """
+        try:
+            blocks = _CONTENT_BLOCKS.validate_python(content)
+        except ValidationError as e:
+            raise ToolOutputError(
+                message="Failed to serialize tool output",
+                developer_message="ToolResult content must be MCP content blocks: "
+                f"{[error['loc'] for error in e.errors()]}",
+            ) from e
+        result = {
+            "content": [
+                block.model_dump(mode="json", by_alias=True, exclude_none=True)
+                for block in [*blocks, *convert_to_mcp_content(value)]
+            ],
+            "isError": False,
+        }
+        structured = convert_content_to_structured_content(value)
+        if structured is not None:
+            result["structuredContent"] = structured
+        return result
 
     @staticmethod
     async def _serialize_input(input_model: type[BaseModel], **kwargs: Any) -> BaseModel:

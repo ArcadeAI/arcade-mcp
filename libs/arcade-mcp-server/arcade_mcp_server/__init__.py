@@ -11,6 +11,7 @@ This package provides:
 """
 
 from arcade_core.resources import ResourceDeclaration, resource
+from arcade_core.tool_result import ToolResult
 
 from arcade_mcp_server.context import Context
 from arcade_mcp_server.decorators import tool
@@ -26,6 +27,7 @@ from arcade_mcp_server.types import (
     ElicitRequestURLParams,
     GetTaskResult,
     Icon,
+    Image,
     LegacyTitledEnumSchema,
     ListTasksResult,
     Resource,
@@ -56,6 +58,7 @@ __all__ = [
     "ElicitationCompleteNotification",
     "GetTaskResult",
     "Icon",
+    "Image",
     "LegacyTitledEnumSchema",
     "ListTasksResult",
     "MCPApp",
@@ -73,6 +76,7 @@ __all__ = [
     "TitledSingleSelectEnumSchema",
     "ToolChoice",
     "ToolExecution",
+    "ToolResult",
     "ToolResultContent",
     "ToolUseContent",
     "UntitledMultiSelectEnumSchema",
