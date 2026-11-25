@@ -1,8 +1,27 @@
+import base64
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Generic, Literal, TypeAlias, TypeVar
 
+from arcade_core.mcp_content import (
+    AudioContent as AudioContent,
+)
+from arcade_core.mcp_content import (
+    EmbeddedResource as EmbeddedResource,
+)
+from arcade_core.mcp_content import (
+    ImageContent as ImageContent,
+)
+from arcade_core.mcp_content import (
+    MCPContent as MCPContent,
+)
+from arcade_core.mcp_content import (
+    ResourceLink as ResourceLink,
+)
+from arcade_core.mcp_content import (
+    TextContent as TextContent,
+)
 from arcade_core.resource_schema import (
     Annotations as Annotations,
 )
@@ -472,27 +491,11 @@ class CallToolRequest(JSONRPCRequest):
     params: CallToolParams
 
 
-class TextContent(BaseModel):
-    type: Literal["text"]
-    text: str
-    annotations: Annotations | None = None
-    meta: dict[str, Any] | None = Field(alias="_meta", default=None)
-
-
-class ImageContent(BaseModel):
-    type: Literal["image"]
-    data: str
-    mimeType: str
-    annotations: Annotations | None = None
-    meta: dict[str, Any] | None = Field(alias="_meta", default=None)
-
-
-class AudioContent(BaseModel):
-    type: Literal["audio"]
-    data: str
-    mimeType: str
-    annotations: Annotations | None = None
-    meta: dict[str, Any] | None = Field(alias="_meta", default=None)
+def Image(data: bytes, mime_type: str) -> ImageContent:
+    """An image block from raw bytes, to send to the model in a ``ToolResult``."""
+    return ImageContent(
+        type="image", data=base64.b64encode(data).decode("ascii"), mimeType=mime_type
+    )
 
 
 class ToolUseContent(BaseModel):
@@ -524,20 +527,6 @@ class ToolChoice(BaseModel):
     mode: Literal["auto", "required", "none"]
 
     model_config = ConfigDict(extra="allow")
-
-
-class ResourceLink(Resource):
-    type: Literal["resource_link"] = Field(default="resource_link", frozen=True)
-
-
-class EmbeddedResource(BaseModel):
-    type: Literal["resource"] = Field(default="resource", frozen=True)
-    resource: TextResourceContents | BlobResourceContents
-    annotations: Annotations | None = None
-    meta: dict[str, Any] | None = Field(alias="_meta", default=None)
-
-
-MCPContent = TextContent | ImageContent | AudioContent | ResourceLink | EmbeddedResource
 
 
 class CallToolResult(Result):

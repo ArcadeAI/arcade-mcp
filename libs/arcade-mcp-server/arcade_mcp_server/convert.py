@@ -1,15 +1,17 @@
-import base64
-import json
 import logging
 from typing import Any
 
 from arcade_core.catalog import MaterializedTool
+from arcade_core.mcp_content import (
+    convert_content_to_structured_content as convert_content_to_structured_content,
+)
+from arcade_core.mcp_content import (
+    convert_to_mcp_content as convert_to_mcp_content,
+)
 from arcade_core.schema import ToolDefinition
 
 from arcade_mcp_server.types import (
-    MCPContent,
     MCPTool,
-    TextContent,
     ToolAnnotations,
     ToolExecution,
 )
@@ -107,62 +109,6 @@ def create_mcp_tool(materialized_tool: MaterializedTool) -> MCPTool:
         execution=mcp_execution,
         _meta=meta or None,
     )
-
-
-def convert_to_mcp_content(value: Any) -> list[MCPContent]:
-    """
-    Convert a Python value to MCP-compatible content.
-    """
-    if value is None:
-        return []
-
-    if isinstance(value, (str, bool, int, float)):
-        return [TextContent(type="text", text=str(value))]
-
-    if isinstance(value, (dict, list)):
-        try:
-            return [TextContent(type="text", text=json.dumps(value, ensure_ascii=False))]
-        except Exception as exc:
-            raise ValueError("Failed to serialize value to JSON for MCP content") from exc
-
-    if isinstance(value, (bytes, bytearray, memoryview)):
-        # Encode bytes as base64 text so it can be transmitted safely
-        b = bytes(value)
-        encoded = base64.b64encode(b).decode("ascii")
-        return [TextContent(type="text", text=encoded)]
-
-    # Default fallback
-    return [TextContent(type="text", text=str(value))]
-
-
-def convert_content_to_structured_content(value: Any) -> dict[str, Any] | None:
-    """
-    Convert a Python value to MCP-compatible structured content (JSON object).
-
-    According to the MCP specification, structuredContent should be a JSON object
-    that represents the structured result of the tool call.
-
-    Args:
-        value: The value to convert to structured content
-
-    Returns:
-        A dictionary representing the structured content, or None if value is None
-    """
-    if value is None:
-        return None
-
-    if isinstance(value, dict):
-        # Already a dictionary - use as-is
-        return value
-    elif isinstance(value, list):
-        # List - wrap in a result object
-        return {"result": value}
-    elif isinstance(value, (str, int, float, bool)):
-        # Primitive types - wrap in a result object
-        return {"result": value}
-    else:
-        # For other types, convert to string and wrap
-        return {"result": str(value)}
 
 
 def _map_type_to_json_schema_type(val_type: str | None) -> str:
