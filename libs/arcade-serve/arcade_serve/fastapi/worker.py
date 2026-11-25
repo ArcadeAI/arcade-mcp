@@ -1,4 +1,5 @@
 import json
+import logging
 from collections.abc import Sequence
 from typing import Any, Callable
 
@@ -24,6 +25,8 @@ from arcade_serve.core.common import (
 from arcade_serve.fastapi.auth import validate_engine_request
 from arcade_serve.fastapi.disconnect import CancelOnDisconnectMiddleware
 from arcade_serve.utils import is_async_callable
+
+logger = logging.getLogger(__name__)
 
 
 class FastAPIWorker(BaseWorker):
@@ -55,7 +58,15 @@ class FastAPIWorker(BaseWorker):
         """
         super().__init__(secret, disable_auth, otel_meter, accepted_secrets)
         self.app = app
-        app.add_middleware(CancelOnDisconnectMiddleware, path_prefix=self.base_path)
+        try:
+            app.add_middleware(CancelOnDisconnectMiddleware, path_prefix=self.base_path)
+        except RuntimeError:
+            # Starlette refuses middleware once the app has started; the worker
+            # still serves, without stopping a tool whose caller hangs up.
+            logger.warning(
+                "worker added to a running app: tool calls are not cancelled when "
+                "their caller disconnects"
+            )
         self.router = FastAPIRouter(app, self)
 
         # Initialize components list

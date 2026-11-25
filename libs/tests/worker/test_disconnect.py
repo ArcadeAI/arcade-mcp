@@ -4,9 +4,12 @@ from typing import Annotated
 
 import pytest
 from arcade_core.schema import ToolCallRequest, ToolContext, ToolReference
+from arcade_serve.fastapi.disconnect import CancelOnDisconnectMiddleware
 from arcade_serve.fastapi.worker import FastAPIWorker
 from arcade_tdk import tool
 from fastapi import FastAPI
+from starlette.background import BackgroundTask
+from starlette.responses import JSONResponse
 
 # Created per test: an asyncio.Event belongs to the loop that first waits on it.
 signals: dict[str, asyncio.Event] = {}
@@ -126,3 +129,76 @@ async def test_a_tool_call_cancelled_for_another_reason_stays_cancelled():
 
     with pytest.raises(asyncio.CancelledError):
         await call
+
+
+@pytest.mark.asyncio
+async def test_a_request_refused_before_its_body_is_read_is_not_buffered():
+    reads = 0
+
+    async def receive():
+        nonlocal reads
+        reads += 1
+        return {"type": "http.request", "body": b"x" * 65536, "more_body": True}
+
+    async def refuse(scope, receive, send):
+        await send({"type": "http.response.start", "status": 401, "headers": []})
+        await send({"type": "http.response.body", "body": b""})
+
+    sent: list[dict] = []
+
+    async def send(message):
+        sent.append(message)
+
+    scope = {"type": "http", "path": "/worker/tools/invoke", "headers": []}
+    await asyncio.wait_for(CancelOnDisconnectMiddleware(refuse)(scope, receive, send), timeout=5)
+
+    assert sent[0]["status"] == 401
+    assert reads == 0
+
+
+@pytest.mark.asyncio
+async def test_work_after_the_answer_is_not_cancelled_when_the_caller_leaves():
+    finished = asyncio.Event()
+
+    async def after_answer():
+        await asyncio.sleep(0.05)
+        finished.set()
+
+    app = FastAPI()
+
+    @app.post("/worker/tools/invoke")
+    async def invoke():
+        return JSONResponse({"ok": True}, background=BackgroundTask(after_answer))
+
+    app.add_middleware(CancelOnDisconnectMiddleware)
+    await _call(app, b"{}", asyncio.Event(), hang_up_once_answered=True)
+
+    assert finished.is_set()
+
+
+@pytest.mark.parametrize(
+    ("path", "root_path", "applies"),
+    [
+        ("/worker/tools/invoke", "", True),
+        ("/worker", "", True),
+        ("/api/worker/tools/invoke", "/api", True),
+        ("/workers/list", "", False),
+        ("/mcp", "", False),
+    ],
+)
+def test_only_worker_routes_are_watched(path, root_path, applies):
+    middleware = CancelOnDisconnectMiddleware(lambda *_: None)
+
+    assert middleware._applies({"type": "http", "path": path, "root_path": root_path}) is applies
+
+
+@pytest.mark.asyncio
+async def test_a_worker_added_to_a_running_app_still_serves(caplog):
+    app = FastAPI()
+    app.middleware_stack = app.build_middleware_stack()
+
+    with caplog.at_level("WARNING"):
+        worker = FastAPIWorker(app=app, disable_auth=True)
+
+    assert worker.app is app
+    assert "not cancelled" in caplog.text
