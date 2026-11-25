@@ -22,6 +22,7 @@ from arcade_serve.core.common import (
     WorkerComponent,
 )
 from arcade_serve.fastapi.auth import validate_engine_request
+from arcade_serve.fastapi.disconnect import CancelOnDisconnectMiddleware
 from arcade_serve.utils import is_async_callable
 
 
@@ -54,6 +55,7 @@ class FastAPIWorker(BaseWorker):
         """
         super().__init__(secret, disable_auth, otel_meter, accepted_secrets)
         self.app = app
+        app.add_middleware(CancelOnDisconnectMiddleware, path_prefix=self.base_path)
         self.router = FastAPIRouter(app, self)
 
         # Initialize components list
