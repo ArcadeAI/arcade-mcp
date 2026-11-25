@@ -438,7 +438,7 @@ class ToolContext(BaseModel):
             self.secrets = []
         # Update existing or add new
         for secret in self.secrets:
-            if secret.key == key:
+            if secret.key.lower() == key.lower():
                 secret.value = value
                 return
         self.secrets.append(ToolSecretItem(key=key, value=value))
