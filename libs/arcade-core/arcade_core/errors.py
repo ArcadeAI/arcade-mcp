@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any
 
+from pydantic import BaseModel, ConfigDict
 from typing_extensions import Self
 
 
@@ -33,6 +34,57 @@ class ErrorKind(str, Enum):
     NETWORK_TRANSPORT_RUNTIME_UNREACHABLE = "NETWORK_TRANSPORT_RUNTIME_UNREACHABLE"
     NETWORK_TRANSPORT_RUNTIME_UNMAPPED = "NETWORK_TRANSPORT_RUNTIME_UNMAPPED"
     UNKNOWN = "UNKNOWN"
+
+
+class InputErrorReason(str, Enum):
+    """Why a tool input was rejected, as a code from a closed set.
+
+    This set is part of the tool failure contract, not of any validator: the
+    worker maps its validator's codes onto it, so consumers such as the Arcade
+    Engine can name the reason without knowing Pydantic's codes or parsing
+    ``developer_message``. ``INVALID`` covers any rejection the worker cannot
+    map to a more specific code.
+
+    Array and object follow JSON Schema naming, the language of the tool's
+    declared input schema.
+    """
+
+    MISSING = "missing"
+    UNEXPECTED = "unexpected"
+    EXPECTED_STRING = "expected_string"
+    EXPECTED_INTEGER = "expected_integer"
+    EXPECTED_NUMBER = "expected_number"
+    EXPECTED_BOOLEAN = "expected_boolean"
+    EXPECTED_ARRAY = "expected_array"
+    EXPECTED_OBJECT = "expected_object"
+    NOT_ALLOWED = "not_allowed"
+    TOO_SHORT = "too_short"
+    TOO_LONG = "too_long"
+    OUT_OF_RANGE = "out_of_range"
+    PATTERN_MISMATCH = "pattern_mismatch"
+    INVALID_FORMAT = "invalid_format"
+    VALIDATOR_FAILED = "validator_failed"
+    INVALID = "invalid"
+
+
+class InputErrorDetail(BaseModel):
+    """One rejected tool input: which declared parameter and why.
+
+    Carries no text written by the caller or the validator, so it is safe to
+    record in traces and logs.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    parameter: str | None = None
+    """The declared parameter that was rejected. ``None`` when the failure is
+    not tied to a declared parameter, such as an undeclared key the caller sent
+    or a check across the whole input."""
+    reason: InputErrorReason
+    """Why the input was rejected."""
+    nested: bool = False
+    """``True`` when the failure is inside the parameter's value (a list item or
+    a nested field) rather than about the value as a whole."""
 
 
 class ToolkitError(Exception, ABC):
@@ -247,6 +299,28 @@ class ToolInputError(ToolSerializationError):
 
     kind: ErrorKind = ErrorKind.TOOL_RUNTIME_BAD_INPUT_VALUE
     status_code: int = 400
+
+    def __init__(
+        self,
+        message: str,
+        developer_message: str | None = None,
+        *,
+        extra: dict[str, Any] | None = None,
+        input_errors: list[InputErrorDetail] | None = None,
+    ):
+        """
+        Args:
+            input_errors: Each rejected input as a declared parameter and a reason
+                code, so consumers need not parse ``developer_message``.
+        """
+        super().__init__(message, developer_message=developer_message, extra=extra)
+        self.input_errors = input_errors or None
+
+    def to_payload(self) -> dict[str, Any]:
+        payload = super().to_payload()
+        if self.input_errors:
+            payload["input_errors"] = [d.model_dump(mode="json") for d in self.input_errors]
+        return payload
 
 
 class ToolOutputError(ToolSerializationError):

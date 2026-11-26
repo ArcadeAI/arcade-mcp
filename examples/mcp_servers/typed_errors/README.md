@@ -53,6 +53,23 @@ A typed tool error on MCP 2025-11-25 looks like:
 }
 ```
 
+When the arguments fail validation (`TOOL_RUNTIME_BAD_INPUT_VALUE`),
+`_meta.arcade.inputErrors` names each rejected declared parameter and a reason
+code from a closed set (`missing`, `unexpected`, `expected_string`,
+`expected_integer`, `expected_number`, `expected_boolean`, `expected_array`,
+`expected_object`, `not_allowed`, `too_short`, `too_long`, `out_of_range`,
+`pattern_mismatch`, `invalid_format`, `validator_failed`, `invalid`), so
+clients can say what was wrong without parsing the text:
+
+```jsonc
+"inputErrors": [{ "parameter": "cc", "reason": "expected_array", "nested": false }]
+```
+
+`parameter` is `null` for an undeclared key or a check across the whole
+input; `nested` is `true` when the failure is inside the value (a list item
+or nested field). The worker's `/worker/tools/invoke` response carries the
+same list as `error.input_errors`.
+
 Older (2025-06-18) sessions still see validation failures as JSON-RPC
 `-32602`, but tool-body errors (everything in this example) have always been
 returned as tool results — SEP-1303 just harmonises the validation path

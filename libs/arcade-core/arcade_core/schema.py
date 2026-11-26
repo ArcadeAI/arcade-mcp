@@ -23,7 +23,7 @@ from typing import Any, Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 
-from arcade_core.errors import ErrorKind
+from arcade_core.errors import ErrorKind, InputErrorDetail
 from arcade_core.metadata import ToolMetadata
 
 # allow for custom tool name separator
@@ -621,6 +621,9 @@ class ToolCallError(BaseModel):
     """The HTTP status code of the error."""
     extra: dict[str, Any] | None = None
     """Additional information about the error."""
+    input_errors: list[InputErrorDetail] | None = None
+    """For rejected tool inputs, each declared parameter that failed and a reason
+    code from the closed ``InputErrorReason`` set."""
 
     @property
     def is_toolkit_error(self) -> bool:
