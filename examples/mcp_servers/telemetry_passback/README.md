@@ -96,7 +96,10 @@ This is the core value of the SEP — **the consumer doesn't need access to the 
 
 ### Granularity Control
 
-The `--detailed` flag demonstrates the SEP's span filtering. Without it, the server returns only top-level phase spans (auth, list, fetch, format). With `--detailed`, the full tree including HTTP child spans is returned. This lets the server vendor control how much internal detail is exposed.
+The `--detailed` flag demonstrates the SEP's span filtering. Without it, the server returns only top-level phase spans (auth, list, fetch, format). With `--detailed`, the full tree including HTTP child spans is returned. The server decides how much internal detail is exposed, through two `TelemetryPassbackMiddleware` options in `server.py`:
+
+- `allow_detailed=True` lets clients request the nested span tree. It defaults to `False`, in which case a client's `detailed: true` is ignored and it gets the top-level phases only.
+- `extra_allowed_attributes` lists the span attribute keys the server is willing to return, on top of the defaults (`DEFAULT_PASSBACK_ATTRIBUTES`: the request's `mcp.*` / `gen_ai.*` identity and error kinds). Every other attribute, such as URLs, SQL statements, tool error messages and developer messages, is dropped from the passback. This example adds its phase counters and HTTP method/status codes, and keeps URLs, recipients and subjects server-side.
 
 ```bash
 # Top-level phases only (default)
@@ -146,11 +149,11 @@ Open [http://localhost:16686](http://localhost:16686) and search for service **`
 **Server side** (`server.py`):
 1. Validates Bearer tokens via `ArcadeResourceServerAuth` (OAuth 2.1, RFC 9728 discovery)
 2. `TelemetryPassbackMiddleware` intercepts `tools/call` requests
-3. Reads `_meta.traceparent` and `_meta.otel.traces.{request, detailed}`
+3. Reads `_meta.traceparent` and `_meta.otel.traces.{request, detailed}` (`detailed` is honored because the server sets `allow_detailed=True`)
 4. Creates a SERVER span under the client's trace (via traceparent propagation)
 5. Tool function creates logical-phase spans with `gen_ai.*` semantic conventions
 6. httpx auto-instrumentation creates HTTP child spans for Gmail API calls
-7. Middleware serializes to OTLP JSON and attaches to `response._meta.otel.traces`
+7. Middleware keeps only allowlisted span attributes, serializes to OTLP JSON and attaches to `response._meta.otel.traces`
 
 **Client side** (`agent.py`):
 1. MCP SDK handles OAuth 2.1 automatically (discovers auth server on 401, PKCE flow, token caching)

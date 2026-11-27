@@ -7,11 +7,13 @@ from unittest.mock import MagicMock
 import pytest
 from arcade_mcp_server.middleware.base import MiddlewareContext
 from arcade_mcp_server.middleware.telemetry import (
+    DEFAULT_PASSBACK_ATTRIBUTES,
     ContextVarSpanCollector,
     TelemetryPassbackMiddleware,
     _attrs_to_kv,
     _ns,
     _request_spans,
+    filter_descendant_spans,
     filter_top_level_spans,
     spans_to_otlp_json,
     start_collecting,
@@ -201,6 +203,32 @@ class TestFilterTopLevelSpans:
         assert len(result) == 1
         assert result[0].name == "only"
 
+    def test_root_without_parent_still_drops_grandchildren(self):
+        """A root with no parent (no client traceparent) must not disable filtering."""
+        root = _make_span(name="root", span_id=1)
+        child = _make_span(name="child", span_id=2, parent_span_id=1)
+        grandchild = _make_span(name="grandchild", span_id=3, parent_span_id=2)
+        result = filter_top_level_spans([grandchild, child, root])
+        assert {s.name for s in result} == {"root", "child"}
+
+    def test_explicit_root_span_id(self):
+        other = _make_span(name="other", span_id=7)
+        root = _make_span(name="root", span_id=1, parent_span_id=999)
+        child = _make_span(name="child", span_id=2, parent_span_id=1)
+        grandchild = _make_span(name="grandchild", span_id=3, parent_span_id=2)
+        result = filter_top_level_spans([other, grandchild, child, root], root_span_id=1)
+        assert {s.name for s in result} == {"root", "child"}
+
+
+class TestFilterDescendantSpans:
+    def test_keeps_whole_subtree_and_drops_unrelated(self):
+        root = _make_span(name="root", span_id=1, parent_span_id=999)
+        child = _make_span(name="child", span_id=2, parent_span_id=1)
+        grandchild = _make_span(name="grandchild", span_id=3, parent_span_id=2)
+        unrelated = _make_span(name="unrelated", span_id=4, parent_span_id=999)
+        result = filter_descendant_spans([grandchild, child, unrelated, root], root_span_id=1)
+        assert {s.name for s in result} == {"root", "child", "grandchild"}
+
 
 # ===========================================================================
 # _attrs_to_kv
@@ -295,6 +323,36 @@ class TestSpansToOtlpJson:
         result = spans_to_otlp_json([span], "svc")
         otlp_span = result["resourceSpans"][0]["scopeSpans"][0]["spans"][0]
         assert otlp_span["status"]["code"] == 2
+
+    def test_allowed_attributes_filter_span_and_event_attributes(self):
+        event = MagicMock()
+        event.timestamp = 1500
+        event.name = "exception"
+        event.attributes = {"exception.type": "ValueError", "exception.message": "secret"}
+        span = _make_span(
+            attributes={"mcp.tool": "t", "db.statement": "SELECT secret"},
+            events=[event],
+        )
+        result = spans_to_otlp_json([span], "svc", allowed_attributes={"mcp.tool", "exception.type"})
+        otlp_span = result["resourceSpans"][0]["scopeSpans"][0]["spans"][0]
+        assert otlp_span["attributes"] == [{"key": "mcp.tool", "value": {"stringValue": "t"}}]
+        assert otlp_span["events"][0]["name"] == "exception"
+        assert otlp_span["events"][0]["attributes"] == [
+            {"key": "exception.type", "value": {"stringValue": "ValueError"}}
+        ]
+
+    def test_pinned_attributes_override_recorded_values(self):
+        span = _make_span(span_id=5, attributes={"gen_ai.tool.call.result": "overwritten"})
+        result = spans_to_otlp_json(
+            [span],
+            "svc",
+            allowed_attributes=frozenset(),
+            pinned_attributes={5: {"gen_ai.tool.call.result": "original"}},
+        )
+        otlp_span = result["resourceSpans"][0]["scopeSpans"][0]["spans"][0]
+        assert otlp_span["attributes"] == [
+            {"key": "gen_ai.tool.call.result", "value": {"stringValue": "original"}}
+        ]
 
 
 # ===========================================================================
@@ -448,7 +506,9 @@ class TestTelemetryPassbackMiddleware:
 
     @pytest.mark.asyncio
     async def test_detailed_true_returns_all_spans(self, tracer_provider):
-        mw = TelemetryPassbackMiddleware(service_name="svc", tracer_provider=tracer_provider)
+        mw = TelemetryPassbackMiddleware(
+            service_name="svc", tracer_provider=tracer_provider, allow_detailed=True
+        )
 
         context = MiddlewareContext(
             message={"method": "tools/call", "params": {"name": "t", "arguments": {}}},
@@ -465,6 +525,81 @@ class TestTelemetryPassbackMiddleware:
         otel = result.result.meta["otel"]["traces"]
         assert otel["truncated"] is False
         assert otel["droppedSpanCount"] == 0
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("allow_detailed", [False, True])
+    async def test_detailed_requires_server_opt_in(self, tracer_provider, allow_detailed):
+        mw = TelemetryPassbackMiddleware(
+            service_name="svc", tracer_provider=tracer_provider, allow_detailed=allow_detailed
+        )
+        tracer = tracer_provider.get_tracer("tool")
+        context = MiddlewareContext(
+            message={"method": "tools/call", "params": {"name": "t", "arguments": {}}},
+            mcp_context=_make_otel_context(request=True, detailed=True),
+            method="tools/call",
+        )
+
+        async def handler(ctx):
+            with tracer.start_as_current_span("phase"), tracer.start_as_current_span("leaf"):
+                pass
+            return _make_tool_response()
+
+        result = await mw.on_call_tool(context, handler)
+        traces = result.result.meta["otel"]["traces"]
+        names = {s["name"] for s in traces["resourceSpans"][0]["scopeSpans"][0]["spans"]}
+        if allow_detailed:
+            assert names == {"tools/call t", "phase", "leaf"}
+            assert traces["truncated"] is False
+        else:
+            assert names == {"tools/call t", "phase"}
+            assert traces["truncated"] is True
+            assert traces["droppedSpanCount"] == 1
+
+    @pytest.mark.asyncio
+    async def test_unlisted_attributes_dropped_and_extra_allowed_kept(self, tracer_provider):
+        mw = TelemetryPassbackMiddleware(
+            service_name="svc",
+            tracer_provider=tracer_provider,
+            extra_allowed_attributes=["app.phase"],
+        )
+        tracer = tracer_provider.get_tracer("tool")
+        context = MiddlewareContext(
+            message={"method": "tools/call", "params": {"name": "t", "arguments": {"x": 1}}},
+            mcp_context=_make_otel_context(request=True),
+            method="tools/call",
+        )
+
+        async def handler(ctx):
+            with tracer.start_as_current_span("phase") as span:
+                span.set_attribute("app.phase", "fetch")
+                span.set_attribute("url.full", "https://x.example/?api_key=secret")
+            return _make_tool_response(text="done")
+
+        result = await mw.on_call_tool(context, handler)
+        spans = result.result.meta["otel"]["traces"]["resourceSpans"][0]["scopeSpans"][0]["spans"]
+        by_name = {s["name"]: {a["key"] for a in s["attributes"]} for s in spans}
+        assert by_name["phase"] == {"app.phase"}
+        assert by_name["tools/call t"] == {
+            "mcp.method",
+            "mcp.tool",
+            "gen_ai.system",
+            "gen_ai.operation.name",
+            "gen_ai.tool.name",
+            "gen_ai.tool.call.arguments",
+            "gen_ai.input.messages",
+            "gen_ai.tool.call.result",
+            "gen_ai.output.messages",
+        }
+
+    def test_extra_allowed_attributes_rejects_bare_string(self, tracer_provider):
+        with pytest.raises(TypeError, match="not a string"):
+            TelemetryPassbackMiddleware(
+                service_name="svc", tracer_provider=tracer_provider, extra_allowed_attributes="a.b"
+            )
+
+    def test_default_allowlist_has_no_error_text(self):
+        assert "tool_error_message" not in DEFAULT_PASSBACK_ATTRIBUTES
+        assert "tool_error_developer_message" not in DEFAULT_PASSBACK_ATTRIBUTES
 
     # --- traceparent propagation ---
 

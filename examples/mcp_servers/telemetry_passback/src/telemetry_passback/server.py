@@ -44,6 +44,25 @@ provider = TracerProvider()
 telemetry_mw = TelemetryPassbackMiddleware(
     service_name="mcp-gmail-server",
     tracer_provider=provider,
+    # Span attributes are returned to the client only when their key is on an
+    # allowlist. The defaults cover the request's identity (mcp.*, gen_ai.system,
+    # gen_ai.operation.name, gen_ai.tool.name) and error kinds. These are the
+    # non-sensitive counters and HTTP metadata this example also chooses to share.
+    # URLs, recipients and subjects stay server-side.
+    extra_allowed_attributes={
+        "auth.method",
+        "gmail.max_results",
+        "gmail.message_count",
+        "gmail.fetch_count",
+        "email.count",
+        "http.method",
+        "http.request.method",
+        "http.status_code",
+        "http.response.status_code",
+    },
+    # Let clients that send `detailed: true` see nested spans (the HTTP calls
+    # under each phase). Without this, clients get only the top-level phases.
+    allow_detailed=True,
 )
 trace.set_tracer_provider(provider)
 
