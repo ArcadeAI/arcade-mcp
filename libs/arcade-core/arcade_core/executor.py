@@ -126,7 +126,7 @@ class ToolExecutor:
                 message="Failed to serialize tool output",
                 developer_message="ToolResult content must be MCP content blocks: "
                 f"{[error['loc'] for error in e.errors()]}",
-            ) from e
+            ) from None  # the chained error would repeat the rejected content
         result = {
             "content": [
                 block.model_dump(mode="json", by_alias=True, exclude_none=True)
@@ -166,10 +166,7 @@ class ToolExecutor:
                 f"{'.'.join(str(loc) for loc in err['loc']) or '<root>'}: {err['msg']}"
                 for err in e.errors()
             )
-            developer_summary = "; ".join(
-                f"{'.'.join(str(loc) for loc in err['loc']) or '<root>'}[{err['type']}]"
-                for err in e.errors()
-            )
+            developer_summary = _error_locations(e, input_model)
             raise ToolInputError(
                 message=f"Invalid input: {summary}",
                 developer_message=f"Pydantic validation failed: {developer_summary}",
@@ -205,10 +202,63 @@ class ToolExecutor:
             output = output_model(**{"result": results})
 
         except ValidationError as e:
+            # Like the input side: str(e) and the chained error repeat the
+            # rejected value, so report only where validation failed and why.
             raise ToolOutputError(
                 message="Failed to serialize tool output",
-                developer_message=f"Validation error occurred while serializing tool output: {e!s}. "
+                developer_message="Validation error occurred while serializing tool output: "
+                f"{_error_locations(e, output_model)}. "
                 f"Please ensure the tool's output matches the expected schema.",
-            ) from e
+            ) from None
 
         return output
+
+
+def _error_locations(error: ValidationError, model: type[BaseModel]) -> str:
+    """Summarize a validation error as ``location[type]`` entries, without values.
+
+    Pydantic's message, ``input`` and ``ctx`` can repeat the rejected value, so
+    they are left out. The location can hold data too: a dict key (or int key)
+    from the validated value lands in it. So a location part is shown only when
+    it is a field name declared in ``model``'s schema, which is already public in
+    the tool definition. Anything else, list indexes included, is shown as ``*``.
+    Repeated entries are shown once.
+    """
+    declared = _declared_names(model)
+    entries = (
+        (
+            ".".join(p if isinstance(p, str) and p in declared else "*" for p in err["loc"])
+            or "<root>"
+        )
+        + f"[{err['type']}]"
+        for err in error.errors()
+    )
+    return "; ".join(dict.fromkeys(entries))
+
+
+def _declared_names(model: type[BaseModel]) -> set[str]:
+    """Collect every field name and string alias declared anywhere in ``model``."""
+    names: set[str] = set()
+    seen: set[int] = set()
+    nodes: list[Any] = [getattr(model, "__pydantic_core_schema__", None)]
+    while nodes:
+        node = nodes.pop()
+        if isinstance(node, (dict, list, tuple)):
+            if id(node) in seen:
+                continue
+            seen.add(id(node))
+        if isinstance(node, dict):
+            fields = node.get("fields")
+            if node.get("type") in ("model-fields", "typed-dict") and isinstance(fields, dict):
+                names.update(fields)
+                names.update(
+                    f["validation_alias"]
+                    for f in fields.values()
+                    if isinstance(f, dict) and isinstance(f.get("validation_alias"), str)
+                )
+            elif node.get("type") == "dataclass-args" and isinstance(fields, list):
+                names.update(f["name"] for f in fields if isinstance(f, dict) and "name" in f)
+            nodes.extend(node.values())
+        elif isinstance(node, (list, tuple)):
+            nodes.extend(node)
+    return names

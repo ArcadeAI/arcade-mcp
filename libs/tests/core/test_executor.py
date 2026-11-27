@@ -440,3 +440,97 @@ async def test_input_validation_error_does_not_leak_input_values():
     assert output.error.stacktrace is None
     assert secret not in output.model_dump_json()
     assert "12345" not in output.model_dump_json()
+
+
+# ---- Rejected outputs are not echoed back ----
+
+SECRET_SSN = "123-45-6789"
+
+
+class CustomerRecord(TypedDict):
+    name: str
+    ssn: int
+
+
+@tool
+def customer_passthrough_tool() -> Annotated[CustomerRecord, "An upstream customer record"]:
+    """Pass an upstream record through; its ssn is not the declared int."""
+    return {"name": "Alice", "ssn": SECRET_SSN}  # type: ignore[typeddict-item]
+
+
+@tool
+def scores_by_name_tool() -> Annotated[dict[str, int], "Scores keyed by person"]:
+    """Pass through a mapping whose keys are user data and whose values are not ints."""
+    return {"jane_doe_ssn_987654321": "high", "john_roe_ssn_123123123": "low"}  # type: ignore[dict-item]
+
+
+@tool
+def scores_input_tool(
+    scores: Annotated[dict[str, int], "Scores keyed by person"],
+) -> Annotated[str, "output"]:
+    """Accept a mapping whose keys come from the caller."""
+    return "ok"
+
+
+for leak_tool in (customer_passthrough_tool, scores_by_name_tool, scores_input_tool):
+    catalog.add_tool(leak_tool, "LeakToolkit")
+
+
+async def _run_tool(func, **inputs) -> ToolCallOutput:
+    definition = catalog.find_tool_by_func(func)
+    full_tool = catalog.get_tool(definition.get_fully_qualified_name())
+    return await ToolExecutor.run(
+        func=func,
+        definition=definition,
+        input_model=full_tool.input_model,
+        output_model=full_tool.output_model,
+        context=ToolContext(),
+        **inputs,
+    )
+
+
+def _assert_absent(output: ToolCallOutput, *values: str) -> None:
+    assert output.error is not None
+    for value in values:
+        assert value not in output.error.message
+        assert value not in (output.error.developer_message or "")
+        assert value not in (output.error.stacktrace or "")
+        assert value not in output.model_dump_json()
+
+
+@pytest.mark.asyncio
+async def test_output_validation_error_does_not_leak_output_values():
+    """Pydantic's error text repeats the rejected value. A tool output that fails
+    its declared schema must not put that value in message, developer_message or
+    the stacktrace, but must still name the failing field and error type."""
+    output = await _run_tool(customer_passthrough_tool)
+
+    assert output.error is not None
+    assert output.error.kind == ErrorKind.TOOL_RUNTIME_BAD_OUTPUT_VALUE
+    _assert_absent(output, SECRET_SSN)
+    assert "result.ssn[int_parsing]" in output.error.developer_message
+    # The rejected ValidationError is not chained, so there is no traceback to leak it.
+    assert output.error.stacktrace is None
+
+
+@pytest.mark.asyncio
+async def test_output_validation_error_does_not_leak_dict_keys():
+    """A dict key from the output is data too. Only names declared in the output
+    schema are reported; other location parts are shown as ``*``, once."""
+    output = await _run_tool(scores_by_name_tool)
+
+    _assert_absent(output, "jane_doe_ssn_987654321", "john_roe_ssn_123123123", "high", "low")
+    assert output.error.developer_message.count("result.*[int_parsing]") == 1
+
+
+@pytest.mark.asyncio
+async def test_input_validation_error_developer_message_does_not_leak_dict_keys():
+    """The input side shares the rule: caller-supplied keys stay out of
+    developer_message, which is logged and recorded on spans."""
+    output = await _run_tool(scores_input_tool, scores={"jane_doe_ssn_987654321": "high"})
+
+    assert output.error is not None
+    assert output.error.kind == ErrorKind.TOOL_RUNTIME_BAD_INPUT_VALUE
+    assert "scores.*[int_parsing]" in output.error.developer_message
+    assert "jane_doe_ssn_987654321" not in output.error.developer_message
+    assert "high" not in output.error.developer_message
