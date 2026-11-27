@@ -4420,3 +4420,49 @@ def test_server_reports_ephemeral_or_weak_elicitation_key_at_startup(
     MCPServer(catalog=tool_catalog, settings=mcp_settings)
     expected = "only valid on this process" if not secret else "at least 32 bytes"
     assert expected in caplog.text
+
+
+class TestDisabledEntriesWarnings:
+    """Startup warnings for ARCADE_DISABLED_TOOLS / ARCADE_DISABLED_TOOLKITS entries."""
+
+    @pytest.mark.asyncio
+    async def test_warns_about_entries_that_match_nothing_on_startup(
+        self, mcp_settings, monkeypatch, caplog
+    ):
+        import logging
+
+        from arcade_core.catalog import ToolCatalog
+
+        monkeypatch.setenv("ARCADE_DISABLED_TOOLS", "Admin.DeleteAll, Admin.DeleteAlll")
+        monkeypatch.setenv("ARCADE_DISABLED_TOOLKITS", "Billing")
+
+        @tool
+        def delete_all() -> Annotated[str, "Result"]:
+            """Delete every record."""
+            return "deleted"
+
+        @tool
+        def export_v2() -> Annotated[str, "Result"]:
+            """Export all data."""
+            return "exported"
+
+        catalog = ToolCatalog()
+        catalog.add_tool(delete_all, "Admin")
+        catalog.add_tool(export_v2, "Admin")
+
+        with caplog.at_level(logging.WARNING):
+            server = MCPServer(
+                catalog=catalog, name="Test Server", version="1.0.0", settings=mcp_settings
+            )
+            await server.start()
+            try:
+                tool_names = [t.name for t in await server._tool_manager.list_tools()]
+            finally:
+                await server.stop()
+
+        warnings = [rec.getMessage() for rec in caplog.records if rec.levelno == logging.WARNING]
+        disabled_warnings = [w for w in warnings if "ARCADE_DISABLED_" in w]
+        assert tool_names == ["Admin_ExportV2"]
+        assert len(disabled_warnings) == 2, disabled_warnings
+        assert any("'admin.deletealll'" in w for w in disabled_warnings)
+        assert any("'billing'" in w for w in disabled_warnings)

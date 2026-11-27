@@ -533,8 +533,8 @@ def test_a_declaration_the_module_never_binds_is_skipped_not_fatal(widgets_packa
 def test_a_disabled_toolkit_registers_no_resources(widgets_package, monkeypatch):
     """Hiding a toolkit's tools must not leave its resources on the worker."""
     toolkit = Toolkit.from_directory(widgets_package)
+    monkeypatch.setenv("ARCADE_DISABLED_TOOLKITS", "widgets")
     catalog = ToolCatalog()
-    monkeypatch.setattr(catalog, "_disabled_toolkits", {"widgets"})
 
     catalog.add_toolkit(toolkit)
 
