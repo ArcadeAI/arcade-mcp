@@ -269,4 +269,3 @@ async def test_operator_opt_in_to_developer_message(make_server):
 
     root = _spans(result)["tools/call Billing_ChargeCustomer"]
     assert DEV_MESSAGE_SECRET in _attr(root, "tool_error_developer_message")
-
