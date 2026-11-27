@@ -106,6 +106,7 @@ class MCPApp:
         description: str | None = None,
         website_url: str | None = None,
         allowed_origins: list[str] | None = None,
+        allowed_hosts: list[str] | None = None,
         **kwargs: Any,
     ):
         """
@@ -122,6 +123,13 @@ class MCPApp:
             port: Port for transport
             reload: Enable auto-reload for development
             auth: Resource Server validator for front-door authentication
+            allowed_origins: Origin headers the HTTP transport accepts. Overrides
+                MCP_TRANSPORT_ALLOWED_ORIGINS. ["*"] accepts any Origin.
+            allowed_hosts: Host headers the HTTP transport accepts, in addition to
+                localhost, 127.0.0.1 and [::1] (for a tunnel or reverse proxy). Loopback
+                binds only: on a non-loopback bind the Host header is not checked. The host
+                of the resource server's canonical URL is accepted automatically. Overrides
+                MCP_TRANSPORT_ALLOWED_HOSTS. ["*"] turns the Host check off.
             **kwargs: Additional server configuration
         """
         self._name = self._validate_name(name)
@@ -134,6 +142,7 @@ class MCPApp:
         self.description = description
         self.website_url = website_url
         self.allowed_origins = allowed_origins
+        self.allowed_hosts = allowed_hosts
 
         # ``server_kwargs`` is what we forward to ``create_arcade_mcp`` /
         # ``run_stdio_server`` (and thence to ``MCPServer``). The named branding
@@ -147,6 +156,7 @@ class MCPApp:
             ("description", description),
             ("website_url", website_url),
             ("allowed_origins", allowed_origins),
+            ("allowed_hosts", allowed_hosts),
         ):
             if _value is not None:
                 self.server_kwargs.setdefault(_field, _value)
@@ -732,6 +742,7 @@ class MCPApp:
             resource_server_validator=self.resource_server_validator,
             initial_resources=self._initial_resources,
             tool_meta_extensions=self._tool_meta_extensions,
+            bind_host=host,
             **self.server_kwargs,
         )
 

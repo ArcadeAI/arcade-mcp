@@ -301,6 +301,7 @@ class MCPServer:
         description: str | None = None,
         website_url: str | None = None,
         allowed_origins: list[str] | None = None,
+        allowed_hosts: list[str] | None = None,
     ):
         """
         Initialize MCP server.
@@ -317,6 +318,10 @@ class MCPServer:
             auth_disabled: Disable authentication
             arcade_api_key: Arcade API key (overrides settings)
             arcade_api_url: Arcade API URL (overrides settings)
+            allowed_origins: Origin headers the HTTP transport accepts (overrides
+                MCP_TRANSPORT_ALLOWED_ORIGINS)
+            allowed_hosts: Extra Host headers the HTTP transport accepts on a loopback
+                bind (overrides MCP_TRANSPORT_ALLOWED_HOSTS)
         """
         self._started = False
         self._lock = asyncio.Lock()
@@ -341,7 +346,16 @@ class MCPServer:
         self.icons = icons
         self.description = description
         self.website_url = website_url
-        self.allowed_origins = allowed_origins
+        # An explicit argument wins; otherwise MCP_TRANSPORT_ALLOWED_ORIGINS /
+        # MCP_TRANSPORT_ALLOWED_HOSTS apply.
+        self.allowed_origins = (
+            allowed_origins
+            if allowed_origins is not None
+            else self.settings.transport.allowed_origins
+        )
+        self.allowed_hosts = (
+            allowed_hosts if allowed_hosts is not None else self.settings.transport.allowed_hosts
+        )
 
         self.instructions = (
             instructions or self.settings.server.instructions or self._default_instructions()

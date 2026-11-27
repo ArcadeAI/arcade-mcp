@@ -187,6 +187,7 @@ class TestMCPApp:
             description="Server description",
             website_url="https://example.com",
             allowed_origins=["https://foo.example.com"],
+            allowed_hosts=["abc.ngrok.app"],
         )
 
         # Still addressable as attributes on the app (public API).
@@ -200,6 +201,8 @@ class TestMCPApp:
         assert app.server_kwargs["description"] == "Server description"
         assert app.server_kwargs["website_url"] == "https://example.com"
         assert app.server_kwargs["allowed_origins"] == ["https://foo.example.com"]
+        assert app.allowed_hosts == ["abc.ngrok.app"]
+        assert app.server_kwargs["allowed_hosts"] == ["abc.ngrok.app"]
 
     def test_mcp_app_branding_fields_omitted_when_none(self):
         """When branding fields are not supplied, ``server_kwargs`` must not
@@ -211,6 +214,7 @@ class TestMCPApp:
         assert "description" not in app.server_kwargs
         assert "website_url" not in app.server_kwargs
         assert "allowed_origins" not in app.server_kwargs
+        assert "allowed_hosts" not in app.server_kwargs
 
     def test_add_tool(self, mcp_app: MCPApp):
         """Test adding a tool to the MCP app."""
@@ -547,6 +551,7 @@ class TestMCPApp:
                 resource_server_validator=mcp_app.resource_server_validator,
                 initial_resources=mcp_app._initial_resources,
                 tool_meta_extensions=mcp_app._tool_meta_extensions,
+                bind_host="127.0.0.1",
             )
             mock_serve.assert_called_once_with(
                 app=mock_fastapi_app,
@@ -573,6 +578,7 @@ class TestMCPApp:
                 resource_server_validator=mcp_app.resource_server_validator,
                 initial_resources=mcp_app._initial_resources,
                 tool_meta_extensions=mcp_app._tool_meta_extensions,
+                bind_host="192.168.1.1",
             )
             mock_serve.assert_called_once_with(
                 app=mock_fastapi_app,

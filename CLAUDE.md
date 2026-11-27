@@ -148,7 +148,7 @@ Context uses a `ContextVar` (`_current_model_context`) for per-request isolation
 |--------------|-----------|------------|
 | `ServerSettings` | `MCP_SERVER_` | `name`, `version`, `title`, `instructions` |
 | `ArcadeSettings` | `ARCADE_` | `api_key`, `api_url`, `server_secret` (alias: `ARCADE_WORKER_SECRET`), `environment`, `auth_disabled` |
-| `TransportSettings` | `MCP_TRANSPORT_` | `session_timeout_seconds`, `max_sessions`, `cleanup_interval_seconds` |
+| `TransportSettings` | `MCP_TRANSPORT_` | `session_timeout_seconds`, `max_sessions`, `cleanup_interval_seconds`, `allowed_origins`, `allowed_hosts` (extra Host headers on a loopback bind, e.g. a tunnel; `*` turns the check off) |
 | `MiddlewareSettings` | `MCP_MIDDLEWARE_` | `enable_logging`, `log_level`, `enable_error_handling`, `mask_error_details` |
 | `NotificationSettings` | `MCP_NOTIFICATION_` | `rate_limit_per_minute`, `default_debounce_ms` |
 | `ResourceServerSettings` | `MCP_RESOURCE_SERVER_` | `canonical_url`, `authorization_servers` (JSON array) |

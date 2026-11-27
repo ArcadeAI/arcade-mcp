@@ -12,6 +12,7 @@ from collections.abc import AsyncGenerator, AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from types import FrameType
 from typing import Any
+from urllib.parse import urlparse
 
 import uvicorn
 from arcade_core.catalog import ToolCatalog
@@ -24,7 +25,7 @@ from fastapi import FastAPI
 from loguru import logger
 from starlette.requests import Request
 from starlette.responses import Response
-from starlette.types import Receive, Scope, Send
+from starlette.types import ASGIApp, Receive, Scope, Send
 
 from arcade_mcp_server.fastapi.auth_routes import create_auth_router
 from arcade_mcp_server.fastapi.middleware import AddTrailingSlashToPathMiddleware
@@ -75,6 +76,24 @@ class CustomUvicornServer(uvicorn.Server):
             os._exit(1)
 
 
+class _WorkerHostCheckMiddleware:
+    """Apply the session manager's Host check to /worker/* (used when worker auth is off)."""
+
+    def __init__(self, app: ASGIApp, get_session_manager: Callable[[], HTTPSessionManager | None]):
+        self._app = app
+        self._get_session_manager = get_session_manager
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        path = scope.get("path", "") if scope["type"] == "http" else ""
+        if path == "/worker" or path.startswith("/worker/"):
+            session_manager = self._get_session_manager()
+            if session_manager is not None and await session_manager.reject_disallowed_host(
+                scope, receive, send
+            ):
+                return
+        await self._app(scope, receive, send)
+
+
 @asynccontextmanager
 async def create_lifespan(
     catalog: ToolCatalog,
@@ -82,10 +101,15 @@ async def create_lifespan(
     initial_resources: list[tuple[Resource | ResourceTemplate, Callable[..., Any] | None]]
     | None = None,
     tool_meta_extensions: dict[str, dict[str, Any]] | None = None,
+    bind_host: str | None = None,
+    trusted_hosts: list[str] | None = None,
     **kwargs: Any,
 ) -> AsyncGenerator[dict[str, Any], None]:
     """
     Create lifespan context for the MCP server components.
+
+    ``bind_host`` and ``trusted_hosts`` go to the ``HTTPSessionManager`` (Host header
+    validation on a loopback bind); everything else in ``kwargs`` goes to ``MCPServer``.
 
     Yields a dict with `mcp_server`, and `session_manager`.
     """
@@ -116,6 +140,8 @@ async def create_lifespan(
     session_manager = HTTPSessionManager(
         server=mcp_server,
         json_response=True,
+        bind_host=bind_host,
+        trusted_hosts=trusted_hosts,
     )
 
     await mcp_server.start()
@@ -137,6 +163,7 @@ def create_arcade_mcp(
     initial_resources: list[tuple[Resource | ResourceTemplate, Callable[..., Any] | None]]
     | None = None,
     tool_meta_extensions: dict[str, dict[str, Any]] | None = None,
+    bind_host: str | None = None,
     **kwargs: Any,
 ) -> FastAPI:
     """
@@ -151,11 +178,24 @@ def create_arcade_mcp(
         debug: Enable debug mode
         otel_enable: Enable OpenTelemetry
         resource_server_validator: Resource Server validator for front-door authentication
+        bind_host: The address the server will be bound to. When it is a loopback address,
+            /mcp rejects requests whose Host header is not a loopback name, the host of the
+            resource server's canonical URL, or listed in allowed_hosts
+            (MCP_TRANSPORT_ALLOWED_HOSTS); so does /worker/* when worker auth is disabled.
+            A non-loopback bind is not checked. When None, the check applies to each
+            connection that arrives on a loopback address.
         **kwargs: Additional configuration options
     """
     if mcp_settings is None:
         mcp_settings = MCPSettings.from_env()
     secret = mcp_settings.arcade.server_secret
+
+    # A server behind a tunnel or proxy that declared its public URL as the canonical URL
+    # receives that hostname in Host, so it is accepted without further configuration.
+    trusted_hosts: list[str] = []
+    canonical_url = getattr(resource_server_validator, "canonical_url", None)
+    if isinstance(canonical_url, str) and (canonical_host := urlparse(canonical_url).hostname):
+        trusted_hosts.append(canonical_host)
 
     otel_handler = OTELHandler(
         enable=otel_enable,
@@ -173,6 +213,8 @@ def create_arcade_mcp(
                 mcp_settings,
                 initial_resources=initial_resources,
                 tool_meta_extensions=tool_meta_extensions,
+                bind_host=bind_host,
+                trusted_hosts=trusted_hosts,
                 **kwargs,
             ) as components:
                 app.state.mcp_server = components["mcp_server"]
@@ -244,6 +286,14 @@ def create_arcade_mcp(
         )
         worker.catalog = catalog
         logger.info("Worker routes enabled at /worker/* (ARCADE_WORKER_SECRET is set)")
+
+        if mcp_settings.arcade.auth_disabled:
+            # Without JWT auth nothing else stops a request that reached a loopback-bound
+            # server under a foreign hostname, so /worker/* gets the same Host check as /mcp.
+            app.add_middleware(
+                _WorkerHostCheckMiddleware,
+                get_session_manager=lambda: getattr(app.state, "session_manager", None),
+            )
 
     class _MCPASGIProxy:
         def __init__(self, parent_app: FastAPI):
@@ -355,6 +405,7 @@ def create_arcade_mcp_factory() -> FastAPI:
     server_version = os.environ.get("ARCADE_MCP_SERVER_VERSION")
     server_title = os.environ.get("ARCADE_MCP_SERVER_TITLE")
     server_instructions = os.environ.get("ARCADE_MCP_SERVER_INSTRUCTIONS")
+    bind_host = os.environ.get("ARCADE_MCP_BIND_HOST")
 
     # Rediscover tools since there have been changes
     try:
@@ -397,6 +448,7 @@ def create_arcade_mcp_factory() -> FastAPI:
         mcp_settings=mcp_settings,
         debug=debug,
         otel_enable=otel_enable,
+        bind_host=bind_host,
     )
 
 
@@ -469,6 +521,7 @@ def run_arcade_mcp(
         os.environ["ARCADE_MCP_TOOL_PACKAGE"] = tool_package
     os.environ["ARCADE_MCP_DISCOVER_INSTALLED"] = str(discover_installed)
     os.environ["ARCADE_MCP_SHOW_PACKAGES"] = str(show_packages)
+    os.environ["ARCADE_MCP_BIND_HOST"] = host
 
     # Handle server name/version from mcp_settings or kwargs
     server_name = kwargs.get("name")
