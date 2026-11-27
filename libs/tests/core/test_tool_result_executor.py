@@ -143,3 +143,26 @@ async def test_optional_tool_result_unwraps_to_its_value():
     output = await _run(maybe_file)
     assert output.value == {"name": "cat.png", "size": 5}
     assert output.external["content"][0] == IMAGE_BLOCK
+
+
+@tool
+def file_with_bad_text_block() -> Annotated[ToolResult[FileDetails], "The file"]:
+    """Return a text block whose _meta is not an object."""
+    return ToolResult(
+        FileDetails(name="cat.png", size=5),
+        content=[{"type": "text", "text": "SECRET_BLOCK_TEXT", "_meta": "SECRET_META"}],
+    )
+
+
+catalog.add_tool(file_with_bad_text_block, "Files")
+
+
+@pytest.mark.asyncio
+async def test_rejected_content_is_not_echoed_in_the_error():
+    output = await _run(file_with_bad_text_block)
+
+    assert output.error is not None
+    assert "TOOL_RUNTIME_BAD_OUTPUT_VALUE" in output.error.message
+    assert output.error.stacktrace is None
+    for value in ("SECRET_BLOCK_TEXT", "SECRET_META"):
+        assert value not in output.model_dump_json()

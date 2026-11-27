@@ -126,7 +126,7 @@ class ToolExecutor:
                 message="Failed to serialize tool output",
                 developer_message="ToolResult content must be MCP content blocks: "
                 f"{[error['loc'] for error in e.errors()]}",
-            ) from e
+            ) from None  # the chained error would repeat the rejected content
         result = {
             "content": [
                 block.model_dump(mode="json", by_alias=True, exclude_none=True)
@@ -205,10 +205,98 @@ class ToolExecutor:
             output = output_model(**{"result": results})
 
         except ValidationError as e:
+            # str(e) and the chained error repeat the rejected value, so report
+            # only where validation failed and why.
             raise ToolOutputError(
                 message="Failed to serialize tool output",
-                developer_message=f"Validation error occurred while serializing tool output: {e!s}. "
+                developer_message="Validation error occurred while serializing tool output: "
+                f"{_error_locations(e, output_model)}. "
                 f"Please ensure the tool's output matches the expected schema.",
-            ) from e
+            ) from None
+
+        except ToolRuntimeError:
+            # A validator raising a tool error carries the author's guidance,
+            # the same as when it is raised from the tool body.
+            raise
+
+        except Exception as e:
+            # A validator that raises anything other than ValueError or
+            # AssertionError escapes Pydantic unwrapped. Its message (a KeyError's
+            # is the key) and traceback may hold the output value, so surface
+            # only its type, as the input side does.
+            raise ToolOutputError(
+                message="Failed to serialize tool output",
+                developer_message=f"Output validator raised {type(e).__name__}",
+            ) from None
 
         return output
+
+
+def _error_locations(error: ValidationError, model: type[BaseModel]) -> str:
+    """Summarize a validation error as ``location[type]`` entries, without values.
+
+    Pydantic's message, ``input`` and ``ctx`` can repeat the rejected value, so
+    they are left out. The location can hold data too: a dict key (or int key)
+    from the validated value lands in it. So a location part is shown only when
+    it is a field name or alias declared in ``model``'s schema, which is already
+    public in the tool definition. Anything else, list indexes included, is
+    shown as ``*``. Repeated entries are shown once.
+
+    This runs while the ValidationError is being handled, so an exception here
+    would carry it (and the rejected value) as its context. Any failure gives a
+    fixed placeholder instead.
+    """
+    try:
+        declared = _declared_names(model)
+        entries = [
+            (
+                ".".join(p if isinstance(p, str) and p in declared else "*" for p in err["loc"])
+                or "<root>"
+            )
+            + f"[{err['type']}]"
+            for err in error.errors()
+        ]
+        return "; ".join(dict.fromkeys(entries))
+    except Exception:
+        return "<unavailable>"
+
+
+def _declared_names(model: type[BaseModel]) -> set[str]:
+    """Collect every field name and string alias declared anywhere in ``model``."""
+    names: set[str] = set()
+    seen: set[int] = set()
+    nodes: list[Any] = [getattr(model, "__pydantic_core_schema__", None)]
+    while nodes:
+        node = nodes.pop()
+        if isinstance(node, (dict, list, tuple)):
+            if id(node) in seen:
+                continue
+            seen.add(id(node))
+        if isinstance(node, dict):
+            kind, fields = node.get("type"), node.get("fields")
+            if not isinstance(kind, str):
+                kind = None
+            if kind in ("model-fields", "typed-dict") and isinstance(fields, dict):
+                field_items = list(fields.items())
+            elif kind == "dataclass-args" and isinstance(fields, list):
+                field_items = [(f.get("name"), f) for f in fields if isinstance(f, dict)]
+            else:
+                field_items = []
+            for name, field in field_items:
+                names.update(_strings(name))
+                if isinstance(field, dict):
+                    # A str alias, or AliasChoices/AliasPath as lists of str and int.
+                    names.update(_strings(field.get("validation_alias")))
+            nodes.extend(node.values())
+        elif isinstance(node, (list, tuple)):
+            nodes.extend(node)
+    return names
+
+
+def _strings(value: Any) -> list[str]:
+    """The str in ``value``, or in a (nested) list of them; ints are list indexes."""
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, list):
+        return [s for item in value for s in _strings(item)]
+    return []
