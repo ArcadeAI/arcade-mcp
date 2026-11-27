@@ -550,6 +550,8 @@ class TestGoogleErrorAdapter:
             (429, RATE_LIMITED_MESSAGE, ErrorKind.UPSTREAM_RUNTIME_RATE_LIMIT, True),
             (500, SERVER_ERROR_MESSAGE, ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR, True),
             (503, SERVER_ERROR_MESSAGE, ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR, True),
+            # A batch response can fail to parse even though its status was 200.
+            (200, UNEXPECTED_RESPONSE_MESSAGE, ErrorKind.UPSTREAM_RUNTIME_UNMAPPED, False),
         ],
     )
     def test_map_http_error_uses_fixed_message_per_status(
