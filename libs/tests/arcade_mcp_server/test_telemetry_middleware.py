@@ -8,6 +8,7 @@ import pytest
 from arcade_mcp_server.middleware.base import MiddlewareContext
 from arcade_mcp_server.middleware.telemetry import (
     DEFAULT_PASSBACK_ATTRIBUTES,
+    DEFAULT_PASSBACK_EVENT_NAMES,
     ContextVarSpanCollector,
     TelemetryPassbackMiddleware,
     _attrs_to_kv,
@@ -333,13 +334,29 @@ class TestSpansToOtlpJson:
             attributes={"mcp.tool": "t", "db.statement": "SELECT secret"},
             events=[event],
         )
-        result = spans_to_otlp_json([span], "svc", allowed_attributes={"mcp.tool", "exception.type"})
+        result = spans_to_otlp_json(
+            [span], "svc", allowed_attributes={"mcp.tool", "exception.type"}
+        )
         otlp_span = result["resourceSpans"][0]["scopeSpans"][0]["spans"][0]
         assert otlp_span["attributes"] == [{"key": "mcp.tool", "value": {"stringValue": "t"}}]
         assert otlp_span["events"][0]["name"] == "exception"
         assert otlp_span["events"][0]["attributes"] == [
             {"key": "exception.type", "value": {"stringValue": "ValueError"}}
         ]
+
+    def test_allowed_event_names_drop_other_events(self):
+        kept = MagicMock()
+        kept.timestamp = 1
+        kept.name = "exception"
+        kept.attributes = None
+        dropped = MagicMock()
+        dropped.timestamp = 2
+        dropped.name = "retry with token secret"
+        dropped.attributes = None
+        span = _make_span(events=[kept, dropped])
+        result = spans_to_otlp_json([span], "svc", allowed_event_names={"exception"})
+        otlp_span = result["resourceSpans"][0]["scopeSpans"][0]["spans"][0]
+        assert [e["name"] for e in otlp_span["events"]] == ["exception"]
 
     def test_pinned_attributes_override_recorded_values(self):
         span = _make_span(span_id=5, attributes={"gen_ai.tool.call.result": "overwritten"})
@@ -591,15 +608,85 @@ class TestTelemetryPassbackMiddleware:
             "gen_ai.output.messages",
         }
 
-    def test_extra_allowed_attributes_rejects_bare_string(self, tracer_provider):
+    @pytest.mark.parametrize("arg", ["extra_allowed_attributes", "extra_allowed_event_names"])
+    def test_extra_allowlists_reject_bare_string(self, tracer_provider, arg):
         with pytest.raises(TypeError, match="not a string"):
             TelemetryPassbackMiddleware(
-                service_name="svc", tracer_provider=tracer_provider, extra_allowed_attributes="a.b"
+                service_name="svc", tracer_provider=tracer_provider, **{arg: "a.b"}
             )
 
-    def test_default_allowlist_has_no_error_text(self):
-        assert "tool_error_message" not in DEFAULT_PASSBACK_ATTRIBUTES
-        assert "tool_error_developer_message" not in DEFAULT_PASSBACK_ATTRIBUTES
+    def test_default_allowlists(self):
+        assert DEFAULT_PASSBACK_ATTRIBUTES == {"error.type", "exception.type"}
+        assert DEFAULT_PASSBACK_EVENT_NAMES == {"exception"}
+
+    def test_defaults_reexported_from_middleware_package(self):
+        from arcade_mcp_server import middleware
+
+        assert middleware.DEFAULT_PASSBACK_ATTRIBUTES is DEFAULT_PASSBACK_ATTRIBUTES
+        assert middleware.DEFAULT_PASSBACK_EVENT_NAMES is DEFAULT_PASSBACK_EVENT_NAMES
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("report_kind", [True, False])
+    async def test_tool_error_kind_comes_from_result_not_span(self, tracer_provider, report_kind):
+        """tool_error_kind is the result's _meta.arcade.errorKind, never the span's value."""
+        from opentelemetry import trace
+
+        mw = TelemetryPassbackMiddleware(service_name="svc", tracer_provider=tracer_provider)
+        context = MiddlewareContext(
+            message={"method": "tools/call", "params": {"name": "t", "arguments": {}}},
+            mcp_context=_make_otel_context(request=True),
+            method="tools/call",
+        )
+
+        async def handler(ctx):
+            trace.get_current_span().set_attribute("tool_error_kind", "sk_live_span_secret")
+            return JSONRPCResponse(
+                id="1",
+                result=CallToolResult(
+                    content=[TextContent(type="text", text="failed")],
+                    isError=True,
+                    _meta={"arcade": {"errorKind": "TOOL_RUNTIME_FATAL"}} if report_kind else None,
+                ),
+            )
+
+        result = await mw.on_call_tool(context, handler)
+        spans = result.result.meta["otel"]["traces"]["resourceSpans"][0]["scopeSpans"][0]["spans"]
+        attrs = {a["key"]: a["value"] for a in spans[0]["attributes"]}
+        if report_kind:
+            assert attrs["tool_error_kind"] == {"stringValue": "TOOL_RUNTIME_FATAL"}
+        else:
+            assert "tool_error_kind" not in attrs
+        assert "sk_live_span_secret" not in str(result.result.meta)
+
+    @pytest.mark.asyncio
+    async def test_detailed_excludes_spans_outside_request_subtree(self, tracer_provider):
+        """With allow_detailed, spans that ended during the call but are not
+        descendants of the request span are not returned."""
+        from opentelemetry import context as otel_context
+
+        mw = TelemetryPassbackMiddleware(
+            service_name="svc", tracer_provider=tracer_provider, allow_detailed=True
+        )
+        tracer = tracer_provider.get_tracer("tool")
+        context = MiddlewareContext(
+            message={"method": "tools/call", "params": {"name": "t", "arguments": {}}},
+            mcp_context=_make_otel_context(request=True, detailed=True),
+            method="tools/call",
+        )
+
+        async def handler(ctx):
+            with tracer.start_as_current_span("phase"), tracer.start_as_current_span("leaf"):
+                pass
+            # A new root trace, ended inside the collection window.
+            with tracer.start_as_current_span("unrelated", context=otel_context.Context()):
+                pass
+            return _make_tool_response()
+
+        result = await mw.on_call_tool(context, handler)
+        traces = result.result.meta["otel"]["traces"]
+        names = {s["name"] for s in traces["resourceSpans"][0]["scopeSpans"][0]["spans"]}
+        assert names == {"tools/call t", "phase", "leaf"}
+        assert traces["droppedSpanCount"] == 1
 
     # --- traceparent propagation ---
 

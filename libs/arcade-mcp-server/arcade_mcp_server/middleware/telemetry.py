@@ -22,24 +22,19 @@ from arcade_mcp_server.types import JSONRPCResponse
 logger = logging.getLogger("arcade.mcp.telemetry")
 
 
-# Span attribute keys returned to the client by default. Everything else that
-# tool code, instrumented libraries or the framework writes to a span (database
-# statements, URLs, tool error messages, developer messages, ...) is dropped
-# from the passback payload unless the operator adds the key through
-# ``TelemetryPassbackMiddleware(extra_allowed_attributes=...)``.
-DEFAULT_PASSBACK_ATTRIBUTES: frozenset[str] = frozenset({
-    # Identity of the request, as set by this middleware.
-    "mcp.method",
-    "mcp.tool",
-    "mcp.resource.uri",
-    "gen_ai.system",
-    "gen_ai.operation.name",
-    "gen_ai.tool.name",
-    # Error classification without the error text.
-    "tool_error_kind",
-    "error.type",
-    "exception.type",
-})
+# Span and event attribute keys returned to the client by default, on any
+# span. Everything else that tool code, instrumented libraries or the framework
+# writes to a span (database statements, URLs, tool error messages, developer
+# messages, and any ``mcp.*`` / ``gen_ai.*`` key) is dropped from the passback
+# payload unless the operator adds the key through
+# ``TelemetryPassbackMiddleware(extra_allowed_attributes=...)``. The request
+# span's identity (``mcp.*`` / ``gen_ai.*``) and ``tool_error_kind`` are
+# returned separately, with values the middleware sets itself.
+DEFAULT_PASSBACK_ATTRIBUTES: frozenset[str] = frozenset({"error.type", "exception.type"})
+
+# Span event names returned to the client by default. Events with other names
+# are dropped, because event names are free-form text.
+DEFAULT_PASSBACK_EVENT_NAMES: frozenset[str] = frozenset({"exception"})
 
 
 # Per-request span collection via ContextVar
@@ -181,6 +176,7 @@ def spans_to_otlp_json(
     *,
     allowed_attributes: AbstractSet[str] | None = None,
     pinned_attributes: Mapping[int, Mapping[str, Any]] | None = None,
+    allowed_event_names: AbstractSet[str] | None = None,
 ) -> dict[str, Any]:
     """Convert ReadableSpan objects to OTLP JSON (ExportTraceServiceRequest).
 
@@ -195,6 +191,8 @@ def spans_to_otlp_json(
         pinned_attributes: Per span id, attributes to emit with exactly these
             values, regardless of ``allowed_attributes`` and of what other code
             later wrote to the span under the same keys.
+        allowed_event_names: When given, only events with these names are
+            serialized. ``None`` serializes every event.
     """
     otlp_spans: list[dict[str, Any]] = []
     for span in spans:
@@ -216,7 +214,12 @@ def spans_to_otlp_json(
         }
         if span.parent and span.parent.span_id:
             rec["parentSpanId"] = format(span.parent.span_id, "016x")
-        if span.events:
+        events = [
+            ev
+            for ev in span.events or ()
+            if allowed_event_names is None or ev.name in allowed_event_names
+        ]
+        if events:
             rec["events"] = [
                 {
                     "timeUnixNano": _ns(ev.timestamp),
@@ -225,7 +228,7 @@ def spans_to_otlp_json(
                         _select_attributes(ev.attributes, allowed_attributes)
                     ),
                 }
-                for ev in span.events
+                for ev in events
             ]
         otlp_spans.append(rec)
 
@@ -260,27 +263,45 @@ class TelemetryPassbackMiddleware(Middleware):
     The payload goes to whoever called the tool, so it is filtered on the
     server's terms, independent of what other code writes to spans:
 
-    * Only span and event attributes whose key is in
-      :data:`DEFAULT_PASSBACK_ATTRIBUTES` or ``extra_allowed_attributes`` are
-      returned. Tool error messages, developer messages, database statements,
-      URLs and any other attribute are dropped by default.
-    * The request span also carries the tool arguments and result text that
-      this middleware itself records (the same data the client sent and
-      received). They are emitted with the middleware's own values, so other
-      code cannot place data under those keys on the request span.
+    * On the request span, the ``mcp.*`` / ``gen_ai.*`` identity, the tool
+      arguments and result text (the same data the client sent and received)
+      and ``tool_error_kind`` (taken from the result's
+      ``_meta.arcade.errorKind``) are values this middleware sets itself.
+      Values other code writes under those keys are ignored.
+    * On every span, other attributes (span and event) are returned only when
+      their key is in :data:`DEFAULT_PASSBACK_ATTRIBUTES` (``error.type``,
+      ``exception.type``) or ``extra_allowed_attributes``. ``mcp.*`` and
+      ``gen_ai.*`` keys on child spans, tool error messages, developer
+      messages, database statements, URLs and anything else are dropped.
+    * Events are returned only when their name is in
+      :data:`DEFAULT_PASSBACK_EVENT_NAMES` (``exception``) or
+      ``extra_allowed_event_names``.
     * Status descriptions, span links and the tracer provider's resource
       attributes are never returned.
     * By default only the request span and its direct children are returned.
       A client's ``detailed: true`` is ignored unless the server sets
-      ``allow_detailed=True``.
+      ``allow_detailed=True``. ``request`` and ``detailed`` must be JSON
+      ``true``; any other value counts as false.
+
+    Limits operators should know about:
+
+    * **Span names are returned verbatim**, for the request span's children
+      (and all descendants with ``allow_detailed``). Avoid instrumentation
+      whose span names hold data, such as full URLs or query text.
+    * Spans are collected through a ``ContextVar``, so an asyncio task first
+      started while a passback request is running inherits that request's
+      collection. Spans that a long-lived task started there ends later, on
+      behalf of other callers, can land in the first caller's payload (still
+      filtered as above).
 
     Args:
         service_name: ``service.name`` reported in the payload's resource.
         tracer_provider: SDK provider whose spans are collected.
         extra_allowed_attributes: Additional span/event attribute keys the
-            operator accepts returning to clients. Adding
+            operator accepts returning to clients, on any span. Adding
             ``tool_error_developer_message`` (or similar) exposes data the
             framework otherwise withholds from callers.
+        extra_allowed_event_names: Additional span event names to return.
         allow_detailed: Let clients request the full nested span tree with
             ``_meta.otel.traces.detailed: true``. Defaults to ``False``.
     """
@@ -291,12 +312,15 @@ class TelemetryPassbackMiddleware(Middleware):
         tracer_provider: TracerProvider,
         *,
         extra_allowed_attributes: Iterable[str] = (),
+        extra_allowed_event_names: Iterable[str] = (),
         allow_detailed: bool = False,
     ) -> None:
-        if isinstance(extra_allowed_attributes, str):
-            raise TypeError(
-                "extra_allowed_attributes must be a collection of attribute keys, not a string"
-            )
+        for arg_name, value in (
+            ("extra_allowed_attributes", extra_allowed_attributes),
+            ("extra_allowed_event_names", extra_allowed_event_names),
+        ):
+            if isinstance(value, str):
+                raise TypeError(f"{arg_name} must be a collection of strings, not a string")
         warnings.warn(
             "TelemetryPassbackMiddleware implements a draft version of SEP "
             "(SEP-2448: server execution telemetry) that is not yet finalized. "
@@ -306,6 +330,9 @@ class TelemetryPassbackMiddleware(Middleware):
         )
         self._service_name = service_name
         self._allowed_attributes = DEFAULT_PASSBACK_ATTRIBUTES | frozenset(extra_allowed_attributes)
+        self._allowed_event_names = DEFAULT_PASSBACK_EVENT_NAMES | frozenset(
+            extra_allowed_event_names
+        )
         self._allow_detailed = allow_detailed
         self._tracer = tracer_provider.get_tracer(service_name)
         self._propagator = TraceContextTextMapPropagator()
@@ -336,10 +363,13 @@ class TelemetryPassbackMiddleware(Middleware):
         otel_meta = getattr(meta, "otel", None)
         traces = otel_meta.get("traces", {}) if isinstance(otel_meta, dict) else {}
 
+        if not isinstance(traces, dict):
+            traces = {}
+
         return {
             "traceparent": getattr(meta, "traceparent", None),
-            "request": traces.get("request", False) if isinstance(traces, dict) else False,
-            "detailed": traces.get("detailed", False) if isinstance(traces, dict) else False,
+            "request": traces.get("request") is True,
+            "detailed": traces.get("detailed") is True,
         }
 
     def _parent_context(self, traceparent: str | None) -> Any:
@@ -373,6 +403,7 @@ class TelemetryPassbackMiddleware(Middleware):
                     self._service_name,
                     allowed_attributes=self._allowed_attributes,
                     pinned_attributes={root_span_id: own_attributes},
+                    allowed_event_names=self._allowed_event_names,
                 ).get("resourceSpans", []),
                 "truncated": dropped > 0,
                 "droppedSpanCount": dropped,
@@ -387,6 +418,19 @@ class TelemetryPassbackMiddleware(Middleware):
                 result.meta = meta
 
         return response
+
+    @staticmethod
+    def _extract_error_kind(response: Any) -> str | None:
+        """Return the error kind the server reported in ``_meta.arcade.errorKind``."""
+        if not isinstance(response, JSONRPCResponse) or response.result is None:
+            return None
+        result = response.result
+        if getattr(result, "isError", None) is not True:
+            return None
+        meta = getattr(result, "meta", None)
+        arcade = meta.get("arcade") if isinstance(meta, dict) else None
+        kind = arcade.get("errorKind") if isinstance(arcade, dict) else None
+        return kind if isinstance(kind, str) else None
 
     @staticmethod
     def _extract_response_text(response: Any) -> str | None:
@@ -439,6 +483,9 @@ class TelemetryPassbackMiddleware(Middleware):
                         json.dumps([{"role": "user", "content": tool_arguments}]),
                     )
                 response = await call_next(context)
+                error_kind = self._extract_error_kind(response)
+                if error_kind:
+                    record("tool_error_kind", error_kind)
                 output = self._extract_response_text(response)
                 if output:
                     record("gen_ai.tool.call.result", output[:500])
@@ -452,7 +499,7 @@ class TelemetryPassbackMiddleware(Middleware):
         return self._attach_spans(
             response,
             collected,
-            bool(otel.get("detailed", False)),
+            otel.get("detailed") is True,
             root_span_id,
             own_attributes,
         )

@@ -44,12 +44,23 @@ provider = TracerProvider()
 telemetry_mw = TelemetryPassbackMiddleware(
     service_name="mcp-gmail-server",
     tracer_provider=provider,
-    # Span attributes are returned to the client only when their key is on an
-    # allowlist. The defaults cover the request's identity (mcp.*, gen_ai.system,
-    # gen_ai.operation.name, gen_ai.tool.name) and error kinds. These are the
-    # non-sensitive counters and HTTP metadata this example also chooses to share.
-    # URLs, recipients and subjects stay server-side.
+    # What the client gets back:
+    # - The request span always carries the tool's arguments and result
+    #   (gen_ai.tool.call.arguments, gen_ai.input.messages, gen_ai.tool.call.result,
+    #   gen_ai.output.messages). That is the data the client already sent and
+    #   received, so for send_email it includes the recipient and subject, and for
+    #   list_emails the senders, subjects and snippets.
+    # - Other span attributes come back only when their key is allowlisted. The
+    #   defaults are error.type and exception.type. This example adds the gen_ai
+    #   labels its own spans set, its phase counters and HTTP method/status codes.
+    #   URLs, message ids and the phase spans' recipient/subject attributes are
+    #   not returned.
+    # - Span names come back verbatim, so the httpx hook below names HTTP spans by
+    #   Gmail operation, never by URL or message id.
     extra_allowed_attributes={
+        "gen_ai.system",
+        "gen_ai.operation.name",
+        "gen_ai.tool.name",
         "auth.method",
         "gmail.max_results",
         "gmail.message_count",
@@ -70,15 +81,27 @@ tracer = trace.get_tracer("mcp-gmail-server")
 _log = logging.getLogger("mcp-gmail-server")
 
 
+def _gmail_operation(request) -> str:
+    """Name a Gmail API call by operation, never by message id or query string."""
+    path = request.url.path.rstrip("/")
+    if path.endswith("/messages/send"):
+        return "messages.send"
+    if path.endswith("/messages"):
+        return "messages.list"
+    if "/messages/" in path:
+        return "messages.get"
+    return "api"
+
+
 async def _async_request_hook(span, request):
-    """Capture request method + URL with gen_ai semantic conventions."""
+    """Name the HTTP span by Gmail operation and capture the URL server-side."""
     method = request.method.decode() if isinstance(request.method, bytes) else str(request.method)
     url = str(request.url)
-    endpoint = url.split("?")[0].split("/")[-1] or "/"
-    span.update_name(f"{method} {endpoint}")
+    name = f"{method} gmail.{_gmail_operation(request)}"
+    span.update_name(name)
     span.set_attribute("gen_ai.system", "mcp")
     span.set_attribute("gen_ai.operation.name", "execute_tool")
-    span.set_attribute("gen_ai.tool.name", f"{method} {endpoint}")
+    span.set_attribute("gen_ai.tool.name", name)
     span.set_attribute("gen_ai.tool.call.arguments", json.dumps({"method": method, "url": url}))
 
 

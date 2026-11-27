@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "SEP-0000 reference implementation: cross-org distributed tracing via MCP serverExecutionTelemetry"
 requires-python = ">=3.11"
 dependencies = [
-    "arcade-mcp-server>=1.18.0,<2.0.0",
+    "arcade-mcp-server>=1.35.0,<2.0.0",
     "mcp>=1.26.0",
     "langchain>=1.2.13",
     "langchain-community>=0.4.1",

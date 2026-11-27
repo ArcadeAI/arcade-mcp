@@ -37,6 +37,9 @@ STATUS_SECRET = "status-description-with-token-def456"
 LINK_SECRET = "link-attribute-with-token-ghi789"
 RESOURCE_SECRET = "resource-attribute-with-token-jkl012"
 REQUEST_SPAN_SECRET = "written-onto-request-span-mno345"
+IDENTITY_KEY_SECRET = "postgres://admin:sk_live_identity_pqr678@db/1"
+CHILD_GENAI_SECRET = "child-gen-ai-attribute-stu901"
+EVENT_NAME_SECRET = "retry with token sk_live_event_name_vwx234"
 SECRETS = (
     DEV_MESSAGE_SECRET,
     URL_SECRET,
@@ -46,6 +49,9 @@ SECRETS = (
     LINK_SECRET,
     RESOURCE_SECRET,
     REQUEST_SPAN_SECRET,
+    IDENTITY_KEY_SECRET,
+    CHILD_GENAI_SECRET,
+    EVENT_NAME_SECRET,
 )
 
 # The tool records its spans with the same provider the middleware collects from.
@@ -65,6 +71,9 @@ def charge_customer(customer_id: Annotated[str, "customer id"]) -> str:
     request_span = trace.get_current_span()
     request_span.set_attribute("gen_ai.tool.call.arguments", REQUEST_SPAN_SECRET)
     request_span.set_attribute("internal.note", REQUEST_SPAN_SECRET)
+    # Identity-style keys the middleware does not set for tools/call.
+    request_span.set_attribute("mcp.resource.uri", IDENTITY_KEY_SECRET)
+    request_span.set_attribute("gen_ai.prompt", IDENTITY_KEY_SECRET)
     linked = request_span.get_span_context()
     with tracer.start_as_current_span(
         "db.query", links=[Link(linked, {"link.note": LINK_SECRET})]
@@ -74,6 +83,13 @@ def charge_customer(customer_id: Annotated[str, "customer id"]) -> str:
             f"SELECT email FROM customers WHERE id='{customer_id}' -- returned {DB_SECRET}",
         )
         span.set_attribute("db.system", "postgresql")
+        # A child span using the middleware's own keys and other gen_ai.* keys.
+        span.set_attribute("gen_ai.input.messages", CHILD_GENAI_SECRET)
+        span.set_attribute("gen_ai.prompt", CHILD_GENAI_SECRET)
+        span.set_attribute("gen_ai.tool.name", CHILD_GENAI_SECRET)
+        span.set_attribute("mcp.resource.uri", IDENTITY_KEY_SECRET)
+        span.set_attribute("error.type", "psycopg.OperationalError")
+        span.add_event(EVENT_NAME_SECRET)
         with tracer.start_as_current_span("db.connect") as inner:
             inner.set_attribute("db.connection_string", f"postgres://admin:{URL_SECRET}@db")
     with tracer.start_as_current_span("http.client POST") as span:
@@ -139,7 +155,7 @@ async def make_server(tracer_provider, mock_read_stream, mock_write_stream):
         await server.stop()
 
 
-async def _call(server: MCPServer, session: ServerSession, *, detailed: bool) -> dict[str, Any]:
+async def _call(server: MCPServer, session: ServerSession, *, detailed: Any) -> dict[str, Any]:
     response = await server.handle_message(
         {
             "jsonrpc": "2.0",
@@ -192,11 +208,30 @@ async def test_default_passback_returns_no_secrets(make_server, detailed):
     assert _attr(root, "mcp.tool") == "Billing_ChargeCustomer"
     assert _attr(root, "gen_ai.tool.name") == "Billing_ChargeCustomer"
     assert _attr(root, "tool_error_kind") == "UPSTREAM_RUNTIME_SERVER_ERROR"
-    assert root["status"]["code"] in (0, 2)
-    assert "tool_error_developer_message" not in _attr_keys(root)
-    assert "tool_error_message" not in _attr_keys(root)
+    # The error is reported in the result, not as an exception through the span.
+    assert root["status"]["code"] == 0
+    # Only the middleware's own keys, plus the error kind taken from the result.
+    assert _attr_keys(root) == {
+        "mcp.method",
+        "mcp.tool",
+        "gen_ai.system",
+        "gen_ai.operation.name",
+        "gen_ai.tool.name",
+        "gen_ai.tool.call.arguments",
+        "gen_ai.input.messages",
+        "gen_ai.tool.call.result",
+        "gen_ai.output.messages",
+        "tool_error_kind",
+    }
     # The middleware's own echo of the client's arguments keeps its value.
     assert _attr(root, "gen_ai.tool.call.arguments") == json.dumps({"customer_id": "c_42"})
+
+    # On child spans, mcp.* / gen_ai.* keys are dropped; default keys come through.
+    db_span = _spans(result)["db.query"]
+    assert _attr_keys(db_span) == {"error.type"}
+    assert _attr(db_span, "error.type") == "psycopg.OperationalError"
+    # Events whose names are not allowlisted are dropped.
+    assert db_span.get("events", []) == []
 
     # Event names survive; their attributes go through the same allowlist.
     http_span = _spans(result)["http.client POST"]
@@ -238,8 +273,10 @@ async def test_server_opt_in_returns_detailed_spans_still_filtered(make_server):
     for secret in SECRETS:
         assert secret not in blob
 
-    # Detailed still has to be requested by the client.
+    # Detailed still has to be requested by the client, with a literal true.
     result = await _call(server, session, detailed=False)
+    assert "db.connect" not in _spans(result)
+    result = await _call(server, session, detailed="false")
     assert "db.connect" not in _spans(result)
 
 
@@ -256,6 +293,11 @@ async def test_operator_can_extend_attribute_allowlist(make_server):
     assert _attr(spans["http.client POST"], "http.response.status_code") == "401"
     assert "db.statement" not in _attr_keys(spans["db.query"])
     assert "url.full" not in _attr_keys(spans["http.client POST"])
+    # Extras add to the defaults rather than replacing them.
+    assert _attr(spans["db.query"], "error.type") == "psycopg.OperationalError"
+    root = spans["tools/call Billing_ChargeCustomer"]
+    assert _attr(root, "tool_error_kind") == "UPSTREAM_RUNTIME_SERVER_ERROR"
+    assert _attr(root, "mcp.tool") == "Billing_ChargeCustomer"
     blob = json.dumps(result)
     for secret in SECRETS:
         assert secret not in blob
@@ -269,3 +311,42 @@ async def test_operator_opt_in_to_developer_message(make_server):
 
     root = _spans(result)["tools/call Billing_ChargeCustomer"]
     assert DEV_MESSAGE_SECRET in _attr(root, "tool_error_developer_message")
+    # Opting into one key exposes only that key.
+    blob = json.dumps(result)
+    for secret in SECRETS:
+        if secret != DEV_MESSAGE_SECRET:
+            assert secret not in blob, f"{secret!r} leaked in passback"
+
+
+@pytest.mark.asyncio
+async def test_operator_can_allow_event_names(make_server):
+    """Event names outside the default set come through only when the operator allows them."""
+    server, session = await make_server(extra_allowed_event_names={EVENT_NAME_SECRET})
+    result = await _call(server, session, detailed=False)
+
+    db_span = _spans(result)["db.query"]
+    assert [e["name"] for e in db_span["events"]] == [EVENT_NAME_SECRET]
+    http_span = _spans(result)["http.client POST"]
+    assert [e["name"] for e in http_span["events"]] == ["exception"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("flag", ["false", "true", 1, {"x": 1}])
+async def test_request_flag_must_be_boolean_true(make_server, flag):
+    """Only a literal JSON true turns passback on."""
+    server, session = await make_server()
+    response = await server.handle_message(
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {
+                "name": "Billing_ChargeCustomer",
+                "arguments": {"customer_id": "c_42"},
+                "_meta": {"otel": {"traces": {"request": flag}}},
+            },
+        },
+        session=session,
+    )
+    result = response.result.model_dump(by_alias=True, exclude_none=True)
+    assert "otel" not in result.get("_meta", {})
