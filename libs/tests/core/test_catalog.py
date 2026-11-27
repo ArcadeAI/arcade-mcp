@@ -306,24 +306,29 @@ def test_get_tool_by_name_with_invalid_version():
 
 def test_load_disabled_tools(monkeypatch):
     disabled_tools = (
-        "SampleToolkitOne.SampleToolOne,"  # valid
-        + "SampleToolkitOne_SampleToolTwo,"  # invalid
-        + "SampleToolkitTwo.SampleToolThree,"  # valid
-        + "SampleToolkitTwo.SampleToolFour@0.0.1,"  # invalid
-        + "SampleToolkitThree_SampleToolFive@0.0.1,"  # invalid
-        + "SampleToolkitFour.sample_tool_six,"  # invalid
-        + "sample_toolkit5.SampleTool7,"  # invalid
-        + "sample_toolkit6.sample_tool_8"  # invalid
+        "SampleToolkitOne.SampleToolOne,"  # Toolkit.Tool
+        + " SampleToolkitOne_SampleToolTwo ,"  # Toolkit_Tool, as MCP clients show it
+        + "SampleToolkitTwo::SampleToolThree,"  # Toolkit::Tool
+        + "SampleToolkit4.SampleTool5,"  # digits
+        + "SampleToolkitTwo.SampleToolFour@0.0.1,"  # malformed: versions are not supported
+        + "SampleToolkitThree"  # malformed: a toolkit, not a tool
     )
-    expected_disabled_tools = {
-        "sampletoolkitone.sampletoolone",
-        "sampletoolkittwo.sampletoolthree",
-    }
 
     monkeypatch.setenv("ARCADE_DISABLED_TOOLS", disabled_tools)
     catalog = ToolCatalog()
 
-    assert catalog._disabled_tools == expected_disabled_tools
+    assert catalog._disabled_tools.entries == {
+        "sampletoolkitone.sampletoolone",
+        "sampletoolkitone_sampletooltwo",
+        "sampletoolkittwo::sampletoolthree",
+        "sampletoolkit4.sampletool5",
+        "sampletoolkittwo.sampletoolfour@0.0.1",
+        "sampletoolkitthree",
+    }
+    assert catalog._disabled_tools.malformed == {
+        "sampletoolkittwo.sampletoolfour@0.0.1",
+        "sampletoolkitthree",
+    }
 
 
 def test_add_tool_with_disabled_tool(monkeypatch):

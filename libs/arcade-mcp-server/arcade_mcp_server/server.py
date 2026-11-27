@@ -609,6 +609,10 @@ class MCPServer:
         except Exception:
             logger.exception("Failed to load tools from initial catalog")
 
+        # The catalog is complete now, so an ARCADE_DISABLED_* entry that matched
+        # nothing is a typo or a stale name, and the operator should hear about it.
+        self._initial_catalog.warn_unmatched_disabled_entries()
+
         # Apply _meta extensions to loaded tools
         if self._tool_meta_extensions:
             await self._tool_manager.apply_meta_extensions(self._tool_meta_extensions)

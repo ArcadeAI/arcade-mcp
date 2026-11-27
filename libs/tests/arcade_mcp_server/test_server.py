@@ -4420,3 +4420,56 @@ def test_server_reports_ephemeral_or_weak_elicitation_key_at_startup(
     MCPServer(catalog=tool_catalog, settings=mcp_settings)
     expected = "only valid on this process" if not secret else "at least 32 bytes"
     assert expected in caplog.text
+
+
+class TestDisabledEntriesWarnings:
+    """Startup warnings for ARCADE_DISABLED_TOOLS / ARCADE_DISABLED_TOOLKITS entries."""
+
+    @pytest.mark.asyncio
+    async def test_warns_about_entries_that_match_nothing_on_startup(
+        self, mcp_settings, monkeypatch, caplog
+    ):
+        import logging
+
+        from arcade_core.catalog import ToolCatalog
+
+        monkeypatch.setenv("ARCADE_DISABLED_TOOLS", "Admin.DeleteAll, Admin.DeleteAlll")
+        monkeypatch.setenv("ARCADE_DISABLED_TOOLKITS", "Billing")
+
+        @tool
+        def delete_all() -> Annotated[str, "Result"]:
+            """Delete every record."""
+            return "deleted"
+
+        @tool
+        def export_v2() -> Annotated[str, "Result"]:
+            """Export all data."""
+            return "exported"
+
+        catalog = ToolCatalog()
+        catalog.add_tool(delete_all, "Admin")
+        catalog.add_tool(export_v2, "Admin")
+
+        with caplog.at_level(logging.INFO):
+            server = MCPServer(
+                catalog=catalog, name="Test Server", version="1.0.0", settings=mcp_settings
+            )
+            await server.start()
+            try:
+                tool_names = [t.name for t in await server._tool_manager.list_tools()]
+            finally:
+                await server.stop()
+
+        def disabled_messages(level: int) -> list[str]:
+            return [
+                rec.getMessage()
+                for rec in caplog.records
+                if rec.levelno == level and "ARCADE_DISABLED_" in rec.getMessage()
+            ]
+
+        assert tool_names == ["Admin_ExportV2"]
+        # A typo in a toolkit this server loads warns; a toolkit it never loads is INFO.
+        warnings = disabled_messages(logging.WARNING)
+        assert len(warnings) == 1, warnings
+        assert "'admin.deletealll'" in warnings[0]
+        assert any("'billing'" in m for m in disabled_messages(logging.INFO))
