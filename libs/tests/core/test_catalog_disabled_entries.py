@@ -173,6 +173,24 @@ def test_tool_entry_toolkit_part_matches_every_spelling(monkeypatch, value):
     assert _cataloged(catalog) == {"AdminTools.ExportV2", "AdminTools.ResetPasswords"}
 
 
+@pytest.mark.parametrize(
+    "toolkit_name",
+    [
+        "arcade-ops",  # a package named arcade-ops keeps that name
+        "arcade_ops",  # cataloged as ArcadeOps, so only the given name carries "ops"
+    ],
+)
+def test_tool_entry_toolkit_part_matches_a_package_spelling(monkeypatch, toolkit_name):
+    monkeypatch.setenv("ARCADE_DISABLED_TOOLS", "ops.DeleteAll")
+
+    catalog = _build_catalog(toolkit_name)
+
+    assert {str(name).split(".", 1)[1] for name in catalog.get_tool_names()} == {
+        "ExportV2",
+        "ResetPasswords",
+    }
+
+
 def test_tool_entry_with_raw_toolkit_name_is_applied_beside_a_disabled_toolkit(monkeypatch):
     """ARCADE_DISABLED_TOOLKITS=admin must not stop admin_tools.DeleteAll from applying."""
     monkeypatch.setenv("ARCADE_DISABLED_TOOLKITS", "admin")
@@ -391,6 +409,36 @@ class TestUnmatchedEntriesWarn:
         warnings = _warnings(caplog)
         assert len(warnings) == 1, warnings
         assert "'google_docs.deletedocumentt'" in warnings[0]
+
+    def test_entry_covered_by_only_one_of_its_readings_warns(self, monkeypatch, caplog):
+        """Admin_Tools_DeleteAlll reads as Admin + Tools_DeleteAlll and as Admin_Tools +
+        DeleteAlll. A disabled Admin covers only the first, so the typo still warns."""
+        monkeypatch.setenv("ARCADE_DISABLED_TOOLKITS", "Admin")
+        monkeypatch.setenv("ARCADE_DISABLED_TOOLS", "Admin_Tools_DeleteAlll")
+        catalog = ToolCatalog()
+        catalog.add_tool(delete_all, "Admin")
+        catalog.add_tool(delete_all, "admin_tools")
+
+        with caplog.at_level(logging.WARNING, logger="arcade_core.catalog"):
+            catalog.warn_unmatched_disabled_entries()
+
+        assert _cataloged(catalog) == {"AdminTools.DeleteAll"}
+        warnings = _warnings(caplog)
+        assert len(warnings) == 1, warnings
+        assert "'admin_tools_deletealll'" in warnings[0]
+
+    def test_malformed_reading_does_not_uncover_an_entry(self, monkeypatch, caplog):
+        """Admin.Delete_Alll also reads as Admin.Delete + Alll, which is not a tool name. Only
+        well-formed readings decide coverage, so a disabled Admin covers the entry."""
+        monkeypatch.setenv("ARCADE_DISABLED_TOOLKITS", "Admin")
+        monkeypatch.setenv("ARCADE_DISABLED_TOOLS", "Admin.Delete_Alll")
+        catalog = ToolCatalog()
+        catalog.add_tool(delete_all, "Admin")
+
+        with caplog.at_level(logging.WARNING, logger="arcade_core.catalog"):
+            catalog.warn_unmatched_disabled_entries()
+
+        assert _warnings(caplog) == []
 
     def test_tool_and_toolkit_entry_for_the_same_tool_report_nothing(self, monkeypatch, caplog):
         monkeypatch.setenv("ARCADE_DISABLED_TOOLS", "Admin.DeleteAll")
