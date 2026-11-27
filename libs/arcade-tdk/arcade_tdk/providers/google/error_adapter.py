@@ -4,12 +4,70 @@ from typing import Any
 from urllib.parse import urlparse
 
 from arcade_core.errors import (
+    FatalToolError,
     ToolRuntimeError,
     UpstreamError,
     UpstreamRateLimitError,
 )
 
 logger = logging.getLogger(__name__)
+
+# Google's error text can echo request values back (e.g. "File not found: <fileId>."), so it
+# never reaches the agent: the agent gets a fixed message per error class, and Google's text
+# goes to developer_message.
+RATE_LIMITED_MESSAGE = "Google is rate-limiting requests for this account. Retry shortly."
+SERVER_ERROR_MESSAGE = (
+    "Google could not complete the request because of a problem on its side. Retry shortly."
+)
+UNAUTHORIZED_MESSAGE = "Google rejected this account's authorization. Re-authorize and retry."
+FORBIDDEN_MESSAGE = (
+    "Google denied the request. This account may not have permission for the item, "
+    "the authorization may be missing a required scope, "
+    "or the account may have reached a usage limit. "
+    "Check access to the item, or re-authorize with the required scopes."
+)
+NOT_FOUND_MESSAGE = (
+    "Google could not find the requested item. Check the ID; "
+    "if it is right, this account may not have access to the item."
+)
+BAD_REQUEST_MESSAGE = "Google rejected the request as invalid. Check the arguments and retry."
+REFUSED_MESSAGE = (
+    "Google refused the request. Check the arguments; "
+    "if they are right, this account may not have access to the item."
+)
+UNEXPECTED_RESPONSE_MESSAGE = "Google returned a response the tool could not use."
+# googleapiclient raises BatchError without a response before sending anything (too many calls,
+# a media request in the batch) or while reading a batch response's part IDs. Retrying the
+# same call cannot fix any of these.
+BATCH_FAILED_MESSAGE = (
+    "The Google batch request could not be built or read, so it was not completed. "
+    "Retrying the same call will not help."
+)
+INVALID_JSON_MESSAGE = "Google returned a response that is not valid JSON. Retry shortly."
+UNKNOWN_API_MESSAGE = "The Google API name or version the tool requested does not exist."
+UNACCEPTABLE_MIME_TYPE_MESSAGE = "Google does not accept this MIME type for this operation."
+MEDIA_UPLOAD_SIZE_MESSAGE = "The file is larger than Google allows for this operation."
+INVALID_CHUNK_SIZE_MESSAGE = "The upload chunk size the tool set is not valid for Google."
+INVALID_NOTIFICATION_MESSAGE = "The Google notification channel configuration is not valid."
+
+
+def _safe_message_for_status(status_code: int) -> str:
+    """Return the fixed, agent-facing message for an HTTP status from Google."""
+    if status_code == 429:
+        return RATE_LIMITED_MESSAGE
+    if status_code >= 500:
+        return SERVER_ERROR_MESSAGE
+    if status_code == 401:
+        return UNAUTHORIZED_MESSAGE
+    if status_code == 403:
+        return FORBIDDEN_MESSAGE
+    if status_code == 404:
+        return NOT_FOUND_MESSAGE
+    if status_code == 400:
+        return BAD_REQUEST_MESSAGE
+    if 400 <= status_code < 500:
+        return REFUSED_MESSAGE
+    return UNEXPECTED_RESPONSE_MESSAGE
 
 
 class GoogleErrorAdapter:
@@ -53,21 +111,31 @@ class GoogleErrorAdapter:
 
         return 1000
 
-    def _map_http_error(self, error: Any) -> ToolRuntimeError | None:
+    def _build_developer_message(self, status_code: int, error: Any) -> str:
+        """Collect Google's own error text for developers. It never goes to the agent."""
+        reason = getattr(error, "reason", None)
+        reason_text = str(reason).strip() if reason else ""
+        developer_message = f"Google API error (HTTP {status_code})"
+        if reason_text:
+            developer_message += f": {reason_text}"
+
+        details = getattr(error, "error_details", None)
+        # A body with only `error.message` makes googleapiclient copy that message into
+        # error_details as well, so skip details that only repeat the reason.
+        if details and not (isinstance(details, str) and details.strip() == reason_text):
+            developer_message += f" - Details: {details}"
+
+        return developer_message
+
+    def _map_http_error(
+        self, error: Any, status_code: int | None = None
+    ) -> ToolRuntimeError | None:
         """Map Google HttpError to appropriate ToolRuntimeError."""
-        status_code = error.status_code
-        reason = str(error.reason) if error.reason else f"HTTP {status_code} error"
+        if status_code is None:
+            status_code = error.status_code
 
-        message = f"Upstream Google API error: {reason}"
-
-        developer_message = None
-        if error.error_details:
-            # str error details are added to the message
-            if isinstance(error.error_details, str):
-                message = f"{message} - Details: {error.error_details}"
-            else:
-                # structured error details are added to the developer message
-                developer_message = f"Upstream Google API error details: {error.error_details}"
+        message = _safe_message_for_status(status_code)
+        developer_message = self._build_developer_message(status_code, error)
 
         # Build extra metadata
         extra = {
@@ -98,32 +166,35 @@ class GoogleErrorAdapter:
 
     def _handle_http_errors(self, exc: Exception, errors_module: Any) -> ToolRuntimeError | None:
         """Handle HttpError and its subclasses."""
+        # BatchError subclasses HttpError but skips its __init__ (no error_details, and resp
+        # may be None), so it must be matched first.
+        if isinstance(exc, errors_module.BatchError):
+            status = getattr(getattr(exc, "resp", None), "status", None)
+            if isinstance(status, int):
+                return self._map_http_error(exc, status_code=status)
+
+            # No response: the request was never sent, or its batch response could not be
+            # read. Not something Google refused, and not fixed by a retry.
+            reason = getattr(exc, "reason", None)
+            return FatalToolError(
+                message=BATCH_FAILED_MESSAGE,
+                developer_message=f"Google API batch operation failed: {reason}",
+                extra={
+                    "service": self.slug,
+                    "error_type": "BatchError",
+                },
+            )
+
         if isinstance(exc, errors_module.HttpError):
             return self._map_http_error(exc)
 
-        if isinstance(exc, errors_module.BatchError):
-            # BatchError might not have status_code, so handle carefully
-            if hasattr(exc, "resp") and hasattr(exc.resp, "status"):
-                exc.status_code = exc.resp.status
-                return self._map_http_error(exc)
-            else:
-                # No status code available, treat as server error
-                extra = {
-                    "service": "google_api",
-                    "error_type": "BatchError",
-                }
-                return UpstreamError(
-                    message=f"Upstream Google API batch operation failed: {exc.reason}",
-                    status_code=500,
-                    extra=extra,
-                )
         return None
 
     def _handle_other_errors(self, exc: Exception, errors_module: Any) -> ToolRuntimeError | None:
         """Handle non-HTTP Google API errors."""
         if isinstance(exc, errors_module.InvalidJsonError):
             return UpstreamError(
-                message="Upstream Google API returned invalid JSON response",
+                message=INVALID_JSON_MESSAGE,
                 status_code=502,
                 developer_message=str(exc),
                 extra={
@@ -134,7 +205,7 @@ class GoogleErrorAdapter:
 
         if isinstance(exc, errors_module.UnknownApiNameOrVersion):
             return UpstreamError(
-                message="Upstream Google API error: Unknown API name or version",
+                message=UNKNOWN_API_MESSAGE,
                 status_code=404,
                 developer_message=str(exc),
                 extra={
@@ -145,7 +216,7 @@ class GoogleErrorAdapter:
 
         if isinstance(exc, errors_module.UnacceptableMimeTypeError):
             return UpstreamError(
-                message="Upstream Google API error: Unacceptable MIME type for this operation",
+                message=UNACCEPTABLE_MIME_TYPE_MESSAGE,
                 status_code=400,
                 developer_message=str(exc),
                 extra={
@@ -156,7 +227,7 @@ class GoogleErrorAdapter:
 
         if isinstance(exc, errors_module.MediaUploadSizeError):
             return UpstreamError(
-                message="Upstream Google API error: Media file size exceeds allowed limit",
+                message=MEDIA_UPLOAD_SIZE_MESSAGE,
                 status_code=400,
                 developer_message=str(exc),
                 extra={
@@ -167,7 +238,7 @@ class GoogleErrorAdapter:
 
         if isinstance(exc, errors_module.InvalidChunkSizeError):
             return UpstreamError(
-                message="Upstream Google API error: Invalid chunk size specified",
+                message=INVALID_CHUNK_SIZE_MESSAGE,
                 developer_message=str(exc),
                 status_code=400,
                 extra={
@@ -178,7 +249,7 @@ class GoogleErrorAdapter:
 
         if isinstance(exc, errors_module.InvalidNotificationError):
             return UpstreamError(
-                message="Upstream Google API error: Invalid notification configuration",
+                message=INVALID_NOTIFICATION_MESSAGE,
                 developer_message=str(exc),
                 status_code=400,
                 extra={
@@ -222,7 +293,7 @@ class GoogleErrorAdapter:
                 exc_info=True,
             )
             return UpstreamError(
-                message=f"Upstream Google API error: unhandled {exc.__class__.__name__}.",
+                message=f"Google API client error: unhandled {exc.__class__.__name__}.",
                 developer_message=str(exc),
                 status_code=500,
                 extra={
