@@ -4,6 +4,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from arcade_core.errors import (
+    FatalToolError,
     ToolRuntimeError,
     UpstreamError,
     UpstreamRateLimitError,
@@ -21,7 +22,9 @@ SERVER_ERROR_MESSAGE = (
 UNAUTHORIZED_MESSAGE = "Google rejected this account's authorization. Re-authorize and retry."
 FORBIDDEN_MESSAGE = (
     "Google denied the request. This account may not have permission for the item, "
-    "or may have reached a usage limit."
+    "the authorization may be missing a required scope, "
+    "or the account may have reached a usage limit. "
+    "Check access to the item, or re-authorize with the required scopes."
 )
 NOT_FOUND_MESSAGE = (
     "Google could not find the requested item. Check the ID; "
@@ -33,7 +36,19 @@ REFUSED_MESSAGE = (
     "if they are right, this account may not have access to the item."
 )
 UNEXPECTED_RESPONSE_MESSAGE = "Google returned a response the tool could not use."
-BATCH_FAILED_MESSAGE = "Google could not complete the batch request. Retry shortly."
+# googleapiclient raises BatchError without a response before sending anything (too many calls,
+# a media request in the batch) or while reading a batch response's part IDs. Retrying the
+# same call cannot fix any of these.
+BATCH_FAILED_MESSAGE = (
+    "The Google batch request could not be built or read, so it was not completed. "
+    "Retrying the same call will not help."
+)
+INVALID_JSON_MESSAGE = "Google returned a response that is not valid JSON. Retry shortly."
+UNKNOWN_API_MESSAGE = "The Google API name or version the tool requested does not exist."
+UNACCEPTABLE_MIME_TYPE_MESSAGE = "Google does not accept this MIME type for this operation."
+MEDIA_UPLOAD_SIZE_MESSAGE = "The file is larger than Google allows for this operation."
+INVALID_CHUNK_SIZE_MESSAGE = "The upload chunk size the tool set is not valid for Google."
+INVALID_NOTIFICATION_MESSAGE = "The Google notification channel configuration is not valid."
 
 
 def _safe_message_for_status(status_code: int) -> str:
@@ -158,17 +173,16 @@ class GoogleErrorAdapter:
             if isinstance(status, int):
                 return self._map_http_error(exc, status_code=status)
 
-            # No status code available, treat as server error
-            extra = {
-                "service": "google_api",
-                "error_type": "BatchError",
-            }
+            # No response: the request was never sent, or its batch response could not be
+            # read. Not something Google refused, and not fixed by a retry.
             reason = getattr(exc, "reason", None)
-            return UpstreamError(
+            return FatalToolError(
                 message=BATCH_FAILED_MESSAGE,
-                status_code=500,
                 developer_message=f"Google API batch operation failed: {reason}",
-                extra=extra,
+                extra={
+                    "service": self.slug,
+                    "error_type": "BatchError",
+                },
             )
 
         if isinstance(exc, errors_module.HttpError):
@@ -180,7 +194,7 @@ class GoogleErrorAdapter:
         """Handle non-HTTP Google API errors."""
         if isinstance(exc, errors_module.InvalidJsonError):
             return UpstreamError(
-                message="Upstream Google API returned invalid JSON response",
+                message=INVALID_JSON_MESSAGE,
                 status_code=502,
                 developer_message=str(exc),
                 extra={
@@ -191,7 +205,7 @@ class GoogleErrorAdapter:
 
         if isinstance(exc, errors_module.UnknownApiNameOrVersion):
             return UpstreamError(
-                message="Upstream Google API error: Unknown API name or version",
+                message=UNKNOWN_API_MESSAGE,
                 status_code=404,
                 developer_message=str(exc),
                 extra={
@@ -202,7 +216,7 @@ class GoogleErrorAdapter:
 
         if isinstance(exc, errors_module.UnacceptableMimeTypeError):
             return UpstreamError(
-                message="Upstream Google API error: Unacceptable MIME type for this operation",
+                message=UNACCEPTABLE_MIME_TYPE_MESSAGE,
                 status_code=400,
                 developer_message=str(exc),
                 extra={
@@ -213,7 +227,7 @@ class GoogleErrorAdapter:
 
         if isinstance(exc, errors_module.MediaUploadSizeError):
             return UpstreamError(
-                message="Upstream Google API error: Media file size exceeds allowed limit",
+                message=MEDIA_UPLOAD_SIZE_MESSAGE,
                 status_code=400,
                 developer_message=str(exc),
                 extra={
@@ -224,7 +238,7 @@ class GoogleErrorAdapter:
 
         if isinstance(exc, errors_module.InvalidChunkSizeError):
             return UpstreamError(
-                message="Upstream Google API error: Invalid chunk size specified",
+                message=INVALID_CHUNK_SIZE_MESSAGE,
                 developer_message=str(exc),
                 status_code=400,
                 extra={
@@ -235,7 +249,7 @@ class GoogleErrorAdapter:
 
         if isinstance(exc, errors_module.InvalidNotificationError):
             return UpstreamError(
-                message="Upstream Google API error: Invalid notification configuration",
+                message=INVALID_NOTIFICATION_MESSAGE,
                 developer_message=str(exc),
                 status_code=400,
                 extra={
@@ -279,7 +293,7 @@ class GoogleErrorAdapter:
                 exc_info=True,
             )
             return UpstreamError(
-                message=f"Upstream Google API error: unhandled {exc.__class__.__name__}.",
+                message=f"Google API client error: unhandled {exc.__class__.__name__}.",
                 developer_message=str(exc),
                 status_code=500,
                 extra={
