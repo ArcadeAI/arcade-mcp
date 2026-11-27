@@ -154,8 +154,10 @@ class TransportSettings(BaseSettings):
         default=None,
         description=(
             "Host headers accepted, in addition to localhost, 127.0.0.1 and [::1], when the "
-            "HTTP server is bound to a loopback address (comma-separated). Use it for a tunnel "
-            "or reverse proxy. An entry without a port matches any port. ['*'] = accept any "
+            "HTTP server is bound to a loopback address (comma-separated). Loopback binds "
+            "only: on a non-loopback bind the Host header is not checked. Use it for a tunnel "
+            "or reverse proxy. The host of the resource server's canonical URL is accepted "
+            "automatically. An entry without a port matches any port. ['*'] = accept any "
             "Host (turns the check off)."
         ),
     )

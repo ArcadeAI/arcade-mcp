@@ -7,6 +7,7 @@ import contextlib
 import ipaddress
 import json
 import logging
+import re
 from collections.abc import AsyncIterator
 from http import HTTPStatus
 from typing import Optional
@@ -119,28 +120,36 @@ def _validate_origin(request: Request, allowed_origins: list[str] | None) -> Res
 ALLOWED_HOSTS_SETTING = "MCP_TRANSPORT_ALLOWED_HOSTS"
 
 HOST_NOT_ALLOWED_MESSAGE = (
-    "Forbidden: Host not allowed. This server is bound to a loopback address and accepts "
-    "only localhost, 127.0.0.1 and [::1] in the Host header. To reach it through a tunnel "
-    f"or reverse proxy, add that hostname to {ALLOWED_HOSTS_SETTING} (or allowed_hosts on "
-    "MCPApp)."
+    "Forbidden: Host not allowed. This server listens on a loopback address and this Host is "
+    "not in the allowed list (localhost, 127.0.0.1, [::1] and any configured hosts). To "
+    f"reach it through a tunnel or reverse proxy, add that hostname to {ALLOWED_HOSTS_SETTING} "
+    "(or allowed_hosts on MCPApp)."
 )
 
+_PORT = re.compile(r"[0-9]{1,5}")
 
-def _split_host(value: str) -> tuple[str, str | None]:
+
+def _split_host(value: str) -> tuple[str, str | None] | None:
     """Split a Host header value (or an allowed-hosts entry) into (hostname, port).
 
     The hostname is lowercased and IPv6 brackets are removed, so ``[::1]:8000``
-    becomes ``("::1", "8000")``.
+    becomes ``("::1", "8000")``. Returns None when the value is malformed: anything
+    after ``]`` other than ``:<digits>``, or a non-numeric port.
     """
     value = value.strip().lower()
     if value.startswith("["):
         end = value.find("]")
-        if end != -1:
-            rest = value[end + 1 :]
-            return value[1:end], (rest[1:] if rest.startswith(":") else None)
+        if end == -1:
+            return None
+        hostname, rest = value[1:end], value[end + 1 :]
+        if not rest:
+            return hostname, None
+        if rest.startswith(":") and _PORT.fullmatch(rest[1:]):
+            return hostname, rest[1:]
+        return None
     if value.count(":") == 1:
         hostname, port = value.split(":")
-        return hostname, port
+        return (hostname, port) if _PORT.fullmatch(port) else None
     # A bare IPv6 address (unbracketed) or a name without a port.
     return value, None
 
@@ -158,31 +167,43 @@ def is_loopback_host(host: str) -> bool:
         return False
 
 
+def _host_is_allowed(host_header: str | None, allowed_hosts: list[str]) -> bool:
+    if "*" in allowed_hosts:
+        return True
+    parsed = _split_host(host_header) if host_header else None
+    if parsed is None:
+        return False
+    hostname, port = parsed
+    if is_loopback_host(hostname):
+        return True
+    for entry in allowed_hosts:
+        parsed_entry = _split_host(entry)
+        if (
+            parsed_entry is not None
+            and parsed_entry[0] == hostname
+            and (parsed_entry[1] is None or parsed_entry[1] == port)
+        ):
+            return True
+    return False
+
+
 def _validate_host(request: Request, allowed_hosts: list[str] | None) -> Response | None:
-    """Validate the Host header for a server bound to a loopback address.
+    """Validate the Host header for a server listening on a loopback address.
 
     Loopback names (``localhost``, ``127.0.0.1``, ``[::1]``) are always accepted, with or
     without a port. ``allowed_hosts`` adds names: an entry without a port matches any port,
-    an entry with a port matches only that port, and ``"*"`` turns the check off.
+    an entry with a port matches only that port, and ``"*"`` turns the check off. A missing
+    or malformed Host header is rejected.
 
     Returns a 403 Response if invalid, None if OK.
     """
-    if allowed_hosts and "*" in allowed_hosts:
-        return None
-
     host_header = request.headers.get("host")
-    if host_header:
-        hostname, port = _split_host(host_header)
-        if is_loopback_host(hostname):
-            return None
-        for entry in allowed_hosts or []:
-            entry_hostname, entry_port = _split_host(entry)
-            if entry_hostname == hostname and (entry_port is None or entry_port == port):
-                return None
-
+    if _host_is_allowed(host_header, list(allowed_hosts or [])):
+        return None
     logger.warning(
-        "Rejected an MCP request with Host %r: this server is bound to a loopback address. "
+        "Rejected a request to %s with Host %r: this server listens on a loopback address. "
         "If the request came through a tunnel or reverse proxy, add its hostname to %s.",
+        request.url.path,
         (host_header or "")[:255],
         ALLOWED_HOSTS_SETTING,
     )
@@ -338,8 +359,10 @@ class HTTPSessionManager:
             stateless: If True, creates fresh transport for each request
             bind_host: The address the HTTP server is bound to. When it is a loopback
                 address, requests whose Host header is not a loopback name (or listed in
-                ``server.allowed_hosts`` / ``trusted_hosts``) are rejected with 403.
-                None (unknown) leaves the Host header unchecked.
+                ``server.allowed_hosts`` / ``trusted_hosts``) are rejected with 403. A
+                non-loopback bind (``0.0.0.0``, ``::``, a LAN address) is not checked. When
+                None (unknown, e.g. the caller runs uvicorn itself), the check applies to
+                each connection that arrives on a loopback address (ASGI ``scope["server"]``).
             trusted_hosts: Hostnames accepted in addition to ``server.allowed_hosts``,
                 such as the host of the resource server's canonical URL.
         """
@@ -349,7 +372,6 @@ class HTTPSessionManager:
         self.stateless = stateless
         self.bind_host = bind_host
         self.trusted_hosts = list(trusted_hosts or [])
-        self.validates_host = bind_host is not None and is_loopback_host(bind_host)
 
         # Session tracking (only used if not stateless)
         self._session_creation_lock = anyio.Lock()
@@ -395,6 +417,28 @@ class HTTPSessionManager:
     def _allowed_hosts(self) -> list[str]:
         return [*(getattr(self.server, "allowed_hosts", None) or []), *self.trusted_hosts]
 
+    def host_check_applies(self, scope: Scope) -> bool:
+        """Whether the Host header is checked for this connection.
+
+        A known bind address decides; otherwise the connection's local address does.
+        """
+        if self.bind_host is not None:
+            return is_loopback_host(self.bind_host)
+        server = scope.get("server")
+        if not server:
+            return False
+        return is_loopback_host(str(server[0]))
+
+    async def reject_disallowed_host(self, scope: Scope, receive: Receive, send: Send) -> bool:
+        """Send a 403 and return True if this request's Host is not allowed."""
+        if not self.host_check_applies(scope):
+            return False
+        host_error = _validate_host(Request(scope, receive), self._allowed_hosts())
+        if host_error is None:
+            return False
+        await host_error(scope, receive, send)
+        return True
+
     def _log_request_validation_settings(self) -> None:
         """Log, once at startup, how Origin and Host headers will be checked."""
         allowed_origins = getattr(self.server, "allowed_origins", None)
@@ -405,9 +449,24 @@ class HTTPSessionManager:
                 "instead (MCP_TRANSPORT_ALLOWED_ORIGINS or allowed_origins on MCPApp)."
             )
 
-        if not self.validates_host:
+        configured_hosts = getattr(self.server, "allowed_hosts", None)
+        if self.bind_host is not None and not is_loopback_host(self.bind_host):
+            if configured_hosts:
+                logger.warning(
+                    "allowed_hosts is set but the server is bound to %s, which is not a "
+                    "loopback address, so the Host header is not checked. allowed_hosts "
+                    "applies to loopback binds only.",
+                    self.bind_host,
+                )
             return
         allowed_hosts = self._allowed_hosts()
+        if self.bind_host is None:
+            if "*" in allowed_hosts:
+                logger.warning(
+                    "Host header validation is off (allowed_hosts contains '*') for "
+                    "connections on a loopback address."
+                )
+            return
         if "*" in allowed_hosts:
             logger.warning(
                 "Host header validation is off (allowed_hosts contains '*') although the server "
@@ -445,11 +504,8 @@ class HTTPSessionManager:
         # --- Host validation on a loopback bind (ALL methods, before anything else) ---
         # Guards against DNS rebinding: a request routed to 127.0.0.1 under a foreign
         # hostname carries that hostname in Host, whether or not it has an Origin.
-        if self.validates_host:
-            host_error = _validate_host(request, self._allowed_hosts())
-            if host_error is not None:
-                await host_error(scope, receive, send)
-                return
+        if await self.reject_disallowed_host(scope, receive, send):
+            return
 
         # --- Origin validation (ALL methods) ---
         allowed_origins = getattr(self.server, "allowed_origins", None)

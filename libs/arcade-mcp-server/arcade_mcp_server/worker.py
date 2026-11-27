@@ -25,7 +25,7 @@ from fastapi import FastAPI
 from loguru import logger
 from starlette.requests import Request
 from starlette.responses import Response
-from starlette.types import Receive, Scope, Send
+from starlette.types import ASGIApp, Receive, Scope, Send
 
 from arcade_mcp_server.fastapi.auth_routes import create_auth_router
 from arcade_mcp_server.fastapi.middleware import AddTrailingSlashToPathMiddleware
@@ -74,6 +74,24 @@ class CustomUvicornServer(uvicorn.Server):
             logger.info(f"Cancelled {cancelled} active request(s)")
             self.force_exit = True
             os._exit(1)
+
+
+class _WorkerHostCheckMiddleware:
+    """Apply the session manager's Host check to /worker/* (used when worker auth is off)."""
+
+    def __init__(self, app: ASGIApp, get_session_manager: Callable[[], HTTPSessionManager | None]):
+        self._app = app
+        self._get_session_manager = get_session_manager
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        path = scope.get("path", "") if scope["type"] == "http" else ""
+        if path == "/worker" or path.startswith("/worker/"):
+            session_manager = self._get_session_manager()
+            if session_manager is not None and await session_manager.reject_disallowed_host(
+                scope, receive, send
+            ):
+                return
+        await self._app(scope, receive, send)
 
 
 @asynccontextmanager
@@ -163,8 +181,9 @@ def create_arcade_mcp(
         bind_host: The address the server will be bound to. When it is a loopback address,
             /mcp rejects requests whose Host header is not a loopback name, the host of the
             resource server's canonical URL, or listed in allowed_hosts
-            (MCP_TRANSPORT_ALLOWED_HOSTS). Pass it when serving the app yourself; None
-            leaves the Host header unchecked.
+            (MCP_TRANSPORT_ALLOWED_HOSTS); so does /worker/* when worker auth is disabled.
+            A non-loopback bind is not checked. When None, the check applies to each
+            connection that arrives on a loopback address.
         **kwargs: Additional configuration options
     """
     if mcp_settings is None:
@@ -267,6 +286,14 @@ def create_arcade_mcp(
         )
         worker.catalog = catalog
         logger.info("Worker routes enabled at /worker/* (ARCADE_WORKER_SECRET is set)")
+
+        if mcp_settings.arcade.auth_disabled:
+            # Without JWT auth nothing else stops a request that reached a loopback-bound
+            # server under a foreign hostname, so /worker/* gets the same Host check as /mcp.
+            app.add_middleware(
+                _WorkerHostCheckMiddleware,
+                get_session_manager=lambda: getattr(app.state, "session_manager", None),
+            )
 
     class _MCPASGIProxy:
         def __init__(self, parent_app: FastAPI):

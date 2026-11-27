@@ -38,11 +38,12 @@ INITIALIZE = {
         "clientInfo": {"name": "t", "version": "0"},
     },
 }
+WORKER_INVOKE = {"tool": {"name": "test_tool", "toolkit": "TestToolkit"}, "inputs": {"text": "hi"}}
 TOOLS_CALL = {
     "jsonrpc": "2.0",
     "id": 2,
     "method": "tools/call",
-    "params": {"name": "TestToolkit_sample_tool", "arguments": {}},
+    "params": {"name": "TestToolkit_test_tool", "arguments": {"text": "hi"}},
 }
 
 
@@ -54,7 +55,9 @@ async def _client(
     allowed_hosts: list[str] | None = None,
     trusted_hosts: list[str] | None = None,
     allowed_origins: list[str] | None = None,
+    base_url: str = "http://127.0.0.1",
 ) -> AsyncIterator[httpx.AsyncClient]:
+    """``base_url`` sets the connection's local address (ASGI ``scope["server"]``)."""
     mcp_server.allowed_origins = allowed_origins
     mcp_server.allowed_hosts = allowed_hosts
     manager = HTTPSessionManager(
@@ -66,7 +69,7 @@ async def _client(
     app = Starlette(routes=[Mount("/mcp", app=manager.handle_request)])
     async with manager.run():
         transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://127.0.0.1") as client:
+        async with httpx.AsyncClient(transport=transport, base_url=base_url) as client:
             yield client
 
 
@@ -87,6 +90,7 @@ def _assert_host_rejected(resp: httpx.Response) -> None:
     assert body["jsonrpc"] == "2.0"
     assert body["error"]["code"] == -32600
     assert body["error"]["message"].startswith("Forbidden: Host not allowed")
+    assert "not in the allowed list" in body["error"]["message"]
     # Tells the operator which setting accepts a tunnel or proxy hostname.
     assert "MCP_TRANSPORT_ALLOWED_HOSTS" in body["error"]["message"]
 
@@ -102,14 +106,70 @@ class TestLoopbackBind:
         _assert_host_rejected(resp)
 
     @pytest.mark.asyncio
-    async def test_spoofed_host_cannot_call_tools(self, mcp_server: MCPServer) -> None:
+    @pytest.mark.parametrize("method", ["GET", "POST", "DELETE", "OPTIONS"])
+    async def test_spoofed_host_is_rejected_for_every_method(
+        self, mcp_server: MCPServer, method: str
+    ) -> None:
         async with _client(mcp_server, bind_host="127.0.0.1") as client:
-            resp = await _post(
-                client,
-                "attacker.example",
-                body=TOOLS_CALL,
+            resp = await client.request(
+                method,
+                "/mcp/",
+                headers={**HEADERS, "Host": "attacker.example"},
+                content=json.dumps(INITIALIZE) if method == "POST" else None,
             )
         _assert_host_rejected(resp)
+
+    @pytest.mark.asyncio
+    async def test_spoofed_host_cannot_call_tools_on_an_existing_session(
+        self, mcp_server: MCPServer
+    ) -> None:
+        async with _client(mcp_server, bind_host="127.0.0.1") as client:
+            init = await _post(client, "127.0.0.1:8000")
+            assert init.status_code == 200, init.text
+            session = {"Mcp-Session-Id": init.headers["mcp-session-id"]}
+            initialized = {"jsonrpc": "2.0", "method": "notifications/initialized"}
+            await client.post("/mcp/", headers={**HEADERS, **session}, json=initialized)
+
+            spoofed = await client.post(
+                "/mcp/",
+                headers={**HEADERS, **session, "Host": "attacker.example"},
+                json=TOOLS_CALL,
+            )
+            # The same call under a loopback Host succeeds, so the 403 is the Host check.
+            loopback = await client.post("/mcp/", headers={**HEADERS, **session}, json=TOOLS_CALL)
+        _assert_host_rejected(spoofed)
+        assert loopback.status_code == 200, loopback.text
+        assert loopback.json()["result"]["isError"] is False
+
+    @pytest.mark.asyncio
+    async def test_missing_host_header_is_rejected(self, mcp_server: MCPServer) -> None:
+        mcp_server.allowed_origins = None
+        mcp_server.allowed_hosts = None
+        manager = HTTPSessionManager(server=mcp_server, json_response=True, bind_host="127.0.0.1")
+        sent: list[dict] = []
+
+        async def receive() -> dict:
+            return {"type": "http.request", "body": b"", "more_body": False}
+
+        async def send(message: dict) -> None:
+            sent.append(message)
+
+        scope = {
+            "type": "http",
+            "method": "POST",
+            "path": "/mcp/",
+            "raw_path": b"/mcp/",
+            "query_string": b"",
+            "root_path": "",
+            "headers": [(b"accept", b"application/json, text/event-stream")],
+            "server": ("127.0.0.1", 8000),
+            "client": ("127.0.0.1", 50000),
+        }
+        async with manager.run():
+            await manager.handle_request(scope, receive, send)
+        assert sent[0]["status"] == 403
+        body = json.loads(b"".join(m.get("body", b"") for m in sent[1:]))
+        assert body["error"]["message"].startswith("Forbidden: Host not allowed")
 
     @pytest.mark.asyncio
     async def test_spoofed_host_is_rejected_before_the_origin_check(
@@ -158,6 +218,10 @@ class TestLoopbackBind:
             "127.0.0.1.attacker.example",
             "attacker.example:127",
             "0.0.0.0:8000",
+            "[::1]evil.example",
+            "[::1]:8000evil",
+            "localhost:abc",
+            "127.0.0.1:",
         ],
     )
     async def test_lookalike_hosts_are_rejected(self, mcp_server: MCPServer, host: str) -> None:
@@ -180,10 +244,41 @@ class TestLoopbackBind:
 
 class TestNonLoopbackBind:
     @pytest.mark.asyncio
-    @pytest.mark.parametrize("bind_host", ["0.0.0.0", "::", "192.168.1.10", None])  # noqa: S104
-    async def test_any_host_is_accepted(self, mcp_server: MCPServer, bind_host: str | None) -> None:
+    @pytest.mark.parametrize("bind_host", ["0.0.0.0", "::", "192.168.1.10"])  # noqa: S104
+    async def test_any_host_is_accepted(self, mcp_server: MCPServer, bind_host: str) -> None:
+        # Even a connection that arrives on 127.0.0.1: the known bind address decides.
         async with _client(mcp_server, bind_host=bind_host) as client:
             resp = await _post(client, "mcp.example.com")
+        assert resp.status_code == 200, resp.text
+
+
+class TestUnknownBind:
+    """bind_host=None (the caller runs uvicorn itself): the connection's address decides."""
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("base_url", ["http://127.0.0.1:8000", "http://[::1]:8000"])
+    async def test_loopback_connection_is_checked(
+        self, mcp_server: MCPServer, base_url: str
+    ) -> None:
+        async with _client(mcp_server, bind_host=None, base_url=base_url) as client:
+            spoofed = await _post(client, "attacker.example")
+            loopback = await _post(client, "localhost:8000")
+        _assert_host_rejected(spoofed)
+        assert loopback.status_code == 200, loopback.text
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("base_url", ["http://10.0.0.5:8000", "http://testserver"])
+    async def test_non_loopback_connection_is_not_checked(
+        self, mcp_server: MCPServer, base_url: str
+    ) -> None:
+        async with _client(mcp_server, bind_host=None, base_url=base_url) as client:
+            resp = await _post(client, "mcp.example.com")
+        assert resp.status_code == 200, resp.text
+
+    @pytest.mark.asyncio
+    async def test_allowed_hosts_apply(self, mcp_server: MCPServer) -> None:
+        async with _client(mcp_server, bind_host=None, allowed_hosts=["abc.ngrok.app"]) as client:
+            resp = await _post(client, "abc.ngrok.app")
         assert resp.status_code == 200, resp.text
 
 
@@ -300,6 +395,27 @@ class TestStartupLogs:
         assert any("Host header validation is off" in m for m in warnings), warnings
 
 
+class TestAllowedHostsOnNonLoopbackBind:
+    @pytest.mark.asyncio
+    async def test_warns_that_allowed_hosts_is_ignored(
+        self, mcp_server: MCPServer, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        with caplog.at_level(logging.WARNING):
+            async with _client(mcp_server, bind_host="0.0.0.0", allowed_hosts=["a.example"]):  # noqa: S104
+                pass
+        warnings = [r.getMessage() for r in caplog.records if r.levelno == logging.WARNING]
+        assert any("applies to loopback binds only" in m for m in warnings), warnings
+
+    @pytest.mark.asyncio
+    async def test_no_warning_without_allowed_hosts(
+        self, mcp_server: MCPServer, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        with caplog.at_level(logging.WARNING):
+            async with _client(mcp_server, bind_host="0.0.0.0"):  # noqa: S104
+                pass
+        assert not any("loopback binds only" in r.getMessage() for r in caplog.records)
+
+
 class TestIsLoopbackHost:
     @pytest.mark.parametrize(
         "host", ["localhost", "LocalHost", "127.0.0.1", "127.1.2.3", "::1", "[::1]"]
@@ -389,9 +505,17 @@ class TestCreateArcadeMcp:
         assert loopback.status_code == 200, loopback.text
         assert worker.status_code == 200, worker.text
 
-    def test_without_bind_host_no_host_check(self, tool_catalog) -> None:
+    def test_without_bind_host_a_loopback_connection_is_checked(self, tool_catalog) -> None:
         app = create_arcade_mcp(tool_catalog, mcp_settings=self._settings())
-        with TestClient(app) as client:
+        with TestClient(app, base_url="http://127.0.0.1:8000") as client:
+            resp = client.post(
+                "/mcp/", headers={**HEADERS, "Host": "attacker.example"}, json=INITIALIZE
+            )
+        _assert_host_rejected(resp)
+
+    def test_without_bind_host_a_non_loopback_connection_is_not_checked(self, tool_catalog) -> None:
+        app = create_arcade_mcp(tool_catalog, mcp_settings=self._settings())
+        with TestClient(app, base_url="http://10.0.0.5:8000") as client:
             resp = client.post(
                 "/mcp/", headers={**HEADERS, "Host": "mcp.example.com"}, json=INITIALIZE
             )
@@ -426,6 +550,60 @@ class TestCreateArcadeMcp:
             )
         assert canonical.status_code == 200, canonical.text
         _assert_host_rejected(other)
+
+
+class TestWorkerRoutes:
+    """/worker/* is checked only when worker auth is disabled."""
+
+    @staticmethod
+    def _settings(*, auth_disabled: bool) -> MCPSettings:
+        settings = MCPSettings()
+        settings.arcade.server_secret = "test-worker-secret"  # noqa: S105
+        settings.arcade.auth_disabled = auth_disabled
+        return settings
+
+    @pytest.mark.parametrize("bind_host", ["127.0.0.1", None])
+    def test_auth_disabled_spoofed_host_is_rejected(
+        self, tool_catalog, bind_host: str | None
+    ) -> None:
+        app = create_arcade_mcp(
+            tool_catalog, mcp_settings=self._settings(auth_disabled=True), bind_host=bind_host
+        )
+        with TestClient(app, base_url="http://127.0.0.1:8000") as client:
+            spoofed = client.post(
+                "/worker/tools/invoke", headers={"Host": "attacker.example"}, json=WORKER_INVOKE
+            )
+            health = client.get("/worker/health", headers={"Host": "attacker.example"})
+            loopback = client.post("/worker/tools/invoke", json=WORKER_INVOKE)
+        _assert_host_rejected(spoofed)
+        _assert_host_rejected(health)
+        assert loopback.status_code == 200, loopback.text
+        assert loopback.json()["success"] is True
+
+    def test_auth_disabled_non_loopback_bind_is_not_checked(self, tool_catalog) -> None:
+        app = create_arcade_mcp(
+            tool_catalog,
+            mcp_settings=self._settings(auth_disabled=True),
+            bind_host="0.0.0.0",  # noqa: S104
+        )
+        with TestClient(app, base_url="http://127.0.0.1:8000") as client:
+            resp = client.post(
+                "/worker/tools/invoke", headers={"Host": "engine.example"}, json=WORKER_INVOKE
+            )
+        assert resp.status_code == 200, resp.text
+
+    def test_jwt_protected_worker_routes_are_not_host_checked(self, tool_catalog) -> None:
+        app = create_arcade_mcp(
+            tool_catalog, mcp_settings=self._settings(auth_disabled=False), bind_host="127.0.0.1"
+        )
+        with TestClient(app, base_url="http://127.0.0.1:8000") as client:
+            health = client.get("/worker/health", headers={"Host": "engine.example"})
+            invoke = client.post(
+                "/worker/tools/invoke", headers={"Host": "engine.example"}, json=WORKER_INVOKE
+            )
+        assert health.status_code == 200, health.text
+        # No JWT: the worker's own auth answers, not the Host check.
+        assert invoke.status_code == 401, invoke.text
 
 
 class TestBindHostPlumbing:
