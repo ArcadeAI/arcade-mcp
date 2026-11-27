@@ -77,11 +77,11 @@ mcp-gmail-agent
 │   └── tools/call list_emails (SERVER)           ← FROM SPAN PASSBACK
 │       ├── auth.validate (50ms)
 │       ├── gmail.list_messages (400ms)
-│       │   └── GET messages (HTTP)
+│       │   └── GET gmail.messages.list (HTTP)
 │       ├── gmail.fetch_details (1.6s)             ← bottleneck!
-│       │   ├── GET messages/abc (HTTP, 520ms)
-│       │   ├── GET messages/def (HTTP, 510ms)
-│       │   └── GET messages/ghi (HTTP, 530ms)
+│       │   ├── GET gmail.messages.get (HTTP, 520ms)
+│       │   ├── GET gmail.messages.get (HTTP, 510ms)
+│       │   └── GET gmail.messages.get (HTTP, 530ms)
 │       └── format_response (5ms)
 └── ChatOpenAI (LLM — final answer)
 ```
@@ -96,7 +96,16 @@ This is the core value of the SEP — **the consumer doesn't need access to the 
 
 ### Granularity Control
 
-The `--detailed` flag demonstrates the SEP's span filtering. Without it, the server returns only top-level phase spans (auth, list, fetch, format). With `--detailed`, the full tree including HTTP child spans is returned. This lets the server vendor control how much internal detail is exposed.
+The `--detailed` flag demonstrates the SEP's span filtering. Without it, the server returns only top-level phase spans (auth, list, fetch, format). With `--detailed`, the full tree including HTTP child spans is returned. The server decides how much internal detail is exposed, through two `TelemetryPassbackMiddleware` options in `server.py`:
+
+- `allow_detailed=True` lets clients request the nested span tree. It defaults to `False`, in which case a client's `detailed: true` is ignored and it gets the top-level phases only.
+- `extra_allowed_attributes` lists the span attribute keys the server is willing to return, on top of the defaults (`arcade_mcp_server.middleware.DEFAULT_PASSBACK_ATTRIBUTES`: `error.type` and `exception.type`). Every other attribute on a span, such as URLs, SQL statements, tool error messages, developer messages and any `mcp.*` / `gen_ai.*` key on a child span, is dropped from the passback. This example adds the `gen_ai.*` labels its own spans set, its phase counters and HTTP method/status codes. Events are filtered the same way by name (`extra_allowed_event_names`, default `exception` only).
+
+What the client still receives, whatever the allowlist:
+
+- The request span's `mcp.*` / `gen_ai.*` identity and `tool_error_kind`, set by the middleware.
+- The tool's arguments and result on the request span (`gen_ai.tool.call.arguments`, `gen_ai.input.messages`, `gen_ai.tool.call.result`, `gen_ai.output.messages`). This is the data the client already sent and received: for `send_email` that includes the recipient and subject, and for `list_emails` the senders, subjects and snippets.
+- Span names, verbatim. That is why `server.py` names HTTP spans by Gmail operation (`GET gmail.messages.get`) instead of by URL, which would carry message ids. URLs, message ids and the phase spans' recipient/subject attributes stay server-side.
 
 ```bash
 # Top-level phases only (default)
@@ -146,11 +155,11 @@ Open [http://localhost:16686](http://localhost:16686) and search for service **`
 **Server side** (`server.py`):
 1. Validates Bearer tokens via `ArcadeResourceServerAuth` (OAuth 2.1, RFC 9728 discovery)
 2. `TelemetryPassbackMiddleware` intercepts `tools/call` requests
-3. Reads `_meta.traceparent` and `_meta.otel.traces.{request, detailed}`
+3. Reads `_meta.traceparent` and `_meta.otel.traces.{request, detailed}` (`detailed` is honored because the server sets `allow_detailed=True`)
 4. Creates a SERVER span under the client's trace (via traceparent propagation)
 5. Tool function creates logical-phase spans with `gen_ai.*` semantic conventions
 6. httpx auto-instrumentation creates HTTP child spans for Gmail API calls
-7. Middleware serializes to OTLP JSON and attaches to `response._meta.otel.traces`
+7. Middleware keeps only allowlisted span attributes, serializes to OTLP JSON and attaches to `response._meta.otel.traces`
 
 **Client side** (`agent.py`):
 1. MCP SDK handles OAuth 2.1 automatically (discovers auth server on 401, PKCE flow, token caching)

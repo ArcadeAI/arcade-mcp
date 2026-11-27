@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 import logging
 import warnings
+from collections.abc import Iterable, Mapping
+from collections.abc import Set as AbstractSet
 from contextvars import ContextVar
 from typing import Any
 
@@ -18,6 +20,21 @@ from arcade_mcp_server.request_context import get_request_meta
 from arcade_mcp_server.types import JSONRPCResponse
 
 logger = logging.getLogger("arcade.mcp.telemetry")
+
+
+# Span and event attribute keys returned to the client by default, on any
+# span. Everything else that tool code, instrumented libraries or the framework
+# writes to a span (database statements, URLs, tool error messages, developer
+# messages, and any ``mcp.*`` / ``gen_ai.*`` key) is dropped from the passback
+# payload unless the operator adds the key through
+# ``TelemetryPassbackMiddleware(extra_allowed_attributes=...)``. The request
+# span's identity (``mcp.*`` / ``gen_ai.*``) and ``tool_error_kind`` are
+# returned separately, with values the middleware sets itself.
+DEFAULT_PASSBACK_ATTRIBUTES: frozenset[str] = frozenset({"error.type", "exception.type"})
+
+# Span event names returned to the client by default. Events with other names
+# are dropped, because event names are free-form text.
+DEFAULT_PASSBACK_EVENT_NAMES: frozenset[str] = frozenset({"exception"})
 
 
 # Per-request span collection via ContextVar
@@ -57,22 +74,44 @@ def stop_collecting() -> list[ReadableSpan]:
 
 
 # Span filtering
-def filter_top_level_spans(spans: list[ReadableSpan]) -> list[ReadableSpan]:
-    """Keep only the root span and its direct children (depth <= 1)."""
-    span_ids = {s.context.span_id for s in spans if s.context}
-    root = None
-    for s in spans:
-        if s.parent and s.parent.span_id not in span_ids:
-            root = s
-            break
-    if root is None:
+def filter_top_level_spans(
+    spans: list[ReadableSpan], root_span_id: int | None = None
+) -> list[ReadableSpan]:
+    """Keep only the root span and its direct children (depth <= 1).
+
+    ``root_span_id`` names the root explicitly. Without it, the root is the
+    first span whose parent is absent or not among ``spans``.
+    """
+    if root_span_id is None:
+        span_ids = {s.context.span_id for s in spans if s.context}
+        for s in spans:
+            if s.context and (s.parent is None or s.parent.span_id not in span_ids):
+                root_span_id = s.context.span_id
+                break
+    if root_span_id is None:
         return spans
-    root_id = root.context.span_id
     return [
         s
         for s in spans
-        if s.context.span_id == root_id or (s.parent and s.parent.span_id == root_id)
+        if (s.context and s.context.span_id == root_span_id)
+        or (s.parent and s.parent.span_id == root_span_id)
     ]
+
+
+def filter_descendant_spans(spans: list[ReadableSpan], root_span_id: int) -> list[ReadableSpan]:
+    """Keep the root span and every span below it, dropping unrelated spans."""
+    children: dict[int, list[ReadableSpan]] = {}
+    for s in spans:
+        if s.parent is not None:
+            children.setdefault(s.parent.span_id, []).append(s)
+    keep: set[int] = {root_span_id}
+    stack = [root_span_id]
+    while stack:
+        for child in children.get(stack.pop(), []):
+            if child.context and child.context.span_id not in keep:
+                keep.add(child.context.span_id)
+                stack.append(child.context.span_id)
+    return [s for s in spans if s.context and s.context.span_id in keep]
 
 
 # OTLP JSON serialization
@@ -121,16 +160,48 @@ def _attrs_to_kv(attrs: dict[str, Any] | None) -> list[dict[str, Any]]:
     return out
 
 
+def _select_attributes(
+    attrs: Mapping[str, Any] | None, allowed: AbstractSet[str] | None
+) -> dict[str, Any]:
+    if not attrs:
+        return {}
+    if allowed is None:
+        return dict(attrs)
+    return {k: v for k, v in attrs.items() if k in allowed}
+
+
 def spans_to_otlp_json(
     spans: list[ReadableSpan],
     service_name: str,
+    *,
+    allowed_attributes: AbstractSet[str] | None = None,
+    pinned_attributes: Mapping[int, Mapping[str, Any]] | None = None,
+    allowed_event_names: AbstractSet[str] | None = None,
 ) -> dict[str, Any]:
-    """Convert ReadableSpan objects to OTLP JSON (ExportTraceServiceRequest)."""
+    """Convert ReadableSpan objects to OTLP JSON (ExportTraceServiceRequest).
+
+    Only the span name, kind, ids, timing, status code, attributes and event
+    names/attributes are serialized. Status descriptions, links and the
+    tracer provider's resource attributes are never included; the resource
+    carries only ``service.name``.
+
+    Args:
+        allowed_attributes: When given, only span and event attribute keys in
+            this set are serialized. ``None`` serializes every attribute.
+        pinned_attributes: Per span id, attributes to emit with exactly these
+            values, regardless of ``allowed_attributes`` and of what other code
+            later wrote to the span under the same keys.
+        allowed_event_names: When given, only events with these names are
+            serialized. ``None`` serializes every event.
+    """
     otlp_spans: list[dict[str, Any]] = []
     for span in spans:
         ctx = span.context
         if ctx is None:
             continue
+        attrs = _select_attributes(span.attributes, allowed_attributes)
+        if pinned_attributes and ctx.span_id in pinned_attributes:
+            attrs.update(pinned_attributes[ctx.span_id])
         rec: dict[str, Any] = {
             "traceId": format(ctx.trace_id, "032x"),
             "spanId": format(ctx.span_id, "016x"),
@@ -138,19 +209,26 @@ def spans_to_otlp_json(
             "kind": _SPAN_KIND_MAP.get(span.kind, 0),
             "startTimeUnixNano": _ns(span.start_time),
             "endTimeUnixNano": _ns(span.end_time),
-            "attributes": _attrs_to_kv(dict(span.attributes) if span.attributes else None),
+            "attributes": _attrs_to_kv(attrs),
             "status": {"code": _STATUS_CODE_MAP.get(span.status.status_code, 0)},
         }
         if span.parent and span.parent.span_id:
             rec["parentSpanId"] = format(span.parent.span_id, "016x")
-        if span.events:
+        events = [
+            ev
+            for ev in span.events or ()
+            if allowed_event_names is None or ev.name in allowed_event_names
+        ]
+        if events:
             rec["events"] = [
                 {
                     "timeUnixNano": _ns(ev.timestamp),
                     "name": ev.name,
-                    "attributes": _attrs_to_kv(dict(ev.attributes) if ev.attributes else None),
+                    "attributes": _attrs_to_kv(
+                        _select_attributes(ev.attributes, allowed_attributes)
+                    ),
                 }
-                for ev in span.events
+                for ev in events
             ]
         otlp_spans.append(rec)
 
@@ -181,9 +259,68 @@ class TelemetryPassbackMiddleware(Middleware):
     2. Collect server-side spans during request execution (per-request
        isolation via ContextVar).
     3. Return spans in the response _meta.otel.traces.resourceSpans.
+
+    The payload goes to whoever called the tool, so it is filtered on the
+    server's terms, independent of what other code writes to spans:
+
+    * On the request span, the ``mcp.*`` / ``gen_ai.*`` identity, the tool
+      arguments and result text (the same data the client sent and received)
+      and ``tool_error_kind`` (taken from the result's
+      ``_meta.arcade.errorKind``) are values this middleware sets itself.
+      Values other code writes under those keys are ignored.
+    * On every span, other attributes (span and event) are returned only when
+      their key is in :data:`DEFAULT_PASSBACK_ATTRIBUTES` (``error.type``,
+      ``exception.type``) or ``extra_allowed_attributes``. ``mcp.*`` and
+      ``gen_ai.*`` keys on child spans, tool error messages, developer
+      messages, database statements, URLs and anything else are dropped.
+    * Events are returned only when their name is in
+      :data:`DEFAULT_PASSBACK_EVENT_NAMES` (``exception``) or
+      ``extra_allowed_event_names``.
+    * Status descriptions, span links and the tracer provider's resource
+      attributes are never returned.
+    * By default only the request span and its direct children are returned.
+      A client's ``detailed: true`` is ignored unless the server sets
+      ``allow_detailed=True``. ``request`` and ``detailed`` must be JSON
+      ``true``; any other value counts as false.
+
+    Limits operators should know about:
+
+    * **Span names are returned verbatim**, for the request span's children
+      (and all descendants with ``allow_detailed``). Avoid instrumentation
+      whose span names hold data, such as full URLs or query text.
+    * Spans are collected through a ``ContextVar``, so an asyncio task first
+      started while a passback request is running inherits that request's
+      collection. Spans that a long-lived task started there ends later, on
+      behalf of other callers, can land in the first caller's payload (still
+      filtered as above).
+
+    Args:
+        service_name: ``service.name`` reported in the payload's resource.
+        tracer_provider: SDK provider whose spans are collected.
+        extra_allowed_attributes: Additional span/event attribute keys the
+            operator accepts returning to clients, on any span. Adding
+            ``tool_error_developer_message`` (or similar) exposes data the
+            framework otherwise withholds from callers.
+        extra_allowed_event_names: Additional span event names to return.
+        allow_detailed: Let clients request the full nested span tree with
+            ``_meta.otel.traces.detailed: true``. Defaults to ``False``.
     """
 
-    def __init__(self, service_name: str, tracer_provider: TracerProvider) -> None:
+    def __init__(
+        self,
+        service_name: str,
+        tracer_provider: TracerProvider,
+        *,
+        extra_allowed_attributes: Iterable[str] = (),
+        extra_allowed_event_names: Iterable[str] = (),
+        allow_detailed: bool = False,
+    ) -> None:
+        for arg_name, value in (
+            ("extra_allowed_attributes", extra_allowed_attributes),
+            ("extra_allowed_event_names", extra_allowed_event_names),
+        ):
+            if isinstance(value, str):
+                raise TypeError(f"{arg_name} must be a collection of strings, not a string")
         warnings.warn(
             "TelemetryPassbackMiddleware implements a draft version of SEP "
             "(SEP-2448: server execution telemetry) that is not yet finalized. "
@@ -192,6 +329,11 @@ class TelemetryPassbackMiddleware(Middleware):
             stacklevel=2,
         )
         self._service_name = service_name
+        self._allowed_attributes = DEFAULT_PASSBACK_ATTRIBUTES | frozenset(extra_allowed_attributes)
+        self._allowed_event_names = DEFAULT_PASSBACK_EVENT_NAMES | frozenset(
+            extra_allowed_event_names
+        )
+        self._allow_detailed = allow_detailed
         self._tracer = tracer_provider.get_tracer(service_name)
         self._propagator = TraceContextTextMapPropagator()
         self._collector = ContextVarSpanCollector()
@@ -221,10 +363,13 @@ class TelemetryPassbackMiddleware(Middleware):
         otel_meta = getattr(meta, "otel", None)
         traces = otel_meta.get("traces", {}) if isinstance(otel_meta, dict) else {}
 
+        if not isinstance(traces, dict):
+            traces = {}
+
         return {
             "traceparent": getattr(meta, "traceparent", None),
-            "request": traces.get("request", False) if isinstance(traces, dict) else False,
-            "detailed": traces.get("detailed", False) if isinstance(traces, dict) else False,
+            "request": traces.get("request") is True,
+            "detailed": traces.get("detailed") is True,
         }
 
     def _parent_context(self, traceparent: str | None) -> Any:
@@ -232,19 +377,34 @@ class TelemetryPassbackMiddleware(Middleware):
             return self._propagator.extract(carrier={"traceparent": traceparent})
         return otel_context.get_current()
 
-    def _attach_spans(self, response: Any, collected: list[ReadableSpan], detailed: bool) -> Any:
-        if not detailed:
-            filtered = filter_top_level_spans(collected)
-            dropped = len(collected) - len(filtered)
+    def _attach_spans(
+        self,
+        response: Any,
+        collected: list[ReadableSpan],
+        detailed: bool,
+        root_span_id: int,
+        own_attributes: Mapping[str, Any],
+    ) -> Any:
+        if detailed and self._allow_detailed:
+            filtered = filter_descendant_spans(collected, root_span_id)
         else:
-            filtered = collected
-            dropped = 0
+            if detailed:
+                logger.debug(
+                    "Client requested detailed spans; returning top-level spans only "
+                    "because allow_detailed is not enabled"
+                )
+            filtered = filter_top_level_spans(collected, root_span_id)
+        dropped = len(collected) - len(filtered)
 
         payload = {
             "traces": {
-                "resourceSpans": spans_to_otlp_json(filtered, self._service_name).get(
-                    "resourceSpans", []
-                ),
+                "resourceSpans": spans_to_otlp_json(
+                    filtered,
+                    self._service_name,
+                    allowed_attributes=self._allowed_attributes,
+                    pinned_attributes={root_span_id: own_attributes},
+                    allowed_event_names=self._allowed_event_names,
+                ).get("resourceSpans", []),
                 "truncated": dropped > 0,
                 "droppedSpanCount": dropped,
             }
@@ -258,6 +418,19 @@ class TelemetryPassbackMiddleware(Middleware):
                 result.meta = meta
 
         return response
+
+    @staticmethod
+    def _extract_error_kind(response: Any) -> str | None:
+        """Return the error kind the server reported in ``_meta.arcade.errorKind``."""
+        if not isinstance(response, JSONRPCResponse) or response.result is None:
+            return None
+        result = response.result
+        if getattr(result, "isError", None) is not True:
+            return None
+        meta = getattr(result, "meta", None)
+        arcade = meta.get("arcade") if isinstance(meta, dict) else None
+        kind = arcade.get("errorKind") if isinstance(arcade, dict) else None
+        return kind if isinstance(kind, str) else None
 
     @staticmethod
     def _extract_response_text(response: Any) -> str | None:
@@ -287,31 +460,49 @@ class TelemetryPassbackMiddleware(Middleware):
             return await call_next(context)
 
         start_collecting()
+        # Attributes this middleware writes to its own span. They are returned
+        # with exactly these values; everything else goes through the allowlist.
+        own_attributes: dict[str, Any] = dict(span_attributes or {})
 
         try:
             with self._tracer.start_as_current_span(
                 span_name,
                 context=self._parent_context(otel.get("traceparent")),
                 kind=SpanKind.SERVER,
-                attributes=span_attributes or {},
+                attributes=own_attributes,
             ) as span:
+                root_span_id = span.get_span_context().span_id
+
+                def record(key: str, value: str) -> None:
+                    own_attributes[key] = value
+                    span.set_attribute(key, value)
+
                 if tool_arguments:
-                    span.set_attribute(
+                    record(
                         "gen_ai.input.messages",
                         json.dumps([{"role": "user", "content": tool_arguments}]),
                     )
                 response = await call_next(context)
+                error_kind = self._extract_error_kind(response)
+                if error_kind:
+                    record("tool_error_kind", error_kind)
                 output = self._extract_response_text(response)
                 if output:
-                    span.set_attribute("gen_ai.tool.call.result", output[:500])
-                    span.set_attribute(
+                    record("gen_ai.tool.call.result", output[:500])
+                    record(
                         "gen_ai.output.messages",
                         json.dumps([{"role": "assistant", "content": output}]),
                     )
         finally:
             collected = stop_collecting()
 
-        return self._attach_spans(response, collected, otel.get("detailed", False))
+        return self._attach_spans(
+            response,
+            collected,
+            otel.get("detailed") is True,
+            root_span_id,
+            own_attributes,
+        )
 
     async def on_call_tool(
         self,
