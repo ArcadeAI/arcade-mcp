@@ -1,6 +1,8 @@
+from dataclasses import dataclass
 from typing import Annotated
 
 import pytest
+from arcade_core import executor as executor_module
 from arcade_core.catalog import ToolCatalog
 from arcade_core.errors import (
     ContextRequiredToolError,
@@ -16,6 +18,7 @@ from arcade_tdk.errors import (
     RetryableToolError,
     ToolExecutionError,
 )
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
 from typing_extensions import TypedDict
 
 
@@ -464,15 +467,60 @@ def scores_by_name_tool() -> Annotated[dict[str, int], "Scores keyed by person"]
     return {"jane_doe_ssn_987654321": "high", "john_roe_ssn_123123123": "low"}  # type: ignore[dict-item]
 
 
+class AliasedRecord(BaseModel):
+    ssn_number: int = Field(alias="SSN")
+    tax_id: int = Field(default=0, validation_alias=AliasChoices("taxId", "tax_id"))
+
+
 @tool
-def scores_input_tool(
-    scores: Annotated[dict[str, int], "Scores keyed by person"],
-) -> Annotated[str, "output"]:
-    """Accept a mapping whose keys come from the caller."""
-    return "ok"
+def aliased_record_tool() -> Annotated[AliasedRecord, "A record with aliased fields"]:
+    """Pass through a record whose aliased fields have the wrong type."""
+    return {"SSN": SECRET_SSN, "taxId": "987-65-4321"}  # type: ignore[return-value]
 
 
-for leak_tool in (customer_passthrough_tool, scores_by_name_tool, scores_input_tool):
+class LookedUpRecord(BaseModel):
+    ssn: str
+
+    @field_validator("ssn")
+    @classmethod
+    def look_up(cls, value: str) -> str:
+        # Raises KeyError, whose text is the value itself, and Pydantic does not wrap it.
+        return {"known": "ok"}[value]
+
+
+@tool
+def output_validator_key_error_tool() -> Annotated[LookedUpRecord, "A looked-up record"]:
+    """Return a record whose output validator raises KeyError."""
+    return {"ssn": SECRET_SSN}  # type: ignore[return-value]
+
+
+class _Uncomparable:
+    def __eq__(self, other: object) -> bool:
+        raise ValueError("cannot compare")
+
+    __hash__ = object.__hash__
+
+
+class WeirdDefaultRecord(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    ssn: int
+    settings: dict = {"type": _Uncomparable()}
+
+
+@tool
+def weird_default_tool() -> Annotated[WeirdDefaultRecord, "A record with an odd default"]:
+    """Return a record whose schema holds a default the schema walk cannot compare."""
+    return {"ssn": SECRET_SSN}  # type: ignore[return-value]
+
+
+for leak_tool in (
+    customer_passthrough_tool,
+    scores_by_name_tool,
+    aliased_record_tool,
+    output_validator_key_error_tool,
+    weird_default_tool,
+):
     catalog.add_tool(leak_tool, "LeakToolkit")
 
 
@@ -524,13 +572,65 @@ async def test_output_validation_error_does_not_leak_dict_keys():
 
 
 @pytest.mark.asyncio
-async def test_input_validation_error_developer_message_does_not_leak_dict_keys():
-    """The input side shares the rule: caller-supplied keys stay out of
-    developer_message, which is logged and recorded on spans."""
-    output = await _run_tool(scores_input_tool, scores={"jane_doe_ssn_987654321": "high"})
+async def test_output_validation_error_keeps_declared_aliases():
+    """Locations use a field's alias. A declared alias (plain or AliasChoices) is
+    part of the schema, so it is reported by name; the values are not."""
+    output = await _run_tool(aliased_record_tool)
+
+    _assert_absent(output, SECRET_SSN, "987-65-4321")
+    assert "result.SSN[int_parsing]" in output.error.developer_message
+    assert "result.taxId[int_parsing]" in output.error.developer_message
+
+
+@pytest.mark.asyncio
+async def test_output_validator_exception_does_not_leak_output_values():
+    """A validator exception Pydantic does not wrap (here a KeyError, whose text
+    is the value) is reported by its type only, as on the input side."""
+    output = await _run_tool(output_validator_key_error_tool)
 
     assert output.error is not None
-    assert output.error.kind == ErrorKind.TOOL_RUNTIME_BAD_INPUT_VALUE
-    assert "scores.*[int_parsing]" in output.error.developer_message
-    assert "jane_doe_ssn_987654321" not in output.error.developer_message
-    assert "high" not in output.error.developer_message
+    assert output.error.kind == ErrorKind.TOOL_RUNTIME_BAD_OUTPUT_VALUE
+    _assert_absent(output, SECRET_SSN)
+    assert "Output validator raised KeyError" in output.error.developer_message
+    assert output.error.stacktrace is None
+
+
+@pytest.mark.asyncio
+async def test_output_error_summary_failure_does_not_leak_output_values():
+    """If summarizing the error fails, a placeholder is reported instead of an
+    exception that would carry the ValidationError (and the value) as context."""
+    output = await _run_tool(weird_default_tool)
+
+    assert output.error is not None
+    assert output.error.kind == ErrorKind.TOOL_RUNTIME_BAD_OUTPUT_VALUE
+    _assert_absent(output, SECRET_SSN)
+    assert "result.ssn[int_parsing]" in output.error.developer_message
+
+
+@pytest.mark.asyncio
+async def test_output_error_summary_falls_back_to_placeholder(monkeypatch):
+    def broken(model):
+        raise RuntimeError("schema walk failed")
+
+    monkeypatch.setattr(executor_module, "_declared_names", broken)
+    output = await _run_tool(customer_passthrough_tool)
+
+    assert output.error is not None
+    assert output.error.kind == ErrorKind.TOOL_RUNTIME_BAD_OUTPUT_VALUE
+    _assert_absent(output, SECRET_SSN)
+    assert "<unavailable>" in output.error.developer_message
+
+
+@dataclass
+class _DataclassItem:
+    item_code: int
+
+
+class _ModelWithDataclass(BaseModel):
+    items: list[_DataclassItem]
+
+
+def test_declared_names_include_dataclass_fields():
+    names = executor_module._declared_names(_ModelWithDataclass)
+
+    assert {"items", "item_code"} <= names
