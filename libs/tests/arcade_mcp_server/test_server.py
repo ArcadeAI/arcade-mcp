@@ -4450,7 +4450,7 @@ class TestDisabledEntriesWarnings:
         catalog.add_tool(delete_all, "Admin")
         catalog.add_tool(export_v2, "Admin")
 
-        with caplog.at_level(logging.WARNING):
+        with caplog.at_level(logging.INFO):
             server = MCPServer(
                 catalog=catalog, name="Test Server", version="1.0.0", settings=mcp_settings
             )
@@ -4460,9 +4460,16 @@ class TestDisabledEntriesWarnings:
             finally:
                 await server.stop()
 
-        warnings = [rec.getMessage() for rec in caplog.records if rec.levelno == logging.WARNING]
-        disabled_warnings = [w for w in warnings if "ARCADE_DISABLED_" in w]
+        def disabled_messages(level: int) -> list[str]:
+            return [
+                rec.getMessage()
+                for rec in caplog.records
+                if rec.levelno == level and "ARCADE_DISABLED_" in rec.getMessage()
+            ]
+
         assert tool_names == ["Admin_ExportV2"]
-        assert len(disabled_warnings) == 2, disabled_warnings
-        assert any("'admin.deletealll'" in w for w in disabled_warnings)
-        assert any("'billing'" in w for w in disabled_warnings)
+        # A typo in a toolkit this server loads warns; a toolkit it never loads is INFO.
+        warnings = disabled_messages(logging.WARNING)
+        assert len(warnings) == 1, warnings
+        assert "'admin.deletealll'" in warnings[0]
+        assert any("'billing'" in m for m in disabled_messages(logging.INFO))

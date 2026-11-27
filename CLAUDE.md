@@ -245,8 +245,8 @@ The `arcade` CLI (`libs/arcade-cli/arcade_cli/main.py`) is typer-based. Key comm
 |---------|---------|
 | `ARCADE_WORKER_SECRET` | Enables `/worker/*` endpoints for Arcade Engine integration |
 | `ARCADE_WORKER_SECRETS` | JSON array of secrets `/worker/*` accepts alongside `ARCADE_WORKER_SECRET` (never signs with), for zero-downtime worker secret rotation |
-| `ARCADE_DISABLED_TOOLS` | Comma-separated tools to exclude from catalog, as `Toolkit.Tool` (e.g. `Admin.ExportV2`); `Toolkit_Tool` and `Toolkit::Tool` also work. Case-insensitive; malformed or unmatched entries log a warning |
-| `ARCADE_DISABLED_TOOLKITS` | Comma-separated toolkit names to exclude from catalog (e.g. `Admin`, or `admin_tools` / `AdminTools`). Case-insensitive; malformed or unmatched entries log a warning |
+| `ARCADE_DISABLED_TOOLS` | Comma-separated tools to exclude from catalog. Write `Toolkit.Tool` (e.g. `Admin.ExportV2`), the form every consumer of this variable accepts; `Toolkit_Tool` and `Toolkit::Tool` are accepted aliases. Case-insensitive. A malformed entry logs a warning; an entry that matches nothing is reported when an MCP server starts |
+| `ARCADE_DISABLED_TOOLKITS` | Comma-separated toolkit names to exclude from catalog (e.g. `Admin`). The given name (`admin_tools`), catalog name (`AdminTools`) and package name (`arcade-admin-tools`) all match. Case-insensitive. A malformed entry logs a warning; an entry that matches nothing is reported when an MCP server starts |
 | `ARCADE_API_KEY` | API key for Arcade Cloud (deploy, evals) |
 | `ARCADE_API_BASE_URL` | Arcade API endpoint (default: `https://api.arcade.dev`) |
 | `ARCADE_ENVIRONMENT` | Environment label (`dev`, `prod`) — used in telemetry |

@@ -90,6 +90,7 @@ from arcade_core.utils import (
     is_union,
     normalize_toolkit_name,
     snake_to_pascal_case,
+    strip_arcade_prefix,
 )
 
 logger = logging.getLogger(__name__)
@@ -187,6 +188,10 @@ _DISABLED_TOOLKITS_ENV = "ARCADE_DISABLED_TOOLKITS"
 # a function name) plus "-", which package names allow.
 _NAME_PART = r"[\w-]+"
 
+# (variable, entry) pairs already reported as malformed. A process can build
+# several catalogs from the same environment; the operator needs to hear once.
+_warned_malformed_entries: set[tuple[str, str]] = set()
+
 
 def _tool_name_separators() -> tuple[str, ...]:
     """The separators a disabled-tool entry may put between toolkit and tool name.
@@ -203,14 +208,63 @@ def _read_disable_list(env_var: str) -> list[str]:
     return [entry.strip() for entry in os.getenv(env_var, "").split(",") if entry.strip()]
 
 
-def _tool_name_keys(toolkit_name: str, tool_name: str) -> set[str]:
-    """Every lower-cased spelling a disabled-tool entry may use for this tool."""
-    return {f"{toolkit_name}{sep}{tool_name}".lower() for sep in _tool_name_separators()}
+def _warn_malformed_once(env_var: str, entry: str, message: str) -> None:
+    if (env_var, entry) in _warned_malformed_entries:
+        return
+    _warned_malformed_entries.add((env_var, entry))
+    logger.warning(message)
 
 
-def _toolkit_name_keys(toolkit_name: str) -> set[str]:
-    """A toolkit's name as given and as the catalog shows it, lower-cased."""
-    return {toolkit_name.lower(), normalize_toolkit_name(toolkit_name).lower()}
+def _toolkit_name_keys(name: str) -> set[str]:
+    """The lower-cased spellings that name this toolkit.
+
+    A toolkit can be written as it was given (``admin_tools``), as the catalog
+    shows it (``AdminTools``), or as its package (``arcade-admin-tools``,
+    ``arcade_admin_tools``). Entries and toolkits both go through this, and two
+    names match when their keys meet, so the match is symmetric.
+    """
+    snake = name.replace("-", "_")
+    keys = {name.lower()}
+    for form in (name, snake, strip_arcade_prefix(snake.lower())):
+        if form:
+            keys.add(normalize_toolkit_name(form).lower())
+    return keys
+
+
+@dataclass(frozen=True)
+class _ToolEntryReading:
+    """One way to read a disabled-tool entry as a toolkit and a tool."""
+
+    toolkit_keys: frozenset[str]
+    tool: str  # lower-cased
+    well_formed: bool  # both parts are plain names
+
+
+def _read_tool_entry(entry: str) -> list[_ToolEntryReading]:
+    """Every (toolkit, tool) reading of an entry: one per separator it contains.
+
+    ``admin_tools.DeleteAll`` reads as ``admin`` + ``tools.DeleteAll`` and as
+    ``admin_tools`` + ``DeleteAll``. Matching tries every reading; a reading
+    whose tool part is not a plain name cannot be a real tool, so it only counts
+    for matching, not for deciding where an unmatched entry points.
+    """
+    readings = []
+    for sep in dict.fromkeys(_tool_name_separators()):
+        at = entry.find(sep)
+        while at != -1:
+            toolkit, tool = entry[:at], entry[at + len(sep) :]
+            if toolkit and tool:
+                readings.append(
+                    _ToolEntryReading(
+                        toolkit_keys=frozenset(_toolkit_name_keys(toolkit)),
+                        tool=tool.lower(),
+                        well_formed=bool(
+                            re.fullmatch(_NAME_PART, toolkit) and re.fullmatch(_NAME_PART, tool)
+                        ),
+                    )
+                )
+            at = entry.find(sep, at + 1)
+    return readings
 
 
 @dataclass
@@ -238,9 +292,11 @@ class ToolCatalog(BaseModel):
     _disabled_toolkits: _DisableList = PrivateAttr(
         default_factory=lambda: _DisableList(_DISABLED_TOOLKITS_ENV)
     )
-    # Lower-cased names of the toolkits a toolkit entry has disabled. A disabled
-    # toolkit's tools are never read, so a tool entry inside one is covered
-    # rather than unmatched.
+    # How each disabled-tool entry reads as toolkit + tool, keyed by entry.
+    _disabled_tool_readings: dict[str, list[_ToolEntryReading]] = PrivateAttr(default_factory=dict)
+    # Name keys of every toolkit offered to this catalog, and of those a toolkit
+    # entry disabled. They decide how loudly an unmatched tool entry is reported.
+    _toolkit_names_seen: set[str] = PrivateAttr(default_factory=set)
     _disabled_toolkit_names: set[str] = PrivateAttr(default_factory=set)
 
     # Resources ride the catalog because it is the only object handed to the
@@ -261,20 +317,20 @@ class ToolCatalog(BaseModel):
     def _load_disabled_tools(self) -> None:
         """Load ARCADE_DISABLED_TOOLS, a comma-separated list of tools to keep out of the catalog.
 
-        Each entry names one tool as ``Toolkit.Tool`` (toolkit and tool name joined by
-        TOOL_NAME_SEPARATOR, as the catalog shows them), ``Toolkit_Tool`` (as MCP clients show
-        them) or ``Toolkit::Tool``. Matching ignores case and the whitespace around entries.
+        Each entry names one tool as ``Toolkit.Tool``. ``Toolkit_Tool`` (as MCP clients show
+        it), ``Toolkit::Tool`` and TOOL_NAME_SEPARATOR are accepted too. The toolkit part
+        matches like an ARCADE_DISABLED_TOOLKITS entry; the tool part matches the tool's
+        catalog name. Matching ignores case and the whitespace around entries.
 
         An entry of any other shape is still applied, in case it is a tool's exact name, but it
-        logs a warning, because it most likely disables nothing.
+        logs a warning.
         """
-        separators = "|".join(re.escape(sep) for sep in _tool_name_separators())
-        tool_shape = re.compile(rf"{_NAME_PART}(?:{separators}){_NAME_PART}")
-
         for entry in _read_disable_list(_DISABLED_TOOLS_ENV):
             key = entry.lower()
+            readings = _read_tool_entry(entry)
             self._disabled_tools.entries.add(key)
-            if tool_shape.fullmatch(entry):
+            self._disabled_tool_readings[key] = readings
+            if any(reading.well_formed for reading in readings):
                 continue
 
             self._disabled_tools.malformed.add(key)
@@ -283,19 +339,22 @@ class ToolCatalog(BaseModel):
                 if re.fullmatch(_NAME_PART, entry)
                 else ""
             )
-            logger.warning(
-                f"{_DISABLED_TOOLS_ENV} entry {entry!r} is not a tool name of the form "
-                f"Toolkit{TOOL_NAME_SEPARATOR}Tool, so it is unlikely to disable anything.{hint}"
+            _warn_malformed_once(
+                _DISABLED_TOOLS_ENV,
+                entry,
+                f"{_DISABLED_TOOLS_ENV} entry {entry!r} is not in the form "
+                f"Toolkit{TOOL_NAME_SEPARATOR}Tool. It is still applied, but it may not match "
+                f"the tool you meant.{hint}",
             )
 
     def _load_disabled_toolkits(self) -> None:
         """Load ARCADE_DISABLED_TOOLKITS, a comma-separated list of toolkits to keep out.
 
         Each entry is a toolkit name, matched ignoring case and the whitespace around entries,
-        against both the name the toolkit was given (``admin_tools``) and the name the catalog
-        shows for it (``AdminTools``).
+        against the name the toolkit was given (``admin_tools``), the name the catalog shows
+        (``AdminTools``) and its package name (``arcade-admin-tools``).
 
-        An entry that is not a single name is still applied, but it logs a warning.
+        An entry that is not a plain name is still applied, but it logs a warning.
         """
         for entry in _read_disable_list(_DISABLED_TOOLKITS_ENV):
             key = entry.lower()
@@ -304,21 +363,33 @@ class ToolCatalog(BaseModel):
                 continue
 
             self._disabled_toolkits.malformed.add(key)
-            logger.warning(
-                f"{_DISABLED_TOOLKITS_ENV} entry {entry!r} is not a toolkit name, so it is "
-                f"unlikely to disable anything. To disable a single tool, list it in "
-                f"{_DISABLED_TOOLS_ENV}."
+            hint = (
+                f" To disable a single tool, list it in {_DISABLED_TOOLS_ENV}."
+                if any(reading.well_formed for reading in _read_tool_entry(entry))
+                else ""
+            )
+            _warn_malformed_once(
+                _DISABLED_TOOLKITS_ENV,
+                entry,
+                f"{_DISABLED_TOOLKITS_ENV} entry {entry!r} is not a plain toolkit name. It is "
+                f"still applied, but it may not match the toolkit you meant.{hint}",
             )
 
-    def _is_tool_disabled(self, toolkit_name: str, tool_name: str) -> bool:
+    def _is_tool_disabled(self, toolkit_names: set[str], tool_name: str) -> bool:
         """Whether an ARCADE_DISABLED_TOOLS entry names this tool. Records the match."""
-        matched = self._disabled_tools.entries & _tool_name_keys(toolkit_name, tool_name)
+        tool = tool_name.lower()
+        matched = {
+            key
+            for key, readings in self._disabled_tool_readings.items()
+            if any(r.tool == tool and r.toolkit_keys & toolkit_names for r in readings)
+        }
         self._disabled_tools.matched |= matched
         return bool(matched)
 
     def _is_toolkit_disabled(self, toolkit_name: str) -> bool:
         """Whether an ARCADE_DISABLED_TOOLKITS entry names this toolkit. Records the match."""
         names = _toolkit_name_keys(toolkit_name)
+        self._toolkit_names_seen |= names
         matched = {
             entry for entry in self._disabled_toolkits.entries if _toolkit_name_keys(entry) & names
         }
@@ -329,27 +400,31 @@ class ToolCatalog(BaseModel):
         return True
 
     def warn_unmatched_disabled_entries(self) -> None:
-        """Log a warning for each disable entry that has not matched anything in the catalog.
+        """Report each disable entry that has not matched anything in the catalog.
 
-        Call this once the catalog is loaded. Entries already reported as malformed are not
-        reported again, and a tool entry inside a disabled toolkit counts as covered.
+        Call this once the catalog is loaded. A tool entry that names a toolkit in this
+        catalog but no tool in it (a typo such as ``Admin.DeleteAlll``) logs a warning. Other
+        unmatched entries log at INFO: one environment is often shared by servers that each
+        load only some toolkits, so an entry for a toolkit this server lacks is expected.
+        Entries already reported as malformed are skipped, and a tool entry whose every
+        reading points into a disabled toolkit counts as covered.
         """
-        covered = tuple(
-            f"{name}{sep}"
-            for name in self._disabled_toolkit_names
-            for sep in _tool_name_separators()
-        )
         for key in sorted(self._disabled_tools.unmatched()):
-            if covered and key.startswith(covered):
+            readings = [r for r in self._disabled_tool_readings[key] if r.well_formed]
+            if all(r.toolkit_keys & self._disabled_toolkit_names for r in readings):
                 continue
-            logger.warning(
-                f"{_DISABLED_TOOLS_ENV} entry {key!r} does not match any tool in the catalog, "
-                f"so it disables nothing."
-            )
+            if any(r.toolkit_keys & self._toolkit_names_seen for r in readings):
+                logger.warning(
+                    f"{_DISABLED_TOOLS_ENV} entry {key!r} names a toolkit in the catalog but "
+                    f"none of its tools, so it disables nothing. Check the tool name."
+                )
+            else:
+                logger.info(
+                    f"{_DISABLED_TOOLS_ENV} entry {key!r} does not match any tool in the catalog."
+                )
         for key in sorted(self._disabled_toolkits.unmatched()):
-            logger.warning(
-                f"{_DISABLED_TOOLKITS_ENV} entry {key!r} does not match any toolkit in the "
-                f"catalog, so it disables nothing."
+            logger.info(
+                f"{_DISABLED_TOOLKITS_ENV} entry {key!r} does not match any toolkit in the catalog."
             )
 
     def add_tool(
@@ -400,7 +475,10 @@ class ToolCatalog(BaseModel):
             )
 
         # Check both before returning, so each entry that applies is recorded as matched.
-        tool_disabled = self._is_tool_disabled(definition.toolkit.name, definition.name)
+        tool_disabled = self._is_tool_disabled(
+            _toolkit_name_keys(toolkit_name) | _toolkit_name_keys(definition.toolkit.name),
+            definition.name,
+        )
         toolkit_disabled = self._is_toolkit_disabled(toolkit_name)
 
         if tool_disabled:
@@ -517,13 +595,10 @@ class ToolCatalog(BaseModel):
         A resource that fails to register raises, the same as a tool that fails
         to register. Both are toolkit primitives, and a toolkit that cannot
         produce something it declares has not loaded.
-        """
-        if self._is_toolkit_disabled(toolkit.name):
-            # add_tool applies the same check per tool.
-            # Resources arrive by a different path and would otherwise be
-            # published for a toolkit whose tools are hidden.
-            return
 
+        add_toolkit returns before calling this for a disabled toolkit, so a
+        toolkit whose tools are hidden never publishes its resources either.
+        """
         toolkit_name = normalize_toolkit_name(toolkit.name)
         toolkit_version = version or toolkit.version
 
