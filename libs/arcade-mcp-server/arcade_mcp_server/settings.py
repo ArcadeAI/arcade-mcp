@@ -150,11 +150,20 @@ class TransportSettings(BaseSettings):
         default=None,
         description="Allowed Origin headers (comma-separated). None = reject any Origin. ['*'] = allow all.",
     )
+    allowed_hosts: list[str] | None = Field(
+        default=None,
+        description=(
+            "Host headers accepted, in addition to localhost, 127.0.0.1 and [::1], when the "
+            "HTTP server is bound to a loopback address (comma-separated). Use it for a tunnel "
+            "or reverse proxy. An entry without a port matches any port. ['*'] = accept any "
+            "Host (turns the check off)."
+        ),
+    )
 
-    @field_validator("allowed_origins", mode="before")
+    @field_validator("allowed_origins", "allowed_hosts", mode="before")
     @classmethod
     def parse_allowed_origins(cls, v: Any) -> list[str] | None:
-        """Parse comma-separated origins from env var."""
+        """Parse a comma-separated list from an env var."""
         if v is None:
             return None
         if isinstance(v, str):
