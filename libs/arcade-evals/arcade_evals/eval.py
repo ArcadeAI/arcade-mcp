@@ -20,6 +20,7 @@ from arcade_evals._evalsuite._comparative_execution import _EvalSuiteComparative
 from arcade_evals._evalsuite._convenience import _EvalSuiteConvenienceMixin
 from arcade_evals._evalsuite._providers import (
     ProviderName,
+    build_anthropic_system,
     convert_messages_to_anthropic,
 )
 from arcade_evals._evalsuite._tool_registry import EvalSuiteToolRegistry
@@ -1134,7 +1135,7 @@ class EvalSuite(_EvalSuiteCaptureMixin, _EvalSuiteConvenienceMixin, _EvalSuiteCo
         response = await client.messages.create(
             model=model,
             max_tokens=4096,
-            system=case.system_message,
+            system=build_anthropic_system(case.system_message, case.additional_messages),
             messages=anthropic_messages,
             tools=tools,
         )

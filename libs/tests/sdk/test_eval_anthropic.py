@@ -725,6 +725,34 @@ class TestAnthropicMessageConversion:
         assert tool_result_msg["content"][0]["content"] == "Tool result"
 
     @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "content",
+        ["Answer in French.", [{"type": "text", "text": "Answer in French."}]],
+    )
+    async def test_system_additional_messages_sent_in_system_param(
+        self, suite_with_additional_messages: EvalSuite, content: object
+    ) -> None:
+        """Test that system messages in additional_messages reach the system parameter."""
+        case = EvalCase(
+            name="test",
+            system_message="You are helpful.",
+            user_message="Hello",
+            expected_tool_calls=[],
+            additional_messages=[{"role": "system", "content": content}],
+        )
+
+        mock_client = AsyncMock()
+        mock_response = MagicMock()
+        mock_response.content = []
+        mock_client.messages.create.return_value = mock_response
+
+        await suite_with_additional_messages._run_anthropic(mock_client, "claude-3", case)
+
+        call_kwargs = mock_client.messages.create.call_args[1]
+        assert call_kwargs["system"] == "You are helpful.\n\nAnswer in French."
+        assert call_kwargs["messages"] == [{"role": "user", "content": "Hello"}]
+
+    @pytest.mark.asyncio
     async def test_converts_assistant_tool_calls_to_anthropic_format(
         self, suite_with_additional_messages: EvalSuite
     ) -> None:

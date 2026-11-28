@@ -21,6 +21,29 @@ logger = logging.getLogger(__name__)
 ProviderName = Literal["openai", "anthropic"]
 
 
+def build_anthropic_system(system_message: str, messages: list[dict[str, Any]]) -> str:
+    """
+    Build the Anthropic ``system`` parameter.
+
+    Args:
+        system_message: The case system message.
+        messages: List of OpenAI-format messages, which may include "system" messages.
+
+    Returns:
+        The case system message followed by the text of each "system" message, in order.
+    """
+    parts = [system_message]
+    for msg in messages:
+        if msg.get("role") != "system":
+            continue
+        content = msg.get("content")
+        if isinstance(content, list):
+            parts.extend(block.get("text", "") for block in content if block.get("type") == "text")
+        else:
+            parts.append(content or "")
+    return "\n\n".join(part for part in parts if part)
+
+
 def convert_messages_to_anthropic(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """
     Convert OpenAI-format messages to Anthropic format.
@@ -47,9 +70,8 @@ def convert_messages_to_anthropic(messages: list[dict[str, Any]]) -> list[dict[s
         role = msg.get("role", "")
 
         if role == "system":
-            # Skip system messages - Anthropic API takes system as a separate parameter.
-            # In _run_anthropic(), we pass system=case.system_message to client.messages.create().
-            # This is the correct approach per Anthropic's API design.
+            # Anthropic takes system text as a separate parameter, not as a message.
+            # See build_anthropic_system().
             continue
 
         elif role == "user":
