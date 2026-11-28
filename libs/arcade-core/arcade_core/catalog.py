@@ -80,6 +80,7 @@ from arcade_core.schema import (
     ToolSecretRequirement,
     ValueSchema,
 )
+from arcade_core.tool_result import ToolResult
 from arcade_core.toolkit import Toolkit
 from arcade_core.utils import (
     does_function_return_value,
@@ -681,11 +682,29 @@ def create_input_definition(func: Callable) -> ToolInput:
     )
 
 
+def _unwrap_tool_result(annotation: Any) -> Any:
+    """Turn ``ToolResult[T]`` into ``T``, inside ``Annotated`` and unions such as ``| None``."""
+    origin = get_origin(annotation)
+    if origin is Annotated:
+        inner = get_args(annotation)[0]
+        unwrapped = _unwrap_tool_result(inner)
+        return annotation if unwrapped is inner else annotation.copy_with((unwrapped,))
+    if origin is ToolResult:
+        return get_args(annotation)[0]
+    if is_union(annotation):
+        args = get_args(annotation)
+        unwrapped_args = tuple(_unwrap_tool_result(arg) for arg in args)
+        return annotation if unwrapped_args == args else Union[unwrapped_args]
+    return annotation
+
+
 def create_output_definition(func: Callable) -> ToolOutput:
     """
     Create an output model for a function based on its return annotation.
     """
-    return_type = inspect.signature(func, follow_wrapped=True).return_annotation
+    return_type = _unwrap_tool_result(
+        inspect.signature(func, follow_wrapped=True).return_annotation
+    )
     description = "No description provided."
 
     if return_type is inspect.Signature.empty:
@@ -1527,7 +1546,7 @@ def determine_output_model(func: Callable) -> type[BaseModel]:
     """
     Determine the output model for a function based on its return annotation.
     """
-    return_annotation = inspect.signature(func).return_annotation
+    return_annotation = _unwrap_tool_result(inspect.signature(func).return_annotation)
     output_model_name = f"{snake_to_pascal_case(func.__name__)}Output"
 
     # If the return annotation is empty, create a model with no fields

@@ -404,6 +404,7 @@ class ArcadeSettings(BaseSettings):
 
 RESERVED_TOOL_SECRET_KEYS: frozenset[str] = frozenset({
     "ARCADE_WORKER_SECRET",
+    "ARCADE_WORKER_SECRETS",
     "ARCADE_API_KEY",
 })
 """Environment variables that authenticate the server/worker to Arcade itself.

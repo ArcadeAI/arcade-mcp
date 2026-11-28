@@ -1691,6 +1691,11 @@ class MCPServer:
                     mctx.set_tool_context(saved_tool_context)
 
             # Convert result
+            if result.external is not None and result.error is None:
+                # A ToolResult: its blocks, the value as JSON text, and structuredContent
+                tool_result = CallToolResult(**result.external)
+                self._tracker.track_tool_call(True)
+                return JSONRPCResponse(id=message.id, result=tool_result)
             if result.value is not None:
                 content = convert_to_mcp_content(result.value)
 
@@ -2767,6 +2772,8 @@ class MCPServer:
             **arguments,
         )
 
+        if result.external is not None and result.error is None:
+            return CallToolResult(**result.external)
         if result.value is not None:
             content = convert_to_mcp_content(result.value)
             structured_content = convert_content_to_structured_content(result.value)
