@@ -433,12 +433,13 @@ class ToolContext(BaseModel):
     model_config = {"arbitrary_types_allowed": True}
 
     def set_secret(self, key: str, value: str) -> None:
-        """Add or update a secret to the tool context."""
+        """Add or update a secret, matching keys case-insensitively."""
         if self.secrets is None:
             self.secrets = []
+        normalized_key = key.lower()
         # Update existing or add new
         for secret in self.secrets:
-            if secret.key == key:
+            if secret.key.lower() == normalized_key:
                 secret.value = value
                 return
         self.secrets.append(ToolSecretItem(key=key, value=value))
